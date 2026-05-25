@@ -201,13 +201,13 @@ class MainActivity : AppCompatActivity() {
                 request: WebResourceRequest?
             ): Boolean {
                 val url = request?.url ?: return false
-                return !isWebUrl(url.scheme)
+                return shouldBlockUrl(view, url)
             }
 
             @Suppress("OVERRIDE_DEPRECATION")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                val scheme = url?.substringBefore(":", missingDelimiterValue = "")
-                return !isWebUrl(scheme)
+                val uri = url?.let(Uri::parse) ?: return false
+                return shouldBlockUrl(view, uri)
             }
         }
 
@@ -532,6 +532,25 @@ class MainActivity : AppCompatActivity() {
         return scheme.equals("http", ignoreCase = true) ||
             scheme.equals("https", ignoreCase = true) ||
             scheme.equals("about", ignoreCase = true)
+    }
+
+    private fun shouldBlockUrl(view: WebView?, uri: Uri): Boolean {
+        if (isUnavailableUcDownloadUrl(uri)) {
+            view?.stopLoading()
+            Toast.makeText(this, R.string.toast_uc_download_unavailable, Toast.LENGTH_SHORT).show()
+            return true
+        }
+
+        return !isWebUrl(uri.scheme)
+    }
+
+    private fun isUnavailableUcDownloadUrl(uri: Uri): Boolean {
+        val host = uri.host?.lowercase().orEmpty()
+        val path = uri.path.orEmpty()
+        return (host == "down2.uc.cn" && path == "/ucbrowser/v2/down.php") ||
+            (host == "umcdn-oss.oss-cn-beijing.aliyuncs.com" &&
+                path.contains("/gongyp/shenmainuc8/") &&
+                path.endsWith(".apk", ignoreCase = true))
     }
 
     private fun isProviderHomeUrl(url: String?): Boolean {

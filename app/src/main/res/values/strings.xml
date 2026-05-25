@@ -11,4 +11,5 @@
     <string name="anonymous_badge">标准</string>
     <string name="action_select_search_provider">使用 %1$s 搜索</string>
     <string name="toast_settings_pending">设置功能后续实现</string>
+    <string name="toast_uc_download_unavailable">UC 浏览器下载链接已失效，请使用搜索结果中的最新地址</string>
 </resources>
