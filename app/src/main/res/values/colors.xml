@@ -20,7 +20,4 @@
     <color name="browser_provider_selected_stroke">#1D6BE3</color>
     <color name="privacy_background">#E8F5EF</color>
     <color name="privacy_text">#11734B</color>
-    <color name="recommendation_card_background">#FFFFFFFF</color>
-    <color name="recommendation_card_stroke">#E3E8F0</color>
-    <color name="recommendation_subtitle">#697586</color>
 </resources>
