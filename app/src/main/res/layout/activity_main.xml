@@ -150,7 +150,8 @@
             android:paddingStart="14dp"
             android:paddingTop="10dp"
             android:paddingEnd="14dp"
-            android:paddingBottom="18dp">
+            android:paddingBottom="18dp"
+            android:visibility="gone">
 
             <LinearLayout
                 android:id="@+id/recommendationFeed"
@@ -164,8 +165,7 @@
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:overScrollMode="ifContentScrolls"
-            android:visibility="gone" />
+            android:overScrollMode="ifContentScrolls" />
 
     </FrameLayout>
 
