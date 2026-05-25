@@ -1,12 +1,188 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootView"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/browser_background">
 
-    <WebView
-        android:id="@+id/webView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:background="@color/browser_surface"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-</FrameLayout>
+        <LinearLayout
+            android:id="@+id/addressBar"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_address_bar"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="4dp">
+
+            <ImageView
+                android:id="@+id/addressIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_search_24"
+                android:tint="@color/browser_icon_muted" />
+
+            <EditText
+                android:id="@+id/addressInput"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="@string/hint_address_bar"
+                android:imeOptions="actionSearch|flagNoExtractUi"
+                android:includeFontPadding="false"
+                android:inputType="textUri|textNoSuggestions"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:textColor="@color/browser_text"
+                android:textColorHint="@color/browser_text_hint"
+                android:textSize="15sp" />
+
+            <ImageButton
+                android:id="@+id/loadButton"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_address_go_button"
+                android:contentDescription="@string/action_load_url"
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_arrow_forward_24"
+                android:tint="@color/address_go_icon" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/pageProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0"
+        android:progressBackgroundTint="@android:color/transparent"
+        android:progressTint="@color/progress_active"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar" />
+
+    <FrameLayout
+        android:id="@+id/webViewContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/webview_background"
+        app:layout_constraintBottom_toTopOf="@id/bottomBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pageProgress">
+
+        <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="ifContentScrolls" />
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="0dp"
+        android:layout_height="62dp"
+        android:background="@color/browser_surface"
+        android:elevation="6dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_back"
+            android:enabled="false"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_arrow_back_24"
+            android:tint="@color/bottom_nav_icon" />
+
+        <ImageButton
+            android:id="@+id/forwardButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_forward"
+            android:enabled="false"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_arrow_forward_24"
+            android:tint="@color/bottom_nav_icon" />
+
+        <ImageButton
+            android:id="@+id/refreshButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_refresh"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_refresh_24"
+            android:tint="@color/bottom_nav_icon" />
+
+        <ImageButton
+            android:id="@+id/homeButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_home"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_home_24"
+            android:tint="@color/bottom_nav_icon" />
+
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_menu"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_more_vert_24"
+            android:tint="@color/bottom_nav_icon" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

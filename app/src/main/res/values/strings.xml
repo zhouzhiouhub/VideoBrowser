@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">VideoBrowser</string>
+    <string name="hint_address_bar">输入网址或搜索</string>
+    <string name="action_load_url">打开</string>
+    <string name="action_back">后退</string>
+    <string name="action_forward">前进</string>
+    <string name="action_refresh">刷新</string>
+    <string name="action_home">首页</string>
+    <string name="action_menu">菜单</string>
+    <string name="toast_settings_pending">设置功能后续实现</string>
 </resources>

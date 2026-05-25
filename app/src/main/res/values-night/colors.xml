@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="browser_background">#11151B</color>
+    <color name="browser_surface">#181D25</color>
+    <color name="webview_background">#0B0F14</color>
+    <color name="address_bar_background">#222936</color>
+    <color name="address_bar_stroke">#303948</color>
+    <color name="browser_text">#F4F7FB</color>
+    <color name="browser_text_hint">#8F9BAD</color>
+    <color name="browser_icon">#E9EEF7</color>
+    <color name="browser_icon_muted">#AAB4C3</color>
+    <color name="browser_icon_disabled">#596474</color>
+    <color name="browser_control_pressed">#2D3645</color>
+    <color name="browser_primary">#4D8DFF</color>
+    <color name="browser_primary_pressed">#3777E4</color>
+    <color name="progress_active">#4D8DFF</color>
+</resources>
