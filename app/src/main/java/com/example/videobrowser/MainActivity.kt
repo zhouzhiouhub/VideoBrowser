@@ -75,8 +75,8 @@ class MainActivity : AppCompatActivity() {
         ),
         SearchProvider(
             id = "uc",
-            name = "神马搜索",
-            badge = "神",
+            name = "UC",
+            badge = "UC",
             homeUrl = "https://so.m.sm.cn/",
             searchUrlPrefix = "https://so.m.sm.cn/s?q=",
             accentColor = Color.parseColor("#F28C20")
@@ -438,10 +438,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (addressInput.text?.toString() == url) {
+        val displayUrl = if (isProviderHomeUrl(url)) "" else url
+        if (addressInput.text?.toString() == displayUrl) {
             return
         }
-        addressInput.setText(url)
+        addressInput.setText(displayUrl)
         addressInput.setSelection(addressInput.text?.length ?: 0)
     }
 
