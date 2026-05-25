@@ -1,10 +1,17 @@
 package com.example.videobrowser
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Bitmap
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.TextUtils
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
@@ -14,12 +21,16 @@ import android.webkit.WebSettings
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebViewDatabase
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.net.URLEncoder
@@ -27,9 +38,25 @@ import java.nio.charset.StandardCharsets
 
 class MainActivity : AppCompatActivity() {
 
+    private data class SearchProvider(
+        val id: String,
+        val name: String,
+        val badge: String,
+        val searchUrlPrefix: String,
+        val accentColor: Int
+    )
+
+    private data class SearchProviderViews(
+        val item: LinearLayout,
+        val badge: TextView,
+        val label: TextView
+    )
+
     private lateinit var webView: WebView
     private lateinit var addressInput: EditText
     private lateinit var pageProgress: ProgressBar
+    private lateinit var searchProviderList: LinearLayout
+    private lateinit var anonymousBadge: TextView
     private lateinit var backButton: ImageButton
     private lateinit var forwardButton: ImageButton
     private lateinit var refreshButton: ImageButton
@@ -37,7 +64,54 @@ class MainActivity : AppCompatActivity() {
     private lateinit var menuButton: ImageButton
     private lateinit var loadButton: ImageButton
 
-    private val homePage = "https://www.baidu.com"
+    private val searchProviders = listOf(
+        SearchProvider(
+            id = "quark",
+            name = "夸克搜索",
+            badge = "夸",
+            searchUrlPrefix = "https://quark.sm.cn/s?q=",
+            accentColor = Color.parseColor("#2F6FED")
+        ),
+        SearchProvider(
+            id = "uc",
+            name = "神马搜索",
+            badge = "神",
+            searchUrlPrefix = "https://so.m.sm.cn/s?q=",
+            accentColor = Color.parseColor("#F28C20")
+        ),
+        SearchProvider(
+            id = "baidu",
+            name = "百度",
+            badge = "百",
+            searchUrlPrefix = "https://www.baidu.com/s?wd=",
+            accentColor = Color.parseColor("#315EFB")
+        ),
+        SearchProvider(
+            id = "sogou",
+            name = "搜狗",
+            badge = "搜",
+            searchUrlPrefix = "https://www.sogou.com/web?query=",
+            accentColor = Color.parseColor("#13B56B")
+        ),
+        SearchProvider(
+            id = "so",
+            name = "360搜索",
+            badge = "360",
+            searchUrlPrefix = "https://www.so.com/s?q=",
+            accentColor = Color.parseColor("#20A052")
+        ),
+        SearchProvider(
+            id = "edge",
+            name = "Bing",
+            badge = "B",
+            searchUrlPrefix = "https://www.bing.com/search?q=",
+            accentColor = Color.parseColor("#12837A")
+        )
+    )
+    private val searchProviderViews = mutableMapOf<String, SearchProviderViews>()
+    private lateinit var selectedSearchProvider: SearchProvider
+
+    private val homePage = "about:blank"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +121,8 @@ class MainActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         addressInput = findViewById(R.id.addressInput)
         pageProgress = findViewById(R.id.pageProgress)
+        searchProviderList = findViewById(R.id.searchProviderList)
+        anonymousBadge = findViewById(R.id.anonymousBadge)
         loadButton = findViewById(R.id.loadButton)
         backButton = findViewById(R.id.backButton)
         forwardButton = findViewById(R.id.forwardButton)
@@ -64,6 +140,7 @@ class MainActivity : AppCompatActivity() {
         }
         ViewCompat.requestApplyInsets(rootView)
 
+        setupSearchProviders()
         setupBrowserControls()
         setupBackNavigation()
         clearBrowsingData()
@@ -82,6 +159,11 @@ class MainActivity : AppCompatActivity() {
             mediaPlaybackRequiresUserGesture = false
             cacheMode = WebSettings.LOAD_NO_CACHE
             setSupportMultipleWindows(false)
+            setGeolocationEnabled(false)
+            @Suppress("DEPRECATION")
+            databaseEnabled = false
+            @Suppress("DEPRECATION")
+            saveFormData = false
         }
 
         webView.webChromeClient = object : WebChromeClient() {
@@ -142,9 +224,15 @@ class MainActivity : AppCompatActivity() {
             flush()
         }
         WebStorage.getInstance().deleteAllData()
+        @Suppress("DEPRECATION")
+        WebViewDatabase.getInstance(this).apply {
+            clearFormData()
+            clearHttpAuthUsernamePassword()
+        }
     }
 
     private fun setupBrowserControls() {
+        ViewCompat.setTooltipText(anonymousBadge, getString(R.string.anonymous_badge))
         ViewCompat.setTooltipText(loadButton, getString(R.string.action_load_url))
         ViewCompat.setTooltipText(backButton, getString(R.string.action_back))
         ViewCompat.setTooltipText(forwardButton, getString(R.string.action_forward))
@@ -191,6 +279,129 @@ class MainActivity : AppCompatActivity() {
         updateNavigationButtons()
     }
 
+    private fun setupSearchProviders() {
+        selectedSearchProvider = loadSavedSearchProvider()
+        searchProviderViews.clear()
+        searchProviderList.removeAllViews()
+
+        searchProviders.forEach { provider ->
+            val item = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                isClickable = true
+                isFocusable = true
+                contentDescription = getString(R.string.action_select_search_provider, provider.name)
+                setPadding(dp(4), 0, dp(4), 0)
+                setSelectableItemBackground()
+                setOnClickListener { selectSearchProvider(provider) }
+            }
+            val badge = TextView(this).apply {
+                gravity = Gravity.CENTER
+                includeFontPadding = false
+                text = provider.badge
+                setTypeface(typeface, Typeface.BOLD)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, if (provider.badge.length > 1) 12f else 16f)
+            }
+            item.addView(
+                badge,
+                LinearLayout.LayoutParams(dp(48), dp(48))
+            )
+
+            val label = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = dp(6)
+                }
+                ellipsize = TextUtils.TruncateAt.END
+                gravity = Gravity.CENTER
+                includeFontPadding = false
+                maxLines = 1
+                text = provider.name
+                textSize = 12f
+            }
+            item.addView(label)
+
+            searchProviderViews[provider.id] = SearchProviderViews(item, badge, label)
+            searchProviderList.addView(
+                item,
+                LinearLayout.LayoutParams(dp(78), ViewGroup.LayoutParams.MATCH_PARENT)
+            )
+        }
+
+        updateSearchProviderSelection()
+    }
+
+    private fun selectSearchProvider(provider: SearchProvider) {
+        selectedSearchProvider = provider
+        getPreferences(Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_SEARCH_PROVIDER, provider.id)
+            .apply()
+        updateSearchProviderSelection()
+    }
+
+    private fun loadSavedSearchProvider(): SearchProvider {
+        val savedProviderId = getPreferences(Context.MODE_PRIVATE)
+            .getString(KEY_SEARCH_PROVIDER, null)
+        return searchProviders.firstOrNull { it.id == savedProviderId } ?: searchProviders.first()
+    }
+
+    private fun updateSearchProviderSelection() {
+        searchProviders.forEach { provider ->
+            val views = searchProviderViews[provider.id] ?: return@forEach
+            val selected = provider.id == selectedSearchProvider.id
+            views.item.isSelected = selected
+            views.badge.background = createProviderBadgeBackground(provider, selected)
+            views.badge.setTextColor(
+                if (selected) {
+                    Color.WHITE
+                } else {
+                    ContextCompat.getColor(this, R.color.browser_icon)
+                }
+            )
+            views.label.setTextColor(
+                ContextCompat.getColor(
+                    this,
+                    if (selected) R.color.browser_text else R.color.browser_text_hint
+                )
+            )
+            views.label.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
+        }
+        addressInput.hint = getString(
+            R.string.hint_search_with_provider,
+            selectedSearchProvider.name
+        )
+    }
+
+    private fun createProviderBadgeBackground(
+        provider: SearchProvider,
+        selected: Boolean
+    ): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            if (selected) {
+                setColor(provider.accentColor)
+                setStroke(
+                    dp(2),
+                    ContextCompat.getColor(
+                        this@MainActivity,
+                        R.color.browser_provider_selected_stroke
+                    )
+                )
+            } else {
+                setColor(ContextCompat.getColor(this@MainActivity, R.color.browser_provider_circle))
+            }
+        }
+    }
+
+    private fun View.setSelectableItemBackground() {
+        val outValue = TypedValue()
+        theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, outValue, true)
+        setBackgroundResource(outValue.resourceId)
+    }
+
     private fun setupBackNavigation() {
         onBackPressedDispatcher.addCallback(
             this,
@@ -223,10 +434,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateAddressBar(url: String?) {
-        if (url.isNullOrBlank() || addressInput.text?.toString() == url) {
+        if (url.isNullOrBlank()) {
             return
         }
-        addressInput.setText(url)
+
+        val displayUrl = if (url == homePage) "" else url
+        if (addressInput.text?.toString() == displayUrl) {
+            return
+        }
+        addressInput.setText(displayUrl)
         addressInput.setSelection(addressInput.text?.length ?: 0)
     }
 
@@ -253,9 +469,13 @@ class MainActivity : AppCompatActivity() {
             looksLikeDomain(value) -> "https://$value"
             else -> {
                 val encodedQuery = URLEncoder.encode(value, StandardCharsets.UTF_8.name())
-                "$DEFAULT_SEARCH_URL$encodedQuery"
+                "${selectedSearchProvider.searchUrlPrefix}$encodedQuery"
             }
         }
+    }
+
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
     }
 
     private fun looksLikeLocalAddress(value: String): Boolean {
@@ -308,6 +528,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val DEFAULT_SEARCH_URL = "https://www.baidu.com/s?wd="
+        private const val KEY_SEARCH_PROVIDER = "search_provider"
     }
 }

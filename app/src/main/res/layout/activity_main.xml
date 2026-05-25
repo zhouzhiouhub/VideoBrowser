@@ -72,6 +72,22 @@
                 android:tint="@color/address_go_icon" />
 
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/anonymousBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_anonymous_badge"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:minWidth="52dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/anonymous_badge"
+            android:textColor="@color/privacy_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <ProgressBar
@@ -89,6 +105,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar" />
 
+    <HorizontalScrollView
+        android:id="@+id/searchProviderScroll"
+        android:layout_width="0dp"
+        android:layout_height="86dp"
+        android:background="@color/browser_background"
+        android:clipToPadding="false"
+        android:fillViewport="false"
+        android:overScrollMode="never"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pageProgress">
+
+        <LinearLayout
+            android:id="@+id/searchProviderList"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+
+    </HorizontalScrollView>
+
     <FrameLayout
         android:id="@+id/webViewContainer"
         android:layout_width="0dp"
@@ -97,7 +137,7 @@
         app:layout_constraintBottom_toTopOf="@id/bottomBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pageProgress">
+        app:layout_constraintTop_toBottomOf="@id/searchProviderScroll">
 
         <WebView
             android:id="@+id/webView"

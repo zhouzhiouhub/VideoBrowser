@@ -14,4 +14,8 @@
     <color name="browser_primary">#4D8DFF</color>
     <color name="browser_primary_pressed">#3777E4</color>
     <color name="progress_active">#4D8DFF</color>
+    <color name="browser_provider_circle">#2A3038</color>
+    <color name="browser_provider_selected_stroke">#4D8DFF</color>
+    <color name="privacy_background">#173629</color>
+    <color name="privacy_text">#74D7A7</color>
 </resources>
