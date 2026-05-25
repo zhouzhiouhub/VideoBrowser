@@ -139,11 +139,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchProviderScroll">
 
+        <ScrollView
+            android:id="@+id/recommendationScroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/browser_background"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:overScrollMode="ifContentScrolls"
+            android:paddingStart="14dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="18dp">
+
+            <LinearLayout
+                android:id="@+id/recommendationFeed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </ScrollView>
+
         <WebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:overScrollMode="ifContentScrolls" />
+            android:overScrollMode="ifContentScrolls"
+            android:visibility="gone" />
 
     </FrameLayout>
 
