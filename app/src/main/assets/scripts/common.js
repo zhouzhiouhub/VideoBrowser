@@ -15,6 +15,9 @@
   if (!state.fullscreenHookedVideos || typeof state.fullscreenHookedVideos.add !== 'function') {
     state.fullscreenHookedVideos = new WeakSet();
   }
+  if (!state.speedHookedVideos || typeof state.speedHookedVideos.add !== 'function') {
+    state.speedHookedVideos = new WeakSet();
+  }
   state.pageFullscreenVideo = state.pageFullscreenVideo || null;
   state.previousDocumentOverflow = state.previousDocumentOverflow || '';
 
@@ -306,14 +309,11 @@
   }
 
   function enhanceVideos() {
-    const speed = state.config.videoEnabled ? Number(state.config.videoSpeed || 1) : 1;
     document.querySelectorAll('video').forEach(function (video) {
       enableNativeVideoControls(video);
       installVideoFullscreenHooks(video);
-      if (Number.isFinite(speed) && speed > 0 && video.playbackRate !== speed) {
-        video.playbackRate = speed;
-      }
-      video.defaultPlaybackRate = speed;
+      installPlaybackSpeedHooks(video);
+      applyVideoSpeed(video);
     });
   }
 
@@ -333,6 +333,34 @@
     video.addEventListener('dblclick', function () {
       requestVideoFullscreen(video);
     });
+  }
+
+  function installPlaybackSpeedHooks(video) {
+    if (!video || state.speedHookedVideos.has(video)) return;
+    state.speedHookedVideos.add(video);
+    const enforceSpeed = function () {
+      window.setTimeout(function () {
+        applyVideoSpeed(video);
+      }, 0);
+    };
+    ['loadedmetadata', 'play', 'playing', 'ratechange', 'webkitbeginfullscreen'].forEach(function (eventName) {
+      video.addEventListener(eventName, enforceSpeed);
+    });
+  }
+
+  function desiredVideoSpeed() {
+    const speed = state.config.videoEnabled ? Number(state.config.videoSpeed || 1) : 1;
+    return Number.isFinite(speed) && speed > 0 ? speed : 1;
+  }
+
+  function applyVideoSpeed(video) {
+    const speed = desiredVideoSpeed();
+    try {
+      if (Math.abs(Number(video.playbackRate || 1) - speed) > 0.01) {
+        video.playbackRate = speed;
+      }
+      video.defaultPlaybackRate = speed;
+    } catch (_) {}
   }
 
   function enableVideoControls(video) {
@@ -819,6 +847,7 @@
   function syncDocumentFullscreenState() {
     const hasDocumentFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
     if (hasDocumentFullscreen) {
+      document.querySelectorAll('video').forEach(applyVideoSpeed);
       enterNativeFullscreen();
       return;
     }

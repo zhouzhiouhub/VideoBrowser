@@ -3,6 +3,7 @@ package com.example.videobrowser.video
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -29,6 +31,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_player)
 
         playerView = findViewById(R.id.playerView)
@@ -114,7 +117,9 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 )
                 playerView.player = exoPlayer
+                exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
                 exoPlayer.setMediaItem(mediaItem)
+                exoPlayer.setPlaybackSpeed(initialPlaybackSpeed())
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.seekTo(currentMediaItemIndex, playbackPosition)
                 exoPlayer.prepare()
@@ -173,6 +178,15 @@ class PlayerActivity : AppCompatActivity() {
         return intent.getStringExtra(EXTRA_MEDIA_URI).orEmpty()
     }
 
+    private fun initialPlaybackSpeed(): Float {
+        val speed = intent.getFloatExtra(EXTRA_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+        return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
+            speed
+        } else {
+            DEFAULT_PLAYBACK_SPEED
+        }
+    }
+
     companion object {
         private const val EXTRA_MEDIA_URI = "com.example.videobrowser.extra.MEDIA_URI"
         private const val EXTRA_MEDIA_TITLE = "com.example.videobrowser.extra.MEDIA_TITLE"
@@ -180,9 +194,11 @@ class PlayerActivity : AppCompatActivity() {
         private const val EXTRA_USER_AGENT = "com.example.videobrowser.extra.USER_AGENT"
         private const val EXTRA_COOKIE = "com.example.videobrowser.extra.COOKIE"
         private const val EXTRA_REFERER = "com.example.videobrowser.extra.REFERER"
+        private const val EXTRA_PLAYBACK_SPEED = "com.example.videobrowser.extra.PLAYBACK_SPEED"
         private const val STATE_PLAYBACK_POSITION = "playback_position"
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
+        private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val MIME_HLS = "application/x-mpegURL"
         private const val MIME_DASH = "application/dash+xml"
         private const val MIME_SMOOTH_STREAMING = "application/vnd.ms-sstr+xml"
@@ -194,7 +210,8 @@ class PlayerActivity : AppCompatActivity() {
             mimeType: String?,
             userAgent: String?,
             cookie: String?,
-            referer: String?
+            referer: String?,
+            playbackSpeed: Float
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra(EXTRA_MEDIA_URI, mediaUri)
@@ -203,6 +220,7 @@ class PlayerActivity : AppCompatActivity() {
                 putExtra(EXTRA_USER_AGENT, userAgent)
                 putExtra(EXTRA_COOKIE, cookie)
                 putExtra(EXTRA_REFERER, referer)
+                putExtra(EXTRA_PLAYBACK_SPEED, playbackSpeed)
             }
         }
     }

@@ -1087,7 +1087,8 @@ class MainActivity : AppCompatActivity() {
             mimeType = mimeType,
             userAgent = userAgentOverride ?: browserManager.userAgentString(),
             cookie = cookie,
-            referer = referer
+            referer = referer,
+            playbackSpeed = videoSpeed()
         )
         startActivity(intent)
     }
