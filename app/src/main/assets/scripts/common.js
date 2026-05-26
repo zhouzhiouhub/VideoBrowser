@@ -9,15 +9,9 @@
     disposed: false
   };
   window.__videobrowserState = state;
-  if (!state.videoOverlays || typeof state.videoOverlays.forEach !== 'function') {
-    state.videoOverlays = new Map();
-  }
-  state.pageFullscreenVideo = state.pageFullscreenVideo || null;
   state.previousDocumentOverflow = state.previousDocumentOverflow || '';
 
   const styleId = '__videobrowser_css_filter__';
-  const fullscreenStyleId = '__videobrowser_video_fullscreen_css__';
-  const pageFullscreenClass = '__videobrowser_page_fullscreen_video__';
   const adSelectors = [
     '.ad',
     '.ads',
@@ -303,19 +297,9 @@
   }
 
   function enhanceVideos() {
-    cleanupDisconnectedVideoOverlays();
-    if (!state.config.videoEnabled) {
-      document.querySelectorAll('video').forEach(function (video) {
-        enableNativeVideoControls(video);
-        video.playbackRate = 1;
-        video.defaultPlaybackRate = 1;
-        removeVideoOverlay(video, state.videoOverlays.get(video));
-      });
-      return;
-    }
-    const speed = Number(state.config.videoSpeed || 1);
+    const speed = state.config.videoEnabled ? Number(state.config.videoSpeed || 1) : 1;
     document.querySelectorAll('video').forEach(function (video) {
-      enableVideoControls(video);
+      enableNativeVideoControls(video);
       if (Number.isFinite(speed) && speed > 0 && video.playbackRate !== speed) {
         video.playbackRate = speed;
       }
@@ -333,7 +317,6 @@
 
   function enableVideoControls(video) {
     enableNativeVideoControls(video);
-    installVideoOverlay(video);
   }
 
   function addManagedListener(target, eventName, handler, options, disposers) {
@@ -662,13 +645,6 @@
   }
 
   function exitVideoFullscreen() {
-    const video = state.pageFullscreenVideo;
-    if (video) {
-      video.classList.remove(pageFullscreenClass);
-      updateVideoOverlay(video, state.videoOverlays.get(video));
-    }
-    state.pageFullscreenVideo = null;
-    document.documentElement.style.overflow = state.previousDocumentOverflow || '';
     if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
       try { document.exitFullscreen(); } catch (_) {}
     } else if (document.webkitFullscreenElement && typeof document.webkitExitFullscreen === 'function') {
@@ -820,13 +796,6 @@
       return;
     }
 
-    if (state.pageFullscreenVideo) {
-      const video = state.pageFullscreenVideo;
-      video.classList.remove(pageFullscreenClass);
-      state.pageFullscreenVideo = null;
-      document.documentElement.style.overflow = state.previousDocumentOverflow || '';
-      updateVideoOverlay(video, state.videoOverlays.get(video));
-    }
     exitNativeFullscreen();
   }
 
@@ -902,19 +871,7 @@
     if (options && options.pauseVideos) {
       pausePageVideos();
     }
-    if (state.pageFullscreenVideo) {
-      exitVideoFullscreen();
-    } else {
-      exitNativeFullscreen();
-    }
-
-    const entries = [];
-    state.videoOverlays.forEach(function (controls, video) {
-      entries.push([video, controls]);
-    });
-    entries.forEach(function (entry) {
-      removeVideoOverlay(entry[0], entry[1]);
-    });
+    exitVideoFullscreen();
     document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
       overlay.remove();
     });

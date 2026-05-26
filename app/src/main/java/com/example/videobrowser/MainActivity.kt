@@ -47,7 +47,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
+import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.video.PlayerActivity
 import java.io.ByteArrayInputStream
 import org.json.JSONArray
 import org.json.JSONObject
@@ -248,7 +250,7 @@ class MainActivity : AppCompatActivity() {
                 request: WebResourceRequest?
             ): Boolean {
                 val url = request?.url ?: return false
-                return shouldBlockUrl(view, url)
+                return shouldBlockUrl(view, url, openMedia = request.isForMainFrame)
             }
 
             @Suppress("OVERRIDE_DEPRECATION")
@@ -586,6 +588,13 @@ class MainActivity : AppCompatActivity() {
         }
         addActionRow(
             parent = content,
+            title = getString(R.string.action_open_native_player),
+            summary = getString(R.string.action_open_native_player_summary)
+        ) {
+            openCurrentUrlInNativePlayer()
+        }
+        addActionRow(
+            parent = content,
             title = getString(R.string.action_add_bookmark),
             summary = getString(R.string.action_add_bookmark_summary)
         ) {
@@ -838,6 +847,18 @@ class MainActivity : AppCompatActivity() {
         openExternalUrl(url)
     }
 
+    private fun openCurrentUrlInNativePlayer() {
+        val url = currentShareableUrl() ?: run {
+            Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
+            Toast.makeText(this, R.string.toast_media_url_unsupported, Toast.LENGTH_SHORT).show()
+            return
+        }
+        openNativePlayer(url)
+    }
+
     private fun clearBrowserData() {
         browserManager.clearBrowsingData()
         appPreferences.edit().remove(KEY_HISTORY).apply()
@@ -926,6 +947,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupDownloadHandling() {
         browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            val mediaUri = url?.takeIf {
+                MediaUrlUtils.isPlayableMediaUri(Uri.parse(it), mimeType)
+            }
+            if (mediaUri != null) {
+                openNativePlayer(
+                    url = mediaUri,
+                    mimeType = mimeType,
+                    userAgentOverride = userAgent
+                )
+                return@setDownloadListener
+            }
+
             enqueueDownload(
                 url = url,
                 userAgent = userAgent,
@@ -1033,6 +1066,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun openNativePlayer(
+        url: String,
+        mimeType: String? = null,
+        userAgentOverride: String? = null
+    ) {
+        val title = currentPageTitle
+            .takeIf { it.isNotBlank() && !it.equals(url, ignoreCase = true) }
+            ?: URLUtil.guessFileName(url, null, mimeType)
+        val referer = currentShareableUrl()?.takeIf { !it.equals(url, ignoreCase = true) }
+        val cookie = if (isShareableUrl(url)) {
+            CookieManager.getInstance().getCookie(url)
+        } else {
+            null
+        }
+        val intent = PlayerActivity.createIntent(
+            context = this,
+            mediaUri = url,
+            title = title,
+            mimeType = mimeType,
+            userAgent = userAgentOverride ?: browserManager.userAgentString(),
+            cookie = cookie,
+            referer = referer
+        )
+        startActivity(intent)
+    }
+
     private fun loadAddressInput() {
         val input = addressInput.text?.toString()?.trim().orEmpty()
         UrlUtils.resolveAddressInput(input, selectedSearchProvider.searchUrlPrefix)
@@ -1044,6 +1103,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUrl(url: String) {
+        if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
+            openNativePlayer(url)
+            return
+        }
+
         val isProviderHome = isProviderHomeUrl(url)
         updateAddressBar(url)
         hideKeyboard()
@@ -1095,7 +1159,13 @@ class MainActivity : AppCompatActivity() {
             scheme.equals("about", ignoreCase = true)
     }
 
-    private fun shouldBlockUrl(view: WebView?, uri: Uri): Boolean {
+    private fun shouldBlockUrl(view: WebView?, uri: Uri, openMedia: Boolean = true): Boolean {
+        if (openMedia && MediaUrlUtils.isPlayableMediaUri(uri)) {
+            view?.stopLoading()
+            openNativePlayer(uri.toString())
+            return true
+        }
+
         if (isUnavailableUcDownloadUrl(uri)) {
             view?.stopLoading()
             Toast.makeText(this, R.string.toast_uc_download_unavailable, Toast.LENGTH_SHORT).show()
