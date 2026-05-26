@@ -46,6 +46,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.videobrowser.browser.BrowserManager
 import java.io.ByteArrayInputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -89,6 +90,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadButton: ImageButton
     private lateinit var fullscreenContainer: FrameLayout
     private lateinit var appPreferences: SharedPreferences
+    private lateinit var browserManager: BrowserManager
 
     private val searchProviders = listOf(
         SearchProvider(
@@ -171,6 +173,7 @@ class MainActivity : AppCompatActivity() {
         menuButton = findViewById(R.id.menuButton)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         appPreferences = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        browserManager = BrowserManager(webView)
 
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
             val safeArea = insets.getInsets(
@@ -183,6 +186,7 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.requestApplyInsets(rootView)
 
         setupSearchProviders()
+        browserManager.setup()
         setupBrowserControls()
         setupBackNavigation()
         val cookieManager = CookieManager.getInstance()
