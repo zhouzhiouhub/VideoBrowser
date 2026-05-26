@@ -1081,8 +1081,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateNavigationButtons() {
-        backButton.isEnabled = !isHomePageVisible && webView.canGoBack()
-        forwardButton.isEnabled = !isHomePageVisible && webView.canGoForward()
+        backButton.isEnabled = webView.canGoBack()
+        forwardButton.isEnabled = webView.canGoForward()
     }
 
     private fun showHomeContent(show: Boolean) {
