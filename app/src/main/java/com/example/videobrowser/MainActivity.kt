@@ -188,15 +188,11 @@ class MainActivity : AppCompatActivity() {
         browserManager.setup()
         setupBrowserControls()
         setupBackNavigation()
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setAcceptCookie(true)
-        cookieManager.setAcceptThirdPartyCookies(webView, true)
-
-        defaultUserAgent = webView.settings.userAgentString
+        defaultUserAgent = browserManager.userAgentString()
         applyDesktopMode(reload = false)
         setupDownloadHandling()
 
-        webView.webChromeClient = object : WebChromeClient() {
+        browserManager.setChromeClient(object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 pageProgress.progress = newProgress
                 pageProgress.visibility =
@@ -218,9 +214,9 @@ class MainActivity : AppCompatActivity() {
             override fun onHideCustomView() {
                 hideFullscreenContent()
             }
-        }
+        })
 
-        webView.webViewClient = object : WebViewClient() {
+        browserManager.setBrowserClient(object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 val isProviderHome = isProviderHomeUrl(url)
                 updateAddressBar(url)
@@ -275,7 +271,7 @@ class MainActivity : AppCompatActivity() {
                 val uri = url?.let(Uri::parse) ?: return false
                 return shouldBlockUrl(view, uri)
             }
-        }
+        })
 
         openHomePage()
     }
@@ -792,9 +788,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clearBrowserData() {
-        webView.clearCache(true)
-        webView.clearHistory()
-        CookieManager.getInstance().removeAllCookies(null)
+        browserManager.clearBrowsingData()
         appPreferences.edit().remove(KEY_HISTORY).apply()
         Toast.makeText(this, R.string.toast_browser_data_cleared, Toast.LENGTH_SHORT).show()
         updateNavigationButtons()
@@ -806,7 +800,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun currentSavedPage(urlOverride: String? = null): SavedPage? {
-        val url = urlOverride ?: webView.url
+        val url = urlOverride ?: browserManager.currentUrl()
         if (url.isNullOrBlank() || !isShareableUrl(url)) {
             return null
         }
@@ -880,7 +874,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupDownloadHandling() {
-        webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+        browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             enqueueDownload(
                 url = url,
                 userAgent = userAgent,
@@ -922,16 +916,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyDesktopMode(reload: Boolean) {
-        webView.settings.userAgentString = if (isDesktopModeEnabled()) {
-            DESKTOP_USER_AGENT
-        } else {
-            defaultUserAgent
-        }
-        webView.settings.useWideViewPort = true
-        webView.settings.loadWithOverviewMode = true
-        if (reload) {
-            browserManager.reload()
-        }
+        browserManager.applyDesktopMode(
+            enabled = isDesktopModeEnabled(),
+            desktopUserAgent = DESKTOP_USER_AGENT,
+            defaultUserAgent = defaultUserAgent,
+            reload = reload
+        )
     }
 
     private fun injectPageFeatures() {
@@ -949,7 +939,7 @@ class MainActivity : AppCompatActivity() {
               }
             })();
         """.trimIndent()
-        webView.evaluateJavascript(script, null)
+        browserManager.evaluateJavascript(script)
     }
 
     private fun showFullscreenContent(view: View?, callback: WebChromeClient.CustomViewCallback?) {
@@ -1015,7 +1005,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun currentShareableUrl(): String? {
-        return webView.url?.takeIf { isShareableUrl(it) }
+        return browserManager.currentUrl()?.takeIf { isShareableUrl(it) }
     }
 
     private fun isShareableUrl(url: String): Boolean {

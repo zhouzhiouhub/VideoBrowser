@@ -1,12 +1,21 @@
 package com.example.videobrowser.browser
 
+import android.webkit.CookieManager
+import android.webkit.DownloadListener
+import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebViewClient
 
 class BrowserManager(
     private val webView: WebView
 ) {
     fun setup() {
+        CookieManager.getInstance().apply {
+            setAcceptCookie(true)
+            setAcceptThirdPartyCookies(webView, true)
+        }
+
         webView.settings.apply {
             javaScriptEnabled = true
             javaScriptCanOpenWindowsAutomatically = false
@@ -27,6 +36,18 @@ class BrowserManager(
             @Suppress("DEPRECATION")
             saveFormData = false
         }
+    }
+
+    fun setChromeClient(client: WebChromeClient?) {
+        webView.webChromeClient = client
+    }
+
+    fun setBrowserClient(client: WebViewClient) {
+        webView.webViewClient = client
+    }
+
+    fun setDownloadListener(listener: DownloadListener?) {
+        webView.setDownloadListener(listener)
     }
 
     fun load(url: String) {
@@ -59,6 +80,42 @@ class BrowserManager(
 
     fun canGoForward(): Boolean {
         return webView.canGoForward()
+    }
+
+    fun currentUrl(): String? {
+        return webView.url
+    }
+
+    fun userAgentString(): String? {
+        return webView.settings.userAgentString
+    }
+
+    fun applyDesktopMode(
+        enabled: Boolean,
+        desktopUserAgent: String,
+        defaultUserAgent: String?,
+        reload: Boolean
+    ) {
+        webView.settings.userAgentString = if (enabled) {
+            desktopUserAgent
+        } else {
+            defaultUserAgent
+        }
+        webView.settings.useWideViewPort = true
+        webView.settings.loadWithOverviewMode = true
+        if (reload) {
+            reload()
+        }
+    }
+
+    fun evaluateJavascript(script: String) {
+        webView.evaluateJavascript(script, null)
+    }
+
+    fun clearBrowsingData() {
+        webView.clearCache(true)
+        webView.clearHistory()
+        CookieManager.getInstance().removeAllCookies(null)
     }
 
     fun onPause() {
