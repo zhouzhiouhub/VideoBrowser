@@ -24,7 +24,6 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.webkit.URLUtil
 import android.webkit.CookieManager
-import android.webkit.WebChromeClient
 import android.webkit.WebResourceResponse
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -90,6 +89,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fullscreenContainer: FrameLayout
     private lateinit var appPreferences: SharedPreferences
     private lateinit var browserManager: BrowserManager
+    private lateinit var chromeClient: ChromeClient
 
     private val searchProviders = listOf(
         SearchProvider(
@@ -146,9 +146,6 @@ class MainActivity : AppCompatActivity() {
     private var isHomePageVisible = true
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
-    private var customView: View? = null
-    private var customViewCallback: WebChromeClient.CustomViewCallback? = null
-    private var previousSystemUiVisibility = 0
     private val commonScript: String by lazy {
         assets.open(COMMON_SCRIPT_ASSET).bufferedReader().use { it.readText() }
     }
@@ -264,7 +261,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        hideFullscreenContent()
+        if (::chromeClient.isInitialized) {
+            chromeClient.hideCustomView()
+        }
         browserManager.destroy()
         super.onDestroy()
     }
@@ -312,14 +311,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupChromeClient() {
-        browserManager.setChromeClient(
+        chromeClient =
             ChromeClient(
+                fullscreenContainer = fullscreenContainer,
+                decorView = window.decorView,
                 progressChanged = ::handlePageProgressChanged,
-                titleReceived = ::handlePageTitleReceived,
-                showCustomView = ::showFullscreenContent,
-                hideCustomView = ::hideFullscreenContent
+                titleReceived = ::handlePageTitleReceived
             )
-        )
+        browserManager.setChromeClient(chromeClient)
     }
 
     private fun handlePageProgressChanged(newProgress: Int) {
@@ -464,8 +463,8 @@ class MainActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (customView != null) {
-                        hideFullscreenContent()
+                    if (::chromeClient.isInitialized && chromeClient.isShowingCustomView()) {
+                        chromeClient.hideCustomView()
                     } else if (browserManager.goBack()) {
                         updateNavigationButtons()
                     } else {
@@ -939,47 +938,6 @@ class MainActivity : AppCompatActivity() {
             })();
         """.trimIndent()
         browserManager.evaluateJavascript(script)
-    }
-
-    private fun showFullscreenContent(view: View?, callback: WebChromeClient.CustomViewCallback?) {
-        if (view == null) {
-            callback?.onCustomViewHidden()
-            return
-        }
-        if (customView != null) {
-            callback?.onCustomViewHidden()
-            return
-        }
-
-        customView = view
-        customViewCallback = callback
-        previousSystemUiVisibility = window.decorView.systemUiVisibility
-        fullscreenContainer.addView(
-            view,
-            FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        )
-        fullscreenContainer.visibility = View.VISIBLE
-        window.decorView.systemUiVisibility =
-            previousSystemUiVisibility or
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-    }
-
-    private fun hideFullscreenContent() {
-        val view = customView ?: return
-        fullscreenContainer.removeView(view)
-        fullscreenContainer.visibility = View.GONE
-        window.decorView.systemUiVisibility = previousSystemUiVisibility
-        customViewCallback?.onCustomViewHidden()
-        customView = null
-        customViewCallback = null
     }
 
     private fun shouldBlockAdRequest(uri: Uri, isMainFrame: Boolean): Boolean {
