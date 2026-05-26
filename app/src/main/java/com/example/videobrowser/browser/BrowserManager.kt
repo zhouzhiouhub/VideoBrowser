@@ -28,4 +28,36 @@ class BrowserManager(
             saveFormData = false
         }
     }
+
+    fun load(url: String) {
+        webView.loadUrl(url)
+    }
+
+    fun goBack(): Boolean {
+        if (!webView.canGoBack()) {
+            return false
+        }
+        webView.goBack()
+        return true
+    }
+
+    fun goForward(): Boolean {
+        if (!webView.canGoForward()) {
+            return false
+        }
+        webView.goForward()
+        return true
+    }
+
+    fun reload() {
+        webView.reload()
+    }
+
+    fun canGoBack(): Boolean {
+        return webView.canGoBack()
+    }
+
+    fun canGoForward(): Boolean {
+        return webView.canGoForward()
+    }
 }

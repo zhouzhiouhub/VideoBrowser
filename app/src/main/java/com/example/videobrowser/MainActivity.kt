@@ -316,18 +316,14 @@ class MainActivity : AppCompatActivity() {
 
         loadButton.setOnClickListener { loadAddressInput() }
         backButton.setOnClickListener {
-            if (webView.canGoBack()) {
-                webView.goBack()
-            }
+            browserManager.goBack()
             updateNavigationButtons()
         }
         forwardButton.setOnClickListener {
-            if (webView.canGoForward()) {
-                webView.goForward()
-            }
+            browserManager.goForward()
             updateNavigationButtons()
         }
-        refreshButton.setOnClickListener { webView.reload() }
+        refreshButton.setOnClickListener { browserManager.reload() }
         homeButton.setOnClickListener { openHomePage() }
         menuButton.setOnClickListener { showFunctionCenter() }
 
@@ -467,8 +463,7 @@ class MainActivity : AppCompatActivity() {
                 override fun handleOnBackPressed() {
                     if (customView != null) {
                         hideFullscreenContent()
-                    } else if (webView.canGoBack()) {
-                        webView.goBack()
+                    } else if (browserManager.goBack()) {
                         updateNavigationButtons()
                     } else {
                         isEnabled = false
@@ -492,7 +487,7 @@ class MainActivity : AppCompatActivity() {
             checked = isAdBlockEnabled()
         ) { enabled ->
             appPreferences.edit().putBoolean(KEY_AD_BLOCK, enabled).apply()
-            webView.reload()
+            browserManager.reload()
         }
 
         addSwitchRow(
@@ -927,7 +922,7 @@ class MainActivity : AppCompatActivity() {
         webView.settings.useWideViewPort = true
         webView.settings.loadWithOverviewMode = true
         if (reload) {
-            webView.reload()
+            browserManager.reload()
         }
     }
 
@@ -1047,7 +1042,7 @@ class MainActivity : AppCompatActivity() {
         updateAddressBar(url)
         hideKeyboard()
         showHomeContent(isProviderHome)
-        webView.loadUrl(url)
+        browserManager.load(url)
     }
 
     private fun updateAddressBar(url: String?) {
@@ -1064,8 +1059,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateNavigationButtons() {
-        backButton.isEnabled = webView.canGoBack()
-        forwardButton.isEnabled = webView.canGoForward()
+        backButton.isEnabled = browserManager.canGoBack()
+        forwardButton.isEnabled = browserManager.canGoForward()
     }
 
     private fun showHomeContent(show: Boolean) {
