@@ -149,7 +149,7 @@
   function dismissBilibiliBrowserChoicePrompts() {
     if (!isBilibiliHost() || !document.body) return;
 
-    const pageText = normalizeText(document.body.textContent);
+    const pageText = normalizeText(document.body.innerText || document.body.textContent);
     const hasBrowserChoiceTitle = /浏览方式|browse mode/i.test(pageText) &&
       /推荐使用|recommended/i.test(pageText);
     if (!hasBrowserChoiceTitle || !/哔哩哔哩|bilibili|b站/i.test(pageText)) return;
@@ -159,11 +159,15 @@
       '[class*="popup"],[class*="mask"],[class*="overlay"],[class*="sheet"]'
     );
     candidates.forEach(function (element) {
-      const text = normalizeText(element.textContent);
+      if (String(element.id || '').toLowerCase() === 'app') return;
+      if (isBilibiliContentContainer(element)) return;
+
+      const text = normalizeText(element.innerText || element.textContent);
       if (!(/浏览方式|browse mode/i.test(text) && /推荐使用|recommended/i.test(text))) return;
       if (!/哔哩哔哩|bilibili|b站/i.test(text)) return;
 
       const root = findBilibiliPromptRoot(element);
+      if (!root) return;
       hideElement(root);
       hideBilibiliPromptBackdrops(root);
       document.documentElement.style.overflow = state.previousDocumentOverflow || '';
@@ -179,6 +183,7 @@
     let current = element;
     for (let depth = 0; current && depth < 8; depth += 1, current = current.parentElement) {
       if (current === document.body || current === document.documentElement) break;
+      if (isBilibiliContentContainer(current)) break;
       const rect = current.getBoundingClientRect();
       if (!rect.width || !rect.height) continue;
 
@@ -195,7 +200,12 @@
         String(current.id || '').toLowerCase() !== 'app';
       if (bottomSheetLike || fullOverlayLike) return current;
     }
-    return element;
+    return null;
+  }
+
+  function isBilibiliContentContainer(element) {
+    const descriptor = (String(element.id || '') + ' ' + String(element.className || '')).toLowerCase();
+    return /\bm-home\b|\bm-video\b|video-normal|player|recommend|feed-list|video-list|v-card/.test(descriptor);
   }
 
   function hideBilibiliPromptBackdrops(promptRoot) {
@@ -224,6 +234,7 @@
 
   function hideElement(element) {
     if (!element || element === document.body || element === document.documentElement) return;
+    if (String(element.id || '').toLowerCase() === 'app') return;
     element.setAttribute('data-videobrowser-dismissed', 'bilibili-browser-choice');
     element.style.setProperty('display', 'none', 'important');
     element.style.setProperty('visibility', 'hidden', 'important');
