@@ -650,6 +650,13 @@ class MainActivity : AppCompatActivity() {
         ) {
             clearBrowserData()
         }
+        addActionRow(
+            parent = content,
+            title = getString(R.string.action_restore_default_settings),
+            summary = getString(R.string.action_restore_default_settings_summary)
+        ) {
+            showRestoreDefaultSettingsDialog()
+        }
 
         val scrollView = ScrollView(this).apply {
             addView(
@@ -864,6 +871,39 @@ class MainActivity : AppCompatActivity() {
         appPreferences.edit().remove(KEY_HISTORY).apply()
         Toast.makeText(this, R.string.toast_browser_data_cleared, Toast.LENGTH_SHORT).show()
         updateNavigationButtons()
+    }
+
+    private fun showRestoreDefaultSettingsDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.action_restore_default_settings)
+            .setMessage(R.string.dialog_restore_default_settings_message)
+            .setPositiveButton(R.string.action_restore) { _, _ ->
+                restoreDefaultSettings()
+            }
+            .setNegativeButton(R.string.action_close, null)
+            .show()
+    }
+
+    private fun restoreDefaultSettings() {
+        val shouldOpenDefaultHome = isHomePageVisible
+        appPreferences.edit()
+            .remove(KEY_SEARCH_PROVIDER)
+            .remove(KEY_AD_BLOCK)
+            .remove(KEY_PAGE_CLEANUP)
+            .remove(KEY_VIDEO_ENHANCEMENT)
+            .remove(KEY_DESKTOP_MODE)
+            .remove(KEY_VIDEO_SPEED)
+            .apply()
+
+        selectedSearchProvider = loadSavedSearchProvider()
+        updateSearchProviderSelection()
+        applyDesktopMode(reload = false)
+        if (shouldOpenDefaultHome) {
+            openHomePage()
+        } else {
+            browserManager.reload()
+        }
+        Toast.makeText(this, R.string.toast_default_settings_restored, Toast.LENGTH_SHORT).show()
     }
 
     private fun addHistoryEntry(url: String?) {

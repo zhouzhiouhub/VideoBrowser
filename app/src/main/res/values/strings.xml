@@ -41,8 +41,12 @@
     <string name="action_open_external_summary">把当前页面交给其他浏览器或应用</string>
     <string name="action_clear_browser_data">清理浏览数据</string>
     <string name="action_clear_browser_data_summary">清理缓存、Cookie 和历史记录，保留收藏与设置</string>
+    <string name="action_restore_default_settings">恢复默认设置</string>
+    <string name="action_restore_default_settings_summary">重置搜索引擎、功能开关和视频倍速，保留收藏与历史记录</string>
     <string name="action_close">关闭</string>
     <string name="action_clear">清空</string>
+    <string name="action_restore">恢复</string>
+    <string name="dialog_restore_default_settings_message">将搜索引擎、功能开关、桌面模式和视频倍速恢复为默认值。收藏、历史记录和浏览数据不会被清理。</string>
     <string name="clipboard_page_url">页面链接</string>
     <string name="toast_video_speed_set">已设置为 %1$s</string>
     <string name="toast_no_page_url">当前没有可操作的网页地址</string>
@@ -52,6 +56,7 @@
     <string name="toast_saved_pages_cleared">已清空</string>
     <string name="toast_link_copied">链接已复制</string>
     <string name="toast_browser_data_cleared">浏览数据已清理</string>
+    <string name="toast_default_settings_restored">已恢复默认设置</string>
     <string name="toast_download_started">已开始下载</string>
     <string name="toast_download_failed">下载失败</string>
     <string name="toast_no_external_browser">没有可用的外部应用</string>
