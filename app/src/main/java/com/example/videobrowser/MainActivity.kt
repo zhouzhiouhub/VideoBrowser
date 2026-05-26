@@ -885,7 +885,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restoreDefaultSettings() {
-        val shouldOpenDefaultHome = isHomePageVisible
         appPreferences.edit()
             .remove(KEY_SEARCH_PROVIDER)
             .remove(KEY_AD_BLOCK)
@@ -893,17 +892,9 @@ class MainActivity : AppCompatActivity() {
             .remove(KEY_VIDEO_ENHANCEMENT)
             .remove(KEY_DESKTOP_MODE)
             .remove(KEY_VIDEO_SPEED)
-            .apply()
-
-        selectedSearchProvider = loadSavedSearchProvider()
-        updateSearchProviderSelection()
-        applyDesktopMode(reload = false)
-        if (shouldOpenDefaultHome) {
-            openHomePage()
-        } else {
-            browserManager.reload()
-        }
+            .commit()
         Toast.makeText(this, R.string.toast_default_settings_restored, Toast.LENGTH_SHORT).show()
+        recreate()
     }
 
     private fun addHistoryEntry(url: String?) {
