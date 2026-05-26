@@ -46,6 +46,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.utils.UrlUtils
 import java.io.ByteArrayInputStream
 import org.json.JSONArray
@@ -190,30 +191,7 @@ class MainActivity : AppCompatActivity() {
         defaultUserAgent = browserManager.userAgentString()
         applyDesktopMode(reload = false)
         setupDownloadHandling()
-
-        browserManager.setChromeClient(object : WebChromeClient() {
-            override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                pageProgress.progress = newProgress
-                pageProgress.visibility =
-                    if (newProgress in 1..99) View.VISIBLE else View.INVISIBLE
-                updateNavigationButtons()
-            }
-
-            override fun onReceivedTitle(view: WebView?, title: String?) {
-                currentPageTitle = title.orEmpty()
-            }
-
-            override fun onShowCustomView(
-                view: View?,
-                callback: WebChromeClient.CustomViewCallback?
-            ) {
-                showFullscreenContent(view, callback)
-            }
-
-            override fun onHideCustomView() {
-                hideFullscreenContent()
-            }
-        })
+        setupChromeClient()
 
         browserManager.setBrowserClient(object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -331,6 +309,28 @@ class MainActivity : AppCompatActivity() {
         menuButton.setOnClickListener { showFunctionCenter() }
 
         updateNavigationButtons()
+    }
+
+    private fun setupChromeClient() {
+        browserManager.setChromeClient(
+            ChromeClient(
+                progressChanged = ::handlePageProgressChanged,
+                titleReceived = ::handlePageTitleReceived,
+                showCustomView = ::showFullscreenContent,
+                hideCustomView = ::hideFullscreenContent
+            )
+        )
+    }
+
+    private fun handlePageProgressChanged(newProgress: Int) {
+        pageProgress.progress = newProgress
+        pageProgress.visibility =
+            if (newProgress in 1..99) View.VISIBLE else View.INVISIBLE
+        updateNavigationButtons()
+    }
+
+    private fun handlePageTitleReceived(title: String) {
+        currentPageTitle = title
     }
 
     private fun setupSearchProviders() {
