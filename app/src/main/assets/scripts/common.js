@@ -6,6 +6,7 @@
     config: {}
   };
   window.__videobrowserState = state;
+  state.videoOverlays = state.videoOverlays || new WeakMap();
 
   const styleId = '__videobrowser_css_filter__';
   const adSelectors = [
@@ -209,6 +210,235 @@
     video.setAttribute('playsinline', 'playsinline');
     video.setAttribute('webkit-playsinline', 'webkit-playsinline');
     video.style.maxWidth = '100%';
+    installVideoOverlay(video);
+  }
+
+  function installVideoOverlay(video) {
+    if (state.videoOverlays.has(video)) {
+      updateVideoOverlay(video, state.videoOverlays.get(video));
+      return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = '__videobrowser_video_controls__';
+    overlay.style.cssText = [
+      'position:fixed',
+      'left:0',
+      'top:0',
+      'z-index:2147483647',
+      'display:none',
+      'align-items:center',
+      'gap:6px',
+      'height:38px',
+      'padding:5px 7px',
+      'box-sizing:border-box',
+      'background:rgba(0,0,0,.72)',
+      'color:#fff',
+      'font:12px sans-serif',
+      'pointer-events:auto',
+      'touch-action:none'
+    ].join(';');
+
+    const play = document.createElement('button');
+    play.type = 'button';
+    play.textContent = 'Play';
+    play.style.cssText = controlButtonStyle();
+
+    const seek = document.createElement('input');
+    seek.type = 'range';
+    seek.min = '0';
+    seek.max = '1000';
+    seek.value = '0';
+    seek.step = '1';
+    seek.style.cssText = 'flex:1;min-width:90px;accent-color:#3d8bfd';
+
+    const time = document.createElement('span');
+    time.textContent = '00:00 / 00:00';
+    time.style.cssText = 'white-space:nowrap;min-width:82px;text-align:center';
+
+    const quality = document.createElement('select');
+    quality.style.cssText = 'max-width:76px;height:26px;background:#111;color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:4px';
+
+    const full = document.createElement('button');
+    full.type = 'button';
+    full.textContent = 'Full';
+    full.style.cssText = controlButtonStyle();
+
+    overlay.appendChild(play);
+    overlay.appendChild(seek);
+    overlay.appendChild(time);
+    overlay.appendChild(quality);
+    overlay.appendChild(full);
+    document.documentElement.appendChild(overlay);
+
+    const controls = { overlay, play, seek, time, quality, full, seeking: false };
+    state.videoOverlays.set(video, controls);
+
+    ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup', 'click'].forEach(function (eventName) {
+      overlay.addEventListener(eventName, function (event) {
+        event.stopPropagation();
+      }, true);
+    });
+
+    play.addEventListener('click', function () {
+      if (video.paused) {
+        video.play().catch(function () {});
+      } else {
+        video.pause();
+      }
+    });
+
+    seek.addEventListener('input', function () {
+      controls.seeking = true;
+      seekVideo(video, seek.value);
+    });
+    seek.addEventListener('change', function () {
+      seekVideo(video, seek.value);
+      controls.seeking = false;
+    });
+
+    full.addEventListener('click', function () {
+      requestVideoFullscreen(video);
+    });
+
+    quality.addEventListener('change', function () {
+      switchVideoSource(video, quality.value);
+    });
+
+    ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ratechange'].forEach(function (eventName) {
+      video.addEventListener(eventName, function () {
+        updateVideoOverlay(video, controls);
+      });
+    });
+    window.addEventListener('scroll', function () {
+      updateVideoOverlay(video, controls);
+    }, true);
+    window.addEventListener('resize', function () {
+      updateVideoOverlay(video, controls);
+    });
+
+    updateVideoOverlay(video, controls);
+  }
+
+  function controlButtonStyle() {
+    return 'height:26px;min-width:42px;padding:0 8px;border:1px solid rgba(255,255,255,.35);border-radius:4px;background:#1d1d1d;color:#fff;font:12px sans-serif';
+  }
+
+  function updateVideoOverlay(video, controls) {
+    if (!video || !video.isConnected) {
+      if (controls && controls.overlay) controls.overlay.remove();
+      return;
+    }
+
+    const rect = video.getBoundingClientRect();
+    const visible = rect.width >= 120 && rect.height >= 80 && rect.bottom > 0 &&
+      rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth;
+    controls.overlay.style.display = visible ? 'flex' : 'none';
+    if (!visible) return;
+
+    controls.overlay.style.left = Math.max(0, rect.left) + 'px';
+    controls.overlay.style.top = Math.max(0, rect.bottom - 42) + 'px';
+    controls.overlay.style.width = Math.min(rect.width, window.innerWidth - Math.max(0, rect.left)) + 'px';
+    controls.play.textContent = video.paused ? 'Play' : 'Pause';
+
+    const duration = video.duration;
+    const canSeek = Number.isFinite(duration) && duration > 0;
+    controls.seek.disabled = !canSeek;
+    if (canSeek && !controls.seeking) {
+      controls.seek.value = String(Math.max(0, Math.min(1000, Math.round((video.currentTime / duration) * 1000))));
+    }
+    controls.time.textContent = formatTime(video.currentTime) + ' / ' + (canSeek ? formatTime(duration) : '--:--');
+
+    updateQualityOptions(video, controls.quality);
+  }
+
+  function seekVideo(video, sliderValue) {
+    const duration = video.duration;
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    video.currentTime = (Number(sliderValue) / 1000) * duration;
+  }
+
+  function requestVideoFullscreen(video) {
+    const target = video.parentElement || video;
+    const request = target.requestFullscreen ||
+      target.webkitRequestFullscreen ||
+      video.requestFullscreen ||
+      video.webkitRequestFullscreen ||
+      video.webkitEnterFullscreen;
+    if (typeof request === 'function') {
+      try {
+        request.call(target);
+      } catch (_) {
+        try { request.call(video); } catch (__) {}
+      }
+    }
+  }
+
+  function formatTime(value) {
+    if (!Number.isFinite(value) || value < 0) return '00:00';
+    const total = Math.floor(value);
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+  }
+
+  function updateQualityOptions(video, select) {
+    const sources = availableVideoSources(video);
+    select.style.display = sources.length > 1 ? 'block' : 'none';
+    if (select.dataset.sourceList === sources.map(function (source) { return source.src; }).join('|')) return;
+
+    select.dataset.sourceList = sources.map(function (source) { return source.src; }).join('|');
+    select.innerHTML = '';
+    sources.forEach(function (source) {
+      const option = document.createElement('option');
+      option.value = source.src;
+      option.textContent = source.label;
+      option.selected = source.src === video.currentSrc || source.src === video.src;
+      select.appendChild(option);
+    });
+  }
+
+  function availableVideoSources(video) {
+    const sources = [];
+    function addSource(src, label) {
+      if (!src || sources.some(function (source) { return source.src === src; })) return;
+      sources.push({ src: src, label: label || guessQualityLabel(src) });
+    }
+
+    video.querySelectorAll('source[src]').forEach(function (source) {
+      addSource(
+        source.src,
+        source.getAttribute('label') ||
+          source.getAttribute('data-quality') ||
+          source.getAttribute('res') ||
+          source.getAttribute('size')
+      );
+    });
+    addSource(video.currentSrc || video.src, 'Auto');
+    return sources;
+  }
+
+  function guessQualityLabel(src) {
+    const value = String(src || '');
+    const match = value.match(/(?:^|[^0-9])(2160|1440|1080|720|480|360|240)p?(?:[^0-9]|$)/i);
+    return match ? match[1] + 'p' : 'Auto';
+  }
+
+  function switchVideoSource(video, src) {
+    if (!src || src === video.currentSrc || src === video.src) return;
+    const currentTime = video.currentTime;
+    const wasPaused = video.paused;
+    const rate = video.playbackRate;
+    video.src = src;
+    video.load();
+    video.addEventListener('loadedmetadata', function restorePlayback() {
+      video.removeEventListener('loadedmetadata', restorePlayback);
+      if (Number.isFinite(currentTime)) {
+        video.currentTime = Math.min(currentTime, Number.isFinite(video.duration) ? video.duration : currentTime);
+      }
+      video.playbackRate = rate;
+      if (!wasPaused) video.play().catch(function () {});
+    });
   }
 
   function clickSkipButtons() {

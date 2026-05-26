@@ -313,6 +313,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupChromeClient() {
         chromeClient =
             ChromeClient(
+                activity = this,
                 fullscreenContainer = fullscreenContainer,
                 decorView = window.decorView,
                 progressChanged = ::handlePageProgressChanged,

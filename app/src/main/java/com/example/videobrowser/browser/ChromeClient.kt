@@ -1,5 +1,7 @@
 package com.example.videobrowser.browser
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
@@ -8,6 +10,7 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 
 class ChromeClient(
+    private val activity: Activity,
     private val fullscreenContainer: FrameLayout,
     private val decorView: View,
     private val progressChanged: (Int) -> Unit = {},
@@ -15,6 +18,7 @@ class ChromeClient(
 ) : WebChromeClient() {
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
+    private var previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     private var previousSystemUiVisibility = 0
 
     fun isShowingCustomView(): Boolean {
@@ -41,7 +45,9 @@ class ChromeClient(
 
         customView = view
         customViewCallback = callback
+        previousOrientation = activity.requestedOrientation
         previousSystemUiVisibility = decorView.systemUiVisibility
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         (view.parent as? ViewGroup)?.removeView(view)
         view.keepScreenOn = true
         fullscreenContainer.removeAllViews()
@@ -83,7 +89,9 @@ class ChromeClient(
         }
         fullscreenContainer.visibility = View.GONE
         fullscreenContainer.clearFocus()
+        activity.requestedOrientation = previousOrientation
         decorView.systemUiVisibility = previousSystemUiVisibility
+        previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         previousSystemUiVisibility = 0
         callback?.onCustomViewHidden()
     }
