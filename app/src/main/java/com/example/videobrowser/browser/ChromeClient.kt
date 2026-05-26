@@ -14,15 +14,31 @@ class ChromeClient(
     private val fullscreenContainer: FrameLayout,
     private val decorView: View,
     private val progressChanged: (Int) -> Unit = {},
-    private val titleReceived: (String) -> Unit = {}
+    private val titleReceived: (String) -> Unit = {},
+    private val fullscreenChanged: (Boolean) -> Unit = {}
 ) : WebChromeClient() {
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
     private var previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     private var previousSystemUiVisibility = 0
+    private var fullscreenModeActive = false
 
     fun isShowingCustomView(): Boolean {
         return customView != null
+    }
+
+    fun isFullscreenModeActive(): Boolean {
+        return fullscreenModeActive
+    }
+
+    fun enterPageFullscreen() {
+        enterFullscreenMode()
+    }
+
+    fun exitPageFullscreen() {
+        if (customView == null) {
+            exitFullscreenMode()
+        }
     }
 
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -45,9 +61,7 @@ class ChromeClient(
 
         customView = view
         customViewCallback = callback
-        previousOrientation = activity.requestedOrientation
-        previousSystemUiVisibility = decorView.systemUiVisibility
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        enterFullscreenMode()
         (view.parent as? ViewGroup)?.removeView(view)
         view.keepScreenOn = true
         fullscreenContainer.removeAllViews()
@@ -61,14 +75,6 @@ class ChromeClient(
         fullscreenContainer.visibility = View.VISIBLE
         fullscreenContainer.bringToFront()
         fullscreenContainer.requestFocus()
-        decorView.systemUiVisibility =
-            previousSystemUiVisibility or
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
     override fun onHideCustomView() {
@@ -89,10 +95,39 @@ class ChromeClient(
         }
         fullscreenContainer.visibility = View.GONE
         fullscreenContainer.clearFocus()
+        exitFullscreenMode()
+        callback?.onCustomViewHidden()
+    }
+
+    private fun enterFullscreenMode() {
+        if (!fullscreenModeActive) {
+            fullscreenModeActive = true
+            previousOrientation = activity.requestedOrientation
+            previousSystemUiVisibility = decorView.systemUiVisibility
+        }
+
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        decorView.systemUiVisibility =
+            previousSystemUiVisibility or
+                View.SYSTEM_UI_FLAG_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        fullscreenChanged(true)
+    }
+
+    private fun exitFullscreenMode() {
+        if (!fullscreenModeActive) {
+            return
+        }
+
         activity.requestedOrientation = previousOrientation
         decorView.systemUiVisibility = previousSystemUiVisibility
         previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         previousSystemUiVisibility = 0
-        callback?.onCustomViewHidden()
+        fullscreenModeActive = false
+        fullscreenChanged(false)
     }
 }

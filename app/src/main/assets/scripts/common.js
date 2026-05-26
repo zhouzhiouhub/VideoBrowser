@@ -7,8 +7,12 @@
   };
   window.__videobrowserState = state;
   state.videoOverlays = state.videoOverlays || new WeakMap();
+  state.pageFullscreenVideo = state.pageFullscreenVideo || null;
+  state.previousDocumentOverflow = state.previousDocumentOverflow || '';
 
   const styleId = '__videobrowser_css_filter__';
+  const fullscreenStyleId = '__videobrowser_video_fullscreen_css__';
+  const pageFullscreenClass = '__videobrowser_page_fullscreen_video__';
   const adSelectors = [
     '.ad',
     '.ads',
@@ -119,6 +123,11 @@
 
   function removeAds() {
     if (!state.config.cleanupEnabled || !document.documentElement) return;
+    if (shouldSkipGenericCleanup()) {
+      removeStyle();
+      dismissSitePrompts();
+      return;
+    }
     injectStyle();
     adSelectors.concat(accountSelectors, cleanupSelectors).forEach(function (selector) {
       document.querySelectorAll(selector).forEach(function (element) {
@@ -127,6 +136,98 @@
     });
     removeTopAccountBars();
     removeTopNoiseBlocks();
+  }
+
+  function dismissSitePrompts() {
+    dismissBilibiliBrowserChoicePrompts();
+  }
+
+  function shouldSkipGenericCleanup() {
+    return isBilibiliHost();
+  }
+
+  function dismissBilibiliBrowserChoicePrompts() {
+    if (!isBilibiliHost() || !document.body) return;
+
+    const pageText = normalizeText(document.body.textContent);
+    const hasBrowserChoiceTitle = /浏览方式|browse mode/i.test(pageText) &&
+      /推荐使用|recommended/i.test(pageText);
+    if (!hasBrowserChoiceTitle || !/哔哩哔哩|bilibili|b站/i.test(pageText)) return;
+
+    const candidates = document.querySelectorAll(
+      'div,section,aside,[role="dialog"],[class*="dialog"],[class*="modal"],' +
+      '[class*="popup"],[class*="mask"],[class*="overlay"],[class*="sheet"]'
+    );
+    candidates.forEach(function (element) {
+      const text = normalizeText(element.textContent);
+      if (!(/浏览方式|browse mode/i.test(text) && /推荐使用|recommended/i.test(text))) return;
+      if (!/哔哩哔哩|bilibili|b站/i.test(text)) return;
+
+      const root = findBilibiliPromptRoot(element);
+      hideElement(root);
+      hideBilibiliPromptBackdrops(root);
+      document.documentElement.style.overflow = state.previousDocumentOverflow || '';
+      if (document.body) document.body.style.overflow = '';
+    });
+  }
+
+  function normalizeText(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function findBilibiliPromptRoot(element) {
+    let current = element;
+    for (let depth = 0; current && depth < 8; depth += 1, current = current.parentElement) {
+      if (current === document.body || current === document.documentElement) break;
+      const rect = current.getBoundingClientRect();
+      if (!rect.width || !rect.height) continue;
+
+      const style = getComputedStyle(current);
+      const positioned = /fixed|absolute|sticky/i.test(style.position);
+      const bottomSheetLike = rect.width >= window.innerWidth * 0.82 &&
+        rect.height >= 96 &&
+        rect.height <= window.innerHeight * 0.72 &&
+        rect.bottom >= window.innerHeight - 6 &&
+        rect.top >= window.innerHeight * 0.25;
+      const fullOverlayLike = positioned &&
+        rect.width >= window.innerWidth * 0.94 &&
+        rect.height >= window.innerHeight * 0.82 &&
+        String(current.id || '').toLowerCase() !== 'app';
+      if (bottomSheetLike || fullOverlayLike) return current;
+    }
+    return element;
+  }
+
+  function hideBilibiliPromptBackdrops(promptRoot) {
+    document.querySelectorAll('body *').forEach(function (element) {
+      if (!element || element === promptRoot || element.contains(promptRoot) || promptRoot.contains(element)) {
+        return;
+      }
+      const rect = element.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const style = getComputedStyle(element);
+      if (!/fixed|absolute|sticky/i.test(style.position)) return;
+      const className = String(element.className || '');
+      const overlayNameLike = /mask|overlay|modal|popup|dialog|shade|shadow/i.test(className);
+      const fullScreenLike = rect.width >= window.innerWidth * 0.94 &&
+        rect.height >= window.innerHeight * 0.82 &&
+        rect.left <= 4 &&
+        rect.top <= 4;
+      if (!overlayNameLike && !fullScreenLike) return;
+
+      const text = normalizeText(element.textContent);
+      if (text.length > 40) return;
+      hideElement(element);
+    });
+  }
+
+  function hideElement(element) {
+    if (!element || element === document.body || element === document.documentElement) return;
+    element.setAttribute('data-videobrowser-dismissed', 'bilibili-browser-choice');
+    element.style.setProperty('display', 'none', 'important');
+    element.style.setProperty('visibility', 'hidden', 'important');
+    element.style.setProperty('pointer-events', 'none', 'important');
   }
 
   function removeTopAccountBars() {
@@ -236,7 +337,7 @@
       'color:#fff',
       'font:12px sans-serif',
       'pointer-events:auto',
-      'touch-action:none'
+      'touch-action:manipulation'
     ].join(';');
 
     const play = document.createElement('button');
@@ -250,7 +351,7 @@
     seek.max = '1000';
     seek.value = '0';
     seek.step = '1';
-    seek.style.cssText = 'flex:1;min-width:90px;accent-color:#3d8bfd';
+    seek.style.cssText = 'flex:1;min-width:90px;accent-color:#3d8bfd;touch-action:none';
 
     const time = document.createElement('span');
     time.textContent = '00:00 / 00:00';
@@ -271,13 +372,13 @@
     overlay.appendChild(full);
     document.documentElement.appendChild(overlay);
 
-    const controls = { overlay, play, seek, time, quality, full, seeking: false };
+    const controls = { overlay, play, seek, time, quality, full, seeking: false, dragging: false };
     state.videoOverlays.set(video, controls);
 
     ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup', 'click'].forEach(function (eventName) {
       overlay.addEventListener(eventName, function (event) {
         event.stopPropagation();
-      }, true);
+      });
     });
 
     play.addEventListener('click', function () {
@@ -296,6 +397,7 @@
       seekVideo(video, seek.value);
       controls.seeking = false;
     });
+    installSeekDragHandlers(video, controls);
 
     full.addEventListener('click', function () {
       requestVideoFullscreen(video);
@@ -320,6 +422,86 @@
     updateVideoOverlay(video, controls);
   }
 
+  function installSeekDragHandlers(video, controls) {
+    function updateFromClientX(clientX) {
+      const rect = controls.seek.getBoundingClientRect();
+      if (!rect.width) return;
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      controls.seek.value = String(Math.round(ratio * 1000));
+      seekVideo(video, controls.seek.value);
+      updateVideoOverlay(video, controls);
+    }
+
+    function clientXFromEvent(event) {
+      const touch = event.touches && event.touches[0] ||
+        event.changedTouches && event.changedTouches[0];
+      return touch ? touch.clientX : event.clientX;
+    }
+
+    function beginDrag(event) {
+      if (controls.seek.disabled) return;
+      controls.dragging = true;
+      controls.seeking = true;
+      updateFromClientX(clientXFromEvent(event));
+      if (typeof controls.seek.setPointerCapture === 'function' && event.pointerId != null) {
+        try { controls.seek.setPointerCapture(event.pointerId); } catch (_) {}
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    function moveDrag(event) {
+      if (!controls.dragging) return;
+      updateFromClientX(clientXFromEvent(event));
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    function endDrag(event) {
+      if (!controls.dragging) return;
+      updateFromClientX(clientXFromEvent(event));
+      controls.dragging = false;
+      controls.seeking = false;
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    controls.seek.addEventListener('pointerdown', beginDrag);
+    controls.seek.addEventListener('pointermove', moveDrag);
+    controls.seek.addEventListener('pointerup', endDrag);
+    controls.seek.addEventListener('pointercancel', endDrag);
+    controls.seek.addEventListener('touchstart', beginDrag, { passive: false });
+    controls.seek.addEventListener('touchmove', moveDrag, { passive: false });
+    controls.seek.addEventListener('touchend', endDrag, { passive: false });
+    controls.seek.addEventListener('touchcancel', endDrag, { passive: false });
+    controls.seek.addEventListener('mousedown', beginDrag);
+    window.addEventListener('mousemove', moveDrag, true);
+    window.addEventListener('mouseup', endDrag, true);
+  }
+
+  function videoTimeline(video) {
+    const duration = video.duration;
+    if (Number.isFinite(duration) && duration > 0) {
+      return { canSeek: true, start: 0, end: duration };
+    }
+
+    const seekable = video.seekable;
+    if (!seekable || !seekable.length) {
+      return { canSeek: false, start: 0, end: 0 };
+    }
+
+    const start = seekable.start(0);
+    const end = seekable.end(seekable.length - 1);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      return { canSeek: false, start: 0, end: 0 };
+    }
+    return { canSeek: true, start: start, end: end };
+  }
+
+  function isBilibiliHost() {
+    return /(\.|^)bilibili\.com$/i.test(location.hostname);
+  }
+
   function controlButtonStyle() {
     return 'height:26px;min-width:42px;padding:0 8px;border:1px solid rgba(255,255,255,.35);border-radius:4px;background:#1d1d1d;color:#fff;font:12px sans-serif';
   }
@@ -336,29 +518,51 @@
     controls.overlay.style.display = visible ? 'flex' : 'none';
     if (!visible) return;
 
+    const overlayTop = isBilibiliHost() ? rect.top + 4 : rect.bottom - 42;
     controls.overlay.style.left = Math.max(0, rect.left) + 'px';
-    controls.overlay.style.top = Math.max(0, rect.bottom - 42) + 'px';
+    controls.overlay.style.top = Math.max(0, Math.min(window.innerHeight - 42, overlayTop)) + 'px';
     controls.overlay.style.width = Math.min(rect.width, window.innerWidth - Math.max(0, rect.left)) + 'px';
     controls.play.textContent = video.paused ? 'Play' : 'Pause';
+    controls.full.textContent = isVideoFullscreen(video) ? 'Exit' : 'Full';
 
-    const duration = video.duration;
-    const canSeek = Number.isFinite(duration) && duration > 0;
-    controls.seek.disabled = !canSeek;
-    if (canSeek && !controls.seeking) {
-      controls.seek.value = String(Math.max(0, Math.min(1000, Math.round((video.currentTime / duration) * 1000))));
+    const timeline = videoTimeline(video);
+    controls.seek.disabled = !timeline.canSeek;
+    if (timeline.canSeek && !controls.seeking) {
+      controls.seek.value = String(Math.max(0, Math.min(1000, Math.round(
+        ((video.currentTime - timeline.start) / (timeline.end - timeline.start)) * 1000
+      ))));
     }
-    controls.time.textContent = formatTime(video.currentTime) + ' / ' + (canSeek ? formatTime(duration) : '--:--');
+    controls.time.textContent = formatTime(video.currentTime) + ' / ' +
+      (timeline.canSeek ? formatTime(timeline.end) : '--:--');
 
     updateQualityOptions(video, controls.quality);
   }
 
   function seekVideo(video, sliderValue) {
-    const duration = video.duration;
-    if (!Number.isFinite(duration) || duration <= 0) return;
-    video.currentTime = (Number(sliderValue) / 1000) * duration;
+    const timeline = videoTimeline(video);
+    if (!timeline.canSeek) return;
+    const ratio = Math.max(0, Math.min(1, Number(sliderValue) / 1000));
+    const targetTime = timeline.start + ratio * (timeline.end - timeline.start);
+    try {
+      if (typeof video.fastSeek === 'function') {
+        video.fastSeek(targetTime);
+      } else {
+        video.currentTime = targetTime;
+      }
+    } catch (_) {
+      try { video.currentTime = targetTime; } catch (__) {}
+    }
   }
 
   function requestVideoFullscreen(video) {
+    if (isVideoFullscreen(video)) {
+      exitVideoFullscreen();
+      return;
+    }
+
+    applyPageVideoFullscreen(video);
+    enterNativeFullscreen();
+
     const target = video.parentElement || video;
     const request = target.requestFullscreen ||
       target.webkitRequestFullscreen ||
@@ -371,6 +575,80 @@
       } catch (_) {
         try { request.call(video); } catch (__) {}
       }
+    }
+  }
+
+  function applyPageVideoFullscreen(video) {
+    if (!video) return;
+    injectFullscreenStyle();
+    if (state.pageFullscreenVideo && state.pageFullscreenVideo !== video) {
+      state.pageFullscreenVideo.classList.remove(pageFullscreenClass);
+    }
+    state.pageFullscreenVideo = video;
+    state.previousDocumentOverflow = document.documentElement.style.overflow || '';
+    document.documentElement.style.overflow = 'hidden';
+    video.classList.add(pageFullscreenClass);
+    updateVideoOverlay(video, state.videoOverlays.get(video));
+  }
+
+  function exitVideoFullscreen() {
+    const video = state.pageFullscreenVideo;
+    if (video) {
+      video.classList.remove(pageFullscreenClass);
+      updateVideoOverlay(video, state.videoOverlays.get(video));
+    }
+    state.pageFullscreenVideo = null;
+    document.documentElement.style.overflow = state.previousDocumentOverflow || '';
+    if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+      try { document.exitFullscreen(); } catch (_) {}
+    } else if (document.webkitFullscreenElement && typeof document.webkitExitFullscreen === 'function') {
+      try { document.webkitExitFullscreen(); } catch (__) {}
+    }
+    exitNativeFullscreen();
+  }
+
+  function isVideoFullscreen(video) {
+    return video && (
+      state.pageFullscreenVideo === video ||
+      document.fullscreenElement === video ||
+      document.fullscreenElement === video.parentElement ||
+      document.webkitFullscreenElement === video ||
+      document.webkitFullscreenElement === video.parentElement
+    );
+  }
+
+  function injectFullscreenStyle() {
+    if (document.getElementById(fullscreenStyleId)) return;
+    const style = document.createElement('style');
+    style.id = fullscreenStyleId;
+    style.textContent = '.' + pageFullscreenClass + '{' +
+      'position:fixed!important;' +
+      'left:0!important;' +
+      'top:0!important;' +
+      'right:auto!important;' +
+      'bottom:auto!important;' +
+      'width:100vw!important;' +
+      'height:100vh!important;' +
+      'max-width:none!important;' +
+      'max-height:none!important;' +
+      'z-index:2147483646!important;' +
+      'background:#000!important;' +
+      'object-fit:contain!important;' +
+      '}';
+    document.documentElement.appendChild(style);
+  }
+
+  function enterNativeFullscreen() {
+    const bridge = window.VideoBrowserNative;
+    if (bridge && typeof bridge.enterFullscreen === 'function') {
+      try { bridge.enterFullscreen(); } catch (_) {}
+    }
+  }
+
+  function exitNativeFullscreen() {
+    const bridge = window.VideoBrowserNative;
+    if (bridge && typeof bridge.exitFullscreen === 'function') {
+      try { bridge.exitFullscreen(); } catch (_) {}
     }
   }
 
@@ -452,6 +730,29 @@
     });
   }
 
+  function installFullscreenEventHooks() {
+    document.addEventListener('fullscreenchange', syncDocumentFullscreenState);
+    document.addEventListener('webkitfullscreenchange', syncDocumentFullscreenState);
+    window.addEventListener('pagehide', exitNativeFullscreen);
+  }
+
+  function syncDocumentFullscreenState() {
+    const hasDocumentFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    if (hasDocumentFullscreen) {
+      enterNativeFullscreen();
+      return;
+    }
+
+    if (state.pageFullscreenVideo) {
+      const video = state.pageFullscreenVideo;
+      video.classList.remove(pageFullscreenClass);
+      state.pageFullscreenVideo = null;
+      document.documentElement.style.overflow = state.previousDocumentOverflow || '';
+      updateVideoOverlay(video, state.videoOverlays.get(video));
+    }
+    exitNativeFullscreen();
+  }
+
   function installHooks() {
     if (state.hooked) return;
     state.hooked = true;
@@ -475,12 +776,20 @@
         return originalFetch.apply(this, arguments);
       };
     }
+
+    installFullscreenEventHooks();
   }
 
   function startWorkers() {
-    if (!state.observer && document.documentElement) {
+    if (isBilibiliHost() && state.observer) {
+      state.observer.disconnect();
+      state.observer = null;
+    }
+
+    if (!state.observer && document.documentElement && !isBilibiliHost()) {
       state.observer = new MutationObserver(function () {
         removeAds();
+        dismissSitePrompts();
         clickSkipButtons();
         enhanceVideos();
       });
@@ -493,6 +802,7 @@
     if (!state.intervalId) {
       state.intervalId = window.setInterval(function () {
         removeAds();
+        dismissSitePrompts();
         clickSkipButtons();
         enhanceVideos();
       }, 1500);
@@ -508,9 +818,13 @@
       } else {
         removeStyle();
       }
+      dismissSitePrompts();
       clickSkipButtons();
       enhanceVideos();
       startWorkers();
+    },
+    exitFullscreen: function () {
+      exitVideoFullscreen();
     }
   };
 })();

@@ -50,6 +50,10 @@ class BrowserManager(
         webView.setDownloadListener(listener)
     }
 
+    fun addJavascriptInterface(interfaceObject: Any, name: String) {
+        webView.addJavascriptInterface(interfaceObject, name)
+    }
+
     fun load(url: String) {
         webView.loadUrl(url)
     }

@@ -24,6 +24,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.webkit.URLUtil
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceResponse
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -74,6 +75,8 @@ class MainActivity : AppCompatActivity() {
     )
 
     private lateinit var rootView: View
+    private lateinit var topBar: View
+    private lateinit var bottomBar: View
     private lateinit var webView: WebView
     private lateinit var addressInput: EditText
     private lateinit var pageProgress: ProgressBar
@@ -144,6 +147,7 @@ class MainActivity : AppCompatActivity() {
     private val searchProviderViews = mutableMapOf<String, SearchProviderViews>()
     private lateinit var selectedSearchProvider: SearchProvider
     private var isHomePageVisible = true
+    private var isVideoFullscreenUiActive = false
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
     private val commonScript: String by lazy {
@@ -155,6 +159,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         rootView = findViewById(R.id.rootView)
+        topBar = findViewById(R.id.topBar)
+        bottomBar = findViewById(R.id.bottomBar)
         webView = findViewById(R.id.webView)
         addressInput = findViewById(R.id.addressInput)
         pageProgress = findViewById(R.id.pageProgress)
@@ -176,7 +182,11 @@ class MainActivity : AppCompatActivity() {
                 WindowInsetsCompat.Type.systemBars() or
                     WindowInsetsCompat.Type.displayCutout()
             )
-            view.setPadding(safeArea.left, safeArea.top, safeArea.right, safeArea.bottom)
+            if (isVideoFullscreenUiActive) {
+                view.setPadding(0, 0, 0, 0)
+            } else {
+                view.setPadding(safeArea.left, safeArea.top, safeArea.right, safeArea.bottom)
+            }
             insets
         }
         ViewCompat.requestApplyInsets(rootView)
@@ -189,6 +199,7 @@ class MainActivity : AppCompatActivity() {
         applyDesktopMode(reload = false)
         setupDownloadHandling()
         setupChromeClient()
+        browserManager.addJavascriptInterface(VideoFullscreenBridge(), NATIVE_BRIDGE_NAME)
 
         browserManager.setBrowserClient(object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -196,7 +207,7 @@ class MainActivity : AppCompatActivity() {
                 updateAddressBar(url)
                 showHomeContent(isProviderHome)
                 pageProgress.progress = 0
-                pageProgress.visibility = if (isProviderHome) View.INVISIBLE else View.VISIBLE
+                updatePageProgressVisibility()
                 updateNavigationButtons()
             }
 
@@ -204,7 +215,7 @@ class MainActivity : AppCompatActivity() {
                 val isProviderHome = isProviderHomeUrl(url)
                 updateAddressBar(url)
                 showHomeContent(isProviderHome)
-                pageProgress.visibility = View.INVISIBLE
+                updatePageProgressVisibility(forceHidden = true)
                 addHistoryEntry(url)
                 injectPageFeatures()
                 updateNavigationButtons()
@@ -317,20 +328,38 @@ class MainActivity : AppCompatActivity() {
                 fullscreenContainer = fullscreenContainer,
                 decorView = window.decorView,
                 progressChanged = ::handlePageProgressChanged,
-                titleReceived = ::handlePageTitleReceived
+                titleReceived = ::handlePageTitleReceived,
+                fullscreenChanged = ::handleVideoFullscreenChanged
             )
         browserManager.setChromeClient(chromeClient)
     }
 
     private fun handlePageProgressChanged(newProgress: Int) {
         pageProgress.progress = newProgress
-        pageProgress.visibility =
-            if (newProgress in 1..99) View.VISIBLE else View.INVISIBLE
+        updatePageProgressVisibility()
         updateNavigationButtons()
     }
 
     private fun handlePageTitleReceived(title: String) {
         currentPageTitle = title
+    }
+
+    private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
+        isVideoFullscreenUiActive = fullscreen
+        topBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
+        bottomBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
+        searchProviderScroll.visibility =
+            if (!fullscreen && isHomePageVisible) View.VISIBLE else View.GONE
+        updatePageProgressVisibility(forceHidden = fullscreen)
+        ViewCompat.requestApplyInsets(rootView)
+    }
+
+    private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
+        pageProgress.visibility = when {
+            forceHidden || isVideoFullscreenUiActive -> View.GONE
+            pageProgress.progress in 1..99 && !isHomePageVisible -> View.VISIBLE
+            else -> View.INVISIBLE
+        }
     }
 
     private fun setupSearchProviders() {
@@ -466,6 +495,9 @@ class MainActivity : AppCompatActivity() {
                 override fun handleOnBackPressed() {
                     if (::chromeClient.isInitialized && chromeClient.isShowingCustomView()) {
                         chromeClient.hideCustomView()
+                    } else if (::chromeClient.isInitialized && chromeClient.isFullscreenModeActive()) {
+                        browserManager.evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
+                        chromeClient.exitPageFullscreen()
                     } else if (browserManager.goBack()) {
                         updateNavigationButtons()
                     } else {
@@ -475,6 +507,26 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
+    }
+
+    private inner class VideoFullscreenBridge {
+        @JavascriptInterface
+        fun enterFullscreen() {
+            runOnUiThread {
+                if (::chromeClient.isInitialized) {
+                    chromeClient.enterPageFullscreen()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun exitFullscreen() {
+            runOnUiThread {
+                if (::chromeClient.isInitialized) {
+                    chromeClient.exitPageFullscreen()
+                }
+            }
+        }
     }
 
     private fun showFunctionCenter() {
@@ -1019,9 +1071,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun showHomeContent(show: Boolean) {
         isHomePageVisible = show
-        searchProviderScroll.visibility = if (show) View.VISIBLE else View.GONE
+        searchProviderScroll.visibility =
+            if (show && !isVideoFullscreenUiActive) View.VISIBLE else View.GONE
         webView.visibility = View.VISIBLE
-        pageProgress.visibility = if (show) View.INVISIBLE else pageProgress.visibility
+        updatePageProgressVisibility(forceHidden = show)
         updateNavigationButtons()
     }
 
@@ -1092,6 +1145,9 @@ class MainActivity : AppCompatActivity() {
         private const val JSON_TITLE = "title"
         private const val JSON_URL = "url"
         private const val COMMON_SCRIPT_ASSET = "scripts/common.js"
+        private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
+        private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
+            "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
         private const val DEFAULT_VIDEO_SPEED = 1.25f
         private const val BOOKMARK_LIMIT = 100
         private const val HISTORY_LIMIT = 80
