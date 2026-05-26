@@ -280,11 +280,19 @@ class MainActivity : AppCompatActivity() {
         openHomePage()
     }
 
+    override fun onPause() {
+        browserManager.onPause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        browserManager.onResume()
+    }
+
     override fun onDestroy() {
         hideFullscreenContent()
-        webView.webChromeClient = null
-        webView.stopLoading()
-        webView.loadUrl("about:blank")
+        browserManager.destroy()
         super.onDestroy()
     }
 

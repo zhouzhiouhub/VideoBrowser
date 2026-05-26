@@ -60,4 +60,21 @@ class BrowserManager(
     fun canGoForward(): Boolean {
         return webView.canGoForward()
     }
+
+    fun onPause() {
+        // MVP keeps WebView active so media playback is not forcibly paused.
+    }
+
+    fun onResume() {
+        // Reserved for future WebView resume policy.
+    }
+
+    fun destroy() {
+        webView.webChromeClient = null
+        webView.stopLoading()
+        webView.loadUrl("about:blank")
+        webView.clearHistory()
+        webView.removeAllViews()
+        webView.destroy()
+    }
 }
