@@ -66,11 +66,14 @@ class ChromeClient(
 
     fun hideCustomView() {
         val view = customView ?: return
+        val callback = customViewCallback
+        customView = null
+        customViewCallback = null
+
         fullscreenContainer.removeView(view)
         fullscreenContainer.visibility = View.GONE
         decorView.systemUiVisibility = previousSystemUiVisibility
-        customViewCallback?.onCustomViewHidden()
-        customView = null
-        customViewCallback = null
+        previousSystemUiVisibility = 0
+        callback?.onCustomViewHidden()
     }
 }
