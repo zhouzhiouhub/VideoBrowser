@@ -187,6 +187,7 @@
   function enhanceVideos() {
     if (!state.config.videoEnabled) {
       document.querySelectorAll('video').forEach(function (video) {
+        enableVideoControls(video);
         video.playbackRate = 1;
         video.defaultPlaybackRate = 1;
       });
@@ -194,11 +195,20 @@
     }
     const speed = Number(state.config.videoSpeed || 1);
     document.querySelectorAll('video').forEach(function (video) {
+      enableVideoControls(video);
       if (Number.isFinite(speed) && speed > 0 && video.playbackRate !== speed) {
         video.playbackRate = speed;
       }
       video.defaultPlaybackRate = speed;
     });
+  }
+
+  function enableVideoControls(video) {
+    video.controls = true;
+    video.setAttribute('controls', 'controls');
+    video.setAttribute('playsinline', 'playsinline');
+    video.setAttribute('webkit-playsinline', 'webkit-playsinline');
+    video.style.maxWidth = '100%';
   }
 
   function clickSkipButtons() {

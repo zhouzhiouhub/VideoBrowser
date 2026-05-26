@@ -42,6 +42,9 @@ class ChromeClient(
         customView = view
         customViewCallback = callback
         previousSystemUiVisibility = decorView.systemUiVisibility
+        (view.parent as? ViewGroup)?.removeView(view)
+        view.keepScreenOn = true
+        fullscreenContainer.removeAllViews()
         fullscreenContainer.addView(
             view,
             FrameLayout.LayoutParams(
@@ -50,6 +53,8 @@ class ChromeClient(
             )
         )
         fullscreenContainer.visibility = View.VISIBLE
+        fullscreenContainer.bringToFront()
+        fullscreenContainer.requestFocus()
         decorView.systemUiVisibility =
             previousSystemUiVisibility or
                 View.SYSTEM_UI_FLAG_FULLSCREEN or
@@ -70,8 +75,14 @@ class ChromeClient(
         customView = null
         customViewCallback = null
 
-        fullscreenContainer.removeView(view)
+        view.keepScreenOn = false
+        if (view.parent == fullscreenContainer) {
+            fullscreenContainer.removeView(view)
+        } else {
+            fullscreenContainer.removeAllViews()
+        }
         fullscreenContainer.visibility = View.GONE
+        fullscreenContainer.clearFocus()
         decorView.systemUiVisibility = previousSystemUiVisibility
         previousSystemUiVisibility = 0
         callback?.onCustomViewHidden()
