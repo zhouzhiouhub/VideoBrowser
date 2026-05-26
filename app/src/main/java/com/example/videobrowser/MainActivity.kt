@@ -150,6 +150,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var selectedSearchProvider: SearchProvider
     private var isHomePageVisible = true
     private var isVideoFullscreenUiActive = false
+    private var areBrowserControlsHidden = false
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
     private val commonScript: String by lazy {
@@ -196,6 +197,7 @@ class MainActivity : AppCompatActivity() {
         setupSearchProviders()
         browserManager.setup()
         setupBrowserControls()
+        setupWebViewScrollControls()
         setupBackNavigation()
         defaultUserAgent = browserManager.userAgentString()
         applyDesktopMode(reload = false)
@@ -292,6 +294,7 @@ class MainActivity : AppCompatActivity() {
 
         addressInput.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                setBrowserControlsHidden(false)
                 addressInput.selectAll()
             }
         }
@@ -348,20 +351,59 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
         isVideoFullscreenUiActive = fullscreen
-        topBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
-        bottomBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
-        searchProviderScroll.visibility =
-            if (!fullscreen && isHomePageVisible) View.VISIBLE else View.GONE
+        setBrowserControlsHidden(fullscreen)
         updatePageProgressVisibility(forceHidden = fullscreen)
         ViewCompat.requestApplyInsets(rootView)
     }
 
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
         pageProgress.visibility = when {
-            forceHidden || isVideoFullscreenUiActive -> View.GONE
+            forceHidden || isVideoFullscreenUiActive || areBrowserControlsHidden -> View.GONE
             pageProgress.progress in 1..99 && !isHomePageVisible -> View.VISIBLE
             else -> View.INVISIBLE
         }
+    }
+
+    private fun setupWebViewScrollControls() {
+        webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+            if (isVideoFullscreenUiActive) {
+                return@setOnScrollChangeListener
+            }
+            if (isHomePageVisible || addressInput.hasFocus()) {
+                setBrowserControlsHidden(false)
+                return@setOnScrollChangeListener
+            }
+
+            val deltaY = scrollY - oldScrollY
+            when {
+                scrollY <= dp(4) -> setBrowserControlsHidden(false)
+                deltaY > dp(6) -> setBrowserControlsHidden(true)
+                deltaY < -dp(6) -> setBrowserControlsHidden(false)
+            }
+        }
+    }
+
+    private fun setBrowserControlsHidden(hidden: Boolean) {
+        val shouldHide = hidden || isVideoFullscreenUiActive
+        if (areBrowserControlsHidden == shouldHide) {
+            syncSearchProviderVisibility()
+            return
+        }
+
+        areBrowserControlsHidden = shouldHide
+        topBar.visibility = if (shouldHide) View.GONE else View.VISIBLE
+        bottomBar.visibility = if (shouldHide) View.GONE else View.VISIBLE
+        syncSearchProviderVisibility()
+        updatePageProgressVisibility(forceHidden = shouldHide)
+    }
+
+    private fun syncSearchProviderVisibility() {
+        searchProviderScroll.visibility =
+            if (!areBrowserControlsHidden && !isVideoFullscreenUiActive && isHomePageVisible) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
     }
 
     private fun setupSearchProviders() {
@@ -1167,8 +1209,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun showHomeContent(show: Boolean) {
         isHomePageVisible = show
-        searchProviderScroll.visibility =
-            if (show && !isVideoFullscreenUiActive) View.VISIBLE else View.GONE
+        setBrowserControlsHidden(false)
+        syncSearchProviderVisibility()
         webView.visibility = View.VISIBLE
         updatePageProgressVisibility(forceHidden = show)
         updateNavigationButtons()
