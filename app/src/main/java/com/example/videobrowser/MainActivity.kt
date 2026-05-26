@@ -92,22 +92,6 @@ class MainActivity : AppCompatActivity() {
 
     private val searchProviders = listOf(
         SearchProvider(
-            id = "quark",
-            name = "夸克搜索",
-            badge = "夸",
-            homeUrl = "https://quark.sm.cn/",
-            searchUrlPrefix = "https://quark.sm.cn/s?q=",
-            accentColor = Color.parseColor("#2F6FED")
-        ),
-        SearchProvider(
-            id = "uc",
-            name = "UC",
-            badge = "UC",
-            homeUrl = "https://so.m.sm.cn/",
-            searchUrlPrefix = "https://so.m.sm.cn/s?q=",
-            accentColor = Color.parseColor("#F28C20")
-        ),
-        SearchProvider(
             id = "baidu",
             name = "百度",
             badge = "百",
@@ -130,6 +114,22 @@ class MainActivity : AppCompatActivity() {
             homeUrl = "https://m.so.com/",
             searchUrlPrefix = "https://www.so.com/s?q=",
             accentColor = Color.parseColor("#20A052")
+        ),
+        SearchProvider(
+            id = "quark",
+            name = "夸克搜索",
+            badge = "夸",
+            homeUrl = "https://quark.sm.cn/",
+            searchUrlPrefix = "https://quark.sm.cn/s?q=",
+            accentColor = Color.parseColor("#2F6FED")
+        ),
+        SearchProvider(
+            id = "uc",
+            name = "UC",
+            badge = "UC",
+            homeUrl = "https://so.m.sm.cn/",
+            searchUrlPrefix = "https://so.m.sm.cn/s?q=",
+            accentColor = Color.parseColor("#F28C20")
         ),
         SearchProvider(
             id = "edge",
@@ -949,9 +949,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun injectPageFeatures() {
-        if (!isPageCleanupEnabled() && !isVideoEnhancementEnabled()) {
-            return
-        }
         val config = JSONObject()
             .put("cleanupEnabled", isPageCleanupEnabled())
             .put("videoEnabled", isVideoEnhancementEnabled())

@@ -26,7 +26,7 @@
     <string name="action_video_speed">视频倍速：%1$s</string>
     <string name="action_video_speed_summary">设置页面内 HTML5 视频播放速度</string>
     <string name="action_add_bookmark">收藏当前页</string>
-    <string name="action_add_bookmark_summary">保存到本地收藏夹，不需要登录</string>
+    <string name="action_add_bookmark_summary">保存到本地收藏夹</string>
     <string name="action_show_bookmarks">打开收藏夹</string>
     <string name="action_show_bookmarks_summary">查看并打开本地保存的网页</string>
     <string name="action_show_history">打开历史记录</string>
