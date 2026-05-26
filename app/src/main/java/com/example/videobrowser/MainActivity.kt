@@ -46,9 +46,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.utils.UrlUtils
 import java.io.ByteArrayInputStream
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -1025,10 +1024,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadAddressInput() {
         val input = addressInput.text?.toString()?.trim().orEmpty()
-        if (input.isEmpty()) {
-            return
-        }
-        loadUrl(resolveAddressInput(input))
+        UrlUtils.resolveAddressInput(input, selectedSearchProvider.searchUrlPrefix)
+            ?.let { loadUrl(it) }
     }
 
     private fun openHomePage() {
@@ -1076,67 +1073,8 @@ class MainActivity : AppCompatActivity() {
         inputMethodManager.hideSoftInputFromWindow(addressInput.windowToken, 0)
     }
 
-    private fun resolveAddressInput(input: String): String {
-        val value = input.trim()
-        return when {
-            value.startsWith("http://", ignoreCase = true) ||
-                value.startsWith("https://", ignoreCase = true) ||
-                value.startsWith("about:", ignoreCase = true) -> value
-
-            looksLikeLocalAddress(value) || looksLikeIpAddress(value) -> "http://$value"
-            looksLikeDomain(value) -> "https://$value"
-            else -> {
-                val encodedQuery = URLEncoder.encode(value, StandardCharsets.UTF_8.name())
-                "${selectedSearchProvider.searchUrlPrefix}$encodedQuery"
-            }
-        }
-    }
-
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).toInt()
-    }
-
-    private fun looksLikeLocalAddress(value: String): Boolean {
-        if (value.hasWhitespace()) {
-            return false
-        }
-
-        val lowerValue = value.lowercase()
-        return lowerValue == "localhost" ||
-            lowerValue.startsWith("localhost:") ||
-            lowerValue.startsWith("localhost/") ||
-            lowerValue.startsWith("10.0.2.2") ||
-            lowerValue.startsWith("127.0.0.1")
-    }
-
-    private fun looksLikeIpAddress(value: String): Boolean {
-        val parts = extractHost(value).split(".")
-        return parts.size == 4 && parts.all { part ->
-            part.toIntOrNull()?.let { it in 0..255 } == true
-        }
-    }
-
-    private fun looksLikeDomain(value: String): Boolean {
-        if (value.hasWhitespace()) {
-            return false
-        }
-
-        val host = extractHost(value)
-        return host.contains(".") &&
-            host.any { it.isLetter() } &&
-            host.split(".").all { it.isNotEmpty() }
-    }
-
-    private fun extractHost(value: String): String {
-        return value
-            .substringBefore("/")
-            .substringBefore("?")
-            .substringBefore("#")
-            .substringBefore(":")
-    }
-
-    private fun String.hasWhitespace(): Boolean {
-        return any { it.isWhitespace() }
     }
 
     private fun isWebUrl(scheme: String?): Boolean {
