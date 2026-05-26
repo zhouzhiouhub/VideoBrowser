@@ -3,10 +3,15 @@
     observer: null,
     intervalId: null,
     hooked: false,
-    config: {}
+    config: {},
+    pendingWork: false,
+    lastWorkAt: 0,
+    disposed: false
   };
   window.__videobrowserState = state;
-  state.videoOverlays = state.videoOverlays || new WeakMap();
+  if (!state.videoOverlays || typeof state.videoOverlays.forEach !== 'function') {
+    state.videoOverlays = new Map();
+  }
   state.pageFullscreenVideo = state.pageFullscreenVideo || null;
   state.previousDocumentOverflow = state.previousDocumentOverflow || '';
 
@@ -298,11 +303,13 @@
   }
 
   function enhanceVideos() {
+    cleanupDisconnectedVideoOverlays();
     if (!state.config.videoEnabled) {
       document.querySelectorAll('video').forEach(function (video) {
-        enableVideoControls(video);
+        enableNativeVideoControls(video);
         video.playbackRate = 1;
         video.defaultPlaybackRate = 1;
+        removeVideoOverlay(video, state.videoOverlays.get(video));
       });
       return;
     }
@@ -316,13 +323,55 @@
     });
   }
 
-  function enableVideoControls(video) {
+  function enableNativeVideoControls(video) {
     video.controls = true;
     video.setAttribute('controls', 'controls');
     video.setAttribute('playsinline', 'playsinline');
     video.setAttribute('webkit-playsinline', 'webkit-playsinline');
     video.style.maxWidth = '100%';
+  }
+
+  function enableVideoControls(video) {
+    enableNativeVideoControls(video);
     installVideoOverlay(video);
+  }
+
+  function addManagedListener(target, eventName, handler, options, disposers) {
+    if (!target || typeof target.addEventListener !== 'function') return;
+    target.addEventListener(eventName, handler, options);
+    disposers.push(function () {
+      try {
+        target.removeEventListener(eventName, handler, options);
+      } catch (_) {}
+    });
+  }
+
+  function cleanupDisconnectedVideoOverlays() {
+    const entries = [];
+    state.videoOverlays.forEach(function (controls, video) {
+      if (!video || !video.isConnected) entries.push([video, controls]);
+    });
+    entries.forEach(function (entry) {
+      removeVideoOverlay(entry[0], entry[1]);
+    });
+  }
+
+  function removeVideoOverlay(video, controls) {
+    if (!controls || controls.disposed) return;
+    controls.disposed = true;
+    if (Array.isArray(controls.disposers)) {
+      controls.disposers.forEach(function (dispose) {
+        try { dispose(); } catch (_) {}
+      });
+      controls.disposers.length = 0;
+    }
+    if (controls.overlay) controls.overlay.remove();
+    if (video && state.pageFullscreenVideo === video) {
+      video.classList.remove(pageFullscreenClass);
+      state.pageFullscreenVideo = null;
+      document.documentElement.style.overflow = state.previousDocumentOverflow || '';
+    }
+    if (video) state.videoOverlays.delete(video);
   }
 
   function installVideoOverlay(video) {
@@ -383,52 +432,61 @@
     overlay.appendChild(full);
     document.documentElement.appendChild(overlay);
 
-    const controls = { overlay, play, seek, time, quality, full, seeking: false, dragging: false };
+    const controls = {
+      overlay,
+      play,
+      seek,
+      time,
+      quality,
+      full,
+      seeking: false,
+      dragging: false,
+      disposed: false,
+      disposers: []
+    };
     state.videoOverlays.set(video, controls);
 
+    const stopOverlayEvent = function (event) {
+      event.stopPropagation();
+    };
     ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup', 'click'].forEach(function (eventName) {
-      overlay.addEventListener(eventName, function (event) {
-        event.stopPropagation();
-      });
+      addManagedListener(overlay, eventName, stopOverlayEvent, null, controls.disposers);
     });
 
-    play.addEventListener('click', function () {
+    addManagedListener(play, 'click', function () {
       if (video.paused) {
         video.play().catch(function () {});
       } else {
         video.pause();
       }
-    });
+    }, null, controls.disposers);
 
-    seek.addEventListener('input', function () {
+    addManagedListener(seek, 'input', function () {
       controls.seeking = true;
       seekVideo(video, seek.value);
-    });
-    seek.addEventListener('change', function () {
+    }, null, controls.disposers);
+    addManagedListener(seek, 'change', function () {
       seekVideo(video, seek.value);
       controls.seeking = false;
-    });
+    }, null, controls.disposers);
     installSeekDragHandlers(video, controls);
 
-    full.addEventListener('click', function () {
+    addManagedListener(full, 'click', function () {
       requestVideoFullscreen(video);
-    });
+    }, null, controls.disposers);
 
-    quality.addEventListener('change', function () {
+    addManagedListener(quality, 'change', function () {
       switchVideoSource(video, quality.value);
-    });
+    }, null, controls.disposers);
 
+    const refreshOverlay = function () {
+      updateVideoOverlay(video, controls);
+    };
     ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ratechange'].forEach(function (eventName) {
-      video.addEventListener(eventName, function () {
-        updateVideoOverlay(video, controls);
-      });
+      addManagedListener(video, eventName, refreshOverlay, null, controls.disposers);
     });
-    window.addEventListener('scroll', function () {
-      updateVideoOverlay(video, controls);
-    }, true);
-    window.addEventListener('resize', function () {
-      updateVideoOverlay(video, controls);
-    });
+    addManagedListener(window, 'scroll', refreshOverlay, true, controls.disposers);
+    addManagedListener(window, 'resize', refreshOverlay, null, controls.disposers);
 
     updateVideoOverlay(video, controls);
   }
@@ -477,17 +535,17 @@
       event.stopPropagation();
     }
 
-    controls.seek.addEventListener('pointerdown', beginDrag);
-    controls.seek.addEventListener('pointermove', moveDrag);
-    controls.seek.addEventListener('pointerup', endDrag);
-    controls.seek.addEventListener('pointercancel', endDrag);
-    controls.seek.addEventListener('touchstart', beginDrag, { passive: false });
-    controls.seek.addEventListener('touchmove', moveDrag, { passive: false });
-    controls.seek.addEventListener('touchend', endDrag, { passive: false });
-    controls.seek.addEventListener('touchcancel', endDrag, { passive: false });
-    controls.seek.addEventListener('mousedown', beginDrag);
-    window.addEventListener('mousemove', moveDrag, true);
-    window.addEventListener('mouseup', endDrag, true);
+    addManagedListener(controls.seek, 'pointerdown', beginDrag, null, controls.disposers);
+    addManagedListener(controls.seek, 'pointermove', moveDrag, null, controls.disposers);
+    addManagedListener(controls.seek, 'pointerup', endDrag, null, controls.disposers);
+    addManagedListener(controls.seek, 'pointercancel', endDrag, null, controls.disposers);
+    addManagedListener(controls.seek, 'touchstart', beginDrag, { passive: false }, controls.disposers);
+    addManagedListener(controls.seek, 'touchmove', moveDrag, { passive: false }, controls.disposers);
+    addManagedListener(controls.seek, 'touchend', endDrag, { passive: false }, controls.disposers);
+    addManagedListener(controls.seek, 'touchcancel', endDrag, { passive: false }, controls.disposers);
+    addManagedListener(controls.seek, 'mousedown', beginDrag, null, controls.disposers);
+    addManagedListener(window, 'mousemove', moveDrag, true, controls.disposers);
+    addManagedListener(window, 'mouseup', endDrag, true, controls.disposers);
   }
 
   function videoTimeline(video) {
@@ -519,9 +577,10 @@
 
   function updateVideoOverlay(video, controls) {
     if (!video || !video.isConnected) {
-      if (controls && controls.overlay) controls.overlay.remove();
+      removeVideoOverlay(video, controls);
       return;
     }
+    if (!controls || controls.disposed) return;
 
     const rect = video.getBoundingClientRect();
     const visible = rect.width >= 120 && rect.height >= 80 && rect.bottom > 0 &&
@@ -744,7 +803,14 @@
   function installFullscreenEventHooks() {
     document.addEventListener('fullscreenchange', syncDocumentFullscreenState);
     document.addEventListener('webkitfullscreenchange', syncDocumentFullscreenState);
-    window.addEventListener('pagehide', exitNativeFullscreen);
+    window.addEventListener('pagehide', function () {
+      disposePageFeatures({ pauseVideos: true });
+    });
+    window.addEventListener('pageshow', function () {
+      state.disposed = false;
+      startWorkers();
+      schedulePageWork();
+    });
   }
 
   function syncDocumentFullscreenState() {
@@ -791,7 +857,72 @@
     installFullscreenEventHooks();
   }
 
+  function runPageWork() {
+    state.pendingWork = false;
+    if (state.disposed) return;
+
+    state.lastWorkAt = Date.now();
+    if (state.config.cleanupEnabled) {
+      removeAds();
+    } else {
+      removeStyle();
+    }
+    dismissSitePrompts();
+    clickSkipButtons();
+    enhanceVideos();
+  }
+
+  function schedulePageWork() {
+    if (state.disposed || state.pendingWork) return;
+
+    const elapsed = Date.now() - Number(state.lastWorkAt || 0);
+    const delay = Math.max(60, 250 - elapsed);
+    state.pendingWork = true;
+    window.setTimeout(runPageWork, delay);
+  }
+
+  function pausePageVideos() {
+    document.querySelectorAll('video').forEach(function (video) {
+      try { video.pause(); } catch (_) {}
+    });
+  }
+
+  function disposePageFeatures(options) {
+    state.disposed = true;
+    state.pendingWork = false;
+
+    if (state.observer) {
+      state.observer.disconnect();
+      state.observer = null;
+    }
+    if (state.intervalId) {
+      window.clearInterval(state.intervalId);
+      state.intervalId = null;
+    }
+    if (options && options.pauseVideos) {
+      pausePageVideos();
+    }
+    if (state.pageFullscreenVideo) {
+      exitVideoFullscreen();
+    } else {
+      exitNativeFullscreen();
+    }
+
+    const entries = [];
+    state.videoOverlays.forEach(function (controls, video) {
+      entries.push([video, controls]);
+    });
+    entries.forEach(function (entry) {
+      removeVideoOverlay(entry[0], entry[1]);
+    });
+    document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
+      overlay.remove();
+    });
+  }
+
   function startWorkers() {
+    if (state.disposed) return;
+
     if (isBilibiliHost() && state.observer) {
       state.observer.disconnect();
       state.observer = null;
@@ -799,10 +930,7 @@
 
     if (!state.observer && document.documentElement && !isBilibiliHost()) {
       state.observer = new MutationObserver(function () {
-        removeAds();
-        dismissSitePrompts();
-        clickSkipButtons();
-        enhanceVideos();
+        schedulePageWork();
       });
       state.observer.observe(document.documentElement, {
         childList: true,
@@ -812,30 +940,24 @@
 
     if (!state.intervalId) {
       state.intervalId = window.setInterval(function () {
-        removeAds();
-        dismissSitePrompts();
-        clickSkipButtons();
-        enhanceVideos();
+        schedulePageWork();
       }, 1500);
     }
   }
 
   window.VideoBrowserEnhancer = {
     apply: function (config) {
+      state.disposed = false;
       state.config = config || {};
       installHooks();
-      if (state.config.cleanupEnabled) {
-        removeAds();
-      } else {
-        removeStyle();
-      }
-      dismissSitePrompts();
-      clickSkipButtons();
-      enhanceVideos();
+      runPageWork();
       startWorkers();
     },
     exitFullscreen: function () {
       exitVideoFullscreen();
+    },
+    dispose: function (options) {
+      disposePageFeatures(options || {});
     }
   };
 })();
