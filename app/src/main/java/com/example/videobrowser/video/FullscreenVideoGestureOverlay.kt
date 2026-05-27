@@ -23,6 +23,7 @@ import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -505,18 +506,11 @@ class FullscreenVideoGestureOverlay(
     private fun horizontalSeekOffset(deltaX: Float): Long {
         if (width <= 0) return 0L
         val ratio = (deltaX / width.toFloat()).coerceIn(-1f, 1f)
-        val rawOffset = ratio * maxHorizontalSeekMs()
-        var roundedOffset = (rawOffset / SEEK_DRAG_STEP_MS).roundToLong() * SEEK_DRAG_STEP_MS
-        if (roundedOffset == 0L && abs(deltaX) >= swipeStartDistance) {
-            roundedOffset = if (deltaX > 0f) SEEK_DRAG_STEP_MS else -SEEK_DRAG_STEP_MS
-        }
-        return roundedOffset
+        return (ratio * horizontalSeekSpanMs()).roundToLong()
     }
 
-    private fun maxHorizontalSeekMs(): Long {
-        val duration = seekDurationMs ?: return DEFAULT_HORIZONTAL_SEEK_MS
-        return (duration / SEEK_DURATION_FRACTION)
-            .coerceIn(MIN_HORIZONTAL_SEEK_MS, MAX_HORIZONTAL_SEEK_MS)
+    private fun horizontalSeekSpanMs(): Long {
+        return seekDurationMs?.takeIf { it > 0L } ?: DEFAULT_HORIZONTAL_SEEK_MS
     }
 
     private fun updateSeekProgress(targetMs: Long?, durationMs: Long?) {
@@ -800,8 +794,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun formatSeekPreview(offsetMs: Long, targetMs: Long?, durationMs: Long?): String {
-        val offsetSeconds = (offsetMs / 1000L).toInt()
-        val offsetText = formatSeekSeconds(offsetSeconds)
+        val offsetText = formatSeekOffset(offsetMs)
         return if (targetMs != null && durationMs != null && durationMs > 0L) {
             "$offsetText\n${formatTime(targetMs)} / ${formatTime(durationMs)}"
         } else if (targetMs != null) {
@@ -809,6 +802,17 @@ class FullscreenVideoGestureOverlay(
         } else {
             offsetText
         }
+    }
+
+    private fun formatSeekOffset(offsetMs: Long): String {
+        val roundedSeconds = (offsetMs / 1000.0).roundToLong()
+        if (roundedSeconds != 0L || offsetMs == 0L) {
+            return formatSeekSeconds(roundedSeconds.toInt())
+        }
+
+        val sign = if (offsetMs > 0L) "+" else "-"
+        val seconds = abs(offsetMs) / 1000.0
+        return "$sign${String.format(Locale.US, "%.1f", seconds)}s"
     }
 
     private fun formatTime(timeMs: Long): String {
@@ -886,11 +890,7 @@ class FullscreenVideoGestureOverlay(
         private const val MIN_BRIGHTNESS = 0.02f
         private const val SEEK_STEP_MS = 10_000L
         private const val SEEK_STEP_SECONDS = 10
-        private const val SEEK_DRAG_STEP_MS = 5_000L
         private const val DEFAULT_HORIZONTAL_SEEK_MS = 60_000L
-        private const val MIN_HORIZONTAL_SEEK_MS = 30_000L
-        private const val MAX_HORIZONTAL_SEEK_MS = 60_000L
-        private const val SEEK_DURATION_FRACTION = 10L
         private const val TAP_MAX_DURATION_MS = 260L
         private const val DOUBLE_TAP_TIMEOUT_MS = 280L
         private const val LONG_PRESS_TIMEOUT_MS = 520L
