@@ -6,11 +6,14 @@ import android.content.pm.ActivityInfo
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.media3.common.C
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -22,11 +25,15 @@ import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 
 class PlayerActivity : AppCompatActivity() {
+    private lateinit var playerRoot: FrameLayout
     private lateinit var playerView: PlayerView
+    private lateinit var gestureOverlay: FullscreenVideoGestureOverlay
     private var player: ExoPlayer? = null
     private var playbackPosition = 0L
     private var playWhenReady = true
     private var currentMediaItemIndex = 0
+    private var selectedPlaybackSpeed = DEFAULT_PLAYBACK_SPEED
+    private var isLandscape = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +41,7 @@ class PlayerActivity : AppCompatActivity() {
         volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_player)
 
+        playerRoot = findViewById(R.id.playerRoot)
         playerView = findViewById(R.id.playerView)
         playerView.keepScreenOn = true
 
@@ -41,7 +49,13 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition = it.getLong(STATE_PLAYBACK_POSITION)
             playWhenReady = it.getBoolean(STATE_PLAY_WHEN_READY, true)
             currentMediaItemIndex = it.getInt(STATE_MEDIA_ITEM_INDEX)
+            selectedPlaybackSpeed = it.getFloat(STATE_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+            isLandscape = it.getBoolean(STATE_LANDSCAPE, true)
+        } ?: run {
+            selectedPlaybackSpeed = initialPlaybackSpeed()
         }
+        applyRequestedOrientation()
+        setupGestureOverlay()
 
         if (mediaUri().isBlank()) {
             Toast.makeText(this, R.string.toast_media_url_invalid, Toast.LENGTH_SHORT).show()
@@ -60,7 +74,17 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (::gestureOverlay.isInitialized) {
+            gestureOverlay.showOverlay()
+        }
         hideSystemBars()
+    }
+
+    override fun onPause() {
+        if (::gestureOverlay.isInitialized) {
+            gestureOverlay.hideOverlay()
+        }
+        super.onPause()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -75,6 +99,8 @@ class PlayerActivity : AppCompatActivity() {
         outState.putLong(STATE_PLAYBACK_POSITION, playbackPosition)
         outState.putBoolean(STATE_PLAY_WHEN_READY, playWhenReady)
         outState.putInt(STATE_MEDIA_ITEM_INDEX, currentMediaItemIndex)
+        outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
+        outState.putBoolean(STATE_LANDSCAPE, isLandscape)
         super.onSaveInstanceState(outState)
     }
 
@@ -119,11 +145,62 @@ class PlayerActivity : AppCompatActivity() {
                 playerView.player = exoPlayer
                 exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
                 exoPlayer.setMediaItem(mediaItem)
-                exoPlayer.setPlaybackSpeed(initialPlaybackSpeed())
+                exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.seekTo(currentMediaItemIndex, playbackPosition)
                 exoPlayer.prepare()
             }
+    }
+
+    private fun setupGestureOverlay() {
+        gestureOverlay = FullscreenVideoGestureOverlay(this).apply {
+            onSeekBy = ::seekPlayerBy
+            onPlaybackSpeedSelected = ::setPlayerPlaybackSpeed
+            onToggleOrientation = ::togglePlayerOrientation
+            setPlaybackSpeed(selectedPlaybackSpeed)
+            setLandscape(isLandscape)
+        }
+        playerRoot.addView(
+            gestureOverlay,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+    }
+
+    private fun seekPlayerBy(offsetMs: Long) {
+        val exoPlayer = player ?: return
+        val target = exoPlayer.currentPosition + offsetMs
+        val duration = exoPlayer.duration
+        val boundedTarget = if (duration != C.TIME_UNSET && duration > 0) {
+            target.coerceIn(0L, duration)
+        } else {
+            target.coerceAtLeast(0L)
+        }
+        exoPlayer.seekTo(boundedTarget)
+    }
+
+    private fun setPlayerPlaybackSpeed(speed: Float) {
+        selectedPlaybackSpeed = normalizePlaybackSpeed(speed)
+        player?.setPlaybackSpeed(selectedPlaybackSpeed)
+    }
+
+    private fun togglePlayerOrientation(): Boolean {
+        isLandscape = !isLandscape
+        applyRequestedOrientation()
+        return isLandscape
+    }
+
+    private fun applyRequestedOrientation() {
+        requestedOrientation = if (isLandscape) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        }
+        if (::gestureOverlay.isInitialized) {
+            gestureOverlay.setLandscape(isLandscape)
+        }
     }
 
     private fun releasePlayer() {
@@ -180,6 +257,10 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun initialPlaybackSpeed(): Float {
         val speed = intent.getFloatExtra(EXTRA_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+        return normalizePlaybackSpeed(speed)
+    }
+
+    private fun normalizePlaybackSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
         } else {
@@ -198,6 +279,8 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_PLAYBACK_POSITION = "playback_position"
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
+        private const val STATE_PLAYBACK_SPEED = "playback_speed"
+        private const val STATE_LANDSCAPE = "landscape"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val MIME_HLS = "application/x-mpegURL"
         private const val MIME_DASH = "application/dash+xml"

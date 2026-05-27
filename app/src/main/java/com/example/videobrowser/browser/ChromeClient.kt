@@ -22,6 +22,7 @@ class ChromeClient(
     private var previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     private var previousSystemUiVisibility = 0
     private var fullscreenModeActive = false
+    private var fullscreenLandscape = true
 
     fun isShowingCustomView(): Boolean {
         return customView != null
@@ -29,6 +30,20 @@ class ChromeClient(
 
     fun isFullscreenModeActive(): Boolean {
         return fullscreenModeActive
+    }
+
+    fun isFullscreenLandscape(): Boolean {
+        return fullscreenLandscape
+    }
+
+    fun toggleFullscreenOrientation(): Boolean {
+        if (!fullscreenModeActive) {
+            return fullscreenLandscape
+        }
+
+        fullscreenLandscape = !fullscreenLandscape
+        applyFullscreenOrientation()
+        return fullscreenLandscape
     }
 
     fun enterPageFullscreen() {
@@ -104,9 +119,10 @@ class ChromeClient(
             fullscreenModeActive = true
             previousOrientation = activity.requestedOrientation
             previousSystemUiVisibility = decorView.systemUiVisibility
+            fullscreenLandscape = true
         }
 
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        applyFullscreenOrientation()
         decorView.systemUiVisibility =
             previousSystemUiVisibility or
                 View.SYSTEM_UI_FLAG_FULLSCREEN or
@@ -128,6 +144,15 @@ class ChromeClient(
         previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         previousSystemUiVisibility = 0
         fullscreenModeActive = false
+        fullscreenLandscape = true
         fullscreenChanged(false)
+    }
+
+    private fun applyFullscreenOrientation() {
+        activity.requestedOrientation = if (fullscreenLandscape) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        }
     }
 }

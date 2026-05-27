@@ -43,6 +43,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -50,8 +51,10 @@ import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.video.FullscreenVideoGestureOverlay
 import com.example.videobrowser.video.PlayerActivity
 import java.io.ByteArrayInputStream
+import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -93,6 +96,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var menuButton: ImageButton
     private lateinit var loadButton: ImageButton
     private lateinit var fullscreenContainer: FrameLayout
+    private lateinit var fullscreenGestureOverlay: FullscreenVideoGestureOverlay
     private lateinit var appPreferences: SharedPreferences
     private lateinit var browserManager: BrowserManager
     private lateinit var chromeClient: ChromeClient
@@ -208,6 +212,7 @@ class MainActivity : AppCompatActivity() {
         applyDesktopMode(reload = false)
         setupDownloadHandling()
         setupChromeClient()
+        setupFullscreenGestureOverlay()
         browserManager.addJavascriptInterface(VideoFullscreenBridge(), NATIVE_BRIDGE_NAME)
 
         browserManager.setBrowserClient(object : WebViewClient() {
@@ -348,6 +353,34 @@ class MainActivity : AppCompatActivity() {
         browserManager.setChromeClient(chromeClient)
     }
 
+    private fun setupFullscreenGestureOverlay() {
+        fullscreenGestureOverlay = FullscreenVideoGestureOverlay(this).apply {
+            elevation = dp(28).toFloat()
+            onSeekBy = ::seekFullscreenVideoBy
+            onPlaybackSpeedSelected = ::setFullscreenVideoPlaybackSpeed
+            onToggleOrientation = {
+                if (::chromeClient.isInitialized) {
+                    chromeClient.toggleFullscreenOrientation()
+                } else {
+                    true
+                }
+            }
+        }
+
+        (rootView as ViewGroup).addView(
+            fullscreenGestureOverlay,
+            ConstraintLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ).apply {
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+        )
+    }
+
     private fun handlePageProgressChanged(newProgress: Int) {
         val normalizedProgress = newProgress.coerceIn(0, 100)
         isPageLoading = normalizedProgress in 1..99
@@ -368,10 +401,54 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
+        val wasFullscreen = isVideoFullscreenUiActive
         isVideoFullscreenUiActive = fullscreen
         setBrowserControlsHidden(fullscreen)
         updatePageProgressVisibility(forceHidden = fullscreen)
+        if (::fullscreenGestureOverlay.isInitialized) {
+            when {
+                fullscreen && !wasFullscreen -> {
+                    fullscreenGestureOverlay.setPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                    fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
+                    fullscreenGestureOverlay.showOverlay()
+                    setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                }
+                fullscreen -> {
+                    fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
+                    fullscreenGestureOverlay.bringToFront()
+                }
+                wasFullscreen -> {
+                    setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                    fullscreenGestureOverlay.hideOverlay()
+                }
+            }
+        }
         ViewCompat.requestApplyInsets(rootView)
+    }
+
+    private fun seekFullscreenVideoBy(offsetMs: Long) {
+        val seconds = String.format(Locale.US, "%.3f", offsetMs / 1000.0)
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.seekBy==='function'){" +
+                "window.VideoBrowserEnhancer.seekBy($seconds);" +
+                "}})();"
+        )
+    }
+
+    private fun setFullscreenVideoPlaybackSpeed(speed: Float) {
+        val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
+            speed
+        } else {
+            DEFAULT_VIDEO_SPEED
+        }
+        val speedValue = String.format(Locale.US, "%.2f", normalizedSpeed)
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.setPlaybackSpeed==='function'){" +
+                "window.VideoBrowserEnhancer.setPlaybackSpeed($speedValue);" +
+                "}})();"
+        )
     }
 
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
@@ -674,13 +751,6 @@ class MainActivity : AppCompatActivity() {
 
         addActionRow(
             parent = content,
-            title = getString(R.string.action_video_speed, formatSpeed(videoSpeed())),
-            summary = getString(R.string.action_video_speed_summary)
-        ) {
-            showVideoSpeedDialog()
-        }
-        addActionRow(
-            parent = content,
             title = getString(R.string.action_open_native_player),
             summary = getString(R.string.action_open_native_player_summary)
         ) {
@@ -864,26 +934,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun showVideoSpeedDialog() {
-        val speeds = floatArrayOf(1f, 1.25f, 1.5f, 2f, 3f)
-        val labels = speeds.map { formatSpeed(it) }.toTypedArray()
-        val currentIndex = speeds.indexOfFirst { it == videoSpeed() }.takeIf { it >= 0 } ?: 0
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_video_speed)
-            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
-                appPreferences.edit().putFloat(KEY_VIDEO_SPEED, speeds[which]).apply()
-                injectPageFeatures()
-                Toast.makeText(
-                    this,
-                    getString(R.string.toast_video_speed_set, formatSpeed(speeds[which])),
-                    Toast.LENGTH_SHORT
-                ).show()
-                dialog.dismiss()
-            }
-            .setNegativeButton(R.string.action_close, null)
-            .show()
-    }
-
     private fun saveCurrentBookmark() {
         val page = currentSavedPage() ?: run {
             Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -1057,18 +1107,6 @@ class MainActivity : AppCompatActivity() {
         return appPreferences.getBoolean(KEY_DESKTOP_MODE, false)
     }
 
-    private fun videoSpeed(): Float {
-        return appPreferences.getFloat(KEY_VIDEO_SPEED, DEFAULT_VIDEO_SPEED)
-    }
-
-    private fun formatSpeed(speed: Float): String {
-        return if (speed == speed.toInt().toFloat()) {
-            "${speed.toInt()}x"
-        } else {
-            "${speed}x"
-        }
-    }
-
     private fun setupDownloadHandling() {
         browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             val mediaUri = url?.takeIf {
@@ -1136,7 +1174,7 @@ class MainActivity : AppCompatActivity() {
         val config = JSONObject()
             .put("cleanupEnabled", isPageCleanupEnabled())
             .put("videoEnabled", isVideoEnhancementEnabled())
-            .put("videoSpeed", videoSpeed())
+            .put("videoSpeed", DEFAULT_VIDEO_SPEED)
             .toString()
         val script = """
             (function () {
@@ -1212,7 +1250,7 @@ class MainActivity : AppCompatActivity() {
             userAgent = userAgentOverride ?: browserManager.userAgentString(),
             cookie = cookie,
             referer = referer,
-            playbackSpeed = videoSpeed()
+            playbackSpeed = DEFAULT_VIDEO_SPEED
         )
         startActivity(intent)
     }
@@ -1344,7 +1382,7 @@ class MainActivity : AppCompatActivity() {
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
-        private const val DEFAULT_VIDEO_SPEED = 1.25f
+        private const val DEFAULT_VIDEO_SPEED = 1f
         private const val BOOKMARK_LIMIT = 100
         private const val HISTORY_LIMIT = 80
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48

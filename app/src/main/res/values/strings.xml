@@ -12,7 +12,6 @@
     <string name="action_select_search_provider">使用 %1$s 搜索</string>
     <string name="toast_uc_download_unavailable">UC 浏览器下载链接已失效，请使用搜索结果中的最新地址</string>
     <string name="title_function_center">功能中心</string>
-    <string name="title_video_speed">视频倍速</string>
     <string name="title_bookmarks">收藏夹</string>
     <string name="title_history">历史记录</string>
     <string name="setting_ad_block">广告请求拦截</string>
@@ -20,11 +19,9 @@
     <string name="setting_page_cleanup">页面净化</string>
     <string name="setting_page_cleanup_summary">隐藏和移除常见广告浮层、弹窗和信息流广告</string>
     <string name="setting_video_enhancement">视频增强</string>
-    <string name="setting_video_enhancement_summary">启用网页原生视频控件、默认倍速并尝试点击跳过广告</string>
+    <string name="setting_video_enhancement_summary">启用网页原生视频控件并尝试点击跳过广告</string>
     <string name="setting_desktop_mode">桌面模式</string>
     <string name="setting_desktop_mode_summary">使用桌面浏览器标识重新加载当前页面</string>
-    <string name="action_video_speed">视频倍速：%1$s</string>
-    <string name="action_video_speed_summary">设置页面内 HTML5 视频播放速度</string>
     <string name="action_open_native_player">原生播放器打开</string>
     <string name="action_open_native_player_summary">用 Media3 播放当前直链视频或流媒体地址</string>
     <string name="action_add_bookmark">收藏当前页</string>
@@ -42,13 +39,12 @@
     <string name="action_clear_browser_data">清理浏览数据</string>
     <string name="action_clear_browser_data_summary">清理缓存、Cookie 和历史记录，保留收藏与设置</string>
     <string name="action_restore_default_settings">恢复默认设置</string>
-    <string name="action_restore_default_settings_summary">重置搜索引擎、功能开关和视频倍速，保留收藏与历史记录</string>
+    <string name="action_restore_default_settings_summary">重置搜索引擎和功能开关，保留收藏与历史记录</string>
     <string name="action_close">关闭</string>
     <string name="action_clear">清空</string>
     <string name="action_restore">恢复</string>
-    <string name="dialog_restore_default_settings_message">将搜索引擎、功能开关、桌面模式和视频倍速恢复为默认值。收藏、历史记录和浏览数据不会被清理。</string>
+    <string name="dialog_restore_default_settings_message">将搜索引擎、功能开关和桌面模式恢复为默认值。收藏、历史记录和浏览数据不会被清理。</string>
     <string name="clipboard_page_url">页面链接</string>
-    <string name="toast_video_speed_set">已设置为 %1$s</string>
     <string name="toast_no_page_url">当前没有可操作的网页地址</string>
     <string name="toast_bookmark_saved">已收藏到本地</string>
     <string name="toast_bookmarks_empty">收藏夹为空</string>
@@ -63,4 +59,18 @@
     <string name="toast_media_url_invalid">视频地址无效</string>
     <string name="toast_media_url_unsupported">当前地址不是可识别的视频直链</string>
     <string name="toast_media_playback_failed">视频播放失败</string>
+    <string name="video_control_lock">锁定</string>
+    <string name="video_control_unlock">解锁</string>
+    <string name="video_control_rotate_to_portrait">竖屏</string>
+    <string name="video_control_rotate_to_landscape">横屏</string>
+    <string name="video_control_speed">倍速 %1$s</string>
+    <string name="video_feedback_brightness">亮度 %1$d%%</string>
+    <string name="video_feedback_volume">音量 %1$d%%</string>
+    <string name="video_feedback_rewind">快退 10 秒</string>
+    <string name="video_feedback_forward">快进 10 秒</string>
+    <string name="video_feedback_locked">已锁定</string>
+    <string name="video_feedback_unlocked">已解锁</string>
+    <string name="video_feedback_landscape">已切换横屏</string>
+    <string name="video_feedback_portrait">已切换竖屏</string>
+    <string name="video_feedback_speed">倍速 %1$s</string>
 </resources>
