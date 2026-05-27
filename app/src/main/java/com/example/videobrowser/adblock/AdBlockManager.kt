@@ -3,7 +3,7 @@ package com.example.videobrowser.adblock
 import com.example.videobrowser.browser.BrowserRequest
 
 /**
- * 广告请求拦截管理入口，当前只承接 P5 阶段的内置关键字判断。
+ * 广告请求拦截管理入口，当前只承接 P5 阶段的内置 URL 黑名单判断。
  */
 class AdBlockManager(
     private val isEnabled: () -> Boolean = { true }
@@ -14,10 +14,10 @@ class AdBlockManager(
             return false
         }
 
-        val host = request.url.host?.lowercase().orEmpty()
-        val url = request.url.toString().lowercase()
-        return BLOCKED_AD_HOST_KEYWORDS.any { host.contains(it) } ||
-            BLOCKED_AD_URL_KEYWORDS.any { url.contains(it) }
+        return BuiltInAdBlockRules.matches(
+            url = request.url.toString(),
+            host = request.url.host
+        )
     }
 
     private fun isHttpRequest(request: BrowserRequest): Boolean {
@@ -26,34 +26,4 @@ class AdBlockManager(
             scheme.equals("https", ignoreCase = true)
     }
 
-    private companion object {
-        val BLOCKED_AD_HOST_KEYWORDS = listOf(
-            "doubleclick.net",
-            "googlesyndication.com",
-            "googleadservices.com",
-            "adservice.google.com",
-            "googleads.g.doubleclick.net",
-            "adnxs.com",
-            "adsystem.com",
-            "taboola.com",
-            "outbrain.com",
-            "ads-twitter.com",
-            "analytics.yahoo.com"
-        )
-        val BLOCKED_AD_URL_KEYWORDS = listOf(
-            "/pagead/",
-            "/adservice/",
-            "/adserver/",
-            "/advert/",
-            "/ads/",
-            "/adx/",
-            "googleads",
-            "doubleclick",
-            "ad.m3u8",
-            "vast",
-            "vmap",
-            "preroll",
-            "midroll"
-        )
-    }
 }
