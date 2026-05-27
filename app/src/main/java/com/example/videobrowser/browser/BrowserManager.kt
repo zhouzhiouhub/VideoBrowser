@@ -55,7 +55,7 @@ class BrowserManager(
     }
 
     fun load(url: String) {
-        disposeCurrentPage()
+        suspendCurrentPage()
         webView.loadUrl(url)
     }
 
@@ -63,7 +63,7 @@ class BrowserManager(
         if (!webView.canGoBack()) {
             return false
         }
-        disposeCurrentPage()
+        suspendCurrentPage()
         webView.goBack()
         return true
     }
@@ -72,13 +72,13 @@ class BrowserManager(
         if (!webView.canGoForward()) {
             return false
         }
-        disposeCurrentPage()
+        suspendCurrentPage()
         webView.goForward()
         return true
     }
 
     fun reload() {
-        disposeCurrentPage()
+        suspendCurrentPage()
         webView.reload()
     }
 
@@ -144,6 +144,13 @@ class BrowserManager(
         webView.destroy()
     }
 
+    private fun suspendCurrentPage() {
+        if (webView.url.isNullOrBlank()) {
+            return
+        }
+        webView.evaluateJavascript(PAGE_SUSPEND_SCRIPT, null)
+    }
+
     private fun disposeCurrentPage() {
         if (webView.url.isNullOrBlank()) {
             return
@@ -152,6 +159,10 @@ class BrowserManager(
     }
 
     private companion object {
+        private const val PAGE_SUSPEND_SCRIPT =
+            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.suspend==='function'){" +
+                "window.VideoBrowserEnhancer.suspend({pauseVideos:true});" +
+                "}"
         private const val PAGE_DISPOSE_SCRIPT =
             "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.dispose==='function'){" +
                 "window.VideoBrowserEnhancer.dispose({pauseVideos:true});" +

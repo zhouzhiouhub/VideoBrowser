@@ -14,27 +14,20 @@
   state.suppressMutationWork = false;
   state.lastCleanupAt = Number(state.lastCleanupAt || 0);
   if (!Number.isFinite(state.lastCleanupAt)) state.lastCleanupAt = 0;
-  if (!state.videoOverlays || typeof state.videoOverlays.forEach !== 'function') {
-    state.videoOverlays = new Map();
-  }
   if (!state.fullscreenHookedVideos || typeof state.fullscreenHookedVideos.add !== 'function') {
     state.fullscreenHookedVideos = new WeakSet();
   }
   if (!state.speedHookedVideos || typeof state.speedHookedVideos.add !== 'function') {
     state.speedHookedVideos = new WeakSet();
   }
-  state.pageFullscreenVideo = state.pageFullscreenVideo || null;
   state.nativeFullscreenVideo = state.nativeFullscreenVideo || null;
   state.directionalPlayback = state.directionalPlayback || null;
   state.fullscreenPlaybackSpeed = Number(state.fullscreenPlaybackSpeed || 1);
   if (!Number.isFinite(state.fullscreenPlaybackSpeed) || state.fullscreenPlaybackSpeed <= 0) {
     state.fullscreenPlaybackSpeed = 1;
   }
-  state.previousDocumentOverflow = state.previousDocumentOverflow || '';
 
   const styleId = '__videobrowser_css_filter__';
-  const fullscreenStyleId = '__videobrowser_video_fullscreen_css__';
-  const pageFullscreenClass = '__videobrowser_page_fullscreen_video__';
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
   const normalWorkDelayMs = 250;
@@ -147,6 +140,28 @@
     if (style) style.remove();
   }
 
+  function cleanupLegacyVideoOverlays() {
+    if (state.videoOverlays && typeof state.videoOverlays.forEach === 'function') {
+      state.videoOverlays.forEach(function (controls) {
+        if (controls && Array.isArray(controls.disposers)) {
+          controls.disposers.forEach(function (dispose) {
+            try { dispose(); } catch (_) {}
+          });
+          controls.disposers.length = 0;
+        }
+      });
+      if (typeof state.videoOverlays.clear === 'function') {
+        state.videoOverlays.clear();
+      }
+    }
+    state.videoOverlays = null;
+    runWithMutationSuppressed(function () {
+      document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
+        overlay.remove();
+      });
+    });
+  }
+
   function runWithMutationSuppressed(work) {
     state.suppressMutationWork = true;
     try {
@@ -210,7 +225,7 @@
       if (!root) return;
       hideElement(root);
       hideBilibiliPromptBackdrops(root);
-      document.documentElement.style.overflow = state.previousDocumentOverflow || '';
+      document.documentElement.style.overflow = '';
       if (document.body) document.body.style.overflow = '';
     });
   }
@@ -424,222 +439,60 @@
     enableNativeVideoControls(video);
   }
 
-  function addManagedListener(target, eventName, handler, options, disposers) {
-    if (!target || typeof target.addEventListener !== 'function') return;
-    target.addEventListener(eventName, handler, options);
-    disposers.push(function () {
-      try {
-        target.removeEventListener(eventName, handler, options);
-      } catch (_) {}
-    });
+  function wakeVideoControls(video) {
+    const target = video || activeFullscreenVideo();
+    if (!target) return false;
+
+    enableNativeVideoControls(target);
+    reportPlaybackTimeline(target);
+
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+    const root = fullscreenElement || target.parentElement || target;
+    const rect = root && typeof root.getBoundingClientRect === 'function'
+      ? root.getBoundingClientRect()
+      : null;
+    const clientX = rect && Number.isFinite(rect.left + rect.width / 2)
+      ? rect.left + rect.width / 2
+      : Math.max(1, window.innerWidth / 2);
+    const clientY = rect && Number.isFinite(rect.top + rect.height / 2)
+      ? rect.top + rect.height / 2
+      : Math.max(1, window.innerHeight / 2);
+
+    dispatchControlWakeEvent(root, 'mousemove', clientX, clientY);
+    dispatchControlWakeEvent(target, 'mousemove', clientX, clientY);
+    dispatchPointerWakeEvent(root, clientX, clientY);
+    dispatchPointerWakeEvent(target, clientX, clientY);
+    try { if (typeof target.focus === 'function') target.focus({ preventScroll: true }); } catch (_) {}
+    return true;
   }
 
-  function cleanupDisconnectedVideoOverlays() {
-    const entries = [];
-    state.videoOverlays.forEach(function (controls, video) {
-      if (!video || !video.isConnected) entries.push([video, controls]);
-    });
-    entries.forEach(function (entry) {
-      removeVideoOverlay(entry[0], entry[1]);
-    });
+  function dispatchControlWakeEvent(target, type, clientX, clientY) {
+    if (!target || typeof target.dispatchEvent !== 'function') return;
+    try {
+      target.dispatchEvent(new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: clientX,
+        clientY: clientY
+      }));
+    } catch (_) {}
   }
 
-  function removeVideoOverlay(video, controls) {
-    if (!controls || controls.disposed) return;
-    controls.disposed = true;
-    if (Array.isArray(controls.disposers)) {
-      controls.disposers.forEach(function (dispose) {
-        try { dispose(); } catch (_) {}
-      });
-      controls.disposers.length = 0;
-    }
-    if (controls.overlay) {
-      runWithMutationSuppressed(function () {
-        controls.overlay.remove();
-      });
-    }
-    if (video && state.pageFullscreenVideo === video) {
-      video.classList.remove(pageFullscreenClass);
-      state.pageFullscreenVideo = null;
-      document.documentElement.style.overflow = state.previousDocumentOverflow || '';
-    }
-    if (video) state.videoOverlays.delete(video);
-  }
-
-  function installVideoOverlay(video) {
-    if (state.videoOverlays.has(video)) {
-      updateVideoOverlay(video, state.videoOverlays.get(video));
+  function dispatchPointerWakeEvent(target, clientX, clientY) {
+    if (!target || typeof target.dispatchEvent !== 'function' || typeof PointerEvent !== 'function') {
       return;
     }
-
-    const overlay = document.createElement('div');
-    overlay.className = '__videobrowser_video_controls__';
-    overlay.style.cssText = [
-      'position:fixed',
-      'left:0',
-      'top:0',
-      'z-index:2147483647',
-      'display:none',
-      'align-items:center',
-      'gap:6px',
-      'height:38px',
-      'padding:5px 7px',
-      'box-sizing:border-box',
-      'background:rgba(0,0,0,.72)',
-      'color:#fff',
-      'font:12px sans-serif',
-      'pointer-events:auto',
-      'touch-action:manipulation'
-    ].join(';');
-
-    const play = document.createElement('button');
-    play.type = 'button';
-    play.textContent = 'Play';
-    play.style.cssText = controlButtonStyle();
-
-    const seek = document.createElement('input');
-    seek.type = 'range';
-    seek.min = '0';
-    seek.max = '1000';
-    seek.value = '0';
-    seek.step = '1';
-    seek.style.cssText = 'flex:1;min-width:90px;accent-color:#3d8bfd;touch-action:none';
-
-    const time = document.createElement('span');
-    time.textContent = '00:00 / 00:00';
-    time.style.cssText = 'white-space:nowrap;min-width:82px;text-align:center';
-
-    const quality = document.createElement('select');
-    quality.style.cssText = 'max-width:76px;height:26px;background:#111;color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:4px';
-
-    const full = document.createElement('button');
-    full.type = 'button';
-    full.textContent = 'Full';
-    full.style.cssText = controlButtonStyle();
-
-    overlay.appendChild(play);
-    overlay.appendChild(seek);
-    overlay.appendChild(time);
-    overlay.appendChild(quality);
-    overlay.appendChild(full);
-    runWithMutationSuppressed(function () {
-      document.documentElement.appendChild(overlay);
-    });
-
-    const controls = {
-      overlay,
-      play,
-      seek,
-      time,
-      quality,
-      full,
-      seeking: false,
-      dragging: false,
-      disposed: false,
-      disposers: []
-    };
-    state.videoOverlays.set(video, controls);
-
-    const stopOverlayEvent = function (event) {
-      event.stopPropagation();
-    };
-    ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup', 'click'].forEach(function (eventName) {
-      addManagedListener(overlay, eventName, stopOverlayEvent, null, controls.disposers);
-    });
-
-    addManagedListener(play, 'click', function () {
-      if (video.paused) {
-        video.play().catch(function () {});
-      } else {
-        video.pause();
-      }
-    }, null, controls.disposers);
-
-    addManagedListener(seek, 'input', function () {
-      controls.seeking = true;
-      seekVideo(video, seek.value);
-    }, null, controls.disposers);
-    addManagedListener(seek, 'change', function () {
-      seekVideo(video, seek.value);
-      controls.seeking = false;
-    }, null, controls.disposers);
-    installSeekDragHandlers(video, controls);
-
-    addManagedListener(full, 'click', function () {
-      requestVideoFullscreen(video);
-    }, null, controls.disposers);
-
-    addManagedListener(quality, 'change', function () {
-      switchVideoSource(video, quality.value);
-    }, null, controls.disposers);
-
-    const refreshOverlay = function () {
-      updateVideoOverlay(video, controls);
-    };
-    ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ratechange'].forEach(function (eventName) {
-      addManagedListener(video, eventName, refreshOverlay, null, controls.disposers);
-    });
-    addManagedListener(window, 'scroll', refreshOverlay, true, controls.disposers);
-    addManagedListener(window, 'resize', refreshOverlay, null, controls.disposers);
-
-    updateVideoOverlay(video, controls);
-  }
-
-  function installSeekDragHandlers(video, controls) {
-    function updateFromClientX(clientX) {
-      const rect = controls.seek.getBoundingClientRect();
-      if (!rect.width) return;
-      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      controls.seek.value = String(Math.round(ratio * 1000));
-      seekVideo(video, controls.seek.value);
-      updateVideoOverlay(video, controls);
-    }
-
-    function clientXFromEvent(event) {
-      const touch = event.touches && event.touches[0] ||
-        event.changedTouches && event.changedTouches[0];
-      return touch ? touch.clientX : event.clientX;
-    }
-
-    function beginDrag(event) {
-      if (controls.seek.disabled) return;
-      controls.dragging = true;
-      controls.seeking = true;
-      updateFromClientX(clientXFromEvent(event));
-      if (typeof controls.seek.setPointerCapture === 'function' && event.pointerId != null) {
-        try { controls.seek.setPointerCapture(event.pointerId); } catch (_) {}
-      }
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    function moveDrag(event) {
-      if (!controls.dragging) return;
-      updateFromClientX(clientXFromEvent(event));
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    function endDrag(event) {
-      if (!controls.dragging) return;
-      updateFromClientX(clientXFromEvent(event));
-      controls.dragging = false;
-      controls.seeking = false;
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    addManagedListener(controls.seek, 'pointerdown', beginDrag, null, controls.disposers);
-    addManagedListener(controls.seek, 'pointermove', moveDrag, null, controls.disposers);
-    addManagedListener(controls.seek, 'pointerup', endDrag, null, controls.disposers);
-    addManagedListener(controls.seek, 'pointercancel', endDrag, null, controls.disposers);
-    addManagedListener(controls.seek, 'touchstart', beginDrag, { passive: false }, controls.disposers);
-    addManagedListener(controls.seek, 'touchmove', moveDrag, { passive: false }, controls.disposers);
-    addManagedListener(controls.seek, 'touchend', endDrag, { passive: false }, controls.disposers);
-    addManagedListener(controls.seek, 'touchcancel', endDrag, { passive: false }, controls.disposers);
-    addManagedListener(controls.seek, 'mousedown', beginDrag, null, controls.disposers);
-    addManagedListener(window, 'mousemove', moveDrag, true, controls.disposers);
-    addManagedListener(window, 'mouseup', endDrag, true, controls.disposers);
+    try {
+      target.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        pointerType: 'touch',
+        clientX: clientX,
+        clientY: clientY
+      }));
+    } catch (_) {}
   }
 
   function videoTimeline(video) {
@@ -681,43 +534,6 @@
 
   function isBilibiliHost() {
     return /(\.|^)bilibili\.com$/i.test(location.hostname);
-  }
-
-  function controlButtonStyle() {
-    return 'height:26px;min-width:42px;padding:0 8px;border:1px solid rgba(255,255,255,.35);border-radius:4px;background:#1d1d1d;color:#fff;font:12px sans-serif';
-  }
-
-  function updateVideoOverlay(video, controls) {
-    if (!video || !video.isConnected) {
-      removeVideoOverlay(video, controls);
-      return;
-    }
-    if (!controls || controls.disposed) return;
-
-    const rect = video.getBoundingClientRect();
-    const visible = rect.width >= 120 && rect.height >= 80 && rect.bottom > 0 &&
-      rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth;
-    controls.overlay.style.display = visible ? 'flex' : 'none';
-    if (!visible) return;
-
-    const overlayTop = isBilibiliHost() ? rect.top + 4 : rect.bottom - 42;
-    controls.overlay.style.left = Math.max(0, rect.left) + 'px';
-    controls.overlay.style.top = Math.max(0, Math.min(window.innerHeight - 42, overlayTop)) + 'px';
-    controls.overlay.style.width = Math.min(rect.width, window.innerWidth - Math.max(0, rect.left)) + 'px';
-    controls.play.textContent = video.paused ? 'Play' : 'Pause';
-    controls.full.textContent = isVideoFullscreen(video) ? 'Exit' : 'Full';
-
-    const timeline = videoTimeline(video);
-    controls.seek.disabled = !timeline.canSeek;
-    if (timeline.canSeek && !controls.seeking) {
-      controls.seek.value = String(Math.max(0, Math.min(1000, Math.round(
-        ((video.currentTime - timeline.start) / (timeline.end - timeline.start)) * 1000
-      ))));
-    }
-    controls.time.textContent = formatTime(video.currentTime) + ' / ' +
-      (timeline.canSeek ? formatTime(timeline.end) : '--:--');
-
-    updateQualityOptions(video, controls.quality);
   }
 
   function seekVideo(video, sliderValue) {
@@ -780,9 +596,6 @@
   }
 
   function activeFullscreenVideo() {
-    if (state.pageFullscreenVideo && state.pageFullscreenVideo.isConnected) {
-      return state.pageFullscreenVideo;
-    }
     if (state.nativeFullscreenVideo && state.nativeFullscreenVideo.isConnected) {
       return state.nativeFullscreenVideo;
     }
@@ -808,50 +621,32 @@
       return;
     }
 
-    applyPageVideoFullscreen(video);
     reportPlaybackTimeline(video);
-    enterNativeFullscreen();
 
     const target = video.parentElement || video;
-    const request = target.requestFullscreen ||
-      target.webkitRequestFullscreen ||
-      video.requestFullscreen ||
-      video.webkitRequestFullscreen ||
-      video.webkitEnterFullscreen;
-    if (typeof request === 'function') {
+    const requesters = [
+      { element: target, request: target.requestFullscreen || target.webkitRequestFullscreen },
+      { element: video, request: video.requestFullscreen || video.webkitRequestFullscreen || video.webkitEnterFullscreen }
+    ];
+    const requested = requesters.some(function (requester) {
+      if (typeof requester.request !== 'function') return false;
       try {
-        request.call(target);
+        requester.request.call(requester.element);
+        return true;
       } catch (_) {
-        try { request.call(video); } catch (__) {}
+        return false;
       }
+    });
+    if (requested) {
+      enterNativeFullscreen();
     }
-  }
-
-  function applyPageVideoFullscreen(video) {
-    if (!video) return;
-    injectFullscreenStyle();
-    if (state.pageFullscreenVideo && state.pageFullscreenVideo !== video) {
-      state.pageFullscreenVideo.classList.remove(pageFullscreenClass);
-    }
-    state.pageFullscreenVideo = video;
-    state.previousDocumentOverflow = document.documentElement.style.overflow || '';
-    document.documentElement.style.overflow = 'hidden';
-    video.classList.add(pageFullscreenClass);
-    updateVideoOverlay(video, state.videoOverlays.get(video));
   }
 
   function exitVideoFullscreen() {
     stopDirectionalPlayback();
-    const video = state.pageFullscreenVideo;
-    if (video) {
-      video.classList.remove(pageFullscreenClass);
-      updateVideoOverlay(video, state.videoOverlays.get(video));
-    }
-    state.pageFullscreenVideo = null;
     state.nativeFullscreenVideo = null;
     state.fullscreenPlaybackSpeed = 1;
-    if (video) applyVideoSpeed(video);
-    document.documentElement.style.overflow = state.previousDocumentOverflow || '';
+    document.querySelectorAll('video').forEach(applyVideoSpeed);
     if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
       try { document.exitFullscreen(); } catch (_) {}
     } else if (document.webkitFullscreenElement && typeof document.webkitExitFullscreen === 'function') {
@@ -862,33 +657,11 @@
 
   function isVideoFullscreen(video) {
     return video && (
-      state.pageFullscreenVideo === video ||
       document.fullscreenElement === video ||
       document.fullscreenElement === video.parentElement ||
       document.webkitFullscreenElement === video ||
       document.webkitFullscreenElement === video.parentElement
     );
-  }
-
-  function injectFullscreenStyle() {
-    if (document.getElementById(fullscreenStyleId)) return;
-    const style = document.createElement('style');
-    style.id = fullscreenStyleId;
-    style.textContent = '.' + pageFullscreenClass + '{' +
-      'position:fixed!important;' +
-      'left:0!important;' +
-      'top:0!important;' +
-      'right:auto!important;' +
-      'bottom:auto!important;' +
-      'width:100vw!important;' +
-      'height:100vh!important;' +
-      'max-width:none!important;' +
-      'max-height:none!important;' +
-      'z-index:2147483646!important;' +
-      'background:#000!important;' +
-      'object-fit:contain!important;' +
-      '}';
-    document.documentElement.appendChild(style);
   }
 
   function enterNativeFullscreen() {
@@ -913,65 +686,6 @@
     return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
   }
 
-  function updateQualityOptions(video, select) {
-    const sources = availableVideoSources(video);
-    select.style.display = sources.length > 1 ? 'block' : 'none';
-    if (select.dataset.sourceList === sources.map(function (source) { return source.src; }).join('|')) return;
-
-    select.dataset.sourceList = sources.map(function (source) { return source.src; }).join('|');
-    select.innerHTML = '';
-    sources.forEach(function (source) {
-      const option = document.createElement('option');
-      option.value = source.src;
-      option.textContent = source.label;
-      option.selected = source.src === video.currentSrc || source.src === video.src;
-      select.appendChild(option);
-    });
-  }
-
-  function availableVideoSources(video) {
-    const sources = [];
-    function addSource(src, label) {
-      if (!src || sources.some(function (source) { return source.src === src; })) return;
-      sources.push({ src: src, label: label || guessQualityLabel(src) });
-    }
-
-    video.querySelectorAll('source[src]').forEach(function (source) {
-      addSource(
-        source.src,
-        source.getAttribute('label') ||
-          source.getAttribute('data-quality') ||
-          source.getAttribute('res') ||
-          source.getAttribute('size')
-      );
-    });
-    addSource(video.currentSrc || video.src, 'Auto');
-    return sources;
-  }
-
-  function guessQualityLabel(src) {
-    const value = String(src || '');
-    const match = value.match(/(?:^|[^0-9])(2160|1440|1080|720|480|360|240)p?(?:[^0-9]|$)/i);
-    return match ? match[1] + 'p' : 'Auto';
-  }
-
-  function switchVideoSource(video, src) {
-    if (!src || src === video.currentSrc || src === video.src) return;
-    const currentTime = video.currentTime;
-    const wasPaused = video.paused;
-    const rate = video.playbackRate;
-    video.src = src;
-    video.load();
-    video.addEventListener('loadedmetadata', function restorePlayback() {
-      video.removeEventListener('loadedmetadata', restorePlayback);
-      if (Number.isFinite(currentTime)) {
-        video.currentTime = Math.min(currentTime, Number.isFinite(video.duration) ? video.duration : currentTime);
-      }
-      video.playbackRate = rate;
-      if (!wasPaused) video.play().catch(function () {});
-    });
-  }
-
   function clickSkipButtons() {
     if (!state.config.videoEnabled) return;
     skipSelectors.forEach(function (selector) {
@@ -993,7 +707,7 @@
     document.addEventListener('fullscreenchange', syncDocumentFullscreenState);
     document.addEventListener('webkitfullscreenchange', syncDocumentFullscreenState);
     window.addEventListener('pagehide', function () {
-      disposePageFeatures({ pauseVideos: true });
+      suspendPageFeatures({ pauseVideos: true });
     });
     window.addEventListener('pageshow', function () {
       state.disposed = false;
@@ -1013,13 +727,6 @@
     }
 
     stopDirectionalPlayback();
-    if (state.pageFullscreenVideo) {
-      const video = state.pageFullscreenVideo;
-      video.classList.remove(pageFullscreenClass);
-      state.pageFullscreenVideo = null;
-      document.documentElement.style.overflow = state.previousDocumentOverflow || '';
-      updateVideoOverlay(video, state.videoOverlays.get(video));
-    }
     state.nativeFullscreenVideo = null;
     state.fullscreenPlaybackSpeed = 1;
     document.querySelectorAll('video').forEach(applyVideoSpeed);
@@ -1160,8 +867,17 @@
     document.querySelectorAll('video').forEach(applyVideoSpeed);
   }
 
-  function disposePageFeatures(options) {
+  function suspendPageFeatures(options) {
     stopDirectionalPlayback();
+    if (options && options.pauseVideos) {
+      pausePageVideos();
+    }
+    exitVideoFullscreen();
+    cleanupLegacyVideoOverlays();
+  }
+
+  function disposePageFeatures(options) {
+    suspendPageFeatures(options);
     state.disposed = true;
     state.pendingWork = false;
 
@@ -1173,15 +889,6 @@
       window.clearInterval(state.intervalId);
       state.intervalId = null;
     }
-    if (options && options.pauseVideos) {
-      pausePageVideos();
-    }
-    exitVideoFullscreen();
-    runWithMutationSuppressed(function () {
-      document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
-        overlay.remove();
-      });
-    });
   }
 
   function startWorkers() {
@@ -1215,6 +922,7 @@
       state.disposed = false;
       state.config = config || {};
       state.fullscreenPlaybackSpeed = 1;
+      cleanupLegacyVideoOverlays();
       installHooks();
       runPageWork();
       startWorkers();
@@ -1234,6 +942,9 @@
     togglePlayPause: function () {
       return togglePlayPause();
     },
+    wakeControls: function () {
+      return wakeVideoControls(activeFullscreenVideo());
+    },
     setPlaybackSpeed: function (speed) {
       stopDirectionalPlayback();
       const normalizedSpeed = Number(speed || 1);
@@ -1246,6 +957,9 @@
     },
     stopDirectionalPlayback: function () {
       stopDirectionalPlayback();
+    },
+    suspend: function (options) {
+      suspendPageFeatures(options || {});
     },
     dispose: function (options) {
       disposePageFeatures(options || {});

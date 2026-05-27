@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -61,6 +62,7 @@ class PlayerActivity : AppCompatActivity() {
         playerRoot = findViewById(R.id.playerRoot)
         playerView = findViewById(R.id.playerView)
         playerView.keepScreenOn = true
+        playerView.setControllerShowTimeoutMs(CONTROLS_HIDE_DELAY_MS)
 
         savedInstanceState?.let {
             playbackPosition = it.getLong(STATE_PLAYBACK_POSITION)
@@ -81,6 +83,13 @@ class PlayerActivity : AppCompatActivity() {
         hideSystemBars()
     }
 
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            wakePlayerControls()
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     override fun onStart() {
         super.onStart()
         initializePlayer()
@@ -91,6 +100,7 @@ class PlayerActivity : AppCompatActivity() {
         if (::gestureOverlay.isInitialized) {
             gestureOverlay.showOverlay()
         }
+        wakePlayerControls()
         hideSystemBars()
     }
 
@@ -153,6 +163,17 @@ class PlayerActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+
+                        override fun onPlayWhenReadyChanged(
+                            playWhenReady: Boolean,
+                            reason: Int
+                        ) {
+                            wakePlayerControls()
+                        }
+
+                        override fun onPlaybackStateChanged(playbackState: Int) {
+                            wakePlayerControls()
+                        }
                     }
                 )
                 playerView.player = exoPlayer
@@ -175,6 +196,7 @@ class PlayerActivity : AppCompatActivity() {
             onDirectionalLongPressStart = ::startDirectionalLongPress
             onDirectionalLongPressEnd = ::stopDirectionalLongPress
             onToggleOrientation = ::togglePlayerOrientation
+            onUserInteraction = ::wakePlayerControls
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(isLandscape)
         }
@@ -222,7 +244,29 @@ class PlayerActivity : AppCompatActivity() {
             }
             exoPlayer.play()
         }
+        wakePlayerControls()
         return exoPlayer.playWhenReady
+    }
+
+    private fun wakePlayerControls() {
+        if (!::playerView.isInitialized) {
+            return
+        }
+        playerView.setControllerShowTimeoutMs(
+            if (shouldKeepPlayerControlsVisible()) {
+                0
+            } else {
+                CONTROLS_HIDE_DELAY_MS
+            }
+        )
+        playerView.showController()
+    }
+
+    private fun shouldKeepPlayerControlsVisible(): Boolean {
+        val exoPlayer = player ?: return false
+        return !exoPlayer.playWhenReady ||
+            exoPlayer.playbackState == Player.STATE_IDLE ||
+            exoPlayer.playbackState == Player.STATE_ENDED
     }
 
     private fun setPlayerPlaybackSpeed(speed: Float) {
@@ -357,6 +401,7 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
         private const val STATE_LANDSCAPE = "landscape"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
+        private const val CONTROLS_HIDE_DELAY_MS = 3000
         private const val LONG_PRESS_PLAYBACK_SPEED = 2f
         private const val LONG_PRESS_SCAN_STEP_MS = 500L
         private const val LONG_PRESS_SCAN_INTERVAL_MS = 250L

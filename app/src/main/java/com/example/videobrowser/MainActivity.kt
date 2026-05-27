@@ -165,6 +165,7 @@ class MainActivity : AppCompatActivity() {
     private var fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
     private var fullscreenVideoPositionMs: Long? = null
     private var fullscreenVideoDurationMs: Long? = null
+    private var lastFullscreenControlsWakeAt = 0L
     private val commonScript: String by lazy {
         assets.open(COMMON_SCRIPT_ASSET).bufferedReader().use { it.readText() }
     }
@@ -220,6 +221,12 @@ class MainActivity : AppCompatActivity() {
 
         browserManager.setBrowserClient(object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                if (::chromeClient.isInitialized &&
+                    chromeClient.isFullscreenModeActive() &&
+                    !chromeClient.isShowingCustomView()
+                ) {
+                    chromeClient.exitPageFullscreen()
+                }
                 val isProviderHome = isProviderHomeUrl(url)
                 resetPageTitle()
                 updateAddressBar(url)
@@ -290,6 +297,13 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         browserManager.onResume()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN && isVideoFullscreenUiActive) {
+            wakeFullscreenVideoControls()
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onDestroy() {
@@ -366,6 +380,7 @@ class MainActivity : AppCompatActivity() {
             onPlaybackSpeedSelected = ::setFullscreenVideoPlaybackSpeed
             onDirectionalLongPressStart = ::startFullscreenDirectionalLongPress
             onDirectionalLongPressEnd = ::stopFullscreenDirectionalLongPress
+            onUserInteraction = ::wakeFullscreenVideoControls
             onToggleOrientation = {
                 if (::chromeClient.isInitialized) {
                     chromeClient.toggleFullscreenOrientation()
@@ -417,20 +432,24 @@ class MainActivity : AppCompatActivity() {
             when {
                 fullscreen && !wasFullscreen -> {
                     resetFullscreenVideoTimeline()
+                    lastFullscreenControlsWakeAt = 0L
                     fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
                     fullscreenGestureOverlay.setPlaybackSpeed(DEFAULT_VIDEO_SPEED)
                     fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
                     fullscreenGestureOverlay.showOverlay()
                     setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                    wakeFullscreenVideoControls()
                     requestFullscreenVideoTimeline()
                 }
                 fullscreen -> {
                     fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
                     fullscreenGestureOverlay.bringToFront()
+                    wakeFullscreenVideoControls()
                     requestFullscreenVideoTimeline()
                 }
                 wasFullscreen -> {
                     resetFullscreenVideoTimeline()
+                    lastFullscreenControlsWakeAt = 0L
                     fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
                     setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
                     fullscreenGestureOverlay.hideOverlay()
@@ -503,12 +522,35 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleFullscreenVideoPlayback(): Boolean? {
         browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.togglePlayPause==='function'){" +
-                "window.VideoBrowserEnhancer.togglePlayPause();" +
+            "(function(){var enhancer=window.VideoBrowserEnhancer;" +
+                "if(!enhancer)return;" +
+                "if(typeof enhancer.togglePlayPause==='function'){" +
+                "enhancer.togglePlayPause();" +
+                "}" +
+                "if(typeof enhancer.wakeControls==='function'){" +
+                "enhancer.wakeControls();" +
                 "}})();"
         )
         return null
+    }
+
+    private fun wakeFullscreenVideoControls() {
+        if (!isVideoFullscreenUiActive) {
+            return
+        }
+
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastFullscreenControlsWakeAt < FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS) {
+            return
+        }
+        lastFullscreenControlsWakeAt = now
+
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.wakeControls==='function'){" +
+                "window.VideoBrowserEnhancer.wakeControls();" +
+                "}})();"
+        )
     }
 
     private fun setFullscreenVideoPlaybackSpeed(speed: Float) {
@@ -1490,6 +1532,7 @@ class MainActivity : AppCompatActivity() {
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
         private const val DEFAULT_VIDEO_SPEED = 1f
+        private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
         private const val BOOKMARK_LIMIT = 100
         private const val HISTORY_LIMIT = 80
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48

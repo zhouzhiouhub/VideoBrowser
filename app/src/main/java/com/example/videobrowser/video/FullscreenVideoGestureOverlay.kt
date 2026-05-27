@@ -43,6 +43,7 @@ class FullscreenVideoGestureOverlay(
     var onDirectionalLongPressStart: ((Int) -> Unit)? = null
     var onDirectionalLongPressEnd: (() -> Unit)? = null
     var onToggleOrientation: (() -> Boolean)? = null
+    var onUserInteraction: (() -> Unit)? = null
 
     private val audioManager =
         activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -173,6 +174,10 @@ class FullscreenVideoGestureOverlay(
             return false
         }
 
+        if (event.isWakeControlsAction()) {
+            notifyUserInteraction()
+        }
+
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             touchStartedOnControl = isControlPoint(event.x, event.y)
             touchStartedInBottomPassthrough =
@@ -204,6 +209,13 @@ class FullscreenVideoGestureOverlay(
         return handleGestureEvent(event)
     }
 
+    override fun dispatchHoverEvent(event: MotionEvent): Boolean {
+        if (visibility == View.VISIBLE && event.isWakeControlsAction()) {
+            notifyUserInteraction()
+        }
+        return super.dispatchHoverEvent(event)
+    }
+
     override fun onDetachedFromWindow() {
         hideOverlay()
         super.onDetachedFromWindow()
@@ -211,6 +223,7 @@ class FullscreenVideoGestureOverlay(
 
     private fun setupLockButton() {
         lockButton.setOnClickListener {
+            notifyUserInteraction()
             setLocked(!locked, announce = true)
         }
         addView(
@@ -246,9 +259,11 @@ class FullscreenVideoGestureOverlay(
         )
 
         speedButton.setOnClickListener {
+            notifyUserInteraction()
             if (!locked) showSpeedPopup()
         }
         rotateButton.setOnClickListener {
+            notifyUserInteraction()
             if (locked) return@setOnClickListener
             val isLandscape = onToggleOrientation?.invoke() ?: !landscape
             setLandscape(isLandscape)
@@ -541,17 +556,11 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun handleTap(upX: Float, eventTime: Long) {
+        notifyUserInteraction()
         when (val zone = screenZoneFor(upX)) {
             ScreenZone.CENTER -> {
                 clearPendingSideTap()
-                val playing = onTogglePlayPause?.invoke()
-                showFeedback(
-                    when (playing) {
-                        true -> PAUSE_ICON
-                        false -> PLAY_ICON
-                        null -> PLAY_PAUSE_ICON
-                    }
-                )
+                onTogglePlayPause?.invoke()
             }
             ScreenZone.LEFT,
             ScreenZone.RIGHT -> registerSideTap(zone, eventTime)
@@ -625,6 +634,7 @@ class FullscreenVideoGestureOverlay(
                     setTypeface(typeface, if (abs(speed - playbackSpeed) < 0.01f) Typeface.BOLD else Typeface.NORMAL)
                     textSize = 14f
                     setOnClickListener {
+                        notifyUserInteraction()
                         setPlaybackSpeed(speed)
                         onPlaybackSpeedSelected?.invoke(speed)
                         speedPopup?.dismiss()
@@ -742,6 +752,10 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    private fun notifyUserInteraction() {
+        onUserInteraction?.invoke()
+    }
+
     private fun resetTouchState() {
         activeGesture = VerticalGesture.NONE
         tapCandidate = false
@@ -835,6 +849,14 @@ class FullscreenVideoGestureOverlay(
             actionMasked == MotionEvent.ACTION_CANCEL
     }
 
+    private fun MotionEvent.isWakeControlsAction(): Boolean {
+        return actionMasked == MotionEvent.ACTION_DOWN ||
+            actionMasked == MotionEvent.ACTION_MOVE ||
+            actionMasked == MotionEvent.ACTION_UP ||
+            actionMasked == MotionEvent.ACTION_HOVER_ENTER ||
+            actionMasked == MotionEvent.ACTION_HOVER_MOVE
+    }
+
     private fun ScreenZone.isSide(): Boolean {
         return this == ScreenZone.LEFT || this == ScreenZone.RIGHT
     }
@@ -879,9 +901,6 @@ class FullscreenVideoGestureOverlay(
         private const val LEFT_ZONE_RATIO = 0.3f
         private const val RIGHT_ZONE_RATIO = 0.3f
         private const val VERTICAL_GESTURE_RATIO = 1.15f
-        private const val PLAY_ICON = "\u25b6"
-        private const val PAUSE_ICON = "\u23f8"
-        private const val PLAY_PAUSE_ICON = "\u23ef"
         private const val LOCKED_ICON = "\ud83d\udd12"
         private const val UNLOCKED_ICON = "\ud83d\udd13"
         private const val ROTATE_ICON = "\u21bb"
