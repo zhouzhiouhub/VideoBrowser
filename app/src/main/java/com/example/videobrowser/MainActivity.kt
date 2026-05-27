@@ -212,6 +212,7 @@ class MainActivity : AppCompatActivity() {
         browserManager.setBrowserClient(object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 val isProviderHome = isProviderHomeUrl(url)
+                resetPageTitle()
                 updateAddressBar(url)
                 showHomeContent(isProviderHome)
                 pageProgress.progress = 0
@@ -350,7 +351,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handlePageTitleReceived(title: String) {
-        currentPageTitle = title
+        val normalizedTitle = title.trim()
+        currentPageTitle = normalizedTitle
+        this.title = normalizedTitle.takeIf { it.isNotBlank() } ?: getString(R.string.app_name)
+    }
+
+    private fun resetPageTitle() {
+        currentPageTitle = ""
+        this.title = getString(R.string.app_name)
     }
 
     private fun handleVideoFullscreenChanged(fullscreen: Boolean) {

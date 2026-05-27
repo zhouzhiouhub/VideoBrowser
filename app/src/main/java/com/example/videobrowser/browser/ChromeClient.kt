@@ -46,7 +46,7 @@ class ChromeClient(
     }
 
     override fun onReceivedTitle(view: WebView?, title: String?) {
-        titleReceived(title.orEmpty())
+        titleReceived(title?.trim().orEmpty())
     }
 
     override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
