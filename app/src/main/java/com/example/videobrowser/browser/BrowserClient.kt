@@ -7,10 +7,13 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
+/**
+ * WebViewClient 薄适配层，负责把 Android 回调转换成应用内浏览事件。
+ */
 class BrowserClient(
     private val pageStarted: (String?) -> Unit = {},
     private val pageFinished: (String?) -> Unit = {},
-    private val requestIntercepted: (Uri, Boolean) -> WebResourceResponse? = { _, _ -> null },
+    private val requestIntercepted: (BrowserRequest) -> WebResourceResponse? = { null },
     private val urlLoadingRequested: (WebView?, Uri, Boolean) -> Boolean = { _, _, _ -> false }
 ) : WebViewClient() {
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -26,13 +29,14 @@ class BrowserClient(
         request: WebResourceRequest?
     ): WebResourceResponse? {
         val webRequest = request ?: return null
-        return requestIntercepted(webRequest.url, webRequest.isForMainFrame)
+        return requestIntercepted(BrowserRequest.from(webRequest))
     }
 
     @Suppress("OVERRIDE_DEPRECATION")
     override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
-        val uri = url?.let(Uri::parse) ?: return null
-        return requestIntercepted(uri, false)
+        // 旧版重载只暴露 URL，无法可靠判断是否为主文档请求。
+        val request = BrowserRequest.from(url) ?: return null
+        return requestIntercepted(request)
     }
 
     override fun shouldOverrideUrlLoading(

@@ -46,6 +46,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
@@ -1311,8 +1312,8 @@ class MainActivity : AppCompatActivity() {
         browserManager.evaluateJavascript(script)
     }
 
-    private fun handleRequestIntercept(uri: Uri, isMainFrame: Boolean): WebResourceResponse? {
-        return if (shouldBlockAdRequest(uri, isMainFrame)) {
+    private fun handleRequestIntercept(request: BrowserRequest): WebResourceResponse? {
+        return if (shouldBlockAdRequest(request.url, request.isForMainFrame)) {
             emptyWebResponse()
         } else {
             null
