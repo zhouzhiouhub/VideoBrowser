@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
@@ -23,13 +22,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.webkit.URLUtil
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
+import android.webkit.URLUtil
 import android.webkit.WebResourceResponse
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
@@ -47,6 +44,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.utils.MediaUrlUtils
@@ -218,73 +216,7 @@ class MainActivity : AppCompatActivity() {
         setupChromeClient()
         setupFullscreenGestureOverlay()
         browserManager.addJavascriptInterface(VideoFullscreenBridge(), NATIVE_BRIDGE_NAME)
-
-        browserManager.setBrowserClient(object : WebViewClient() {
-            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                if (::chromeClient.isInitialized &&
-                    chromeClient.isFullscreenModeActive() &&
-                    !chromeClient.isShowingCustomView()
-                ) {
-                    chromeClient.exitPageFullscreen()
-                }
-                val isProviderHome = isProviderHomeUrl(url)
-                resetPageTitle()
-                updateAddressBar(url)
-                showHomeContent(isProviderHome)
-                isPageLoading = true
-                pageProgress.progress = 0
-                updatePageProgressVisibility()
-                updateNavigationButtons()
-            }
-
-            override fun onPageFinished(view: WebView?, url: String?) {
-                val isProviderHome = isProviderHomeUrl(url)
-                updateAddressBar(url)
-                showHomeContent(isProviderHome)
-                isPageLoading = false
-                pageProgress.progress = 100
-                updatePageProgressVisibility(forceHidden = true)
-                addHistoryEntry(url)
-                injectPageFeatures()
-                updateNavigationButtons()
-            }
-
-            override fun shouldInterceptRequest(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): WebResourceResponse? {
-                val uri = request?.url ?: return null
-                return if (shouldBlockAdRequest(uri, request.isForMainFrame)) {
-                    emptyWebResponse()
-                } else {
-                    null
-                }
-            }
-
-            @Suppress("OVERRIDE_DEPRECATION")
-            override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
-                val uri = url?.let(Uri::parse) ?: return null
-                return if (shouldBlockAdRequest(uri, isMainFrame = false)) {
-                    emptyWebResponse()
-                } else {
-                    null
-                }
-            }
-
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): Boolean {
-                val url = request?.url ?: return false
-                return shouldBlockUrl(view, url, openMedia = request.isForMainFrame)
-            }
-
-            @Suppress("OVERRIDE_DEPRECATION")
-            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                val uri = url?.let(Uri::parse) ?: return false
-                return shouldBlockUrl(view, uri)
-            }
-        })
+        setupBrowserClient()
 
         openHomePage()
     }
@@ -370,6 +302,17 @@ class MainActivity : AppCompatActivity() {
         browserManager.setChromeClient(chromeClient)
     }
 
+    private fun setupBrowserClient() {
+        browserManager.setBrowserClient(
+            BrowserClient(
+                pageStarted = ::handlePageStarted,
+                pageFinished = ::handlePageFinished,
+                requestIntercepted = ::handleRequestIntercept,
+                urlLoadingRequested = ::shouldBlockUrl
+            )
+        )
+    }
+
     private fun setupFullscreenGestureOverlay() {
         fullscreenGestureOverlay = FullscreenVideoGestureOverlay(this).apply {
             elevation = dp(28).toFloat()
@@ -402,6 +345,35 @@ class MainActivity : AppCompatActivity() {
                 endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
             }
         )
+    }
+
+    private fun handlePageStarted(url: String?) {
+        if (::chromeClient.isInitialized &&
+            chromeClient.isFullscreenModeActive() &&
+            !chromeClient.isShowingCustomView()
+        ) {
+            chromeClient.exitPageFullscreen()
+        }
+        val isProviderHome = isProviderHomeUrl(url)
+        resetPageTitle()
+        updateAddressBar(url)
+        showHomeContent(isProviderHome)
+        isPageLoading = true
+        pageProgress.progress = 0
+        updatePageProgressVisibility()
+        updateNavigationButtons()
+    }
+
+    private fun handlePageFinished(url: String?) {
+        val isProviderHome = isProviderHomeUrl(url)
+        updateAddressBar(url)
+        showHomeContent(isProviderHome)
+        isPageLoading = false
+        pageProgress.progress = 100
+        updatePageProgressVisibility(forceHidden = true)
+        addHistoryEntry(url)
+        injectPageFeatures()
+        updateNavigationButtons()
     }
 
     private fun handlePageProgressChanged(newProgress: Int) {
@@ -1337,6 +1309,14 @@ class MainActivity : AppCompatActivity() {
             })();
         """.trimIndent()
         browserManager.evaluateJavascript(script)
+    }
+
+    private fun handleRequestIntercept(uri: Uri, isMainFrame: Boolean): WebResourceResponse? {
+        return if (shouldBlockAdRequest(uri, isMainFrame)) {
+            emptyWebResponse()
+        } else {
+            null
+        }
     }
 
     private fun shouldBlockAdRequest(uri: Uri, isMainFrame: Boolean): Boolean {
