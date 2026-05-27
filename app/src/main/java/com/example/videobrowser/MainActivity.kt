@@ -157,6 +157,7 @@ class MainActivity : AppCompatActivity() {
     private var lastScrollControlChangeAt = 0L
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
+    private var isPageLoading = false
     private val commonScript: String by lazy {
         assets.open(COMMON_SCRIPT_ASSET).bufferedReader().use { it.readText() }
     }
@@ -215,6 +216,7 @@ class MainActivity : AppCompatActivity() {
                 resetPageTitle()
                 updateAddressBar(url)
                 showHomeContent(isProviderHome)
+                isPageLoading = true
                 pageProgress.progress = 0
                 updatePageProgressVisibility()
                 updateNavigationButtons()
@@ -224,6 +226,8 @@ class MainActivity : AppCompatActivity() {
                 val isProviderHome = isProviderHomeUrl(url)
                 updateAddressBar(url)
                 showHomeContent(isProviderHome)
+                isPageLoading = false
+                pageProgress.progress = 100
                 updatePageProgressVisibility(forceHidden = true)
                 addHistoryEntry(url)
                 injectPageFeatures()
@@ -345,7 +349,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handlePageProgressChanged(newProgress: Int) {
-        pageProgress.progress = newProgress
+        val normalizedProgress = newProgress.coerceIn(0, 100)
+        isPageLoading = normalizedProgress in 1..99
+        pageProgress.progress = normalizedProgress
         updatePageProgressVisibility()
         updateNavigationButtons()
     }
@@ -371,7 +377,7 @@ class MainActivity : AppCompatActivity() {
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
         pageProgress.visibility = when {
             forceHidden || isVideoFullscreenUiActive || areBrowserControlsHidden -> View.GONE
-            pageProgress.progress in 1..99 && !isHomePageVisible -> View.VISIBLE
+            isPageLoading && pageProgress.progress in 1..99 && !isHomePageVisible -> View.VISIBLE
             else -> View.INVISIBLE
         }
     }

@@ -42,7 +42,7 @@ class ChromeClient(
     }
 
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
-        progressChanged(newProgress)
+        progressChanged(newProgress.coerceIn(0, 100))
     }
 
     override fun onReceivedTitle(view: WebView?, title: String?) {
