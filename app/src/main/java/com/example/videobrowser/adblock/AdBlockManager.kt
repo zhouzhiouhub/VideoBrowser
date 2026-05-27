@@ -9,21 +9,12 @@ class AdBlockManager(
     private val isEnabled: () -> Boolean = { true }
 ) {
     fun shouldBlock(request: BrowserRequest): Boolean {
-        // 主文档请求必须放行，避免广告规则误杀页面导航。
-        if (!isEnabled() || request.isForMainFrame || !isHttpRequest(request)) {
-            return false
-        }
-
-        return BuiltInAdBlockRules.matches(
+        return AdBlockRequestPolicy.shouldBlock(
+            enabled = isEnabled(),
             url = request.url.toString(),
-            host = request.url.host
+            host = request.url.host,
+            scheme = request.url.scheme,
+            isForMainFrame = request.isForMainFrame
         )
     }
-
-    private fun isHttpRequest(request: BrowserRequest): Boolean {
-        val scheme = request.url.scheme
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true)
-    }
-
 }

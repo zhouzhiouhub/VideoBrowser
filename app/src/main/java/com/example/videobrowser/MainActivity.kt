@@ -25,7 +25,6 @@ import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -45,10 +44,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
-import com.example.videobrowser.adblock.EmptyResponseFactory
+import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
-import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
@@ -102,6 +100,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var chromeClient: ChromeClient
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(isEnabled = ::isAdBlockEnabled)
+    }
+    private val adBlockRequestInterceptor: AdBlockRequestInterceptor by lazy {
+        AdBlockRequestInterceptor(adBlockManager)
     }
 
     private val searchProviders = listOf(
@@ -312,7 +313,7 @@ class MainActivity : AppCompatActivity() {
             BrowserClient(
                 pageStarted = ::handlePageStarted,
                 pageFinished = ::handlePageFinished,
-                requestIntercepted = ::handleRequestIntercept,
+                requestIntercepted = adBlockRequestInterceptor::intercept,
                 urlLoadingRequested = ::shouldBlockUrl
             )
         )
@@ -1314,14 +1315,6 @@ class MainActivity : AppCompatActivity() {
             })();
         """.trimIndent()
         browserManager.evaluateJavascript(script)
-    }
-
-    private fun handleRequestIntercept(request: BrowserRequest): WebResourceResponse? {
-        return if (adBlockManager.shouldBlock(request)) {
-            EmptyResponseFactory.noContent()
-        } else {
-            null
-        }
     }
 
     private fun currentShareableUrl(): String? {
