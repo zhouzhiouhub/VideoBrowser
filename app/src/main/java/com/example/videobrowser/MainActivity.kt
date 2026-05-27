@@ -14,6 +14,7 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.SystemClock
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
@@ -151,6 +152,9 @@ class MainActivity : AppCompatActivity() {
     private var isHomePageVisible = true
     private var isVideoFullscreenUiActive = false
     private var areBrowserControlsHidden = false
+    private var scrollControlDeltaY = 0
+    private var scrollControlDirection = 0
+    private var lastScrollControlChangeAt = 0L
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
     private val commonScript: String by lazy {
@@ -370,17 +374,50 @@ class MainActivity : AppCompatActivity() {
                 return@setOnScrollChangeListener
             }
             if (isHomePageVisible || addressInput.hasFocus()) {
+                resetScrollControlTracking()
                 setBrowserControlsHidden(false)
                 return@setOnScrollChangeListener
             }
 
             val deltaY = scrollY - oldScrollY
+            if (scrollY <= dp(4)) {
+                resetScrollControlTracking()
+                setBrowserControlsHidden(false)
+                return@setOnScrollChangeListener
+            }
+            if (kotlin.math.abs(deltaY) < dp(2)) {
+                return@setOnScrollChangeListener
+            }
+
+            val direction = if (deltaY > 0) 1 else -1
+            if (direction != scrollControlDirection) {
+                scrollControlDirection = direction
+                scrollControlDeltaY = 0
+            }
+            scrollControlDeltaY += deltaY
+
+            val now = SystemClock.uptimeMillis()
+            if (now - lastScrollControlChangeAt < BROWSER_CONTROLS_SCROLL_COOLDOWN_MS) {
+                return@setOnScrollChangeListener
+            }
+
             when {
-                scrollY <= dp(4) -> setBrowserControlsHidden(false)
-                deltaY > dp(6) -> setBrowserControlsHidden(true)
-                deltaY < -dp(6) -> setBrowserControlsHidden(false)
+                scrollControlDeltaY >= dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
+                    resetScrollControlTracking(now)
+                    setBrowserControlsHidden(true)
+                }
+                scrollControlDeltaY <= -dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
+                    resetScrollControlTracking(now)
+                    setBrowserControlsHidden(false)
+                }
             }
         }
+    }
+
+    private fun resetScrollControlTracking(changeAt: Long = lastScrollControlChangeAt) {
+        scrollControlDeltaY = 0
+        scrollControlDirection = 0
+        lastScrollControlChangeAt = changeAt
     }
 
     private fun setBrowserControlsHidden(hidden: Boolean) {
@@ -1209,6 +1246,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showHomeContent(show: Boolean) {
         isHomePageVisible = show
+        resetScrollControlTracking()
         setBrowserControlsHidden(false)
         syncSearchProviderVisibility()
         webView.visibility = View.VISIBLE
@@ -1295,6 +1333,8 @@ class MainActivity : AppCompatActivity() {
         private const val DEFAULT_VIDEO_SPEED = 1.25f
         private const val BOOKMARK_LIMIT = 100
         private const val HISTORY_LIMIT = 80
+        private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
+        private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"

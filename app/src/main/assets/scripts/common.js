@@ -6,9 +6,14 @@
     config: {},
     pendingWork: false,
     lastWorkAt: 0,
+    lastCleanupAt: 0,
+    suppressMutationWork: false,
     disposed: false
   };
   window.__videobrowserState = state;
+  state.suppressMutationWork = false;
+  state.lastCleanupAt = Number(state.lastCleanupAt || 0);
+  if (!Number.isFinite(state.lastCleanupAt)) state.lastCleanupAt = 0;
   if (!state.videoOverlays || typeof state.videoOverlays.forEach !== 'function') {
     state.videoOverlays = new Map();
   }
@@ -24,6 +29,10 @@
   const styleId = '__videobrowser_css_filter__';
   const fullscreenStyleId = '__videobrowser_video_fullscreen_css__';
   const pageFullscreenClass = '__videobrowser_page_fullscreen_video__';
+  const normalCleanupIntervalMs = 3000;
+  const activeVideoCleanupIntervalMs = 15000;
+  const normalWorkDelayMs = 250;
+  const activeVideoWorkDelayMs = 750;
   const adSelectors = [
     '.ad',
     '.ads',
@@ -132,6 +141,17 @@
     if (style) style.remove();
   }
 
+  function runWithMutationSuppressed(work) {
+    state.suppressMutationWork = true;
+    try {
+      return work();
+    } finally {
+      window.setTimeout(function () {
+        state.suppressMutationWork = false;
+      }, 0);
+    }
+  }
+
   function removeAds() {
     if (!state.config.cleanupEnabled || !document.documentElement) return;
     if (shouldSkipGenericCleanup()) {
@@ -139,14 +159,17 @@
       dismissSitePrompts();
       return;
     }
-    injectStyle();
-    adSelectors.concat(accountSelectors, cleanupSelectors).forEach(function (selector) {
-      document.querySelectorAll(selector).forEach(function (element) {
-        if (element && element.parentNode) element.remove();
+
+    runWithMutationSuppressed(function () {
+      injectStyle();
+      adSelectors.concat(accountSelectors, cleanupSelectors).forEach(function (selector) {
+        document.querySelectorAll(selector).forEach(function (element) {
+          hideElement(element, 'generic-cleanup');
+        });
       });
+      removeTopAccountBars();
+      removeTopNoiseBlocks();
     });
-    removeTopAccountBars();
-    removeTopNoiseBlocks();
   }
 
   function dismissSitePrompts() {
@@ -243,10 +266,10 @@
     });
   }
 
-  function hideElement(element) {
+  function hideElement(element, reason) {
     if (!element || element === document.body || element === document.documentElement) return;
     if (String(element.id || '').toLowerCase() === 'app') return;
-    element.setAttribute('data-videobrowser-dismissed', 'bilibili-browser-choice');
+    element.setAttribute('data-videobrowser-dismissed', reason || 'cleanup');
     element.style.setProperty('display', 'none', 'important');
     element.style.setProperty('visibility', 'hidden', 'important');
     element.style.setProperty('pointer-events', 'none', 'important');
@@ -273,7 +296,7 @@
       const iconBarLike = element.querySelectorAll('a,button,[role="button"],svg,i').length >= 1 &&
         /menu|grid|app|user|profile|account|more|更多|应用/i.test(html);
       if (rect.width < Math.min(window.innerWidth * 0.45, 180) && !accountLike && !iconBarLike) return;
-      if (accountLike || iconBarLike) element.remove();
+      if (accountLike || iconBarLike) hideElement(element, 'top-account-bar');
     });
   }
 
@@ -304,7 +327,7 @@
         text.length <= 18 &&
         element.querySelectorAll('a,button,img,svg').length <= 2;
 
-      if (!brandLogoLike && (adLike || sparseTopSlot)) element.remove();
+      if (!brandLogoLike && (adLike || sparseTopSlot)) hideElement(element, 'top-noise-block');
     });
   }
 
@@ -318,11 +341,13 @@
   }
 
   function enableNativeVideoControls(video) {
-    video.controls = true;
-    video.setAttribute('controls', 'controls');
-    video.removeAttribute('playsinline');
-    video.removeAttribute('webkit-playsinline');
-    video.style.maxWidth = '100%';
+    if (!video.controls) video.controls = true;
+    if (video.getAttribute('controls') !== 'controls') {
+      video.setAttribute('controls', 'controls');
+    }
+    if (video.hasAttribute('playsinline')) video.removeAttribute('playsinline');
+    if (video.hasAttribute('webkit-playsinline')) video.removeAttribute('webkit-playsinline');
+    if (video.style.maxWidth !== '100%') video.style.maxWidth = '100%';
   }
 
   function installVideoFullscreenHooks(video) {
@@ -396,7 +421,11 @@
       });
       controls.disposers.length = 0;
     }
-    if (controls.overlay) controls.overlay.remove();
+    if (controls.overlay) {
+      runWithMutationSuppressed(function () {
+        controls.overlay.remove();
+      });
+    }
     if (video && state.pageFullscreenVideo === video) {
       video.classList.remove(pageFullscreenClass);
       state.pageFullscreenVideo = null;
@@ -461,7 +490,9 @@
     overlay.appendChild(time);
     overlay.appendChild(quality);
     overlay.appendChild(full);
-    document.documentElement.appendChild(overlay);
+    runWithMutationSuppressed(function () {
+      document.documentElement.appendChild(overlay);
+    });
 
     const controls = {
       overlay,
@@ -831,6 +862,12 @@
     });
   }
 
+  function hasActiveVideo() {
+    return Array.prototype.some.call(document.querySelectorAll('video'), function (video) {
+      return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
+    });
+  }
+
   function installFullscreenEventHooks() {
     document.addEventListener('fullscreenchange', syncDocumentFullscreenState);
     document.addEventListener('webkitfullscreenchange', syncDocumentFullscreenState);
@@ -893,9 +930,14 @@
     state.pendingWork = false;
     if (state.disposed) return;
 
-    state.lastWorkAt = Date.now();
+    const now = Date.now();
+    const cleanupInterval = hasActiveVideo() ? activeVideoCleanupIntervalMs : normalCleanupIntervalMs;
+    state.lastWorkAt = now;
     if (state.config.cleanupEnabled) {
-      removeAds();
+      if (now - Number(state.lastCleanupAt || 0) >= cleanupInterval) {
+        state.lastCleanupAt = now;
+        removeAds();
+      }
     } else {
       removeStyle();
     }
@@ -908,7 +950,8 @@
     if (state.disposed || state.pendingWork) return;
 
     const elapsed = Date.now() - Number(state.lastWorkAt || 0);
-    const delay = Math.max(60, 250 - elapsed);
+    const workDelay = hasActiveVideo() ? activeVideoWorkDelayMs : normalWorkDelayMs;
+    const delay = Math.max(60, workDelay - elapsed);
     state.pendingWork = true;
     window.setTimeout(runPageWork, delay);
   }
@@ -935,8 +978,10 @@
       pausePageVideos();
     }
     exitVideoFullscreen();
-    document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
-      overlay.remove();
+    runWithMutationSuppressed(function () {
+      document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
+        overlay.remove();
+      });
     });
   }
 
@@ -950,6 +995,7 @@
 
     if (!state.observer && document.documentElement && !isBilibiliHost()) {
       state.observer = new MutationObserver(function () {
+        if (state.suppressMutationWork) return;
         schedulePageWork();
       });
       state.observer.observe(document.documentElement, {
