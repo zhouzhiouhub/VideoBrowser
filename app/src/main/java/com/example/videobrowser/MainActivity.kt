@@ -45,6 +45,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
+import com.example.videobrowser.adblock.EmptyResponseFactory
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserRequest
@@ -53,7 +54,6 @@ import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.FullscreenVideoGestureOverlay
 import com.example.videobrowser.video.PlayerActivity
-import java.io.ByteArrayInputStream
 import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
@@ -1318,19 +1318,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleRequestIntercept(request: BrowserRequest): WebResourceResponse? {
         return if (adBlockManager.shouldBlock(request)) {
-            emptyWebResponse()
+            EmptyResponseFactory.noContent()
         } else {
             null
-        }
-    }
-
-    private fun emptyWebResponse(): WebResourceResponse {
-        return WebResourceResponse(
-            "text/plain",
-            "utf-8",
-            ByteArrayInputStream(ByteArray(0))
-        ).apply {
-            setStatusCodeAndReasonPhrase(204, "No Content")
         }
     }
 
