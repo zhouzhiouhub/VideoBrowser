@@ -45,6 +45,13 @@ class UrlUtilsTest {
             "https://m.baidu.com/s?ie=utf-8&word=%E5%A4%9A%E5%B0%91%E9%92%B1",
             UrlUtils.resolveAddressInput("多少钱", searchUrlPrefix)
         )
+        assertEquals(
+            "https://m.baidu.com/s?ie=utf-8&word=" +
+                "%E6%B7%B1%E5%9C%B3%E8%81%8C%E4%B8%9A%E6%8A%80%E6%9C%AF" +
+                "%E5%AD%A6%E9%99%A2%E5%AD%A6%E8%B4%B9%E4%B8%80%E5%B9%B4" +
+                "%E5%A4%9A%E5%B0%91%E9%92%B1",
+            UrlUtils.resolveAddressInput("深圳职业技术学院学费一年多少钱", searchUrlPrefix)
+        )
     }
 
     @Test
