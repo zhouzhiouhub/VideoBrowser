@@ -21,21 +21,34 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 class FullscreenVideoGestureOverlay(
     private val activity: Activity
 ) : FrameLayout(activity) {
+    data class SeekPosition(
+        val positionMs: Long? = null,
+        val durationMs: Long? = null
+    )
+
     var onSeekBy: ((Long) -> Unit)? = null
+    var onSeekTo: ((Long) -> Unit)? = null
+    var onSeekPreviewStart: (() -> SeekPosition?)? = null
+    var onTogglePlayPause: (() -> Boolean?)? = null
     var onPlaybackSpeedSelected: ((Float) -> Unit)? = null
+    var onDirectionalLongPressStart: ((Int) -> Unit)? = null
+    var onDirectionalLongPressEnd: (() -> Unit)? = null
     var onToggleOrientation: (() -> Boolean)? = null
 
     private val audioManager =
         activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val feedbackHandler = Handler(Looper.getMainLooper())
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+    private val swipeStartDistance by lazy { maxOf(dp(MIN_SWIPE_DISTANCE_DP), touchSlop) }
     private val speedOptions = floatArrayOf(0.75f, 1f, 1.25f, 1.5f, 2f, 3f)
 
     private val lockButton = controlTextView()
@@ -43,6 +56,8 @@ class FullscreenVideoGestureOverlay(
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
     private val feedbackView = TextView(context)
+    private val seekProgressTrack = FrameLayout(context)
+    private val seekProgressFill = View(context)
     private var speedPopup: PopupWindow? = null
 
     private var locked = false
@@ -53,14 +68,42 @@ class FullscreenVideoGestureOverlay(
     private var touchStartedInBottomPassthrough = false
     private var activeGesture = VerticalGesture.NONE
     private var tapCandidate = false
+    private var longPressActive = false
+    private var downZone = ScreenZone.CENTER
+    private var seekStartPositionMs: Long? = null
+    private var seekDurationMs: Long? = null
+    private var pendingHorizontalSeekMs = 0L
+    private var pendingSeekTargetMs: Long? = null
     private var downX = 0f
     private var downY = 0f
     private var downTime = 0L
     private var initialBrightness = DEFAULT_BRIGHTNESS
     private var initialVolume = 0
+    private var pendingTapZone = ScreenZone.NONE
+    private var pendingTapTime = 0L
+    private var seekAccumulatorDirection = 0
+    private var seekAccumulatorCount = 0
 
     private val hideFeedbackRunnable = Runnable {
         feedbackView.visibility = View.GONE
+    }
+
+    private val hideSeekProgressRunnable = Runnable {
+        seekProgressTrack.visibility = View.GONE
+    }
+
+    private val clearPendingTapRunnable = Runnable {
+        pendingTapZone = ScreenZone.NONE
+        pendingTapTime = 0L
+    }
+
+    private val clearSeekAccumulatorRunnable = Runnable {
+        seekAccumulatorDirection = 0
+        seekAccumulatorCount = 0
+    }
+
+    private val longPressRunnable = Runnable {
+        triggerLongPress()
     }
 
     init {
@@ -71,6 +114,7 @@ class FullscreenVideoGestureOverlay(
 
         setupLockButton()
         setupControlsGroup()
+        setupSeekProgress()
         setupFeedbackView()
         updateLockUi()
         setPlaybackSpeed(DEFAULT_PLAYBACK_SPEED)
@@ -89,12 +133,16 @@ class FullscreenVideoGestureOverlay(
     fun hideOverlay() {
         speedPopup?.dismiss()
         speedPopup = null
+        stopLongPress()
         restoreWindowBrightness()
         setLocked(false, announce = false)
-        activeGesture = VerticalGesture.NONE
-        touchStartedOnControl = false
-        touchStartedInBottomPassthrough = false
+        resetTouchState()
         feedbackHandler.removeCallbacks(hideFeedbackRunnable)
+        feedbackHandler.removeCallbacks(clearPendingTapRunnable)
+        feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
+        feedbackHandler.removeCallbacks(longPressRunnable)
+        feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
+        seekProgressTrack.visibility = View.GONE
         feedbackView.visibility = View.GONE
         visibility = View.GONE
     }
@@ -115,8 +163,9 @@ class FullscreenVideoGestureOverlay(
         } else {
             context.getString(R.string.video_control_rotate_to_landscape)
         }
-        rotateButton.text = label
+        rotateButton.text = ROTATE_ICON
         rotateButton.contentDescription = label
+        ViewCompat.setTooltipText(rotateButton, label)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -155,6 +204,11 @@ class FullscreenVideoGestureOverlay(
         return handleGestureEvent(event)
     }
 
+    override fun onDetachedFromWindow() {
+        hideOverlay()
+        super.onDetachedFromWindow()
+    }
+
     private fun setupLockButton() {
         lockButton.setOnClickListener {
             setLocked(!locked, announce = true)
@@ -162,8 +216,8 @@ class FullscreenVideoGestureOverlay(
         addView(
             lockButton,
             LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                dp(38)
+                dp(44),
+                dp(44)
             ).apply {
                 gravity = Gravity.START or Gravity.CENTER_VERTICAL
                 leftMargin = dp(14)
@@ -178,7 +232,7 @@ class FullscreenVideoGestureOverlay(
             speedButton,
             LinearLayout.LayoutParams(
                 dp(62),
-                dp(36)
+                dp(40)
             ).apply {
                 marginEnd = dp(8)
             }
@@ -186,8 +240,8 @@ class FullscreenVideoGestureOverlay(
         controlsGroup.addView(
             rotateButton,
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                dp(36)
+                dp(44),
+                dp(40)
             )
         )
 
@@ -198,13 +252,7 @@ class FullscreenVideoGestureOverlay(
             if (locked) return@setOnClickListener
             val isLandscape = onToggleOrientation?.invoke() ?: !landscape
             setLandscape(isLandscape)
-            showFeedback(
-                if (isLandscape) {
-                    context.getString(R.string.video_feedback_landscape)
-                } else {
-                    context.getString(R.string.video_feedback_portrait)
-                }
-            )
+            showFeedback(ROTATE_ICON)
         }
 
         addView(
@@ -225,23 +273,56 @@ class FullscreenVideoGestureOverlay(
             visibility = View.GONE
             gravity = Gravity.CENTER
             includeFontPadding = false
-            maxLines = 1
+            minHeight = dp(46)
+            maxLines = 2
             ellipsize = TextUtils.TruncateAt.END
             setTextColor(Color.WHITE)
             setTypeface(typeface, Typeface.BOLD)
-            textSize = 16f
-            setPadding(dp(18), 0, dp(18), 0)
-            background = roundedBackground(Color.argb(190, 0, 0, 0), dp(18))
+            textSize = 18f
+            setPadding(dp(20), dp(8), dp(20), dp(8))
+            background = roundedBackground(Color.argb(196, 0, 0, 0), dp(20))
         }
         addView(
             feedbackView,
             LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                dp(42)
+                ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
                 gravity = Gravity.CENTER
                 leftMargin = dp(24)
                 rightMargin = dp(24)
+            }
+        )
+    }
+
+    private fun setupSeekProgress() {
+        seekProgressTrack.apply {
+            visibility = View.GONE
+            background = roundedBackground(Color.argb(96, 255, 255, 255), dp(2))
+            clipToOutline = false
+        }
+        seekProgressFill.apply {
+            pivotX = 0f
+            scaleX = 0f
+            background = roundedBackground(Color.WHITE, dp(2))
+        }
+        seekProgressTrack.addView(
+            seekProgressFill,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        addView(
+            seekProgressTrack,
+            LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(4)
+            ).apply {
+                gravity = Gravity.BOTTOM
+                leftMargin = dp(24)
+                rightMargin = dp(24)
+                bottomMargin = dp(78)
             }
         )
     }
@@ -252,12 +333,12 @@ class FullscreenVideoGestureOverlay(
             includeFontPadding = false
             isClickable = true
             isFocusable = true
-            minWidth = dp(52)
-            setPadding(dp(12), 0, dp(12), 0)
+            minWidth = dp(44)
+            setPadding(dp(8), 0, dp(8), 0)
             setTextColor(Color.WHITE)
             setTypeface(typeface, Typeface.BOLD)
-            textSize = 13f
-            background = roundedBackground(Color.argb(178, 0, 0, 0), dp(18))
+            textSize = 18f
+            background = roundedBackground(Color.argb(178, 0, 0, 0), dp(20))
         }
     }
 
@@ -267,29 +348,46 @@ class FullscreenVideoGestureOverlay(
                 downX = event.x
                 downY = event.y
                 downTime = event.eventTime
+                downZone = screenZoneFor(downX)
                 initialBrightness = currentWindowBrightness()
                 initialVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                 activeGesture = VerticalGesture.NONE
                 tapCandidate = true
+                longPressActive = false
+                if (downZone.isSide()) {
+                    feedbackHandler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT_MS)
+                }
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
                 val deltaX = event.x - downX
                 val deltaY = event.y - downY
-                if (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop) {
-                    tapCandidate = false
-                }
-                if (activeGesture == VerticalGesture.NONE &&
-                    abs(deltaY) > touchSlop &&
-                    abs(deltaY) > abs(deltaX)
+                if (!longPressActive &&
+                    (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop)
                 ) {
-                    activeGesture = if (downX < width / 2f) {
+                    tapCandidate = false
+                    feedbackHandler.removeCallbacks(longPressRunnable)
+                }
+                if (!longPressActive &&
+                    activeGesture == VerticalGesture.NONE &&
+                    abs(deltaX) >= swipeStartDistance &&
+                    abs(deltaX) > abs(deltaY)
+                ) {
+                    beginHorizontalSeek(deltaX)
+                } else if (!longPressActive &&
+                    activeGesture == VerticalGesture.NONE &&
+                    downZone.isSide() &&
+                    abs(deltaY) >= swipeStartDistance &&
+                    abs(deltaY) > abs(deltaX) * VERTICAL_GESTURE_RATIO
+                ) {
+                    activeGesture = if (downZone == ScreenZone.LEFT) {
                         VerticalGesture.BRIGHTNESS
                     } else {
                         VerticalGesture.VOLUME
                     }
                 }
                 when (activeGesture) {
+                    VerticalGesture.HORIZONTAL_SEEK -> updateHorizontalSeek(deltaX)
                     VerticalGesture.BRIGHTNESS -> updateBrightness(deltaY)
                     VerticalGesture.VOLUME -> updateVolume(deltaY)
                     VerticalGesture.NONE -> Unit
@@ -297,13 +395,32 @@ class FullscreenVideoGestureOverlay(
                 return true
             }
             MotionEvent.ACTION_UP -> {
-                if (tapCandidate && event.eventTime - downTime <= TAP_MAX_DURATION_MS) {
-                    handleTap(event.x)
+                feedbackHandler.removeCallbacks(longPressRunnable)
+                if (longPressActive) {
+                    stopLongPress()
+                    resetTouchState()
+                    return true
+                }
+                if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
+                    finishHorizontalSeek(commit = true)
+                    resetTouchState()
+                    return true
+                }
+                if (activeGesture == VerticalGesture.NONE &&
+                    tapCandidate &&
+                    event.eventTime - downTime <= TAP_MAX_DURATION_MS
+                ) {
+                    handleTap(event.x, event.eventTime)
                 }
                 resetTouchState()
                 return true
             }
             MotionEvent.ACTION_CANCEL -> {
+                feedbackHandler.removeCallbacks(longPressRunnable)
+                stopLongPress()
+                if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
+                    finishHorizontalSeek(commit = false)
+                }
                 resetTouchState()
                 return true
             }
@@ -311,17 +428,100 @@ class FullscreenVideoGestureOverlay(
         return true
     }
 
+    private fun beginHorizontalSeek(deltaX: Float) {
+        activeGesture = VerticalGesture.HORIZONTAL_SEEK
+        clearPendingSideTap()
+        clearSeekAccumulator()
+        feedbackHandler.removeCallbacks(longPressRunnable)
+        feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
+
+        val position = onSeekPreviewStart?.invoke()
+        seekStartPositionMs = position?.positionMs?.takeIf { it >= 0L }
+        seekDurationMs = position?.durationMs?.takeIf { it > 0L }
+        pendingHorizontalSeekMs = 0L
+        pendingSeekTargetMs = seekStartPositionMs
+        updateHorizontalSeek(deltaX)
+    }
+
+    private fun updateHorizontalSeek(deltaX: Float) {
+        val offsetMs = horizontalSeekOffset(deltaX)
+        pendingHorizontalSeekMs = offsetMs
+
+        val start = seekStartPositionMs
+        val duration = seekDurationMs
+        val target = start?.let {
+            val unbounded = it + offsetMs
+            if (duration != null) {
+                unbounded.coerceIn(0L, duration)
+            } else {
+                unbounded.coerceAtLeast(0L)
+            }
+        }
+        pendingSeekTargetMs = target
+
+        showFeedback(formatSeekPreview(offsetMs, target, duration), autoHide = false)
+        updateSeekProgress(target, duration)
+    }
+
+    private fun finishHorizontalSeek(commit: Boolean) {
+        val feedbackText = feedbackView.text?.toString().orEmpty()
+        if (commit && pendingHorizontalSeekMs != 0L) {
+            pendingSeekTargetMs?.let { onSeekTo?.invoke(it) }
+                ?: onSeekBy?.invoke(pendingHorizontalSeekMs)
+        }
+
+        if (commit && feedbackText.isNotBlank()) {
+            showFeedback(feedbackText)
+            feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
+            feedbackHandler.postDelayed(hideSeekProgressRunnable, FEEDBACK_DURATION_MS)
+        } else {
+            feedbackHandler.removeCallbacks(hideFeedbackRunnable)
+            feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
+            feedbackView.visibility = View.GONE
+            seekProgressTrack.visibility = View.GONE
+        }
+
+        seekStartPositionMs = null
+        seekDurationMs = null
+        pendingHorizontalSeekMs = 0L
+        pendingSeekTargetMs = null
+    }
+
+    private fun horizontalSeekOffset(deltaX: Float): Long {
+        if (width <= 0) return 0L
+        val ratio = (deltaX / width.toFloat()).coerceIn(-1f, 1f)
+        val rawOffset = ratio * maxHorizontalSeekMs()
+        var roundedOffset = (rawOffset / SEEK_DRAG_STEP_MS).roundToLong() * SEEK_DRAG_STEP_MS
+        if (roundedOffset == 0L && abs(deltaX) >= swipeStartDistance) {
+            roundedOffset = if (deltaX > 0f) SEEK_DRAG_STEP_MS else -SEEK_DRAG_STEP_MS
+        }
+        return roundedOffset
+    }
+
+    private fun maxHorizontalSeekMs(): Long {
+        val duration = seekDurationMs ?: return DEFAULT_HORIZONTAL_SEEK_MS
+        return (duration / SEEK_DURATION_FRACTION)
+            .coerceIn(MIN_HORIZONTAL_SEEK_MS, MAX_HORIZONTAL_SEEK_MS)
+    }
+
+    private fun updateSeekProgress(targetMs: Long?, durationMs: Long?) {
+        if (targetMs == null || durationMs == null || durationMs <= 0L) {
+            seekProgressTrack.visibility = View.GONE
+            return
+        }
+        seekProgressFill.scaleX = (targetMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
+        seekProgressTrack.visibility = View.VISIBLE
+        seekProgressTrack.bringToFront()
+    }
+
     private fun updateBrightness(deltaY: Float) {
-        val deltaRatio = (downY - (downY + deltaY)) / height.toFloat()
+        val deltaRatio = -deltaY / height.toFloat()
         val brightness = (initialBrightness + deltaRatio).coerceIn(MIN_BRIGHTNESS, 1f)
         val attributes = activity.window.attributes
         attributes.screenBrightness = brightness
         activity.window.attributes = attributes
         showFeedback(
-            context.getString(
-                R.string.video_feedback_brightness,
-                (brightness * 100).roundToInt()
-            )
+            "$BRIGHTNESS_ICON ${(brightness * 100).roundToInt()}%"
         )
     }
 
@@ -330,29 +530,80 @@ class FullscreenVideoGestureOverlay(
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         if (maxVolume <= minVolume) return
 
-        val deltaRatio = (downY - (downY + deltaY)) / height.toFloat()
+        val deltaRatio = -deltaY / height.toFloat()
         val nextVolume = (initialVolume + deltaRatio * (maxVolume - minVolume))
             .roundToInt()
             .coerceIn(minVolume, maxVolume)
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, nextVolume, 0)
         showFeedback(
-            context.getString(
-                R.string.video_feedback_volume,
-                volumePercent(nextVolume, minVolume, maxVolume)
-            )
+            "$VOLUME_ICON ${volumePercent(nextVolume, minVolume, maxVolume)}%"
         )
     }
 
-    private fun handleTap(upX: Float) {
-        val offsetMs = if (upX < width / 2f) -SEEK_STEP_MS else SEEK_STEP_MS
-        onSeekBy?.invoke(offsetMs)
-        showFeedback(
-            if (offsetMs < 0) {
-                context.getString(R.string.video_feedback_rewind)
-            } else {
-                context.getString(R.string.video_feedback_forward)
+    private fun handleTap(upX: Float, eventTime: Long) {
+        when (val zone = screenZoneFor(upX)) {
+            ScreenZone.CENTER -> {
+                clearPendingSideTap()
+                val playing = onTogglePlayPause?.invoke()
+                showFeedback(
+                    when (playing) {
+                        true -> PAUSE_ICON
+                        false -> PLAY_ICON
+                        null -> PLAY_PAUSE_ICON
+                    }
+                )
             }
-        )
+            ScreenZone.LEFT,
+            ScreenZone.RIGHT -> registerSideTap(zone, eventTime)
+            ScreenZone.NONE -> Unit
+        }
+    }
+
+    private fun registerSideTap(zone: ScreenZone, eventTime: Long) {
+        if (pendingTapZone == zone && eventTime - pendingTapTime <= DOUBLE_TAP_TIMEOUT_MS) {
+            clearPendingSideTap()
+            handleDoubleTap(zone)
+            return
+        }
+        pendingTapZone = zone
+        pendingTapTime = eventTime
+        feedbackHandler.removeCallbacks(clearPendingTapRunnable)
+        feedbackHandler.postDelayed(clearPendingTapRunnable, DOUBLE_TAP_TIMEOUT_MS)
+    }
+
+    private fun handleDoubleTap(zone: ScreenZone) {
+        val direction = if (zone == ScreenZone.LEFT) -1 else 1
+        onSeekBy?.invoke(direction * SEEK_STEP_MS)
+        if (seekAccumulatorDirection != direction) {
+            seekAccumulatorDirection = direction
+            seekAccumulatorCount = 0
+        }
+        seekAccumulatorCount += 1
+        val seconds = direction * seekAccumulatorCount * SEEK_STEP_SECONDS
+        showFeedback(formatSeekSeconds(seconds))
+        feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
+        feedbackHandler.postDelayed(clearSeekAccumulatorRunnable, SEEK_ACCUMULATE_RESET_MS)
+    }
+
+    private fun triggerLongPress() {
+        if (locked || longPressActive || activeGesture != VerticalGesture.NONE || !downZone.isSide()) {
+            return
+        }
+        longPressActive = true
+        tapCandidate = false
+        clearPendingSideTap()
+        clearSeekAccumulator()
+        val direction = if (downZone == ScreenZone.LEFT) -1 else 1
+        onDirectionalLongPressStart?.invoke(direction)
+        showFeedback(formatSpeed(LONG_PRESS_PLAYBACK_SPEED), autoHide = false)
+    }
+
+    private fun stopLongPress() {
+        if (!longPressActive) return
+        longPressActive = false
+        onDirectionalLongPressEnd?.invoke()
+        feedbackHandler.removeCallbacks(hideFeedbackRunnable)
+        feedbackView.visibility = View.GONE
     }
 
     private fun showSpeedPopup() {
@@ -377,7 +628,7 @@ class FullscreenVideoGestureOverlay(
                         setPlaybackSpeed(speed)
                         onPlaybackSpeedSelected?.invoke(speed)
                         speedPopup?.dismiss()
-                        showFeedback(context.getString(R.string.video_feedback_speed, formatSpeed(speed)))
+                        showFeedback(formatSpeed(speed))
                     }
                 },
                 LinearLayout.LayoutParams(dp(96), dp(38))
@@ -400,22 +651,32 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun setLocked(value: Boolean, announce: Boolean) {
+        if (locked == value && announce) {
+            showFeedback(if (locked) LOCKED_ICON else UNLOCKED_ICON)
+            return
+        }
         locked = value
+        if (locked) {
+            stopLongPress()
+            if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
+                finishHorizontalSeek(commit = false)
+            }
+            clearPendingSideTap()
+            clearSeekAccumulator()
+        }
         updateLockUi()
         if (announce) {
-            showFeedback(
-                context.getString(
-                    if (locked) R.string.video_feedback_locked else R.string.video_feedback_unlocked
-                )
-            )
+            showFeedback(if (locked) LOCKED_ICON else UNLOCKED_ICON)
         }
     }
 
     private fun updateLockUi() {
-        lockButton.text = context.getString(
+        val controlLabel = context.getString(
             if (locked) R.string.video_control_unlock else R.string.video_control_lock
         )
-        lockButton.contentDescription = lockButton.text
+        lockButton.text = if (locked) UNLOCKED_ICON else LOCKED_ICON
+        lockButton.contentDescription = controlLabel
+        ViewCompat.setTooltipText(lockButton, controlLabel)
         controlsGroup.visibility = if (locked) View.GONE else View.VISIBLE
         if (locked) {
             speedPopup?.dismiss()
@@ -471,12 +732,14 @@ class FullscreenVideoGestureOverlay(
             .coerceIn(0, 100)
     }
 
-    private fun showFeedback(text: String) {
+    private fun showFeedback(text: String, autoHide: Boolean = true) {
         feedbackView.text = text
         feedbackView.visibility = View.VISIBLE
         feedbackView.bringToFront()
         feedbackHandler.removeCallbacks(hideFeedbackRunnable)
-        feedbackHandler.postDelayed(hideFeedbackRunnable, FEEDBACK_DURATION_MS)
+        if (autoHide) {
+            feedbackHandler.postDelayed(hideFeedbackRunnable, FEEDBACK_DURATION_MS)
+        }
     }
 
     private fun resetTouchState() {
@@ -484,6 +747,19 @@ class FullscreenVideoGestureOverlay(
         tapCandidate = false
         touchStartedOnControl = false
         touchStartedInBottomPassthrough = false
+        downZone = ScreenZone.CENTER
+    }
+
+    private fun clearPendingSideTap() {
+        pendingTapZone = ScreenZone.NONE
+        pendingTapTime = 0L
+        feedbackHandler.removeCallbacks(clearPendingTapRunnable)
+    }
+
+    private fun clearSeekAccumulator() {
+        seekAccumulatorDirection = 0
+        seekAccumulatorCount = 0
+        feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
     }
 
     private fun roundedBackground(color: Int, radius: Int): GradientDrawable {
@@ -501,11 +777,52 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    private fun formatSeekSeconds(seconds: Int): String {
+        return if (seconds > 0) {
+            "+${seconds}s"
+        } else {
+            "${seconds}s"
+        }
+    }
+
+    private fun formatSeekPreview(offsetMs: Long, targetMs: Long?, durationMs: Long?): String {
+        val offsetSeconds = (offsetMs / 1000L).toInt()
+        val offsetText = formatSeekSeconds(offsetSeconds)
+        return if (targetMs != null && durationMs != null && durationMs > 0L) {
+            "$offsetText\n${formatTime(targetMs)} / ${formatTime(durationMs)}"
+        } else if (targetMs != null) {
+            "$offsetText\n${formatTime(targetMs)}"
+        } else {
+            offsetText
+        }
+    }
+
+    private fun formatTime(timeMs: Long): String {
+        val totalSeconds = (timeMs / 1000L).coerceAtLeast(0L)
+        val hours = totalSeconds / 3600L
+        val minutes = (totalSeconds % 3600L) / 60L
+        val seconds = totalSeconds % 60L
+        return if (hours > 0L) {
+            "%d:%02d:%02d".format(hours, minutes, seconds)
+        } else {
+            "%02d:%02d".format(minutes, seconds)
+        }
+    }
+
     private fun normalizeSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
         } else {
             DEFAULT_PLAYBACK_SPEED
+        }
+    }
+
+    private fun screenZoneFor(x: Float): ScreenZone {
+        return when {
+            x < 0f || width <= 0 -> ScreenZone.NONE
+            x < width * LEFT_ZONE_RATIO -> ScreenZone.LEFT
+            x >= width * (1f - RIGHT_ZONE_RATIO) -> ScreenZone.RIGHT
+            else -> ScreenZone.CENTER
         }
     }
 
@@ -518,23 +835,57 @@ class FullscreenVideoGestureOverlay(
             actionMasked == MotionEvent.ACTION_CANCEL
     }
 
+    private fun ScreenZone.isSide(): Boolean {
+        return this == ScreenZone.LEFT || this == ScreenZone.RIGHT
+    }
+
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).roundToInt()
     }
 
+    private enum class ScreenZone {
+        LEFT,
+        CENTER,
+        RIGHT,
+        NONE
+    }
+
     private enum class VerticalGesture {
         NONE,
+        HORIZONTAL_SEEK,
         BRIGHTNESS,
         VOLUME
     }
 
     private companion object {
         private const val DEFAULT_PLAYBACK_SPEED = 1f
+        private const val LONG_PRESS_PLAYBACK_SPEED = 2f
         private const val DEFAULT_BRIGHTNESS = 0.5f
         private const val MIN_BRIGHTNESS = 0.02f
         private const val SEEK_STEP_MS = 10_000L
+        private const val SEEK_STEP_SECONDS = 10
+        private const val SEEK_DRAG_STEP_MS = 5_000L
+        private const val DEFAULT_HORIZONTAL_SEEK_MS = 60_000L
+        private const val MIN_HORIZONTAL_SEEK_MS = 30_000L
+        private const val MAX_HORIZONTAL_SEEK_MS = 60_000L
+        private const val SEEK_DURATION_FRACTION = 10L
         private const val TAP_MAX_DURATION_MS = 260L
+        private const val DOUBLE_TAP_TIMEOUT_MS = 280L
+        private const val LONG_PRESS_TIMEOUT_MS = 520L
+        private const val SEEK_ACCUMULATE_RESET_MS = 850L
         private const val FEEDBACK_DURATION_MS = 900L
         private const val BOTTOM_PASSTHROUGH_DP = 92
+        private const val MIN_SWIPE_DISTANCE_DP = 10
+        private const val LEFT_ZONE_RATIO = 0.3f
+        private const val RIGHT_ZONE_RATIO = 0.3f
+        private const val VERTICAL_GESTURE_RATIO = 1.15f
+        private const val PLAY_ICON = "\u25b6"
+        private const val PAUSE_ICON = "\u23f8"
+        private const val PLAY_PAUSE_ICON = "\u23ef"
+        private const val LOCKED_ICON = "\ud83d\udd12"
+        private const val UNLOCKED_ICON = "\ud83d\udd13"
+        private const val ROTATE_ICON = "\u21bb"
+        private const val BRIGHTNESS_ICON = "\u2600"
+        private const val VOLUME_ICON = "\ud83d\udd0a"
     }
 }

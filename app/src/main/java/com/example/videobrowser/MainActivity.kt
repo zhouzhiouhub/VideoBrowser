@@ -162,6 +162,9 @@ class MainActivity : AppCompatActivity() {
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
     private var isPageLoading = false
+    private var fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
+    private var fullscreenVideoPositionMs: Long? = null
+    private var fullscreenVideoDurationMs: Long? = null
     private val commonScript: String by lazy {
         assets.open(COMMON_SCRIPT_ASSET).bufferedReader().use { it.readText() }
     }
@@ -357,7 +360,12 @@ class MainActivity : AppCompatActivity() {
         fullscreenGestureOverlay = FullscreenVideoGestureOverlay(this).apply {
             elevation = dp(28).toFloat()
             onSeekBy = ::seekFullscreenVideoBy
+            onSeekTo = ::seekFullscreenVideoTo
+            onSeekPreviewStart = ::currentFullscreenVideoSeekPosition
+            onTogglePlayPause = ::toggleFullscreenVideoPlayback
             onPlaybackSpeedSelected = ::setFullscreenVideoPlaybackSpeed
+            onDirectionalLongPressStart = ::startFullscreenDirectionalLongPress
+            onDirectionalLongPressEnd = ::stopFullscreenDirectionalLongPress
             onToggleOrientation = {
                 if (::chromeClient.isInitialized) {
                     chromeClient.toggleFullscreenOrientation()
@@ -408,16 +416,22 @@ class MainActivity : AppCompatActivity() {
         if (::fullscreenGestureOverlay.isInitialized) {
             when {
                 fullscreen && !wasFullscreen -> {
+                    resetFullscreenVideoTimeline()
+                    fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
                     fullscreenGestureOverlay.setPlaybackSpeed(DEFAULT_VIDEO_SPEED)
                     fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
                     fullscreenGestureOverlay.showOverlay()
                     setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                    requestFullscreenVideoTimeline()
                 }
                 fullscreen -> {
                     fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
                     fullscreenGestureOverlay.bringToFront()
+                    requestFullscreenVideoTimeline()
                 }
                 wasFullscreen -> {
+                    resetFullscreenVideoTimeline()
+                    fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
                     setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
                     fullscreenGestureOverlay.hideOverlay()
                 }
@@ -428,6 +442,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun seekFullscreenVideoBy(offsetMs: Long) {
         val seconds = String.format(Locale.US, "%.3f", offsetMs / 1000.0)
+        fullscreenVideoPositionMs = boundedFullscreenVideoPosition(offsetMs)
         browserManager.evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.seekBy==='function'){" +
@@ -436,11 +451,75 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun seekFullscreenVideoTo(positionMs: Long) {
+        val duration = fullscreenVideoDurationMs
+        val boundedPositionMs = if (duration != null && duration > 0L) {
+            positionMs.coerceIn(0L, duration)
+        } else {
+            positionMs.coerceAtLeast(0L)
+        }
+        fullscreenVideoPositionMs = boundedPositionMs
+        val seconds = String.format(Locale.US, "%.3f", boundedPositionMs / 1000.0)
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.seekTo==='function'){" +
+                "window.VideoBrowserEnhancer.seekTo($seconds);" +
+                "}})();"
+        )
+    }
+
+    private fun currentFullscreenVideoSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition {
+        requestFullscreenVideoTimeline()
+        return FullscreenVideoGestureOverlay.SeekPosition(
+            positionMs = fullscreenVideoPositionMs,
+            durationMs = fullscreenVideoDurationMs
+        )
+    }
+
+    private fun boundedFullscreenVideoPosition(offsetMs: Long): Long? {
+        val current = fullscreenVideoPositionMs ?: return null
+        val target = current + offsetMs
+        val duration = fullscreenVideoDurationMs
+        return if (duration != null && duration > 0L) {
+            target.coerceIn(0L, duration)
+        } else {
+            target.coerceAtLeast(0L)
+        }
+    }
+
+    private fun requestFullscreenVideoTimeline() {
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.reportPlaybackTimeline==='function'){" +
+                "window.VideoBrowserEnhancer.reportPlaybackTimeline();" +
+                "}})();"
+        )
+    }
+
+    private fun resetFullscreenVideoTimeline() {
+        fullscreenVideoPositionMs = null
+        fullscreenVideoDurationMs = null
+    }
+
+    private fun toggleFullscreenVideoPlayback(): Boolean? {
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.togglePlayPause==='function'){" +
+                "window.VideoBrowserEnhancer.togglePlayPause();" +
+                "}})();"
+        )
+        return null
+    }
+
     private fun setFullscreenVideoPlaybackSpeed(speed: Float) {
         val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
         } else {
             DEFAULT_VIDEO_SPEED
+        }
+        fullscreenPlaybackSpeed = normalizedSpeed
+        if (::fullscreenGestureOverlay.isInitialized) {
+            fullscreenGestureOverlay.setPlaybackSpeed(fullscreenPlaybackSpeed)
         }
         val speedValue = String.format(Locale.US, "%.2f", normalizedSpeed)
         browserManager.evaluateJavascript(
@@ -449,6 +528,26 @@ class MainActivity : AppCompatActivity() {
                 "window.VideoBrowserEnhancer.setPlaybackSpeed($speedValue);" +
                 "}})();"
         )
+    }
+
+    private fun startFullscreenDirectionalLongPress(direction: Int) {
+        val normalizedDirection = if (direction < 0) -1 else 1
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.startDirectionalPlayback==='function'){" +
+                "window.VideoBrowserEnhancer.startDirectionalPlayback($normalizedDirection);" +
+                "}})();"
+        )
+    }
+
+    private fun stopFullscreenDirectionalLongPress() {
+        browserManager.evaluateJavascript(
+            "(function(){if(window.VideoBrowserEnhancer&&" +
+                "typeof window.VideoBrowserEnhancer.stopDirectionalPlayback==='function'){" +
+                "window.VideoBrowserEnhancer.stopDirectionalPlayback();" +
+                "}})();"
+        )
+        setFullscreenVideoPlaybackSpeed(fullscreenPlaybackSpeed)
     }
 
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
@@ -697,6 +796,18 @@ class MainActivity : AppCompatActivity() {
                 if (::chromeClient.isInitialized) {
                     chromeClient.exitPageFullscreen()
                 }
+            }
+        }
+
+        @JavascriptInterface
+        fun updatePlaybackTimeline(positionMs: Double, durationMs: Double) {
+            runOnUiThread {
+                fullscreenVideoPositionMs = positionMs
+                    .takeIf { it.isFinite() && it >= 0.0 }
+                    ?.toLong()
+                fullscreenVideoDurationMs = durationMs
+                    .takeIf { it.isFinite() && it > 0.0 }
+                    ?.toLong()
             }
         }
     }
@@ -1034,7 +1145,6 @@ class MainActivity : AppCompatActivity() {
             .remove(KEY_PAGE_CLEANUP)
             .remove(KEY_VIDEO_ENHANCEMENT)
             .remove(KEY_DESKTOP_MODE)
-            .remove(KEY_VIDEO_SPEED)
             .commit()
         Toast.makeText(this, R.string.toast_default_settings_restored, Toast.LENGTH_SHORT).show()
         recreate()
@@ -1174,7 +1284,6 @@ class MainActivity : AppCompatActivity() {
         val config = JSONObject()
             .put("cleanupEnabled", isPageCleanupEnabled())
             .put("videoEnabled", isVideoEnhancementEnabled())
-            .put("videoSpeed", DEFAULT_VIDEO_SPEED)
             .toString()
         val script = """
             (function () {
@@ -1249,8 +1358,7 @@ class MainActivity : AppCompatActivity() {
             mimeType = mimeType,
             userAgent = userAgentOverride ?: browserManager.userAgentString(),
             cookie = cookie,
-            referer = referer,
-            playbackSpeed = DEFAULT_VIDEO_SPEED
+            referer = referer
         )
         startActivity(intent)
     }
@@ -1373,7 +1481,6 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_PAGE_CLEANUP = "page_cleanup"
         private const val KEY_VIDEO_ENHANCEMENT = "video_enhancement"
         private const val KEY_DESKTOP_MODE = "desktop_mode"
-        private const val KEY_VIDEO_SPEED = "video_speed"
         private const val KEY_BOOKMARKS = "bookmarks"
         private const val KEY_HISTORY = "history"
         private const val JSON_TITLE = "title"

@@ -25,6 +25,7 @@
   }
   state.pageFullscreenVideo = state.pageFullscreenVideo || null;
   state.nativeFullscreenVideo = state.nativeFullscreenVideo || null;
+  state.directionalPlayback = state.directionalPlayback || null;
   state.fullscreenPlaybackSpeed = Number(state.fullscreenPlaybackSpeed || 1);
   if (!Number.isFinite(state.fullscreenPlaybackSpeed) || state.fullscreenPlaybackSpeed <= 0) {
     state.fullscreenPlaybackSpeed = 1;
@@ -358,18 +359,29 @@
   function installVideoFullscreenHooks(video) {
     if (!video || state.fullscreenHookedVideos.has(video)) return;
     state.fullscreenHookedVideos.add(video);
+    const timelineReporter = function () {
+      if (isVideoFullscreen(video) || state.nativeFullscreenVideo === video) {
+        reportPlaybackTimeline(video);
+      }
+    };
     video.addEventListener('webkitbeginfullscreen', function () {
       state.nativeFullscreenVideo = video;
       applyVideoSpeed(video);
+      reportPlaybackTimeline(video);
       enterNativeFullscreen();
     });
     video.addEventListener('webkitendfullscreen', function () {
+      stopDirectionalPlayback();
       state.nativeFullscreenVideo = null;
+      state.fullscreenPlaybackSpeed = 1;
       applyVideoSpeed(video);
       exitNativeFullscreen();
     });
     video.addEventListener('dblclick', function () {
       requestVideoFullscreen(video);
+    });
+    ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'play', 'playing'].forEach(function (eventName) {
+      video.addEventListener(eventName, timelineReporter);
     });
   }
 
@@ -387,9 +399,14 @@
   }
 
   function desiredVideoSpeed(video) {
-    const speed = Number(state.fullscreenPlaybackSpeed || state.config.videoSpeed || 1);
+    const speed = currentFullscreenPlaybackSpeed();
     const activeFullscreen = video && (isVideoFullscreen(video) || state.nativeFullscreenVideo === video);
     if (!state.config.videoEnabled || !activeFullscreen) return 1;
+    return Number.isFinite(speed) && speed > 0 ? speed : 1;
+  }
+
+  function currentFullscreenPlaybackSpeed() {
+    const speed = Number(state.fullscreenPlaybackSpeed || 1);
     return Number.isFinite(speed) && speed > 0 ? speed : 1;
   }
 
@@ -644,6 +661,24 @@
     return { canSeek: true, start: start, end: end };
   }
 
+  function reportPlaybackTimeline(video) {
+    const target = video || activeFullscreenVideo();
+    if (!target) return;
+
+    const timeline = videoTimeline(target);
+    const position = Number(target.currentTime || 0);
+    const duration = timeline.canSeek ? timeline.end : Number(target.duration || -1);
+    const bridge = window.VideoBrowserNative;
+    if (bridge && typeof bridge.updatePlaybackTimeline === 'function') {
+      try {
+        bridge.updatePlaybackTimeline(
+          Number.isFinite(position) && position >= 0 ? position * 1000 : -1,
+          Number.isFinite(duration) && duration > 0 ? duration * 1000 : -1
+        );
+      } catch (_) {}
+    }
+  }
+
   function isBilibiliHost() {
     return /(\.|^)bilibili\.com$/i.test(location.hostname);
   }
@@ -699,6 +734,28 @@
     } catch (_) {
       try { video.currentTime = targetTime; } catch (__) {}
     }
+    reportPlaybackTimeline(video);
+  }
+
+  function seekVideoTo(video, targetSeconds) {
+    if (!video || !Number.isFinite(targetSeconds)) return;
+    const timeline = videoTimeline(video);
+    let targetTime = targetSeconds;
+    if (timeline.canSeek) {
+      targetTime = Math.max(timeline.start, Math.min(timeline.end, targetTime));
+    } else {
+      targetTime = Math.max(0, targetTime);
+    }
+    try {
+      if (typeof video.fastSeek === 'function') {
+        video.fastSeek(targetTime);
+      } else {
+        video.currentTime = targetTime;
+      }
+    } catch (_) {
+      try { video.currentTime = targetTime; } catch (__) {}
+    }
+    reportPlaybackTimeline(video);
   }
 
   function seekVideoBy(video, offsetSeconds) {
@@ -719,6 +776,7 @@
     } catch (_) {
       try { video.currentTime = targetTime; } catch (__) {}
     }
+    reportPlaybackTimeline(video);
   }
 
   function activeFullscreenVideo() {
@@ -751,6 +809,7 @@
     }
 
     applyPageVideoFullscreen(video);
+    reportPlaybackTimeline(video);
     enterNativeFullscreen();
 
     const target = video.parentElement || video;
@@ -782,14 +841,16 @@
   }
 
   function exitVideoFullscreen() {
+    stopDirectionalPlayback();
     const video = state.pageFullscreenVideo;
     if (video) {
       video.classList.remove(pageFullscreenClass);
       updateVideoOverlay(video, state.videoOverlays.get(video));
-      applyVideoSpeed(video);
     }
     state.pageFullscreenVideo = null;
     state.nativeFullscreenVideo = null;
+    state.fullscreenPlaybackSpeed = 1;
+    if (video) applyVideoSpeed(video);
     document.documentElement.style.overflow = state.previousDocumentOverflow || '';
     if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
       try { document.exitFullscreen(); } catch (_) {}
@@ -945,11 +1006,13 @@
     const hasDocumentFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
     if (hasDocumentFullscreen) {
       state.nativeFullscreenVideo = activeFullscreenVideo();
+      reportPlaybackTimeline(state.nativeFullscreenVideo);
       document.querySelectorAll('video').forEach(applyVideoSpeed);
       enterNativeFullscreen();
       return;
     }
 
+    stopDirectionalPlayback();
     if (state.pageFullscreenVideo) {
       const video = state.pageFullscreenVideo;
       video.classList.remove(pageFullscreenClass);
@@ -958,6 +1021,7 @@
       updateVideoOverlay(video, state.videoOverlays.get(video));
     }
     state.nativeFullscreenVideo = null;
+    state.fullscreenPlaybackSpeed = 1;
     document.querySelectorAll('video').forEach(applyVideoSpeed);
     exitNativeFullscreen();
   }
@@ -1025,7 +1089,79 @@
     });
   }
 
+  function togglePlayPause() {
+    const video = activeFullscreenVideo();
+    if (!video) return false;
+    if (video.paused || video.ended) {
+      try {
+        if (video.ended) video.currentTime = 0;
+      } catch (_) {}
+      try { video.play().catch(function () {}); } catch (__) {}
+      return true;
+    }
+    try { video.pause(); } catch (_) {}
+    return false;
+  }
+
+  function startDirectionalPlayback(direction) {
+    const video = activeFullscreenVideo();
+    if (!video) return;
+    stopDirectionalPlayback();
+
+    const normalizedDirection = Number(direction) < 0 ? -1 : 1;
+    const previousSpeed = currentFullscreenPlaybackSpeed();
+    state.directionalPlayback = {
+      video: video,
+      direction: normalizedDirection,
+      previousSpeed: previousSpeed,
+      wasPaused: Boolean(video.paused),
+      intervalId: null
+    };
+
+    if (normalizedDirection > 0) {
+      state.fullscreenPlaybackSpeed = 2;
+      applyVideoSpeed(video);
+      try { video.play().catch(function () {}); } catch (_) {}
+      return;
+    }
+
+    try { video.pause(); } catch (_) {}
+    seekVideoBy(video, -0.5);
+    state.directionalPlayback.intervalId = window.setInterval(function () {
+      const scan = state.directionalPlayback;
+      if (!scan || scan.direction >= 0 || !scan.video || !scan.video.isConnected) {
+        stopDirectionalPlayback();
+        return;
+      }
+      seekVideoBy(scan.video, -0.5);
+    }, 250);
+  }
+
+  function stopDirectionalPlayback() {
+    const scan = state.directionalPlayback;
+    if (!scan) return;
+    if (scan.intervalId) {
+      window.clearInterval(scan.intervalId);
+    }
+    state.directionalPlayback = null;
+    state.fullscreenPlaybackSpeed = Number.isFinite(Number(scan.previousSpeed)) && Number(scan.previousSpeed) > 0
+      ? Number(scan.previousSpeed)
+      : 1;
+
+    const video = scan.video && scan.video.isConnected ? scan.video : activeFullscreenVideo();
+    if (video) {
+      applyVideoSpeed(video);
+      if (scan.wasPaused) {
+        try { video.pause(); } catch (_) {}
+      } else {
+        try { video.play().catch(function () {}); } catch (__) {}
+      }
+    }
+    document.querySelectorAll('video').forEach(applyVideoSpeed);
+  }
+
   function disposePageFeatures(options) {
+    stopDirectionalPlayback();
     state.disposed = true;
     state.pendingWork = false;
 
@@ -1078,7 +1214,7 @@
     apply: function (config) {
       state.disposed = false;
       state.config = config || {};
-      state.fullscreenPlaybackSpeed = Number(state.config.videoSpeed || 1) || 1;
+      state.fullscreenPlaybackSpeed = 1;
       installHooks();
       runPageWork();
       startWorkers();
@@ -1089,11 +1225,27 @@
     seekBy: function (offsetSeconds) {
       seekVideoBy(activeFullscreenVideo(), Number(offsetSeconds || 0));
     },
+    seekTo: function (targetSeconds) {
+      seekVideoTo(activeFullscreenVideo(), Number(targetSeconds || 0));
+    },
+    reportPlaybackTimeline: function () {
+      reportPlaybackTimeline(activeFullscreenVideo());
+    },
+    togglePlayPause: function () {
+      return togglePlayPause();
+    },
     setPlaybackSpeed: function (speed) {
+      stopDirectionalPlayback();
       const normalizedSpeed = Number(speed || 1);
       state.fullscreenPlaybackSpeed =
         Number.isFinite(normalizedSpeed) && normalizedSpeed > 0 ? normalizedSpeed : 1;
       document.querySelectorAll('video').forEach(applyVideoSpeed);
+    },
+    startDirectionalPlayback: function (direction) {
+      startDirectionalPlayback(direction);
+    },
+    stopDirectionalPlayback: function () {
+      stopDirectionalPlayback();
     },
     dispose: function (options) {
       disposePageFeatures(options || {});

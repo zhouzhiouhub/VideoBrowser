@@ -6,6 +6,8 @@ import android.content.pm.ActivityInfo
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -29,11 +31,26 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerView: PlayerView
     private lateinit var gestureOverlay: FullscreenVideoGestureOverlay
     private var player: ExoPlayer? = null
+    private val scanHandler = Handler(Looper.getMainLooper())
     private var playbackPosition = 0L
     private var playWhenReady = true
     private var currentMediaItemIndex = 0
     private var selectedPlaybackSpeed = DEFAULT_PLAYBACK_SPEED
+    private var longPressRestoreSpeed = DEFAULT_PLAYBACK_SPEED
+    private var longPressRestorePlayWhenReady = true
+    private var longPressDirection = 0
+    private var directionalLongPressActive = false
     private var isLandscape = true
+
+    private val reverseScanRunnable = object : Runnable {
+        override fun run() {
+            if (!directionalLongPressActive || longPressDirection >= 0) {
+                return
+            }
+            seekPlayerBy(-LONG_PRESS_SCAN_STEP_MS)
+            scanHandler.postDelayed(this, LONG_PRESS_SCAN_INTERVAL_MS)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,10 +66,7 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition = it.getLong(STATE_PLAYBACK_POSITION)
             playWhenReady = it.getBoolean(STATE_PLAY_WHEN_READY, true)
             currentMediaItemIndex = it.getInt(STATE_MEDIA_ITEM_INDEX)
-            selectedPlaybackSpeed = it.getFloat(STATE_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
             isLandscape = it.getBoolean(STATE_LANDSCAPE, true)
-        } ?: run {
-            selectedPlaybackSpeed = initialPlaybackSpeed()
         }
         applyRequestedOrientation()
         setupGestureOverlay()
@@ -99,7 +113,6 @@ class PlayerActivity : AppCompatActivity() {
         outState.putLong(STATE_PLAYBACK_POSITION, playbackPosition)
         outState.putBoolean(STATE_PLAY_WHEN_READY, playWhenReady)
         outState.putInt(STATE_MEDIA_ITEM_INDEX, currentMediaItemIndex)
-        outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
         super.onSaveInstanceState(outState)
     }
@@ -155,7 +168,12 @@ class PlayerActivity : AppCompatActivity() {
     private fun setupGestureOverlay() {
         gestureOverlay = FullscreenVideoGestureOverlay(this).apply {
             onSeekBy = ::seekPlayerBy
+            onSeekTo = ::seekPlayerTo
+            onSeekPreviewStart = ::currentPlayerSeekPosition
+            onTogglePlayPause = ::togglePlayerPlayPause
             onPlaybackSpeedSelected = ::setPlayerPlaybackSpeed
+            onDirectionalLongPressStart = ::startDirectionalLongPress
+            onDirectionalLongPressEnd = ::stopDirectionalLongPress
             onToggleOrientation = ::togglePlayerOrientation
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(isLandscape)
@@ -171,19 +189,82 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun seekPlayerBy(offsetMs: Long) {
         val exoPlayer = player ?: return
-        val target = exoPlayer.currentPosition + offsetMs
+        seekPlayerTo(exoPlayer.currentPosition + offsetMs)
+    }
+
+    private fun seekPlayerTo(positionMs: Long) {
+        val exoPlayer = player ?: return
         val duration = exoPlayer.duration
         val boundedTarget = if (duration != C.TIME_UNSET && duration > 0) {
-            target.coerceIn(0L, duration)
+            positionMs.coerceIn(0L, duration)
         } else {
-            target.coerceAtLeast(0L)
+            positionMs.coerceAtLeast(0L)
         }
         exoPlayer.seekTo(boundedTarget)
+    }
+
+    private fun currentPlayerSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition? {
+        val exoPlayer = player ?: return null
+        val duration = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0L }
+        return FullscreenVideoGestureOverlay.SeekPosition(
+            positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
+            durationMs = duration
+        )
+    }
+
+    private fun togglePlayerPlayPause(): Boolean? {
+        val exoPlayer = player ?: return null
+        if (exoPlayer.isPlaying) {
+            exoPlayer.pause()
+        } else {
+            if (exoPlayer.playbackState == Player.STATE_ENDED) {
+                exoPlayer.seekTo(0)
+            }
+            exoPlayer.play()
+        }
+        return exoPlayer.playWhenReady
     }
 
     private fun setPlayerPlaybackSpeed(speed: Float) {
         selectedPlaybackSpeed = normalizePlaybackSpeed(speed)
         player?.setPlaybackSpeed(selectedPlaybackSpeed)
+    }
+
+    private fun startDirectionalLongPress(direction: Int) {
+        val exoPlayer = player ?: return
+        stopDirectionalLongPress()
+
+        directionalLongPressActive = true
+        longPressDirection = if (direction < 0) -1 else 1
+        longPressRestoreSpeed = selectedPlaybackSpeed
+        longPressRestorePlayWhenReady = exoPlayer.playWhenReady
+
+        if (longPressDirection > 0) {
+            exoPlayer.setPlaybackSpeed(LONG_PRESS_PLAYBACK_SPEED)
+            exoPlayer.play()
+        } else {
+            exoPlayer.pause()
+            seekPlayerBy(-LONG_PRESS_SCAN_STEP_MS)
+            scanHandler.postDelayed(reverseScanRunnable, LONG_PRESS_SCAN_INTERVAL_MS)
+        }
+    }
+
+    private fun stopDirectionalLongPress() {
+        if (!directionalLongPressActive) {
+            return
+        }
+        directionalLongPressActive = false
+        longPressDirection = 0
+        scanHandler.removeCallbacks(reverseScanRunnable)
+
+        val exoPlayer = player ?: return
+        selectedPlaybackSpeed = normalizePlaybackSpeed(longPressRestoreSpeed)
+        exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
+        if (longPressRestorePlayWhenReady) {
+            exoPlayer.play()
+        } else {
+            exoPlayer.pause()
+        }
     }
 
     private fun togglePlayerOrientation(): Boolean {
@@ -204,6 +285,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun releasePlayer() {
+        stopDirectionalLongPress()
         savePlayerState()
         playerView.player = null
         player?.release()
@@ -255,11 +337,6 @@ class PlayerActivity : AppCompatActivity() {
         return intent.getStringExtra(EXTRA_MEDIA_URI).orEmpty()
     }
 
-    private fun initialPlaybackSpeed(): Float {
-        val speed = intent.getFloatExtra(EXTRA_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
-        return normalizePlaybackSpeed(speed)
-    }
-
     private fun normalizePlaybackSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -275,13 +352,14 @@ class PlayerActivity : AppCompatActivity() {
         private const val EXTRA_USER_AGENT = "com.example.videobrowser.extra.USER_AGENT"
         private const val EXTRA_COOKIE = "com.example.videobrowser.extra.COOKIE"
         private const val EXTRA_REFERER = "com.example.videobrowser.extra.REFERER"
-        private const val EXTRA_PLAYBACK_SPEED = "com.example.videobrowser.extra.PLAYBACK_SPEED"
         private const val STATE_PLAYBACK_POSITION = "playback_position"
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
-        private const val STATE_PLAYBACK_SPEED = "playback_speed"
         private const val STATE_LANDSCAPE = "landscape"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
+        private const val LONG_PRESS_PLAYBACK_SPEED = 2f
+        private const val LONG_PRESS_SCAN_STEP_MS = 500L
+        private const val LONG_PRESS_SCAN_INTERVAL_MS = 250L
         private const val MIME_HLS = "application/x-mpegURL"
         private const val MIME_DASH = "application/dash+xml"
         private const val MIME_SMOOTH_STREAMING = "application/vnd.ms-sstr+xml"
@@ -293,8 +371,7 @@ class PlayerActivity : AppCompatActivity() {
             mimeType: String?,
             userAgent: String?,
             cookie: String?,
-            referer: String?,
-            playbackSpeed: Float
+            referer: String?
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra(EXTRA_MEDIA_URI, mediaUri)
@@ -303,7 +380,6 @@ class PlayerActivity : AppCompatActivity() {
                 putExtra(EXTRA_USER_AGENT, userAgent)
                 putExtra(EXTRA_COOKIE, cookie)
                 putExtra(EXTRA_REFERER, referer)
-                putExtra(EXTRA_PLAYBACK_SPEED, playbackSpeed)
             }
         }
     }
