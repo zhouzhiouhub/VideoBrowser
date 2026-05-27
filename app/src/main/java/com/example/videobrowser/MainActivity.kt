@@ -44,6 +44,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserRequest
@@ -99,6 +100,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appPreferences: SharedPreferences
     private lateinit var browserManager: BrowserManager
     private lateinit var chromeClient: ChromeClient
+    private val adBlockManager: AdBlockManager by lazy {
+        AdBlockManager(isEnabled = ::isAdBlockEnabled)
+    }
 
     private val searchProviders = listOf(
         SearchProvider(
@@ -1313,22 +1317,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleRequestIntercept(request: BrowserRequest): WebResourceResponse? {
-        return if (shouldBlockAdRequest(request.url, request.isForMainFrame)) {
+        return if (adBlockManager.shouldBlock(request)) {
             emptyWebResponse()
         } else {
             null
         }
-    }
-
-    private fun shouldBlockAdRequest(uri: Uri, isMainFrame: Boolean): Boolean {
-        if (!isAdBlockEnabled() || isMainFrame || !isWebUrl(uri.scheme)) {
-            return false
-        }
-
-        val host = uri.host?.lowercase().orEmpty()
-        val url = uri.toString().lowercase()
-        return BLOCKED_AD_HOST_KEYWORDS.any { host.contains(it) } ||
-            BLOCKED_AD_URL_KEYWORDS.any { url.contains(it) }
     }
 
     private fun emptyWebResponse(): WebResourceResponse {
@@ -1521,33 +1514,5 @@ class MainActivity : AppCompatActivity() {
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-        private val BLOCKED_AD_HOST_KEYWORDS = listOf(
-            "doubleclick.net",
-            "googlesyndication.com",
-            "googleadservices.com",
-            "adservice.google.com",
-            "googleads.g.doubleclick.net",
-            "adnxs.com",
-            "adsystem.com",
-            "taboola.com",
-            "outbrain.com",
-            "ads-twitter.com",
-            "analytics.yahoo.com"
-        )
-        private val BLOCKED_AD_URL_KEYWORDS = listOf(
-            "/pagead/",
-            "/adservice/",
-            "/adserver/",
-            "/advert/",
-            "/ads/",
-            "/adx/",
-            "googleads",
-            "doubleclick",
-            "ad.m3u8",
-            "vast",
-            "vmap",
-            "preroll",
-            "midroll"
-        )
     }
 }
