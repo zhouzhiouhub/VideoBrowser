@@ -5,7 +5,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class UrlUtilsTest {
-    private val searchUrlPrefix = "https://www.baidu.com/s?wd="
+    private val searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word="
 
     @Test
     fun resolveAddressInput_keepsHttpAndHttpsUrls() {
@@ -34,8 +34,16 @@ class UrlUtilsTest {
     @Test
     fun resolveAddressInput_convertsTextToSearchUrl() {
         assertEquals(
-            "https://www.baidu.com/s?wd=hello+world",
+            "https://m.baidu.com/s?ie=utf-8&word=hello+world",
             UrlUtils.resolveAddressInput("hello world", searchUrlPrefix)
+        )
+    }
+
+    @Test
+    fun resolveAddressInput_encodesChineseSearchTextAsUtf8() {
+        assertEquals(
+            "https://m.baidu.com/s?ie=utf-8&word=%E5%A4%9A%E5%B0%91%E9%92%B1",
+            UrlUtils.resolveAddressInput("多少钱", searchUrlPrefix)
         )
     }
 

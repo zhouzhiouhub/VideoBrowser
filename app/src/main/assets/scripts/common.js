@@ -198,7 +198,14 @@
   }
 
   function shouldSkipGenericCleanup() {
-    return isBilibiliHost();
+    return isBilibiliHost() || isSearchProviderResultPage();
+  }
+
+  function isSearchProviderResultPage() {
+    const host = String(location.hostname || '');
+    const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
+    if (!/(\.|^)(baidu|sogou|so|sm)\.com$/i.test(host)) return false;
+    return path !== '/';
   }
 
   function dismissBilibiliBrowserChoicePrompts() {
@@ -322,8 +329,7 @@
   }
 
   function removeTopNoiseBlocks() {
-    const searchHomeLike = /(\.|^)(baidu|sogou|so|sm)\.com$/i.test(location.hostname);
-    if (!searchHomeLike) return;
+    if (!isSearchProviderHomePage()) return;
 
     document.querySelectorAll(
       'body>div,body>section,header,[role="banner"],[id*="top"],[class*="top"],[id*="banner"],[class*="banner"]'
@@ -350,6 +356,13 @@
 
       if (!brandLogoLike && (adLike || sparseTopSlot)) hideElement(element, 'top-noise-block');
     });
+  }
+
+  function isSearchProviderHomePage() {
+    const host = String(location.hostname || '');
+    const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
+    if (!/(\.|^)(baidu|sogou|so|sm)\.com$/i.test(host)) return false;
+    return path === '/';
   }
 
   function enhanceVideos() {

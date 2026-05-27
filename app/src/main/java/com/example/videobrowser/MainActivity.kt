@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
             name = "百度",
             badge = "百",
             homeUrl = "https://m.baidu.com/",
-            searchUrlPrefix = "https://www.baidu.com/s?wd=",
+            searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
             accentColor = Color.parseColor("#315EFB")
         ),
         SearchProvider(
