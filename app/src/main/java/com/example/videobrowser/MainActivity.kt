@@ -48,6 +48,9 @@ import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
+import com.example.videobrowser.inject.JsInjector
+import com.example.videobrowser.inject.PageFeatureConfig
+import com.example.videobrowser.inject.ScriptLoader
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.FullscreenVideoGestureOverlay
@@ -97,6 +100,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fullscreenGestureOverlay: FullscreenVideoGestureOverlay
     private lateinit var appPreferences: SharedPreferences
     private lateinit var browserManager: BrowserManager
+    private lateinit var jsInjector: JsInjector
     private lateinit var chromeClient: ChromeClient
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(isEnabled = ::isAdBlockEnabled)
@@ -170,10 +174,6 @@ class MainActivity : AppCompatActivity() {
     private var fullscreenVideoPositionMs: Long? = null
     private var fullscreenVideoDurationMs: Long? = null
     private var lastFullscreenControlsWakeAt = 0L
-    private val commonScript: String by lazy {
-        assets.open(COMMON_SCRIPT_ASSET).bufferedReader().use { it.readText() }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -196,6 +196,10 @@ class MainActivity : AppCompatActivity() {
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         appPreferences = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
         browserManager = BrowserManager(webView)
+        jsInjector = JsInjector(
+            scriptLoader = ScriptLoader(assets),
+            evaluateJavascript = browserManager::evaluateJavascript
+        )
 
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
             val safeArea = insets.getInsets(
@@ -1301,20 +1305,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun injectPageFeatures() {
-        val config = JSONObject()
-            .put("cleanupEnabled", isPageCleanupEnabled())
-            .put("videoEnabled", isVideoEnhancementEnabled())
-            .toString()
-        val script = """
-            (function () {
-              window.__VIDEOBROWSER_CONFIG__ = $config;
-              $commonScript
-              if (window.VideoBrowserEnhancer) {
-                window.VideoBrowserEnhancer.apply(window.__VIDEOBROWSER_CONFIG__);
-              }
-            })();
-        """.trimIndent()
-        browserManager.evaluateJavascript(script)
+        if (!::jsInjector.isInitialized) {
+            return
+        }
+        jsInjector.inject(
+            PageFeatureConfig(
+                cleanupEnabled = isPageCleanupEnabled(),
+                videoEnabled = isVideoEnhancementEnabled()
+            )
+        )
     }
 
     private fun currentShareableUrl(): String? {
@@ -1484,7 +1483,6 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_HISTORY = "history"
         private const val JSON_TITLE = "title"
         private const val JSON_URL = "url"
-        private const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
