@@ -1,34 +1,18 @@
 package com.example.videobrowser.adblock
 
+import com.example.videobrowser.rules.Rule
+import com.example.videobrowser.rules.RuleEngine
+
 /**
- * P5 阶段内置 URL 黑名单，只做轻量域名和 URL 片段匹配。
+ * 内置请求级规则源。P6 后命中判断统一交给 RuleEngine。
  */
 object BuiltInAdBlockRules {
+    fun requestRules(): List<Rule> {
+        return REQUEST_RULES
+    }
+
     fun matches(url: String, host: String?): Boolean {
-        val normalizedUrl = url.trim().lowercase()
-        if (normalizedUrl.isEmpty()) {
-            return false
-        }
-
-        val normalizedHost = host.orEmpty()
-            .trim()
-            .trim('.')
-            .lowercase()
-        return matchesHost(normalizedHost) || matchesUrl(normalizedUrl)
-    }
-
-    private fun matchesHost(host: String): Boolean {
-        if (host.isEmpty()) {
-            return false
-        }
-
-        return BLOCKED_HOST_SUFFIXES.any { blockedHost ->
-            host == blockedHost || host.endsWith(".$blockedHost")
-        }
-    }
-
-    private fun matchesUrl(url: String): Boolean {
-        return BLOCKED_URL_KEYWORDS.any { url.contains(it) }
+        return RULE_ENGINE.matchRequest(url = url, host = host).shouldBlock
     }
 
     private val BLOCKED_HOST_SUFFIXES = listOf(
@@ -61,4 +45,18 @@ object BuiltInAdBlockRules {
         "/preroll",
         "/midroll"
     )
+
+    private val REQUEST_RULES = BLOCKED_HOST_SUFFIXES.map { host ->
+        Rule.blockDomainContains(
+            domain = host,
+            id = "built-in:block:domain:$host"
+        )
+    } + BLOCKED_URL_KEYWORDS.map { keyword ->
+        Rule.blockUrlContains(
+            pattern = keyword,
+            id = "built-in:block:url:$keyword"
+        )
+    }
+
+    private val RULE_ENGINE = RuleEngine(REQUEST_RULES)
 }
