@@ -26,11 +26,13 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
+import com.example.videobrowser.settings.SettingsManager
 
 class PlayerActivity : AppCompatActivity() {
     private lateinit var playerRoot: FrameLayout
     private lateinit var playerView: PlayerView
     private lateinit var gestureOverlay: FullscreenVideoGestureOverlay
+    private lateinit var settingsManager: SettingsManager
     private var player: ExoPlayer? = null
     private val scanHandler = Handler(Looper.getMainLooper())
     private var playbackPosition = 0L
@@ -58,6 +60,9 @@ class PlayerActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_player)
+        settingsManager = SettingsManager.from(this)
+        selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
+        longPressRestoreSpeed = selectedPlaybackSpeed
 
         playerRoot = findViewById(R.id.playerRoot)
         playerView = findViewById(R.id.playerView)
@@ -69,6 +74,10 @@ class PlayerActivity : AppCompatActivity() {
             playWhenReady = it.getBoolean(STATE_PLAY_WHEN_READY, true)
             currentMediaItemIndex = it.getInt(STATE_MEDIA_ITEM_INDEX)
             isLandscape = it.getBoolean(STATE_LANDSCAPE, true)
+            selectedPlaybackSpeed = normalizePlaybackSpeed(
+                it.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
+            )
+            longPressRestoreSpeed = selectedPlaybackSpeed
         }
         applyRequestedOrientation()
         setupGestureOverlay()
@@ -124,6 +133,7 @@ class PlayerActivity : AppCompatActivity() {
         outState.putBoolean(STATE_PLAY_WHEN_READY, playWhenReady)
         outState.putInt(STATE_MEDIA_ITEM_INDEX, currentMediaItemIndex)
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
+        outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
         super.onSaveInstanceState(outState)
     }
 
@@ -271,6 +281,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setPlayerPlaybackSpeed(speed: Float) {
         selectedPlaybackSpeed = normalizePlaybackSpeed(speed)
+        settingsManager.setDefaultVideoSpeed(selectedPlaybackSpeed)
         player?.setPlaybackSpeed(selectedPlaybackSpeed)
     }
 
@@ -400,6 +411,7 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
         private const val STATE_LANDSCAPE = "landscape"
+        private const val STATE_PLAYBACK_SPEED = "playback_speed"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val CONTROLS_HIDE_DELAY_MS = 3000
         private const val LONG_PRESS_PLAYBACK_SPEED = 2f

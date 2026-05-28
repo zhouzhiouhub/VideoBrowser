@@ -3,6 +3,7 @@ package com.example.videobrowser.inject
 import com.example.videobrowser.site.SiteAdapterRegistry
 
 data class PageFeatureConfig(
+    val jsInjectionEnabled: Boolean = true,
     val cleanupEnabled: Boolean,
     val videoEnabled: Boolean
 )
@@ -21,6 +22,9 @@ class JsInjector(
     private val siteScriptCache = mutableMapOf<String, String>()
 
     fun inject(config: PageFeatureConfig, pageUrl: String? = null) {
+        if (!config.jsInjectionEnabled) {
+            return
+        }
         val commonScriptContent = commonScript
         val siteScripts = siteAdapterRegistry.matchingAdapters(pageUrl).flatMap { adapter ->
             adapter.scriptFiles().map { path ->

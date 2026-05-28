@@ -52,6 +52,30 @@ class JsInjectorTest {
     }
 
     @Test
+    fun inject_skipsCommonScriptWhenJsInjectionDisabled() {
+        var loadCount = 0
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = ScriptLoader {
+                loadCount += 1
+                ByteArrayInputStream(COMMON_SCRIPT.toByteArray(Charsets.UTF_8))
+            },
+            evaluateJavascript = { script -> evaluatedScripts += script }
+        )
+
+        injector.inject(
+            PageFeatureConfig(
+                jsInjectionEnabled = false,
+                cleanupEnabled = true,
+                videoEnabled = true
+            )
+        )
+
+        assertEquals(0, loadCount)
+        assertTrue(evaluatedScripts.isEmpty())
+    }
+
+    @Test
     fun inject_loadsOnlyMatchingSiteScriptForPageUrl() {
         val requestedPaths = mutableListOf<String>()
         val evaluatedScripts = mutableListOf<String>()

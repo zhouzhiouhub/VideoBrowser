@@ -16,6 +16,8 @@
     <string name="title_history">历史记录</string>
     <string name="setting_ad_block">广告请求拦截</string>
     <string name="setting_ad_block_summary">屏蔽常见广告、跟踪和视频广告资源请求</string>
+    <string name="setting_js_injection">网页脚本增强</string>
+    <string name="setting_js_injection_summary">允许执行内置 common.js 和站点适配脚本</string>
     <string name="setting_page_cleanup">页面净化</string>
     <string name="setting_page_cleanup_summary">隐藏和移除常见广告浮层、弹窗和信息流广告</string>
     <string name="setting_video_enhancement">视频增强</string>

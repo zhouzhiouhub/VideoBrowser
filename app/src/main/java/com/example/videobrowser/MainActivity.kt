@@ -6,7 +6,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -51,6 +50,8 @@ import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureConfig
 import com.example.videobrowser.inject.ScriptLoader
+import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.FullscreenVideoGestureOverlay
@@ -98,7 +99,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadButton: ImageButton
     private lateinit var fullscreenContainer: FrameLayout
     private lateinit var fullscreenGestureOverlay: FullscreenVideoGestureOverlay
-    private lateinit var appPreferences: SharedPreferences
+    private lateinit var preferenceStore: PreferenceStore
+    private lateinit var settingsManager: SettingsManager
     private lateinit var browserManager: BrowserManager
     private lateinit var jsInjector: JsInjector
     private lateinit var chromeClient: ChromeClient
@@ -170,7 +172,7 @@ class MainActivity : AppCompatActivity() {
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
     private var isPageLoading = false
-    private var fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
+    private var fullscreenPlaybackSpeed = SettingsManager.DEFAULT_VIDEO_SPEED
     private var fullscreenVideoPositionMs: Long? = null
     private var fullscreenVideoDurationMs: Long? = null
     private var lastFullscreenControlsWakeAt = 0L
@@ -194,7 +196,8 @@ class MainActivity : AppCompatActivity() {
         homeButton = findViewById(R.id.homeButton)
         menuButton = findViewById(R.id.menuButton)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
-        appPreferences = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        preferenceStore = PreferenceStore.from(this)
+        settingsManager = SettingsManager(preferenceStore)
         browserManager = BrowserManager(webView)
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
@@ -413,13 +416,14 @@ class MainActivity : AppCompatActivity() {
         if (::fullscreenGestureOverlay.isInitialized) {
             when {
                 fullscreen && !wasFullscreen -> {
+                    val defaultSpeed = defaultVideoSpeed()
                     resetFullscreenVideoTimeline()
                     lastFullscreenControlsWakeAt = 0L
-                    fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
-                    fullscreenGestureOverlay.setPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                    fullscreenPlaybackSpeed = defaultSpeed
+                    fullscreenGestureOverlay.setPlaybackSpeed(defaultSpeed)
                     fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
                     fullscreenGestureOverlay.showOverlay()
-                    setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                    setFullscreenVideoPlaybackSpeed(defaultSpeed)
                     wakeFullscreenVideoControls()
                     requestFullscreenVideoTimeline()
                 }
@@ -430,10 +434,11 @@ class MainActivity : AppCompatActivity() {
                     requestFullscreenVideoTimeline()
                 }
                 wasFullscreen -> {
+                    val defaultSpeed = defaultVideoSpeed()
                     resetFullscreenVideoTimeline()
                     lastFullscreenControlsWakeAt = 0L
-                    fullscreenPlaybackSpeed = DEFAULT_VIDEO_SPEED
-                    setFullscreenVideoPlaybackSpeed(DEFAULT_VIDEO_SPEED)
+                    fullscreenPlaybackSpeed = defaultSpeed
+                    setFullscreenVideoPlaybackSpeed(defaultSpeed)
                     fullscreenGestureOverlay.hideOverlay()
                 }
             }
@@ -539,9 +544,12 @@ class MainActivity : AppCompatActivity() {
         val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
         } else {
-            DEFAULT_VIDEO_SPEED
+            SettingsManager.DEFAULT_VIDEO_SPEED
         }
         fullscreenPlaybackSpeed = normalizedSpeed
+        if (::settingsManager.isInitialized) {
+            settingsManager.setDefaultVideoSpeed(normalizedSpeed)
+        }
         if (::fullscreenGestureOverlay.isInitialized) {
             fullscreenGestureOverlay.setPlaybackSpeed(fullscreenPlaybackSpeed)
         }
@@ -659,6 +667,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupSearchProviders() {
         selectedSearchProvider = loadSavedSearchProvider()
+        if (!settingsManager.hasHomeUrl()) {
+            settingsManager.setHomeUrl(selectedSearchProvider.homeUrl)
+        }
         searchProviderViews.clear()
         searchProviderList.removeAllViews()
 
@@ -714,9 +725,8 @@ class MainActivity : AppCompatActivity() {
     private fun selectSearchProvider(provider: SearchProvider) {
         val shouldOpenProviderHome = isHomePageVisible
         selectedSearchProvider = provider
-        appPreferences.edit()
-            .putString(KEY_SEARCH_PROVIDER, provider.id)
-            .apply()
+        settingsManager.setSearchEngineId(provider.id)
+        settingsManager.setHomeUrl(provider.homeUrl)
         updateSearchProviderSelection()
         if (shouldOpenProviderHome) {
             openHomePage()
@@ -724,8 +734,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadSavedSearchProvider(): SearchProvider {
-        val savedProviderId = appPreferences
-            .getString(KEY_SEARCH_PROVIDER, null)
+        val savedProviderId = settingsManager.searchEngineId()
         return searchProviders.firstOrNull { it.id == savedProviderId } ?: searchProviders.first()
     }
 
@@ -848,7 +857,17 @@ class MainActivity : AppCompatActivity() {
             summary = getString(R.string.setting_ad_block_summary),
             checked = isAdBlockEnabled()
         ) { enabled ->
-            appPreferences.edit().putBoolean(KEY_AD_BLOCK, enabled).apply()
+            settingsManager.setAdBlockEnabled(enabled)
+            browserManager.reload()
+        }
+
+        addSwitchRow(
+            parent = content,
+            title = getString(R.string.setting_js_injection),
+            summary = getString(R.string.setting_js_injection_summary),
+            checked = isJsInjectionEnabled()
+        ) { enabled ->
+            settingsManager.setJsInjectionEnabled(enabled)
             browserManager.reload()
         }
 
@@ -858,7 +877,7 @@ class MainActivity : AppCompatActivity() {
             summary = getString(R.string.setting_page_cleanup_summary),
             checked = isPageCleanupEnabled()
         ) { enabled ->
-            appPreferences.edit().putBoolean(KEY_PAGE_CLEANUP, enabled).apply()
+            settingsManager.setDomAdBlockEnabled(enabled)
             injectPageFeatures()
         }
 
@@ -868,7 +887,7 @@ class MainActivity : AppCompatActivity() {
             summary = getString(R.string.setting_video_enhancement_summary),
             checked = isVideoEnhancementEnabled()
         ) { enabled ->
-            appPreferences.edit().putBoolean(KEY_VIDEO_ENHANCEMENT, enabled).apply()
+            settingsManager.setVideoEnhancementEnabled(enabled)
             injectPageFeatures()
         }
 
@@ -878,7 +897,7 @@ class MainActivity : AppCompatActivity() {
             summary = getString(R.string.setting_desktop_mode_summary),
             checked = isDesktopModeEnabled()
         ) { enabled ->
-            appPreferences.edit().putBoolean(KEY_DESKTOP_MODE, enabled).apply()
+            settingsManager.setDesktopModeEnabled(enabled)
             applyDesktopMode(reload = true)
         }
 
@@ -1095,7 +1114,7 @@ class MainActivity : AppCompatActivity() {
                 loadUrl(pages[which].url)
             }
             .setNeutralButton(R.string.action_clear) { _, _ ->
-                appPreferences.edit().remove(key).apply()
+                preferenceStore.remove(key)
                 Toast.makeText(this, R.string.toast_saved_pages_cleared, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(R.string.action_close, null)
@@ -1146,7 +1165,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearBrowserData() {
         browserManager.clearBrowsingData()
-        appPreferences.edit().remove(KEY_HISTORY).apply()
+        preferenceStore.remove(KEY_HISTORY)
         Toast.makeText(this, R.string.toast_browser_data_cleared, Toast.LENGTH_SHORT).show()
         updateNavigationButtons()
     }
@@ -1163,13 +1182,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restoreDefaultSettings() {
-        appPreferences.edit()
-            .remove(KEY_SEARCH_PROVIDER)
-            .remove(KEY_AD_BLOCK)
-            .remove(KEY_PAGE_CLEANUP)
-            .remove(KEY_VIDEO_ENHANCEMENT)
-            .remove(KEY_DESKTOP_MODE)
-            .commit()
+        settingsManager.restoreDefaults()
         Toast.makeText(this, R.string.toast_default_settings_restored, Toast.LENGTH_SHORT).show()
         recreate()
     }
@@ -1200,7 +1213,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadSavedPages(key: String): MutableList<SavedPage> {
-        val rawValue = appPreferences.getString(key, null) ?: return mutableListOf()
+        val rawValue = preferenceStore.getString(key, null) ?: return mutableListOf()
         return runCatching {
             val array = JSONArray(rawValue)
             MutableList(array.length()) { index ->
@@ -1222,23 +1235,27 @@ class MainActivity : AppCompatActivity() {
                     .put(JSON_URL, page.url)
             )
         }
-        appPreferences.edit().putString(key, array.toString()).apply()
+        preferenceStore.putString(key, array.toString())
     }
 
     private fun isAdBlockEnabled(): Boolean {
-        return appPreferences.getBoolean(KEY_AD_BLOCK, true)
+        return settingsManager.isAdBlockEnabled()
+    }
+
+    private fun isJsInjectionEnabled(): Boolean {
+        return settingsManager.isJsInjectionEnabled()
     }
 
     private fun isPageCleanupEnabled(): Boolean {
-        return appPreferences.getBoolean(KEY_PAGE_CLEANUP, true)
+        return settingsManager.isDomAdBlockEnabled()
     }
 
     private fun isVideoEnhancementEnabled(): Boolean {
-        return appPreferences.getBoolean(KEY_VIDEO_ENHANCEMENT, true)
+        return settingsManager.isVideoEnhancementEnabled()
     }
 
     private fun isDesktopModeEnabled(): Boolean {
-        return appPreferences.getBoolean(KEY_DESKTOP_MODE, false)
+        return settingsManager.isDesktopModeEnabled()
     }
 
     private fun setupDownloadHandling() {
@@ -1310,11 +1327,20 @@ class MainActivity : AppCompatActivity() {
         }
         jsInjector.inject(
             PageFeatureConfig(
+                jsInjectionEnabled = isJsInjectionEnabled(),
                 cleanupEnabled = isPageCleanupEnabled(),
                 videoEnabled = isVideoEnhancementEnabled()
             ),
             pageUrl = browserManager.currentUrl()
         )
+    }
+
+    private fun defaultVideoSpeed(): Float {
+        return if (::settingsManager.isInitialized) {
+            settingsManager.defaultVideoSpeed()
+        } else {
+            SettingsManager.DEFAULT_VIDEO_SPEED
+        }
     }
 
     private fun currentShareableUrl(): String? {
@@ -1369,7 +1395,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openHomePage() {
-        loadUrl(selectedSearchProvider.homeUrl)
+        loadUrl(settingsManager.homeUrlOr(selectedSearchProvider.homeUrl))
     }
 
     private fun loadUrl(url: String) {
@@ -1474,12 +1500,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val PREFERENCES_NAME = "browser_preferences"
-        private const val KEY_SEARCH_PROVIDER = "search_provider"
-        private const val KEY_AD_BLOCK = "ad_block"
-        private const val KEY_PAGE_CLEANUP = "page_cleanup"
-        private const val KEY_VIDEO_ENHANCEMENT = "video_enhancement"
-        private const val KEY_DESKTOP_MODE = "desktop_mode"
         private const val KEY_BOOKMARKS = "bookmarks"
         private const val KEY_HISTORY = "history"
         private const val JSON_TITLE = "title"
@@ -1487,7 +1507,6 @@ class MainActivity : AppCompatActivity() {
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
-        private const val DEFAULT_VIDEO_SPEED = 1f
         private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
         private const val BOOKMARK_LIMIT = 100
         private const val HISTORY_LIMIT = 80
