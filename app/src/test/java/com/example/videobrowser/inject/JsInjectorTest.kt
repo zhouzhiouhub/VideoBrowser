@@ -1,7 +1,9 @@
 package com.example.videobrowser.inject
 
+import com.example.videobrowser.site.SiteAdapterRegistry
 import java.io.ByteArrayInputStream
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -49,9 +51,97 @@ class JsInjectorTest {
         assertTrue(evaluatedScripts[1].contains("var config = {\"cleanupEnabled\":false,\"videoEnabled\":true};"))
     }
 
+    @Test
+    fun inject_loadsOnlyMatchingSiteScriptForPageUrl() {
+        val requestedPaths = mutableListOf<String>()
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = ScriptLoader { path ->
+                requestedPaths += path
+                ByteArrayInputStream(scriptContentFor(path).toByteArray(Charsets.UTF_8))
+            },
+            evaluateJavascript = { script -> evaluatedScripts += script },
+            siteAdapterRegistry = SiteAdapterRegistry.default()
+        )
+
+        injector.inject(
+            PageFeatureConfig(cleanupEnabled = true, videoEnabled = true),
+            pageUrl = "https://m.youtube.com/watch?v=1"
+        )
+
+        val script = evaluatedScripts.single()
+        assertEquals(
+            listOf(ScriptLoader.COMMON_SCRIPT_ASSET, "scripts/youtube.js"),
+            requestedPaths
+        )
+        assertTrue(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__"))
+        assertTrue(script.contains("window.__siteYoutubeLoaded = true;"))
+        assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"youtube\"].apply(config);"))
+        assertFalse(script.contains("__siteBilibiliLoaded"))
+    }
+
+    @Test
+    fun inject_skipsSiteScriptsForUnmatchedPageUrl() {
+        val requestedPaths = mutableListOf<String>()
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = ScriptLoader { path ->
+                requestedPaths += path
+                ByteArrayInputStream(scriptContentFor(path).toByteArray(Charsets.UTF_8))
+            },
+            evaluateJavascript = { script -> evaluatedScripts += script },
+            siteAdapterRegistry = SiteAdapterRegistry.default()
+        )
+
+        injector.inject(
+            PageFeatureConfig(cleanupEnabled = true, videoEnabled = true),
+            pageUrl = "https://example.com/"
+        )
+
+        val script = evaluatedScripts.single()
+        assertEquals(listOf(ScriptLoader.COMMON_SCRIPT_ASSET), requestedPaths)
+        assertFalse(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__"))
+        assertFalse(script.contains("__siteYoutubeLoaded"))
+    }
+
+    @Test
+    fun inject_wrapsSiteScriptsWithRepeatGuard() {
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = scriptLoaderForSiteScripts(),
+            evaluateJavascript = { script -> evaluatedScripts += script },
+            siteAdapterRegistry = SiteAdapterRegistry.default()
+        )
+
+        injector.inject(
+            PageFeatureConfig(cleanupEnabled = true, videoEnabled = true),
+            pageUrl = "https://www.bilibili.com/video/BV1"
+        )
+
+        val script = evaluatedScripts.single()
+        assertTrue(script.contains("if (!window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili.js\"]) {"))
+        assertTrue(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili.js\"] = true;"))
+        assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"bilibili\"].apply(config);"))
+    }
+
     private fun scriptLoaderFor(script: String): ScriptLoader {
         return ScriptLoader {
             ByteArrayInputStream(script.toByteArray(Charsets.UTF_8))
+        }
+    }
+
+    private fun scriptLoaderForSiteScripts(): ScriptLoader {
+        return ScriptLoader { path ->
+            ByteArrayInputStream(scriptContentFor(path).toByteArray(Charsets.UTF_8))
+        }
+    }
+
+    private fun scriptContentFor(path: String): String {
+        return when (path) {
+            ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
+            "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"
+            "scripts/bilibili.js" -> "window.__siteBilibiliLoaded = true;"
+            else -> error("Unexpected script path: $path")
         }
     }
 

@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import org.json.JSONArray
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -64,7 +65,32 @@ class JsInjectorInstrumentedTest {
         assertEquals(1.5, result.getDouble(3), 0.01)
     }
 
-    private fun loadHtml(html: String) {
+    @Test
+    fun inject_loadsOnlyMatchingSiteAdapterInWebView() {
+        loadHtml(TEST_HTML, baseUrl = "https://www.youtube.com/")
+        injectPageFeatures(pageUrl = "https://www.youtube.com/watch?v=1")
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  return [
+                    Boolean(window.VideoBrowserSiteAdapters && window.VideoBrowserSiteAdapters.youtube),
+                    Boolean(window.VideoBrowserSiteAdapters && window.VideoBrowserSiteAdapters.bilibili),
+                    window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__ &&
+                      window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__['scripts/youtube.js'] === true,
+                    window.VideoBrowserSiteAdapters.youtube.lastConfig.cleanupEnabled === true
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertTrue(result.getBoolean(0))
+        assertFalse(result.getBoolean(1))
+        assertTrue(result.getBoolean(2))
+        assertTrue(result.getBoolean(3))
+    }
+
+    private fun loadHtml(html: String, baseUrl: String = "https://example.com/") {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
             webView.webViewClient = object : WebViewClient() {
@@ -73,7 +99,7 @@ class JsInjectorInstrumentedTest {
                 }
             }
             webView.loadDataWithBaseURL(
-                "https://example.com/",
+                baseUrl,
                 html,
                 "text/html",
                 "utf-8",
@@ -83,7 +109,7 @@ class JsInjectorInstrumentedTest {
         assertTrue("Timed out waiting for test page to load.", latch.await(5, TimeUnit.SECONDS))
     }
 
-    private fun injectPageFeatures() {
+    private fun injectPageFeatures(pageUrl: String? = null) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
             JsInjector(
@@ -97,7 +123,8 @@ class JsInjectorInstrumentedTest {
                 PageFeatureConfig(
                     cleanupEnabled = true,
                     videoEnabled = true
-                )
+                ),
+                pageUrl = pageUrl
             )
         }
         assertTrue("Timed out waiting for script injection.", latch.await(5, TimeUnit.SECONDS))

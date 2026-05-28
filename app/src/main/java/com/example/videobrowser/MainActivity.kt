@@ -1312,7 +1312,8 @@ class MainActivity : AppCompatActivity() {
             PageFeatureConfig(
                 cleanupEnabled = isPageCleanupEnabled(),
                 videoEnabled = isVideoEnhancementEnabled()
-            )
+            ),
+            pageUrl = browserManager.currentUrl()
         )
     }
 
