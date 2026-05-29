@@ -1,24 +1,47 @@
 ! VideoBrowser P11 CSS hide rule safe subset.
+!
+! Universal CSS rules. Keep selectors advertisement-specific; avoid global
+! popup/modal/overlay/download/swiper rules because they commonly match normal UI.
 ##.ad-banner
 ##.adsbygoogle
 ##ins.adsbygoogle
 ##.popup-ad
+##.video-ad
 ##[data-ad]
+##[data-ads]
 ##[data-ad-slot]
 ##[id^="google_ads_iframe_"]
 ##iframe[src*="doubleclick.net"]
 ##iframe[src*="googlesyndication.com"]
 ##[class*="ad-container"]
 ##[class*="ad-wrapper"]
+##[class*="ad-popup"]
+##[class*="popup-ad"]
+##[class*="ad-modal"]
+##[class*="modal-ad"]
+##[class*="ad-overlay"]
+##[class*="overlay-ad"]
+##[class*="ad-mask"]
+##[class*="mask-ad"]
+##[class*="advertisement"]
+##[class*="advert-banner"]
 ##[class*="sponsor"]
+##[class*="sponsored"]
 ##[class*="promoted"]
-~example.com##.ad
-example.com#@#.ad
+##[class*="promotion-ad"]
+##[class*="open-app"]
+##[class*="download-app"]
+##[class*="app-download"]
+
+! Mainstream site-specific CSS rules.
 youtube.com###player-ads
 youtube.com##ytd-display-ad-renderer
 youtube.com##ytd-promoted-sparkles-web-renderer
 youtube.com##ytd-promoted-video-renderer
 bilibili.com##.ad-report
+
+! 410077.xyz site-specific CSS rules. These intentionally stay scoped because
+! popup/modal/overlay/download/swiper/slick selectors are unsafe globally.
 410077.xyz##[class*="popup"]
 410077.xyz##[class*="Popup"]
 410077.xyz##[class*="modal"]

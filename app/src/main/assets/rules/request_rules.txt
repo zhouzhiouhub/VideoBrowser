@@ -1,6 +1,8 @@
 ! VideoBrowser P11 request rule safe subset.
 ! Supports ||domain^, URL contains rules, * and ^ URL patterns, @@ exceptions,
-! plus $domain= and $third-party safe options.
+! plus $domain=, $third-party, and safe resource type options.
+!
+! Universal request rules.
 ||pagead2.googlesyndication.com^
 ||static.doubleclick.net^
 ||securepubads.g.doubleclick.net^
@@ -19,20 +21,21 @@
 ||adform.net^
 ||yieldmo.com^
 ||bidswitch.net^
+/ad_creative/
+/ad_track/
+/ad_event/
+/ad_status/
+/ad_policy/
+/gampad/ads
+/pubads_impl
+/ima3.js
+||doubleclick.net^*/ad_status^
+||googlesyndication.com^*/pagead/
+
+! Site-specific request rules.
 ||cnzz.com^$third-party
 ||hm-tjj.weiaona.com^$third-party
 ||dhfxezdgdxgsd.687875.xyz^$script,domain=410077.xyz
 ||hm-static.weiaona.com^*/script.pageview-props.js$script
 ||wbep-image.sf-express.com^$image,domain=410077.xyz
 ||img.alicdn.com^*/taojianghu_pic_upload.gif$image,domain=410077.xyz
-/ad_creative/
-/ad_track/
-/ad_event/
-/ad_status
-/ad_policy
-/gampad/ads
-/pubads_impl
-/ima3.js
-||doubleclick.net^*/ad_status^
-||googlesyndication.com^*/pagead/
-@@||example.com^

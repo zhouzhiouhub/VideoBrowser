@@ -1,14 +1,22 @@
 ! VideoBrowser P11 DOM remove rule safe subset.
+!
+! Universal DOM remove rules. Keep these stricter than CSS because removal is
+! irreversible inside the current page session.
 remove:.popup-ad
 remove:.video-ad
 remove:[data-videobrowser-remove]
 remove:[data-ad]
 remove:[data-ads]
 remove:[class*="ad-popup"]
+remove:[class*="popup-ad"]
 remove:[class*="ad-overlay"]
+remove:[class*="overlay-ad"]
+remove:[class*="ad-modal"]
+remove:[class*="modal-ad"]
+remove:[class*="ad-mask"]
+remove:[class*="mask-ad"]
+remove:[class*="ad-layer"]
+remove:[class*="layer-ad"]
 remove:[class*="open-app"]
 remove:[class*="download-app"]
 remove:[class*="app-download"]
-remove:[class*="ad-modal"]
-remove:[class*="ad-mask"]
-remove:[class*="ad-layer"]

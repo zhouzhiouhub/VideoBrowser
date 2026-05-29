@@ -4,6 +4,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.example.videobrowser.site.SiteAdapter
+import com.example.videobrowser.site.SiteAdapterRegistry
+import com.example.videobrowser.site.SiteProfile
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.json.JSONArray
@@ -67,8 +70,24 @@ class JsInjectorInstrumentedTest {
 
     @Test
     fun inject_loadsOnlyMatchingSiteAdapterInWebView() {
-        loadHtml(TEST_HTML, baseUrl = "https://www.youtube.com/")
-        injectPageFeatures(pageUrl = "https://www.youtube.com/watch?v=1")
+        loadHtml(TEST_HTML)
+        injectPageFeatures(
+            pageUrl = MATCHING_TEST_PAGE,
+            siteAdapterRegistry = SiteAdapterRegistry(
+                listOf(
+                    testSiteAdapter(
+                        id = "youtube",
+                        scriptAssetPath = "scripts/youtube.js",
+                        matchesPage = true
+                    ),
+                    testSiteAdapter(
+                        id = "bilibili",
+                        scriptAssetPath = "scripts/bilibili.js",
+                        matchesPage = false
+                    )
+                )
+            )
+        )
 
         val result = evaluateJsonArray(
             """
@@ -92,8 +111,8 @@ class JsInjectorInstrumentedTest {
 
     @Test
     fun inject_removesGenericImageInterstitialOverlay() {
-        loadHtml(IMAGE_INTERSTITIAL_HTML, baseUrl = "https://xdhf.410077.xyz:8283/")
-        injectPageFeatures(pageUrl = "https://xdhf.410077.xyz:8283/home?channel=gj-41")
+        loadHtml(IMAGE_INTERSTITIAL_HTML)
+        injectPageFeatures()
 
         val result = evaluateJsonArray(
             """
@@ -116,8 +135,8 @@ class JsInjectorInstrumentedTest {
 
     @Test
     fun inject_removesGenericFloatingImageAdsAndDownloadBar() {
-        loadHtml(FLOATING_AD_HTML, baseUrl = "https://xdhf.410077.xyz:8283/")
-        injectPageFeatures(pageUrl = "https://xdhf.410077.xyz:8283/home?channel=gj-41")
+        loadHtml(FLOATING_AD_HTML)
+        injectPageFeatures()
 
         val result = evaluateJsonArray(
             """
@@ -158,7 +177,7 @@ class JsInjectorInstrumentedTest {
         assertFalse("none" == result.getString(10))
     }
 
-    private fun loadHtml(html: String, baseUrl: String = "https://example.com/") {
+    private fun loadHtml(html: String, baseUrl: String? = null) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
             webView.webViewClient = object : WebViewClient() {
@@ -177,11 +196,15 @@ class JsInjectorInstrumentedTest {
         assertTrue("Timed out waiting for test page to load.", latch.await(5, TimeUnit.SECONDS))
     }
 
-    private fun injectPageFeatures(pageUrl: String? = null) {
+    private fun injectPageFeatures(
+        pageUrl: String? = null,
+        siteAdapterRegistry: SiteAdapterRegistry = SiteAdapterRegistry.default()
+    ) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
             JsInjector(
                 scriptLoader = ScriptLoader(instrumentation.targetContext.assets),
+                siteAdapterRegistry = siteAdapterRegistry,
                 evaluateJavascript = { script ->
                     webView.evaluateJavascript(script) {
                         latch.countDown()
@@ -211,7 +234,28 @@ class JsInjectorInstrumentedTest {
         return JSONArray(requireNotNull(rawResult))
     }
 
+    private fun testSiteAdapter(
+        id: String,
+        scriptAssetPath: String,
+        matchesPage: Boolean
+    ): SiteAdapter {
+        return object : SiteAdapter {
+            override val profile = SiteProfile(
+                id = id,
+                displayName = id,
+                domains = setOf("test.invalid"),
+                scriptAssetPaths = listOf(scriptAssetPath)
+            )
+
+            override fun matches(url: String): Boolean {
+                return matchesPage && url == MATCHING_TEST_PAGE
+            }
+        }
+    }
+
     private companion object {
+        private const val MATCHING_TEST_PAGE = "matching-test-page"
+
         private const val TEST_HTML = """
             <!doctype html>
             <html>
