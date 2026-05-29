@@ -1,6 +1,8 @@
 package com.example.videobrowser.rules
 
 import com.example.videobrowser.browser.BrowserRequest
+import com.example.videobrowser.browser.RequestContext
+import com.example.videobrowser.browser.ResourceType
 import com.example.videobrowser.site.SiteHost
 
 class RuleEngine(
@@ -12,22 +14,30 @@ class RuleEngine(
     private val elementRules = elementRules.toList()
 
     fun matchRequest(request: BrowserRequest): RuleMatchResult {
+        return matchRequest(RequestContext.from(request))
+    }
+
+    fun matchRequest(context: RequestContext): RuleMatchResult {
         return matchRequest(
-            url = request.url.toString(),
-            host = request.url.host
+            url = context.requestUrl,
+            host = context.requestHost,
+            pageHost = context.pageHost,
+            resourceType = context.resourceType
         )
     }
 
     fun matchRequest(
         url: String,
         host: String? = null,
-        pageHost: String? = null
+        pageHost: String? = null,
+        resourceType: ResourceType = ResourceType.UNKNOWN
     ): RuleMatchResult {
         findFirstMatchingRule(
             action = RuleAction.ALLOW,
             url = url,
             host = host,
-            pageHost = pageHost
+            pageHost = pageHost,
+            resourceType = resourceType
         )?.let { allowRule ->
             return RuleMatchResult.allow(allowRule)
         }
@@ -36,7 +46,8 @@ class RuleEngine(
             action = RuleAction.BLOCK,
             url = url,
             host = host,
-            pageHost = pageHost
+            pageHost = pageHost,
+            resourceType = resourceType
         )?.let { blockRule ->
             return RuleMatchResult.block(blockRule)
         }
@@ -84,6 +95,7 @@ class RuleEngine(
                 rule.action == RuleAction.BLOCK &&
                     rule.type == RuleType.URL_CONTAINS &&
                     rule.thirdParty == null &&
+                    rule.resourceTypes.isEmpty() &&
                     rule.domainScope.matches(pageHost)
             }
             .map { rule -> rule.pattern }
@@ -94,14 +106,16 @@ class RuleEngine(
         action: RuleAction,
         url: String,
         host: String?,
-        pageHost: String?
+        pageHost: String?,
+        resourceType: ResourceType
     ): Rule? {
         return requestRules.firstOrNull { rule ->
             rule.action == action && ruleMatcher.matches(
                 rule = rule,
                 url = url,
                 host = host,
-                pageHost = pageHost
+                pageHost = pageHost,
+                resourceType = resourceType
             )
         }
     }

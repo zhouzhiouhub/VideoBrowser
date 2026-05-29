@@ -1,5 +1,6 @@
 package com.example.videobrowser.rules
 
+import com.example.videobrowser.browser.ResourceType
 import java.net.URI
 import java.util.Locale
 
@@ -8,10 +9,14 @@ class RuleMatcher {
         rule: Rule,
         url: String,
         host: String? = null,
-        pageHost: String? = null
+        pageHost: String? = null,
+        resourceType: ResourceType = ResourceType.UNKNOWN
     ): Boolean {
         val normalizedUrl = normalizeUrl(url)
         if (normalizedUrl.isEmpty()) {
+            return false
+        }
+        if (!matchesResourceType(rule, resourceType)) {
             return false
         }
         if (!rule.domainScope.matches(pageHost)) {
@@ -29,6 +34,16 @@ class RuleMatcher {
                 domain = normalizeHost(rule.pattern)
             )
         }
+    }
+
+    private fun matchesResourceType(rule: Rule, resourceType: ResourceType): Boolean {
+        if (rule.resourceTypes.isEmpty()) {
+            return true
+        }
+        if (resourceType == ResourceType.UNKNOWN) {
+            return false
+        }
+        return resourceType in rule.resourceTypes
     }
 
     private fun matchesPartyOption(rule: Rule, requestHost: String?, pageHost: String?): Boolean {

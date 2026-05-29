@@ -123,6 +123,7 @@ class MainActivity : AppCompatActivity() {
             isEnabled = ::isAdBlockEnabled,
             isDisabledForCurrentSite = ::isCurrentSiteAdBlockDisabled,
             isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
+            currentPageUrl = { currentPageUrl },
             currentPageHost = ::currentSiteHost,
             logger = adBlockLogger,
             ruleEngine = ruleEngine

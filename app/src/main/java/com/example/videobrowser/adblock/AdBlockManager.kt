@@ -1,6 +1,7 @@
 package com.example.videobrowser.adblock
 
 import com.example.videobrowser.browser.BrowserRequest
+import com.example.videobrowser.browser.RequestContext
 import com.example.videobrowser.rules.RuleEngine
 
 /**
@@ -10,20 +11,21 @@ class AdBlockManager(
     private val isEnabled: () -> Boolean = { true },
     private val isDisabledForCurrentSite: () -> Boolean = { false },
     private val isUserWhitelistedRequestHost: (String?) -> Boolean = { false },
+    private val currentPageUrl: () -> String? = { null },
     private val currentPageHost: () -> String? = { null },
     private val logger: AdBlockLogger? = null,
     private val ruleEngine: RuleEngine = RuleEngine(BuiltInAdBlockRules.requestRules())
 ) {
     fun evaluate(request: BrowserRequest): AdBlockDecision {
+        val context = RequestContext.from(
+            request = request,
+            pageUrl = request.pageUrl ?: currentPageUrl()
+        )
         val decision = AdBlockRequestPolicy.evaluate(
             enabled = isEnabled(),
             siteAdBlockDisabled = isDisabledForCurrentSite(),
-            userWhitelisted = isUserWhitelistedRequestHost(request.url.host),
-            url = request.url.toString(),
-            host = request.url.host,
-            pageHost = currentPageHost(),
-            scheme = request.url.scheme,
-            isForMainFrame = request.isForMainFrame,
+            userWhitelisted = isUserWhitelistedRequestHost(context.requestHost),
+            context = context.copy(pageHost = context.pageHost ?: currentPageHost()),
             ruleEngine = ruleEngine
         )
         logDecision(request, decision)

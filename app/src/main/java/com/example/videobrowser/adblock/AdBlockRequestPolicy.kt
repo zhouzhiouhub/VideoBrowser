@@ -1,5 +1,7 @@
 package com.example.videobrowser.adblock
 
+import com.example.videobrowser.browser.RequestContext
+import com.example.videobrowser.browser.ResourceType
 import com.example.videobrowser.rules.RuleEngine
 
 /**
@@ -10,20 +12,16 @@ object AdBlockRequestPolicy {
         enabled: Boolean,
         siteAdBlockDisabled: Boolean = false,
         userWhitelisted: Boolean = false,
-        url: String,
-        host: String?,
-        pageHost: String? = null,
-        scheme: String?,
-        isForMainFrame: Boolean,
+        context: RequestContext,
         ruleEngine: RuleEngine
     ): AdBlockDecision {
         if (!enabled) {
             return AdBlockDecision.allow(AdBlockDecisionReason.DISABLED)
         }
-        if (isForMainFrame) {
+        if (context.isForMainFrame) {
             return AdBlockDecision.allow(AdBlockDecisionReason.MAIN_FRAME)
         }
-        if (!isHttpScheme(scheme)) {
+        if (!isHttpScheme(context.requestScheme)) {
             return AdBlockDecision.allow(AdBlockDecisionReason.NON_HTTP_SCHEME)
         }
         if (userWhitelisted) {
@@ -34,7 +32,7 @@ object AdBlockRequestPolicy {
             return AdBlockDecision.allow(AdBlockDecisionReason.SITE_AD_BLOCK_DISABLED)
         }
 
-        val result = ruleEngine.matchRequest(url = url, host = host, pageHost = pageHost)
+        val result = ruleEngine.matchRequest(context)
         if (result.shouldAllow) {
             return AdBlockDecision.allowByRule(result)
         }
@@ -42,6 +40,35 @@ object AdBlockRequestPolicy {
             return AdBlockDecision.blockByRule(result)
         }
         return AdBlockDecision.allow(AdBlockDecisionReason.NO_MATCH)
+    }
+
+    fun evaluate(
+        enabled: Boolean,
+        siteAdBlockDisabled: Boolean = false,
+        userWhitelisted: Boolean = false,
+        url: String,
+        host: String?,
+        pageHost: String? = null,
+        scheme: String?,
+        isForMainFrame: Boolean,
+        resourceType: ResourceType = ResourceType.UNKNOWN,
+        ruleEngine: RuleEngine
+    ): AdBlockDecision {
+        val context = RequestContext(
+            requestUrl = url,
+            requestHost = host,
+            pageHost = pageHost,
+            requestScheme = scheme,
+            isForMainFrame = isForMainFrame,
+            resourceType = resourceType
+        )
+        return evaluate(
+            enabled = enabled,
+            siteAdBlockDisabled = siteAdBlockDisabled,
+            userWhitelisted = userWhitelisted,
+            context = context,
+            ruleEngine = ruleEngine
+        )
     }
 
     fun shouldBlock(
@@ -53,6 +80,7 @@ object AdBlockRequestPolicy {
         pageHost: String? = null,
         scheme: String?,
         isForMainFrame: Boolean,
+        resourceType: ResourceType = ResourceType.UNKNOWN,
         ruleEngine: RuleEngine
     ): Boolean {
         return evaluate(
@@ -64,6 +92,7 @@ object AdBlockRequestPolicy {
             pageHost = pageHost,
             scheme = scheme,
             isForMainFrame = isForMainFrame,
+            resourceType = resourceType,
             ruleEngine = ruleEngine
         ).shouldBlock
     }

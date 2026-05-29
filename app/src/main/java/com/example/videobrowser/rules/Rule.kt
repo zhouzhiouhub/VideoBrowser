@@ -1,9 +1,10 @@
 package com.example.videobrowser.rules
 
+import com.example.videobrowser.browser.ResourceType
 import java.util.Locale
 
 /**
- * 请求级规则模型。P6 只承接 URL 包含、域名边界匹配和简单白名单。
+ * 请求级规则模型。资源类型限制只使用项目可推断的安全子集。
  */
 data class Rule(
     val id: String,
@@ -12,7 +13,8 @@ data class Rule(
     val action: RuleAction,
     val source: String = SOURCE_BUILT_IN,
     val domainScope: DomainScope = DomainScope.Empty,
-    val thirdParty: Boolean? = null
+    val thirdParty: Boolean? = null,
+    val resourceTypes: Set<ResourceType> = emptySet()
 ) {
     init {
         require(id.isNotBlank()) { "Rule id must not be blank." }
@@ -128,7 +130,8 @@ data class Rule(
                 action = action,
                 source = source,
                 domainScope = options.domainScope,
-                thirdParty = options.thirdParty
+                thirdParty = options.thirdParty,
+                resourceTypes = options.resourceTypes
             )
         }
 
@@ -139,7 +142,8 @@ data class Rule(
             action: RuleAction,
             source: String,
             domainScope: DomainScope = DomainScope.Empty,
-            thirdParty: Boolean? = null
+            thirdParty: Boolean? = null,
+            resourceTypes: Set<ResourceType> = emptySet()
         ): Rule {
             val normalizedPattern = when (type) {
                 RuleType.URL_CONTAINS -> pattern.trim()
@@ -153,7 +157,8 @@ data class Rule(
                 action = action,
                 source = source,
                 domainScope = domainScope,
-                thirdParty = thirdParty
+                thirdParty = thirdParty,
+                resourceTypes = resourceTypes
             )
         }
 
@@ -217,6 +222,7 @@ data class Rule(
 
             var domainScope = DomainScope.Empty
             var thirdParty: Boolean? = null
+            val resourceTypes = mutableSetOf<ResourceType>()
             text.split(',')
                 .map { option -> option.trim() }
                 .filter { option -> option.isNotEmpty() }
@@ -231,11 +237,21 @@ data class Rule(
                             domainScope = parseOptionDomainScope(option.substringAfter("="))
                                 ?: return null
                         }
-                        lower in IGNORED_RESOURCE_TYPE_OPTIONS -> Unit
+                        RESOURCE_TYPE_OPTIONS.containsKey(lower) -> {
+                            resourceTypes.addAll(RESOURCE_TYPE_OPTIONS.getValue(lower))
+                        }
+                        lower.startsWith("~") &&
+                            RESOURCE_TYPE_OPTIONS.containsKey(lower.removePrefix("~")) -> {
+                            return null
+                        }
                         else -> return null
                     }
                 }
-            return RequestRuleOptions(domainScope = domainScope, thirdParty = thirdParty)
+            return RequestRuleOptions(
+                domainScope = domainScope,
+                thirdParty = thirdParty,
+                resourceTypes = resourceTypes.toSet()
+            )
         }
 
         private fun parseOptionDomainScope(text: String): DomainScope? {
@@ -304,20 +320,23 @@ data class Rule(
             return runCatching { Regex(builder.toString(), RegexOption.IGNORE_CASE) }.getOrNull()
         }
 
-        private val IGNORED_RESOURCE_TYPE_OPTIONS = setOf(
-            "script",
-            "image",
-            "stylesheet",
-            "media",
-            "font",
-            "object",
-            "subdocument",
-            "frame",
-            "xmlhttprequest",
-            "xhr",
-            "ping",
-            "beacon",
-            "other"
+        private val RESOURCE_TYPE_OPTIONS = mapOf(
+            "document" to setOf(ResourceType.DOCUMENT),
+            "script" to setOf(ResourceType.SCRIPT),
+            "image" to setOf(ResourceType.IMAGE),
+            "stylesheet" to setOf(ResourceType.STYLESHEET),
+            "css" to setOf(ResourceType.STYLESHEET),
+            "media" to setOf(ResourceType.MEDIA),
+            "font" to setOf(ResourceType.FONT),
+            "object" to setOf(ResourceType.OTHER),
+            "subdocument" to setOf(ResourceType.DOCUMENT),
+            "frame" to setOf(ResourceType.DOCUMENT),
+            "xmlhttprequest" to setOf(ResourceType.XHR, ResourceType.FETCH),
+            "xhr" to setOf(ResourceType.XHR, ResourceType.FETCH),
+            "fetch" to setOf(ResourceType.FETCH),
+            "ping" to setOf(ResourceType.FETCH),
+            "beacon" to setOf(ResourceType.FETCH),
+            "other" to setOf(ResourceType.OTHER)
         )
     }
 }
@@ -336,5 +355,6 @@ enum class RuleAction {
 
 private data class RequestRuleOptions(
     val domainScope: DomainScope = DomainScope.Empty,
-    val thirdParty: Boolean? = null
+    val thirdParty: Boolean? = null,
+    val resourceTypes: Set<ResourceType> = emptySet()
 )

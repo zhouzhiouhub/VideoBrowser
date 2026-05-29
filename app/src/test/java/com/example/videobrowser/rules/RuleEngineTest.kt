@@ -1,5 +1,6 @@
 package com.example.videobrowser.rules
 
+import com.example.videobrowser.browser.ResourceType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -102,6 +103,7 @@ class RuleEngineTest {
         val urlRule = requireNotNull(Rule.fromRequestRuleText("/pagead/"))
         val patternRule = requireNotNull(Rule.fromRequestRuleText("||doubleclick.net^*/ad_status^"))
         val thirdPartyRule = requireNotNull(Rule.fromRequestRuleText("||ads.example.com^\$third-party"))
+        val scriptRule = requireNotNull(Rule.fromRequestRuleText("||ads.example.com^\$script"))
         val domainScopedRule = requireNotNull(
             Rule.fromRequestRuleText("||ads.example.com^\$domain=video.example.com|~safe.video.example.com")
         )
@@ -120,6 +122,7 @@ class RuleEngineTest {
 
         assertEquals(RuleType.URL_PATTERN, patternRule.type)
         assertEquals(true, thirdPartyRule.thirdParty)
+        assertEquals(setOf(ResourceType.SCRIPT), scriptRule.resourceTypes)
         assertEquals(setOf("video.example.com"), domainScopedRule.domainScope.normalizedIncludedDomains)
         assertEquals(setOf("safe.video.example.com"), domainScopedRule.domainScope.normalizedExcludedDomains)
     }
@@ -128,6 +131,7 @@ class RuleEngineTest {
     fun fromRequestRuleText_rejectsUnsupportedSyntaxForP6() {
         assertNull(Rule.fromRequestRuleText("example.com##.ad"))
         assertNull(Rule.fromRequestRuleText("||example.com^\$redirect=noopjs"))
+        assertNull(Rule.fromRequestRuleText("||example.com^\$~script"))
         assertNull(Rule.fromRequestRuleText("! comment"))
     }
 
@@ -184,6 +188,35 @@ class RuleEngineTest {
                 url = "https://ads.cdn.com/banner.js",
                 host = "ads.cdn.com",
                 pageHost = "news.cdn.com"
+            ).matched
+        )
+    }
+
+    @Test
+    fun matchRequest_usesResourceTypeOptionsConservatively() {
+        val engine = RuleEngine(
+            listOf(requireNotNull(Rule.fromRequestRuleText("||ads.cdn.com^\$script")))
+        )
+
+        assertTrue(
+            engine.matchRequest(
+                url = "https://ads.cdn.com/banner.js",
+                host = "ads.cdn.com",
+                resourceType = ResourceType.SCRIPT
+            ).shouldBlock
+        )
+        assertFalse(
+            engine.matchRequest(
+                url = "https://ads.cdn.com/banner.js",
+                host = "ads.cdn.com",
+                resourceType = ResourceType.UNKNOWN
+            ).matched
+        )
+        assertFalse(
+            engine.matchRequest(
+                url = "https://ads.cdn.com/banner.png",
+                host = "ads.cdn.com",
+                resourceType = ResourceType.IMAGE
             ).matched
         )
     }
