@@ -31,7 +31,8 @@ class JsInjectorTest {
         assertTrue(
             script.contains(
                 "var config = {\"cleanupEnabled\":true,\"videoEnabled\":false," +
-                    "\"cssSelectors\":[],\"domSelectors\":[],\"blockedUrlKeywords\":[]};"
+                    "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
+                    "\"blockedUrlKeywords\":[]};"
             )
         )
         assertTrue(script.contains("if (!window.__VIDEOBROWSER_COMMON_SCRIPT_INSTALLED__) {"))
@@ -60,7 +61,8 @@ class JsInjectorTest {
         assertTrue(
             evaluatedScripts[1].contains(
                 "var config = {\"cleanupEnabled\":false,\"videoEnabled\":true," +
-                    "\"cssSelectors\":[],\"domSelectors\":[],\"blockedUrlKeywords\":[]};"
+                    "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
+                    "\"blockedUrlKeywords\":[]};"
             )
         )
     }
@@ -192,8 +194,29 @@ class JsInjectorTest {
 
         val script = evaluatedScripts.single()
         assertTrue(script.contains("\"cssSelectors\":[\".ad-banner\"]"))
+        assertTrue(script.contains("\"userCssSelectors\":[]"))
         assertTrue(script.contains("\"domSelectors\":[\".popup-ad\"]"))
         assertTrue(script.contains("\"blockedUrlKeywords\":[\"/pagead/\"]"))
+    }
+
+    @Test
+    fun inject_addsUserCssSelectorsToFeatureConfig() {
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = scriptLoaderFor(COMMON_SCRIPT),
+            evaluateJavascript = { script -> evaluatedScripts += script }
+        )
+
+        injector.inject(
+            PageFeatureConfig(
+                cleanupEnabled = false,
+                videoEnabled = false,
+                userCssSelectors = listOf(".picked-ad")
+            )
+        )
+
+        val script = evaluatedScripts.single()
+        assertTrue(script.contains("\"userCssSelectors\":[\".picked-ad\"]"))
     }
 
     private fun scriptLoaderFor(script: String): ScriptLoader {

@@ -9,6 +9,8 @@
     <string name="action_home">首页</string>
     <string name="action_menu">菜单</string>
     <string name="anonymous_badge">综合</string>
+    <string name="element_picker_badge">屏蔽</string>
+    <string name="action_pick_element">屏蔽元素</string>
     <string name="action_select_search_provider">使用 %1$s 搜索</string>
     <string name="toast_uc_download_unavailable">UC 浏览器下载链接已失效，请使用搜索结果中的最新地址</string>
     <string name="title_function_center">功能中心</string>
@@ -86,6 +88,12 @@
     <string name="toast_user_whitelist_added">已加入白名单：%1$s</string>
     <string name="toast_user_whitelist_removed">已移除白名单：%1$s</string>
     <string name="toast_user_whitelist_already_added">已在白名单中：%1$s</string>
+    <string name="toast_element_picker_started">点击页面中要屏蔽的元素</string>
+    <string name="toast_element_picker_saved">已屏蔽所选元素</string>
+    <string name="toast_element_picker_already_saved">该元素已在屏蔽规则中</string>
+    <string name="toast_element_picker_invalid">无法屏蔽该元素</string>
+    <string name="toast_element_picker_cancelled">已取消元素屏蔽</string>
+    <string name="toast_element_picker_js_disabled">请先开启网页脚本增强</string>
     <string name="toast_download_started">已开始下载</string>
     <string name="toast_download_failed">下载失败</string>
     <string name="toast_no_external_browser">没有可用的外部应用</string>

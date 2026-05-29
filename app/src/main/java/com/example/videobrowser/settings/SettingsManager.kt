@@ -4,6 +4,11 @@ import android.content.Context
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
 
+data class UserElementHideRule(
+    val host: String,
+    val selector: String
+)
+
 class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
@@ -93,6 +98,43 @@ class SettingsManager(
 
     fun userWhitelistedSiteHosts(): Set<String> {
         return loadHostSet(KEY_USER_WHITELISTED_SITE_HOSTS)
+    }
+
+    fun userElementHideSelectorsForSite(host: String?): List<String> {
+        val normalizedHost = SiteHost.normalize(host) ?: return emptyList()
+        return userElementHideRules()
+            .filter { rule -> rule.host == normalizedHost }
+            .map { rule -> rule.selector }
+    }
+
+    fun hasUserElementHideSelectorForSite(host: String?, selector: String): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val normalizedSelector = normalizeUserElementSelector(selector) ?: return false
+        return userElementHideRules().any { rule ->
+            rule.host == normalizedHost && rule.selector == normalizedSelector
+        }
+    }
+
+    fun addUserElementHideSelectorForSite(host: String?, selector: String): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val normalizedSelector = normalizeUserElementSelector(selector) ?: return false
+        val rules = userElementHideRules().toMutableList()
+        if (rules.any { rule -> rule.host == normalizedHost && rule.selector == normalizedSelector }) {
+            return false
+        }
+
+        rules.add(UserElementHideRule(host = normalizedHost, selector = normalizedSelector))
+        saveUserElementHideRules(rules)
+        return true
+    }
+
+    fun userElementHideRules(): List<UserElementHideRule> {
+        return preferenceStore.getString(KEY_USER_ELEMENT_HIDE_RULES, null)
+            ?.lineSequence()
+            ?.mapNotNull(::parseUserElementHideRule)
+            ?.distinct()
+            ?.toList()
+            ?: emptyList()
     }
 
     fun isJsInjectionEnabled(): Boolean {
@@ -194,6 +236,53 @@ class SettingsManager(
         }
     }
 
+    private fun parseUserElementHideRule(line: String): UserElementHideRule? {
+        val separatorIndex = line.indexOf('\t')
+        if (separatorIndex <= 0 || separatorIndex >= line.lastIndex) {
+            return null
+        }
+        val host = SiteHost.normalize(line.substring(0, separatorIndex)) ?: return null
+        val selector = normalizeUserElementSelector(line.substring(separatorIndex + 1)) ?: return null
+        return UserElementHideRule(host = host, selector = selector)
+    }
+
+    private fun saveUserElementHideRules(rules: List<UserElementHideRule>) {
+        val lines = rules
+            .mapNotNull { rule ->
+                val host = SiteHost.normalize(rule.host) ?: return@mapNotNull null
+                val selector = normalizeUserElementSelector(rule.selector) ?: return@mapNotNull null
+                UserElementHideRule(host = host, selector = selector)
+            }
+            .distinct()
+            .sortedWith(compareBy<UserElementHideRule> { it.host }.thenBy { it.selector })
+            .map { rule -> "${rule.host}\t${rule.selector}" }
+
+        if (lines.isEmpty()) {
+            preferenceStore.remove(KEY_USER_ELEMENT_HIDE_RULES)
+        } else {
+            preferenceStore.putString(KEY_USER_ELEMENT_HIDE_RULES, lines.joinToString(separator = "\n"))
+        }
+    }
+
+    private fun normalizeUserElementSelector(selector: String): String? {
+        val normalized = selector.trim().replace(Regex("\\s+"), " ")
+        if (normalized.isEmpty() || normalized.length > MAX_USER_ELEMENT_SELECTOR_LENGTH) {
+            return null
+        }
+        if (normalized.any { char -> char == '\t' || char == '\n' || char == '\r' }) {
+            return null
+        }
+        if (Regex("[{};<>]").containsMatchIn(normalized)) {
+            return null
+        }
+        if (Regex(":has\\(|:contains\\(|:matches\\(|:xpath\\(|javascript:|expression\\(", RegexOption.IGNORE_CASE)
+                .containsMatchIn(normalized)
+        ) {
+            return null
+        }
+        return normalized
+    }
+
     private fun normalizeVideoSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -227,6 +316,7 @@ class SettingsManager(
         private const val KEY_SITE_AD_BLOCK_DISABLED_HOSTS = "site_ad_block_disabled_hosts"
         private const val KEY_SITE_JS_INJECTION_DISABLED_HOSTS = "site_js_injection_disabled_hosts"
         private const val KEY_USER_WHITELISTED_SITE_HOSTS = "user_whitelisted_site_hosts"
+        private const val KEY_USER_ELEMENT_HIDE_RULES = "user_element_hide_rules"
         private const val KEY_JS_INJECTION = "js_injection"
         private const val KEY_DOM_AD_BLOCK = "page_cleanup"
         private const val KEY_VIDEO_ENHANCEMENT = "video_enhancement"
@@ -234,12 +324,14 @@ class SettingsManager(
         private const val KEY_HOME_URL = "home_url"
         private const val KEY_SEARCH_ENGINE = "search_provider"
         private const val KEY_DESKTOP_MODE = "desktop_mode"
+        private const val MAX_USER_ELEMENT_SELECTOR_LENGTH = 200
 
         private val RESET_KEYS = listOf(
             KEY_AD_BLOCK,
             KEY_SITE_AD_BLOCK_DISABLED_HOSTS,
             KEY_SITE_JS_INJECTION_DISABLED_HOSTS,
             KEY_USER_WHITELISTED_SITE_HOSTS,
+            KEY_USER_ELEMENT_HIDE_RULES,
             KEY_JS_INJECTION,
             KEY_DOM_AD_BLOCK,
             KEY_VIDEO_ENHANCEMENT,

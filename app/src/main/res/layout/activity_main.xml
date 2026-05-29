@@ -84,7 +84,7 @@
             android:minWidth="52dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:text="@string/anonymous_badge"
+            android:text="@string/element_picker_badge"
             android:textColor="@color/privacy_text"
             android:textSize="13sp"
             android:textStyle="bold" />

@@ -67,6 +67,7 @@ class SettingsManagerTest {
         settings.setAdBlockDisabledForSite("video.example.com", true)
         settings.setJsInjectionDisabledForSite("video.example.com", true)
         settings.setUserWhitelistedSite("ads.example.com", true)
+        settings.addUserElementHideSelectorForSite("video.example.com", "#ad")
         settings.setJsInjectionEnabled(false)
         settings.setHomeUrl("https://m.sogou.com/")
         store.putString("bookmarks", "[]")
@@ -77,6 +78,7 @@ class SettingsManagerTest {
         assertFalse(settings.isAdBlockDisabledForSite("video.example.com"))
         assertFalse(settings.isJsInjectionDisabledForSite("video.example.com"))
         assertFalse(settings.isUserWhitelistedSite("ads.example.com"))
+        assertTrue(settings.userElementHideSelectorsForSite("video.example.com").isEmpty())
         assertTrue(settings.isJsInjectionEnabled())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
         assertEquals("[]", store.getString("bookmarks", null))
@@ -125,6 +127,31 @@ class SettingsManagerTest {
 
         assertTrue(reloaded.setUserWhitelistedSite("ads.example.com", false))
         assertFalse(reloaded.isUserWhitelistedSite("ads.example.com"))
+    }
+
+    @Test
+    fun userElementHideSelectors_areNormalizedAndPersistedByHost() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.addUserElementHideSelectorForSite(" Video.Example.COM. ", "  #ad   >  .banner  "))
+        assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", "#ad > .banner"))
+
+        val reloaded = SettingsManager(store)
+        assertTrue(reloaded.hasUserElementHideSelectorForSite("video.example.com", "#ad > .banner"))
+        assertEquals(listOf("#ad > .banner"), reloaded.userElementHideSelectorsForSite("video.example.com"))
+        assertTrue(reloaded.userElementHideSelectorsForSite("other.example.com").isEmpty())
+    }
+
+    @Test
+    fun userElementHideSelectors_rejectUnsafeValues() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        assertFalse(settings.addUserElementHideSelectorForSite(null, "#ad"))
+        assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", ""))
+        assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", "div{display:none}"))
+        assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", "a[href^=\"javascript:\"]"))
+        assertTrue(settings.userElementHideRules().isEmpty())
     }
 
     private class InMemoryPreferenceStore : PreferenceStore {

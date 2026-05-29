@@ -202,6 +202,8 @@ class MainActivity : AppCompatActivity() {
     private var fullscreenVideoPositionMs: Long? = null
     private var fullscreenVideoDurationMs: Long? = null
     private var lastFullscreenControlsWakeAt = 0L
+    private var isElementPickerActive = false
+    private var elementPickerStartedAt = 0L
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
@@ -291,7 +293,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBrowserControls() {
-        ViewCompat.setTooltipText(anonymousBadge, getString(R.string.anonymous_badge))
+        anonymousBadge.contentDescription = getString(R.string.action_pick_element)
+        anonymousBadge.isClickable = true
+        anonymousBadge.isFocusable = true
+        ViewCompat.setTooltipText(anonymousBadge, getString(R.string.action_pick_element))
         ViewCompat.setTooltipText(loadButton, getString(R.string.action_load_url))
         ViewCompat.setTooltipText(backButton, getString(R.string.action_back))
         ViewCompat.setTooltipText(forwardButton, getString(R.string.action_forward))
@@ -328,6 +333,7 @@ class MainActivity : AppCompatActivity() {
         }
         refreshButton.setOnClickListener { browserManager.reload() }
         homeButton.setOnClickListener { openHomePage() }
+        anonymousBadge.setOnClickListener { startElementPicker() }
         menuButton.setOnClickListener { showFunctionCenter() }
 
         updateNavigationButtons()
@@ -392,6 +398,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handlePageStarted(url: String?) {
+        clearElementPickerState()
         currentPageUrl = url ?: currentPageUrl
         if (::chromeClient.isInitialized &&
             chromeClient.isFullscreenModeActive() &&
@@ -830,7 +837,9 @@ class MainActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (::chromeClient.isInitialized && chromeClient.isShowingCustomView()) {
+                    if (isElementPickerActive) {
+                        cancelElementPicker()
+                    } else if (::chromeClient.isInitialized && chromeClient.isShowingCustomView()) {
                         chromeClient.hideCustomView()
                     } else if (::chromeClient.isInitialized && chromeClient.isFullscreenModeActive()) {
                         browserManager.evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
@@ -876,6 +885,95 @@ class MainActivity : AppCompatActivity() {
                     ?.toLong()
             }
         }
+
+        @JavascriptInterface
+        fun blockSelectedElement(selector: String) {
+            runOnUiThread {
+                handlePickedElement(selector)
+            }
+        }
+
+        @JavascriptInterface
+        fun cancelElementPicker() {
+            runOnUiThread {
+                handleElementPickerCancelledFromPage()
+            }
+        }
+    }
+
+    private fun startElementPicker() {
+        val host = currentSiteHost()
+        if (host == null) {
+            Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!isJsInjectionEnabled() || isCurrentSiteJsInjectionDisabled()) {
+            Toast.makeText(this, R.string.toast_element_picker_js_disabled, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        isElementPickerActive = true
+        elementPickerStartedAt = SystemClock.elapsedRealtime()
+        injectPageFeatures()
+        browserManager.evaluateJavascript(START_ELEMENT_PICKER_SCRIPT)
+        Toast.makeText(this, R.string.toast_element_picker_started, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun cancelElementPicker() {
+        if (!isElementPickerActive) {
+            return
+        }
+        clearElementPickerState()
+        browserManager.evaluateJavascript(CANCEL_ELEMENT_PICKER_SCRIPT)
+        Toast.makeText(this, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handleElementPickerCancelledFromPage() {
+        if (!isElementPickerActive) {
+            return
+        }
+        clearElementPickerState()
+        Toast.makeText(this, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handlePickedElement(selector: String) {
+        if (!isElementPickerSessionValid()) {
+            clearElementPickerState()
+            return
+        }
+        clearElementPickerState()
+
+        val host = currentSiteHost() ?: run {
+            Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val alreadySaved = settingsManager.hasUserElementHideSelectorForSite(host, selector)
+        val saved = alreadySaved || settingsManager.addUserElementHideSelectorForSite(host, selector)
+        if (!saved) {
+            Toast.makeText(this, R.string.toast_element_picker_invalid, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        injectPageFeatures()
+        Toast.makeText(
+            this,
+            if (alreadySaved) {
+                R.string.toast_element_picker_already_saved
+            } else {
+                R.string.toast_element_picker_saved
+            },
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun isElementPickerSessionValid(): Boolean {
+        return isElementPickerActive &&
+            SystemClock.elapsedRealtime() - elementPickerStartedAt <= ELEMENT_PICKER_TIMEOUT_MS
+    }
+
+    private fun clearElementPickerState() {
+        isElementPickerActive = false
+        elementPickerStartedAt = 0L
     }
 
     private fun showFunctionCenter() {
@@ -1583,7 +1681,8 @@ class MainActivity : AppCompatActivity() {
             PageFeatureConfig(
                 jsInjectionEnabled = isJsInjectionEnabled() && !isCurrentSiteJsInjectionDisabled(),
                 cleanupEnabled = isPageCleanupEnabled(),
-                videoEnabled = isVideoEnhancementEnabled()
+                videoEnabled = isVideoEnhancementEnabled(),
+                userCssSelectors = settingsManager.userElementHideSelectorsForSite(currentSiteHost())
             ),
             pageUrl = currentPageUrl ?: browserManager.currentUrl()
         )
@@ -1766,7 +1865,16 @@ class MainActivity : AppCompatActivity() {
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
+        private const val START_ELEMENT_PICKER_SCRIPT =
+            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.startElementPicker==='function'){" +
+                "window.VideoBrowserEnhancer.startElementPicker();" +
+                "}"
+        private const val CANCEL_ELEMENT_PICKER_SCRIPT =
+            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.cancelElementPicker==='function'){" +
+                "window.VideoBrowserEnhancer.cancelElementPicker();" +
+                "}"
         private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
+        private const val ELEMENT_PICKER_TIMEOUT_MS = 60_000L
         private const val BOOKMARK_LIMIT = 100
         private const val HISTORY_LIMIT = 80
         private const val RULE_CACHE_DIR = "rules"

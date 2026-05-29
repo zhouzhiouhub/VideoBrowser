@@ -8,6 +8,7 @@ data class PageFeatureConfig(
     val cleanupEnabled: Boolean,
     val videoEnabled: Boolean,
     val cssSelectors: List<String> = emptyList(),
+    val userCssSelectors: List<String> = emptyList(),
     val domSelectors: List<String> = emptyList(),
     val blockedUrlKeywords: List<String> = emptyList()
 )
@@ -123,6 +124,8 @@ class JsInjector(
                 append(videoEnabled)
                 append(",\"cssSelectors\":")
                 append(cssSelectors.toJsonArrayLiteral())
+                append(",\"userCssSelectors\":")
+                append(userCssSelectors.toJsonArrayLiteral())
                 append(",\"domSelectors\":")
                 append(domSelectors.toJsonArrayLiteral())
                 append(",\"blockedUrlKeywords\":")
