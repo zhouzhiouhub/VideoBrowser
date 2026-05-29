@@ -1,11 +1,14 @@
 package com.example.videobrowser.inject
 
 import com.example.videobrowser.site.SiteAdapterRegistry
+import com.example.videobrowser.rules.RuleEngine
 
 data class PageFeatureConfig(
     val jsInjectionEnabled: Boolean = true,
     val cleanupEnabled: Boolean,
-    val videoEnabled: Boolean
+    val videoEnabled: Boolean,
+    val cssSelectors: List<String> = emptyList(),
+    val domSelectors: List<String> = emptyList()
 )
 
 /**
@@ -14,7 +17,8 @@ data class PageFeatureConfig(
 class JsInjector(
     private val scriptLoader: ScriptLoader,
     private val evaluateJavascript: (String) -> Unit,
-    private val siteAdapterRegistry: SiteAdapterRegistry = SiteAdapterRegistry.default()
+    private val siteAdapterRegistry: SiteAdapterRegistry = SiteAdapterRegistry.default(),
+    private val ruleEngine: RuleEngine = RuleEngine(emptyList())
 ) {
     private val commonScript: String by lazy(LazyThreadSafetyMode.NONE) {
         scriptLoader.loadCommonScript()
@@ -25,6 +29,10 @@ class JsInjector(
         if (!config.jsInjectionEnabled) {
             return
         }
+        val effectiveConfig = config.copy(
+            cssSelectors = (config.cssSelectors + ruleEngine.cssSelectorsFor(pageUrl)).distinct(),
+            domSelectors = (config.domSelectors + ruleEngine.domSelectorsFor(pageUrl)).distinct()
+        )
         val commonScriptContent = commonScript
         val siteScripts = siteAdapterRegistry.matchingAdapters(pageUrl).flatMap { adapter ->
             adapter.scriptFiles().map { path ->
@@ -35,7 +43,7 @@ class JsInjector(
                 )
             }
         }.distinctBy { script -> script.path }
-        evaluateJavascript(buildInjectionScript(commonScriptContent, config, siteScripts))
+        evaluateJavascript(buildInjectionScript(commonScriptContent, effectiveConfig, siteScripts))
     }
 
     internal fun buildInjectionScript(config: PageFeatureConfig): String {
@@ -104,7 +112,17 @@ class JsInjector(
         }
 
         private fun PageFeatureConfig.toJsonLiteral(): String {
-            return "{\"cleanupEnabled\":$cleanupEnabled,\"videoEnabled\":$videoEnabled}"
+            return buildString {
+                append("{\"cleanupEnabled\":")
+                append(cleanupEnabled)
+                append(",\"videoEnabled\":")
+                append(videoEnabled)
+                append(",\"cssSelectors\":")
+                append(cssSelectors.toJsonArrayLiteral())
+                append(",\"domSelectors\":")
+                append(domSelectors.toJsonArrayLiteral())
+                append("}")
+            }
         }
 
         private fun SiteScript.buildApplyCall(): String {
@@ -144,6 +162,12 @@ class JsInjector(
                     }
                 }
                 append('"')
+            }
+        }
+
+        private fun List<String>.toJsonArrayLiteral(): String {
+            return joinToString(prefix = "[", postfix = "]") { value ->
+                value.toJsonStringLiteral()
             }
         }
     }

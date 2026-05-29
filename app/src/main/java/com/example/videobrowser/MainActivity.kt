@@ -14,6 +14,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.SystemClock
 import android.text.TextUtils
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.KeyEvent
@@ -43,13 +44,20 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
+import com.example.videobrowser.adblock.AdBlockLogAction
+import com.example.videobrowser.adblock.AdBlockLogEntry
+import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.adblock.BuiltInAdBlockRules
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureConfig
 import com.example.videobrowser.inject.ScriptLoader
+import com.example.videobrowser.rules.RuleEngine
+import com.example.videobrowser.rules.RuleFileLoader
+import com.example.videobrowser.rules.SkippedRule
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
@@ -57,6 +65,9 @@ import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.FullscreenVideoGestureOverlay
 import com.example.videobrowser.video.PlayerActivity
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
@@ -102,13 +113,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fullscreenGestureOverlay: FullscreenVideoGestureOverlay
     private lateinit var preferenceStore: PreferenceStore
     private lateinit var settingsManager: SettingsManager
+    private lateinit var ruleEngine: RuleEngine
     private lateinit var browserManager: BrowserManager
     private lateinit var jsInjector: JsInjector
     private lateinit var chromeClient: ChromeClient
+    private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
             isEnabled = ::isAdBlockEnabled,
-            isDisabledForCurrentSite = ::isCurrentSiteAdBlockDisabled
+            isDisabledForCurrentSite = ::isCurrentSiteAdBlockDisabled,
+            isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
+            logger = adBlockLogger,
+            ruleEngine = ruleEngine
         )
     }
     private val adBlockRequestInterceptor: AdBlockRequestInterceptor by lazy {
@@ -204,10 +220,12 @@ class MainActivity : AppCompatActivity() {
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
+        ruleEngine = createRuleEngine()
         browserManager = BrowserManager(webView)
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
-            evaluateJavascript = browserManager::evaluateJavascript
+            evaluateJavascript = browserManager::evaluateJavascript,
+            ruleEngine = ruleEngine
         )
 
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
@@ -907,6 +925,31 @@ class MainActivity : AppCompatActivity() {
 
         addSwitchRow(
             parent = content,
+            title = getString(R.string.setting_current_site_js_injection_disabled),
+            summary = if (siteHost != null) {
+                getString(R.string.setting_current_site_js_injection_disabled_summary, siteHost)
+            } else {
+                getString(R.string.setting_current_site_js_injection_disabled_summary_empty)
+            },
+            checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
+            enabled = siteHost != null
+        ) { disabled ->
+            val host = currentSiteHost() ?: return@addSwitchRow
+            settingsManager.setJsInjectionDisabledForSite(host, disabled)
+            Toast.makeText(
+                this,
+                if (disabled) {
+                    getString(R.string.toast_current_site_js_injection_disabled, host)
+                } else {
+                    getString(R.string.toast_current_site_js_injection_restored, host)
+                },
+                Toast.LENGTH_SHORT
+            ).show()
+            browserManager.reload()
+        }
+
+        addSwitchRow(
+            parent = content,
             title = getString(R.string.setting_page_cleanup),
             summary = getString(R.string.setting_page_cleanup_summary),
             checked = isPageCleanupEnabled()
@@ -933,6 +976,23 @@ class MainActivity : AppCompatActivity() {
         ) { enabled ->
             settingsManager.setDesktopModeEnabled(enabled)
             applyDesktopMode(reload = true)
+        }
+
+        addDivider(content)
+
+        addActionRow(
+            parent = content,
+            title = getString(R.string.action_show_ad_block_log),
+            summary = getString(R.string.action_show_ad_block_log_summary)
+        ) {
+            showAdBlockLog()
+        }
+        addActionRow(
+            parent = content,
+            title = getString(R.string.action_manage_user_whitelist),
+            summary = getString(R.string.action_manage_user_whitelist_summary)
+        ) {
+            showUserWhitelistManager()
         }
 
         addDivider(content)
@@ -1022,6 +1082,115 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(R.string.title_function_center)
             .setView(scrollView)
+            .setNegativeButton(R.string.action_close, null)
+            .show()
+    }
+
+    private fun showAdBlockLog() {
+        val entries = adBlockLogger.entries()
+        if (entries.isEmpty()) {
+            Toast.makeText(this, R.string.toast_ad_block_log_empty, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_ad_block_log)
+            .setItems(entries.map(::formatAdBlockLogEntry).toTypedArray()) { _, which ->
+                val entry = entries[which]
+                if (entry.action == AdBlockLogAction.BLOCK && !entry.host.isNullOrBlank()) {
+                    showAddWhitelistFromLogDialog(entry.host)
+                }
+            }
+            .setNeutralButton(R.string.action_clear) { _, _ ->
+                adBlockLogger.clear()
+                Toast.makeText(this, R.string.toast_ad_block_log_cleared, Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.action_close, null)
+            .show()
+    }
+
+    private fun formatAdBlockLogEntry(entry: AdBlockLogEntry): String {
+        val time = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            .format(Date(entry.timestampMillis))
+        val action = when (entry.action) {
+            AdBlockLogAction.BLOCK -> getString(R.string.ad_block_log_action_blocked)
+            AdBlockLogAction.ALLOW -> getString(R.string.ad_block_log_action_allowed)
+        }
+        val host = entry.host ?: Uri.parse(entry.url).host ?: entry.url
+        val source = entry.ruleSource ?: entry.reason.name.lowercase(Locale.US)
+        val rule = entry.ruleId ?: entry.rulePattern ?: entry.reason.name
+        return "$time $action\n$host\n$source  $rule"
+    }
+
+    private fun showAddWhitelistFromLogDialog(host: String) {
+        if (settingsManager.isUserWhitelistedSite(host)) {
+            Toast.makeText(
+                this,
+                getString(R.string.toast_user_whitelist_already_added, host),
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_add_user_whitelist)
+            .setMessage(getString(R.string.dialog_add_user_whitelist_message, host))
+            .setPositiveButton(R.string.action_add) { _, _ ->
+                settingsManager.setUserWhitelistedSite(host, true)
+                Toast.makeText(
+                    this,
+                    getString(R.string.toast_user_whitelist_added, host),
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+            }
+            .setNegativeButton(R.string.action_close, null)
+            .show()
+    }
+
+    private fun showUserWhitelistManager() {
+        val hosts = settingsManager.userWhitelistedSiteHosts().sorted()
+        val currentHost = currentSiteHost()
+        val builder = AlertDialog.Builder(this)
+            .setTitle(R.string.title_user_whitelist)
+            .setNegativeButton(R.string.action_close, null)
+
+        if (hosts.isEmpty()) {
+            builder.setMessage(R.string.dialog_user_whitelist_empty)
+        } else {
+            builder.setItems(hosts.toTypedArray()) { _, which ->
+                showRemoveUserWhitelistHostDialog(hosts[which])
+            }
+        }
+
+        if (currentHost != null && !settingsManager.isUserWhitelistedSite(currentHost)) {
+            builder.setPositiveButton(R.string.action_add_current_site) { _, _ ->
+                settingsManager.setUserWhitelistedSite(currentHost, true)
+                Toast.makeText(
+                    this,
+                    getString(R.string.toast_user_whitelist_added, currentHost),
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+            }
+        }
+
+        builder.show()
+    }
+
+    private fun showRemoveUserWhitelistHostDialog(host: String) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_remove_user_whitelist)
+            .setMessage(getString(R.string.dialog_remove_user_whitelist_message, host))
+            .setPositiveButton(R.string.action_remove) { _, _ ->
+                settingsManager.setUserWhitelistedSite(host, false)
+                Toast.makeText(
+                    this,
+                    getString(R.string.toast_user_whitelist_removed, host),
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+            }
             .setNegativeButton(R.string.action_close, null)
             .show()
     }
@@ -1281,6 +1450,33 @@ class MainActivity : AppCompatActivity() {
         preferenceStore.putString(key, array.toString())
     }
 
+    private fun createRuleEngine(): RuleEngine {
+        val loader = RuleFileLoader.fromAssets(
+            assets = assets,
+            cacheDirectory = File(filesDir, RULE_CACHE_DIR)
+        )
+        val requestResult = loader.loadRequestRules()
+        val cssResult = loader.loadCssRules()
+        val domResult = loader.loadDomRules()
+        logSkippedRules(requestResult.skippedRules + cssResult.skippedRules + domResult.skippedRules)
+        val requestRules = BuiltInAdBlockRules.requestRules() + requestResult.rules
+        val elementRules = cssResult.rules + domResult.rules
+        return RuleEngine(
+            rules = requestRules,
+            elementRules = elementRules
+        )
+    }
+
+    private fun logSkippedRules(skippedRules: List<SkippedRule>) {
+        skippedRules.forEach { skippedRule ->
+            Log.w(
+                RULE_LOG_TAG,
+                "Skipped ${skippedRule.source}:${skippedRule.lineNumber} " +
+                    "(${skippedRule.reason}): ${skippedRule.text}"
+            )
+        }
+    }
+
     private fun isAdBlockEnabled(): Boolean {
         return settingsManager.isAdBlockEnabled()
     }
@@ -1291,6 +1487,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun isJsInjectionEnabled(): Boolean {
         return settingsManager.isJsInjectionEnabled()
+    }
+
+    private fun isCurrentSiteJsInjectionDisabled(): Boolean {
+        return settingsManager.isJsInjectionDisabledForSite(currentSiteHost())
     }
 
     private fun isPageCleanupEnabled(): Boolean {
@@ -1374,11 +1574,11 @@ class MainActivity : AppCompatActivity() {
         }
         jsInjector.inject(
             PageFeatureConfig(
-                jsInjectionEnabled = isJsInjectionEnabled(),
+                jsInjectionEnabled = isJsInjectionEnabled() && !isCurrentSiteJsInjectionDisabled(),
                 cleanupEnabled = isPageCleanupEnabled(),
                 videoEnabled = isVideoEnhancementEnabled()
             ),
-            pageUrl = browserManager.currentUrl()
+            pageUrl = currentPageUrl ?: browserManager.currentUrl()
         )
     }
 
@@ -1561,6 +1761,8 @@ class MainActivity : AppCompatActivity() {
         private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
         private const val BOOKMARK_LIMIT = 100
         private const val HISTORY_LIMIT = 80
+        private const val RULE_CACHE_DIR = "rules"
+        private const val RULE_LOG_TAG = "VideoBrowserRules"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val DESKTOP_USER_AGENT =

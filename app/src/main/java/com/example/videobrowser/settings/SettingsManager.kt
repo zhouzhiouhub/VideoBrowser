@@ -51,6 +51,50 @@ class SettingsManager(
             ?: emptySet()
     }
 
+    fun isJsInjectionDisabledForSite(host: String?): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        return jsInjectionDisabledSiteHosts().contains(normalizedHost)
+    }
+
+    fun setJsInjectionDisabledForSite(host: String?, disabled: Boolean): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val hosts = jsInjectionDisabledSiteHosts().toMutableSet()
+        if (disabled) {
+            hosts.add(normalizedHost)
+        } else {
+            hosts.remove(normalizedHost)
+        }
+
+        saveHostSet(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, hosts)
+        return true
+    }
+
+    fun jsInjectionDisabledSiteHosts(): Set<String> {
+        return loadHostSet(KEY_SITE_JS_INJECTION_DISABLED_HOSTS)
+    }
+
+    fun isUserWhitelistedSite(host: String?): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        return userWhitelistedSiteHosts().contains(normalizedHost)
+    }
+
+    fun setUserWhitelistedSite(host: String?, whitelisted: Boolean): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val hosts = userWhitelistedSiteHosts().toMutableSet()
+        if (whitelisted) {
+            hosts.add(normalizedHost)
+        } else {
+            hosts.remove(normalizedHost)
+        }
+
+        saveHostSet(KEY_USER_WHITELISTED_SITE_HOSTS, hosts)
+        return true
+    }
+
+    fun userWhitelistedSiteHosts(): Set<String> {
+        return loadHostSet(KEY_USER_WHITELISTED_SITE_HOSTS)
+    }
+
     fun isJsInjectionEnabled(): Boolean {
         return preferenceStore.getBoolean(KEY_JS_INJECTION, DEFAULT_JS_INJECTION_ENABLED)
     }
@@ -131,6 +175,25 @@ class SettingsManager(
         return preferenceStore.remove(RESET_KEYS, commit = true)
     }
 
+    private fun loadHostSet(key: String): Set<String> {
+        return preferenceStore.getString(key, null)
+            ?.lineSequence()
+            ?.mapNotNull(SiteHost::normalize)
+            ?.toSet()
+            ?: emptySet()
+    }
+
+    private fun saveHostSet(key: String, hosts: Set<String>) {
+        if (hosts.isEmpty()) {
+            preferenceStore.remove(key)
+        } else {
+            preferenceStore.putString(
+                key,
+                hosts.sorted().joinToString(separator = "\n")
+            )
+        }
+    }
+
     private fun normalizeVideoSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -162,6 +225,8 @@ class SettingsManager(
 
         private const val KEY_AD_BLOCK = "ad_block"
         private const val KEY_SITE_AD_BLOCK_DISABLED_HOSTS = "site_ad_block_disabled_hosts"
+        private const val KEY_SITE_JS_INJECTION_DISABLED_HOSTS = "site_js_injection_disabled_hosts"
+        private const val KEY_USER_WHITELISTED_SITE_HOSTS = "user_whitelisted_site_hosts"
         private const val KEY_JS_INJECTION = "js_injection"
         private const val KEY_DOM_AD_BLOCK = "page_cleanup"
         private const val KEY_VIDEO_ENHANCEMENT = "video_enhancement"
@@ -173,6 +238,8 @@ class SettingsManager(
         private val RESET_KEYS = listOf(
             KEY_AD_BLOCK,
             KEY_SITE_AD_BLOCK_DISABLED_HOSTS,
+            KEY_SITE_JS_INJECTION_DISABLED_HOSTS,
+            KEY_USER_WHITELISTED_SITE_HOSTS,
             KEY_JS_INJECTION,
             KEY_DOM_AD_BLOCK,
             KEY_VIDEO_ENHANCEMENT,

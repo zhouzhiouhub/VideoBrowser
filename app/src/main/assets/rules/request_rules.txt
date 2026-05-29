@@ -1,0 +1,7 @@
+! VideoBrowser P11 request rule safe subset.
+! Supports ||domain^, URL contains rules, and @@ exceptions.
+||pagead2.googlesyndication.com^
+||static.doubleclick.net^
+/ad_creative/
+/ad_track/
+@@||example.com^

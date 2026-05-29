@@ -126,13 +126,55 @@
     });
   }
 
-  function injectStyle() {
-    if (document.getElementById(styleId)) return;
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = adSelectors.concat(accountSelectors, cleanupSelectors).join(',') +
+  function externalCssSelectors() {
+    return safeSelectorList(state.config && state.config.cssSelectors);
+  }
+
+  function externalDomSelectors() {
+    return safeSelectorList(state.config && state.config.domSelectors);
+  }
+
+  function safeSelectorList(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map(function (selector) {
+      return String(selector || '').trim();
+    }).filter(function (selector) {
+      return isSafeSelector(selector);
+    });
+  }
+
+  function isSafeSelector(selector) {
+    if (!selector || selector.length > 200) return false;
+    if (/[{};<>]/.test(selector)) return false;
+    return !/:has\(|:contains\(|:matches\(|:xpath\(|javascript:|expression\(/i.test(selector);
+  }
+
+  function querySelectorAllSafe(selector) {
+    try {
+      return document.querySelectorAll(selector);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function injectStyle(includeGenericSelectors) {
+    const selectors = (includeGenericSelectors ? adSelectors.concat(accountSelectors, cleanupSelectors) : [])
+      .concat(externalCssSelectors());
+    const uniqueSelectors = selectors.filter(function (selector, index) {
+      return selectors.indexOf(selector) === index;
+    });
+    if (!uniqueSelectors.length) {
+      removeStyle();
+      return;
+    }
+    let style = document.getElementById(styleId);
+    if (!style) {
+      style = document.createElement('style');
+      style.id = styleId;
+      document.documentElement.appendChild(style);
+    }
+    style.textContent = uniqueSelectors.join(',') +
       '{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';
-    document.documentElement.appendChild(style);
   }
 
   function removeStyle() {
@@ -176,22 +218,32 @@
   function removeAds() {
     if (!state.config.cleanupEnabled || !document.documentElement) return;
     if (shouldSkipGenericCleanup()) {
-      removeStyle();
+      injectStyle(false);
       dismissSitePrompts();
       removeSearchResultAds();
+      removeConfiguredDomElements();
       return;
     }
 
     runWithMutationSuppressed(function () {
-      injectStyle();
+      injectStyle(true);
       adSelectors.concat(accountSelectors, cleanupSelectors).forEach(function (selector) {
         document.querySelectorAll(selector).forEach(function (element) {
           hideElement(element, 'generic-cleanup');
         });
       });
+      removeConfiguredDomElements();
       removeTopAccountBars();
       removeTopNoiseBlocks();
       removeSearchResultAds();
+    });
+  }
+
+  function removeConfiguredDomElements() {
+    externalDomSelectors().forEach(function (selector) {
+      querySelectorAllSafe(selector).forEach(function (element) {
+        removeElement(element, 'rule-dom-remove');
+      });
     });
   }
 
@@ -413,6 +465,13 @@
     element.style.setProperty('display', 'none', 'important');
     element.style.setProperty('visibility', 'hidden', 'important');
     element.style.setProperty('pointer-events', 'none', 'important');
+  }
+
+  function removeElement(element, reason) {
+    if (!element || element === document.body || element === document.documentElement) return;
+    if (String(element.id || '').toLowerCase() === 'app') return;
+    element.setAttribute('data-videobrowser-dismissed', reason || 'remove');
+    element.remove();
   }
 
   function removeTopAccountBars() {

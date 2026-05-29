@@ -1,6 +1,7 @@
 package com.example.videobrowser.adblock
 
 import com.example.videobrowser.rules.RuleEngine
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -63,6 +64,38 @@ class AdBlockRequestPolicyTest {
                 ruleEngine = ruleEngine
             )
         )
+    }
+
+    @Test
+    fun evaluate_allowsRequestsWhenUserWhitelistMatches() {
+        val decision = AdBlockRequestPolicy.evaluate(
+            enabled = true,
+            userWhitelisted = true,
+            url = "https://stats.g.doubleclick.net/pagead/script.js",
+            host = "stats.g.doubleclick.net",
+            scheme = "https",
+            isForMainFrame = false,
+            ruleEngine = ruleEngine
+        )
+
+        assertFalse(decision.shouldBlock)
+        assertEquals(AdBlockDecisionReason.USER_WHITELISTED, decision.reason)
+    }
+
+    @Test
+    fun evaluate_keepsMatchedRuleForBlockedRequests() {
+        val decision = AdBlockRequestPolicy.evaluate(
+            enabled = true,
+            url = "https://stats.g.doubleclick.net/pagead/script.js",
+            host = "stats.g.doubleclick.net",
+            scheme = "https",
+            isForMainFrame = false,
+            ruleEngine = ruleEngine
+        )
+
+        assertTrue(decision.shouldBlock)
+        assertEquals(AdBlockDecisionReason.RULE_BLOCKED, decision.reason)
+        assertTrue(decision.ruleMatchResult.matched)
     }
 
     @Test

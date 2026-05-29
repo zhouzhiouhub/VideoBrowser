@@ -121,4 +121,42 @@ class RuleEngineTest {
         assertNull(Rule.fromRequestRuleText("||*.example.com^"))
         assertNull(Rule.fromRequestRuleText("! comment"))
     }
+
+    @Test
+    fun elementSelectorsFor_filtersByTypeAndPageDomain() {
+        val engine = RuleEngine(
+            rules = emptyList(),
+            elementRules = listOf(
+                ElementRule(
+                    id = "css:global",
+                    selector = ".ad-banner",
+                    type = ElementRuleType.CSS_HIDE
+                ),
+                ElementRule(
+                    id = "css:site",
+                    selector = "#player-ads",
+                    type = ElementRuleType.CSS_HIDE,
+                    domains = setOf("youtube.com")
+                ),
+                ElementRule(
+                    id = "dom:global",
+                    selector = ".popup-ad",
+                    type = ElementRuleType.DOM_REMOVE
+                )
+            )
+        )
+
+        assertEquals(
+            listOf(".ad-banner", "#player-ads"),
+            engine.cssSelectorsFor("https://m.youtube.com/watch?v=1")
+        )
+        assertEquals(
+            listOf(".ad-banner"),
+            engine.cssSelectorsFor("https://example.com/")
+        )
+        assertEquals(
+            listOf(".popup-ad"),
+            engine.domSelectorsFor("https://example.com/")
+        )
+    }
 }

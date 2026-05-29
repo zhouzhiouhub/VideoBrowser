@@ -65,6 +65,8 @@ class SettingsManagerTest {
         val settings = SettingsManager(store)
         settings.setAdBlockEnabled(false)
         settings.setAdBlockDisabledForSite("video.example.com", true)
+        settings.setJsInjectionDisabledForSite("video.example.com", true)
+        settings.setUserWhitelistedSite("ads.example.com", true)
         settings.setJsInjectionEnabled(false)
         settings.setHomeUrl("https://m.sogou.com/")
         store.putString("bookmarks", "[]")
@@ -73,6 +75,8 @@ class SettingsManagerTest {
 
         assertTrue(settings.isAdBlockEnabled())
         assertFalse(settings.isAdBlockDisabledForSite("video.example.com"))
+        assertFalse(settings.isJsInjectionDisabledForSite("video.example.com"))
+        assertFalse(settings.isUserWhitelistedSite("ads.example.com"))
         assertTrue(settings.isJsInjectionEnabled())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
         assertEquals("[]", store.getString("bookmarks", null))
@@ -91,6 +95,36 @@ class SettingsManagerTest {
 
         assertTrue(reloaded.setAdBlockDisabledForSite("video.example.com", false))
         assertFalse(reloaded.isAdBlockDisabledForSite("video.example.com"))
+    }
+
+    @Test
+    fun siteJsInjectionDisabledHosts_areNormalizedAndPersisted() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.setJsInjectionDisabledForSite(" Video.Example.COM. ", true))
+
+        val reloaded = SettingsManager(store)
+        assertTrue(reloaded.isJsInjectionDisabledForSite("video.example.com"))
+        assertEquals(setOf("video.example.com"), reloaded.jsInjectionDisabledSiteHosts())
+
+        assertTrue(reloaded.setJsInjectionDisabledForSite("video.example.com", false))
+        assertFalse(reloaded.isJsInjectionDisabledForSite("video.example.com"))
+    }
+
+    @Test
+    fun userWhitelistedSiteHosts_areNormalizedAndPersisted() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.setUserWhitelistedSite(" Ads.Example.COM. ", true))
+
+        val reloaded = SettingsManager(store)
+        assertTrue(reloaded.isUserWhitelistedSite("ads.example.com"))
+        assertEquals(setOf("ads.example.com"), reloaded.userWhitelistedSiteHosts())
+
+        assertTrue(reloaded.setUserWhitelistedSite("ads.example.com", false))
+        assertFalse(reloaded.isUserWhitelistedSite("ads.example.com"))
     }
 
     private class InMemoryPreferenceStore : PreferenceStore {

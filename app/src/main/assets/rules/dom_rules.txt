@@ -1,0 +1,4 @@
+! VideoBrowser P11 DOM remove rule safe subset.
+remove:.popup-ad
+remove:.video-ad
+remove:[data-videobrowser-remove]

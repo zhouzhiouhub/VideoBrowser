@@ -9,17 +9,38 @@ import com.example.videobrowser.rules.RuleEngine
 class AdBlockManager(
     private val isEnabled: () -> Boolean = { true },
     private val isDisabledForCurrentSite: () -> Boolean = { false },
+    private val isUserWhitelistedRequestHost: (String?) -> Boolean = { false },
+    private val logger: AdBlockLogger? = null,
     private val ruleEngine: RuleEngine = RuleEngine(BuiltInAdBlockRules.requestRules())
 ) {
-    fun shouldBlock(request: BrowserRequest): Boolean {
-        return AdBlockRequestPolicy.shouldBlock(
+    fun evaluate(request: BrowserRequest): AdBlockDecision {
+        val decision = AdBlockRequestPolicy.evaluate(
             enabled = isEnabled(),
             siteAdBlockDisabled = isDisabledForCurrentSite(),
+            userWhitelisted = isUserWhitelistedRequestHost(request.url.host),
             url = request.url.toString(),
             host = request.url.host,
             scheme = request.url.scheme,
             isForMainFrame = request.isForMainFrame,
             ruleEngine = ruleEngine
+        )
+        logDecision(request, decision)
+        return decision
+    }
+
+    fun shouldBlock(request: BrowserRequest): Boolean {
+        return evaluate(request).shouldBlock
+    }
+
+    private fun logDecision(request: BrowserRequest, decision: AdBlockDecision) {
+        if (!decision.shouldLog) {
+            return
+        }
+        logger?.log(
+            action = if (decision.shouldBlock) AdBlockLogAction.BLOCK else AdBlockLogAction.ALLOW,
+            url = request.url.toString(),
+            host = request.url.host,
+            decision = decision
         )
     }
 }

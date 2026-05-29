@@ -4,9 +4,11 @@ import com.example.videobrowser.browser.BrowserRequest
 
 class RuleEngine(
     rules: List<Rule>,
+    elementRules: List<ElementRule> = emptyList(),
     private val ruleMatcher: RuleMatcher = RuleMatcher()
 ) {
     private val requestRules = rules.toList()
+    private val elementRules = elementRules.toList()
 
     fun matchRequest(request: BrowserRequest): RuleMatchResult {
         return matchRequest(
@@ -37,6 +39,28 @@ class RuleEngine(
 
     fun rules(): List<Rule> {
         return requestRules
+    }
+
+    fun elementRules(): List<ElementRule> {
+        return elementRules
+    }
+
+    fun cssSelectorsFor(pageUrl: String?): List<String> {
+        return elementRules
+            .filter { rule ->
+                rule.type == ElementRuleType.CSS_HIDE && rule.matchesPage(pageUrl)
+            }
+            .map { rule -> rule.selector }
+            .distinct()
+    }
+
+    fun domSelectorsFor(pageUrl: String?): List<String> {
+        return elementRules
+            .filter { rule ->
+                rule.type == ElementRuleType.DOM_REMOVE && rule.matchesPage(pageUrl)
+            }
+            .map { rule -> rule.selector }
+            .distinct()
     }
 
     private fun findFirstMatchingRule(
