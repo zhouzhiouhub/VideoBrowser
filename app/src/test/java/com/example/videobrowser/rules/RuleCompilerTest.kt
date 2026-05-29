@@ -37,6 +37,14 @@ class RuleCompilerTest {
         assertEquals(listOf(cssExceptionRule), result.cssUnhideRules())
         assertEquals(listOf(domRule), result.domRemoveRules())
         assertEquals(listOf(cssRule, cssExceptionRule, domRule), result.elementRules())
+        assertEquals(
+            listOf(RuleCapabilityKind.ELEMENT_HIDE, RuleCapabilityKind.ELEMENT_HIDE),
+            result.elementHideCapabilities().map { capability -> capability.kind }
+        )
+        assertEquals(
+            listOf(ElementHideEffect.HIDE, ElementHideEffect.UNHIDE),
+            result.elementHideCapabilities().map { capability -> capability.effect }
+        )
         assertTrue(result.safeHookCapabilities.isEmpty())
         assertTrue(result.noopResponseCapabilities.isEmpty())
         assertTrue(result.skippedRules.isEmpty())
@@ -61,5 +69,56 @@ class RuleCompilerTest {
         assertSame(elementRule, result.cssHideCapabilities.single().rule)
         assertEquals("test-source", result.requestCapabilities.single().source)
         assertEquals("test-source", result.cssHideCapabilities.single().source)
+    }
+
+    @Test
+    fun capabilityKinds_distinguishRequestPageHookAndNoopCapabilities() {
+        val requestCapability = RuleCapability.Request(Rule.blockUrlContains("/ad/"))
+        val hideCapability = RuleCapability.CssHide(
+            ElementRule(
+                id = "css:hide",
+                selector = ".ad",
+                type = ElementRuleType.CSS_HIDE
+            )
+        )
+        val domCapability = RuleCapability.DomRemove(
+            ElementRule(
+                id = "dom:remove",
+                selector = ".popup",
+                type = ElementRuleType.DOM_REMOVE
+            )
+        )
+        val hookCapability = RuleCapability.SafeHook(
+            id = "hook:fetch",
+            source = "test",
+            hookName = "fetch-block-keyword",
+            arguments = listOf("/ad/")
+        )
+        val noopCapability = RuleCapability.NoopResponse(
+            id = "noop:script",
+            source = "test",
+            resourceName = "noopjs"
+        )
+
+        val result = CompiledRuleSet(
+            requestCapabilities = listOf(requestCapability),
+            cssHideCapabilities = listOf(hideCapability),
+            domRemoveCapabilities = listOf(domCapability),
+            safeHookCapabilities = listOf(hookCapability),
+            noopResponseCapabilities = listOf(noopCapability)
+        )
+
+        assertEquals(
+            listOf(
+                RuleCapabilityKind.REQUEST,
+                RuleCapabilityKind.ELEMENT_HIDE,
+                RuleCapabilityKind.DOM_REMOVE,
+                RuleCapabilityKind.SAFE_HOOK,
+                RuleCapabilityKind.NOOP_RESPONSE
+            ),
+            result.allCapabilities().map { capability -> capability.kind }
+        )
+        assertEquals(RuleAction.BLOCK, requestCapability.action)
+        assertEquals(ElementHideEffect.HIDE, hideCapability.effect)
     }
 }
