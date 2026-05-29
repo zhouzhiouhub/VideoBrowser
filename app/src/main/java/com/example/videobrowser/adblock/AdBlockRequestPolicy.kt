@@ -8,6 +8,7 @@ import com.example.videobrowser.rules.RuleEngine
 object AdBlockRequestPolicy {
     fun shouldBlock(
         enabled: Boolean,
+        siteAdBlockDisabled: Boolean = false,
         url: String,
         host: String?,
         scheme: String?,
@@ -15,7 +16,8 @@ object AdBlockRequestPolicy {
         ruleEngine: RuleEngine
     ): Boolean {
         // 主文档请求必须放行，避免广告黑名单误杀页面导航。
-        if (!enabled || isForMainFrame || !isHttpScheme(scheme)) {
+        // 当前站点关闭广告拦截时，只跳过请求级规则，不改变全局开关本身。
+        if (!enabled || siteAdBlockDisabled || isForMainFrame || !isHttpScheme(scheme)) {
             return false
         }
 

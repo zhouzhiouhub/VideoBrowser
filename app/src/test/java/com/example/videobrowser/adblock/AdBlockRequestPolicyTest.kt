@@ -51,6 +51,21 @@ class AdBlockRequestPolicyTest {
     }
 
     @Test
+    fun shouldBlock_allowsRequestsWhenCurrentSiteAdBlockDisabled() {
+        assertFalse(
+            AdBlockRequestPolicy.shouldBlock(
+                enabled = true,
+                siteAdBlockDisabled = true,
+                url = "https://stats.g.doubleclick.net/pagead/script.js",
+                host = "stats.g.doubleclick.net",
+                scheme = "https",
+                isForMainFrame = false,
+                ruleEngine = ruleEngine
+            )
+        )
+    }
+
+    @Test
     fun shouldBlock_allowsNonHttpRequests() {
         assertFalse(
             AdBlockRequestPolicy.shouldBlock(

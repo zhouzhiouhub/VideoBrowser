@@ -1,6 +1,7 @@
 package com.example.videobrowser.settings
 
 import android.content.Context
+import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
 
 class SettingsManager(
@@ -12,6 +13,42 @@ class SettingsManager(
 
     fun setAdBlockEnabled(enabled: Boolean) {
         preferenceStore.putBoolean(KEY_AD_BLOCK, enabled)
+    }
+
+    fun isAdBlockDisabledForSite(host: String?): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        return adBlockDisabledSiteHosts().contains(normalizedHost)
+    }
+
+    /**
+     * P11-01 只保存站点级请求拦截放行列表，不引入订阅、规则文件或数据库。
+     */
+    fun setAdBlockDisabledForSite(host: String?, disabled: Boolean): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val hosts = adBlockDisabledSiteHosts().toMutableSet()
+        if (disabled) {
+            hosts.add(normalizedHost)
+        } else {
+            hosts.remove(normalizedHost)
+        }
+
+        if (hosts.isEmpty()) {
+            preferenceStore.remove(KEY_SITE_AD_BLOCK_DISABLED_HOSTS)
+        } else {
+            preferenceStore.putString(
+                KEY_SITE_AD_BLOCK_DISABLED_HOSTS,
+                hosts.sorted().joinToString(separator = "\n")
+            )
+        }
+        return true
+    }
+
+    fun adBlockDisabledSiteHosts(): Set<String> {
+        return preferenceStore.getString(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, null)
+            ?.lineSequence()
+            ?.mapNotNull(SiteHost::normalize)
+            ?.toSet()
+            ?: emptySet()
     }
 
     fun isJsInjectionEnabled(): Boolean {
@@ -124,6 +161,7 @@ class SettingsManager(
         private const val DEFAULT_DESKTOP_MODE_ENABLED = false
 
         private const val KEY_AD_BLOCK = "ad_block"
+        private const val KEY_SITE_AD_BLOCK_DISABLED_HOSTS = "site_ad_block_disabled_hosts"
         private const val KEY_JS_INJECTION = "js_injection"
         private const val KEY_DOM_AD_BLOCK = "page_cleanup"
         private const val KEY_VIDEO_ENHANCEMENT = "video_enhancement"
@@ -134,6 +172,7 @@ class SettingsManager(
 
         private val RESET_KEYS = listOf(
             KEY_AD_BLOCK,
+            KEY_SITE_AD_BLOCK_DISABLED_HOSTS,
             KEY_JS_INJECTION,
             KEY_DOM_AD_BLOCK,
             KEY_VIDEO_ENHANCEMENT,

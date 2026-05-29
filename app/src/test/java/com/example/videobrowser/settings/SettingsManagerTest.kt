@@ -64,6 +64,7 @@ class SettingsManagerTest {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)
         settings.setAdBlockEnabled(false)
+        settings.setAdBlockDisabledForSite("video.example.com", true)
         settings.setJsInjectionEnabled(false)
         settings.setHomeUrl("https://m.sogou.com/")
         store.putString("bookmarks", "[]")
@@ -71,9 +72,25 @@ class SettingsManagerTest {
         assertTrue(settings.restoreDefaults())
 
         assertTrue(settings.isAdBlockEnabled())
+        assertFalse(settings.isAdBlockDisabledForSite("video.example.com"))
         assertTrue(settings.isJsInjectionEnabled())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
         assertEquals("[]", store.getString("bookmarks", null))
+    }
+
+    @Test
+    fun siteAdBlockDisabledHosts_areNormalizedAndPersisted() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.setAdBlockDisabledForSite(" Video.Example.COM. ", true))
+
+        val reloaded = SettingsManager(store)
+        assertTrue(reloaded.isAdBlockDisabledForSite("video.example.com"))
+        assertEquals(setOf("video.example.com"), reloaded.adBlockDisabledSiteHosts())
+
+        assertTrue(reloaded.setAdBlockDisabledForSite("video.example.com", false))
+        assertFalse(reloaded.isAdBlockDisabledForSite("video.example.com"))
     }
 
     private class InMemoryPreferenceStore : PreferenceStore {

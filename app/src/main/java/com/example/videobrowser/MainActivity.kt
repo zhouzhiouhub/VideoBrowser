@@ -50,6 +50,7 @@ import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureConfig
 import com.example.videobrowser.inject.ScriptLoader
+import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.utils.MediaUrlUtils
@@ -105,7 +106,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var jsInjector: JsInjector
     private lateinit var chromeClient: ChromeClient
     private val adBlockManager: AdBlockManager by lazy {
-        AdBlockManager(isEnabled = ::isAdBlockEnabled)
+        AdBlockManager(
+            isEnabled = ::isAdBlockEnabled,
+            isDisabledForCurrentSite = ::isCurrentSiteAdBlockDisabled
+        )
     }
     private val adBlockRequestInterceptor: AdBlockRequestInterceptor by lazy {
         AdBlockRequestInterceptor(adBlockManager)
@@ -171,6 +175,8 @@ class MainActivity : AppCompatActivity() {
     private var lastScrollControlChangeAt = 0L
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
+    // WebView.currentUrl() 在切页加载期间可能滞后，站点级开关优先使用页面回调 URL。
+    private var currentPageUrl: String? = null
     private var isPageLoading = false
     private var fullscreenPlaybackSpeed = SettingsManager.DEFAULT_VIDEO_SPEED
     private var fullscreenVideoPositionMs: Long? = null
@@ -361,6 +367,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handlePageStarted(url: String?) {
+        currentPageUrl = url ?: currentPageUrl
         if (::chromeClient.isInitialized &&
             chromeClient.isFullscreenModeActive() &&
             !chromeClient.isShowingCustomView()
@@ -378,6 +385,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handlePageFinished(url: String?) {
+        currentPageUrl = url ?: currentPageUrl
         val isProviderHome = isProviderHomeUrl(url)
         updateAddressBar(url)
         showHomeContent(isProviderHome)
@@ -846,6 +854,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFunctionCenter() {
+        val siteHost = currentSiteHost()
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(8), dp(16), dp(4))
@@ -858,6 +867,31 @@ class MainActivity : AppCompatActivity() {
             checked = isAdBlockEnabled()
         ) { enabled ->
             settingsManager.setAdBlockEnabled(enabled)
+            browserManager.reload()
+        }
+
+        addSwitchRow(
+            parent = content,
+            title = getString(R.string.setting_current_site_ad_block_disabled),
+            summary = if (siteHost != null) {
+                getString(R.string.setting_current_site_ad_block_disabled_summary, siteHost)
+            } else {
+                getString(R.string.setting_current_site_ad_block_disabled_summary_empty)
+            },
+            checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
+            enabled = siteHost != null
+        ) { disabled ->
+            val host = currentSiteHost() ?: return@addSwitchRow
+            settingsManager.setAdBlockDisabledForSite(host, disabled)
+            Toast.makeText(
+                this,
+                if (disabled) {
+                    getString(R.string.toast_current_site_ad_block_disabled, host)
+                } else {
+                    getString(R.string.toast_current_site_ad_block_restored, host)
+                },
+                Toast.LENGTH_SHORT
+            ).show()
             browserManager.reload()
         }
 
@@ -997,24 +1031,29 @@ class MainActivity : AppCompatActivity() {
         title: String,
         summary: String,
         checked: Boolean,
+        enabled: Boolean = true,
         onChanged: (Boolean) -> Unit
     ) {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            isClickable = true
-            isFocusable = true
+            isClickable = enabled
+            isFocusable = enabled
+            isEnabled = enabled
             minimumHeight = dp(62)
             setPadding(0, dp(8), 0, dp(8))
             setSelectableItemBackground()
         }
         val labels = createRowText(title, summary)
+        labels.isEnabled = enabled
+        labels.alpha = if (enabled) 1f else 0.48f
         row.addView(
             labels,
             LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         )
         val switchView = SwitchCompat(this).apply {
             isChecked = checked
+            isEnabled = enabled
         }
         row.addView(
             switchView,
@@ -1024,7 +1063,11 @@ class MainActivity : AppCompatActivity() {
             )
         )
         switchView.setOnCheckedChangeListener { _, isChecked -> onChanged(isChecked) }
-        row.setOnClickListener { switchView.isChecked = !switchView.isChecked }
+        row.setOnClickListener {
+            if (enabled) {
+                switchView.isChecked = !switchView.isChecked
+            }
+        }
         parent.addView(row)
     }
 
@@ -1242,6 +1285,10 @@ class MainActivity : AppCompatActivity() {
         return settingsManager.isAdBlockEnabled()
     }
 
+    private fun isCurrentSiteAdBlockDisabled(): Boolean {
+        return settingsManager.isAdBlockDisabledForSite(currentSiteHost())
+    }
+
     private fun isJsInjectionEnabled(): Boolean {
         return settingsManager.isJsInjectionEnabled()
     }
@@ -1345,6 +1392,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun currentShareableUrl(): String? {
         return browserManager.currentUrl()?.takeIf { isShareableUrl(it) }
+    }
+
+    private fun currentSiteHost(): String? {
+        return SiteHost.fromUrl(currentPageUrl ?: browserManager.currentUrl())
     }
 
     private fun isShareableUrl(url: String): Boolean {

@@ -16,6 +16,9 @@
     <string name="title_history">历史记录</string>
     <string name="setting_ad_block">广告请求拦截</string>
     <string name="setting_ad_block_summary">屏蔽常见广告、跟踪和视频广告资源请求</string>
+    <string name="setting_current_site_ad_block_disabled">当前站点关闭广告拦截</string>
+    <string name="setting_current_site_ad_block_disabled_summary">对 %1$s 放行广告请求</string>
+    <string name="setting_current_site_ad_block_disabled_summary_empty">打开网页后可单独设置当前站点</string>
     <string name="setting_js_injection">网页脚本增强</string>
     <string name="setting_js_injection_summary">允许执行内置 common.js 和站点适配脚本</string>
     <string name="setting_page_cleanup">页面净化</string>
@@ -55,6 +58,8 @@
     <string name="toast_link_copied">链接已复制</string>
     <string name="toast_browser_data_cleared">浏览数据已清理</string>
     <string name="toast_default_settings_restored">已恢复默认设置</string>
+    <string name="toast_current_site_ad_block_disabled">已关闭 %1$s 的广告请求拦截</string>
+    <string name="toast_current_site_ad_block_restored">已恢复 %1$s 的广告请求拦截</string>
     <string name="toast_download_started">已开始下载</string>
     <string name="toast_download_failed">下载失败</string>
     <string name="toast_no_external_browser">没有可用的外部应用</string>

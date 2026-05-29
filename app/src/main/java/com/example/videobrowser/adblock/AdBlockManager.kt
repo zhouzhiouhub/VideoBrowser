@@ -8,11 +8,13 @@ import com.example.videobrowser.rules.RuleEngine
  */
 class AdBlockManager(
     private val isEnabled: () -> Boolean = { true },
+    private val isDisabledForCurrentSite: () -> Boolean = { false },
     private val ruleEngine: RuleEngine = RuleEngine(BuiltInAdBlockRules.requestRules())
 ) {
     fun shouldBlock(request: BrowserRequest): Boolean {
         return AdBlockRequestPolicy.shouldBlock(
             enabled = isEnabled(),
+            siteAdBlockDisabled = isDisabledForCurrentSite(),
             url = request.url.toString(),
             host = request.url.host,
             scheme = request.url.scheme,
