@@ -653,13 +653,36 @@
   }
 
   function clearOverlayScrollLocks() {
-    if (document.documentElement) {
-      document.documentElement.style.overflow = '';
-    }
-    if (document.body) {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-    }
+    unlockScrollContainer(document.documentElement);
+    unlockScrollContainer(document.body);
+  }
+
+  function unlockScrollContainer(element) {
+    if (!element) return;
+    [
+      'overflow',
+      'overflow-x',
+      'overflow-y',
+      'position',
+      'height',
+      'touch-action',
+      'overscroll-behavior'
+    ].forEach(function (property) {
+      element.style.removeProperty(property);
+    });
+
+    if (!element.classList) return;
+    Array.prototype.slice.call(element.classList).forEach(function (className) {
+      if (isScrollLockClass(className)) {
+        element.classList.remove(className);
+      }
+    });
+  }
+
+  function isScrollLockClass(className) {
+    return /(^|[-_])(overflow-hidden|no-scroll|noscroll|scroll-lock|lock-scroll)([-_]|$)/i
+      .test(String(className || '')) ||
+      /^adm-overflow-hidden$/i.test(String(className || ''));
   }
 
   function elementDescriptor(element) {

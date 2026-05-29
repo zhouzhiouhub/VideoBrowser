@@ -119,10 +119,17 @@ class JsInjectorInstrumentedTest {
                 (function () {
                   var overlay = document.getElementById('promo-overlay');
                   var root = document.getElementById('root');
+                  var bodyStyle = window.getComputedStyle(document.body);
                   return [
                     window.getComputedStyle(overlay).display,
                     overlay.getAttribute('data-videobrowser-dismissed'),
-                    window.getComputedStyle(root).display
+                    window.getComputedStyle(root).display,
+                    document.body.classList.contains('adm-overflow-hidden'),
+                    document.body.classList.contains('no-scroll'),
+                    bodyStyle.overflowY,
+                    bodyStyle.position,
+                    document.body.style.overflow,
+                    document.body.style.position
                   ];
                 })();
             """.trimIndent()
@@ -131,6 +138,12 @@ class JsInjectorInstrumentedTest {
         assertEquals("none", result.getString(0))
         assertEquals("generic-ad-overlay", result.getString(1))
         assertFalse("none" == result.getString(2))
+        assertFalse(result.getBoolean(3))
+        assertFalse(result.getBoolean(4))
+        assertFalse("hidden" == result.getString(5))
+        assertFalse("fixed" == result.getString(6))
+        assertEquals("", result.getString(7))
+        assertEquals("", result.getString(8))
     }
 
     @Test
@@ -271,7 +284,18 @@ class JsInjectorInstrumentedTest {
         private const val IMAGE_INTERSTITIAL_HTML = """
             <!doctype html>
             <html>
-              <body>
+              <head>
+                <style>
+                  .adm-overflow-hidden,
+                  .no-scroll {
+                    overflow: hidden !important;
+                    position: fixed !important;
+                    height: 100% !important;
+                    touch-action: none !important;
+                  }
+                </style>
+              </head>
+              <body class="adm-overflow-hidden no-scroll" style="overflow:hidden;position:fixed;height:100%;touch-action:none">
                 <div id="root">page content</div>
                 <div
                   id="promo-overlay"
