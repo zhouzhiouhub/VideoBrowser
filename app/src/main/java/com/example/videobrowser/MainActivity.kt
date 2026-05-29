@@ -192,7 +192,8 @@ class MainActivity : AppCompatActivity() {
     private var lastScrollControlChangeAt = 0L
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
-    // WebView.currentUrl() 在切页加载期间可能滞后，站点级开关优先使用页面回调 URL。
+    // shouldInterceptRequest 运行在 WebView 后台线程，站点级判断只能读取这个缓存。
+    @Volatile
     private var currentPageUrl: String? = null
     private var isPageLoading = false
     private var fullscreenPlaybackSpeed = SettingsManager.DEFAULT_VIDEO_SPEED
@@ -1596,7 +1597,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun currentSiteHost(): String? {
-        return SiteHost.fromUrl(currentPageUrl ?: browserManager.currentUrl())
+        return SiteHost.fromUrl(currentPageUrl)
     }
 
     private fun isShareableUrl(url: String): Boolean {
@@ -1656,6 +1657,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        currentPageUrl = url
         val isProviderHome = isProviderHomeUrl(url)
         updateAddressBar(url)
         hideKeyboard()
