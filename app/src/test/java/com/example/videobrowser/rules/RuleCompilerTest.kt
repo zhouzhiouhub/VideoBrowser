@@ -251,4 +251,81 @@ class RuleCompilerTest {
             ).map { capability -> capability.rule }
         )
     }
+
+    @Test
+    fun elementRuleIndex_returnsPageHostCandidatesAndFallbackInOriginalOrder() {
+        val globalHideRule = ElementRule(
+            id = "css:global",
+            selector = ".ad-banner",
+            type = ElementRuleType.CSS_HIDE
+        )
+        val youtubeHideRule = ElementRule(
+            id = "css:youtube",
+            selector = "#player-ads",
+            type = ElementRuleType.CSS_HIDE,
+            domains = setOf("youtube.com")
+        )
+        val vimeoHideRule = ElementRule(
+            id = "css:vimeo",
+            selector = ".vimeo-sponsored",
+            type = ElementRuleType.CSS_HIDE,
+            domains = setOf("vimeo.com")
+        )
+        val excludedOnlyRule = ElementRule(
+            id = "css:excluded",
+            selector = ".sponsored",
+            type = ElementRuleType.CSS_HIDE,
+            excludedDomains = setOf("safe.example.com")
+        )
+        val exampleExceptionRule = ElementRule(
+            id = "css:exception",
+            selector = ".ad-banner",
+            type = ElementRuleType.CSS_UNHIDE,
+            domains = setOf("example.com")
+        )
+        val exampleDomRule = ElementRule(
+            id = "dom:example",
+            selector = ".popup-ad",
+            type = ElementRuleType.DOM_REMOVE,
+            domains = setOf("example.com")
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = emptyList(),
+            elementRules = listOf(
+                globalHideRule,
+                youtubeHideRule,
+                vimeoHideRule,
+                excludedOnlyRule,
+                exampleExceptionRule,
+                exampleDomRule
+            )
+        )
+
+        assertEquals(
+            listOf(globalHideRule, youtubeHideRule, excludedOnlyRule),
+            result.cssHideCandidatesFor("m.youtube.com")
+                .map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(globalHideRule, vimeoHideRule, excludedOnlyRule),
+            result.cssHideCandidatesFor("player.vimeo.com")
+                .map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(globalHideRule, excludedOnlyRule),
+            result.cssHideCandidatesFor(null)
+                .map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(exampleExceptionRule),
+            result.cssUnhideCandidatesFor("www.example.com")
+                .map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(exampleDomRule),
+            result.domRemoveCandidatesFor("news.example.com")
+                .map { capability -> capability.rule }
+        )
+    }
 }

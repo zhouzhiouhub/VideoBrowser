@@ -17,9 +17,6 @@ class RuleEngine(
         elementRules = elementRules
     )
     private val requestCapabilities = compiledRules.requestCapabilities
-    private val cssHideCapabilities = compiledRules.cssHideCapabilities
-    private val cssUnhideCapabilities = compiledRules.cssUnhideCapabilities
-    private val domRemoveCapabilities = compiledRules.domRemoveCapabilities
 
     fun matchRequest(request: BrowserRequest): RuleMatchResult {
         return matchRequest(RequestContext.from(request))
@@ -76,13 +73,14 @@ class RuleEngine(
     }
 
     fun cssSelectorsFor(pageUrl: String?): List<String> {
-        val exceptions = cssUnhideCapabilities
+        val pageHost = SiteHost.fromUrl(pageUrl)
+        val exceptions = compiledRules.cssUnhideCandidatesFor(pageHost)
             .filter { rule ->
                 rule.rule.matchesPage(pageUrl)
             }
             .map { capability -> capability.rule.selector }
             .toSet()
-        return cssHideCapabilities
+        return compiledRules.cssHideCandidatesFor(pageHost)
             .filter { rule ->
                 rule.rule.matchesPage(pageUrl)
             }
@@ -92,7 +90,8 @@ class RuleEngine(
     }
 
     fun domSelectorsFor(pageUrl: String?): List<String> {
-        return domRemoveCapabilities
+        val pageHost = SiteHost.fromUrl(pageUrl)
+        return compiledRules.domRemoveCandidatesFor(pageHost)
             .filter { rule ->
                 rule.rule.matchesPage(pageUrl)
             }

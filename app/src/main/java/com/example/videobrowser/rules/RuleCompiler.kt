@@ -73,7 +73,13 @@ data class CompiledRuleSet(
     val safeHookCapabilities: List<RuleCapability.SafeHook> = emptyList(),
     val noopResponseCapabilities: List<RuleCapability.NoopResponse> = emptyList(),
     val skippedRules: List<SkippedRule> = emptyList(),
-    val requestRuleIndex: RequestRuleIndex = RequestRuleIndex.from(requestCapabilities)
+    val requestRuleIndex: RequestRuleIndex = RequestRuleIndex.from(requestCapabilities),
+    val cssHideRuleIndex: ElementRuleIndex<RuleCapability.CssHide> =
+        ElementRuleIndex.from(cssHideCapabilities),
+    val cssUnhideRuleIndex: ElementRuleIndex<RuleCapability.CssUnhide> =
+        ElementRuleIndex.from(cssUnhideCapabilities),
+    val domRemoveRuleIndex: ElementRuleIndex<RuleCapability.DomRemove> =
+        ElementRuleIndex.from(domRemoveCapabilities)
 ) {
     fun allCapabilities(): List<RuleCapability> {
         return requestCapabilities +
@@ -101,6 +107,18 @@ data class CompiledRuleSet(
             host = host,
             url = url
         )
+    }
+
+    fun cssHideCandidatesFor(pageHost: String?): List<RuleCapability.CssHide> {
+        return cssHideRuleIndex.candidatesFor(pageHost)
+    }
+
+    fun cssUnhideCandidatesFor(pageHost: String?): List<RuleCapability.CssUnhide> {
+        return cssUnhideRuleIndex.candidatesFor(pageHost)
+    }
+
+    fun domRemoveCandidatesFor(pageHost: String?): List<RuleCapability.DomRemove> {
+        return domRemoveRuleIndex.candidatesFor(pageHost)
     }
 
     fun elementRules(): List<ElementRule> {
