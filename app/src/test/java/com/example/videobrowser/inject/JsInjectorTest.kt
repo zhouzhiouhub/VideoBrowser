@@ -3,6 +3,7 @@ package com.example.videobrowser.inject
 import com.example.videobrowser.site.SiteAdapterRegistry
 import com.example.videobrowser.rules.ElementRule
 import com.example.videobrowser.rules.ElementRuleType
+import com.example.videobrowser.rules.Rule
 import com.example.videobrowser.rules.RuleEngine
 import java.io.ByteArrayInputStream
 import org.junit.Assert.assertEquals
@@ -30,7 +31,7 @@ class JsInjectorTest {
         assertTrue(
             script.contains(
                 "var config = {\"cleanupEnabled\":true,\"videoEnabled\":false," +
-                    "\"cssSelectors\":[],\"domSelectors\":[]};"
+                    "\"cssSelectors\":[],\"domSelectors\":[],\"blockedUrlKeywords\":[]};"
             )
         )
         assertTrue(script.contains("if (!window.__VIDEOBROWSER_COMMON_SCRIPT_INSTALLED__) {"))
@@ -59,7 +60,7 @@ class JsInjectorTest {
         assertTrue(
             evaluatedScripts[1].contains(
                 "var config = {\"cleanupEnabled\":false,\"videoEnabled\":true," +
-                    "\"cssSelectors\":[],\"domSelectors\":[]};"
+                    "\"cssSelectors\":[],\"domSelectors\":[],\"blockedUrlKeywords\":[]};"
             )
         )
     }
@@ -168,7 +169,7 @@ class JsInjectorTest {
             scriptLoader = scriptLoaderFor(COMMON_SCRIPT),
             evaluateJavascript = { script -> evaluatedScripts += script },
             ruleEngine = RuleEngine(
-                rules = emptyList(),
+                rules = listOf(Rule.blockUrlContains("/pagead/")),
                 elementRules = listOf(
                     ElementRule(
                         id = "css:1",
@@ -192,6 +193,7 @@ class JsInjectorTest {
         val script = evaluatedScripts.single()
         assertTrue(script.contains("\"cssSelectors\":[\".ad-banner\"]"))
         assertTrue(script.contains("\"domSelectors\":[\".popup-ad\"]"))
+        assertTrue(script.contains("\"blockedUrlKeywords\":[\"/pagead/\"]"))
     }
 
     private fun scriptLoaderFor(script: String): ScriptLoader {

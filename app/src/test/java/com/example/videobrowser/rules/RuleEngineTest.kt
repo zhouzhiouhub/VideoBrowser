@@ -100,6 +100,11 @@ class RuleEngineTest {
         val domainRule = requireNotNull(Rule.fromRequestRuleText("||doubleclick.net^"))
         val whitelistRule = requireNotNull(Rule.fromRequestRuleText("@@||example.com^"))
         val urlRule = requireNotNull(Rule.fromRequestRuleText("/pagead/"))
+        val patternRule = requireNotNull(Rule.fromRequestRuleText("||doubleclick.net^*/ad_status^"))
+        val thirdPartyRule = requireNotNull(Rule.fromRequestRuleText("||ads.example.com^\$third-party"))
+        val domainScopedRule = requireNotNull(
+            Rule.fromRequestRuleText("||ads.example.com^\$domain=video.example.com|~safe.video.example.com")
+        )
 
         assertEquals(RuleType.DOMAIN_CONTAINS, domainRule.type)
         assertEquals(RuleAction.BLOCK, domainRule.action)
@@ -112,14 +117,75 @@ class RuleEngineTest {
         assertEquals(RuleType.URL_CONTAINS, urlRule.type)
         assertEquals(RuleAction.BLOCK, urlRule.action)
         assertEquals("/pagead/", urlRule.pattern)
+
+        assertEquals(RuleType.URL_PATTERN, patternRule.type)
+        assertEquals(true, thirdPartyRule.thirdParty)
+        assertEquals(setOf("video.example.com"), domainScopedRule.domainScope.normalizedIncludedDomains)
+        assertEquals(setOf("safe.video.example.com"), domainScopedRule.domainScope.normalizedExcludedDomains)
     }
 
     @Test
     fun fromRequestRuleText_rejectsUnsupportedSyntaxForP6() {
-        assertNull(Rule.fromRequestRuleText("||example.com^\$third-party"))
         assertNull(Rule.fromRequestRuleText("example.com##.ad"))
-        assertNull(Rule.fromRequestRuleText("||*.example.com^"))
+        assertNull(Rule.fromRequestRuleText("||example.com^\$redirect=noopjs"))
         assertNull(Rule.fromRequestRuleText("! comment"))
+    }
+
+    @Test
+    fun matchRequest_supportsWildcardSeparatorAndDomainOptions() {
+        val engine = RuleEngine(
+            listOf(
+                requireNotNull(
+                    Rule.fromRequestRuleText(
+                        "||doubleclick.net^*/ad_status^\$domain=video.example.com|~safe.video.example.com"
+                    )
+                )
+            )
+        )
+
+        assertTrue(
+            engine.matchRequest(
+                url = "https://securepubads.g.doubleclick.net/gampad/ad_status?iu=/1",
+                host = "securepubads.g.doubleclick.net",
+                pageHost = "www.video.example.com"
+            ).shouldBlock
+        )
+        assertFalse(
+            engine.matchRequest(
+                url = "https://securepubads.g.doubleclick.net/gampad/ad_status?iu=/1",
+                host = "securepubads.g.doubleclick.net",
+                pageHost = "safe.video.example.com"
+            ).matched
+        )
+        assertFalse(
+            engine.matchRequest(
+                url = "https://securepubads.g.doubleclick.net/gampad/ad_status?iu=/1",
+                host = "securepubads.g.doubleclick.net",
+                pageHost = "example.org"
+            ).matched
+        )
+    }
+
+    @Test
+    fun matchRequest_supportsThirdPartyOption() {
+        val engine = RuleEngine(
+            listOf(requireNotNull(Rule.fromRequestRuleText("||ads.cdn.com^\$third-party")))
+        )
+
+        assertTrue(
+            engine.matchRequest(
+                url = "https://ads.cdn.com/banner.js",
+                host = "ads.cdn.com",
+                pageHost = "www.video.example.com"
+            ).shouldBlock
+        )
+        assertFalse(
+            engine.matchRequest(
+                url = "https://ads.cdn.com/banner.js",
+                host = "ads.cdn.com",
+                pageHost = "news.cdn.com"
+            ).matched
+        )
     }
 
     @Test
@@ -139,6 +205,18 @@ class RuleEngineTest {
                     domains = setOf("youtube.com")
                 ),
                 ElementRule(
+                    id = "css:exception",
+                    selector = ".ad-banner",
+                    type = ElementRuleType.CSS_UNHIDE,
+                    domains = setOf("example.com")
+                ),
+                ElementRule(
+                    id = "css:excluded",
+                    selector = ".sponsored",
+                    type = ElementRuleType.CSS_HIDE,
+                    excludedDomains = setOf("safe.example.com")
+                ),
+                ElementRule(
                     id = "dom:global",
                     selector = ".popup-ad",
                     type = ElementRuleType.DOM_REMOVE
@@ -147,12 +225,16 @@ class RuleEngineTest {
         )
 
         assertEquals(
-            listOf(".ad-banner", "#player-ads"),
+            listOf(".ad-banner", "#player-ads", ".sponsored"),
             engine.cssSelectorsFor("https://m.youtube.com/watch?v=1")
         )
         assertEquals(
-            listOf(".ad-banner"),
+            listOf(".sponsored"),
             engine.cssSelectorsFor("https://example.com/")
+        )
+        assertEquals(
+            emptyList<String>(),
+            engine.cssSelectorsFor("https://safe.example.com/")
         )
         assertEquals(
             listOf(".popup-ad"),

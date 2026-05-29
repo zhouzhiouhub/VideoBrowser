@@ -7,7 +7,8 @@ data class ElementRule(
     val selector: String,
     val type: ElementRuleType,
     val source: String = Rule.SOURCE_BUILT_IN,
-    val domains: Set<String> = emptySet()
+    val domains: Set<String> = emptySet(),
+    val excludedDomains: Set<String> = emptySet()
 ) {
     init {
         require(id.isNotBlank()) { "Element rule id must not be blank." }
@@ -15,19 +16,18 @@ data class ElementRule(
     }
 
     val normalizedDomains: Set<String> = domains.mapNotNull(SiteHost::normalize).toSet()
+    val normalizedExcludedDomains: Set<String> = excludedDomains.mapNotNull(SiteHost::normalize).toSet()
 
     fun matchesPage(pageUrl: String?): Boolean {
-        if (normalizedDomains.isEmpty()) {
-            return true
-        }
-        val pageHost = SiteHost.fromUrl(pageUrl) ?: return false
-        return normalizedDomains.any { domain ->
-            pageHost == domain || pageHost.endsWith(".$domain")
-        }
+        return DomainScope(
+            includedDomains = normalizedDomains,
+            excludedDomains = normalizedExcludedDomains
+        ).matches(SiteHost.fromUrl(pageUrl))
     }
 }
 
 enum class ElementRuleType {
     CSS_HIDE,
+    CSS_UNHIDE,
     DOM_REMOVE
 }

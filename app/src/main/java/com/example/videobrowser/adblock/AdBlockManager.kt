@@ -10,6 +10,7 @@ class AdBlockManager(
     private val isEnabled: () -> Boolean = { true },
     private val isDisabledForCurrentSite: () -> Boolean = { false },
     private val isUserWhitelistedRequestHost: (String?) -> Boolean = { false },
+    private val currentPageHost: () -> String? = { null },
     private val logger: AdBlockLogger? = null,
     private val ruleEngine: RuleEngine = RuleEngine(BuiltInAdBlockRules.requestRules())
 ) {
@@ -20,6 +21,7 @@ class AdBlockManager(
             userWhitelisted = isUserWhitelistedRequestHost(request.url.host),
             url = request.url.toString(),
             host = request.url.host,
+            pageHost = currentPageHost(),
             scheme = request.url.scheme,
             isForMainFrame = request.isForMainFrame,
             ruleEngine = ruleEngine

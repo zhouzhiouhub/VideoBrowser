@@ -8,7 +8,8 @@ data class PageFeatureConfig(
     val cleanupEnabled: Boolean,
     val videoEnabled: Boolean,
     val cssSelectors: List<String> = emptyList(),
-    val domSelectors: List<String> = emptyList()
+    val domSelectors: List<String> = emptyList(),
+    val blockedUrlKeywords: List<String> = emptyList()
 )
 
 /**
@@ -31,7 +32,10 @@ class JsInjector(
         }
         val effectiveConfig = config.copy(
             cssSelectors = (config.cssSelectors + ruleEngine.cssSelectorsFor(pageUrl)).distinct(),
-            domSelectors = (config.domSelectors + ruleEngine.domSelectorsFor(pageUrl)).distinct()
+            domSelectors = (config.domSelectors + ruleEngine.domSelectorsFor(pageUrl)).distinct(),
+            blockedUrlKeywords = (
+                config.blockedUrlKeywords + ruleEngine.urlContainsBlockPatternsFor(pageUrl)
+            ).distinct()
         )
         val commonScriptContent = commonScript
         val siteScripts = siteAdapterRegistry.matchingAdapters(pageUrl).flatMap { adapter ->
@@ -121,6 +125,8 @@ class JsInjector(
                 append(cssSelectors.toJsonArrayLiteral())
                 append(",\"domSelectors\":")
                 append(domSelectors.toJsonArrayLiteral())
+                append(",\"blockedUrlKeywords\":")
+                append(blockedUrlKeywords.toJsonArrayLiteral())
                 append("}")
             }
         }

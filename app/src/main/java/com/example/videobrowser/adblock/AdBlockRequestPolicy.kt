@@ -12,6 +12,7 @@ object AdBlockRequestPolicy {
         userWhitelisted: Boolean = false,
         url: String,
         host: String?,
+        pageHost: String? = null,
         scheme: String?,
         isForMainFrame: Boolean,
         ruleEngine: RuleEngine
@@ -33,7 +34,7 @@ object AdBlockRequestPolicy {
             return AdBlockDecision.allow(AdBlockDecisionReason.SITE_AD_BLOCK_DISABLED)
         }
 
-        val result = ruleEngine.matchRequest(url = url, host = host)
+        val result = ruleEngine.matchRequest(url = url, host = host, pageHost = pageHost)
         if (result.shouldAllow) {
             return AdBlockDecision.allowByRule(result)
         }
@@ -49,6 +50,7 @@ object AdBlockRequestPolicy {
         userWhitelisted: Boolean = false,
         url: String,
         host: String?,
+        pageHost: String? = null,
         scheme: String?,
         isForMainFrame: Boolean,
         ruleEngine: RuleEngine
@@ -59,6 +61,7 @@ object AdBlockRequestPolicy {
             userWhitelisted = userWhitelisted,
             url = url,
             host = host,
+            pageHost = pageHost,
             scheme = scheme,
             isForMainFrame = isForMainFrame,
             ruleEngine = ruleEngine

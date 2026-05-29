@@ -120,19 +120,23 @@ class RuleFileLoader(
             return ParsedRule.Ignored
         }
         val trimmed = line.trim()
-        if (trimmed.contains("#@#") || trimmed.contains("#%#") || trimmed.contains("#?#")) {
+        if (trimmed.contains("#%#") || trimmed.contains("#?#")) {
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported css exception syntax"))
         }
 
-        val markerIndex = trimmed.indexOf("##")
+        val exceptionMarkerIndex = trimmed.indexOf("#@#")
+        val hideMarkerIndex = trimmed.indexOf("##")
+        val isException = exceptionMarkerIndex >= 0
+        val markerIndex = if (isException) exceptionMarkerIndex else hideMarkerIndex
+        val markerLength = if (isException) 3 else 2
         if (markerIndex < 0) {
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "missing css rule marker"))
         }
 
-        val domains = parseDomains(trimmed.substring(0, markerIndex)) ?: return ParsedRule.Skipped(
+        val domainScope = parseDomains(trimmed.substring(0, markerIndex)) ?: return ParsedRule.Skipped(
             skipped(source, lineNumber, line, "invalid css rule domain")
         )
-        val selector = trimmed.substring(markerIndex + 2).trim()
+        val selector = trimmed.substring(markerIndex + markerLength).trim()
         if (!isSafeSelector(selector)) {
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported css selector"))
         }
@@ -141,9 +145,10 @@ class RuleFileLoader(
             ElementRule(
                 id = "$source:$lineNumber",
                 selector = selector,
-                type = ElementRuleType.CSS_HIDE,
+                type = if (isException) ElementRuleType.CSS_UNHIDE else ElementRuleType.CSS_HIDE,
                 source = source,
-                domains = domains
+                domains = domainScope.includedDomains,
+                excludedDomains = domainScope.excludedDomains
             )
         )
     }
@@ -179,19 +184,39 @@ class RuleFileLoader(
             trimmed == "#"
     }
 
-    private fun parseDomains(value: String): Set<String>? {
+    private fun parseDomains(value: String): DomainScope? {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) {
-            return emptySet()
+            return DomainScope.Empty
         }
-        if (trimmed.split(",").any { domain -> domain.trim().startsWith("~") }) {
+        val included = mutableSetOf<String>()
+        val excluded = mutableSetOf<String>()
+        trimmed.split(",")
+            .map { domain -> domain.trim() }
+            .filter { domain -> domain.isNotEmpty() }
+            .forEach { rawDomain ->
+                val isExcluded = rawDomain.startsWith("~")
+                val normalized = SiteHost.normalize(rawDomain.removePrefix("~")) ?: return null
+                if (!isValidDomain(normalized)) {
+                    return null
+                }
+                if (isExcluded) {
+                    excluded += normalized
+                } else {
+                    included += normalized
+                }
+            }
+        if (included.isEmpty() && excluded.isEmpty()) {
             return null
         }
-        val domains = trimmed.split(",")
-            .map { domain -> domain.trim() }
-            .mapNotNull(SiteHost::normalize)
-            .toSet()
-        return domains.takeIf { it.isNotEmpty() }
+        return DomainScope(
+            includedDomains = included,
+            excludedDomains = excluded
+        )
+    }
+
+    private fun isValidDomain(domain: String): Boolean {
+        return domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
     }
 
     private fun isSafeSelector(selector: String): Boolean {

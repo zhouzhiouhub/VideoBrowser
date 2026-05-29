@@ -1,7 +1,21 @@
 ! VideoBrowser P11 CSS hide rule safe subset.
 ##.ad-banner
 ##.adsbygoogle
+##ins.adsbygoogle
 ##.popup-ad
 ##[data-ad]
+##[data-ad-slot]
+##[id^="google_ads_iframe_"]
+##iframe[src*="doubleclick.net"]
+##iframe[src*="googlesyndication.com"]
+##[class*="ad-container"]
+##[class*="ad-wrapper"]
+##[class*="sponsor"]
+##[class*="promoted"]
+~example.com##.ad
+example.com#@#.ad
 youtube.com###player-ads
+youtube.com##ytd-display-ad-renderer
+youtube.com##ytd-promoted-sparkles-web-renderer
+youtube.com##ytd-promoted-video-renderer
 bilibili.com##.ad-report

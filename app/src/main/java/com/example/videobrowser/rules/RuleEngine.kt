@@ -1,6 +1,7 @@
 package com.example.videobrowser.rules
 
 import com.example.videobrowser.browser.BrowserRequest
+import com.example.videobrowser.site.SiteHost
 
 class RuleEngine(
     rules: List<Rule>,
@@ -17,11 +18,16 @@ class RuleEngine(
         )
     }
 
-    fun matchRequest(url: String, host: String? = null): RuleMatchResult {
+    fun matchRequest(
+        url: String,
+        host: String? = null,
+        pageHost: String? = null
+    ): RuleMatchResult {
         findFirstMatchingRule(
             action = RuleAction.ALLOW,
             url = url,
-            host = host
+            host = host,
+            pageHost = pageHost
         )?.let { allowRule ->
             return RuleMatchResult.allow(allowRule)
         }
@@ -29,7 +35,8 @@ class RuleEngine(
         findFirstMatchingRule(
             action = RuleAction.BLOCK,
             url = url,
-            host = host
+            host = host,
+            pageHost = pageHost
         )?.let { blockRule ->
             return RuleMatchResult.block(blockRule)
         }
@@ -46,11 +53,18 @@ class RuleEngine(
     }
 
     fun cssSelectorsFor(pageUrl: String?): List<String> {
+        val exceptions = elementRules
+            .filter { rule ->
+                rule.type == ElementRuleType.CSS_UNHIDE && rule.matchesPage(pageUrl)
+            }
+            .map { rule -> rule.selector }
+            .toSet()
         return elementRules
             .filter { rule ->
                 rule.type == ElementRuleType.CSS_HIDE && rule.matchesPage(pageUrl)
             }
             .map { rule -> rule.selector }
+            .filterNot { selector -> selector in exceptions }
             .distinct()
     }
 
@@ -63,16 +77,31 @@ class RuleEngine(
             .distinct()
     }
 
+    fun urlContainsBlockPatternsFor(pageUrl: String?): List<String> {
+        val pageHost = SiteHost.fromUrl(pageUrl)
+        return requestRules
+            .filter { rule ->
+                rule.action == RuleAction.BLOCK &&
+                    rule.type == RuleType.URL_CONTAINS &&
+                    rule.thirdParty == null &&
+                    rule.domainScope.matches(pageHost)
+            }
+            .map { rule -> rule.pattern }
+            .distinct()
+    }
+
     private fun findFirstMatchingRule(
         action: RuleAction,
         url: String,
-        host: String?
+        host: String?,
+        pageHost: String?
     ): Rule? {
         return requestRules.firstOrNull { rule ->
             rule.action == action && ruleMatcher.matches(
                 rule = rule,
                 url = url,
-                host = host
+                host = host,
+                pageHost = pageHost
             )
         }
     }

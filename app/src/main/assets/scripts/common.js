@@ -121,8 +121,18 @@
 
   function shouldBlockUrl(value) {
     const url = String(value || '').toLowerCase();
-    return blockedKeywords.some(function (keyword) {
+    return blockedKeywords.concat(externalBlockedKeywords()).some(function (keyword) {
       return url.indexOf(keyword) !== -1;
+    });
+  }
+
+  function externalBlockedKeywords() {
+    const values = state.config && state.config.blockedUrlKeywords;
+    if (!Array.isArray(values)) return [];
+    return values.map(function (keyword) {
+      return String(keyword || '').trim().toLowerCase();
+    }).filter(function (keyword) {
+      return keyword.length >= 3;
     });
   }
 

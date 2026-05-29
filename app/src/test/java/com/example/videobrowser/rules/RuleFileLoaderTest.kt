@@ -38,18 +38,22 @@ class RuleFileLoaderTest {
                 RuleFileLoader.CSS_RULES_ASSET to """
                     ##.ad-banner
                     youtube.com###player-ads
-                    example.com#@#.ad
-                """.trimIndent()
+                    example.com#@#.ad-banner
+                    ~safe.example.com##.sponsored
+                    """.trimIndent()
             )
         )
 
         val result = loader.loadCssRules()
 
-        assertEquals(2, result.rules.size)
+        assertEquals(4, result.rules.size)
         assertEquals(".ad-banner", result.rules[0].selector)
         assertEquals("#player-ads", result.rules[1].selector)
         assertEquals(setOf("youtube.com"), result.rules[1].normalizedDomains)
-        assertEquals(1, result.skippedRules.size)
+        assertEquals(ElementRuleType.CSS_UNHIDE, result.rules[2].type)
+        assertEquals(setOf("example.com"), result.rules[2].normalizedDomains)
+        assertEquals(setOf("safe.example.com"), result.rules[3].normalizedExcludedDomains)
+        assertTrue(result.skippedRules.isEmpty())
     }
 
     @Test

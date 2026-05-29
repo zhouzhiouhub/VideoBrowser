@@ -2,3 +2,10 @@
 remove:.popup-ad
 remove:.video-ad
 remove:[data-videobrowser-remove]
+remove:[data-ad]
+remove:[data-ads]
+remove:[class*="ad-popup"]
+remove:[class*="ad-overlay"]
+remove:[class*="open-app"]
+remove:[class*="download-app"]
+remove:[class*="app-download"]
