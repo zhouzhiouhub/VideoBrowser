@@ -19,3 +19,32 @@ youtube.com##ytd-display-ad-renderer
 youtube.com##ytd-promoted-sparkles-web-renderer
 youtube.com##ytd-promoted-video-renderer
 bilibili.com##.ad-report
+410077.xyz##[class*="popup"]
+410077.xyz##[class*="Popup"]
+410077.xyz##[class*="modal"]
+410077.xyz##[class*="Modal"]
+410077.xyz##[class*="mask"]
+410077.xyz##[class*="Mask"]
+410077.xyz##[class*="overlay"]
+410077.xyz##[class*="Overlay"]
+410077.xyz##[class*="float"]
+410077.xyz##[class*="Float"]
+410077.xyz##[class*="advert"]
+410077.xyz##[class*="promotion"]
+410077.xyz##[class*="download"]
+410077.xyz##.slick-slider
+410077.xyz##.slick-list
+410077.xyz##.adm-swiper
+410077.xyz##[class*="swiper"]
+410077.xyz##[class*="Swiper"]
+410077.xyz##div[height="75px"][width="100%"]
+410077.xyz##img[src*="wbep-image.sf-express.com/"]
+410077.xyz##img[src*="img.alicdn.com/"][src*="taojianghu_pic_upload"]
+410077.xyz##div[height="auto"][width="100%"] > img[src^="data:image/"]
+410077.xyz##div[style*="position: sticky"][style*="z-index: 99"]
+410077.xyz##.sc-fvxzrP
+410077.xyz##.sc-dVNjXY
+410077.xyz##div[style*="position: fixed"][style*="bottom: 60px"]
+410077.xyz##div[style*="position: fixed"][style*="bottom: 150px"]
+410077.xyz##div[style*="position: fixed"][style*="bottom: 250px"]
+410077.xyz##.sc-iJKOTD

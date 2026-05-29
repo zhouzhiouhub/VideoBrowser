@@ -19,6 +19,12 @@
 ||adform.net^
 ||yieldmo.com^
 ||bidswitch.net^
+||cnzz.com^$third-party
+||hm-tjj.weiaona.com^$third-party
+||dhfxezdgdxgsd.687875.xyz^$script,domain=410077.xyz
+||hm-static.weiaona.com^*/script.pageview-props.js$script
+||wbep-image.sf-express.com^$image,domain=410077.xyz
+||img.alicdn.com^*/taojianghu_pic_upload.gif$image,domain=410077.xyz
 /ad_creative/
 /ad_track/
 /ad_event/

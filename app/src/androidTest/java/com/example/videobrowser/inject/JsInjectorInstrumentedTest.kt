@@ -90,6 +90,74 @@ class JsInjectorInstrumentedTest {
         assertTrue(result.getBoolean(3))
     }
 
+    @Test
+    fun inject_removesGenericImageInterstitialOverlay() {
+        loadHtml(IMAGE_INTERSTITIAL_HTML, baseUrl = "https://xdhf.410077.xyz:8283/")
+        injectPageFeatures(pageUrl = "https://xdhf.410077.xyz:8283/home?channel=gj-41")
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var overlay = document.getElementById('promo-overlay');
+                  var root = document.getElementById('root');
+                  return [
+                    window.getComputedStyle(overlay).display,
+                    overlay.getAttribute('data-videobrowser-dismissed'),
+                    window.getComputedStyle(root).display
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertEquals("none", result.getString(0))
+        assertEquals("generic-ad-overlay", result.getString(1))
+        assertFalse("none" == result.getString(2))
+    }
+
+    @Test
+    fun inject_removesGenericFloatingImageAdsAndDownloadBar() {
+        loadHtml(FLOATING_AD_HTML, baseUrl = "https://xdhf.410077.xyz:8283/")
+        injectPageFeatures(pageUrl = "https://xdhf.410077.xyz:8283/home?channel=gj-41")
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var edgeAd = document.getElementById('edge-ad');
+                  var appBar = document.getElementById('app-bar');
+                  var aiBubble = document.getElementById('ai-bubble');
+                  var inlineBanner = document.getElementById('inline-banner');
+                  var promoGrid = document.getElementById('promo-grid');
+                  var root = document.getElementById('root');
+                  return [
+                    window.getComputedStyle(edgeAd).display,
+                    edgeAd.getAttribute('data-videobrowser-dismissed'),
+                    window.getComputedStyle(appBar).display,
+                    appBar.getAttribute('data-videobrowser-dismissed'),
+                    window.getComputedStyle(aiBubble).display,
+                    aiBubble.getAttribute('data-videobrowser-dismissed'),
+                    window.getComputedStyle(inlineBanner).display,
+                    inlineBanner.getAttribute('data-videobrowser-dismissed'),
+                    window.getComputedStyle(promoGrid).display,
+                    promoGrid.getAttribute('data-videobrowser-dismissed'),
+                    window.getComputedStyle(root).display
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertEquals("none", result.getString(0))
+        assertEquals("generic-ad-overlay", result.getString(1))
+        assertEquals("none", result.getString(2))
+        assertEquals("generic-ad-overlay", result.getString(3))
+        assertEquals("none", result.getString(4))
+        assertEquals("generic-ad-overlay", result.getString(5))
+        assertEquals("none", result.getString(6))
+        assertEquals("generic-ad-overlay", result.getString(7))
+        assertEquals("none", result.getString(8))
+        assertEquals("generic-ad-overlay", result.getString(9))
+        assertFalse("none" == result.getString(10))
+    }
+
     private fun loadHtml(html: String, baseUrl: String = "https://example.com/") {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
@@ -152,6 +220,67 @@ class JsInjectorInstrumentedTest {
                 <button id="skip" class="skip-button" onclick="window.__skipClicked=true">Skip ad</button>
                 <video id="video"></video>
                 <script>window.__skipClicked=false;</script>
+              </body>
+            </html>
+        """
+
+        private const val IMAGE_INTERSTITIAL_HTML = """
+            <!doctype html>
+            <html>
+              <body>
+                <div id="root">page content</div>
+                <div
+                  id="promo-overlay"
+                  class="adm-mask adm-center-popup"
+                  style="position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:9999"
+                >
+                  <div style="position:absolute;left:10vw;top:20vh;width:80vw;height:45vh">
+                    <button aria-label="关闭">×</button>
+                    <img alt="promotion" style="width:100%;height:100%" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" />
+                  </div>
+                </div>
+              </body>
+            </html>
+        """
+
+        private const val FLOATING_AD_HTML = """
+            <!doctype html>
+            <html>
+              <body>
+                <div id="root">
+                  <button>关闭菜单</button>
+                  <p>page content</p>
+                </div>
+                <div
+                  id="edge-ad"
+                  class="floating-slot"
+                  style="position:fixed;left:10px;bottom:180px;width:63px;height:63px;z-index:999"
+                >
+                  <i class="icon-close iconfont" style="position:absolute;right:-8px;top:-8px;width:16px;height:16px"></i>
+                  <img alt="promotion" style="width:63px;height:63px" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" />
+                </div>
+                <div
+                  id="app-bar"
+                  class="desktop-install"
+                  style="position:fixed;left:86px;bottom:60px;width:240px;height:40px;z-index:999;display:flex"
+                >
+                  <span><i class="icon-Union iconfont"></i> 添加到桌面</span>
+                  <span><i class="icon-shoujiapp iconfont"></i> 下载APP</span>
+                  <span>关闭</span>
+                </div>
+                <div
+                  id="ai-bubble"
+                  class="floating-ai"
+                  style="position:fixed;right:10px;bottom:150px;width:80px;height:74px;z-index:10"
+                >
+                  <img alt="ai promotion" style="width:80px;height:74px" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" />
+                </div>
+                <div id="inline-banner" style="width:100vw;height:120px">
+                  <img alt="banner" style="width:100%;height:120px" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" />
+                </div>
+                <div id="promo-grid" style="width:100vw;height:154px">
+                  注册即送 超高爆率 同城约炮 PG电子 开户送钱 提款秒到
+                </div>
               </body>
             </html>
         """
