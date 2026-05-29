@@ -129,7 +129,8 @@ class RuleEngine(
         }
         return compiledRules.requestCandidatesFor(
             action = action,
-            host = requestHost
+            host = requestHost,
+            url = url
         ).firstOrNull { capability ->
             val rule = capability.rule
             ruleMatcher.matches(

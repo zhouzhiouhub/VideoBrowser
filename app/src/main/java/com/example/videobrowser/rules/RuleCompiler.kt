@@ -93,11 +93,13 @@ data class CompiledRuleSet(
 
     fun requestCandidatesFor(
         action: RuleAction,
-        host: String?
+        host: String?,
+        url: String? = null
     ): List<RuleCapability.Request> {
         return requestRuleIndex.candidatesFor(
             action = action,
-            host = host
+            host = host,
+            url = url
         )
     }
 

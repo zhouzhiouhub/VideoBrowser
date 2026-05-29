@@ -1,18 +1,22 @@
 package com.example.videobrowser.rules
 
 import com.example.videobrowser.site.SiteHost
+import java.util.Locale
 
 /**
- * 请求规则候选集索引。G2-03 只索引域名规则，URL contains / URL pattern 继续走 fallback，
- * 确保后续关键词索引接入前匹配结果仍和原始规则顺序一致。
+ * 请求规则候选集索引。域名规则按 host 后缀取候选，URL contains 规则按稳定关键词取候选；
+ * URL pattern 和无法提取关键词的短规则继续走 fallback，保证索引结果不改变原始规则语义。
  */
 class RequestRuleIndex private constructor(
     private val domainCapabilitiesByActionAndSuffix: Map<RuleAction, Map<String, List<IndexedRequestCapability>>>,
+    private val urlContainsCapabilitiesByActionAndKeyword: Map<RuleAction, Map<String, List<IndexedRequestCapability>>>,
+    private val urlContainsCapabilitiesByAction: Map<RuleAction, List<IndexedRequestCapability>>,
     private val fallbackCapabilitiesByAction: Map<RuleAction, List<IndexedRequestCapability>>
 ) {
     fun candidatesFor(
         action: RuleAction,
-        host: String?
+        host: String?,
+        url: String? = null
     ): List<RuleCapability.Request> {
         val domainCandidates = hostSuffixes(host)
             .flatMap { suffix ->
@@ -20,16 +24,36 @@ class RequestRuleIndex private constructor(
                     ?.get(suffix)
                     .orEmpty()
             }
+        val urlContainsCandidates = urlContainsCandidatesFor(
+            action = action,
+            url = url
+        )
         val fallbackCandidates = fallbackCapabilitiesByAction[action].orEmpty()
-        return (domainCandidates + fallbackCandidates)
+        return (domainCandidates + urlContainsCandidates + fallbackCandidates)
             .distinctBy { indexed -> indexed.order }
             .sortedBy { indexed -> indexed.order }
             .map { indexed -> indexed.capability }
     }
 
+    private fun urlContainsCandidatesFor(
+        action: RuleAction,
+        url: String?
+    ): List<IndexedRequestCapability> {
+        val candidatesByKeyword = urlContainsCapabilitiesByActionAndKeyword[action].orEmpty()
+        if (url == null) {
+            // 兼容测试和诊断调用：没有 URL 时不裁剪 URL contains 候选。
+            return urlContainsCapabilitiesByAction[action].orEmpty()
+        }
+
+        return indexKeysForUrl(url)
+            .flatMap { key -> candidatesByKeyword[key].orEmpty() }
+    }
+
     companion object {
         val Empty = RequestRuleIndex(
             domainCapabilitiesByActionAndSuffix = emptyMap(),
+            urlContainsCapabilitiesByActionAndKeyword = emptyMap(),
+            urlContainsCapabilitiesByAction = emptyMap(),
             fallbackCapabilitiesByAction = emptyMap()
         )
 
@@ -40,6 +64,9 @@ class RequestRuleIndex private constructor(
 
             val domainCapabilities =
                 mutableMapOf<RuleAction, MutableMap<String, MutableList<IndexedRequestCapability>>>()
+            val urlContainsCapabilities =
+                mutableMapOf<RuleAction, MutableMap<String, MutableList<IndexedRequestCapability>>>()
+            val allUrlContainsCapabilities = mutableMapOf<RuleAction, MutableList<IndexedRequestCapability>>()
             val fallbackCapabilities = mutableMapOf<RuleAction, MutableList<IndexedRequestCapability>>()
 
             capabilities.forEachIndexed { index, capability ->
@@ -54,6 +81,22 @@ class RequestRuleIndex private constructor(
                         .getOrPut(rule.action) { mutableMapOf() }
                         .getOrPut(suffix) { mutableListOf() }
                         .add(indexedCapability)
+                } else if (rule.type == RuleType.URL_CONTAINS) {
+                    val keyword = stableKeywordFor(rule.normalizedPattern)
+                    if (keyword == null) {
+                        fallbackCapabilities
+                            .getOrPut(rule.action) { mutableListOf() }
+                            .add(indexedCapability)
+                    } else {
+                        // 只用关键词缩小候选集，完整 URL、资源类型和站点限制仍由 RuleMatcher 校验。
+                        urlContainsCapabilities
+                            .getOrPut(rule.action) { mutableMapOf() }
+                            .getOrPut(keyword) { mutableListOf() }
+                            .add(indexedCapability)
+                        allUrlContainsCapabilities
+                            .getOrPut(rule.action) { mutableListOf() }
+                            .add(indexedCapability)
+                    }
                 } else {
                     fallbackCapabilities
                         .getOrPut(rule.action) { mutableListOf() }
@@ -64,6 +107,12 @@ class RequestRuleIndex private constructor(
             return RequestRuleIndex(
                 domainCapabilitiesByActionAndSuffix = domainCapabilities.mapValues { entry ->
                     entry.value.mapValues { suffixEntry -> suffixEntry.value.toList() }
+                },
+                urlContainsCapabilitiesByActionAndKeyword = urlContainsCapabilities.mapValues { entry ->
+                    entry.value.mapValues { keywordEntry -> keywordEntry.value.toList() }
+                },
+                urlContainsCapabilitiesByAction = allUrlContainsCapabilities.mapValues { entry ->
+                    entry.value.toList()
                 },
                 fallbackCapabilitiesByAction = fallbackCapabilities.mapValues { entry ->
                     entry.value.toList()
@@ -78,6 +127,50 @@ class RequestRuleIndex private constructor(
                 labels.drop(index).joinToString(".")
             }
         }
+
+        private fun stableKeywordFor(pattern: String): String? {
+            val longestToken = alphanumericTokens(pattern)
+                .maxByOrNull { keyword -> keyword.length }
+                ?: return null
+            return longestToken.take(INDEX_KEY_LENGTH)
+        }
+
+        private fun alphanumericTokens(text: String): List<String> {
+            val tokens = mutableListOf<String>()
+            val builder = StringBuilder()
+            text.trim().lowercase(Locale.US).forEach { char ->
+                if (char.isLetterOrDigit()) {
+                    builder.append(char)
+                } else {
+                    flushKeyword(builder, tokens)
+                }
+            }
+            flushKeyword(builder, tokens)
+            return tokens.distinct()
+        }
+
+        private fun indexKeysForUrl(url: String): List<String> {
+            val normalizedUrl = url.trim().lowercase(Locale.US)
+            if (normalizedUrl.length < INDEX_KEY_LENGTH) {
+                return emptyList()
+            }
+            return (0..normalizedUrl.length - INDEX_KEY_LENGTH)
+                .map { index -> normalizedUrl.substring(index, index + INDEX_KEY_LENGTH) }
+                .distinct()
+        }
+
+        private fun flushKeyword(
+            builder: StringBuilder,
+            tokens: MutableList<String>
+        ) {
+            if (builder.length >= MIN_KEYWORD_LENGTH) {
+                tokens += builder.toString()
+            }
+            builder.clear()
+        }
+
+        private const val MIN_KEYWORD_LENGTH = 3
+        private const val INDEX_KEY_LENGTH = 3
     }
 }
 

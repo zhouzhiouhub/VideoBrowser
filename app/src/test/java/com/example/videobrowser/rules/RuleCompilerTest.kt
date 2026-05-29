@@ -175,4 +175,80 @@ class RuleCompilerTest {
             ).map { capability -> capability.rule }
         )
     }
+
+    @Test
+    fun requestRuleIndex_returnsUrlContainsKeywordCandidatesAndFallbackInOriginalOrder() {
+        val shortFallbackRule = Rule.blockUrlContains("ad")
+        val matchingUrlRule = Rule.blockUrlContains("/pagead/")
+        val unrelatedUrlRule = Rule.blockUrlContains("/analytics/")
+        val patternFallbackRule = requireNotNull(
+            Rule.fromRequestRuleText("||cdn.example^*/ad_status^")
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = listOf(
+                shortFallbackRule,
+                matchingUrlRule,
+                unrelatedUrlRule,
+                patternFallbackRule
+            ),
+            elementRules = emptyList()
+        )
+
+        assertEquals(
+            listOf(shortFallbackRule, matchingUrlRule, patternFallbackRule),
+            result.requestCandidatesFor(
+                action = RuleAction.BLOCK,
+                host = "assets.example.com",
+                url = "https://assets.example.com/static/pagead/banner.js"
+            ).map { capability -> capability.rule }
+        )
+    }
+
+    @Test
+    fun requestRuleIndex_findsUrlKeywordInsideLongerUrlToken() {
+        val rule = Rule.blockUrlContains("foo")
+
+        val result = RuleCompiler().compile(
+            requestRules = listOf(rule),
+            elementRules = emptyList()
+        )
+
+        assertEquals(
+            listOf(rule),
+            result.requestCandidatesFor(
+                action = RuleAction.BLOCK,
+                host = "static.example.com",
+                url = "https://static.example.com/assets/xfoo.js"
+            ).map { capability -> capability.rule }
+        )
+    }
+
+    @Test
+    fun requestRuleIndex_separatesAllowAndBlockUrlKeywordCandidates() {
+        val allowRule = Rule.allowUrlContains("/pagead/allowed.js")
+        val blockRule = Rule.blockUrlContains("/pagead/")
+
+        val result = RuleCompiler().compile(
+            requestRules = listOf(blockRule, allowRule),
+            elementRules = emptyList()
+        )
+
+        assertEquals(
+            listOf(allowRule),
+            result.requestCandidatesFor(
+                action = RuleAction.ALLOW,
+                host = "static.example.com",
+                url = "https://static.example.com/pagead/allowed.js"
+            ).map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(blockRule),
+            result.requestCandidatesFor(
+                action = RuleAction.BLOCK,
+                host = "static.example.com",
+                url = "https://static.example.com/pagead/allowed.js"
+            ).map { capability -> capability.rule }
+        )
+    }
 }
