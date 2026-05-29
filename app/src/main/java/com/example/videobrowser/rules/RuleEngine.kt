@@ -8,10 +8,18 @@ import com.example.videobrowser.site.SiteHost
 class RuleEngine(
     rules: List<Rule>,
     elementRules: List<ElementRule> = emptyList(),
-    private val ruleMatcher: RuleMatcher = RuleMatcher()
+    private val ruleMatcher: RuleMatcher = RuleMatcher(),
+    ruleCompiler: RuleCompiler = RuleCompiler()
 ) {
-    private val requestRules = rules.toList()
-    private val elementRules = elementRules.toList()
+    // G2-01 起 RuleEngine 只消费编译后的能力模型，索引层后续可在这里替换候选规则来源。
+    private val compiledRules = ruleCompiler.compile(
+        requestRules = rules,
+        elementRules = elementRules
+    )
+    private val requestCapabilities = compiledRules.requestCapabilities
+    private val cssHideCapabilities = compiledRules.cssHideCapabilities
+    private val cssUnhideCapabilities = compiledRules.cssUnhideCapabilities
+    private val domRemoveCapabilities = compiledRules.domRemoveCapabilities
 
     fun matchRequest(request: BrowserRequest): RuleMatchResult {
         return matchRequest(RequestContext.from(request))
@@ -56,41 +64,46 @@ class RuleEngine(
     }
 
     fun rules(): List<Rule> {
-        return requestRules
+        return compiledRules.requestRules()
     }
 
     fun elementRules(): List<ElementRule> {
-        return elementRules
+        return compiledRules.elementRules()
+    }
+
+    fun skippedRules(): List<SkippedRule> {
+        return compiledRules.skippedRules
     }
 
     fun cssSelectorsFor(pageUrl: String?): List<String> {
-        val exceptions = elementRules
+        val exceptions = cssUnhideCapabilities
             .filter { rule ->
-                rule.type == ElementRuleType.CSS_UNHIDE && rule.matchesPage(pageUrl)
+                rule.rule.matchesPage(pageUrl)
             }
-            .map { rule -> rule.selector }
+            .map { capability -> capability.rule.selector }
             .toSet()
-        return elementRules
+        return cssHideCapabilities
             .filter { rule ->
-                rule.type == ElementRuleType.CSS_HIDE && rule.matchesPage(pageUrl)
+                rule.rule.matchesPage(pageUrl)
             }
-            .map { rule -> rule.selector }
+            .map { capability -> capability.rule.selector }
             .filterNot { selector -> selector in exceptions }
             .distinct()
     }
 
     fun domSelectorsFor(pageUrl: String?): List<String> {
-        return elementRules
+        return domRemoveCapabilities
             .filter { rule ->
-                rule.type == ElementRuleType.DOM_REMOVE && rule.matchesPage(pageUrl)
+                rule.rule.matchesPage(pageUrl)
             }
-            .map { rule -> rule.selector }
+            .map { capability -> capability.rule.selector }
             .distinct()
     }
 
     fun urlContainsBlockPatternsFor(pageUrl: String?): List<String> {
         val pageHost = SiteHost.fromUrl(pageUrl)
-        return requestRules
+        return requestCapabilities
+            .map { capability -> capability.rule }
             .filter { rule ->
                 rule.action == RuleAction.BLOCK &&
                     rule.type == RuleType.URL_CONTAINS &&
@@ -109,7 +122,8 @@ class RuleEngine(
         pageHost: String?,
         resourceType: ResourceType
     ): Rule? {
-        return requestRules.firstOrNull { rule ->
+        return requestCapabilities.firstOrNull { capability ->
+            val rule = capability.rule
             rule.action == action && ruleMatcher.matches(
                 rule = rule,
                 url = url,
@@ -117,6 +131,6 @@ class RuleEngine(
                 pageHost = pageHost,
                 resourceType = resourceType
             )
-        }
+        }?.rule
     }
 }
