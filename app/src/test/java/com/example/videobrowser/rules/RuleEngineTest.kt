@@ -313,4 +313,48 @@ class RuleEngineTest {
             engine.domSelectorsFor("https://example.com/")
         )
     }
+
+    @Test
+    fun elementSelectorsFor_preservesFallbackAndMixedDomainSemantics() {
+        val engine = RuleEngine(
+            rules = emptyList(),
+            elementRules = listOf(
+                ElementRule(
+                    id = "css:global",
+                    selector = ".ad-banner",
+                    type = ElementRuleType.CSS_HIDE
+                ),
+                ElementRule(
+                    id = "css:mixed",
+                    selector = ".video-ad",
+                    type = ElementRuleType.CSS_HIDE,
+                    domains = setOf("example.com"),
+                    excludedDomains = setOf("safe.example.com")
+                ),
+                ElementRule(
+                    id = "css:excluded-only",
+                    selector = ".sponsored",
+                    type = ElementRuleType.CSS_HIDE,
+                    excludedDomains = setOf("blocked.example.com")
+                )
+            )
+        )
+
+        assertEquals(
+            listOf(".ad-banner", ".video-ad", ".sponsored"),
+            engine.cssSelectorsFor("https://www.example.com/")
+        )
+        assertEquals(
+            listOf(".ad-banner", ".sponsored"),
+            engine.cssSelectorsFor("https://safe.example.com/")
+        )
+        assertEquals(
+            listOf(".ad-banner", ".video-ad"),
+            engine.cssSelectorsFor("https://blocked.example.com/")
+        )
+        assertEquals(
+            listOf(".ad-banner"),
+            engine.cssSelectorsFor(null)
+        )
+    }
 }

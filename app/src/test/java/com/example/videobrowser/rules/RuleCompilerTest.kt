@@ -225,6 +225,51 @@ class RuleCompilerTest {
     }
 
     @Test
+    fun requestRuleIndex_keepsFallbackCandidatesWhenHostOrUrlIsMissing() {
+        val shortFallbackRule = Rule.blockUrlContains("ad")
+        val matchingUrlRule = Rule.blockUrlContains("/pagead/")
+        val unrelatedUrlRule = Rule.blockUrlContains("/analytics/")
+        val matchingDomainRule = Rule.blockDomainContains("doubleclick.net")
+        val patternFallbackRule = requireNotNull(
+            Rule.fromRequestRuleText("||cdn.example^*/ad_status^")
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = listOf(
+                shortFallbackRule,
+                matchingUrlRule,
+                unrelatedUrlRule,
+                matchingDomainRule,
+                patternFallbackRule
+            ),
+            elementRules = emptyList()
+        )
+
+        assertEquals(
+            listOf(shortFallbackRule, matchingUrlRule, patternFallbackRule),
+            result.requestCandidatesFor(
+                action = RuleAction.BLOCK,
+                host = null,
+                url = "https://static.example.com/assets/pagead/banner.js"
+            ).map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(
+                shortFallbackRule,
+                matchingUrlRule,
+                unrelatedUrlRule,
+                matchingDomainRule,
+                patternFallbackRule
+            ),
+            result.requestCandidatesFor(
+                action = RuleAction.BLOCK,
+                host = "stats.g.doubleclick.net",
+                url = null
+            ).map { capability -> capability.rule }
+        )
+    }
+
+    @Test
     fun requestRuleIndex_separatesAllowAndBlockUrlKeywordCandidates() {
         val allowRule = Rule.allowUrlContains("/pagead/allowed.js")
         val blockRule = Rule.blockUrlContains("/pagead/")
@@ -325,6 +370,53 @@ class RuleCompilerTest {
         assertEquals(
             listOf(exampleDomRule),
             result.domRemoveCandidatesFor("news.example.com")
+                .map { capability -> capability.rule }
+        )
+    }
+
+    @Test
+    fun elementRuleIndex_keepsGlobalAndExcludedFallbackWithMixedDomainRules() {
+        val globalHideRule = ElementRule(
+            id = "css:global",
+            selector = ".ad-banner",
+            type = ElementRuleType.CSS_HIDE
+        )
+        val mixedDomainRule = ElementRule(
+            id = "css:mixed",
+            selector = ".video-ad",
+            type = ElementRuleType.CSS_HIDE,
+            domains = setOf("example.com"),
+            excludedDomains = setOf("safe.example.com")
+        )
+        val excludedOnlyRule = ElementRule(
+            id = "css:excluded-only",
+            selector = ".sponsored",
+            type = ElementRuleType.CSS_HIDE,
+            excludedDomains = setOf("blocked.example.com")
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = emptyList(),
+            elementRules = listOf(
+                globalHideRule,
+                mixedDomainRule,
+                excludedOnlyRule
+            )
+        )
+
+        assertEquals(
+            listOf(globalHideRule, mixedDomainRule, excludedOnlyRule),
+            result.cssHideCandidatesFor("www.example.com")
+                .map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(globalHideRule, mixedDomainRule, excludedOnlyRule),
+            result.cssHideCandidatesFor("safe.example.com")
+                .map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(globalHideRule, excludedOnlyRule),
+            result.cssHideCandidatesFor(null)
                 .map { capability -> capability.rule }
         )
     }
