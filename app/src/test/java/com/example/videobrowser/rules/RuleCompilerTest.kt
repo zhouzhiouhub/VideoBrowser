@@ -121,4 +121,58 @@ class RuleCompilerTest {
         assertEquals(RuleAction.BLOCK, requestCapability.action)
         assertEquals(ElementHideEffect.HIDE, hideCapability.effect)
     }
+
+    @Test
+    fun requestRuleIndex_returnsDomainSuffixCandidatesAndFallbackInOriginalOrder() {
+        val firstFallbackRule = Rule.blockUrlContains("/pagead/")
+        val matchingDomainRule = Rule.blockDomainContains("doubleclick.net")
+        val unrelatedDomainRule = Rule.blockDomainContains("tracker.example")
+        val lastFallbackRule = requireNotNull(
+            Rule.fromRequestRuleText("||doubleclick.net^*/ad_status^")
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = listOf(
+                firstFallbackRule,
+                matchingDomainRule,
+                unrelatedDomainRule,
+                lastFallbackRule
+            ),
+            elementRules = emptyList()
+        )
+
+        assertEquals(
+            listOf(firstFallbackRule, matchingDomainRule, lastFallbackRule),
+            result.requestCandidatesFor(
+                action = RuleAction.BLOCK,
+                host = "securepubads.g.doubleclick.net"
+            ).map { capability -> capability.rule }
+        )
+    }
+
+    @Test
+    fun requestRuleIndex_separatesAllowAndBlockDomainCandidates() {
+        val allowRule = Rule.allowDomainContains("doubleclick.net")
+        val blockRule = Rule.blockDomainContains("doubleclick.net")
+
+        val result = RuleCompiler().compile(
+            requestRules = listOf(blockRule, allowRule),
+            elementRules = emptyList()
+        )
+
+        assertEquals(
+            listOf(allowRule),
+            result.requestCandidatesFor(
+                action = RuleAction.ALLOW,
+                host = "stats.g.doubleclick.net"
+            ).map { capability -> capability.rule }
+        )
+        assertEquals(
+            listOf(blockRule),
+            result.requestCandidatesFor(
+                action = RuleAction.BLOCK,
+                host = "stats.g.doubleclick.net"
+            ).map { capability -> capability.rule }
+        )
+    }
 }

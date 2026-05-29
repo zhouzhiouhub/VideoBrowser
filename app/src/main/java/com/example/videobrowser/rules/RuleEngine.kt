@@ -11,7 +11,7 @@ class RuleEngine(
     private val ruleMatcher: RuleMatcher = RuleMatcher(),
     ruleCompiler: RuleCompiler = RuleCompiler()
 ) {
-    // G2-01 起 RuleEngine 只消费编译后的能力模型，索引层后续可在这里替换候选规则来源。
+    // G2-03 起请求匹配从编译产物索引取候选规则，未索引规则仍由 fallback 保持兼容。
     private val compiledRules = ruleCompiler.compile(
         requestRules = rules,
         elementRules = elementRules
@@ -122,12 +122,20 @@ class RuleEngine(
         pageHost: String?,
         resourceType: ResourceType
     ): Rule? {
-        return requestCapabilities.firstOrNull { capability ->
+        val requestHost = if (host != null) {
+            host
+        } else {
+            SiteHost.fromUrl(url)
+        }
+        return compiledRules.requestCandidatesFor(
+            action = action,
+            host = requestHost
+        ).firstOrNull { capability ->
             val rule = capability.rule
-            rule.action == action && ruleMatcher.matches(
+            ruleMatcher.matches(
                 rule = rule,
                 url = url,
-                host = host,
+                host = requestHost,
                 pageHost = pageHost,
                 resourceType = resourceType
             )

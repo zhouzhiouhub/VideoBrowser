@@ -97,6 +97,45 @@ class RuleEngineTest {
     }
 
     @Test
+    fun matchRequest_domainIndexUsesUrlHostWhenHostIsMissing() {
+        val allowRule = Rule.allowDomainContains("doubleclick.net")
+        val blockRule = Rule.blockDomainContains("doubleclick.net")
+        val engine = RuleEngine(
+            listOf(
+                blockRule,
+                allowRule
+            )
+        )
+
+        val result = engine.matchRequest(
+            url = "https://stats.g.doubleclick.net/pagead/allowed.js"
+        )
+
+        assertTrue(result.shouldAllow)
+        assertSame(allowRule, result.rule)
+    }
+
+    @Test
+    fun matchRequest_domainIndexKeepsFallbackAndDomainRulesInOriginalOrder() {
+        val urlRule = Rule.blockUrlContains("/pagead/")
+        val domainRule = Rule.blockDomainContains("doubleclick.net")
+        val engine = RuleEngine(
+            listOf(
+                urlRule,
+                domainRule
+            )
+        )
+
+        val result = engine.matchRequest(
+            url = "https://stats.g.doubleclick.net/pagead/banner.js",
+            host = "stats.g.doubleclick.net"
+        )
+
+        assertTrue(result.shouldBlock)
+        assertSame(urlRule, result.rule)
+    }
+
+    @Test
     fun fromRequestRuleText_parsesP6SafeSubset() {
         val domainRule = requireNotNull(Rule.fromRequestRuleText("||doubleclick.net^"))
         val whitelistRule = requireNotNull(Rule.fromRequestRuleText("@@||example.com^"))

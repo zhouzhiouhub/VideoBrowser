@@ -72,7 +72,8 @@ data class CompiledRuleSet(
     val domRemoveCapabilities: List<RuleCapability.DomRemove> = emptyList(),
     val safeHookCapabilities: List<RuleCapability.SafeHook> = emptyList(),
     val noopResponseCapabilities: List<RuleCapability.NoopResponse> = emptyList(),
-    val skippedRules: List<SkippedRule> = emptyList()
+    val skippedRules: List<SkippedRule> = emptyList(),
+    val requestRuleIndex: RequestRuleIndex = RequestRuleIndex.from(requestCapabilities)
 ) {
     fun allCapabilities(): List<RuleCapability> {
         return requestCapabilities +
@@ -88,6 +89,16 @@ data class CompiledRuleSet(
 
     fun requestRules(): List<Rule> {
         return requestCapabilities.map { capability -> capability.rule }
+    }
+
+    fun requestCandidatesFor(
+        action: RuleAction,
+        host: String?
+    ): List<RuleCapability.Request> {
+        return requestRuleIndex.candidatesFor(
+            action = action,
+            host = host
+        )
     }
 
     fun elementRules(): List<ElementRule> {
