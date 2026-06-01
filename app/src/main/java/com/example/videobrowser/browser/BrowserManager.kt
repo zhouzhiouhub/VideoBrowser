@@ -22,8 +22,8 @@ class BrowserManager(
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
             cacheMode = WebSettings.LOAD_DEFAULT
-            loadWithOverviewMode = true
-            useWideViewPort = true
+            loadWithOverviewMode = false
+            useWideViewPort = false
             loadsImagesAutomatically = true
             blockNetworkImage = false
             setSupportMultipleWindows(false)
@@ -109,8 +109,8 @@ class BrowserManager(
         } else {
             defaultUserAgent
         }
-        webView.settings.useWideViewPort = true
-        webView.settings.loadWithOverviewMode = true
+        webView.settings.useWideViewPort = enabled
+        webView.settings.loadWithOverviewMode = enabled
         if (reload) {
             reload()
         }
