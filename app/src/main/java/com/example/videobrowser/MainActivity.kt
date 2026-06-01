@@ -2923,12 +2923,23 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val displayUrl = if (isProviderHomeUrl(url)) "" else url
+        val displayUrl = addressBarDisplayText(url)
         if (addressInput.text?.toString() == displayUrl) {
             return
         }
         addressInput.setText(displayUrl)
         addressInput.setSelection(addressInput.text?.length ?: 0)
+    }
+
+    private fun addressBarDisplayText(url: String): String {
+        if (isProviderHomeUrl(url)) {
+            return ""
+        }
+
+        searchProviders.forEach { provider ->
+            UrlUtils.searchQueryFromUrl(url, provider.searchUrlPrefix)?.let { return it }
+        }
+        return url
     }
 
     private fun updateNavigationButtons() {
