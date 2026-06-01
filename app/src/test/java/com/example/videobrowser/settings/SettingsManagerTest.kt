@@ -66,6 +66,8 @@ class SettingsManagerTest {
         settings.setAdBlockEnabled(false)
         settings.setAdBlockDisabledForSite("video.example.com", true)
         settings.setJsInjectionDisabledForSite("video.example.com", true)
+        settings.setDomAdBlockDisabledForSite("video.example.com", true)
+        settings.setVideoEnhancementDisabledForSite("video.example.com", true)
         settings.setUserWhitelistedSite("ads.example.com", true)
         settings.addUserElementHideSelectorForSite("video.example.com", "#ad")
         settings.setJsInjectionEnabled(false)
@@ -77,6 +79,8 @@ class SettingsManagerTest {
         assertTrue(settings.isAdBlockEnabled())
         assertFalse(settings.isAdBlockDisabledForSite("video.example.com"))
         assertFalse(settings.isJsInjectionDisabledForSite("video.example.com"))
+        assertFalse(settings.isDomAdBlockDisabledForSite("video.example.com"))
+        assertFalse(settings.isVideoEnhancementDisabledForSite("video.example.com"))
         assertFalse(settings.isUserWhitelistedSite("ads.example.com"))
         assertTrue(settings.userElementHideSelectorsForSite("video.example.com").isEmpty())
         assertTrue(settings.isJsInjectionEnabled())
@@ -112,6 +116,36 @@ class SettingsManagerTest {
 
         assertTrue(reloaded.setJsInjectionDisabledForSite("video.example.com", false))
         assertFalse(reloaded.isJsInjectionDisabledForSite("video.example.com"))
+    }
+
+    @Test
+    fun siteDomAdBlockDisabledHosts_areNormalizedAndPersisted() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.setDomAdBlockDisabledForSite(" Video.Example.COM. ", true))
+
+        val reloaded = SettingsManager(store)
+        assertTrue(reloaded.isDomAdBlockDisabledForSite("video.example.com"))
+        assertEquals(setOf("video.example.com"), reloaded.domAdBlockDisabledSiteHosts())
+
+        assertTrue(reloaded.setDomAdBlockDisabledForSite("video.example.com", false))
+        assertFalse(reloaded.isDomAdBlockDisabledForSite("video.example.com"))
+    }
+
+    @Test
+    fun siteVideoEnhancementDisabledHosts_areNormalizedAndPersisted() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.setVideoEnhancementDisabledForSite(" Video.Example.COM. ", true))
+
+        val reloaded = SettingsManager(store)
+        assertTrue(reloaded.isVideoEnhancementDisabledForSite("video.example.com"))
+        assertEquals(setOf("video.example.com"), reloaded.videoEnhancementDisabledSiteHosts())
+
+        assertTrue(reloaded.setVideoEnhancementDisabledForSite("video.example.com", false))
+        assertFalse(reloaded.isVideoEnhancementDisabledForSite("video.example.com"))
     }
 
     @Test

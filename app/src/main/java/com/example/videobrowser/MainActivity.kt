@@ -340,10 +340,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBrowserControls() {
-        anonymousBadge.contentDescription = getString(R.string.action_pick_element)
+        anonymousBadge.contentDescription = getString(R.string.title_page_tools)
         anonymousBadge.isClickable = true
         anonymousBadge.isFocusable = true
-        ViewCompat.setTooltipText(anonymousBadge, getString(R.string.action_pick_element))
+        ViewCompat.setTooltipText(anonymousBadge, getString(R.string.title_page_tools))
         ViewCompat.setTooltipText(loadButton, getString(R.string.action_load_url))
         ViewCompat.setTooltipText(backButton, getString(R.string.action_back))
         ViewCompat.setTooltipText(forwardButton, getString(R.string.action_forward))
@@ -382,7 +382,7 @@ class MainActivity : AppCompatActivity() {
         refreshButton.setOnClickListener { browserManager.reload() }
         homeButton.setOnClickListener { openHomePage() }
         bookmarkButton.setOnClickListener { toggleCurrentBookmark() }
-        anonymousBadge.setOnClickListener { startElementPicker() }
+        anonymousBadge.setOnClickListener { showFunctionCenter() }
         menuButton.setOnClickListener { showFunctionCenter() }
 
         updateNavigationButtons()
@@ -1187,16 +1187,31 @@ class MainActivity : AppCompatActivity() {
         val siteHost = currentSiteHost()
         val pageUrl = currentActionableUrl()
         return createFunctionCenterPage(
-            title = getString(R.string.title_function_center),
+            title = getString(R.string.title_page_tools),
             onBack = onBack
         ) { content ->
-            // 菜单根页按功能依赖的上下文分组，避免网页动作脱离当前 WebView 状态。
-            addFunctionCenterHeader(content, siteHost)
             addCurrentPageActionSection(content, pageUrl, siteHost)
-            addCurrentSiteActionSection(content, siteHost)
-            addToolboxSection(content)
-            addGlobalEnhancementSection(content)
-            addDataManagementSection(content)
+            addFunctionNavigationSection(content, siteHost)
+        }
+    }
+
+    private fun addFunctionNavigationSection(parent: LinearLayout, siteHost: String?) {
+        addFunctionSection(parent, getString(R.string.function_center_section_more)) { section ->
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_site_settings),
+                summary = siteHost ?: getString(R.string.function_center_site_action_unavailable),
+                enabled = siteHost != null
+            ) {
+                showCurrentSiteSettingsPage()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_browser_settings),
+                summary = getString(R.string.action_browser_settings_summary)
+            ) {
+                showBrowserSettingsPage()
+            }
         }
     }
 
@@ -1226,24 +1241,6 @@ class MainActivity : AppCompatActivity() {
             addActionRow(section, getString(R.string.action_share_page), pageSummary, enabled = hasPage) {
                 shareCurrentUrl()
             }
-            addActionRow(section, getString(R.string.action_open_external), pageSummary, enabled = hasPage) {
-                openCurrentUrlExternally()
-            }
-            addActionRow(section, getString(R.string.action_download_current_url), pageSummary, enabled = hasPage) {
-                downloadCurrentUrl()
-            }
-            addActionRow(section, getString(R.string.action_open_native_player), pageSummary, enabled = hasPage) {
-                openCurrentUrlInNativePlayer()
-            }
-            addActionRow(
-                parent = section,
-                title = getString(R.string.action_pick_element),
-                summary = siteHost ?: getString(R.string.function_center_site_action_unavailable),
-                enabled = siteHost != null
-            ) {
-                closeFunctionCenter()
-                startElementPicker()
-            }
             addSwitchRow(
                 parent = section,
                 title = getString(R.string.setting_desktop_mode),
@@ -1254,6 +1251,36 @@ class MainActivity : AppCompatActivity() {
                 settingsManager.setDesktopModeEnabled(enabled)
                 applyDesktopMode(reload = true)
             }
+            addActionRow(section, getString(R.string.action_open_external), pageSummary, enabled = hasPage) {
+                openCurrentUrlExternally()
+            }
+            addActionRow(section, getString(R.string.action_open_native_player), pageSummary, enabled = hasPage) {
+                openCurrentUrlInNativePlayer()
+            }
+            addActionRow(section, getString(R.string.action_download_current_url), pageSummary, enabled = hasPage) {
+                downloadCurrentUrl()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_pick_element),
+                summary = siteHost ?: getString(R.string.function_center_site_action_unavailable),
+                enabled = siteHost != null
+            ) {
+                closeFunctionCenter()
+                startElementPicker()
+            }
+        }
+    }
+
+    private fun showCurrentSiteSettingsPage() {
+        val siteHost = currentSiteHost()
+        showFunctionCenterSubPage(getString(R.string.title_current_site)) { content ->
+            if (siteHost != null) {
+                addFunctionMessage(content, getString(R.string.function_center_current_site, siteHost))
+            } else {
+                addEmptyState(content, getString(R.string.function_center_site_action_unavailable))
+            }
+            addCurrentSiteActionSection(content, siteHost)
         }
     }
 
@@ -1265,57 +1292,215 @@ class MainActivity : AppCompatActivity() {
         addFunctionSection(parent, getString(R.string.function_center_section_site_actions)) { section ->
             addSwitchRow(
                 parent = section,
-                title = getString(R.string.setting_current_site_ad_block_disabled),
-                summary = siteSummary,
-                checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
-                enabled = hasSite
-            ) { disabled ->
+                title = getString(R.string.setting_current_site_ad_block),
+                summary = currentSiteFeatureSummary(siteHost, isAdBlockEnabled()),
+                checked = isAdBlockEnabled() &&
+                    !(siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false),
+                enabled = hasSite && isAdBlockEnabled()
+            ) { enabled ->
                 val host = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setAdBlockDisabledForSite(host, disabled)
-                Toast.makeText(
-                    this,
-                    if (disabled) {
-                        getString(R.string.toast_current_site_ad_block_disabled, host)
-                    } else {
-                        getString(R.string.toast_current_site_ad_block_restored, host)
-                    },
-                    Toast.LENGTH_SHORT
-                ).show()
+                settingsManager.setAdBlockDisabledForSite(host, !enabled)
+                showCurrentSiteFeatureToast(
+                    enabled = enabled,
+                    featureName = getString(R.string.setting_current_site_ad_block),
+                    host = host
+                )
                 browserManager.reload()
             }
 
             addSwitchRow(
                 parent = section,
-                title = getString(R.string.setting_current_site_js_injection_disabled),
-                summary = siteSummary,
-                checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
-                enabled = hasSite
-            ) { disabled ->
+                title = getString(R.string.setting_current_site_js_injection),
+                summary = currentSiteFeatureSummary(siteHost, isJsInjectionEnabled()),
+                checked = isJsInjectionEnabled() &&
+                    !(siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false),
+                enabled = hasSite && isJsInjectionEnabled()
+            ) { enabled ->
                 val host = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setJsInjectionDisabledForSite(host, disabled)
-                Toast.makeText(
-                    this,
-                    if (disabled) {
-                        getString(R.string.toast_current_site_js_injection_disabled, host)
-                    } else {
-                        getString(R.string.toast_current_site_js_injection_restored, host)
-                    },
-                    Toast.LENGTH_SHORT
-                ).show()
+                settingsManager.setJsInjectionDisabledForSite(host, !enabled)
+                showCurrentSiteFeatureToast(
+                    enabled = enabled,
+                    featureName = getString(R.string.setting_current_site_js_injection),
+                    host = host
+                )
                 browserManager.reload()
             }
 
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_page_cleanup),
+                summary = currentSiteFeatureSummary(siteHost, isPageCleanupEnabled()),
+                checked = isPageCleanupEnabled() &&
+                    !(siteHost?.let(settingsManager::isDomAdBlockDisabledForSite) ?: false),
+                enabled = hasSite && isPageCleanupEnabled()
+            ) { enabled ->
+                val host = currentSiteHost() ?: return@addSwitchRow
+                settingsManager.setDomAdBlockDisabledForSite(host, !enabled)
+                showCurrentSiteFeatureToast(
+                    enabled = enabled,
+                    featureName = getString(R.string.setting_page_cleanup),
+                    host = host
+                )
+                injectPageFeatures()
+            }
+
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_video_enhancement),
+                summary = currentSiteFeatureSummary(siteHost, isVideoEnhancementEnabled()),
+                checked = isVideoEnhancementEnabled() &&
+                    !(siteHost?.let(settingsManager::isVideoEnhancementDisabledForSite) ?: false),
+                enabled = hasSite && isVideoEnhancementEnabled()
+            ) { enabled ->
+                val host = currentSiteHost() ?: return@addSwitchRow
+                settingsManager.setVideoEnhancementDisabledForSite(host, !enabled)
+                showCurrentSiteFeatureToast(
+                    enabled = enabled,
+                    featureName = getString(R.string.setting_video_enhancement),
+                    host = host
+                )
+                injectPageFeatures()
+            }
+
+            addDivider(section)
+
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_add_site_rule),
+                summary = siteSummary,
+                enabled = hasSite
+            ) {
+                closeFunctionCenter()
+                startElementPicker()
+            }
             addActionRow(
                 parent = section,
                 title = getString(
-                    if (isWhitelisted) R.string.action_remove_current_site else R.string.action_add_current_site
+                    if (isWhitelisted) R.string.action_leave_whitelist else R.string.action_join_whitelist
                 ),
                 summary = siteSummary,
                 enabled = hasSite
             ) {
                 toggleCurrentSiteWhitelist()
-                showFunctionCenterRootPage()
+                showCurrentSiteSettingsPage()
             }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_view_site_config),
+                summary = siteSummary,
+                enabled = hasSite
+            ) {
+                showCurrentSiteConfigPage()
+            }
+        }
+    }
+
+    private fun currentSiteFeatureSummary(siteHost: String?, globalEnabled: Boolean): String {
+        return when {
+            siteHost == null -> getString(R.string.function_center_site_action_unavailable)
+            !globalEnabled -> getString(R.string.setting_disabled_in_browser_settings)
+            else -> siteHost
+        }
+    }
+
+    private fun showCurrentSiteFeatureToast(enabled: Boolean, featureName: String, host: String) {
+        Toast.makeText(
+            this,
+            getString(
+                if (enabled) {
+                    R.string.toast_current_site_feature_enabled
+                } else {
+                    R.string.toast_current_site_feature_disabled
+                },
+                featureName,
+                host
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun showCurrentSiteConfigPage() {
+        val siteHost = currentSiteHost()
+        showFunctionCenterSubPage(
+            title = getString(R.string.title_site_config),
+            onBack = { showCurrentSiteSettingsPage() }
+        ) { content ->
+            if (siteHost == null) {
+                addEmptyState(content, getString(R.string.function_center_site_action_unavailable))
+                return@showFunctionCenterSubPage
+            }
+
+            addFunctionSection(content, getString(R.string.function_center_section_site_actions)) { section ->
+                addInfoRow(
+                    parent = section,
+                    title = getString(R.string.function_center_site_host),
+                    summary = siteHost
+                )
+                addInfoRow(
+                    parent = section,
+                    title = getString(R.string.setting_current_site_ad_block),
+                    summary = currentSiteFeatureStatus(
+                        globalEnabled = isAdBlockEnabled(),
+                        siteDisabled = settingsManager.isAdBlockDisabledForSite(siteHost)
+                    )
+                )
+                addInfoRow(
+                    parent = section,
+                    title = getString(R.string.setting_current_site_js_injection),
+                    summary = currentSiteFeatureStatus(
+                        globalEnabled = isJsInjectionEnabled(),
+                        siteDisabled = settingsManager.isJsInjectionDisabledForSite(siteHost)
+                    )
+                )
+                addInfoRow(
+                    parent = section,
+                    title = getString(R.string.setting_page_cleanup),
+                    summary = currentSiteFeatureStatus(
+                        globalEnabled = isPageCleanupEnabled(),
+                        siteDisabled = settingsManager.isDomAdBlockDisabledForSite(siteHost)
+                    )
+                )
+                addInfoRow(
+                    parent = section,
+                    title = getString(R.string.setting_video_enhancement),
+                    summary = currentSiteFeatureStatus(
+                        globalEnabled = isVideoEnhancementEnabled(),
+                        siteDisabled = settingsManager.isVideoEnhancementDisabledForSite(siteHost)
+                    )
+                )
+                addInfoRow(
+                    parent = section,
+                    title = getString(R.string.action_join_whitelist),
+                    summary = if (settingsManager.isUserWhitelistedSite(siteHost)) {
+                        getString(R.string.site_config_whitelisted)
+                    } else {
+                        getString(R.string.site_config_not_whitelisted)
+                    }
+                )
+                addInfoRow(
+                    parent = section,
+                    title = getString(R.string.action_add_site_rule),
+                    summary = getString(
+                        R.string.site_config_rule_count,
+                        settingsManager.userElementHideSelectorsForSite(siteHost).size
+                    )
+                )
+            }
+        }
+    }
+
+    private fun currentSiteFeatureStatus(globalEnabled: Boolean, siteDisabled: Boolean): String {
+        return when {
+            !globalEnabled -> getString(R.string.site_config_disabled_by_global)
+            siteDisabled -> getString(R.string.site_config_disabled)
+            else -> getString(R.string.site_config_enabled)
+        }
+    }
+
+    private fun showBrowserSettingsPage() {
+        showFunctionCenterSubPage(getString(R.string.title_browser_settings)) { content ->
+            addGlobalEnhancementSection(content)
+            addToolboxSection(content)
         }
     }
 
@@ -1363,6 +1548,21 @@ class MainActivity : AppCompatActivity() {
                 summary = getString(R.string.action_manage_user_whitelist_summary)
             ) {
                 showUserWhitelistManager()
+            }
+            addDivider(section)
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_clear_browser_data),
+                summary = getString(R.string.action_clear_browser_data_summary)
+            ) {
+                clearBrowserData()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_restore_default_settings),
+                summary = getString(R.string.action_restore_default_settings_summary)
+            ) {
+                showRestoreDefaultSettingsPage()
             }
         }
     }
@@ -2784,8 +2984,24 @@ class MainActivity : AppCompatActivity() {
         return settingsManager.isDomAdBlockEnabled()
     }
 
+    private fun isCurrentSitePageCleanupDisabled(): Boolean {
+        return settingsManager.isDomAdBlockDisabledForSite(currentSiteHost())
+    }
+
     private fun isVideoEnhancementEnabled(): Boolean {
         return settingsManager.isVideoEnhancementEnabled()
+    }
+
+    private fun isCurrentSiteVideoEnhancementDisabled(): Boolean {
+        return settingsManager.isVideoEnhancementDisabledForSite(currentSiteHost())
+    }
+
+    private fun isPageCleanupEnabledForCurrentSite(): Boolean {
+        return isPageCleanupEnabled() && !isCurrentSitePageCleanupDisabled()
+    }
+
+    private fun isVideoEnhancementEnabledForCurrentSite(): Boolean {
+        return isVideoEnhancementEnabled() && !isCurrentSiteVideoEnhancementDisabled()
     }
 
     private fun isDesktopModeEnabled(): Boolean {
@@ -2875,8 +3091,8 @@ class MainActivity : AppCompatActivity() {
         jsInjector.inject(
             PageFeatureConfig(
                 jsInjectionEnabled = isJsInjectionEnabled() && !isCurrentSiteJsInjectionDisabled(),
-                cleanupEnabled = isPageCleanupEnabled(),
-                videoEnabled = isVideoEnhancementEnabled(),
+                cleanupEnabled = isPageCleanupEnabledForCurrentSite(),
+                videoEnabled = isVideoEnhancementEnabledForCurrentSite(),
                 userCssSelectors = settingsManager.userElementHideSelectorsForSite(currentSiteHost())
             ),
             pageUrl = currentPageUrl ?: browserManager.currentUrl()

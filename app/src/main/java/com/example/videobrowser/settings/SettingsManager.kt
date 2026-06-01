@@ -78,6 +78,50 @@ class SettingsManager(
         return loadHostSet(KEY_SITE_JS_INJECTION_DISABLED_HOSTS)
     }
 
+    fun isDomAdBlockDisabledForSite(host: String?): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        return domAdBlockDisabledSiteHosts().contains(normalizedHost)
+    }
+
+    fun setDomAdBlockDisabledForSite(host: String?, disabled: Boolean): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val hosts = domAdBlockDisabledSiteHosts().toMutableSet()
+        if (disabled) {
+            hosts.add(normalizedHost)
+        } else {
+            hosts.remove(normalizedHost)
+        }
+
+        saveHostSet(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, hosts)
+        return true
+    }
+
+    fun domAdBlockDisabledSiteHosts(): Set<String> {
+        return loadHostSet(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS)
+    }
+
+    fun isVideoEnhancementDisabledForSite(host: String?): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        return videoEnhancementDisabledSiteHosts().contains(normalizedHost)
+    }
+
+    fun setVideoEnhancementDisabledForSite(host: String?, disabled: Boolean): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val hosts = videoEnhancementDisabledSiteHosts().toMutableSet()
+        if (disabled) {
+            hosts.add(normalizedHost)
+        } else {
+            hosts.remove(normalizedHost)
+        }
+
+        saveHostSet(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, hosts)
+        return true
+    }
+
+    fun videoEnhancementDisabledSiteHosts(): Set<String> {
+        return loadHostSet(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS)
+    }
+
     fun isUserWhitelistedSite(host: String?): Boolean {
         val normalizedHost = SiteHost.normalize(host) ?: return false
         return userWhitelistedSiteHosts().contains(normalizedHost)
@@ -315,6 +359,9 @@ class SettingsManager(
         private const val KEY_AD_BLOCK = "ad_block"
         private const val KEY_SITE_AD_BLOCK_DISABLED_HOSTS = "site_ad_block_disabled_hosts"
         private const val KEY_SITE_JS_INJECTION_DISABLED_HOSTS = "site_js_injection_disabled_hosts"
+        private const val KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS = "site_dom_ad_block_disabled_hosts"
+        private const val KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS =
+            "site_video_enhancement_disabled_hosts"
         private const val KEY_USER_WHITELISTED_SITE_HOSTS = "user_whitelisted_site_hosts"
         private const val KEY_USER_ELEMENT_HIDE_RULES = "user_element_hide_rules"
         private const val KEY_JS_INJECTION = "js_injection"
@@ -330,6 +377,8 @@ class SettingsManager(
             KEY_AD_BLOCK,
             KEY_SITE_AD_BLOCK_DISABLED_HOSTS,
             KEY_SITE_JS_INJECTION_DISABLED_HOSTS,
+            KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS,
+            KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS,
             KEY_USER_WHITELISTED_SITE_HOSTS,
             KEY_USER_ELEMENT_HIDE_RULES,
             KEY_JS_INJECTION,
