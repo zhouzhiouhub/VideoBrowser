@@ -86,24 +86,17 @@
             android:src="@drawable/ic_star_24"
             android:tint="@color/bottom_nav_icon" />
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/anonymousBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="34dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/bg_anonymous_badge"
+        <ImageButton
+            android:id="@+id/pageToolsButton"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_icon_button"
             android:contentDescription="@string/title_page_tools"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:minWidth="52dp"
-            android:minHeight="0dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:text="@string/element_picker_badge"
-            android:textAllCaps="false"
-            android:textColor="@color/privacy_text"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:padding="10dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_more_vert_24"
+            android:tint="@color/bottom_nav_icon" />
     </LinearLayout>
 
     <ProgressBar
@@ -225,18 +218,6 @@
             android:padding="18dp"
             android:scaleType="center"
             android:src="@drawable/ic_home_24"
-            android:tint="@color/bottom_nav_icon" />
-
-        <ImageButton
-            android:id="@+id/menuButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_icon_button"
-            android:contentDescription="@string/action_menu"
-            android:padding="18dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_more_vert_24"
             android:tint="@color/bottom_nav_icon" />
 
     </LinearLayout>

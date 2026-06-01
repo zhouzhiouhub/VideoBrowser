@@ -137,13 +137,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageProgress: ProgressBar
     private lateinit var searchProviderScroll: HorizontalScrollView
     private lateinit var searchProviderList: LinearLayout
-    private lateinit var anonymousBadge: TextView
+    private lateinit var pageToolsButton: ImageButton
     private lateinit var backButton: ImageButton
     private lateinit var forwardButton: ImageButton
     private lateinit var refreshButton: ImageButton
     private lateinit var homeButton: ImageButton
     private lateinit var bookmarkButton: ImageButton
-    private lateinit var menuButton: ImageButton
     private lateinit var loadButton: ImageButton
     private lateinit var fullscreenContainer: FrameLayout
     private lateinit var fullscreenGestureOverlay: FullscreenVideoGestureOverlay
@@ -262,14 +261,13 @@ class MainActivity : AppCompatActivity() {
         pageProgress = findViewById(R.id.pageProgress)
         searchProviderScroll = findViewById(R.id.searchProviderScroll)
         searchProviderList = findViewById(R.id.searchProviderList)
-        anonymousBadge = findViewById(R.id.anonymousBadge)
+        pageToolsButton = findViewById(R.id.pageToolsButton)
         loadButton = findViewById(R.id.loadButton)
         backButton = findViewById(R.id.backButton)
         forwardButton = findViewById(R.id.forwardButton)
         refreshButton = findViewById(R.id.refreshButton)
         homeButton = findViewById(R.id.homeButton)
         bookmarkButton = findViewById(R.id.bookmarkButton)
-        menuButton = findViewById(R.id.menuButton)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
@@ -340,17 +338,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBrowserControls() {
-        anonymousBadge.contentDescription = getString(R.string.title_page_tools)
-        anonymousBadge.isClickable = true
-        anonymousBadge.isFocusable = true
-        ViewCompat.setTooltipText(anonymousBadge, getString(R.string.title_page_tools))
+        ViewCompat.setTooltipText(pageToolsButton, getString(R.string.title_page_tools))
         ViewCompat.setTooltipText(loadButton, getString(R.string.action_load_url))
         ViewCompat.setTooltipText(backButton, getString(R.string.action_back))
         ViewCompat.setTooltipText(forwardButton, getString(R.string.action_forward))
         ViewCompat.setTooltipText(refreshButton, getString(R.string.action_refresh))
         ViewCompat.setTooltipText(homeButton, getString(R.string.action_home))
         ViewCompat.setTooltipText(bookmarkButton, getString(R.string.action_add_bookmark))
-        ViewCompat.setTooltipText(menuButton, getString(R.string.action_menu))
 
         addressInput.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -382,8 +376,7 @@ class MainActivity : AppCompatActivity() {
         refreshButton.setOnClickListener { browserManager.reload() }
         homeButton.setOnClickListener { openHomePage() }
         bookmarkButton.setOnClickListener { toggleCurrentBookmark() }
-        anonymousBadge.setOnClickListener { showFunctionCenter() }
-        menuButton.setOnClickListener { showFunctionCenter() }
+        pageToolsButton.setOnClickListener { showFunctionCenter() }
 
         updateNavigationButtons()
     }
