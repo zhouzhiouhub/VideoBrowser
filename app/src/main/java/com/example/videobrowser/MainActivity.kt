@@ -102,13 +102,6 @@ class MainActivity : AppCompatActivity() {
         val url: String
     )
 
-    private data class FunctionCenterShortcut(
-        val title: String,
-        val badge: String,
-        val accentColor: Int,
-        val onClick: () -> Unit
-    )
-
     private data class LocalDirectoryPathItem(
         val documentId: String,
         val title: String
@@ -1145,148 +1138,245 @@ class MainActivity : AppCompatActivity() {
 
     private fun createFunctionCenterRootPage(onBack: () -> Unit): View {
         val siteHost = currentSiteHost()
+        val pageUrl = currentActionableUrl()
         return createFunctionCenterPage(
             title = getString(R.string.title_function_center),
             onBack = onBack
         ) { content ->
+            // 菜单根页按功能依赖的上下文分组，避免网页动作脱离当前 WebView 状态。
             addFunctionCenterHeader(content, siteHost)
-            addFunctionCenterShortcuts(content)
-            addFunctionSection(content, getString(R.string.function_center_section_files)) { section ->
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_file_operations),
-                    summary = getString(R.string.action_file_operations_summary)
-                ) {
-                    showFileOperationsPage()
-                }
+            addCurrentPageActionSection(content, pageUrl, siteHost)
+            addCurrentSiteActionSection(content, siteHost)
+            addToolboxSection(content)
+            addGlobalEnhancementSection(content)
+            addDataManagementSection(content)
+        }
+    }
+
+    private fun addCurrentPageActionSection(
+        parent: LinearLayout,
+        pageUrl: String?,
+        siteHost: String?
+    ) {
+        val pageSummary = pageUrl ?: getString(R.string.function_center_page_action_unavailable)
+        val hasPage = pageUrl != null
+        val bookmarkTitle = if (pageUrl?.let { isSavedPage(KEY_BOOKMARKS, it) } == true) {
+            getString(R.string.action_remove_bookmark)
+        } else {
+            getString(R.string.action_add_bookmark)
+        }
+
+        addFunctionSection(parent, getString(R.string.function_center_section_page_actions)) { section ->
+            addActionRow(section, bookmarkTitle, pageSummary, enabled = hasPage) {
+                toggleCurrentBookmark()
+                showFunctionCenterRootPage()
             }
-            addFunctionSection(content, getString(R.string.function_center_section_settings)) { section ->
-                addSwitchRow(
-                    parent = section,
-                    title = getString(R.string.setting_ad_block),
-                    summary = getString(R.string.setting_ad_block_summary),
-                    checked = isAdBlockEnabled()
-                ) { enabled ->
-                    settingsManager.setAdBlockEnabled(enabled)
-                    browserManager.reload()
-                }
-
-                addSwitchRow(
-                    parent = section,
-                    title = getString(R.string.setting_current_site_ad_block_disabled),
-                    summary = if (siteHost != null) {
-                        getString(R.string.setting_current_site_ad_block_disabled_summary, siteHost)
-                    } else {
-                        getString(R.string.setting_current_site_ad_block_disabled_summary_empty)
-                    },
-                    checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
-                    enabled = siteHost != null
-                ) { disabled ->
-                    val host = currentSiteHost() ?: return@addSwitchRow
-                    settingsManager.setAdBlockDisabledForSite(host, disabled)
-                    Toast.makeText(
-                        this,
-                        if (disabled) {
-                            getString(R.string.toast_current_site_ad_block_disabled, host)
-                        } else {
-                            getString(R.string.toast_current_site_ad_block_restored, host)
-                        },
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    browserManager.reload()
-                }
-
-                addDivider(section)
-
-                addSwitchRow(
-                    parent = section,
-                    title = getString(R.string.setting_js_injection),
-                    summary = getString(R.string.setting_js_injection_summary),
-                    checked = isJsInjectionEnabled()
-                ) { enabled ->
-                    settingsManager.setJsInjectionEnabled(enabled)
-                    browserManager.reload()
-                }
-
-                addSwitchRow(
-                    parent = section,
-                    title = getString(R.string.setting_current_site_js_injection_disabled),
-                    summary = if (siteHost != null) {
-                        getString(R.string.setting_current_site_js_injection_disabled_summary, siteHost)
-                    } else {
-                        getString(R.string.setting_current_site_js_injection_disabled_summary_empty)
-                    },
-                    checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
-                    enabled = siteHost != null
-                ) { disabled ->
-                    val host = currentSiteHost() ?: return@addSwitchRow
-                    settingsManager.setJsInjectionDisabledForSite(host, disabled)
-                    Toast.makeText(
-                        this,
-                        if (disabled) {
-                            getString(R.string.toast_current_site_js_injection_disabled, host)
-                        } else {
-                            getString(R.string.toast_current_site_js_injection_restored, host)
-                        },
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    browserManager.reload()
-                }
-
-                addDivider(section)
-
-                addSwitchRow(
-                    parent = section,
-                    title = getString(R.string.setting_page_cleanup),
-                    summary = getString(R.string.setting_page_cleanup_summary),
-                    checked = isPageCleanupEnabled()
-                ) { enabled ->
-                    settingsManager.setDomAdBlockEnabled(enabled)
-                    injectPageFeatures()
-                }
-
-                addSwitchRow(
-                    parent = section,
-                    title = getString(R.string.setting_video_enhancement),
-                    summary = getString(R.string.setting_video_enhancement_summary),
-                    checked = isVideoEnhancementEnabled()
-                ) { enabled ->
-                    settingsManager.setVideoEnhancementEnabled(enabled)
-                    injectPageFeatures()
-                }
-
-                addSwitchRow(
-                    parent = section,
-                    title = getString(R.string.setting_desktop_mode),
-                    summary = getString(R.string.setting_desktop_mode_summary),
-                    checked = isDesktopModeEnabled()
-                ) { enabled ->
-                    settingsManager.setDesktopModeEnabled(enabled)
-                    applyDesktopMode(reload = true)
-                }
+            addActionRow(section, getString(R.string.action_copy_link), pageSummary, enabled = hasPage) {
+                copyCurrentUrl()
             }
-            addFunctionSection(content, getString(R.string.function_center_section_data)) { section ->
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_manage_user_whitelist),
-                    summary = getString(R.string.action_manage_user_whitelist_summary)
-                ) {
-                    showUserWhitelistManager()
-                }
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_clear_browser_data),
-                    summary = getString(R.string.action_clear_browser_data_summary)
-                ) {
-                    clearBrowserData()
-                }
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_restore_default_settings),
-                    summary = getString(R.string.action_restore_default_settings_summary)
-                ) {
-                    showRestoreDefaultSettingsPage()
-                }
+            addActionRow(section, getString(R.string.action_share_page), pageSummary, enabled = hasPage) {
+                shareCurrentUrl()
+            }
+            addActionRow(section, getString(R.string.action_open_external), pageSummary, enabled = hasPage) {
+                openCurrentUrlExternally()
+            }
+            addActionRow(section, getString(R.string.action_download_current_url), pageSummary, enabled = hasPage) {
+                downloadCurrentUrl()
+            }
+            addActionRow(section, getString(R.string.action_open_native_player), pageSummary, enabled = hasPage) {
+                openCurrentUrlInNativePlayer()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_pick_element),
+                summary = siteHost ?: getString(R.string.function_center_site_action_unavailable),
+                enabled = siteHost != null
+            ) {
+                closeFunctionCenter()
+                startElementPicker()
+            }
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_desktop_mode),
+                summary = getString(R.string.setting_desktop_mode_summary),
+                checked = isDesktopModeEnabled(),
+                enabled = hasPage
+            ) { enabled ->
+                settingsManager.setDesktopModeEnabled(enabled)
+                applyDesktopMode(reload = true)
+            }
+        }
+    }
+
+    private fun addCurrentSiteActionSection(parent: LinearLayout, siteHost: String?) {
+        val siteSummary = siteHost ?: getString(R.string.function_center_site_action_unavailable)
+        val hasSite = siteHost != null
+        val isWhitelisted = siteHost?.let(settingsManager::isUserWhitelistedSite) ?: false
+
+        addFunctionSection(parent, getString(R.string.function_center_section_site_actions)) { section ->
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_current_site_ad_block_disabled),
+                summary = siteSummary,
+                checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
+                enabled = hasSite
+            ) { disabled ->
+                val host = currentSiteHost() ?: return@addSwitchRow
+                settingsManager.setAdBlockDisabledForSite(host, disabled)
+                Toast.makeText(
+                    this,
+                    if (disabled) {
+                        getString(R.string.toast_current_site_ad_block_disabled, host)
+                    } else {
+                        getString(R.string.toast_current_site_ad_block_restored, host)
+                    },
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+            }
+
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_current_site_js_injection_disabled),
+                summary = siteSummary,
+                checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
+                enabled = hasSite
+            ) { disabled ->
+                val host = currentSiteHost() ?: return@addSwitchRow
+                settingsManager.setJsInjectionDisabledForSite(host, disabled)
+                Toast.makeText(
+                    this,
+                    if (disabled) {
+                        getString(R.string.toast_current_site_js_injection_disabled, host)
+                    } else {
+                        getString(R.string.toast_current_site_js_injection_restored, host)
+                    },
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+            }
+
+            addActionRow(
+                parent = section,
+                title = getString(
+                    if (isWhitelisted) R.string.action_remove_current_site else R.string.action_add_current_site
+                ),
+                summary = siteSummary,
+                enabled = hasSite
+            ) {
+                toggleCurrentSiteWhitelist()
+                showFunctionCenterRootPage()
+            }
+        }
+    }
+
+    private fun addToolboxSection(parent: LinearLayout) {
+        addFunctionSection(parent, getString(R.string.function_center_section_toolbox)) { section ->
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_show_bookmarks),
+                summary = getString(R.string.action_show_bookmarks_summary)
+            ) {
+                showSavedPageList(
+                    key = KEY_BOOKMARKS,
+                    title = getString(R.string.title_bookmarks),
+                    emptyMessage = getString(R.string.toast_bookmarks_empty)
+                )
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_show_history),
+                summary = getString(R.string.action_show_history_summary)
+            ) {
+                showSavedPageList(
+                    key = KEY_HISTORY,
+                    title = getString(R.string.title_history),
+                    emptyMessage = getString(R.string.toast_history_empty)
+                )
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_file_operations),
+                summary = getString(R.string.action_file_operations_summary)
+            ) {
+                showFileOperationsPage()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_show_ad_block_log),
+                summary = getString(R.string.action_show_ad_block_log_summary)
+            ) {
+                showAdBlockLog()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_manage_user_whitelist),
+                summary = getString(R.string.action_manage_user_whitelist_summary)
+            ) {
+                showUserWhitelistManager()
+            }
+        }
+    }
+
+    private fun addGlobalEnhancementSection(parent: LinearLayout) {
+        addFunctionSection(parent, getString(R.string.function_center_section_settings)) { section ->
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_ad_block),
+                summary = getString(R.string.setting_ad_block_summary),
+                checked = isAdBlockEnabled()
+            ) { enabled ->
+                settingsManager.setAdBlockEnabled(enabled)
+                browserManager.reload()
+            }
+
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_js_injection),
+                summary = getString(R.string.setting_js_injection_summary),
+                checked = isJsInjectionEnabled()
+            ) { enabled ->
+                settingsManager.setJsInjectionEnabled(enabled)
+                browserManager.reload()
+            }
+
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_page_cleanup),
+                summary = getString(R.string.setting_page_cleanup_summary),
+                checked = isPageCleanupEnabled()
+            ) { enabled ->
+                settingsManager.setDomAdBlockEnabled(enabled)
+                injectPageFeatures()
+            }
+
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_video_enhancement),
+                summary = getString(R.string.setting_video_enhancement_summary),
+                checked = isVideoEnhancementEnabled()
+            ) { enabled ->
+                settingsManager.setVideoEnhancementEnabled(enabled)
+                injectPageFeatures()
+            }
+        }
+    }
+
+    private fun addDataManagementSection(parent: LinearLayout) {
+        addFunctionSection(parent, getString(R.string.function_center_section_data)) { section ->
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_clear_browser_data),
+                summary = getString(R.string.action_clear_browser_data_summary)
+            ) {
+                clearBrowserData()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_restore_default_settings),
+                summary = getString(R.string.action_restore_default_settings_summary)
+            ) {
+                showRestoreDefaultSettingsPage()
             }
         }
     }
@@ -1450,148 +1540,6 @@ class MainActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
-    }
-
-    private fun addFunctionCenterShortcuts(parent: LinearLayout) {
-        addSectionTitle(parent, getString(R.string.function_center_section_services))
-        val shortcuts = listOf(
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_native_player),
-                badge = "播",
-                accentColor = Color.parseColor("#FF7A45"),
-                onClick = ::openCurrentUrlInNativePlayer
-            ),
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_bookmarks),
-                badge = "夹",
-                accentColor = Color.parseColor("#315EFB"),
-                onClick = {
-                    showSavedPageList(
-                        key = KEY_BOOKMARKS,
-                        title = getString(R.string.title_bookmarks),
-                        emptyMessage = getString(R.string.toast_bookmarks_empty)
-                    )
-                }
-            ),
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_history),
-                badge = "史",
-                accentColor = Color.parseColor("#7A5AF8"),
-                onClick = {
-                    showSavedPageList(
-                        key = KEY_HISTORY,
-                        title = getString(R.string.title_history),
-                        emptyMessage = getString(R.string.toast_history_empty)
-                    )
-                }
-            ),
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_copy_link),
-                badge = "链",
-                accentColor = Color.parseColor("#13B56B"),
-                onClick = ::copyCurrentUrl
-            ),
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_share_page),
-                badge = "享",
-                accentColor = Color.parseColor("#00A3A3"),
-                onClick = ::shareCurrentUrl
-            ),
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_open_external),
-                badge = "开",
-                accentColor = Color.parseColor("#5B6B84"),
-                onClick = ::openCurrentUrlExternally
-            ),
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_ad_log),
-                badge = "拦",
-                accentColor = Color.parseColor("#E04747"),
-                onClick = ::showAdBlockLog
-            )
-        )
-
-        val panel = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(8), dp(8), dp(8), dp(8))
-            background = createRoundedBackground(
-                ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
-            )
-        }
-        shortcuts.chunked(4).forEach { rowShortcuts ->
-            val row = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER
-            }
-            rowShortcuts.forEach { shortcut ->
-                row.addView(
-                    createShortcutItem(shortcut),
-                    LinearLayout.LayoutParams(0, dp(86), 1f)
-                )
-            }
-            repeat(4 - rowShortcuts.size) {
-                row.addView(
-                    View(this),
-                    LinearLayout.LayoutParams(0, dp(86), 1f)
-                )
-            }
-            panel.addView(
-                row,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            )
-        }
-        parent.addView(
-            panel,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-    }
-
-    private fun createShortcutItem(shortcut: FunctionCenterShortcut): View {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
-            setPadding(dp(4), dp(6), dp(4), dp(4))
-            setSelectableItemBackground()
-            setOnClickListener { shortcut.onClick() }
-
-            addView(
-                TextView(this@MainActivity).apply {
-                    text = shortcut.badge
-                    gravity = Gravity.CENTER
-                    includeFontPadding = false
-                    textSize = 15f
-                    typeface = Typeface.DEFAULT_BOLD
-                    setTextColor(Color.WHITE)
-                    background = createCircleBackground(shortcut.accentColor)
-                },
-                LinearLayout.LayoutParams(dp(42), dp(42))
-            )
-            addView(
-                TextView(this@MainActivity).apply {
-                    text = shortcut.title
-                    gravity = Gravity.CENTER
-                    includeFontPadding = false
-                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
-                    textSize = 12f
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
-                },
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    topMargin = dp(8)
-                }
-            )
-        }
     }
 
     private fun addFunctionSection(
@@ -1788,6 +1736,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun toggleCurrentSiteWhitelist() {
+        val host = currentSiteHost() ?: run {
+            Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val shouldWhitelist = !settingsManager.isUserWhitelistedSite(host)
+        settingsManager.setUserWhitelistedSite(host, shouldWhitelist)
+        Toast.makeText(
+            this,
+            if (shouldWhitelist) {
+                getString(R.string.toast_user_whitelist_added, host)
+            } else {
+                getString(R.string.toast_user_whitelist_removed, host)
+            },
+            Toast.LENGTH_SHORT
+        ).show()
+        browserManager.reload()
+    }
+
     private fun showRemoveUserWhitelistHostPage(host: String) {
         showFunctionCenterSubPage(
             title = getString(R.string.title_remove_user_whitelist),
@@ -1957,15 +1924,20 @@ class MainActivity : AppCompatActivity() {
         parent: LinearLayout,
         title: String,
         summary: String,
+        enabled: Boolean = true,
         onClick: () -> Unit
     ) {
         val row = createRowText(title, summary).apply {
-            isClickable = true
-            isFocusable = true
+            isClickable = enabled
+            isFocusable = enabled
+            isEnabled = enabled
+            alpha = if (enabled) 1f else 0.48f
             minimumHeight = dp(58)
             setPadding(0, dp(9), 0, dp(9))
             setSelectableItemBackground()
-            setOnClickListener { onClick() }
+            if (enabled) {
+                setOnClickListener { onClick() }
+            }
         }
         parent.addView(
             row,
@@ -2074,14 +2046,6 @@ class MainActivity : AppCompatActivity() {
                     summary = getString(R.string.action_choose_local_folder_summary)
                 ) {
                     openLocalDirectoryLauncher.launch(savedLocalDirectoryUri())
-                }
-
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_download_current_url),
-                    summary = getString(R.string.action_download_current_url_summary)
-                ) {
-                    downloadCurrentUrl()
                 }
             }
         }
