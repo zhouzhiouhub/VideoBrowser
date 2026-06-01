@@ -1,5 +1,6 @@
 package com.example.videobrowser
 
+import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.ClipData
@@ -23,6 +24,7 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -226,6 +228,8 @@ class MainActivity : AppCompatActivity() {
     private var scrollControlDeltaY = 0
     private var scrollControlDirection = 0
     private var lastScrollControlChangeAt = 0L
+    private var isWebViewTouchActive = false
+    private var pendingBrowserControlsHidden: Boolean? = null
     private var defaultUserAgent: String? = null
     private var currentPageTitle = ""
     // shouldInterceptRequest 运行在 WebView 后台线程，站点级判断只能读取这个缓存。
@@ -674,7 +678,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupWebViewScrollControls() {
+        webView.setOnTouchListener { view, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    isWebViewTouchActive = true
+                    pendingBrowserControlsHidden = null
+                    view.parent?.requestDisallowInterceptTouchEvent(true)
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    isWebViewTouchActive = false
+                    view.parent?.requestDisallowInterceptTouchEvent(false)
+                    applyPendingBrowserControlsAfterTouch(view)
+                }
+            }
+            false
+        }
+
         webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
             if (isVideoFullscreenUiActive) {
                 return@setOnScrollChangeListener
@@ -720,15 +741,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun applyPendingBrowserControlsAfterTouch(view: View) {
+        val pendingHidden = pendingBrowserControlsHidden ?: return
+        pendingBrowserControlsHidden = null
+        view.post {
+            if (isWebViewTouchActive) {
+                pendingBrowserControlsHidden = pendingHidden
+            } else {
+                setBrowserControlsHidden(pendingHidden, allowDefer = false)
+            }
+        }
+    }
+
     private fun resetScrollControlTracking(changeAt: Long = lastScrollControlChangeAt) {
         scrollControlDeltaY = 0
         scrollControlDirection = 0
         lastScrollControlChangeAt = changeAt
     }
 
-    private fun setBrowserControlsHidden(hidden: Boolean) {
+    private fun setBrowserControlsHidden(hidden: Boolean, allowDefer: Boolean = true) {
         val shouldHide = hidden || isVideoFullscreenUiActive
+        if (allowDefer &&
+            isWebViewTouchActive &&
+            !isVideoFullscreenUiActive &&
+            areBrowserControlsHidden != shouldHide
+        ) {
+            pendingBrowserControlsHidden = shouldHide
+            return
+        }
+
         if (areBrowserControlsHidden == shouldHide) {
+            pendingBrowserControlsHidden = null
             syncSearchProviderVisibility()
             return
         }
