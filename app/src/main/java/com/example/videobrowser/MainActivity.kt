@@ -3207,7 +3207,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateNavigationButtons() {
-        backButton.isEnabled = browserManager.canGoBack()
+        val canGoBack = browserManager.canGoBack()
+        backButton.isEnabled = canGoBack
+        backButton.visibility = if (canGoBack) View.VISIBLE else View.GONE
         updateBookmarkButton()
     }
 
