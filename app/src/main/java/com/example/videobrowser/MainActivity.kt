@@ -172,14 +172,6 @@ class MainActivity : AppCompatActivity() {
 
     private val searchProviders = listOf(
         SearchProvider(
-            id = "baidu",
-            name = "百度",
-            badge = "百",
-            homeUrl = "https://m.baidu.com/",
-            searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
-            accentColor = Color.parseColor("#315EFB")
-        ),
-        SearchProvider(
             id = "sogou",
             name = "搜狗",
             badge = "搜",
@@ -194,6 +186,14 @@ class MainActivity : AppCompatActivity() {
             homeUrl = "https://m.so.com/",
             searchUrlPrefix = "https://www.so.com/s?q=",
             accentColor = Color.parseColor("#20A052")
+        ),
+        SearchProvider(
+            id = "baidu",
+            name = "百度",
+            badge = "百",
+            homeUrl = "https://m.baidu.com/",
+            searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
+            accentColor = Color.parseColor("#315EFB")
         ),
         SearchProvider(
             id = "quark",
