@@ -31,6 +31,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
@@ -93,6 +94,13 @@ class MainActivity : AppCompatActivity() {
     private data class SavedPage(
         val title: String,
         val url: String
+    )
+
+    private data class FunctionCenterShortcut(
+        val title: String,
+        val badge: String,
+        val accentColor: Int,
+        val onClick: () -> Unit
     )
 
     private lateinit var rootView: View
@@ -205,6 +213,8 @@ class MainActivity : AppCompatActivity() {
     private var isElementPickerActive = false
     private var elementPickerStartedAt = 0L
     private var elementPickerDialog: AlertDialog? = null
+    private var functionCenterPage: View? = null
+    private var isFunctionCenterVisible = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
@@ -287,6 +297,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         elementPickerDialog?.dismiss()
+        closeFunctionCenter()
         if (::chromeClient.isInitialized) {
             chromeClient.hideCustomView()
         }
@@ -839,7 +850,9 @@ class MainActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (isElementPickerActive) {
+                    if (closeFunctionCenter()) {
+                        return
+                    } else if (isElementPickerActive) {
                         cancelElementPicker()
                     } else if (::chromeClient.isInitialized && chromeClient.isShowingCustomView()) {
                         chromeClient.hideCustomView()
@@ -1027,204 +1040,192 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFunctionCenter() {
+        hideKeyboard()
+        val container = rootView as? ViewGroup ?: return
+        functionCenterPage?.let(container::removeView)
+
+        val page = createFunctionCenterPage()
+        functionCenterPage = page
+        isFunctionCenterVisible = true
+        container.addView(
+            page,
+            ConstraintLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ).apply {
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+        )
+        page.bringToFront()
+        page.requestFocus()
+    }
+
+    private fun closeFunctionCenter(): Boolean {
+        val page = functionCenterPage ?: return false
+        (page.parent as? ViewGroup)?.removeView(page)
+        functionCenterPage = null
+        isFunctionCenterVisible = false
+        return true
+    }
+
+    private fun createFunctionCenterPage(): View {
         val siteHost = currentSiteHost()
+        val page = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            isClickable = true
+            isFocusable = true
+            setBackgroundColor(
+                ContextCompat.getColor(this@MainActivity, R.color.browser_background)
+            )
+        }
+        page.addView(
+            createFunctionCenterToolbar(),
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(56)
+            )
+        )
+
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(8), dp(16), dp(4))
+            setPadding(dp(14), dp(12), dp(14), dp(24))
         }
+        addFunctionCenterHeader(content, siteHost)
+        addFunctionCenterShortcuts(content)
+        addFunctionSection(content, getString(R.string.function_center_section_settings)) { section ->
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_ad_block),
+                summary = getString(R.string.setting_ad_block_summary),
+                checked = isAdBlockEnabled()
+            ) { enabled ->
+                settingsManager.setAdBlockEnabled(enabled)
+                browserManager.reload()
+            }
 
-        addSwitchRow(
-            parent = content,
-            title = getString(R.string.setting_ad_block),
-            summary = getString(R.string.setting_ad_block_summary),
-            checked = isAdBlockEnabled()
-        ) { enabled ->
-            settingsManager.setAdBlockEnabled(enabled)
-            browserManager.reload()
-        }
-
-        addSwitchRow(
-            parent = content,
-            title = getString(R.string.setting_current_site_ad_block_disabled),
-            summary = if (siteHost != null) {
-                getString(R.string.setting_current_site_ad_block_disabled_summary, siteHost)
-            } else {
-                getString(R.string.setting_current_site_ad_block_disabled_summary_empty)
-            },
-            checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
-            enabled = siteHost != null
-        ) { disabled ->
-            val host = currentSiteHost() ?: return@addSwitchRow
-            settingsManager.setAdBlockDisabledForSite(host, disabled)
-            Toast.makeText(
-                this,
-                if (disabled) {
-                    getString(R.string.toast_current_site_ad_block_disabled, host)
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_current_site_ad_block_disabled),
+                summary = if (siteHost != null) {
+                    getString(R.string.setting_current_site_ad_block_disabled_summary, siteHost)
                 } else {
-                    getString(R.string.toast_current_site_ad_block_restored, host)
+                    getString(R.string.setting_current_site_ad_block_disabled_summary_empty)
                 },
-                Toast.LENGTH_SHORT
-            ).show()
-            browserManager.reload()
-        }
+                checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
+                enabled = siteHost != null
+            ) { disabled ->
+                val host = currentSiteHost() ?: return@addSwitchRow
+                settingsManager.setAdBlockDisabledForSite(host, disabled)
+                Toast.makeText(
+                    this,
+                    if (disabled) {
+                        getString(R.string.toast_current_site_ad_block_disabled, host)
+                    } else {
+                        getString(R.string.toast_current_site_ad_block_restored, host)
+                    },
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+            }
 
-        addSwitchRow(
-            parent = content,
-            title = getString(R.string.setting_js_injection),
-            summary = getString(R.string.setting_js_injection_summary),
-            checked = isJsInjectionEnabled()
-        ) { enabled ->
-            settingsManager.setJsInjectionEnabled(enabled)
-            browserManager.reload()
-        }
+            addDivider(section)
 
-        addSwitchRow(
-            parent = content,
-            title = getString(R.string.setting_current_site_js_injection_disabled),
-            summary = if (siteHost != null) {
-                getString(R.string.setting_current_site_js_injection_disabled_summary, siteHost)
-            } else {
-                getString(R.string.setting_current_site_js_injection_disabled_summary_empty)
-            },
-            checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
-            enabled = siteHost != null
-        ) { disabled ->
-            val host = currentSiteHost() ?: return@addSwitchRow
-            settingsManager.setJsInjectionDisabledForSite(host, disabled)
-            Toast.makeText(
-                this,
-                if (disabled) {
-                    getString(R.string.toast_current_site_js_injection_disabled, host)
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_js_injection),
+                summary = getString(R.string.setting_js_injection_summary),
+                checked = isJsInjectionEnabled()
+            ) { enabled ->
+                settingsManager.setJsInjectionEnabled(enabled)
+                browserManager.reload()
+            }
+
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_current_site_js_injection_disabled),
+                summary = if (siteHost != null) {
+                    getString(R.string.setting_current_site_js_injection_disabled_summary, siteHost)
                 } else {
-                    getString(R.string.toast_current_site_js_injection_restored, host)
+                    getString(R.string.setting_current_site_js_injection_disabled_summary_empty)
                 },
-                Toast.LENGTH_SHORT
-            ).show()
-            browserManager.reload()
-        }
+                checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
+                enabled = siteHost != null
+            ) { disabled ->
+                val host = currentSiteHost() ?: return@addSwitchRow
+                settingsManager.setJsInjectionDisabledForSite(host, disabled)
+                Toast.makeText(
+                    this,
+                    if (disabled) {
+                        getString(R.string.toast_current_site_js_injection_disabled, host)
+                    } else {
+                        getString(R.string.toast_current_site_js_injection_restored, host)
+                    },
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+            }
 
-        addSwitchRow(
-            parent = content,
-            title = getString(R.string.setting_page_cleanup),
-            summary = getString(R.string.setting_page_cleanup_summary),
-            checked = isPageCleanupEnabled()
-        ) { enabled ->
-            settingsManager.setDomAdBlockEnabled(enabled)
-            injectPageFeatures()
-        }
+            addDivider(section)
 
-        addSwitchRow(
-            parent = content,
-            title = getString(R.string.setting_video_enhancement),
-            summary = getString(R.string.setting_video_enhancement_summary),
-            checked = isVideoEnhancementEnabled()
-        ) { enabled ->
-            settingsManager.setVideoEnhancementEnabled(enabled)
-            injectPageFeatures()
-        }
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_page_cleanup),
+                summary = getString(R.string.setting_page_cleanup_summary),
+                checked = isPageCleanupEnabled()
+            ) { enabled ->
+                settingsManager.setDomAdBlockEnabled(enabled)
+                injectPageFeatures()
+            }
 
-        addSwitchRow(
-            parent = content,
-            title = getString(R.string.setting_desktop_mode),
-            summary = getString(R.string.setting_desktop_mode_summary),
-            checked = isDesktopModeEnabled()
-        ) { enabled ->
-            settingsManager.setDesktopModeEnabled(enabled)
-            applyDesktopMode(reload = true)
-        }
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_video_enhancement),
+                summary = getString(R.string.setting_video_enhancement_summary),
+                checked = isVideoEnhancementEnabled()
+            ) { enabled ->
+                settingsManager.setVideoEnhancementEnabled(enabled)
+                injectPageFeatures()
+            }
 
-        addDivider(content)
-
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_show_ad_block_log),
-            summary = getString(R.string.action_show_ad_block_log_summary)
-        ) {
-            showAdBlockLog()
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_desktop_mode),
+                summary = getString(R.string.setting_desktop_mode_summary),
+                checked = isDesktopModeEnabled()
+            ) { enabled ->
+                settingsManager.setDesktopModeEnabled(enabled)
+                applyDesktopMode(reload = true)
+            }
         }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_manage_user_whitelist),
-            summary = getString(R.string.action_manage_user_whitelist_summary)
-        ) {
-            showUserWhitelistManager()
-        }
-
-        addDivider(content)
-
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_open_native_player),
-            summary = getString(R.string.action_open_native_player_summary)
-        ) {
-            openCurrentUrlInNativePlayer()
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_add_bookmark),
-            summary = getString(R.string.action_add_bookmark_summary)
-        ) {
-            saveCurrentBookmark()
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_show_bookmarks),
-            summary = getString(R.string.action_show_bookmarks_summary)
-        ) {
-            showSavedPageList(
-                key = KEY_BOOKMARKS,
-                title = getString(R.string.title_bookmarks),
-                emptyMessage = getString(R.string.toast_bookmarks_empty)
-            )
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_show_history),
-            summary = getString(R.string.action_show_history_summary)
-        ) {
-            showSavedPageList(
-                key = KEY_HISTORY,
-                title = getString(R.string.title_history),
-                emptyMessage = getString(R.string.toast_history_empty)
-            )
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_copy_link),
-            summary = getString(R.string.action_copy_link_summary)
-        ) {
-            copyCurrentUrl()
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_share_page),
-            summary = getString(R.string.action_share_page_summary)
-        ) {
-            shareCurrentUrl()
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_open_external),
-            summary = getString(R.string.action_open_external_summary)
-        ) {
-            openCurrentUrlExternally()
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_clear_browser_data),
-            summary = getString(R.string.action_clear_browser_data_summary)
-        ) {
-            clearBrowserData()
-        }
-        addActionRow(
-            parent = content,
-            title = getString(R.string.action_restore_default_settings),
-            summary = getString(R.string.action_restore_default_settings_summary)
-        ) {
-            showRestoreDefaultSettingsDialog()
+        addFunctionSection(content, getString(R.string.function_center_section_data)) { section ->
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_manage_user_whitelist),
+                summary = getString(R.string.action_manage_user_whitelist_summary)
+            ) {
+                showUserWhitelistManager()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_clear_browser_data),
+                summary = getString(R.string.action_clear_browser_data_summary)
+            ) {
+                clearBrowserData()
+            }
+            addActionRow(
+                parent = section,
+                title = getString(R.string.action_restore_default_settings),
+                summary = getString(R.string.action_restore_default_settings_summary)
+            ) {
+                showRestoreDefaultSettingsDialog()
+            }
         }
 
         val scrollView = ScrollView(this).apply {
+            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
             addView(
                 content,
                 ViewGroup.LayoutParams(
@@ -1233,12 +1234,334 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
+        page.addView(
+            scrollView,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        )
+        return page
+    }
 
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_function_center)
-            .setView(scrollView)
-            .setNegativeButton(R.string.action_close, null)
-            .show()
+    private fun createFunctionCenterToolbar(): View {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            elevation = dp(4).toFloat()
+            setPadding(dp(4), 0, dp(12), 0)
+            setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.browser_surface))
+
+            val pageBackButton = ImageButton(this@MainActivity).apply {
+                setImageResource(R.drawable.ic_arrow_back_24)
+                setColorFilter(ContextCompat.getColor(this@MainActivity, R.color.browser_icon))
+                background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_icon_button)
+                contentDescription = getString(R.string.action_back)
+                scaleType = ImageView.ScaleType.CENTER
+                setPadding(dp(16), dp(16), dp(16), dp(16))
+                setOnClickListener { closeFunctionCenter() }
+            }
+            ViewCompat.setTooltipText(pageBackButton, getString(R.string.action_back))
+            addView(
+                pageBackButton,
+                LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
+            )
+
+            val titleView = TextView(this@MainActivity).apply {
+                text = getString(R.string.title_function_center)
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
+                textSize = 18f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER_VERTICAL
+                includeFontPadding = false
+            }
+            addView(
+                titleView,
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+            )
+        }
+    }
+
+    private fun addFunctionCenterHeader(parent: LinearLayout, siteHost: String?) {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            background = createRoundedBackground(
+                ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
+            )
+        }
+
+        val avatar = TextView(this).apply {
+            text = getString(R.string.function_center_profile_badge)
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            textSize = 20f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.WHITE)
+            background = createCircleBackground(
+                ContextCompat.getColor(this@MainActivity, R.color.browser_primary)
+            )
+        }
+        card.addView(
+            avatar,
+            LinearLayout.LayoutParams(dp(52), dp(52))
+        )
+
+        val labels = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), 0, 0, 0)
+        }
+        labels.addView(
+            TextView(this).apply {
+                text = getString(R.string.function_center_profile_name)
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
+                textSize = 18f
+                typeface = Typeface.DEFAULT_BOLD
+            }
+        )
+        labels.addView(
+            TextView(this).apply {
+                text = getString(R.string.function_center_profile_summary)
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text_hint))
+                textSize = 13f
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+            }
+        )
+        labels.addView(
+            TextView(this).apply {
+                text = if (siteHost != null) {
+                    getString(R.string.function_center_current_site, siteHost)
+                } else {
+                    getString(R.string.function_center_no_site)
+                }
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_icon_muted))
+                textSize = 12f
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+            }
+        )
+        card.addView(
+            labels,
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        )
+
+        parent.addView(
+            card,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
+    private fun addFunctionCenterShortcuts(parent: LinearLayout) {
+        addSectionTitle(parent, getString(R.string.function_center_section_services))
+        val shortcuts = listOf(
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_native_player),
+                badge = "播",
+                accentColor = Color.parseColor("#FF7A45"),
+                onClick = ::openCurrentUrlInNativePlayer
+            ),
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_add_bookmark),
+                badge = "藏",
+                accentColor = Color.parseColor("#F7B500"),
+                onClick = ::saveCurrentBookmark
+            ),
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_bookmarks),
+                badge = "夹",
+                accentColor = Color.parseColor("#315EFB"),
+                onClick = {
+                    showSavedPageList(
+                        key = KEY_BOOKMARKS,
+                        title = getString(R.string.title_bookmarks),
+                        emptyMessage = getString(R.string.toast_bookmarks_empty)
+                    )
+                }
+            ),
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_history),
+                badge = "史",
+                accentColor = Color.parseColor("#7A5AF8"),
+                onClick = {
+                    showSavedPageList(
+                        key = KEY_HISTORY,
+                        title = getString(R.string.title_history),
+                        emptyMessage = getString(R.string.toast_history_empty)
+                    )
+                }
+            ),
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_copy_link),
+                badge = "链",
+                accentColor = Color.parseColor("#13B56B"),
+                onClick = ::copyCurrentUrl
+            ),
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_share_page),
+                badge = "享",
+                accentColor = Color.parseColor("#00A3A3"),
+                onClick = ::shareCurrentUrl
+            ),
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_open_external),
+                badge = "开",
+                accentColor = Color.parseColor("#5B6B84"),
+                onClick = ::openCurrentUrlExternally
+            ),
+            FunctionCenterShortcut(
+                title = getString(R.string.function_center_shortcut_ad_log),
+                badge = "拦",
+                accentColor = Color.parseColor("#E04747"),
+                onClick = ::showAdBlockLog
+            )
+        )
+
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            background = createRoundedBackground(
+                ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
+            )
+        }
+        shortcuts.chunked(4).forEach { rowShortcuts ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER
+            }
+            rowShortcuts.forEach { shortcut ->
+                row.addView(
+                    createShortcutItem(shortcut),
+                    LinearLayout.LayoutParams(0, dp(86), 1f)
+                )
+            }
+            repeat(4 - rowShortcuts.size) {
+                row.addView(
+                    View(this),
+                    LinearLayout.LayoutParams(0, dp(86), 1f)
+                )
+            }
+            panel.addView(
+                row,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
+        parent.addView(
+            panel,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
+    private fun createShortcutItem(shortcut: FunctionCenterShortcut): View {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(4), dp(6), dp(4), dp(4))
+            setSelectableItemBackground()
+            setOnClickListener { shortcut.onClick() }
+
+            addView(
+                TextView(this@MainActivity).apply {
+                    text = shortcut.badge
+                    gravity = Gravity.CENTER
+                    includeFontPadding = false
+                    textSize = 15f
+                    typeface = Typeface.DEFAULT_BOLD
+                    setTextColor(Color.WHITE)
+                    background = createCircleBackground(shortcut.accentColor)
+                },
+                LinearLayout.LayoutParams(dp(42), dp(42))
+            )
+            addView(
+                TextView(this@MainActivity).apply {
+                    text = shortcut.title
+                    gravity = Gravity.CENTER
+                    includeFontPadding = false
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
+                    textSize = 12f
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                },
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = dp(8)
+                }
+            )
+        }
+    }
+
+    private fun addFunctionSection(
+        parent: LinearLayout,
+        title: String,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        addSectionTitle(parent, title)
+        val section = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(4), dp(14), dp(4))
+            background = createRoundedBackground(
+                ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
+            )
+        }
+        buildContent(section)
+        parent.addView(
+            section,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
+    private fun addSectionTitle(parent: LinearLayout, title: String) {
+        parent.addView(
+            TextView(this).apply {
+                text = title
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text_hint))
+                textSize = 13f
+                typeface = Typeface.DEFAULT_BOLD
+                includeFontPadding = false
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(18)
+                bottomMargin = dp(8)
+                marginStart = dp(4)
+                marginEnd = dp(4)
+            }
+        )
+    }
+
+    private fun createRoundedBackground(color: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = dp(8).toFloat()
+        }
+    }
+
+    private fun createCircleBackground(color: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+        }
     }
 
     private fun showAdBlockLog() {
@@ -1392,7 +1715,13 @@ class MainActivity : AppCompatActivity() {
                 switchView.isChecked = !switchView.isChecked
             }
         }
-        parent.addView(row)
+        parent.addView(
+            row,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
     }
 
     private fun addActionRow(
@@ -1806,6 +2135,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUrl(url: String) {
+        if (isFunctionCenterVisible) {
+            closeFunctionCenter()
+        }
         if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
             openNativePlayer(url)
             return
