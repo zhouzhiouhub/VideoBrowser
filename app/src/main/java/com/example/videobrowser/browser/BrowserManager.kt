@@ -2,9 +2,11 @@ package com.example.videobrowser.browser
 
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
+import android.webkit.WebStorage
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebViewDatabase
 import android.webkit.WebViewClient
 
 class BrowserManager(
@@ -116,6 +118,18 @@ class BrowserManager(
         }
     }
 
+    fun setPrivateBrowsingEnabled(enabled: Boolean) {
+        CookieManager.getInstance().apply {
+            setAcceptCookie(!enabled)
+            setAcceptThirdPartyCookies(webView, !enabled)
+        }
+        webView.settings.cacheMode = if (enabled) {
+            WebSettings.LOAD_NO_CACHE
+        } else {
+            WebSettings.LOAD_DEFAULT
+        }
+    }
+
     fun evaluateJavascript(script: String) {
         webView.evaluateJavascript(script, null)
     }
@@ -123,7 +137,16 @@ class BrowserManager(
     fun clearBrowsingData() {
         webView.clearCache(true)
         webView.clearHistory()
-        CookieManager.getInstance().removeAllCookies(null)
+        webView.clearFormData()
+        webView.clearSslPreferences()
+        WebStorage.getInstance().deleteAllData()
+        WebViewDatabase.getInstance(webView.context).apply {
+            clearHttpAuthUsernamePassword()
+        }
+        CookieManager.getInstance().apply {
+            removeAllCookies(null)
+            flush()
+        }
     }
 
     fun onPause() {

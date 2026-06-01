@@ -8,7 +8,7 @@
     <string name="action_refresh">刷新</string>
     <string name="action_home">首页</string>
     <string name="action_menu">菜单</string>
-    <string name="anonymous_badge">工具</string>
+    <string name="anonymous_badge">无痕</string>
     <string name="element_picker_badge">工具</string>
     <string name="action_pick_element">屏蔽元素</string>
     <string name="action_select_search_provider">使用 %1$s 搜索</string>
@@ -55,6 +55,8 @@
     <string name="setting_video_enhancement">视频增强</string>
     <string name="setting_video_enhancement_summary">启用网页原生视频控件并尝试点击跳过广告</string>
     <string name="setting_disabled_in_browser_settings">浏览器设置中已关闭</string>
+    <string name="setting_private_browsing">无痕浏览</string>
+    <string name="setting_private_browsing_summary">不记录历史，并在切换或退出时清理 Cookie、缓存和站点数据</string>
     <string name="setting_desktop_mode">桌面模式</string>
     <string name="setting_desktop_mode_summary">使用桌面浏览器标识并横屏显示当前页面</string>
     <string name="action_open_native_player">原生播放器打开</string>
@@ -76,7 +78,7 @@
     <string name="action_file_operations_summary">打开本地文件，管理已授权目录中的文件</string>
     <string name="action_site_settings">站点设置</string>
     <string name="action_browser_settings">浏览器设置</string>
-    <string name="action_browser_settings_summary">全局增强、历史记录、文件和数据</string>
+    <string name="action_browser_settings_summary">全局增强、无痕模式、历史记录、文件和数据</string>
     <string name="action_add_site_rule">添加站点规则</string>
     <string name="action_join_whitelist">加入白名单</string>
     <string name="action_leave_whitelist">移出白名单</string>
@@ -119,7 +121,7 @@
     <string name="local_file_size_unknown">未知大小</string>
     <string name="local_file_time_unknown">未知时间</string>
     <string name="action_clear_browser_data">清理浏览数据</string>
-    <string name="action_clear_browser_data_summary">清理缓存、Cookie 和历史记录，保留收藏与设置</string>
+    <string name="action_clear_browser_data_summary">清理缓存、Cookie、站点数据和历史记录，保留收藏与设置</string>
     <string name="action_restore_default_settings">恢复默认设置</string>
     <string name="action_restore_default_settings_summary">重置搜索引擎和功能开关，保留收藏与历史记录</string>
     <string name="action_show_ad_block_log">拦截日志</string>
@@ -142,7 +144,7 @@
     <string name="site_config_whitelisted">已加入白名单</string>
     <string name="site_config_not_whitelisted">未加入白名单</string>
     <string name="site_config_rule_count">%1$d 条站点规则</string>
-    <string name="dialog_restore_default_settings_message">将搜索引擎、功能开关和桌面模式恢复为默认值。收藏、历史记录和浏览数据不会被清理。</string>
+    <string name="dialog_restore_default_settings_message">将搜索引擎、功能开关、无痕浏览和桌面模式恢复为默认值。收藏、历史记录和浏览数据不会被清理。</string>
     <string name="title_confirm_element_block">屏蔽此元素？</string>
     <string name="dialog_confirm_element_block_message">将在 %1$s 自动隐藏匹配元素。\n\n%2$s</string>
     <string name="title_ad_block_log">拦截日志</string>
@@ -165,6 +167,8 @@
     <string name="toast_link_copied">链接已复制</string>
     <string name="toast_browser_data_cleared">浏览数据已清理</string>
     <string name="toast_default_settings_restored">已恢复默认设置</string>
+    <string name="toast_private_browsing_enabled">已开启无痕浏览</string>
+    <string name="toast_private_browsing_disabled">已关闭无痕浏览</string>
     <string name="toast_current_site_ad_block_disabled">已关闭 %1$s 的广告请求拦截</string>
     <string name="toast_current_site_ad_block_restored">已恢复 %1$s 的广告请求拦截</string>
     <string name="toast_current_site_js_injection_disabled">已关闭 %1$s 的脚本增强</string>

@@ -257,6 +257,14 @@ class SettingsManager(
         preferenceStore.putBoolean(KEY_DESKTOP_MODE, enabled)
     }
 
+    fun isPrivateBrowsingEnabled(): Boolean {
+        return preferenceStore.getBoolean(KEY_PRIVATE_BROWSING, DEFAULT_PRIVATE_BROWSING_ENABLED)
+    }
+
+    fun setPrivateBrowsingEnabled(enabled: Boolean) {
+        preferenceStore.putBoolean(KEY_PRIVATE_BROWSING, enabled)
+    }
+
     fun restoreDefaults(): Boolean {
         return preferenceStore.remove(RESET_KEYS, commit = true)
     }
@@ -355,6 +363,7 @@ class SettingsManager(
         private const val DEFAULT_DOM_AD_BLOCK_ENABLED = true
         private const val DEFAULT_VIDEO_ENHANCEMENT_ENABLED = true
         private const val DEFAULT_DESKTOP_MODE_ENABLED = false
+        private const val DEFAULT_PRIVATE_BROWSING_ENABLED = false
 
         private const val KEY_AD_BLOCK = "ad_block"
         private const val KEY_SITE_AD_BLOCK_DISABLED_HOSTS = "site_ad_block_disabled_hosts"
@@ -371,6 +380,7 @@ class SettingsManager(
         private const val KEY_HOME_URL = "home_url"
         private const val KEY_SEARCH_ENGINE = "search_provider"
         private const val KEY_DESKTOP_MODE = "desktop_mode"
+        private const val KEY_PRIVATE_BROWSING = "private_browsing"
         private const val MAX_USER_ELEMENT_SELECTOR_LENGTH = 200
 
         private val RESET_KEYS = listOf(
@@ -387,7 +397,8 @@ class SettingsManager(
             KEY_DEFAULT_VIDEO_SPEED,
             KEY_HOME_URL,
             KEY_SEARCH_ENGINE,
-            KEY_DESKTOP_MODE
+            KEY_DESKTOP_MODE,
+            KEY_PRIVATE_BROWSING
         )
 
         fun from(context: Context): SettingsManager {

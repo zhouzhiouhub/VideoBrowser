@@ -73,6 +73,21 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/privateBrowsingBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_anonymous_badge"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="@string/anonymous_badge"
+            android:textColor="@color/privacy_text"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
         <ImageButton
             android:id="@+id/bookmarkButton"
             android:layout_width="42dp"

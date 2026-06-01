@@ -137,6 +137,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageProgress: ProgressBar
     private lateinit var searchProviderScroll: HorizontalScrollView
     private lateinit var searchProviderList: LinearLayout
+    private lateinit var privateBrowsingBadge: TextView
     private lateinit var pageToolsButton: ImageButton
     private lateinit var backButton: ImageButton
     private lateinit var refreshButton: ImageButton
@@ -260,6 +261,7 @@ class MainActivity : AppCompatActivity() {
         pageProgress = findViewById(R.id.pageProgress)
         searchProviderScroll = findViewById(R.id.searchProviderScroll)
         searchProviderList = findViewById(R.id.searchProviderList)
+        privateBrowsingBadge = findViewById(R.id.privateBrowsingBadge)
         pageToolsButton = findViewById(R.id.pageToolsButton)
         loadButton = findViewById(R.id.loadButton)
         backButton = findViewById(R.id.backButton)
@@ -294,6 +296,11 @@ class MainActivity : AppCompatActivity() {
 
         setupSearchProviders()
         browserManager.setup()
+        browserManager.setPrivateBrowsingEnabled(isPrivateBrowsingEnabled())
+        if (isPrivateBrowsingEnabled()) {
+            browserManager.clearBrowsingData()
+        }
+        updatePrivateBrowsingUi()
         setupBrowserControls()
         setupWebViewScrollControls()
         setupBackNavigation()
@@ -330,6 +337,9 @@ class MainActivity : AppCompatActivity() {
         closeFunctionCenter()
         if (::chromeClient.isInitialized) {
             chromeClient.hideCustomView()
+        }
+        if (::settingsManager.isInitialized && settingsManager.isPrivateBrowsingEnabled()) {
+            browserManager.clearBrowsingData()
         }
         browserManager.destroy()
         super.onDestroy()
@@ -1555,6 +1565,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun addGlobalEnhancementSection(parent: LinearLayout) {
         addFunctionSection(parent, getString(R.string.function_center_section_settings)) { section ->
+            addSwitchRow(
+                parent = section,
+                title = getString(R.string.setting_private_browsing),
+                summary = getString(R.string.setting_private_browsing_summary),
+                checked = isPrivateBrowsingEnabled()
+            ) { enabled ->
+                setPrivateBrowsingEnabled(enabled)
+            }
+
             addSwitchRow(
                 parent = section,
                 title = getString(R.string.setting_ad_block),
@@ -2845,6 +2864,43 @@ class MainActivity : AppCompatActivity() {
         updateNavigationButtons()
     }
 
+    private fun updatePrivateBrowsingUi() {
+        if (!::privateBrowsingBadge.isInitialized || !::settingsManager.isInitialized) {
+            return
+        }
+        privateBrowsingBadge.visibility = if (isPrivateBrowsingEnabled()) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    }
+
+    private fun setPrivateBrowsingEnabled(enabled: Boolean) {
+        if (isPrivateBrowsingEnabled() == enabled) {
+            updatePrivateBrowsingUi()
+            return
+        }
+
+        settingsManager.setPrivateBrowsingEnabled(enabled)
+        browserManager.setPrivateBrowsingEnabled(enabled)
+        browserManager.clearBrowsingData()
+        if (enabled) {
+            preferenceStore.remove(KEY_HISTORY)
+        }
+        updatePrivateBrowsingUi()
+        browserManager.reload()
+        updateNavigationButtons()
+        Toast.makeText(
+            this,
+            if (enabled) {
+                R.string.toast_private_browsing_enabled
+            } else {
+                R.string.toast_private_browsing_disabled
+            },
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
     private fun showRestoreDefaultSettingsPage() {
         showFunctionCenterSubPage(getString(R.string.action_restore_default_settings)) { content ->
             addFunctionMessage(content, getString(R.string.dialog_restore_default_settings_message))
@@ -2863,6 +2919,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addHistoryEntry(url: String?) {
+        if (isPrivateBrowsingEnabled()) {
+            return
+        }
         val page = currentSavedPage(url) ?: return
         addSavedPage(KEY_HISTORY, page, HISTORY_LIMIT)
     }
@@ -2992,6 +3051,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun isDesktopModeEnabled(): Boolean {
         return settingsManager.isDesktopModeEnabled()
+    }
+
+    private fun isPrivateBrowsingEnabled(): Boolean {
+        return settingsManager.isPrivateBrowsingEnabled()
     }
 
     private fun setupDownloadHandling() {
