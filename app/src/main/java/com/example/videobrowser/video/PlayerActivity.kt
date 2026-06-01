@@ -21,6 +21,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -154,7 +155,9 @@ class PlayerActivity : AppCompatActivity() {
             ?.takeIf { it.isNotBlank() }
             ?.let { dataSourceFactory.setUserAgent(it) }
 
-        val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
+        val mediaSourceFactory = DefaultMediaSourceFactory(
+            DefaultDataSource.Factory(this, dataSourceFactory)
+        )
         val mediaItem = MediaItem.Builder()
             .setUri(Uri.parse(mediaUri()))
             .setMimeType(normalizedMimeType(intent.getStringExtra(EXTRA_MIME_TYPE)))

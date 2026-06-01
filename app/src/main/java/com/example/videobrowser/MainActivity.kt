@@ -7,6 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.database.Cursor
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -14,6 +15,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.SystemClock
+import android.provider.DocumentsContract
+import android.provider.OpenableColumns
+import android.text.InputType
 import android.text.TextUtils
 import android.util.Log
 import android.util.TypedValue
@@ -38,6 +42,8 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
@@ -103,6 +109,30 @@ class MainActivity : AppCompatActivity() {
         val onClick: () -> Unit
     )
 
+    private data class LocalDirectoryPathItem(
+        val documentId: String,
+        val title: String
+    )
+
+    private data class LocalDocument(
+        val uri: Uri,
+        val documentId: String,
+        val name: String,
+        val mimeType: String?,
+        val size: Long?,
+        val modifiedAt: Long?,
+        val flags: Int
+    ) {
+        val isDirectory: Boolean
+            get() = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
+
+        val canDelete: Boolean
+            get() = flags and DocumentsContract.Document.FLAG_SUPPORTS_DELETE != 0
+
+        val canRename: Boolean
+            get() = flags and DocumentsContract.Document.FLAG_SUPPORTS_RENAME != 0
+    }
+
     private lateinit var rootView: View
     private lateinit var topBar: View
     private lateinit var bottomBar: View
@@ -126,6 +156,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserManager: BrowserManager
     private lateinit var jsInjector: JsInjector
     private lateinit var chromeClient: ChromeClient
+    private lateinit var openLocalFileLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var openLocalDirectoryLauncher: ActivityResultLauncher<Uri?>
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
@@ -241,6 +273,7 @@ class MainActivity : AppCompatActivity() {
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
+        setupFileOperationLaunchers()
         ruleEngine = createRuleEngine()
         browserManager = BrowserManager(webView)
         jsInjector = JsInjector(
@@ -1114,6 +1147,15 @@ class MainActivity : AppCompatActivity() {
         ) { content ->
             addFunctionCenterHeader(content, siteHost)
             addFunctionCenterShortcuts(content)
+            addFunctionSection(content, getString(R.string.function_center_section_files)) { section ->
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_file_operations),
+                    summary = getString(R.string.action_file_operations_summary)
+                ) {
+                    showFileOperationsPage()
+                }
+            }
             addFunctionSection(content, getString(R.string.function_center_section_settings)) { section ->
                 addSwitchRow(
                     parent = section,
@@ -1973,6 +2015,536 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun setupFileOperationLaunchers() {
+        openLocalFileLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri == null) {
+                return@registerForActivityResult
+            }
+            persistUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            openLocalDocumentUri(uri)
+        }
+
+        openLocalDirectoryLauncher =
+            registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+                if (uri == null) {
+                    return@registerForActivityResult
+                }
+                persistUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+                preferenceStore.putString(KEY_LOCAL_DIRECTORY_URI, uri.toString())
+                showLocalDirectoryPage(uri)
+            }
+    }
+
+    private fun persistUriPermission(uri: Uri, flags: Int) {
+        runCatching {
+            contentResolver.takePersistableUriPermission(uri, flags)
+        }.onFailure {
+            Log.w(RULE_LOG_TAG, "Unable to persist URI permission for $uri", it)
+        }
+    }
+
+    private fun showFileOperationsPage() {
+        showFunctionCenterSubPage(getString(R.string.title_file_operations)) { content ->
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_open_local_file),
+                    summary = getString(R.string.action_open_local_file_summary)
+                ) {
+                    openLocalFileLauncher.launch(arrayOf("*/*"))
+                }
+
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_browse_local_folder),
+                    summary = getString(R.string.action_browse_local_folder_summary)
+                ) {
+                    val uri = savedLocalDirectoryUri()
+                    if (uri == null) {
+                        openLocalDirectoryLauncher.launch(null)
+                    } else {
+                        showLocalDirectoryPage(uri)
+                    }
+                }
+
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_choose_local_folder),
+                    summary = getString(R.string.action_choose_local_folder_summary)
+                ) {
+                    openLocalDirectoryLauncher.launch(savedLocalDirectoryUri())
+                }
+
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_download_current_url),
+                    summary = getString(R.string.action_download_current_url_summary)
+                ) {
+                    downloadCurrentUrl()
+                }
+            }
+        }
+    }
+
+    private fun savedLocalDirectoryUri(): Uri? {
+        return preferenceStore.getString(KEY_LOCAL_DIRECTORY_URI, null)
+            ?.takeIf { it.isNotBlank() }
+            ?.let(Uri::parse)
+    }
+
+    private fun showLocalDirectoryPage(treeUri: Uri) {
+        val rootDocumentId = runCatching {
+            DocumentsContract.getTreeDocumentId(treeUri)
+        }.getOrNull()
+
+        if (rootDocumentId == null) {
+            preferenceStore.remove(KEY_LOCAL_DIRECTORY_URI)
+            Toast.makeText(this, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT).show()
+            showFileOperationsPage()
+            return
+        }
+
+        showLocalDirectoryPage(
+            treeUri = treeUri,
+            path = listOf(
+                LocalDirectoryPathItem(
+                    documentId = rootDocumentId,
+                    title = getString(R.string.title_local_files)
+                )
+            )
+        )
+    }
+
+    private fun showLocalDirectoryPage(treeUri: Uri, path: List<LocalDirectoryPathItem>) {
+        val current = path.lastOrNull() ?: return showLocalDirectoryPage(treeUri)
+        val onBack: () -> Unit = if (path.size > 1) {
+            { showLocalDirectoryPage(treeUri, path.dropLast(1)) }
+        } else {
+            { showFileOperationsPage() }
+        }
+
+        showFunctionCenterSubPage(
+            title = current.title,
+            onBack = onBack
+        ) { content ->
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_new_folder),
+                    summary = getString(R.string.action_new_folder_summary)
+                ) {
+                    promptCreateLocalDocument(
+                        treeUri = treeUri,
+                        path = path,
+                        mimeType = DocumentsContract.Document.MIME_TYPE_DIR,
+                        defaultName = getString(R.string.default_new_folder_name),
+                        dialogTitle = getString(R.string.title_new_folder)
+                    )
+                }
+
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_new_text_file),
+                    summary = getString(R.string.action_new_text_file_summary)
+                ) {
+                    promptCreateLocalDocument(
+                        treeUri = treeUri,
+                        path = path,
+                        mimeType = "text/plain",
+                        defaultName = getString(R.string.default_new_text_file_name),
+                        dialogTitle = getString(R.string.title_new_text_file)
+                    )
+                }
+
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_refresh),
+                    summary = getString(R.string.action_refresh_local_folder_summary)
+                ) {
+                    showLocalDirectoryPage(treeUri, path)
+                }
+            }
+
+            val documents = runCatching {
+                queryLocalDocuments(treeUri, current.documentId)
+            }.onFailure {
+                Log.w(RULE_LOG_TAG, "Unable to query local directory $treeUri", it)
+                Toast.makeText(
+                    this,
+                    R.string.toast_local_folder_unavailable,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }.getOrDefault(emptyList())
+
+            if (documents.isEmpty()) {
+                addEmptyState(content, getString(R.string.dialog_local_folder_empty))
+                return@showFunctionCenterSubPage
+            }
+
+            addFunctionSection(content, getString(R.string.function_center_section_files)) { section ->
+                documents.forEach { document ->
+                    addActionRow(
+                        parent = section,
+                        title = document.name,
+                        summary = localDocumentSummary(document)
+                    ) {
+                        if (document.isDirectory) {
+                            showLocalDirectoryPage(
+                                treeUri = treeUri,
+                                path = path + LocalDirectoryPathItem(document.documentId, document.name)
+                            )
+                        } else {
+                            showLocalDocumentActionsPage(document, treeUri, path)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun queryLocalDocuments(treeUri: Uri, parentDocumentId: String): List<LocalDocument> {
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+            treeUri,
+            parentDocumentId
+        )
+        val projection = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_SIZE,
+            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+            DocumentsContract.Document.COLUMN_FLAGS
+        )
+        val documents = mutableListOf<LocalDocument>()
+        contentResolver.query(childrenUri, projection, null, null, null)?.use { cursor ->
+            val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+            val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+            val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+            val sizeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+            val modifiedIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+            val flagsIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_FLAGS)
+
+            while (cursor.moveToNext()) {
+                val documentId = cursor.getStringOrNull(idIndex) ?: continue
+                val name = cursor.getStringOrNull(nameIndex)
+                    ?.takeIf { it.isNotBlank() }
+                    ?: documentId.substringAfterLast(':')
+                documents += LocalDocument(
+                    uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId),
+                    documentId = documentId,
+                    name = name,
+                    mimeType = cursor.getStringOrNull(mimeIndex),
+                    size = cursor.getLongOrNull(sizeIndex),
+                    modifiedAt = cursor.getLongOrNull(modifiedIndex),
+                    flags = cursor.getIntOrNull(flagsIndex) ?: 0
+                )
+            }
+        }
+        return documents.sortedWith(
+            compareBy<LocalDocument> { !it.isDirectory }
+                .thenBy { it.name.lowercase(Locale.getDefault()) }
+        )
+    }
+
+    private fun showLocalDocumentActionsPage(
+        document: LocalDocument,
+        treeUri: Uri,
+        path: List<LocalDirectoryPathItem>
+    ) {
+        showFunctionCenterSubPage(
+            title = document.name,
+            onBack = { showLocalDirectoryPage(treeUri, path) }
+        ) { content ->
+            addFunctionMessage(content, localDocumentSummary(document))
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_open_file),
+                    summary = getString(R.string.action_open_file_summary)
+                ) {
+                    openLocalDocument(document)
+                }
+
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_share_file),
+                    summary = getString(R.string.action_share_file_summary)
+                ) {
+                    shareLocalDocument(document)
+                }
+
+                if (document.canRename) {
+                    addActionRow(
+                        parent = section,
+                        title = getString(R.string.action_rename_file),
+                        summary = getString(R.string.action_rename_file_summary)
+                    ) {
+                        promptRenameLocalDocument(document, treeUri, path)
+                    }
+                }
+
+                if (document.canDelete) {
+                    addActionRow(
+                        parent = section,
+                        title = getString(R.string.action_delete_file),
+                        summary = getString(R.string.action_delete_file_summary)
+                    ) {
+                        confirmDeleteLocalDocument(document, treeUri, path)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun promptCreateLocalDocument(
+        treeUri: Uri,
+        path: List<LocalDirectoryPathItem>,
+        mimeType: String,
+        defaultName: String,
+        dialogTitle: String
+    ) {
+        showNameInputDialog(
+            title = dialogTitle,
+            initialValue = defaultName,
+            positiveButtonText = getString(R.string.action_create)
+        ) { name ->
+            val parent = path.lastOrNull() ?: return@showNameInputDialog
+            val parentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, parent.documentId)
+            val createdUri = runCatching {
+                DocumentsContract.createDocument(contentResolver, parentUri, mimeType, name)
+            }.getOrNull()
+
+            if (createdUri == null) {
+                Toast.makeText(this, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
+                return@showNameInputDialog
+            }
+
+            Toast.makeText(this, R.string.toast_local_file_created, Toast.LENGTH_SHORT).show()
+            showLocalDirectoryPage(treeUri, path)
+        }
+    }
+
+    private fun promptRenameLocalDocument(
+        document: LocalDocument,
+        treeUri: Uri,
+        path: List<LocalDirectoryPathItem>
+    ) {
+        showNameInputDialog(
+            title = getString(R.string.title_rename_file),
+            initialValue = document.name,
+            positiveButtonText = getString(R.string.action_rename)
+        ) { name ->
+            val renamedUri = runCatching {
+                DocumentsContract.renameDocument(contentResolver, document.uri, name)
+            }.getOrNull()
+
+            if (renamedUri == null) {
+                Toast.makeText(this, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
+                return@showNameInputDialog
+            }
+
+            Toast.makeText(this, R.string.toast_local_file_renamed, Toast.LENGTH_SHORT).show()
+            showLocalDirectoryPage(treeUri, path)
+        }
+    }
+
+    private fun confirmDeleteLocalDocument(
+        document: LocalDocument,
+        treeUri: Uri,
+        path: List<LocalDirectoryPathItem>
+    ) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_delete_file)
+            .setMessage(getString(R.string.dialog_delete_local_file_message, document.name))
+            .setPositiveButton(R.string.action_delete_file) { _, _ ->
+                val deleted = runCatching {
+                    DocumentsContract.deleteDocument(contentResolver, document.uri)
+                }.getOrDefault(false)
+
+                if (!deleted) {
+                    Toast.makeText(
+                        this,
+                        R.string.toast_local_file_operation_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setPositiveButton
+                }
+
+                Toast.makeText(this, R.string.toast_local_file_deleted, Toast.LENGTH_SHORT).show()
+                showLocalDirectoryPage(treeUri, path)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showNameInputDialog(
+        title: String,
+        initialValue: String,
+        positiveButtonText: String,
+        onConfirm: (String) -> Unit
+    ) {
+        val input = EditText(this).apply {
+            setText(initialValue)
+            setSelectAllOnFocus(true)
+            selectAll()
+            setSingleLine(true)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(input)
+            .setPositiveButton(positiveButtonText) { _, _ ->
+                val name = input.text?.toString()?.trim().orEmpty()
+                if (name.isBlank()) {
+                    Toast.makeText(this, R.string.toast_local_file_name_invalid, Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                onConfirm(name)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun openLocalDocument(document: LocalDocument) {
+        openLocalDocumentUri(
+            uri = document.uri,
+            displayName = document.name,
+            mimeType = document.mimeType
+        )
+    }
+
+    private fun openLocalDocumentUri(
+        uri: Uri,
+        displayName: String? = null,
+        mimeType: String? = null
+    ) {
+        val resolvedMimeType = mimeType ?: contentResolver.getType(uri)
+        val title = displayName ?: localDisplayName(uri)
+        if (MediaUrlUtils.isPlayableMediaUri(uri, resolvedMimeType)) {
+            openNativePlayer(
+                url = uri.toString(),
+                mimeType = resolvedMimeType,
+                titleOverride = title
+            )
+            return
+        }
+
+        openExternalDocument(uri, resolvedMimeType)
+    }
+
+    private fun openExternalDocument(uri: Uri, mimeType: String?) {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mimeType ?: "*/*")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            startActivity(Intent.createChooser(intent, getString(R.string.action_open_file)))
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun shareLocalDocument(document: LocalDocument) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = document.mimeType?.takeUnless { document.isDirectory } ?: "*/*"
+            putExtra(Intent.EXTRA_STREAM, document.uri)
+            clipData = ClipData.newUri(contentResolver, document.name, document.uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            startActivity(Intent.createChooser(intent, getString(R.string.action_share_file)))
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun downloadCurrentUrl() {
+        val url = currentShareableUrl() ?: run {
+            Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            return
+        }
+        enqueueDownload(
+            url = url,
+            userAgent = browserManager.userAgentString(),
+            contentDisposition = null,
+            mimeType = null
+        )
+    }
+
+    private fun localDocumentSummary(document: LocalDocument): String {
+        if (document.isDirectory) {
+            return getString(R.string.local_file_type_folder)
+        }
+
+        val type = document.mimeType
+            ?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.local_file_type_unknown)
+        return listOf(
+            type,
+            formatFileSize(document.size),
+            formatModifiedTime(document.modifiedAt)
+        ).joinToString(separator = " · ")
+    }
+
+    private fun formatFileSize(size: Long?): String {
+        if (size == null || size < 0) {
+            return getString(R.string.local_file_size_unknown)
+        }
+
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        var value = size.toDouble()
+        var unitIndex = 0
+        while (value >= 1024 && unitIndex < units.lastIndex) {
+            value /= 1024
+            unitIndex++
+        }
+        return if (unitIndex == 0) {
+            "$size ${units[unitIndex]}"
+        } else {
+            String.format(Locale.getDefault(), "%.1f %s", value, units[unitIndex])
+        }
+    }
+
+    private fun formatModifiedTime(modifiedAt: Long?): String {
+        if (modifiedAt == null || modifiedAt <= 0L) {
+            return getString(R.string.local_file_time_unknown)
+        }
+        return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            .format(Date(modifiedAt))
+    }
+
+    private fun localDisplayName(uri: Uri): String? {
+        return contentResolver.query(
+            uri,
+            arrayOf(OpenableColumns.DISPLAY_NAME),
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            if (!cursor.moveToFirst()) {
+                null
+            } else {
+                cursor.getStringOrNull(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+            }
+        }
+    }
+
+    private fun Cursor.getStringOrNull(index: Int): String? {
+        return if (index >= 0 && !isNull(index)) getString(index) else null
+    }
+
+    private fun Cursor.getLongOrNull(index: Int): Long? {
+        return if (index >= 0 && !isNull(index)) getLong(index) else null
+    }
+
+    private fun Cursor.getIntOrNull(index: Int): Int? {
+        return if (index >= 0 && !isNull(index)) getInt(index) else null
+    }
+
     private fun saveCurrentBookmark() {
         val page = currentSavedPage() ?: run {
             Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -2304,13 +2876,21 @@ class MainActivity : AppCompatActivity() {
     private fun openNativePlayer(
         url: String,
         mimeType: String? = null,
-        userAgentOverride: String? = null
+        userAgentOverride: String? = null,
+        titleOverride: String? = null
     ) {
-        val title = currentPageTitle
+        val title = titleOverride
+            ?.takeIf { it.isNotBlank() }
+            ?: currentPageTitle
             .takeIf { it.isNotBlank() && !it.equals(url, ignoreCase = true) }
             ?: URLUtil.guessFileName(url, null, mimeType)
-        val referer = currentShareableUrl()?.takeIf { !it.equals(url, ignoreCase = true) }
-        val cookie = if (isShareableUrl(url)) {
+        val isRemoteMedia = isShareableUrl(url)
+        val referer = if (isRemoteMedia) {
+            currentShareableUrl()?.takeIf { !it.equals(url, ignoreCase = true) }
+        } else {
+            null
+        }
+        val cookie = if (isRemoteMedia) {
             CookieManager.getInstance().getCookie(url)
         } else {
             null
@@ -2445,6 +3025,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val KEY_BOOKMARKS = "bookmarks"
         private const val KEY_HISTORY = "history"
+        private const val KEY_LOCAL_DIRECTORY_URI = "local_directory_uri"
         private const val JSON_TITLE = "title"
         private const val JSON_URL = "url"
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
