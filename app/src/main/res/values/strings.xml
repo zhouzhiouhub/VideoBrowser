@@ -47,7 +47,7 @@
     <string name="setting_video_enhancement">视频增强</string>
     <string name="setting_video_enhancement_summary">启用网页原生视频控件并尝试点击跳过广告</string>
     <string name="setting_desktop_mode">桌面模式</string>
-    <string name="setting_desktop_mode_summary">使用桌面浏览器标识重新加载当前页面</string>
+    <string name="setting_desktop_mode_summary">使用桌面浏览器标识并横屏显示当前页面</string>
     <string name="action_open_native_player">原生播放器打开</string>
     <string name="action_open_native_player_summary">用 Media3 播放当前直链视频或流媒体地址</string>
     <string name="action_add_bookmark">收藏当前页</string>

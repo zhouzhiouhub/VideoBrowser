@@ -7,6 +7,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.database.Cursor
 import android.graphics.Color
@@ -532,6 +533,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
         ViewCompat.requestApplyInsets(rootView)
+        if (!fullscreen) {
+            applyBrowserContentOrientation(isDesktopModeEnabled())
+        }
     }
 
     private fun seekFullscreenVideoBy(offsetMs: Long) {
@@ -2843,12 +2847,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyDesktopMode(reload: Boolean) {
+        val desktopModeEnabled = isDesktopModeEnabled()
+        applyBrowserContentOrientation(desktopModeEnabled)
         browserManager.applyDesktopMode(
-            enabled = isDesktopModeEnabled(),
+            enabled = desktopModeEnabled,
             desktopUserAgent = DESKTOP_USER_AGENT,
             defaultUserAgent = defaultUserAgent,
             reload = reload
         )
+    }
+
+    private fun applyBrowserContentOrientation(desktopModeEnabled: Boolean) {
+        if (::chromeClient.isInitialized && chromeClient.isFullscreenModeActive()) {
+            return
+        }
+        requestedOrientation = if (desktopModeEnabled) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
     }
 
     private fun injectPageFeatures() {
