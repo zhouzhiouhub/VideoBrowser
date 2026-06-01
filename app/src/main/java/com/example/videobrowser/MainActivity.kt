@@ -188,14 +188,6 @@ class MainActivity : AppCompatActivity() {
             accentColor = Color.parseColor("#20A052")
         ),
         SearchProvider(
-            id = "baidu",
-            name = "百度",
-            badge = "百",
-            homeUrl = "https://m.baidu.com/",
-            searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
-            accentColor = Color.parseColor("#315EFB")
-        ),
-        SearchProvider(
             id = "quark",
             name = "夸克搜索",
             badge = "夸",
@@ -210,6 +202,14 @@ class MainActivity : AppCompatActivity() {
             homeUrl = "https://so.m.sm.cn/",
             searchUrlPrefix = "https://so.m.sm.cn/s?q=",
             accentColor = Color.parseColor("#F28C20")
+        ),
+        SearchProvider(
+            id = "baidu",
+            name = "百度",
+            badge = "百",
+            homeUrl = "https://m.baidu.com/",
+            searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
+            accentColor = Color.parseColor("#315EFB")
         ),
         SearchProvider(
             id = "edge",
