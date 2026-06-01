@@ -146,6 +146,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var forwardButton: ImageButton
     private lateinit var refreshButton: ImageButton
     private lateinit var homeButton: ImageButton
+    private lateinit var bookmarkButton: ImageButton
     private lateinit var menuButton: ImageButton
     private lateinit var loadButton: ImageButton
     private lateinit var fullscreenContainer: FrameLayout
@@ -269,6 +270,7 @@ class MainActivity : AppCompatActivity() {
         forwardButton = findViewById(R.id.forwardButton)
         refreshButton = findViewById(R.id.refreshButton)
         homeButton = findViewById(R.id.homeButton)
+        bookmarkButton = findViewById(R.id.bookmarkButton)
         menuButton = findViewById(R.id.menuButton)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         preferenceStore = PreferenceStore.from(this)
@@ -349,6 +351,7 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setTooltipText(forwardButton, getString(R.string.action_forward))
         ViewCompat.setTooltipText(refreshButton, getString(R.string.action_refresh))
         ViewCompat.setTooltipText(homeButton, getString(R.string.action_home))
+        ViewCompat.setTooltipText(bookmarkButton, getString(R.string.action_add_bookmark))
         ViewCompat.setTooltipText(menuButton, getString(R.string.action_menu))
 
         addressInput.setOnFocusChangeListener { _, hasFocus ->
@@ -380,6 +383,7 @@ class MainActivity : AppCompatActivity() {
         }
         refreshButton.setOnClickListener { browserManager.reload() }
         homeButton.setOnClickListener { openHomePage() }
+        bookmarkButton.setOnClickListener { toggleCurrentBookmark() }
         anonymousBadge.setOnClickListener { startElementPicker() }
         menuButton.setOnClickListener { showFunctionCenter() }
 
@@ -1456,12 +1460,6 @@ class MainActivity : AppCompatActivity() {
                 badge = "播",
                 accentColor = Color.parseColor("#FF7A45"),
                 onClick = ::openCurrentUrlInNativePlayer
-            ),
-            FunctionCenterShortcut(
-                title = getString(R.string.function_center_shortcut_add_bookmark),
-                badge = "藏",
-                accentColor = Color.parseColor("#F7B500"),
-                onClick = ::saveCurrentBookmark
             ),
             FunctionCenterShortcut(
                 title = getString(R.string.function_center_shortcut_bookmarks),
@@ -2545,13 +2543,20 @@ class MainActivity : AppCompatActivity() {
         return if (index >= 0 && !isNull(index)) getInt(index) else null
     }
 
-    private fun saveCurrentBookmark() {
+    private fun toggleCurrentBookmark() {
         val page = currentSavedPage() ?: run {
             Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
             return
         }
-        addSavedPage(KEY_BOOKMARKS, page, BOOKMARK_LIMIT)
-        Toast.makeText(this, R.string.toast_bookmark_saved, Toast.LENGTH_SHORT).show()
+
+        if (isSavedPage(KEY_BOOKMARKS, page.url)) {
+            removeSavedPage(KEY_BOOKMARKS, page.url)
+            Toast.makeText(this, R.string.toast_bookmark_removed, Toast.LENGTH_SHORT).show()
+        } else {
+            addSavedPage(KEY_BOOKMARKS, page, BOOKMARK_LIMIT)
+            Toast.makeText(this, R.string.toast_bookmark_saved, Toast.LENGTH_SHORT).show()
+        }
+        updateBookmarkButton()
     }
 
     private fun showSavedPageList(key: String, title: String, emptyMessage: String) {
@@ -2664,7 +2669,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun currentSavedPage(urlOverride: String? = null): SavedPage? {
-        val url = urlOverride ?: browserManager.currentUrl()
+        val url = urlOverride ?: currentActionableUrl()
         if (url.isNullOrBlank() || !isShareableUrl(url)) {
             return null
         }
@@ -2681,6 +2686,16 @@ class MainActivity : AppCompatActivity() {
             .toMutableList()
         pages.add(0, page)
         saveSavedPages(key, pages.take(limit))
+    }
+
+    private fun removeSavedPage(key: String, url: String) {
+        val pages = loadSavedPages(key)
+            .filterNot { it.url.equals(url, ignoreCase = true) }
+        saveSavedPages(key, pages)
+    }
+
+    private fun isSavedPage(key: String, url: String): Boolean {
+        return loadSavedPages(key).any { it.url.equals(url, ignoreCase = true) }
     }
 
     private fun loadSavedPages(key: String): MutableList<SavedPage> {
@@ -2851,7 +2866,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun currentShareableUrl(): String? {
-        return browserManager.currentUrl()?.takeIf { isShareableUrl(it) }
+        return currentActionableUrl()
+    }
+
+    private fun currentActionableUrl(): String? {
+        return listOf(currentPageUrl, browserManager.currentUrl())
+            .firstOrNull { url -> !url.isNullOrBlank() && isShareableUrl(url) }
     }
 
     private fun currentSiteHost(): String? {
@@ -2950,6 +2970,38 @@ class MainActivity : AppCompatActivity() {
     private fun updateNavigationButtons() {
         backButton.isEnabled = browserManager.canGoBack()
         forwardButton.isEnabled = browserManager.canGoForward()
+        updateBookmarkButton()
+    }
+
+    private fun updateBookmarkButton() {
+        if (!::bookmarkButton.isInitialized || !::preferenceStore.isInitialized) {
+            return
+        }
+
+        // 页面级收藏入口直接跟随 WebView 当前地址，避免依赖功能中心上下文。
+        val url = currentActionableUrl()
+        val isEnabled = url != null
+        val isBookmarked = url?.let { isSavedPage(KEY_BOOKMARKS, it) } ?: false
+        val actionText = getString(
+            if (isBookmarked) R.string.action_remove_bookmark else R.string.action_add_bookmark
+        )
+
+        bookmarkButton.isEnabled = isEnabled
+        bookmarkButton.contentDescription = actionText
+        bookmarkButton.setImageResource(
+            if (isBookmarked) R.drawable.ic_star_filled_24 else R.drawable.ic_star_24
+        )
+        bookmarkButton.setColorFilter(
+            ContextCompat.getColor(
+                this,
+                when {
+                    !isEnabled -> R.color.browser_icon_disabled
+                    isBookmarked -> R.color.bookmark_active
+                    else -> R.color.browser_icon
+                }
+            )
+        )
+        ViewCompat.setTooltipText(bookmarkButton, actionText)
     }
 
     private fun showHomeContent(show: Boolean) {

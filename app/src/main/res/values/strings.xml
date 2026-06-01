@@ -27,7 +27,6 @@
     <string name="function_center_section_records">记录</string>
     <string name="function_center_section_sites">站点</string>
     <string name="function_center_shortcut_native_player">原生播放</string>
-    <string name="function_center_shortcut_add_bookmark">收藏</string>
     <string name="function_center_shortcut_bookmarks">收藏夹</string>
     <string name="function_center_shortcut_history">历史</string>
     <string name="function_center_shortcut_copy_link">复制链接</string>
@@ -55,6 +54,7 @@
     <string name="action_open_native_player">原生播放器打开</string>
     <string name="action_open_native_player_summary">用 Media3 播放当前直链视频或流媒体地址</string>
     <string name="action_add_bookmark">收藏当前页</string>
+    <string name="action_remove_bookmark">取消收藏当前页</string>
     <string name="action_add_bookmark_summary">保存到本地收藏夹</string>
     <string name="action_show_bookmarks">打开收藏夹</string>
     <string name="action_show_bookmarks_summary">查看并打开本地保存的网页</string>
@@ -138,6 +138,7 @@
     <string name="clipboard_page_url">页面链接</string>
     <string name="toast_no_page_url">当前没有可操作的网页地址</string>
     <string name="toast_bookmark_saved">已收藏到本地</string>
+    <string name="toast_bookmark_removed">已取消收藏</string>
     <string name="toast_bookmarks_empty">收藏夹为空</string>
     <string name="toast_history_empty">暂无历史记录</string>
     <string name="toast_saved_pages_cleared">已清空</string>

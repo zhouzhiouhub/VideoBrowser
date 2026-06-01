@@ -73,6 +73,19 @@
 
         </LinearLayout>
 
+        <ImageButton
+            android:id="@+id/bookmarkButton"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_add_bookmark"
+            android:enabled="false"
+            android:padding="10dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_star_24"
+            android:tint="@color/bottom_nav_icon" />
+
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/anonymousBadge"
             android:layout_width="wrap_content"
