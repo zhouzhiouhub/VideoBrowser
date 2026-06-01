@@ -186,6 +186,35 @@ class UrlUtilsTest {
     }
 
     @Test
+    fun displayUrl_decodesPercentEncodedUrlForReadability() {
+        assertEquals(
+            "https://example.com/视频?q=多少钱",
+            UrlUtils.displayUrl(
+                "https://example.com/%E8%A7%86%E9%A2%91?q=%E5%A4%9A%E5%B0%91%E9%92%B1"
+            )
+        )
+    }
+
+    @Test
+    fun displayUrl_decodesBaiduLandingContextWithoutChangingLoadUrl() {
+        assertEquals(
+            "https://mbd.baidu.com/newspage/data/landingsuper?context={\"nid\":\"news_1\"}",
+            UrlUtils.displayUrl(
+                "https://mbd.baidu.com/newspage/data/landingsuper?" +
+                    "context=%7B%22nid%22%3A%22news_1%22%7D"
+            )
+        )
+    }
+
+    @Test
+    fun displayUrl_keepsInvalidPercentEscapes() {
+        assertEquals(
+            "https://example.com/%zz?q=100%",
+            UrlUtils.displayUrl("https://example.com/%zz?q=100%")
+        )
+    }
+
+    @Test
     fun resolveAddressInput_keepsSafeAboutUrls() {
         assertEquals(
             "about:blank",

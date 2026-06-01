@@ -715,10 +715,24 @@
   }
 
   function isSearchProviderResultPage() {
-    const host = String(location.hostname || '');
+    const host = String(location.hostname || '').toLowerCase();
     const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
-    if (!/(\.|^)(baidu|sogou|so|sm)\.com$/i.test(host)) return false;
-    return path !== '/';
+    const query = location.search || '';
+
+    if (/^(m|www)\.baidu\.com$/i.test(host)) {
+      return (path === '/s' && /[?&](word|wd)=/i.test(query)) ||
+        (path === '/baidu' && /[?&](word|wd)=/i.test(query));
+    }
+    if (/^(m\.)?sogou\.com$/i.test(host) || host === 'www.sogou.com') {
+      return (path === '/web' || path === '/s') && /[?&](query|keyword)=/i.test(query);
+    }
+    if (/^(m\.)?so\.com$/i.test(host) || host === 'www.so.com') {
+      return path === '/s' && /[?&]q=/i.test(query);
+    }
+    if (host === 'quark.sm.cn' || host === 'so.m.sm.cn') {
+      return path === '/s' && /[?&]q=/i.test(query);
+    }
+    return false;
   }
 
   function removeSearchResultAds() {
@@ -1282,10 +1296,9 @@
   }
 
   function isSearchProviderHomePage() {
-    const host = String(location.hostname || '');
+    const host = String(location.hostname || '').toLowerCase();
     const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
-    if (!/(\.|^)(baidu|sogou|so|sm)\.com$/i.test(host)) return false;
-    return path === '/';
+    return path === '/' && /^(m\.baidu\.com|m\.sogou\.com|m\.so\.com|quark\.sm\.cn|so\.m\.sm\.cn|www\.bing\.com)$/i.test(host);
   }
 
   function enhanceVideos() {

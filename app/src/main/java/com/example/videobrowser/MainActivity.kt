@@ -1201,7 +1201,9 @@ class MainActivity : AppCompatActivity() {
         pageUrl: String?,
         siteHost: String?
     ) {
-        val pageSummary = pageUrl ?: getString(R.string.function_center_page_action_unavailable)
+        val pageSummary = pageUrl
+            ?.let(UrlUtils::displayUrl)
+            ?: getString(R.string.function_center_page_action_unavailable)
         val hasPage = pageUrl != null
         val bookmarkTitle = if (pageUrl?.let { isSavedPage(KEY_BOOKMARKS, it) } == true) {
             getString(R.string.action_remove_bookmark)
@@ -2595,7 +2597,7 @@ class MainActivity : AppCompatActivity() {
                     addActionRow(
                         parent = section,
                         title = page.title.ifBlank { page.url },
-                        summary = page.url
+                        summary = UrlUtils.displayUrl(page.url)
                     ) {
                         loadUrl(page.url)
                     }
@@ -2982,7 +2984,7 @@ class MainActivity : AppCompatActivity() {
         searchProviders.forEach { provider ->
             UrlUtils.searchQueryFromUrl(url, provider.searchUrlPrefix)?.let { return it }
         }
-        return url
+        return UrlUtils.displayUrl(url)
     }
 
     private fun updateNavigationButtons() {
