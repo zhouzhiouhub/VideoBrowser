@@ -214,6 +214,7 @@ class MainActivity : AppCompatActivity() {
     private var elementPickerStartedAt = 0L
     private var elementPickerDialog: AlertDialog? = null
     private var functionCenterPage: View? = null
+    private var functionCenterBackAction: (() -> Unit)? = null
     private var isFunctionCenterVisible = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -850,7 +851,7 @@ class MainActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (closeFunctionCenter()) {
+                    if (handleFunctionCenterBack()) {
                         return
                     } else if (isElementPickerActive) {
                         cancelElementPicker()
@@ -1041,11 +1042,36 @@ class MainActivity : AppCompatActivity() {
 
     private fun showFunctionCenter() {
         hideKeyboard()
-        val container = rootView as? ViewGroup ?: return
-        functionCenterPage?.let(container::removeView)
+        showFunctionCenterRootPage()
+    }
 
-        val page = createFunctionCenterPage()
+    private fun showFunctionCenterRootPage() {
+        val onBack: () -> Unit = { closeFunctionCenter() }
+        attachFunctionCenterPage(
+            page = createFunctionCenterRootPage(onBack),
+            onBack = onBack
+        )
+    }
+
+    private fun showFunctionCenterSubPage(
+        title: String,
+        onBack: () -> Unit = { showFunctionCenterRootPage() },
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        attachFunctionCenterPage(
+            page = createFunctionCenterPage(title, onBack, buildContent),
+            onBack = onBack
+        )
+    }
+
+    private fun attachFunctionCenterPage(page: View, onBack: () -> Unit) {
+        val container = rootView as? ViewGroup ?: return
+        functionCenterPage?.let { currentPage ->
+            (currentPage.parent as? ViewGroup)?.removeView(currentPage)
+        }
+
         functionCenterPage = page
+        functionCenterBackAction = onBack
         isFunctionCenterVisible = true
         container.addView(
             page,
@@ -1063,16 +1089,167 @@ class MainActivity : AppCompatActivity() {
         page.requestFocus()
     }
 
+    private fun handleFunctionCenterBack(): Boolean {
+        if (!isFunctionCenterVisible || functionCenterPage == null) {
+            return false
+        }
+        functionCenterBackAction?.invoke() ?: closeFunctionCenter()
+        return true
+    }
+
     private fun closeFunctionCenter(): Boolean {
         val page = functionCenterPage ?: return false
         (page.parent as? ViewGroup)?.removeView(page)
         functionCenterPage = null
+        functionCenterBackAction = null
         isFunctionCenterVisible = false
         return true
     }
 
-    private fun createFunctionCenterPage(): View {
+    private fun createFunctionCenterRootPage(onBack: () -> Unit): View {
         val siteHost = currentSiteHost()
+        return createFunctionCenterPage(
+            title = getString(R.string.title_function_center),
+            onBack = onBack
+        ) { content ->
+            addFunctionCenterHeader(content, siteHost)
+            addFunctionCenterShortcuts(content)
+            addFunctionSection(content, getString(R.string.function_center_section_settings)) { section ->
+                addSwitchRow(
+                    parent = section,
+                    title = getString(R.string.setting_ad_block),
+                    summary = getString(R.string.setting_ad_block_summary),
+                    checked = isAdBlockEnabled()
+                ) { enabled ->
+                    settingsManager.setAdBlockEnabled(enabled)
+                    browserManager.reload()
+                }
+
+                addSwitchRow(
+                    parent = section,
+                    title = getString(R.string.setting_current_site_ad_block_disabled),
+                    summary = if (siteHost != null) {
+                        getString(R.string.setting_current_site_ad_block_disabled_summary, siteHost)
+                    } else {
+                        getString(R.string.setting_current_site_ad_block_disabled_summary_empty)
+                    },
+                    checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
+                    enabled = siteHost != null
+                ) { disabled ->
+                    val host = currentSiteHost() ?: return@addSwitchRow
+                    settingsManager.setAdBlockDisabledForSite(host, disabled)
+                    Toast.makeText(
+                        this,
+                        if (disabled) {
+                            getString(R.string.toast_current_site_ad_block_disabled, host)
+                        } else {
+                            getString(R.string.toast_current_site_ad_block_restored, host)
+                        },
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    browserManager.reload()
+                }
+
+                addDivider(section)
+
+                addSwitchRow(
+                    parent = section,
+                    title = getString(R.string.setting_js_injection),
+                    summary = getString(R.string.setting_js_injection_summary),
+                    checked = isJsInjectionEnabled()
+                ) { enabled ->
+                    settingsManager.setJsInjectionEnabled(enabled)
+                    browserManager.reload()
+                }
+
+                addSwitchRow(
+                    parent = section,
+                    title = getString(R.string.setting_current_site_js_injection_disabled),
+                    summary = if (siteHost != null) {
+                        getString(R.string.setting_current_site_js_injection_disabled_summary, siteHost)
+                    } else {
+                        getString(R.string.setting_current_site_js_injection_disabled_summary_empty)
+                    },
+                    checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
+                    enabled = siteHost != null
+                ) { disabled ->
+                    val host = currentSiteHost() ?: return@addSwitchRow
+                    settingsManager.setJsInjectionDisabledForSite(host, disabled)
+                    Toast.makeText(
+                        this,
+                        if (disabled) {
+                            getString(R.string.toast_current_site_js_injection_disabled, host)
+                        } else {
+                            getString(R.string.toast_current_site_js_injection_restored, host)
+                        },
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    browserManager.reload()
+                }
+
+                addDivider(section)
+
+                addSwitchRow(
+                    parent = section,
+                    title = getString(R.string.setting_page_cleanup),
+                    summary = getString(R.string.setting_page_cleanup_summary),
+                    checked = isPageCleanupEnabled()
+                ) { enabled ->
+                    settingsManager.setDomAdBlockEnabled(enabled)
+                    injectPageFeatures()
+                }
+
+                addSwitchRow(
+                    parent = section,
+                    title = getString(R.string.setting_video_enhancement),
+                    summary = getString(R.string.setting_video_enhancement_summary),
+                    checked = isVideoEnhancementEnabled()
+                ) { enabled ->
+                    settingsManager.setVideoEnhancementEnabled(enabled)
+                    injectPageFeatures()
+                }
+
+                addSwitchRow(
+                    parent = section,
+                    title = getString(R.string.setting_desktop_mode),
+                    summary = getString(R.string.setting_desktop_mode_summary),
+                    checked = isDesktopModeEnabled()
+                ) { enabled ->
+                    settingsManager.setDesktopModeEnabled(enabled)
+                    applyDesktopMode(reload = true)
+                }
+            }
+            addFunctionSection(content, getString(R.string.function_center_section_data)) { section ->
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_manage_user_whitelist),
+                    summary = getString(R.string.action_manage_user_whitelist_summary)
+                ) {
+                    showUserWhitelistManager()
+                }
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_clear_browser_data),
+                    summary = getString(R.string.action_clear_browser_data_summary)
+                ) {
+                    clearBrowserData()
+                }
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_restore_default_settings),
+                    summary = getString(R.string.action_restore_default_settings_summary)
+                ) {
+                    showRestoreDefaultSettingsPage()
+                }
+            }
+        }
+    }
+
+    private fun createFunctionCenterPage(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ): View {
         val page = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             isClickable = true
@@ -1082,7 +1259,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         page.addView(
-            createFunctionCenterToolbar(),
+            createFunctionCenterToolbar(title, onBack),
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 dp(56)
@@ -1093,136 +1270,7 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(12), dp(14), dp(24))
         }
-        addFunctionCenterHeader(content, siteHost)
-        addFunctionCenterShortcuts(content)
-        addFunctionSection(content, getString(R.string.function_center_section_settings)) { section ->
-            addSwitchRow(
-                parent = section,
-                title = getString(R.string.setting_ad_block),
-                summary = getString(R.string.setting_ad_block_summary),
-                checked = isAdBlockEnabled()
-            ) { enabled ->
-                settingsManager.setAdBlockEnabled(enabled)
-                browserManager.reload()
-            }
-
-            addSwitchRow(
-                parent = section,
-                title = getString(R.string.setting_current_site_ad_block_disabled),
-                summary = if (siteHost != null) {
-                    getString(R.string.setting_current_site_ad_block_disabled_summary, siteHost)
-                } else {
-                    getString(R.string.setting_current_site_ad_block_disabled_summary_empty)
-                },
-                checked = siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false,
-                enabled = siteHost != null
-            ) { disabled ->
-                val host = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setAdBlockDisabledForSite(host, disabled)
-                Toast.makeText(
-                    this,
-                    if (disabled) {
-                        getString(R.string.toast_current_site_ad_block_disabled, host)
-                    } else {
-                        getString(R.string.toast_current_site_ad_block_restored, host)
-                    },
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager.reload()
-            }
-
-            addDivider(section)
-
-            addSwitchRow(
-                parent = section,
-                title = getString(R.string.setting_js_injection),
-                summary = getString(R.string.setting_js_injection_summary),
-                checked = isJsInjectionEnabled()
-            ) { enabled ->
-                settingsManager.setJsInjectionEnabled(enabled)
-                browserManager.reload()
-            }
-
-            addSwitchRow(
-                parent = section,
-                title = getString(R.string.setting_current_site_js_injection_disabled),
-                summary = if (siteHost != null) {
-                    getString(R.string.setting_current_site_js_injection_disabled_summary, siteHost)
-                } else {
-                    getString(R.string.setting_current_site_js_injection_disabled_summary_empty)
-                },
-                checked = siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false,
-                enabled = siteHost != null
-            ) { disabled ->
-                val host = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setJsInjectionDisabledForSite(host, disabled)
-                Toast.makeText(
-                    this,
-                    if (disabled) {
-                        getString(R.string.toast_current_site_js_injection_disabled, host)
-                    } else {
-                        getString(R.string.toast_current_site_js_injection_restored, host)
-                    },
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager.reload()
-            }
-
-            addDivider(section)
-
-            addSwitchRow(
-                parent = section,
-                title = getString(R.string.setting_page_cleanup),
-                summary = getString(R.string.setting_page_cleanup_summary),
-                checked = isPageCleanupEnabled()
-            ) { enabled ->
-                settingsManager.setDomAdBlockEnabled(enabled)
-                injectPageFeatures()
-            }
-
-            addSwitchRow(
-                parent = section,
-                title = getString(R.string.setting_video_enhancement),
-                summary = getString(R.string.setting_video_enhancement_summary),
-                checked = isVideoEnhancementEnabled()
-            ) { enabled ->
-                settingsManager.setVideoEnhancementEnabled(enabled)
-                injectPageFeatures()
-            }
-
-            addSwitchRow(
-                parent = section,
-                title = getString(R.string.setting_desktop_mode),
-                summary = getString(R.string.setting_desktop_mode_summary),
-                checked = isDesktopModeEnabled()
-            ) { enabled ->
-                settingsManager.setDesktopModeEnabled(enabled)
-                applyDesktopMode(reload = true)
-            }
-        }
-        addFunctionSection(content, getString(R.string.function_center_section_data)) { section ->
-            addActionRow(
-                parent = section,
-                title = getString(R.string.action_manage_user_whitelist),
-                summary = getString(R.string.action_manage_user_whitelist_summary)
-            ) {
-                showUserWhitelistManager()
-            }
-            addActionRow(
-                parent = section,
-                title = getString(R.string.action_clear_browser_data),
-                summary = getString(R.string.action_clear_browser_data_summary)
-            ) {
-                clearBrowserData()
-            }
-            addActionRow(
-                parent = section,
-                title = getString(R.string.action_restore_default_settings),
-                summary = getString(R.string.action_restore_default_settings_summary)
-            ) {
-                showRestoreDefaultSettingsDialog()
-            }
-        }
+        buildContent(content)
 
         val scrollView = ScrollView(this).apply {
             overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
@@ -1245,7 +1293,7 @@ class MainActivity : AppCompatActivity() {
         return page
     }
 
-    private fun createFunctionCenterToolbar(): View {
+    private fun createFunctionCenterToolbar(title: String, onBack: () -> Unit): View {
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -1260,7 +1308,7 @@ class MainActivity : AppCompatActivity() {
                 contentDescription = getString(R.string.action_back)
                 scaleType = ImageView.ScaleType.CENTER
                 setPadding(dp(16), dp(16), dp(16), dp(16))
-                setOnClickListener { closeFunctionCenter() }
+                setOnClickListener { onBack() }
             }
             ViewCompat.setTooltipText(pageBackButton, getString(R.string.action_back))
             addView(
@@ -1269,7 +1317,7 @@ class MainActivity : AppCompatActivity() {
             )
 
             val titleView = TextView(this@MainActivity).apply {
-                text = getString(R.string.title_function_center)
+                text = title
                 setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
                 textSize = 18f
                 typeface = Typeface.DEFAULT_BOLD
@@ -1571,36 +1619,64 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_ad_block_log)
-            .setItems(entries.map(::formatAdBlockLogEntry).toTypedArray()) { _, which ->
-                val entry = entries[which]
-                if (entry.action == AdBlockLogAction.BLOCK && !entry.host.isNullOrBlank()) {
-                    showAddWhitelistFromLogDialog(entry.host)
+        showFunctionCenterSubPage(getString(R.string.title_ad_block_log)) { content ->
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_clear),
+                    summary = getString(R.string.action_clear_ad_block_log_summary)
+                ) {
+                    adBlockLogger.clear()
+                    Toast.makeText(
+                        this,
+                        R.string.toast_ad_block_log_cleared,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    showFunctionCenterRootPage()
                 }
             }
-            .setNeutralButton(R.string.action_clear) { _, _ ->
-                adBlockLogger.clear()
-                Toast.makeText(this, R.string.toast_ad_block_log_cleared, Toast.LENGTH_SHORT).show()
+
+            addFunctionSection(content, getString(R.string.function_center_section_records)) { section ->
+                entries.forEach { entry ->
+                    val host = adBlockLogHost(entry)
+                    val source = entry.ruleSource ?: entry.reason.name.lowercase(Locale.US)
+                    val rule = entry.ruleId ?: entry.rulePattern ?: entry.reason.name
+                    val rowTitle = "${adBlockLogTime(entry)} ${adBlockLogActionLabel(entry)} · $host"
+                    val rowSummary = "$source  $rule"
+                    val whitelistHost = entry.host?.takeIf { value -> value.isNotBlank() }
+                    if (
+                        entry.action == AdBlockLogAction.BLOCK &&
+                        whitelistHost != null &&
+                        !settingsManager.isUserWhitelistedSite(whitelistHost)
+                    ) {
+                        addActionRow(section, rowTitle, rowSummary) {
+                            showAddWhitelistFromLogPage(whitelistHost)
+                        }
+                    } else {
+                        addInfoRow(section, rowTitle, rowSummary)
+                    }
+                }
             }
-            .setNegativeButton(R.string.action_close, null)
-            .show()
+        }
     }
 
-    private fun formatAdBlockLogEntry(entry: AdBlockLogEntry): String {
-        val time = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    private fun adBlockLogTime(entry: AdBlockLogEntry): String {
+        return SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             .format(Date(entry.timestampMillis))
-        val action = when (entry.action) {
+    }
+
+    private fun adBlockLogActionLabel(entry: AdBlockLogEntry): String {
+        return when (entry.action) {
             AdBlockLogAction.BLOCK -> getString(R.string.ad_block_log_action_blocked)
             AdBlockLogAction.ALLOW -> getString(R.string.ad_block_log_action_allowed)
         }
-        val host = entry.host ?: Uri.parse(entry.url).host ?: entry.url
-        val source = entry.ruleSource ?: entry.reason.name.lowercase(Locale.US)
-        val rule = entry.ruleId ?: entry.rulePattern ?: entry.reason.name
-        return "$time $action\n$host\n$source  $rule"
     }
 
-    private fun showAddWhitelistFromLogDialog(host: String) {
+    private fun adBlockLogHost(entry: AdBlockLogEntry): String {
+        return entry.host ?: Uri.parse(entry.url).host ?: entry.url
+    }
+
+    private fun showAddWhitelistFromLogPage(host: String) {
         if (settingsManager.isUserWhitelistedSite(host)) {
             Toast.makeText(
                 this,
@@ -1610,67 +1686,180 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_add_user_whitelist)
-            .setMessage(getString(R.string.dialog_add_user_whitelist_message, host))
-            .setPositiveButton(R.string.action_add) { _, _ ->
-                settingsManager.setUserWhitelistedSite(host, true)
-                Toast.makeText(
-                    this,
-                    getString(R.string.toast_user_whitelist_added, host),
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager.reload()
+        showFunctionCenterSubPage(
+            title = getString(R.string.title_add_user_whitelist),
+            onBack = { showAdBlockLog() }
+        ) { content ->
+            addFunctionMessage(content, getString(R.string.dialog_add_user_whitelist_message, host))
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addFunctionActionButton(section, getString(R.string.action_add)) {
+                    settingsManager.setUserWhitelistedSite(host, true)
+                    Toast.makeText(
+                        this,
+                        getString(R.string.toast_user_whitelist_added, host),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    browserManager.reload()
+                    showAdBlockLog()
+                }
             }
-            .setNegativeButton(R.string.action_close, null)
-            .show()
+        }
     }
 
     private fun showUserWhitelistManager() {
         val hosts = settingsManager.userWhitelistedSiteHosts().sorted()
         val currentHost = currentSiteHost()
-        val builder = AlertDialog.Builder(this)
-            .setTitle(R.string.title_user_whitelist)
-            .setNegativeButton(R.string.action_close, null)
 
-        if (hosts.isEmpty()) {
-            builder.setMessage(R.string.dialog_user_whitelist_empty)
-        } else {
-            builder.setItems(hosts.toTypedArray()) { _, which ->
-                showRemoveUserWhitelistHostDialog(hosts[which])
+        showFunctionCenterSubPage(getString(R.string.title_user_whitelist)) { content ->
+            if (currentHost != null && !settingsManager.isUserWhitelistedSite(currentHost)) {
+                addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                    addActionRow(
+                        parent = section,
+                        title = getString(R.string.action_add_current_site),
+                        summary = currentHost
+                    ) {
+                        settingsManager.setUserWhitelistedSite(currentHost, true)
+                        Toast.makeText(
+                            this,
+                            getString(R.string.toast_user_whitelist_added, currentHost),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        browserManager.reload()
+                        showUserWhitelistManager()
+                    }
+                }
+            }
+
+            if (hosts.isEmpty()) {
+                addEmptyState(content, getString(R.string.dialog_user_whitelist_empty))
+            } else {
+                addFunctionSection(content, getString(R.string.function_center_section_sites)) { section ->
+                    hosts.forEach { host ->
+                        addActionRow(
+                            parent = section,
+                            title = host,
+                            summary = getString(R.string.user_whitelist_host_summary)
+                        ) {
+                            showRemoveUserWhitelistHostPage(host)
+                        }
+                    }
+                }
             }
         }
-
-        if (currentHost != null && !settingsManager.isUserWhitelistedSite(currentHost)) {
-            builder.setPositiveButton(R.string.action_add_current_site) { _, _ ->
-                settingsManager.setUserWhitelistedSite(currentHost, true)
-                Toast.makeText(
-                    this,
-                    getString(R.string.toast_user_whitelist_added, currentHost),
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager.reload()
-            }
-        }
-
-        builder.show()
     }
 
-    private fun showRemoveUserWhitelistHostDialog(host: String) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_remove_user_whitelist)
-            .setMessage(getString(R.string.dialog_remove_user_whitelist_message, host))
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                settingsManager.setUserWhitelistedSite(host, false)
-                Toast.makeText(
-                    this,
-                    getString(R.string.toast_user_whitelist_removed, host),
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager.reload()
+    private fun showRemoveUserWhitelistHostPage(host: String) {
+        showFunctionCenterSubPage(
+            title = getString(R.string.title_remove_user_whitelist),
+            onBack = { showUserWhitelistManager() }
+        ) { content ->
+            addFunctionMessage(content, getString(R.string.dialog_remove_user_whitelist_message, host))
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addFunctionActionButton(
+                    parent = section,
+                    title = getString(R.string.action_remove),
+                    backgroundColor = Color.parseColor("#D92D20")
+                ) {
+                    settingsManager.setUserWhitelistedSite(host, false)
+                    Toast.makeText(
+                        this,
+                        getString(R.string.toast_user_whitelist_removed, host),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    browserManager.reload()
+                    showUserWhitelistManager()
+                }
             }
-            .setNegativeButton(R.string.action_close, null)
-            .show()
+        }
+    }
+
+    private fun addInfoRow(
+        parent: LinearLayout,
+        title: String,
+        summary: String
+    ) {
+        val row = createRowText(title, summary).apply {
+            minimumHeight = dp(58)
+            setPadding(0, dp(9), 0, dp(9))
+        }
+        parent.addView(
+            row,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
+    private fun addFunctionMessage(parent: LinearLayout, message: String) {
+        parent.addView(
+            TextView(this).apply {
+                text = message
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
+                textSize = 15f
+                setLineSpacing(dp(2).toFloat(), 1f)
+                setPadding(dp(16), dp(16), dp(16), dp(16))
+                background = createRoundedBackground(
+                    ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
+                )
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(10)
+            }
+        )
+    }
+
+    private fun addEmptyState(parent: LinearLayout, message: String) {
+        parent.addView(
+            TextView(this).apply {
+                text = message
+                gravity = Gravity.CENTER
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text_hint))
+                textSize = 14f
+                setPadding(dp(16), dp(28), dp(16), dp(28))
+                background = createRoundedBackground(
+                    ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
+                )
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(18)
+            }
+        )
+    }
+
+    private fun addFunctionActionButton(
+        parent: LinearLayout,
+        title: String,
+        backgroundColor: Int = ContextCompat.getColor(this, R.color.browser_primary),
+        onClick: () -> Unit
+    ) {
+        parent.addView(
+            TextView(this).apply {
+                text = title
+                gravity = Gravity.CENTER
+                includeFontPadding = false
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.WHITE)
+                textSize = 15f
+                isClickable = true
+                isFocusable = true
+                background = createRoundedBackground(backgroundColor)
+                setOnClickListener { onClick() }
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(46)
+            ).apply {
+                topMargin = dp(8)
+                bottomMargin = dp(8)
+            }
+        )
     }
 
     private fun addSwitchRow(
@@ -1800,21 +1989,35 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val labels = pages.map { page ->
-            "${page.title.ifBlank { page.url }}\n${page.url}"
-        }.toTypedArray()
+        showFunctionCenterSubPage(title) { content ->
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addActionRow(
+                    parent = section,
+                    title = getString(R.string.action_clear),
+                    summary = getString(R.string.action_clear_saved_pages_summary)
+                ) {
+                    preferenceStore.remove(key)
+                    Toast.makeText(
+                        this,
+                        R.string.toast_saved_pages_cleared,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    showFunctionCenterRootPage()
+                }
+            }
 
-        AlertDialog.Builder(this)
-            .setTitle(title)
-            .setItems(labels) { _, which ->
-                loadUrl(pages[which].url)
+            addFunctionSection(content, getString(R.string.function_center_section_records)) { section ->
+                pages.forEach { page ->
+                    addActionRow(
+                        parent = section,
+                        title = page.title.ifBlank { page.url },
+                        summary = page.url
+                    ) {
+                        loadUrl(page.url)
+                    }
+                }
             }
-            .setNeutralButton(R.string.action_clear) { _, _ ->
-                preferenceStore.remove(key)
-                Toast.makeText(this, R.string.toast_saved_pages_cleared, Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(R.string.action_close, null)
-            .show()
+        }
     }
 
     private fun copyCurrentUrl() {
@@ -1866,15 +2069,15 @@ class MainActivity : AppCompatActivity() {
         updateNavigationButtons()
     }
 
-    private fun showRestoreDefaultSettingsDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.action_restore_default_settings)
-            .setMessage(R.string.dialog_restore_default_settings_message)
-            .setPositiveButton(R.string.action_restore) { _, _ ->
-                restoreDefaultSettings()
+    private fun showRestoreDefaultSettingsPage() {
+        showFunctionCenterSubPage(getString(R.string.action_restore_default_settings)) { content ->
+            addFunctionMessage(content, getString(R.string.dialog_restore_default_settings_message))
+            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
+                addFunctionActionButton(section, getString(R.string.action_restore)) {
+                    restoreDefaultSettings()
+                }
             }
-            .setNegativeButton(R.string.action_close, null)
-            .show()
+        }
     }
 
     private fun restoreDefaultSettings() {
