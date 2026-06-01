@@ -204,6 +204,7 @@ class MainActivity : AppCompatActivity() {
     private var lastFullscreenControlsWakeAt = 0L
     private var isElementPickerActive = false
     private var elementPickerStartedAt = 0L
+    private var elementPickerDialog: AlertDialog? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
@@ -285,6 +286,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        elementPickerDialog?.dismiss()
         if (::chromeClient.isInitialized) {
             chromeClient.hideCustomView()
         }
@@ -887,9 +889,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
+        fun requestElementBlock(selector: String, description: String) {
+            runOnUiThread {
+                handlePickedElement(selector, description)
+            }
+        }
+
+        @JavascriptInterface
         fun blockSelectedElement(selector: String) {
             runOnUiThread {
-                handlePickedElement(selector)
+                handlePickedElement(selector, "")
             }
         }
 
@@ -912,6 +921,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        if (isElementPickerActive) {
+            finishElementPickerSession()
+        }
         isElementPickerActive = true
         elementPickerStartedAt = SystemClock.elapsedRealtime()
         injectPageFeatures()
@@ -923,8 +935,8 @@ class MainActivity : AppCompatActivity() {
         if (!isElementPickerActive) {
             return
         }
-        clearElementPickerState()
-        browserManager.evaluateJavascript(CANCEL_ELEMENT_PICKER_SCRIPT)
+        elementPickerDialog?.dismiss()
+        finishElementPickerSession()
         Toast.makeText(this, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
     }
 
@@ -932,23 +944,56 @@ class MainActivity : AppCompatActivity() {
         if (!isElementPickerActive) {
             return
         }
-        clearElementPickerState()
+        finishElementPickerSession()
         Toast.makeText(this, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
     }
 
-    private fun handlePickedElement(selector: String) {
+    private fun handlePickedElement(selector: String, description: String) {
         if (!isElementPickerSessionValid()) {
-            clearElementPickerState()
+            finishElementPickerSession()
             return
         }
-        clearElementPickerState()
 
         val host = currentSiteHost() ?: run {
+            finishElementPickerSession()
             Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
             return
         }
+        showConfirmElementBlockDialog(host, selector, description)
+    }
+
+    private fun showConfirmElementBlockDialog(host: String, selector: String, description: String) {
+        val detail = listOf(description.trim(), selector.trim())
+            .filter { value -> value.isNotBlank() }
+            .distinct()
+            .joinToString(separator = "\n")
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.title_confirm_element_block)
+            .setMessage(getString(R.string.dialog_confirm_element_block_message, host, detail))
+            .setPositiveButton(R.string.action_block_element) { _, _ ->
+                savePickedElement(host, selector)
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                cancelElementPicker()
+            }
+            .create()
+        elementPickerDialog?.dismiss()
+        elementPickerDialog = dialog
+        dialog.setOnCancelListener {
+            cancelElementPicker()
+        }
+        dialog.setOnDismissListener {
+            if (elementPickerDialog === dialog) {
+                elementPickerDialog = null
+            }
+        }
+        dialog.show()
+    }
+
+    private fun savePickedElement(host: String, selector: String) {
         val alreadySaved = settingsManager.hasUserElementHideSelectorForSite(host, selector)
         val saved = alreadySaved || settingsManager.addUserElementHideSelectorForSite(host, selector)
+        finishElementPickerSession()
         if (!saved) {
             Toast.makeText(this, R.string.toast_element_picker_invalid, Toast.LENGTH_SHORT).show()
             return
@@ -974,6 +1019,11 @@ class MainActivity : AppCompatActivity() {
     private fun clearElementPickerState() {
         isElementPickerActive = false
         elementPickerStartedAt = 0L
+    }
+
+    private fun finishElementPickerSession() {
+        clearElementPickerState()
+        browserManager.evaluateJavascript(FINISH_ELEMENT_PICKER_SCRIPT)
     }
 
     private fun showFunctionCenter() {
@@ -1869,9 +1919,9 @@ class MainActivity : AppCompatActivity() {
             "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.startElementPicker==='function'){" +
                 "window.VideoBrowserEnhancer.startElementPicker();" +
                 "}"
-        private const val CANCEL_ELEMENT_PICKER_SCRIPT =
-            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.cancelElementPicker==='function'){" +
-                "window.VideoBrowserEnhancer.cancelElementPicker();" +
+        private const val FINISH_ELEMENT_PICKER_SCRIPT =
+            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.finishElementPicker==='function'){" +
+                "window.VideoBrowserEnhancer.finishElementPicker();" +
                 "}"
         private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
         private const val ELEMENT_PICKER_TIMEOUT_MS = 60_000L

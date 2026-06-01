@@ -29,8 +29,6 @@
   }
 
   const styleId = '__videobrowser_css_filter__';
-  const elementPickerStyleId = '__videobrowser_element_picker_style__';
-  const elementPickerTargetClass = '__videobrowser_element_picker_target__';
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
   const normalWorkDelayMs = 250;
@@ -1902,6 +1900,9 @@
     },
     startElementPicker: function () {
       return startElementPicker();
+    },
+    cancelElementPicker: function () {
+      stopElementPicker();
     },
     finishElementPicker: function () {
       stopElementPicker();

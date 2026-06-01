@@ -73,18 +73,21 @@
 
         </LinearLayout>
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/anonymousBadge"
             android:layout_width="wrap_content"
             android:layout_height="34dp"
             android:layout_marginStart="8dp"
             android:background="@drawable/bg_anonymous_badge"
+            android:contentDescription="@string/action_pick_element"
             android:gravity="center"
             android:includeFontPadding="false"
             android:minWidth="52dp"
+            android:minHeight="0dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:text="@string/element_picker_badge"
+            android:textAllCaps="false"
             android:textColor="@color/privacy_text"
             android:textSize="13sp"
             android:textStyle="bold" />

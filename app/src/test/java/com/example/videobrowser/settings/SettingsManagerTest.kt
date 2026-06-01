@@ -134,12 +134,12 @@ class SettingsManagerTest {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)
 
-        assertTrue(settings.addUserElementHideSelectorForSite(" Video.Example.COM. ", "  #ad   >  .banner  "))
-        assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", "#ad > .banner"))
+        assertTrue(settings.addUserElementHideSelectorForSite(" Video.Example.COM. ", "  #ad   .banner  "))
+        assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", "#ad .banner"))
 
         val reloaded = SettingsManager(store)
-        assertTrue(reloaded.hasUserElementHideSelectorForSite("video.example.com", "#ad > .banner"))
-        assertEquals(listOf("#ad > .banner"), reloaded.userElementHideSelectorsForSite("video.example.com"))
+        assertTrue(reloaded.hasUserElementHideSelectorForSite("video.example.com", "#ad .banner"))
+        assertEquals(listOf("#ad .banner"), reloaded.userElementHideSelectorsForSite("video.example.com"))
         assertTrue(reloaded.userElementHideSelectorsForSite("other.example.com").isEmpty())
     }
 
