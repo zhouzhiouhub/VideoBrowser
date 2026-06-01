@@ -184,19 +184,6 @@
             android:tint="@color/bottom_nav_icon" />
 
         <ImageButton
-            android:id="@+id/forwardButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_icon_button"
-            android:contentDescription="@string/action_forward"
-            android:enabled="false"
-            android:padding="18dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_arrow_forward_24"
-            android:tint="@color/bottom_nav_icon" />
-
-        <ImageButton
             android:id="@+id/refreshButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"

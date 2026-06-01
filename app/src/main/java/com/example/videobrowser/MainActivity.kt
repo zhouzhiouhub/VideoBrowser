@@ -139,7 +139,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var searchProviderList: LinearLayout
     private lateinit var pageToolsButton: ImageButton
     private lateinit var backButton: ImageButton
-    private lateinit var forwardButton: ImageButton
     private lateinit var refreshButton: ImageButton
     private lateinit var homeButton: ImageButton
     private lateinit var bookmarkButton: ImageButton
@@ -264,7 +263,6 @@ class MainActivity : AppCompatActivity() {
         pageToolsButton = findViewById(R.id.pageToolsButton)
         loadButton = findViewById(R.id.loadButton)
         backButton = findViewById(R.id.backButton)
-        forwardButton = findViewById(R.id.forwardButton)
         refreshButton = findViewById(R.id.refreshButton)
         homeButton = findViewById(R.id.homeButton)
         bookmarkButton = findViewById(R.id.bookmarkButton)
@@ -341,7 +339,6 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setTooltipText(pageToolsButton, getString(R.string.title_page_tools))
         ViewCompat.setTooltipText(loadButton, getString(R.string.action_load_url))
         ViewCompat.setTooltipText(backButton, getString(R.string.action_back))
-        ViewCompat.setTooltipText(forwardButton, getString(R.string.action_forward))
         ViewCompat.setTooltipText(refreshButton, getString(R.string.action_refresh))
         ViewCompat.setTooltipText(homeButton, getString(R.string.action_home))
         ViewCompat.setTooltipText(bookmarkButton, getString(R.string.action_add_bookmark))
@@ -367,10 +364,6 @@ class MainActivity : AppCompatActivity() {
         loadButton.setOnClickListener { loadAddressInput() }
         backButton.setOnClickListener {
             browserManager.goBack()
-            updateNavigationButtons()
-        }
-        forwardButton.setOnClickListener {
-            browserManager.goForward()
             updateNavigationButtons()
         }
         refreshButton.setOnClickListener { browserManager.reload() }
@@ -3215,7 +3208,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateNavigationButtons() {
         backButton.isEnabled = browserManager.canGoBack()
-        forwardButton.isEnabled = browserManager.canGoForward()
         updateBookmarkButton()
     }
 
