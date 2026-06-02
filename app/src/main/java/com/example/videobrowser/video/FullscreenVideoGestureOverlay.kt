@@ -23,7 +23,6 @@ import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -151,10 +150,10 @@ class FullscreenVideoGestureOverlay(
 
     fun setPlaybackSpeed(speed: Float) {
         playbackSpeed = normalizeSpeed(speed)
-        speedButton.text = formatSpeed(playbackSpeed)
+        speedButton.text = VideoGestureFeedbackFormatter.formatSpeed(playbackSpeed)
         speedButton.contentDescription = context.getString(
             R.string.video_control_speed,
-            formatSpeed(playbackSpeed)
+            VideoGestureFeedbackFormatter.formatSpeed(playbackSpeed)
         )
     }
 
@@ -475,7 +474,10 @@ class FullscreenVideoGestureOverlay(
         }
         pendingSeekTargetMs = target
 
-        showFeedback(formatSeekPreview(offsetMs, target, duration), autoHide = false)
+        showFeedback(
+            VideoGestureFeedbackFormatter.formatSeekPreview(offsetMs, target, duration),
+            autoHide = false
+        )
         updateSeekProgress(target, duration)
     }
 
@@ -583,7 +585,7 @@ class FullscreenVideoGestureOverlay(
         }
         seekAccumulatorCount += 1
         val seconds = direction * seekAccumulatorCount * SEEK_STEP_SECONDS
-        showFeedback(formatSeekSeconds(seconds))
+        showFeedback(VideoGestureFeedbackFormatter.formatSeekSeconds(seconds))
         feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
         feedbackHandler.postDelayed(clearSeekAccumulatorRunnable, SEEK_ACCUMULATE_RESET_MS)
     }
@@ -598,7 +600,10 @@ class FullscreenVideoGestureOverlay(
         clearSeekAccumulator()
         val direction = if (downZone == ScreenZone.LEFT) -1 else 1
         onDirectionalLongPressStart?.invoke(direction)
-        showFeedback(formatSpeed(LONG_PRESS_PLAYBACK_SPEED), autoHide = false)
+        showFeedback(
+            VideoGestureFeedbackFormatter.formatSpeed(LONG_PRESS_PLAYBACK_SPEED),
+            autoHide = false
+        )
     }
 
     private fun stopLongPress() {
@@ -623,7 +628,7 @@ class FullscreenVideoGestureOverlay(
                     gravity = Gravity.CENTER
                     includeFontPadding = false
                     minHeight = dp(38)
-                    text = formatSpeed(speed)
+                    text = VideoGestureFeedbackFormatter.formatSpeed(speed)
                     setTextColor(if (abs(speed - playbackSpeed) < 0.01f) Color.WHITE else Color.LTGRAY)
                     setTypeface(typeface, if (abs(speed - playbackSpeed) < 0.01f) Typeface.BOLD else Typeface.NORMAL)
                     textSize = 14f
@@ -632,7 +637,7 @@ class FullscreenVideoGestureOverlay(
                         setPlaybackSpeed(speed)
                         onPlaybackSpeedSelected?.invoke(speed)
                         speedPopup?.dismiss()
-                        showFeedback(formatSpeed(speed))
+                        showFeedback(VideoGestureFeedbackFormatter.formatSpeed(speed))
                     }
                 },
                 LinearLayout.LayoutParams(dp(96), dp(38))
@@ -774,56 +779,6 @@ class FullscreenVideoGestureOverlay(
         return GradientDrawable().apply {
             setColor(color)
             cornerRadius = radius.toFloat()
-        }
-    }
-
-    private fun formatSpeed(speed: Float): String {
-        return if (speed == speed.toInt().toFloat()) {
-            "${speed.toInt()}x"
-        } else {
-            "${speed}x"
-        }
-    }
-
-    private fun formatSeekSeconds(seconds: Int): String {
-        return if (seconds > 0) {
-            "+${seconds}s"
-        } else {
-            "${seconds}s"
-        }
-    }
-
-    private fun formatSeekPreview(offsetMs: Long, targetMs: Long?, durationMs: Long?): String {
-        val offsetText = formatSeekOffset(offsetMs)
-        return if (targetMs != null && durationMs != null && durationMs > 0L) {
-            "$offsetText\n${formatTime(targetMs)} / ${formatTime(durationMs)}"
-        } else if (targetMs != null) {
-            "$offsetText\n${formatTime(targetMs)}"
-        } else {
-            offsetText
-        }
-    }
-
-    private fun formatSeekOffset(offsetMs: Long): String {
-        val roundedSeconds = (offsetMs / 1000.0).roundToLong()
-        if (roundedSeconds != 0L || offsetMs == 0L) {
-            return formatSeekSeconds(roundedSeconds.toInt())
-        }
-
-        val sign = if (offsetMs > 0L) "+" else "-"
-        val seconds = abs(offsetMs) / 1000.0
-        return "$sign${String.format(Locale.US, "%.1f", seconds)}s"
-    }
-
-    private fun formatTime(timeMs: Long): String {
-        val totalSeconds = (timeMs / 1000L).coerceAtLeast(0L)
-        val hours = totalSeconds / 3600L
-        val minutes = (totalSeconds % 3600L) / 60L
-        val seconds = totalSeconds % 60L
-        return if (hours > 0L) {
-            "%d:%02d:%02d".format(hours, minutes, seconds)
-        } else {
-            "%02d:%02d".format(minutes, seconds)
         }
     }
 

@@ -3,24 +3,17 @@ package com.example.videobrowser.localfiles
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.text.InputType
 import android.util.Log
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.storage.PreferenceStore
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class LocalFilesController(
     private val activity: AppCompatActivity,
@@ -30,78 +23,22 @@ class LocalFilesController(
     private val showMainFunctionCenterPage: () -> Unit,
     private val onOpenDocumentUri: (Uri, String?, String?) -> Unit
 ) {
-    private data class LocalDirectoryPathItem(
-        val documentId: String,
-        val title: String
+    private val directoryPermissions =
+        LocalDirectoryPermissionManager(activity, preferenceStore, logTag)
+    private val documentRepository = LocalDocumentRepository(activity)
+    private val documentFormatter = LocalDocumentFormatter(activity)
+    private val fileLaunchers = LocalFileLaunchers(
+        activity = activity,
+        directoryPermissions = directoryPermissions,
+        documentRepository = documentRepository,
+        logTag = logTag,
+        onOpenDocumentUri = onOpenDocumentUri,
+        onDirectoryReady = { uri -> showLocalDirectoryPage(uri) },
+        onDirectoryUnavailable = ::showLocalFolderUnavailableToast
     )
 
-    private data class LocalDocument(
-        val uri: Uri,
-        val documentId: String,
-        val name: String,
-        val mimeType: String?,
-        val size: Long?,
-        val modifiedAt: Long?,
-        val flags: Int
-    ) {
-        val isDirectory: Boolean
-            get() = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
-
-        val canDelete: Boolean
-            get() = flags and DocumentsContract.Document.FLAG_SUPPORTS_DELETE != 0
-
-        val canRename: Boolean
-            get() = flags and DocumentsContract.Document.FLAG_SUPPORTS_RENAME != 0
-    }
-
-    private lateinit var openLocalFileLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var openLocalDirectoryLauncher: ActivityResultLauncher<Uri?>
-
     fun setupLaunchers() {
-        openLocalFileLauncher = activity.registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) {
-                return@registerForActivityResult
-            }
-            onOpenDocumentUri(uri, null, null)
-        }
-
-        openLocalDirectoryLauncher =
-            activity.registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-                if (uri == null) {
-                    return@registerForActivityResult
-                }
-                val previousUri = savedLocalDirectoryUri()
-                if (!persistUriPermission(uri, DIRECTORY_PERMISSION_FLAGS)) {
-                    Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT)
-                        .show()
-                    return@registerForActivityResult
-                }
-                val rootDocumentId = runCatching {
-                    DocumentsContract.getTreeDocumentId(uri)
-                }.getOrNull()
-                if (rootDocumentId == null) {
-                    releaseUriPermission(uri, DIRECTORY_PERMISSION_FLAGS)
-                    Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT)
-                        .show()
-                    return@registerForActivityResult
-                }
-                val isDirectoryUsable = runCatching {
-                    queryLocalDocuments(uri, rootDocumentId)
-                }.onFailure {
-                    Log.w(logTag, "Unable to access selected local directory $uri", it)
-                    releaseUriPermission(uri, DIRECTORY_PERMISSION_FLAGS)
-                    Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT)
-                        .show()
-                }.isSuccess
-                if (!isDirectoryUsable) {
-                    return@registerForActivityResult
-                }
-                if (previousUri != null && previousUri != uri) {
-                    releaseUriPermission(previousUri, DIRECTORY_PERMISSION_FLAGS)
-                }
-                preferenceStore.putString(KEY_LOCAL_DIRECTORY_URI, uri.toString())
-                showLocalDirectoryPage(uri)
-            }
+        fileLaunchers.setup()
     }
 
     fun showFileOperationsPage() {
@@ -118,7 +55,7 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_open_local_file),
                     summary = activity.getString(R.string.action_open_local_file_summary)
                 ) {
-                    openLocalFileLauncher.launch(arrayOf("*/*"))
+                    fileLaunchers.openFile()
                 }
 
                 functionCenter.addActionRow(
@@ -126,9 +63,9 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_browse_local_folder),
                     summary = activity.getString(R.string.action_browse_local_folder_summary)
                 ) {
-                    val uri = savedLocalDirectoryUri()
+                    val uri = directoryPermissions.savedDirectoryUri()
                     if (uri == null) {
-                        openLocalDirectoryLauncher.launch(null)
+                        fileLaunchers.openDirectory(null)
                     } else {
                         showLocalDirectoryPage(uri)
                     }
@@ -139,46 +76,22 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_choose_local_folder),
                     summary = activity.getString(R.string.action_choose_local_folder_summary)
                 ) {
-                    openLocalDirectoryLauncher.launch(savedLocalDirectoryUri())
+                    fileLaunchers.openDirectory(directoryPermissions.savedDirectoryUri())
                 }
             }
         }
     }
 
-    private fun persistUriPermission(uri: Uri, flags: Int): Boolean {
-        return runCatching {
-            activity.contentResolver.takePersistableUriPermission(uri, flags)
-        }.fold(
-            onSuccess = { true },
-            onFailure = {
-                Log.w(logTag, "Unable to persist URI permission for $uri", it)
-                false
-            }
-        )
-    }
-
-    private fun releaseUriPermission(uri: Uri, flags: Int) {
-        runCatching {
-            activity.contentResolver.releasePersistableUriPermission(uri, flags)
-        }.onFailure {
-            Log.w(logTag, "Unable to release URI permission for $uri", it)
-        }
-    }
-
-    private fun savedLocalDirectoryUri(): Uri? {
-        return preferenceStore.getString(KEY_LOCAL_DIRECTORY_URI, null)
-            ?.takeIf { it.isNotBlank() }
-            ?.let(Uri::parse)
+    private fun showLocalFolderUnavailableToast() {
+        Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT).show()
     }
 
     private fun showLocalDirectoryPage(treeUri: Uri) {
-        val rootDocumentId = runCatching {
-            DocumentsContract.getTreeDocumentId(treeUri)
-        }.getOrNull()
+        val rootDocumentId = documentRepository.rootDocumentId(treeUri)
 
         if (rootDocumentId == null) {
-            releaseUriPermission(treeUri, DIRECTORY_PERMISSION_FLAGS)
-            preferenceStore.remove(KEY_LOCAL_DIRECTORY_URI)
+            directoryPermissions.releaseReadWritePermission(treeUri)
+            directoryPermissions.clearSavedDirectoryUri()
             Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT).show()
             showFileOperationsPage()
             return
@@ -204,11 +117,11 @@ class LocalFilesController(
         }
 
         val documents = runCatching {
-            queryLocalDocuments(treeUri, current.documentId)
+            documentRepository.queryDocuments(treeUri, current.documentId)
         }.getOrElse {
             Log.w(logTag, "Unable to query local directory $treeUri", it)
-            releaseUriPermission(treeUri, DIRECTORY_PERMISSION_FLAGS)
-            preferenceStore.remove(KEY_LOCAL_DIRECTORY_URI)
+            directoryPermissions.releaseReadWritePermission(treeUri)
+            directoryPermissions.clearSavedDirectoryUri()
             Toast.makeText(
                 activity,
                 R.string.toast_local_folder_unavailable,
@@ -276,7 +189,7 @@ class LocalFilesController(
                     functionCenter.addActionRow(
                         parent = section,
                         title = document.name,
-                        summary = localDocumentSummary(document)
+                        summary = documentFormatter.summary(document)
                     ) {
                         if (document.isDirectory) {
                             showLocalDirectoryPage(
@@ -292,49 +205,6 @@ class LocalFilesController(
         }
     }
 
-    private fun queryLocalDocuments(treeUri: Uri, parentDocumentId: String): List<LocalDocument> {
-        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocumentId)
-        val projection = arrayOf(
-            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-            DocumentsContract.Document.COLUMN_MIME_TYPE,
-            DocumentsContract.Document.COLUMN_SIZE,
-            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
-            DocumentsContract.Document.COLUMN_FLAGS
-        )
-        val documents = mutableListOf<LocalDocument>()
-        val cursor = activity.contentResolver.query(childrenUri, projection, null, null, null)
-            ?: throw IllegalStateException("Unable to query child documents for $childrenUri")
-        cursor.use { cursor ->
-            val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-            val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-            val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
-            val sizeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
-            val modifiedIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-            val flagsIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_FLAGS)
-
-            while (cursor.moveToNext()) {
-                val documentId = cursor.getStringOrNull(idIndex) ?: continue
-                val name = cursor.getStringOrNull(nameIndex)
-                    ?.takeIf { it.isNotBlank() }
-                    ?: documentId.substringAfterLast(':')
-                documents += LocalDocument(
-                    uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId),
-                    documentId = documentId,
-                    name = name,
-                    mimeType = cursor.getStringOrNull(mimeIndex),
-                    size = cursor.getLongOrNull(sizeIndex),
-                    modifiedAt = cursor.getLongOrNull(modifiedIndex),
-                    flags = cursor.getIntOrNull(flagsIndex) ?: 0
-                )
-            }
-        }
-        return documents.sortedWith(
-            compareBy<LocalDocument> { !it.isDirectory }
-                .thenBy { it.name.lowercase(Locale.getDefault()) }
-        )
-    }
-
     private fun showLocalDocumentActionsPage(
         document: LocalDocument,
         treeUri: Uri,
@@ -344,7 +214,7 @@ class LocalFilesController(
             title = document.name,
             onBack = { showLocalDirectoryPage(treeUri, path) }
         ) { content ->
-            functionCenter.addFunctionMessage(content, localDocumentSummary(document))
+            functionCenter.addFunctionMessage(content, documentFormatter.summary(document))
             functionCenter.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
@@ -401,10 +271,12 @@ class LocalFilesController(
             positiveButtonText = activity.getString(R.string.action_create)
         ) { name ->
             val parent = path.lastOrNull() ?: return@showNameInputDialog
-            val parentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, parent.documentId)
-            val createdUri = runCatching {
-                DocumentsContract.createDocument(activity.contentResolver, parentUri, mimeType, name)
-            }.getOrNull()
+            val createdUri = documentRepository.createDocument(
+                treeUri = treeUri,
+                parentDocumentId = parent.documentId,
+                mimeType = mimeType,
+                name = name
+            )
 
             if (createdUri == null) {
                 Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
@@ -426,9 +298,7 @@ class LocalFilesController(
             initialValue = document.name,
             positiveButtonText = activity.getString(R.string.action_rename)
         ) { name ->
-            val renamedUri = runCatching {
-                DocumentsContract.renameDocument(activity.contentResolver, document.uri, name)
-            }.getOrNull()
+            val renamedUri = documentRepository.renameDocument(document, name)
 
             if (renamedUri == null) {
                 Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
@@ -449,9 +319,7 @@ class LocalFilesController(
             .setTitle(R.string.title_delete_file)
             .setMessage(activity.getString(R.string.dialog_delete_local_file_message, document.name))
             .setPositiveButton(R.string.action_delete_file) { _, _ ->
-                val deleted = runCatching {
-                    DocumentsContract.deleteDocument(activity.contentResolver, document.uri)
-                }.getOrDefault(false)
+                val deleted = documentRepository.deleteDocument(document)
 
                 if (!deleted) {
                     Toast.makeText(
@@ -510,65 +378,5 @@ class LocalFilesController(
         } catch (_: ActivityNotFoundException) {
             Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun localDocumentSummary(document: LocalDocument): String {
-        if (document.isDirectory) {
-            return activity.getString(R.string.local_file_type_folder)
-        }
-
-        val type = document.mimeType
-            ?.takeIf { it.isNotBlank() }
-            ?: activity.getString(R.string.local_file_type_unknown)
-        return listOf(
-            type,
-            formatFileSize(document.size),
-            formatModifiedTime(document.modifiedAt)
-        ).joinToString(separator = " · ")
-    }
-
-    private fun formatFileSize(size: Long?): String {
-        if (size == null || size < 0) {
-            return activity.getString(R.string.local_file_size_unknown)
-        }
-
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        var value = size.toDouble()
-        var unitIndex = 0
-        while (value >= 1024 && unitIndex < units.lastIndex) {
-            value /= 1024
-            unitIndex++
-        }
-        return if (unitIndex == 0) {
-            "$size ${units[unitIndex]}"
-        } else {
-            String.format(Locale.getDefault(), "%.1f %s", value, units[unitIndex])
-        }
-    }
-
-    private fun formatModifiedTime(modifiedAt: Long?): String {
-        if (modifiedAt == null || modifiedAt <= 0L) {
-            return activity.getString(R.string.local_file_time_unknown)
-        }
-        return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-            .format(Date(modifiedAt))
-    }
-
-    private fun Cursor.getStringOrNull(index: Int): String? {
-        return if (index >= 0 && !isNull(index)) getString(index) else null
-    }
-
-    private fun Cursor.getLongOrNull(index: Int): Long? {
-        return if (index >= 0 && !isNull(index)) getLong(index) else null
-    }
-
-    private fun Cursor.getIntOrNull(index: Int): Int? {
-        return if (index >= 0 && !isNull(index)) getInt(index) else null
-    }
-
-    private companion object {
-        private const val DIRECTORY_PERMISSION_FLAGS =
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        private const val KEY_LOCAL_DIRECTORY_URI = "local_directory_uri"
     }
 }

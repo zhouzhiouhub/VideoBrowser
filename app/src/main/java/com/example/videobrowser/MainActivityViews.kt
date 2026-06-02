@@ -1,0 +1,54 @@
+package com.example.videobrowser
+
+import android.view.View
+import android.webkit.WebView
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+data class MainActivityViews(
+    val rootView: View,
+    val topBar: View,
+    val bottomBar: View,
+    val webView: WebView,
+    val addressInput: EditText,
+    val pageProgress: ProgressBar,
+    val searchProviderScroll: HorizontalScrollView,
+    val searchProviderList: LinearLayout,
+    val privateBrowsingBadge: TextView,
+    val pageToolsButton: ImageButton,
+    val backButton: ImageButton,
+    val refreshButton: ImageButton,
+    val homeButton: ImageButton,
+    val bookmarkButton: ImageButton,
+    val loadButton: ImageButton,
+    val fullscreenContainer: FrameLayout
+) {
+    companion object {
+        fun bind(activity: AppCompatActivity): MainActivityViews {
+            return MainActivityViews(
+                rootView = activity.findViewById(R.id.rootView),
+                topBar = activity.findViewById(R.id.topBar),
+                bottomBar = activity.findViewById(R.id.bottomBar),
+                webView = activity.findViewById(R.id.webView),
+                addressInput = activity.findViewById(R.id.addressInput),
+                pageProgress = activity.findViewById(R.id.pageProgress),
+                searchProviderScroll = activity.findViewById(R.id.searchProviderScroll),
+                searchProviderList = activity.findViewById(R.id.searchProviderList),
+                privateBrowsingBadge = activity.findViewById(R.id.privateBrowsingBadge),
+                pageToolsButton = activity.findViewById(R.id.pageToolsButton),
+                backButton = activity.findViewById(R.id.backButton),
+                refreshButton = activity.findViewById(R.id.refreshButton),
+                homeButton = activity.findViewById(R.id.homeButton),
+                bookmarkButton = activity.findViewById(R.id.bookmarkButton),
+                loadButton = activity.findViewById(R.id.loadButton),
+                fullscreenContainer = activity.findViewById(R.id.fullscreenContainer)
+            )
+        }
+    }
+}

@@ -1,8 +1,6 @@
 package com.example.videobrowser
 
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.net.Uri
@@ -11,8 +9,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.webkit.CookieManager
-import android.webkit.URLUtil
 import android.webkit.WebView
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -32,6 +28,7 @@ import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
+import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.ChromeClient
@@ -55,26 +52,26 @@ import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.FullscreenVideoController
-import com.example.videobrowser.video.PlayerActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var rootView: View
-    private lateinit var topBar: View
-    private lateinit var bottomBar: View
-    private lateinit var webView: WebView
-    private lateinit var addressInput: EditText
-    private lateinit var pageProgress: ProgressBar
-    private lateinit var searchProviderScroll: HorizontalScrollView
-    private lateinit var searchProviderList: LinearLayout
-    private lateinit var privateBrowsingBadge: TextView
-    private lateinit var pageToolsButton: ImageButton
-    private lateinit var backButton: ImageButton
-    private lateinit var refreshButton: ImageButton
-    private lateinit var homeButton: ImageButton
-    private lateinit var bookmarkButton: ImageButton
-    private lateinit var loadButton: ImageButton
-    private lateinit var fullscreenContainer: FrameLayout
+    private lateinit var views: MainActivityViews
+    private val rootView: View get() = views.rootView
+    private val topBar: View get() = views.topBar
+    private val bottomBar: View get() = views.bottomBar
+    private val webView: WebView get() = views.webView
+    private val addressInput: EditText get() = views.addressInput
+    private val pageProgress: ProgressBar get() = views.pageProgress
+    private val searchProviderScroll: HorizontalScrollView get() = views.searchProviderScroll
+    private val searchProviderList: LinearLayout get() = views.searchProviderList
+    private val privateBrowsingBadge: TextView get() = views.privateBrowsingBadge
+    private val pageToolsButton: ImageButton get() = views.pageToolsButton
+    private val backButton: ImageButton get() = views.backButton
+    private val refreshButton: ImageButton get() = views.refreshButton
+    private val homeButton: ImageButton get() = views.homeButton
+    private val bookmarkButton: ImageButton get() = views.bookmarkButton
+    private val loadButton: ImageButton get() = views.loadButton
+    private val fullscreenContainer: FrameLayout get() = views.fullscreenContainer
     private lateinit var preferenceStore: PreferenceStore
     private lateinit var settingsManager: SettingsManager
     private lateinit var savedPageRepository: SavedPageRepository
@@ -94,6 +91,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
     private lateinit var chromeClient: ChromeClient
+    private lateinit var externalNavigator: BrowserExternalNavigator
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
@@ -123,22 +121,7 @@ class MainActivity : AppCompatActivity() {
         }
         setContentView(R.layout.activity_main)
 
-        rootView = findViewById(R.id.rootView)
-        topBar = findViewById(R.id.topBar)
-        bottomBar = findViewById(R.id.bottomBar)
-        webView = findViewById(R.id.webView)
-        addressInput = findViewById(R.id.addressInput)
-        pageProgress = findViewById(R.id.pageProgress)
-        searchProviderScroll = findViewById(R.id.searchProviderScroll)
-        searchProviderList = findViewById(R.id.searchProviderList)
-        privateBrowsingBadge = findViewById(R.id.privateBrowsingBadge)
-        pageToolsButton = findViewById(R.id.pageToolsButton)
-        loadButton = findViewById(R.id.loadButton)
-        backButton = findViewById(R.id.backButton)
-        refreshButton = findViewById(R.id.refreshButton)
-        homeButton = findViewById(R.id.homeButton)
-        bookmarkButton = findViewById(R.id.bookmarkButton)
-        fullscreenContainer = findViewById(R.id.fullscreenContainer)
+        views = MainActivityViews.bind(this)
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
@@ -164,6 +147,19 @@ class MainActivity : AppCompatActivity() {
         setupFileOperationLaunchers()
         ruleEngine = RuleEngineFactory.create(assets, filesDir)
         browserManager = BrowserManager(webView)
+        externalNavigator = BrowserExternalNavigator(
+            activity = this,
+            browserManager = browserManager,
+            currentPageTitle = {
+                if (::browserSessionController.isInitialized) {
+                    browserSessionController.currentPageTitle
+                } else {
+                    ""
+                }
+            },
+            currentShareableUrl = ::currentShareableUrl,
+            isShareableUrl = ::isShareableUrl
+        )
         downloadController = DownloadController(
             activity = this,
             browserManager = browserManager,
@@ -531,7 +527,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePrivateBrowsingUi() {
-        if (!::privateBrowsingBadge.isInitialized || !::settingsManager.isInitialized) {
+        if (!::views.isInitialized || !::settingsManager.isInitialized) {
             return
         }
         privateBrowsingBadge.visibility = if (isPrivateBrowsingEnabled()) {
@@ -634,12 +630,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openExternalUrl(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        try {
-            startActivity(intent)
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        }
+        externalNavigator.openExternalUrl(url)
     }
 
     private fun openNativePlayer(
@@ -648,32 +639,7 @@ class MainActivity : AppCompatActivity() {
         userAgentOverride: String? = null,
         titleOverride: String? = null
     ) {
-        val title = titleOverride
-            ?.takeIf { it.isNotBlank() }
-            ?: browserSessionController.currentPageTitle
-            .takeIf { it.isNotBlank() && !it.equals(url, ignoreCase = true) }
-            ?: URLUtil.guessFileName(url, null, mimeType)
-        val isRemoteMedia = isShareableUrl(url)
-        val referer = if (isRemoteMedia) {
-            currentShareableUrl()?.takeIf { !it.equals(url, ignoreCase = true) }
-        } else {
-            null
-        }
-        val cookie = if (isRemoteMedia) {
-            CookieManager.getInstance().getCookie(url)
-        } else {
-            null
-        }
-        val intent = PlayerActivity.createIntent(
-            context = this,
-            mediaUri = url,
-            title = title,
-            mimeType = mimeType,
-            userAgent = userAgentOverride ?: browserManager.userAgentString(),
-            cookie = cookie,
-            referer = referer
-        )
-        startActivity(intent)
+        externalNavigator.openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
     }
 
     private fun loadAddressInput() {
