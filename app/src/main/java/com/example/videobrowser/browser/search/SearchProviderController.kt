@@ -115,7 +115,7 @@ class SearchProviderController(
                 provider.name
             )
             setPadding(dp(4), 0, dp(4), 0)
-            setSelectableItemBackground()
+            setBoundedSelectableItemBackground()
             setOnClickListener { selectProvider(provider) }
         }
     }
@@ -208,10 +208,10 @@ class SearchProviderController(
         }
     }
 
-    private fun View.setSelectableItemBackground() {
+    private fun View.setBoundedSelectableItemBackground() {
         val outValue = TypedValue()
         activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackgroundBorderless,
+            android.R.attr.selectableItemBackground,
             outValue,
             true
         )
