@@ -1,6 +1,5 @@
 package com.example.videobrowser
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -8,12 +7,9 @@ import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
-import android.os.SystemClock
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
 import android.webkit.URLUtil
@@ -28,14 +24,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserClient
+import com.example.videobrowser.browser.BrowserControlsController
+import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
@@ -45,7 +43,7 @@ import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterPages
 import com.example.videobrowser.inject.JsInjector
-import com.example.videobrowser.inject.PageFeatureConfig
+import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.inject.ScriptLoader
 import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
@@ -82,6 +80,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var ruleEngine: RuleEngine
     private lateinit var browserManager: BrowserManager
+    private lateinit var browserControlsController: BrowserControlsController
+    private lateinit var browserControlsScrollController: BrowserControlsScrollController
+    private lateinit var browserSessionController: BrowserSessionController
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var localFilesController: LocalFilesController
@@ -91,14 +92,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
+    private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
     private lateinit var chromeClient: ChromeClient
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
-            isEnabled = ::isAdBlockEnabled,
-            isDisabledForCurrentSite = ::isCurrentSiteAdBlockDisabled,
+            isEnabled = { pageFeatureCoordinator.isAdBlockEnabled() },
+            isDisabledForCurrentSite = { pageFeatureCoordinator.isCurrentSiteAdBlockDisabled() },
             isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
-            currentPageUrl = { currentPageUrl },
+            currentPageUrl = { browserSessionController.currentPageUrl },
             currentPageHost = ::currentSiteHost,
             logger = adBlockLogger,
             ruleEngine = ruleEngine
@@ -112,18 +114,7 @@ class MainActivity : AppCompatActivity() {
     private val isVideoFullscreenUiActive: Boolean
         get() = ::fullscreenVideoController.isInitialized &&
             fullscreenVideoController.isFullscreenUiActive
-    private var areBrowserControlsHidden = false
-    private var scrollControlDeltaY = 0
-    private var scrollControlDirection = 0
-    private var lastScrollControlChangeAt = 0L
-    private var isWebViewTouchActive = false
-    private var pendingBrowserControlsHidden: Boolean? = null
     private var defaultUserAgent: String? = null
-    private var currentPageTitle = ""
-    // shouldInterceptRequest 运行在 WebView 后台线程，站点级判断只能读取这个缓存。
-    @Volatile
-    private var currentPageUrl: String? = null
-    private var isPageLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -187,7 +178,7 @@ class MainActivity : AppCompatActivity() {
             savedPageRepository = savedPageRepository,
             currentActionableUrl = ::currentActionableUrl,
             currentShareableUrl = ::currentShareableUrl,
-            currentPageTitle = { currentPageTitle },
+            currentPageTitle = { browserSessionController.currentPageTitle },
             isShareableUrl = ::isShareableUrl,
             openNativePlayer = ::openNativePlayer,
             openExternalUrl = ::openExternalUrl,
@@ -195,6 +186,57 @@ class MainActivity : AppCompatActivity() {
             updateNavigationButtons = ::updateNavigationButtons,
             updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
             recreateActivity = { recreate() }
+        )
+        browserControlsController = BrowserControlsController(
+            activity = this,
+            browserManager = browserManager,
+            topBar = topBar,
+            bottomBar = bottomBar,
+            addressInput = addressInput,
+            pageProgress = pageProgress,
+            pageToolsButton = pageToolsButton,
+            backButton = backButton,
+            refreshButton = refreshButton,
+            homeButton = homeButton,
+            bookmarkButton = bookmarkButton,
+            loadButton = loadButton,
+            savedPageRepository = savedPageRepository,
+            currentActionableUrl = ::currentActionableUrl,
+            isHomePageVisible = { isHomePageVisible },
+            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            onLoadAddress = ::loadAddressInput,
+            onOpenHomePage = ::openHomePage,
+            onShowFunctionCenter = ::showFunctionCenter,
+            onToggleBookmark = pageActionsController::toggleCurrentBookmark,
+            onShowControlsRequested = { setBrowserControlsHidden(false) },
+            onVisibilityChanged = ::syncSearchProviderVisibility
+        )
+        browserControlsScrollController = BrowserControlsScrollController(
+            webView = webView,
+            addressInput = addressInput,
+            dp = ::dp,
+            areControlsHidden = { browserControlsController.areHidden },
+            isHomePageVisible = { isHomePageVisible },
+            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            applyControlsHidden = browserControlsController::setHidden,
+            updatePageProgressVisibility = ::updatePageProgressVisibility
+        )
+        browserSessionController = BrowserSessionController(
+            activity = this,
+            clearElementPickerState = {
+                if (::elementPickerController.isInitialized) {
+                    elementPickerController.clearState()
+                }
+            },
+            exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
+            isProviderHomeUrl = ::isProviderHomeUrl,
+            updateAddressBar = ::updateAddressBar,
+            showHomeContent = ::showHomeContent,
+            setPageProgress = browserControlsController::setProgress,
+            updatePageProgressVisibility = ::updatePageProgressVisibility,
+            updateNavigationButtons = ::updateNavigationButtons,
+            addHistoryEntry = pageActionsController::addHistoryEntry,
+            injectPageFeatures = ::injectPageFeatures
         )
         fullscreenVideoController = FullscreenVideoController(
             activity = this,
@@ -238,6 +280,13 @@ class MainActivity : AppCompatActivity() {
             scriptLoader = ScriptLoader(assets),
             evaluateJavascript = browserManager::evaluateJavascript,
             ruleEngine = ruleEngine
+        )
+        pageFeatureCoordinator = PageFeatureCoordinator(
+            settingsManager = settingsManager,
+            browserManager = browserManager,
+            jsInjector = jsInjector,
+            currentSiteHost = ::currentSiteHost,
+            currentPageUrl = { browserSessionController.currentPageUrl }
         )
         elementPickerController = ElementPickerController(
             activity = this,
@@ -317,42 +366,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBrowserControls() {
-        ViewCompat.setTooltipText(pageToolsButton, getString(R.string.title_page_tools))
-        ViewCompat.setTooltipText(loadButton, getString(R.string.action_load_url))
-        ViewCompat.setTooltipText(backButton, getString(R.string.action_back))
-        ViewCompat.setTooltipText(refreshButton, getString(R.string.action_refresh))
-        ViewCompat.setTooltipText(homeButton, getString(R.string.action_home))
-        ViewCompat.setTooltipText(bookmarkButton, getString(R.string.action_add_bookmark))
-
-        addressInput.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                setBrowserControlsHidden(false)
-                addressInput.selectAll()
-            }
-        }
-
-        addressInput.setOnEditorActionListener { _, actionId, event ->
-            val isEnterUp =
-                event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP
-            if (actionId == EditorInfo.IME_ACTION_SEARCH || isEnterUp) {
-                loadAddressInput()
-                true
-            } else {
-                false
-            }
-        }
-
-        loadButton.setOnClickListener { loadAddressInput() }
-        backButton.setOnClickListener {
-            browserManager.goBack()
-            updateNavigationButtons()
-        }
-        refreshButton.setOnClickListener { browserManager.reload() }
-        homeButton.setOnClickListener { openHomePage() }
-        bookmarkButton.setOnClickListener { pageActionsController.toggleCurrentBookmark() }
-        pageToolsButton.setOnClickListener { showFunctionCenter() }
-
-        updateNavigationButtons()
+        browserControlsController.setup()
     }
 
     private fun setupChromeClient() {
@@ -361,8 +375,8 @@ class MainActivity : AppCompatActivity() {
                 activity = this,
                 fullscreenContainer = fullscreenContainer,
                 decorView = window.decorView,
-                progressChanged = ::handlePageProgressChanged,
-                titleReceived = ::handlePageTitleReceived,
+                progressChanged = browserSessionController::handlePageProgressChanged,
+                titleReceived = browserSessionController::handlePageTitleReceived,
                 fullscreenChanged = ::handleVideoFullscreenChanged
             )
         browserManager.setChromeClient(chromeClient)
@@ -371,8 +385,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupBrowserClient() {
         browserManager.setBrowserClient(
             BrowserClient(
-                pageStarted = ::handlePageStarted,
-                pageFinished = ::handlePageFinished,
+                pageStarted = browserSessionController::handlePageStarted,
+                pageFinished = browserSessionController::handlePageFinished,
                 requestIntercepted = adBlockRequestInterceptor::intercept,
                 urlLoadingRequested = ::shouldBlockUrl
             )
@@ -383,57 +397,13 @@ class MainActivity : AppCompatActivity() {
         fullscreenVideoController.attachOverlay()
     }
 
-    private fun handlePageStarted(url: String?) {
-        if (::elementPickerController.isInitialized) {
-            elementPickerController.clearState()
-        }
-        currentPageUrl = url ?: currentPageUrl
+    private fun exitPageFullscreenIfNeeded() {
         if (::chromeClient.isInitialized &&
             chromeClient.isFullscreenModeActive() &&
             !chromeClient.isShowingCustomView()
         ) {
             chromeClient.exitPageFullscreen()
         }
-        val isProviderHome = isProviderHomeUrl(url)
-        resetPageTitle()
-        updateAddressBar(url)
-        showHomeContent(isProviderHome)
-        isPageLoading = true
-        pageProgress.progress = 0
-        updatePageProgressVisibility()
-        updateNavigationButtons()
-    }
-
-    private fun handlePageFinished(url: String?) {
-        currentPageUrl = url ?: currentPageUrl
-        val isProviderHome = isProviderHomeUrl(url)
-        updateAddressBar(url)
-        showHomeContent(isProviderHome)
-        isPageLoading = false
-        pageProgress.progress = 100
-        updatePageProgressVisibility(forceHidden = true)
-        pageActionsController.addHistoryEntry(url)
-        injectPageFeatures()
-        updateNavigationButtons()
-    }
-
-    private fun handlePageProgressChanged(newProgress: Int) {
-        val normalizedProgress = newProgress.coerceIn(0, 100)
-        isPageLoading = normalizedProgress in 1..99
-        pageProgress.progress = normalizedProgress
-        updatePageProgressVisibility()
-        updateNavigationButtons()
-    }
-
-    private fun handlePageTitleReceived(title: String) {
-        val normalizedTitle = title.trim()
-        currentPageTitle = normalizedTitle
-        this.title = normalizedTitle.takeIf { it.isNotBlank() } ?: getString(R.string.app_name)
-    }
-
-    private fun resetPageTitle() {
-        currentPageTitle = ""
-        this.title = getString(R.string.app_name)
     }
 
     private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
@@ -447,116 +417,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
-        pageProgress.visibility = when {
-            forceHidden || isVideoFullscreenUiActive || areBrowserControlsHidden -> View.GONE
-            isPageLoading && pageProgress.progress in 1..99 && !isHomePageVisible -> View.VISIBLE
-            else -> View.INVISIBLE
-        }
+        browserControlsController.updatePageProgressVisibility(
+            browserSessionController.isPageLoading,
+            forceHidden
+        )
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     private fun setupWebViewScrollControls() {
-        webView.setOnTouchListener { view, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    isWebViewTouchActive = true
-                    pendingBrowserControlsHidden = null
-                    view.parent?.requestDisallowInterceptTouchEvent(true)
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    isWebViewTouchActive = false
-                    view.parent?.requestDisallowInterceptTouchEvent(false)
-                    applyPendingBrowserControlsAfterTouch(view)
-                }
-            }
-            false
-        }
-
-        webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            if (isVideoFullscreenUiActive) {
-                return@setOnScrollChangeListener
-            }
-            if (isHomePageVisible || addressInput.hasFocus()) {
-                resetScrollControlTracking()
-                setBrowserControlsHidden(false)
-                return@setOnScrollChangeListener
-            }
-
-            val deltaY = scrollY - oldScrollY
-            if (scrollY <= dp(4)) {
-                resetScrollControlTracking()
-                setBrowserControlsHidden(false)
-                return@setOnScrollChangeListener
-            }
-            if (kotlin.math.abs(deltaY) < dp(2)) {
-                return@setOnScrollChangeListener
-            }
-
-            val direction = if (deltaY > 0) 1 else -1
-            if (direction != scrollControlDirection) {
-                scrollControlDirection = direction
-                scrollControlDeltaY = 0
-            }
-            scrollControlDeltaY += deltaY
-
-            val now = SystemClock.uptimeMillis()
-            if (now - lastScrollControlChangeAt < BROWSER_CONTROLS_SCROLL_COOLDOWN_MS) {
-                return@setOnScrollChangeListener
-            }
-
-            when {
-                scrollControlDeltaY >= dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
-                    resetScrollControlTracking(now)
-                    setBrowserControlsHidden(true)
-                }
-                scrollControlDeltaY <= -dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
-                    resetScrollControlTracking(now)
-                    setBrowserControlsHidden(false)
-                }
-            }
-        }
-    }
-
-    private fun applyPendingBrowserControlsAfterTouch(view: View) {
-        val pendingHidden = pendingBrowserControlsHidden ?: return
-        pendingBrowserControlsHidden = null
-        view.post {
-            if (isWebViewTouchActive) {
-                pendingBrowserControlsHidden = pendingHidden
-            } else {
-                setBrowserControlsHidden(pendingHidden, allowDefer = false)
-            }
-        }
-    }
-
-    private fun resetScrollControlTracking(changeAt: Long = lastScrollControlChangeAt) {
-        scrollControlDeltaY = 0
-        scrollControlDirection = 0
-        lastScrollControlChangeAt = changeAt
+        browserControlsScrollController.setup()
     }
 
     private fun setBrowserControlsHidden(hidden: Boolean, allowDefer: Boolean = true) {
-        val shouldHide = hidden || isVideoFullscreenUiActive
-        if (allowDefer &&
-            isWebViewTouchActive &&
-            !isVideoFullscreenUiActive &&
-            areBrowserControlsHidden != shouldHide
-        ) {
-            pendingBrowserControlsHidden = shouldHide
-            return
-        }
-
-        if (areBrowserControlsHidden == shouldHide) {
-            pendingBrowserControlsHidden = null
-            syncSearchProviderVisibility()
-            return
-        }
-
-        areBrowserControlsHidden = shouldHide
-        topBar.visibility = if (shouldHide) View.GONE else View.VISIBLE
-        bottomBar.visibility = if (shouldHide) View.GONE else View.VISIBLE
-        syncSearchProviderVisibility()
-        updatePageProgressVisibility(forceHidden = shouldHide)
+        browserControlsScrollController.setControlsHidden(hidden, allowDefer)
     }
 
     private fun syncSearchProviderVisibility() {
@@ -564,7 +436,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         searchProviderController.syncVisibility(
-            areBrowserControlsHidden = areBrowserControlsHidden,
+            areBrowserControlsHidden = browserControlsController.areHidden,
             isVideoFullscreenUiActive = isVideoFullscreenUiActive,
             isHomePageVisible = isHomePageVisible
         )
@@ -670,43 +542,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isAdBlockEnabled(): Boolean {
-        return settingsManager.isAdBlockEnabled()
+        return pageFeatureCoordinator.isAdBlockEnabled()
     }
 
     private fun isCurrentSiteAdBlockDisabled(): Boolean {
-        return settingsManager.isAdBlockDisabledForSite(currentSiteHost())
+        return pageFeatureCoordinator.isCurrentSiteAdBlockDisabled()
     }
 
     private fun isJsInjectionEnabled(): Boolean {
-        return settingsManager.isJsInjectionEnabled()
+        return pageFeatureCoordinator.isJsInjectionEnabled()
     }
 
     private fun isCurrentSiteJsInjectionDisabled(): Boolean {
-        return settingsManager.isJsInjectionDisabledForSite(currentSiteHost())
+        return pageFeatureCoordinator.isCurrentSiteJsInjectionDisabled()
     }
 
     private fun isPageCleanupEnabled(): Boolean {
-        return settingsManager.isDomAdBlockEnabled()
+        return pageFeatureCoordinator.isPageCleanupEnabled()
     }
 
     private fun isCurrentSitePageCleanupDisabled(): Boolean {
-        return settingsManager.isDomAdBlockDisabledForSite(currentSiteHost())
+        return pageFeatureCoordinator.isCurrentSitePageCleanupDisabled()
     }
 
     private fun isVideoEnhancementEnabled(): Boolean {
-        return settingsManager.isVideoEnhancementEnabled()
+        return pageFeatureCoordinator.isVideoEnhancementEnabled()
     }
 
     private fun isCurrentSiteVideoEnhancementDisabled(): Boolean {
-        return settingsManager.isVideoEnhancementDisabledForSite(currentSiteHost())
-    }
-
-    private fun isPageCleanupEnabledForCurrentSite(): Boolean {
-        return isPageCleanupEnabled() && !isCurrentSitePageCleanupDisabled()
-    }
-
-    private fun isVideoEnhancementEnabledForCurrentSite(): Boolean {
-        return isVideoEnhancementEnabled() && !isCurrentSiteVideoEnhancementDisabled()
+        return pageFeatureCoordinator.isCurrentSiteVideoEnhancementDisabled()
     }
 
     private fun isDesktopModeEnabled(): Boolean {
@@ -744,18 +608,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun injectPageFeatures() {
-        if (!::jsInjector.isInitialized) {
+        if (!::pageFeatureCoordinator.isInitialized) {
             return
         }
-        jsInjector.inject(
-            PageFeatureConfig(
-                jsInjectionEnabled = isJsInjectionEnabled() && !isCurrentSiteJsInjectionDisabled(),
-                cleanupEnabled = isPageCleanupEnabledForCurrentSite(),
-                videoEnabled = isVideoEnhancementEnabledForCurrentSite(),
-                userCssSelectors = settingsManager.userElementHideSelectorsForSite(currentSiteHost())
-            ),
-            pageUrl = currentPageUrl ?: browserManager.currentUrl()
-        )
+        pageFeatureCoordinator.injectPageFeatures()
     }
 
     private fun currentShareableUrl(): String? {
@@ -763,12 +619,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun currentActionableUrl(): String? {
-        return listOf(currentPageUrl, browserManager.currentUrl())
+        return listOf(browserSessionController.currentPageUrl, browserManager.currentUrl())
             .firstOrNull { url -> !url.isNullOrBlank() && isShareableUrl(url) }
     }
 
     private fun currentSiteHost(): String? {
-        return SiteHost.fromUrl(currentPageUrl)
+        return SiteHost.fromUrl(browserSessionController.currentPageUrl)
     }
 
     private fun isShareableUrl(url: String): Boolean {
@@ -794,7 +650,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         val title = titleOverride
             ?.takeIf { it.isNotBlank() }
-            ?: currentPageTitle
+            ?: browserSessionController.currentPageTitle
             .takeIf { it.isNotBlank() && !it.equals(url, ignoreCase = true) }
             ?: URLUtil.guessFileName(url, null, mimeType)
         val isRemoteMedia = isShareableUrl(url)
@@ -840,7 +696,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        currentPageUrl = url
+        browserSessionController.currentPageUrl = url
         val isProviderHome = isProviderHomeUrl(url)
         updateAddressBar(url)
         hideKeyboard()
@@ -866,46 +722,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateNavigationButtons() {
-        val canGoBack = browserManager.canGoBack()
-        backButton.isEnabled = canGoBack
-        backButton.visibility = if (canGoBack) View.VISIBLE else View.GONE
-        updateBookmarkButton()
+        browserControlsController.updateNavigationButtons()
     }
 
     private fun updateBookmarkButton() {
-        if (!::bookmarkButton.isInitialized || !::preferenceStore.isInitialized) {
-            return
+        if (::browserControlsController.isInitialized) {
+            browserControlsController.updateBookmarkButton()
         }
-
-        // 页面级收藏入口直接跟随 WebView 当前地址，避免依赖功能中心上下文。
-        val url = currentActionableUrl()
-        val isEnabled = url != null
-        val isBookmarked = url?.let(savedPageRepository::isBookmarked) ?: false
-        val actionText = getString(
-            if (isBookmarked) R.string.action_remove_bookmark else R.string.action_add_bookmark
-        )
-
-        bookmarkButton.isEnabled = isEnabled
-        bookmarkButton.contentDescription = actionText
-        bookmarkButton.setImageResource(
-            if (isBookmarked) R.drawable.ic_star_filled_24 else R.drawable.ic_star_24
-        )
-        bookmarkButton.setColorFilter(
-            ContextCompat.getColor(
-                this,
-                when {
-                    !isEnabled -> R.color.browser_icon_disabled
-                    isBookmarked -> R.color.bookmark_active
-                    else -> R.color.browser_icon
-                }
-            )
-        )
-        ViewCompat.setTooltipText(bookmarkButton, actionText)
     }
 
     private fun showHomeContent(show: Boolean) {
         isHomePageVisible = show
-        resetScrollControlTracking()
+        browserControlsScrollController.resetTracking()
         setBrowserControlsHidden(false)
         syncSearchProviderVisibility()
         webView.visibility = View.VISIBLE
