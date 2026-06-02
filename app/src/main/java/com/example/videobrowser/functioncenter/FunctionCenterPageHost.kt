@@ -15,6 +15,14 @@ class FunctionCenterPageHost(
         functionCenter.showPage(title, onBack, buildContent)
     }
 
+    fun showBottomSheetPage(
+        title: String,
+        onClose: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        functionCenter.showBottomSheetPage(title, onClose, buildContent)
+    }
+
     fun handleBack(): Boolean {
         return functionCenter.handleBack()
     }

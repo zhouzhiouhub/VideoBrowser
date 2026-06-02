@@ -8,6 +8,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -69,6 +70,80 @@ class FunctionCenterViewFactory(
             )
         )
         return page
+    }
+
+    fun createBottomSheetPage(
+        title: String,
+        onClose: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ): View {
+        val overlay = FrameLayout(activity).apply {
+            isClickable = true
+            isFocusable = true
+            setBackgroundColor(Color.argb(92, 17, 24, 39))
+            setOnClickListener { onClose() }
+        }
+
+        val sheet = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            isClickable = true
+            isFocusable = true
+            elevation = dp(12).toFloat()
+            background = createBottomSheetBackground(
+                ContextCompat.getColor(activity, R.color.browser_surface)
+            )
+        }
+
+        sheet.addView(
+            createSheetHandle(),
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(18)
+            )
+        )
+        sheet.addView(
+            createSheetToolbar(title, onClose),
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(50)
+            )
+        )
+
+        val content = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), 0, dp(14), dp(20))
+        }
+        buildContent(content)
+
+        val scrollView = ScrollView(activity).apply {
+            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+            addView(
+                content,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
+        sheet.addView(
+            scrollView,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        )
+
+        overlay.addView(
+            sheet,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                activity.resources.displayMetrics.heightPixels / 2
+            ).apply {
+                gravity = Gravity.BOTTOM
+            }
+        )
+        return overlay
     }
 
     fun addFunctionSection(
@@ -320,6 +395,57 @@ class FunctionCenterViewFactory(
         }
     }
 
+    private fun createSheetToolbar(title: String, onClose: () -> Unit): View {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(18), 0, dp(4), 0)
+
+            val titleView = TextView(activity).apply {
+                text = title
+                setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
+                textSize = 18f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER_VERTICAL
+                includeFontPadding = false
+            }
+            addView(
+                titleView,
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+            )
+
+            val closeButton = ImageButton(activity).apply {
+                setImageResource(R.drawable.ic_close_24)
+                setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
+                background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
+                contentDescription = activity.getString(R.string.action_close)
+                scaleType = ImageView.ScaleType.CENTER
+                setPadding(dp(16), dp(16), dp(16), dp(16))
+                setOnClickListener { onClose() }
+            }
+            ViewCompat.setTooltipText(closeButton, activity.getString(R.string.action_close))
+            addView(
+                closeButton,
+                LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
+            )
+        }
+    }
+
+    private fun createSheetHandle(): View {
+        return FrameLayout(activity).apply {
+            addView(
+                View(activity).apply {
+                    background = createRoundedBackground(
+                        ContextCompat.getColor(activity, R.color.browser_control_pressed)
+                    )
+                },
+                FrameLayout.LayoutParams(dp(36), dp(4)).apply {
+                    gravity = Gravity.CENTER
+                }
+            )
+        }
+    }
+
     private fun addSectionTitle(parent: LinearLayout, title: String) {
         parent.addView(
             TextView(activity).apply {
@@ -345,6 +471,24 @@ class FunctionCenterViewFactory(
         return GradientDrawable().apply {
             setColor(color)
             cornerRadius = dp(8).toFloat()
+        }
+    }
+
+    private fun createBottomSheetBackground(color: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            setColor(color)
+            setCornerRadii(
+                floatArrayOf(
+                    dp(18).toFloat(),
+                    dp(18).toFloat(),
+                    dp(18).toFloat(),
+                    dp(18).toFloat(),
+                    0f,
+                    0f,
+                    0f,
+                    0f
+                )
+            )
         }
     }
 

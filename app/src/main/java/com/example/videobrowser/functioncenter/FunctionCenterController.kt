@@ -23,6 +23,14 @@ class FunctionCenterController(
         attachPage(viewFactory.createPage(title, onBack, buildContent), onBack)
     }
 
+    fun showBottomSheetPage(
+        title: String,
+        onClose: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        attachPage(viewFactory.createBottomSheetPage(title, onClose, buildContent), onClose)
+    }
+
     fun handleBack(): Boolean {
         if (page == null) {
             return false

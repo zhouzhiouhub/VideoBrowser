@@ -101,17 +101,6 @@
             android:src="@drawable/ic_star_24"
             android:tint="@color/bottom_nav_icon" />
 
-        <ImageButton
-            android:id="@+id/pageToolsButton"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/bg_icon_button"
-            android:contentDescription="@string/title_page_tools"
-            android:padding="10dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_more_vert_24"
-            android:tint="@color/bottom_nav_icon" />
     </LinearLayout>
 
     <ProgressBar
@@ -220,6 +209,18 @@
             android:padding="18dp"
             android:scaleType="center"
             android:src="@drawable/ic_home_24"
+            android:tint="@color/bottom_nav_icon" />
+
+        <ImageButton
+            android:id="@+id/pageToolsButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/title_page_tools"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_menu_24"
             android:tint="@color/bottom_nav_icon" />
 
     </LinearLayout>

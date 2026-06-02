@@ -103,9 +103,9 @@ class FunctionCenterPages(
     private val activity = host.activity
 
     fun showRootPage() {
-        host.showPage(
+        host.showBottomSheetPage(
             title = activity.getString(R.string.title_page_tools),
-            onBack = { close() }
+            onClose = { close() }
         ) { content ->
             val siteHost = currentSiteHost()
             val pageUrl = currentActionableUrl()
