@@ -201,7 +201,7 @@ class FunctionCenterViewFactory(
             isEnabled = enabled
             minimumHeight = dp(62)
             setPadding(0, dp(8), 0, dp(8))
-            setSelectableItemBackground()
+            setBoundedSelectableItemBackground()
         }
         val labels = createRowText(title, summary).apply {
             isEnabled = enabled
@@ -251,7 +251,7 @@ class FunctionCenterViewFactory(
             alpha = if (enabled) 1f else 0.48f
             minimumHeight = dp(58)
             setPadding(0, dp(9), 0, dp(9))
-            setSelectableItemBackground()
+            setBoundedSelectableItemBackground()
             if (enabled) {
                 setOnClickListener { onClick() }
             }
@@ -370,10 +370,10 @@ class FunctionCenterViewFactory(
         }
     }
 
-    private fun View.setSelectableItemBackground() {
+    private fun View.setBoundedSelectableItemBackground() {
         val outValue = TypedValue()
         activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackgroundBorderless,
+            android.R.attr.selectableItemBackground,
             outValue,
             true
         )
