@@ -23,9 +23,10 @@ class CurrentSiteSettingsPage(
 
     fun show() {
         val siteHost = currentSiteHost()
-        host.showPage(
+        host.showBottomSheetPage(
             title = activity.getString(R.string.title_current_site),
-            onBack = showRootPage
+            onBack = showRootPage,
+            onClose = { host.close() }
         ) { content ->
             if (siteHost != null) {
                 host.addFunctionMessage(
@@ -186,9 +187,10 @@ class CurrentSiteSettingsPage(
 
     private fun showCurrentSiteConfigPage() {
         val siteHost = currentSiteHost()
-        host.showPage(
+        host.showBottomSheetPage(
             title = activity.getString(R.string.title_site_config),
-            onBack = { show() }
+            onBack = { show() },
+            onClose = { host.close() }
         ) { content ->
             if (siteHost == null) {
                 host.addEmptyState(

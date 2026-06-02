@@ -1,7 +1,7 @@
 package com.example.videobrowser.functioncenter
 
-import android.graphics.Color
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
@@ -67,33 +67,20 @@ class UserWhitelistPage(
     }
 
     private fun showRemoveUserWhitelistHostPage(hostName: String) {
-        host.showPage(
-            title = activity.getString(R.string.title_remove_user_whitelist),
-            onBack = { show() }
-        ) { content ->
-            host.addFunctionMessage(
-                content,
-                activity.getString(R.string.dialog_remove_user_whitelist_message, hostName)
-            )
-            host.addFunctionSection(
-                content,
-                activity.getString(R.string.function_center_section_actions)
-            ) { section ->
-                host.addFunctionActionButton(
-                    parent = section,
-                    title = activity.getString(R.string.action_remove),
-                    backgroundColor = Color.parseColor("#D92D20")
-                ) {
-                    settingsManager.setUserWhitelistedSite(hostName, false)
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.toast_user_whitelist_removed, hostName),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    browserManager.reload()
-                    show()
-                }
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.title_remove_user_whitelist)
+            .setMessage(activity.getString(R.string.dialog_remove_user_whitelist_message, hostName))
+            .setPositiveButton(R.string.action_remove) { _, _ ->
+                settingsManager.setUserWhitelistedSite(hostName, false)
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.toast_user_whitelist_removed, hostName),
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+                show()
             }
-        }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

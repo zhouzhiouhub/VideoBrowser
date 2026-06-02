@@ -23,6 +23,15 @@ class FunctionCenterPageHost(
         functionCenter.showBottomSheetPage(title, onClose, buildContent)
     }
 
+    fun showBottomSheetPage(
+        title: String,
+        onBack: () -> Unit,
+        onClose: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        functionCenter.showBottomSheetPage(title, onBack, onClose, buildContent)
+    }
+
     fun handleBack(): Boolean {
         return functionCenter.handleBack()
     }
@@ -58,6 +67,13 @@ class FunctionCenterPageHost(
         onClick: () -> Unit
     ) {
         functionCenter.addFunctionActionButton(parent, title, backgroundColor, onClick)
+    }
+
+    fun addActionGrid(
+        parent: LinearLayout,
+        actions: List<FunctionCenterGridAction>
+    ) {
+        functionCenter.addActionGrid(parent, actions)
     }
 
     fun addSwitchRow(

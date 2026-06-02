@@ -1,6 +1,7 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
@@ -83,7 +84,7 @@ class BrowserSettingsPage(
                 title = activity.getString(R.string.action_clear_browser_data),
                 summary = activity.getString(R.string.action_clear_browser_data_summary)
             ) {
-                clearBrowserData()
+                showClearBrowserDataDialog()
             }
             host.addActionRow(
                 parent = section,
@@ -149,5 +150,14 @@ class BrowserSettingsPage(
                 injectPageFeatures()
             }
         }
+    }
+
+    private fun showClearBrowserDataDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear_browser_data)
+            .setMessage(R.string.dialog_clear_browser_data_message)
+            .setPositiveButton(R.string.action_clear) { _, _ -> clearBrowserData() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

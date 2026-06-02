@@ -2,6 +2,7 @@ package com.example.videobrowser.functioncenter
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogAction
 import com.example.videobrowser.adblock.AdBlockLogEntry
@@ -41,13 +42,7 @@ class AdBlockLogPage(
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_ad_block_log_summary)
                 ) {
-                    adBlockLogger.clear()
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_ad_block_log_cleared,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    showRootPage()
+                    showClearAdBlockLogDialog()
                 }
             }
 
@@ -68,7 +63,7 @@ class AdBlockLogPage(
                         !settingsManager.isUserWhitelistedSite(whitelistHost)
                     ) {
                         host.addActionRow(section, rowTitle, rowSummary) {
-                            showAddWhitelistFromLogPage(whitelistHost)
+                            showAddWhitelistFromLogDialog(whitelistHost)
                         }
                     } else {
                         host.addInfoRow(section, rowTitle, rowSummary)
@@ -94,7 +89,24 @@ class AdBlockLogPage(
         return entry.host ?: Uri.parse(entry.url).host ?: entry.url
     }
 
-    private fun showAddWhitelistFromLogPage(hostName: String) {
+    private fun showClearAdBlockLogDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear)
+            .setMessage(R.string.dialog_clear_ad_block_log_message)
+            .setPositiveButton(R.string.action_clear) { _, _ ->
+                adBlockLogger.clear()
+                Toast.makeText(
+                    activity,
+                    R.string.toast_ad_block_log_cleared,
+                    Toast.LENGTH_SHORT
+                ).show()
+                showRootPage()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAddWhitelistFromLogDialog(hostName: String) {
         if (settingsManager.isUserWhitelistedSite(hostName)) {
             Toast.makeText(
                 activity,
@@ -104,29 +116,20 @@ class AdBlockLogPage(
             return
         }
 
-        host.showPage(
-            title = activity.getString(R.string.title_add_user_whitelist),
-            onBack = { show() }
-        ) { content ->
-            host.addFunctionMessage(
-                content,
-                activity.getString(R.string.dialog_add_user_whitelist_message, hostName)
-            )
-            host.addFunctionSection(
-                content,
-                activity.getString(R.string.function_center_section_actions)
-            ) { section ->
-                host.addFunctionActionButton(section, activity.getString(R.string.action_add)) {
-                    settingsManager.setUserWhitelistedSite(hostName, true)
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.toast_user_whitelist_added, hostName),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    browserManager.reload()
-                    show()
-                }
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.title_add_user_whitelist)
+            .setMessage(activity.getString(R.string.dialog_add_user_whitelist_message, hostName))
+            .setPositiveButton(R.string.action_add) { _, _ ->
+                settingsManager.setUserWhitelistedSite(hostName, true)
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.toast_user_whitelist_added, hostName),
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager.reload()
+                show()
             }
-        }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

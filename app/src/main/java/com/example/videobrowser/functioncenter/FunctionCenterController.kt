@@ -28,7 +28,22 @@ class FunctionCenterController(
         onClose: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ) {
-        attachPage(viewFactory.createBottomSheetPage(title, onClose, buildContent), onClose)
+        attachPage(
+            viewFactory.createBottomSheetPage(title, null, onClose, buildContent),
+            onClose
+        )
+    }
+
+    fun showBottomSheetPage(
+        title: String,
+        onBack: () -> Unit,
+        onClose: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        attachPage(
+            viewFactory.createBottomSheetPage(title, onBack, onClose, buildContent),
+            onBack
+        )
     }
 
     fun handleBack(): Boolean {
@@ -74,6 +89,13 @@ class FunctionCenterController(
         onClick: () -> Unit
     ) {
         viewFactory.addFunctionActionButton(parent, title, backgroundColor, onClick)
+    }
+
+    fun addActionGrid(
+        parent: LinearLayout,
+        actions: List<FunctionCenterGridAction>
+    ) {
+        viewFactory.addActionGrid(parent, actions)
     }
 
     fun addSwitchRow(

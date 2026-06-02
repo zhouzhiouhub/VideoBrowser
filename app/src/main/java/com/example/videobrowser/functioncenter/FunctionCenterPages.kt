@@ -1,6 +1,7 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogger
@@ -37,7 +38,7 @@ class FunctionCenterPages(
     private val showFileOperationsPage: () -> Unit,
     private val startElementPicker: () -> Unit,
     private val applyDesktopMode: (Boolean) -> Unit,
-    injectPageFeatures: () -> Unit,
+    private val injectPageFeatures: () -> Unit,
     private val loadUrl: (String) -> Unit
 ) {
     private val host = FunctionCenterPageHost(activity, functionCenter)
@@ -76,8 +77,7 @@ class FunctionCenterPages(
     )
     private val restoreDefaultSettingsPage = RestoreDefaultSettingsPage(
         host = host,
-        restoreDefaultSettings = restoreDefaultSettings,
-        showRootPage = ::showRootPage
+        restoreDefaultSettings = restoreDefaultSettings
     )
     private val browserSettingsPage = BrowserSettingsPage(
         host = host,
@@ -109,6 +109,14 @@ class FunctionCenterPages(
         ) { content ->
             val siteHost = currentSiteHost()
             val pageUrl = currentActionableUrl()
+            host.addFunctionMessage(
+                content,
+                if (siteHost != null) {
+                    activity.getString(R.string.function_center_current_site, siteHost)
+                } else {
+                    activity.getString(R.string.function_center_no_site)
+                }
+            )
             addCurrentPageActionSection(content, pageUrl, siteHost)
             addFunctionNavigationSection(content, siteHost)
         }
@@ -153,6 +161,8 @@ class FunctionCenterPages(
         val pageSummary = pageUrl
             ?.let(UrlUtils::displayUrl)
             ?: activity.getString(R.string.function_center_page_action_unavailable)
+        val siteSummary = siteHost
+            ?: activity.getString(R.string.function_center_site_action_unavailable)
         val hasPage = pageUrl != null
         val bookmarkTitle = if (pageUrl?.let(savedPageRepository::isBookmarked) == true) {
             activity.getString(R.string.action_remove_bookmark)
@@ -164,26 +174,62 @@ class FunctionCenterPages(
             parent,
             activity.getString(R.string.function_center_section_page_actions)
         ) { section ->
-            host.addActionRow(section, bookmarkTitle, pageSummary, enabled = hasPage) {
-                toggleCurrentBookmark()
-                showRootPage()
-            }
-            host.addActionRow(
+            host.addActionGrid(
                 section,
-                activity.getString(R.string.action_copy_link),
-                pageSummary,
-                enabled = hasPage
-            ) {
-                copyCurrentUrl()
-            }
-            host.addActionRow(
-                section,
-                activity.getString(R.string.action_share_page),
-                pageSummary,
-                enabled = hasPage
-            ) {
-                shareCurrentUrl()
-            }
+                listOf(
+                    FunctionCenterGridAction(
+                        title = bookmarkTitle,
+                        summary = pageSummary,
+                        enabled = hasPage
+                    ) {
+                        runPageAction(toggleCurrentBookmark)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_pick_element),
+                        summary = siteSummary,
+                        enabled = siteHost != null
+                    ) {
+                        close()
+                        startElementPicker()
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_copy_link),
+                        summary = activity.getString(R.string.action_copy_link_summary),
+                        enabled = hasPage
+                    ) {
+                        runPageAction(copyCurrentUrl)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_share_page),
+                        summary = activity.getString(R.string.action_share_page_summary),
+                        enabled = hasPage
+                    ) {
+                        runPageAction(shareCurrentUrl)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_open_external),
+                        summary = activity.getString(R.string.action_open_external_summary),
+                        enabled = hasPage
+                    ) {
+                        runPageAction(openCurrentUrlExternally)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_download_current_url),
+                        summary = activity.getString(R.string.action_download_current_url_summary),
+                        enabled = hasPage
+                    ) {
+                        runPageAction(downloadCurrentUrl)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_open_native_player),
+                        summary = activity.getString(R.string.action_open_native_player_summary),
+                        enabled = hasPage
+                    ) {
+                        runPageAction(openCurrentUrlInNativePlayer)
+                    }
+                )
+            )
+            host.addDivider(section)
             host.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_desktop_mode),
@@ -194,40 +240,45 @@ class FunctionCenterPages(
                 settingsManager.setDesktopModeEnabled(enabled)
                 applyDesktopMode(true)
             }
-            host.addActionRow(
-                section,
-                activity.getString(R.string.action_open_external),
-                pageSummary,
-                enabled = hasPage
-            ) {
-                openCurrentUrlExternally()
-            }
-            host.addActionRow(
-                section,
-                activity.getString(R.string.action_open_native_player),
-                pageSummary,
-                enabled = hasPage
-            ) {
-                openCurrentUrlInNativePlayer()
-            }
-            host.addActionRow(
-                section,
-                activity.getString(R.string.action_download_current_url),
-                pageSummary,
-                enabled = hasPage
-            ) {
-                downloadCurrentUrl()
-            }
-            host.addActionRow(
+            host.addSwitchRow(
                 parent = section,
-                title = activity.getString(R.string.action_pick_element),
-                summary = siteHost ?: activity.getString(R.string.function_center_site_action_unavailable),
-                enabled = siteHost != null
-            ) {
-                close()
-                startElementPicker()
+                title = activity.getString(R.string.setting_page_cleanup),
+                summary = activity.getString(R.string.setting_page_cleanup_summary),
+                checked = isPageCleanupEnabled(),
+                enabled = hasPage
+            ) { enabled ->
+                settingsManager.setDomAdBlockEnabled(enabled)
+                injectPageFeatures()
+                showFeatureToggleToast(activity.getString(R.string.setting_page_cleanup), enabled)
+            }
+            host.addSwitchRow(
+                parent = section,
+                title = activity.getString(R.string.setting_video_enhancement),
+                summary = activity.getString(R.string.setting_video_enhancement_summary),
+                checked = isVideoEnhancementEnabled(),
+                enabled = hasPage
+            ) { enabled ->
+                settingsManager.setVideoEnhancementEnabled(enabled)
+                injectPageFeatures()
+                showFeatureToggleToast(activity.getString(R.string.setting_video_enhancement), enabled)
             }
         }
+    }
+
+    private fun runPageAction(action: () -> Unit) {
+        action()
+        close()
+    }
+
+    private fun showFeatureToggleToast(featureName: String, enabled: Boolean) {
+        Toast.makeText(
+            activity,
+            activity.getString(
+                if (enabled) R.string.toast_feature_enabled else R.string.toast_feature_disabled,
+                featureName
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun showBookmarks() {

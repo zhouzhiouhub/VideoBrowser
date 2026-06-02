@@ -20,6 +20,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
 
+data class FunctionCenterGridAction(
+    val title: String,
+    val summary: String,
+    val enabled: Boolean = true,
+    val onClick: () -> Unit
+)
+
 class FunctionCenterViewFactory(
     private val activity: AppCompatActivity,
     private val dp: (Int) -> Int
@@ -74,6 +81,7 @@ class FunctionCenterViewFactory(
 
     fun createBottomSheetPage(
         title: String,
+        onBack: (() -> Unit)?,
         onClose: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ): View {
@@ -102,7 +110,7 @@ class FunctionCenterViewFactory(
             )
         )
         sheet.addView(
-            createSheetToolbar(title, onClose),
+            createSheetToolbar(title, onBack, onClose),
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 dp(50)
@@ -134,11 +142,16 @@ class FunctionCenterViewFactory(
             )
         )
 
+        val displayHeight = activity.resources.displayMetrics.heightPixels
+        val sheetHeight = (displayHeight * 0.68f)
+            .toInt()
+            .coerceAtLeast(dp(360))
+            .coerceAtMost(displayHeight - dp(24))
         overlay.addView(
             sheet,
             FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                activity.resources.displayMetrics.heightPixels / 2
+                sheetHeight
             ).apply {
                 gravity = Gravity.BOTTOM
             }
@@ -258,6 +271,53 @@ class FunctionCenterViewFactory(
                 bottomMargin = dp(8)
             }
         )
+    }
+
+    fun addActionGrid(
+        parent: LinearLayout,
+        actions: List<FunctionCenterGridAction>
+    ) {
+        actions.chunked(2).forEachIndexed { rowIndex, rowActions ->
+            val row = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            rowActions.forEachIndexed { columnIndex, action ->
+                row.addView(
+                    createGridActionView(action),
+                    LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1f
+                    ).apply {
+                        if (columnIndex == 0) {
+                            marginEnd = dp(4)
+                        } else {
+                            marginStart = dp(4)
+                        }
+                    }
+                )
+            }
+            if (rowActions.size == 1) {
+                row.addView(
+                    View(activity),
+                    LinearLayout.LayoutParams(0, dp(1), 1f).apply {
+                        marginStart = dp(4)
+                    }
+                )
+            }
+            parent.addView(
+                row,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    if (rowIndex > 0) {
+                        topMargin = dp(4)
+                    }
+                }
+            )
+        }
     }
 
     fun addSwitchRow(
@@ -395,11 +455,32 @@ class FunctionCenterViewFactory(
         }
     }
 
-    private fun createSheetToolbar(title: String, onClose: () -> Unit): View {
+    private fun createSheetToolbar(
+        title: String,
+        onBack: (() -> Unit)?,
+        onClose: () -> Unit
+    ): View {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(18), 0, dp(4), 0)
+            setPadding(if (onBack == null) dp(18) else dp(4), 0, dp(4), 0)
+
+            if (onBack != null) {
+                val backButton = ImageButton(activity).apply {
+                    setImageResource(R.drawable.ic_arrow_back_24)
+                    setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
+                    background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
+                    contentDescription = activity.getString(R.string.action_back)
+                    scaleType = ImageView.ScaleType.CENTER
+                    setPadding(dp(16), dp(16), dp(16), dp(16))
+                    setOnClickListener { onBack() }
+                }
+                ViewCompat.setTooltipText(backButton, activity.getString(R.string.action_back))
+                addView(
+                    backButton,
+                    LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
+                )
+            }
 
             val titleView = TextView(activity).apply {
                 text = title
@@ -427,6 +508,53 @@ class FunctionCenterViewFactory(
             addView(
                 closeButton,
                 LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
+            )
+        }
+    }
+
+    private fun createGridActionView(action: FunctionCenterGridAction): View {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(68)
+            setPadding(dp(10), dp(8), dp(10), dp(8))
+            isClickable = action.enabled
+            isFocusable = action.enabled
+            isEnabled = action.enabled
+            alpha = if (action.enabled) 1f else 0.48f
+            setBoundedSelectableItemBackground()
+            if (action.enabled) {
+                setOnClickListener { action.onClick() }
+            }
+
+            addView(
+                TextView(activity).apply {
+                    text = action.title
+                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
+                    textSize = 14f
+                    typeface = Typeface.DEFAULT_BOLD
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                },
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+            addView(
+                TextView(activity).apply {
+                    text = action.summary
+                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
+                    textSize = 12f
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                },
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = dp(3)
+                }
             )
         }
     }
@@ -501,6 +629,8 @@ class FunctionCenterViewFactory(
                 setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
                 textSize = 15f
                 typeface = Typeface.DEFAULT_BOLD
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
             }
             val summaryView = TextView(activity).apply {
                 text = summary

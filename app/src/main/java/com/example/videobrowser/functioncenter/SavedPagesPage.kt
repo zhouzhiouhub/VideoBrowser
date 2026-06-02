@@ -1,6 +1,7 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
@@ -38,13 +39,7 @@ class SavedPagesPage(
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_saved_pages_summary)
                 ) {
-                    savedPageRepository.clear(collection)
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_saved_pages_cleared,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    showRootPage()
+                    showClearSavedPagesDialog(collection)
                 }
             }
 
@@ -63,5 +58,22 @@ class SavedPagesPage(
                 }
             }
         }
+    }
+
+    private fun showClearSavedPagesDialog(collection: SavedPageCollection) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear)
+            .setMessage(R.string.dialog_clear_saved_pages_message)
+            .setPositiveButton(R.string.action_clear) { _, _ ->
+                savedPageRepository.clear(collection)
+                Toast.makeText(
+                    activity,
+                    R.string.toast_saved_pages_cleared,
+                    Toast.LENGTH_SHORT
+                ).show()
+                showRootPage()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

@@ -132,6 +132,9 @@
     <string name="action_clear">清空</string>
     <string name="action_clear_saved_pages_summary">清空当前列表</string>
     <string name="action_clear_ad_block_log_summary">清空最近拦截记录</string>
+    <string name="dialog_clear_browser_data_message">将清理缓存、Cookie、站点数据和历史记录，收藏夹与设置会保留。确定继续吗？</string>
+    <string name="dialog_clear_saved_pages_message">确定清空当前列表吗？此操作无法撤销。</string>
+    <string name="dialog_clear_ad_block_log_message">确定清空最近拦截日志吗？</string>
     <string name="action_restore">恢复</string>
     <string name="action_add">添加</string>
     <string name="action_add_current_site">添加当前站点</string>
@@ -167,6 +170,8 @@
     <string name="toast_link_copied">链接已复制</string>
     <string name="toast_browser_data_cleared">浏览数据已清理</string>
     <string name="toast_default_settings_restored">已恢复默认设置</string>
+    <string name="toast_feature_enabled">已开启%1$s</string>
+    <string name="toast_feature_disabled">已关闭%1$s</string>
     <string name="toast_private_browsing_enabled">已开启无痕浏览</string>
     <string name="toast_private_browsing_disabled">已关闭无痕浏览</string>
     <string name="toast_current_site_ad_block_disabled">已关闭 %1$s 的广告请求拦截</string>
