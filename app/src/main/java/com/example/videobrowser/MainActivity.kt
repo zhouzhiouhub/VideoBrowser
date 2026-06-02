@@ -1,7 +1,6 @@
 package com.example.videobrowser
 
 import android.annotation.SuppressLint
-import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -11,17 +10,10 @@ import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.database.Cursor
 import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.os.SystemClock
 import android.provider.OpenableColumns
-import android.text.TextUtils
-import android.util.Log
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -29,7 +21,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
-import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.WebView
 import android.widget.EditText
@@ -41,9 +32,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -52,53 +41,35 @@ import com.example.videobrowser.adblock.AdBlockLogAction
 import com.example.videobrowser.adblock.AdBlockLogEntry
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
-import com.example.videobrowser.adblock.BuiltInAdBlockRules
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
+import com.example.videobrowser.browser.VideoBrowserNativeBridge
+import com.example.videobrowser.browser.search.SearchProviderController
+import com.example.videobrowser.download.DownloadController
+import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureConfig
 import com.example.videobrowser.inject.ScriptLoader
 import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
-import com.example.videobrowser.rules.RuleFileLoader
-import com.example.videobrowser.rules.SkippedRule
+import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.storage.SavedPage
+import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
-import com.example.videobrowser.video.FullscreenVideoGestureOverlay
+import com.example.videobrowser.video.FullscreenVideoController
 import com.example.videobrowser.video.PlayerActivity
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import org.json.JSONArray
-import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
-
-    private data class SearchProvider(
-        val id: String,
-        val name: String,
-        val badge: String,
-        val homeUrl: String,
-        val searchUrlPrefix: String,
-        val accentColor: Int
-    )
-
-    private data class SearchProviderViews(
-        val item: LinearLayout,
-        val badge: TextView,
-        val label: TextView
-    )
-
-    private data class SavedPage(
-        val title: String,
-        val url: String
-    )
 
     private lateinit var rootView: View
     private lateinit var topBar: View
@@ -116,13 +87,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bookmarkButton: ImageButton
     private lateinit var loadButton: ImageButton
     private lateinit var fullscreenContainer: FrameLayout
-    private lateinit var fullscreenGestureOverlay: FullscreenVideoGestureOverlay
     private lateinit var preferenceStore: PreferenceStore
     private lateinit var settingsManager: SettingsManager
+    private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var ruleEngine: RuleEngine
     private lateinit var browserManager: BrowserManager
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var localFilesController: LocalFilesController
+    private lateinit var searchProviderController: SearchProviderController
+    private lateinit var downloadController: DownloadController
+    private lateinit var fullscreenVideoController: FullscreenVideoController
+    private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var chromeClient: ChromeClient
     private val adBlockLogger = AdBlockLogger()
@@ -141,60 +116,10 @@ class MainActivity : AppCompatActivity() {
         AdBlockRequestInterceptor(adBlockManager)
     }
 
-    private val searchProviders = listOf(
-        SearchProvider(
-            id = "sogou",
-            name = "搜狗",
-            badge = "搜",
-            homeUrl = "https://m.sogou.com/",
-            searchUrlPrefix = "https://www.sogou.com/web?query=",
-            accentColor = Color.parseColor("#13B56B")
-        ),
-        SearchProvider(
-            id = "so",
-            name = "360搜索",
-            badge = "360",
-            homeUrl = "https://m.so.com/",
-            searchUrlPrefix = "https://www.so.com/s?q=",
-            accentColor = Color.parseColor("#20A052")
-        ),
-        SearchProvider(
-            id = "quark",
-            name = "夸克搜索",
-            badge = "夸",
-            homeUrl = "https://quark.sm.cn/",
-            searchUrlPrefix = "https://quark.sm.cn/s?q=",
-            accentColor = Color.parseColor("#2F6FED")
-        ),
-        SearchProvider(
-            id = "uc",
-            name = "UC",
-            badge = "UC",
-            homeUrl = "https://so.m.sm.cn/",
-            searchUrlPrefix = "https://so.m.sm.cn/s?q=",
-            accentColor = Color.parseColor("#F28C20")
-        ),
-        SearchProvider(
-            id = "baidu",
-            name = "百度",
-            badge = "百",
-            homeUrl = "https://m.baidu.com/",
-            searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
-            accentColor = Color.parseColor("#315EFB")
-        ),
-        SearchProvider(
-            id = "edge",
-            name = "Bing",
-            badge = "B",
-            homeUrl = "https://www.bing.com/",
-            searchUrlPrefix = "https://www.bing.com/search?q=",
-            accentColor = Color.parseColor("#12837A")
-        )
-    )
-    private val searchProviderViews = mutableMapOf<String, SearchProviderViews>()
-    private lateinit var selectedSearchProvider: SearchProvider
     private var isHomePageVisible = true
-    private var isVideoFullscreenUiActive = false
+    private val isVideoFullscreenUiActive: Boolean
+        get() = ::fullscreenVideoController.isInitialized &&
+            fullscreenVideoController.isFullscreenUiActive
     private var areBrowserControlsHidden = false
     private var scrollControlDeltaY = 0
     private var scrollControlDirection = 0
@@ -207,13 +132,6 @@ class MainActivity : AppCompatActivity() {
     @Volatile
     private var currentPageUrl: String? = null
     private var isPageLoading = false
-    private var fullscreenPlaybackSpeed = SettingsManager.DEFAULT_VIDEO_SPEED
-    private var fullscreenVideoPositionMs: Long? = null
-    private var fullscreenVideoDurationMs: Long? = null
-    private var lastFullscreenControlsWakeAt = 0L
-    private var isElementPickerActive = false
-    private var elementPickerStartedAt = 0L
-    private var elementPickerDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -240,6 +158,8 @@ class MainActivity : AppCompatActivity() {
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
         preferenceStore = PreferenceStore.from(this)
+        settingsManager = SettingsManager(preferenceStore)
+        savedPageRepository = SavedPageRepository(preferenceStore)
         localFilesController = LocalFilesController(
             activity = this,
             preferenceStore = preferenceStore,
@@ -248,14 +168,46 @@ class MainActivity : AppCompatActivity() {
             showMainFunctionCenterPage = ::showFunctionCenterRootPage,
             onOpenDocumentUri = ::openLocalDocumentUri
         )
-        settingsManager = SettingsManager(preferenceStore)
+        searchProviderController = SearchProviderController(
+            activity = this,
+            providerScroll = searchProviderScroll,
+            providerList = searchProviderList,
+            addressInput = addressInput,
+            settingsManager = settingsManager,
+            dp = ::dp,
+            isHomePageVisible = { isHomePageVisible },
+            openProviderHome = ::openHomePage
+        )
         setupFileOperationLaunchers()
-        ruleEngine = createRuleEngine()
+        ruleEngine = RuleEngineFactory.create(assets, filesDir)
         browserManager = BrowserManager(webView)
+        downloadController = DownloadController(
+            activity = this,
+            browserManager = browserManager,
+            openNativePlayer = ::openNativePlayer,
+            openExternalUrl = ::openExternalUrl
+        )
+        fullscreenVideoController = FullscreenVideoController(
+            activity = this,
+            rootView = rootView as ViewGroup,
+            browserManager = browserManager,
+            settingsManager = { settingsManager },
+            chromeClient = { if (::chromeClient.isInitialized) chromeClient else null },
+            dp = ::dp
+        )
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
             evaluateJavascript = browserManager::evaluateJavascript,
             ruleEngine = ruleEngine
+        )
+        elementPickerController = ElementPickerController(
+            activity = this,
+            browserManager = browserManager,
+            settingsManager = settingsManager,
+            currentSiteHost = ::currentSiteHost,
+            isJsInjectionEnabled = ::isJsInjectionEnabled,
+            isCurrentSiteJsInjectionDisabled = ::isCurrentSiteJsInjectionDisabled,
+            injectPageFeatures = ::injectPageFeatures
         )
 
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
@@ -287,7 +239,7 @@ class MainActivity : AppCompatActivity() {
         setupDownloadHandling()
         setupChromeClient()
         setupFullscreenGestureOverlay()
-        browserManager.addJavascriptInterface(VideoFullscreenBridge(), NATIVE_BRIDGE_NAME)
+        browserManager.addJavascriptInterface(createNativeBridge(), NATIVE_BRIDGE_NAME)
         setupBrowserClient()
 
         openHomePage()
@@ -305,13 +257,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN && isVideoFullscreenUiActive) {
-            wakeFullscreenVideoControls()
+            fullscreenVideoController.wakeControls()
         }
         return super.dispatchKeyEvent(event)
     }
 
     override fun onDestroy() {
-        elementPickerDialog?.dismiss()
+        if (::elementPickerController.isInitialized) {
+            elementPickerController.dispose()
+        }
         closeFunctionCenter()
         if (::chromeClient.isInitialized) {
             chromeClient.hideCustomView()
@@ -387,41 +341,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupFullscreenGestureOverlay() {
-        fullscreenGestureOverlay = FullscreenVideoGestureOverlay(this).apply {
-            elevation = dp(28).toFloat()
-            onSeekBy = ::seekFullscreenVideoBy
-            onSeekTo = ::seekFullscreenVideoTo
-            onSeekPreviewStart = ::currentFullscreenVideoSeekPosition
-            onTogglePlayPause = ::toggleFullscreenVideoPlayback
-            onPlaybackSpeedSelected = ::setFullscreenVideoPlaybackSpeed
-            onDirectionalLongPressStart = ::startFullscreenDirectionalLongPress
-            onDirectionalLongPressEnd = ::stopFullscreenDirectionalLongPress
-            onUserInteraction = ::wakeFullscreenVideoControls
-            onToggleOrientation = {
-                if (::chromeClient.isInitialized) {
-                    chromeClient.toggleFullscreenOrientation()
-                } else {
-                    true
-                }
-            }
-        }
-
-        (rootView as ViewGroup).addView(
-            fullscreenGestureOverlay,
-            ConstraintLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            ).apply {
-                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-            }
-        )
+        fullscreenVideoController.attachOverlay()
     }
 
     private fun handlePageStarted(url: String?) {
-        clearElementPickerState()
+        if (::elementPickerController.isInitialized) {
+            elementPickerController.clearState()
+        }
         currentPageUrl = url ?: currentPageUrl
         if (::chromeClient.isInitialized &&
             chromeClient.isFullscreenModeActive() &&
@@ -472,180 +398,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
-        val wasFullscreen = isVideoFullscreenUiActive
-        isVideoFullscreenUiActive = fullscreen
+        fullscreenVideoController.handleFullscreenChanged(fullscreen)
         setBrowserControlsHidden(fullscreen)
         updatePageProgressVisibility(forceHidden = fullscreen)
-        if (::fullscreenGestureOverlay.isInitialized) {
-            when {
-                fullscreen && !wasFullscreen -> {
-                    val defaultSpeed = defaultVideoSpeed()
-                    resetFullscreenVideoTimeline()
-                    lastFullscreenControlsWakeAt = 0L
-                    fullscreenPlaybackSpeed = defaultSpeed
-                    fullscreenGestureOverlay.setPlaybackSpeed(defaultSpeed)
-                    fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
-                    fullscreenGestureOverlay.showOverlay()
-                    setFullscreenVideoPlaybackSpeed(defaultSpeed)
-                    wakeFullscreenVideoControls()
-                    requestFullscreenVideoTimeline()
-                }
-                fullscreen -> {
-                    fullscreenGestureOverlay.setLandscape(chromeClient.isFullscreenLandscape())
-                    fullscreenGestureOverlay.bringToFront()
-                    wakeFullscreenVideoControls()
-                    requestFullscreenVideoTimeline()
-                }
-                wasFullscreen -> {
-                    val defaultSpeed = defaultVideoSpeed()
-                    resetFullscreenVideoTimeline()
-                    lastFullscreenControlsWakeAt = 0L
-                    fullscreenPlaybackSpeed = defaultSpeed
-                    setFullscreenVideoPlaybackSpeed(defaultSpeed)
-                    fullscreenGestureOverlay.hideOverlay()
-                }
-            }
-        }
         ViewCompat.requestApplyInsets(rootView)
         if (!fullscreen) {
             applyBrowserContentOrientation(isDesktopModeEnabled())
         }
-    }
-
-    private fun seekFullscreenVideoBy(offsetMs: Long) {
-        val seconds = String.format(Locale.US, "%.3f", offsetMs / 1000.0)
-        fullscreenVideoPositionMs = boundedFullscreenVideoPosition(offsetMs)
-        browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.seekBy==='function'){" +
-                "window.VideoBrowserEnhancer.seekBy($seconds);" +
-                "}})();"
-        )
-    }
-
-    private fun seekFullscreenVideoTo(positionMs: Long) {
-        val duration = fullscreenVideoDurationMs
-        val boundedPositionMs = if (duration != null && duration > 0L) {
-            positionMs.coerceIn(0L, duration)
-        } else {
-            positionMs.coerceAtLeast(0L)
-        }
-        fullscreenVideoPositionMs = boundedPositionMs
-        val seconds = String.format(Locale.US, "%.3f", boundedPositionMs / 1000.0)
-        browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.seekTo==='function'){" +
-                "window.VideoBrowserEnhancer.seekTo($seconds);" +
-                "}})();"
-        )
-    }
-
-    private fun currentFullscreenVideoSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition {
-        requestFullscreenVideoTimeline()
-        return FullscreenVideoGestureOverlay.SeekPosition(
-            positionMs = fullscreenVideoPositionMs,
-            durationMs = fullscreenVideoDurationMs
-        )
-    }
-
-    private fun boundedFullscreenVideoPosition(offsetMs: Long): Long? {
-        val current = fullscreenVideoPositionMs ?: return null
-        val target = current + offsetMs
-        val duration = fullscreenVideoDurationMs
-        return if (duration != null && duration > 0L) {
-            target.coerceIn(0L, duration)
-        } else {
-            target.coerceAtLeast(0L)
-        }
-    }
-
-    private fun requestFullscreenVideoTimeline() {
-        browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.reportPlaybackTimeline==='function'){" +
-                "window.VideoBrowserEnhancer.reportPlaybackTimeline();" +
-                "}})();"
-        )
-    }
-
-    private fun resetFullscreenVideoTimeline() {
-        fullscreenVideoPositionMs = null
-        fullscreenVideoDurationMs = null
-    }
-
-    private fun toggleFullscreenVideoPlayback(): Boolean? {
-        browserManager.evaluateJavascript(
-            "(function(){var enhancer=window.VideoBrowserEnhancer;" +
-                "if(!enhancer)return;" +
-                "if(typeof enhancer.togglePlayPause==='function'){" +
-                "enhancer.togglePlayPause();" +
-                "}" +
-                "if(typeof enhancer.wakeControls==='function'){" +
-                "enhancer.wakeControls();" +
-                "}})();"
-        )
-        return null
-    }
-
-    private fun wakeFullscreenVideoControls() {
-        if (!isVideoFullscreenUiActive) {
-            return
-        }
-
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastFullscreenControlsWakeAt < FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS) {
-            return
-        }
-        lastFullscreenControlsWakeAt = now
-
-        browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.wakeControls==='function'){" +
-                "window.VideoBrowserEnhancer.wakeControls();" +
-                "}})();"
-        )
-    }
-
-    private fun setFullscreenVideoPlaybackSpeed(speed: Float) {
-        val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            SettingsManager.DEFAULT_VIDEO_SPEED
-        }
-        fullscreenPlaybackSpeed = normalizedSpeed
-        if (::settingsManager.isInitialized) {
-            settingsManager.setDefaultVideoSpeed(normalizedSpeed)
-        }
-        if (::fullscreenGestureOverlay.isInitialized) {
-            fullscreenGestureOverlay.setPlaybackSpeed(fullscreenPlaybackSpeed)
-        }
-        val speedValue = String.format(Locale.US, "%.2f", normalizedSpeed)
-        browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.setPlaybackSpeed==='function'){" +
-                "window.VideoBrowserEnhancer.setPlaybackSpeed($speedValue);" +
-                "}})();"
-        )
-    }
-
-    private fun startFullscreenDirectionalLongPress(direction: Int) {
-        val normalizedDirection = if (direction < 0) -1 else 1
-        browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.startDirectionalPlayback==='function'){" +
-                "window.VideoBrowserEnhancer.startDirectionalPlayback($normalizedDirection);" +
-                "}})();"
-        )
-    }
-
-    private fun stopFullscreenDirectionalLongPress() {
-        browserManager.evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.stopDirectionalPlayback==='function'){" +
-                "window.VideoBrowserEnhancer.stopDirectionalPlayback();" +
-                "}})();"
-        )
-        setFullscreenVideoPlaybackSpeed(fullscreenPlaybackSpeed)
     }
 
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
@@ -762,139 +521,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun syncSearchProviderVisibility() {
-        searchProviderScroll.visibility =
-            if (!areBrowserControlsHidden && !isVideoFullscreenUiActive && isHomePageVisible) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
-    }
-
-    private fun setupSearchProviders() {
-        selectedSearchProvider = loadSavedSearchProvider()
-        if (!settingsManager.hasHomeUrl()) {
-            settingsManager.setHomeUrl(selectedSearchProvider.homeUrl)
+        if (!::searchProviderController.isInitialized) {
+            return
         }
-        searchProviderViews.clear()
-        searchProviderList.removeAllViews()
-
-        searchProviders.forEach { provider ->
-            val item = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                gravity = Gravity.CENTER
-                isClickable = true
-                isFocusable = true
-                contentDescription = getString(R.string.action_select_search_provider, provider.name)
-                setPadding(dp(4), 0, dp(4), 0)
-                setSelectableItemBackground()
-                setOnClickListener { selectSearchProvider(provider) }
-            }
-            val badge = TextView(this).apply {
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-                text = provider.badge
-                setTypeface(typeface, Typeface.BOLD)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, if (provider.badge.length > 1) 12f else 16f)
-            }
-            item.addView(
-                badge,
-                LinearLayout.LayoutParams(dp(48), dp(48))
-            )
-
-            val label = TextView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    topMargin = dp(6)
-                }
-                ellipsize = TextUtils.TruncateAt.END
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-                maxLines = 1
-                text = provider.name
-                textSize = 12f
-            }
-            item.addView(label)
-
-            searchProviderViews[provider.id] = SearchProviderViews(item, badge, label)
-            searchProviderList.addView(
-                item,
-                LinearLayout.LayoutParams(dp(78), ViewGroup.LayoutParams.MATCH_PARENT)
-            )
-        }
-
-        updateSearchProviderSelection()
-    }
-
-    private fun selectSearchProvider(provider: SearchProvider) {
-        val shouldOpenProviderHome = isHomePageVisible
-        selectedSearchProvider = provider
-        settingsManager.setSearchEngineId(provider.id)
-        settingsManager.setHomeUrl(provider.homeUrl)
-        updateSearchProviderSelection()
-        if (shouldOpenProviderHome) {
-            openHomePage()
-        }
-    }
-
-    private fun loadSavedSearchProvider(): SearchProvider {
-        val savedProviderId = settingsManager.searchEngineId()
-        return searchProviders.firstOrNull { it.id == savedProviderId } ?: searchProviders.first()
-    }
-
-    private fun updateSearchProviderSelection() {
-        searchProviders.forEach { provider ->
-            val views = searchProviderViews[provider.id] ?: return@forEach
-            val selected = provider.id == selectedSearchProvider.id
-            views.item.isSelected = selected
-            views.badge.background = createProviderBadgeBackground(provider, selected)
-            views.badge.setTextColor(
-                if (selected) {
-                    Color.WHITE
-                } else {
-                    ContextCompat.getColor(this, R.color.browser_icon)
-                }
-            )
-            views.label.setTextColor(
-                ContextCompat.getColor(
-                    this,
-                    if (selected) R.color.browser_text else R.color.browser_text_hint
-                )
-            )
-            views.label.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
-        }
-        addressInput.hint = getString(
-            R.string.hint_search_with_provider,
-            selectedSearchProvider.name
+        searchProviderController.syncVisibility(
+            areBrowserControlsHidden = areBrowserControlsHidden,
+            isVideoFullscreenUiActive = isVideoFullscreenUiActive,
+            isHomePageVisible = isHomePageVisible
         )
     }
 
-    private fun createProviderBadgeBackground(
-        provider: SearchProvider,
-        selected: Boolean
-    ): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            if (selected) {
-                setColor(provider.accentColor)
-                setStroke(
-                    dp(2),
-                    ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.browser_provider_selected_stroke
-                    )
-                )
-            } else {
-                setColor(ContextCompat.getColor(this@MainActivity, R.color.browser_provider_circle))
-            }
-        }
-    }
-
-    private fun View.setSelectableItemBackground() {
-        val outValue = TypedValue()
-        theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, outValue, true)
-        setBackgroundResource(outValue.resourceId)
+    private fun setupSearchProviders() {
+        searchProviderController.setup()
     }
 
     private fun setupBackNavigation() {
@@ -904,8 +542,8 @@ class MainActivity : AppCompatActivity() {
                 override fun handleOnBackPressed() {
                     if (handleFunctionCenterBack()) {
                         return
-                    } else if (isElementPickerActive) {
-                        cancelElementPicker()
+                    } else if (elementPickerController.isActive) {
+                        elementPickerController.cancel()
                     } else if (::chromeClient.isInitialized && chromeClient.isShowingCustomView()) {
                         chromeClient.hideCustomView()
                     } else if (::chromeClient.isInitialized && chromeClient.isFullscreenModeActive()) {
@@ -922,173 +560,30 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private inner class VideoFullscreenBridge {
-        @JavascriptInterface
-        fun enterFullscreen() {
-            runOnUiThread {
+    private fun createNativeBridge(): VideoBrowserNativeBridge {
+        return VideoBrowserNativeBridge(
+            postToUi = { action -> runOnUiThread { action() } },
+            enterFullscreen = {
                 if (::chromeClient.isInitialized) {
                     chromeClient.enterPageFullscreen()
                 }
-            }
-        }
-
-        @JavascriptInterface
-        fun exitFullscreen() {
-            runOnUiThread {
+            },
+            exitFullscreen = {
                 if (::chromeClient.isInitialized) {
                     chromeClient.exitPageFullscreen()
                 }
-            }
-        }
-
-        @JavascriptInterface
-        fun updatePlaybackTimeline(positionMs: Double, durationMs: Double) {
-            runOnUiThread {
-                fullscreenVideoPositionMs = positionMs
-                    .takeIf { it.isFinite() && it >= 0.0 }
-                    ?.toLong()
-                fullscreenVideoDurationMs = durationMs
-                    .takeIf { it.isFinite() && it > 0.0 }
-                    ?.toLong()
-            }
-        }
-
-        @JavascriptInterface
-        fun requestElementBlock(selector: String, description: String) {
-            runOnUiThread {
-                handlePickedElement(selector, description)
-            }
-        }
-
-        @JavascriptInterface
-        fun blockSelectedElement(selector: String) {
-            runOnUiThread {
-                handlePickedElement(selector, "")
-            }
-        }
-
-        @JavascriptInterface
-        fun cancelElementPicker() {
-            runOnUiThread {
-                handleElementPickerCancelledFromPage()
-            }
-        }
+            },
+            updatePlaybackTimeline = fullscreenVideoController::updatePlaybackTimeline,
+            requestElementBlock = elementPickerController::handlePickedElement,
+            blockSelectedElement = { selector ->
+                elementPickerController.handlePickedElement(selector, "")
+            },
+            cancelElementPicker = elementPickerController::handleCancelledFromPage
+        )
     }
 
     private fun startElementPicker() {
-        val host = currentSiteHost()
-        if (host == null) {
-            Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (!isJsInjectionEnabled() || isCurrentSiteJsInjectionDisabled()) {
-            Toast.makeText(this, R.string.toast_element_picker_js_disabled, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (isElementPickerActive) {
-            finishElementPickerSession()
-        }
-        isElementPickerActive = true
-        elementPickerStartedAt = SystemClock.elapsedRealtime()
-        injectPageFeatures()
-        browserManager.evaluateJavascript(START_ELEMENT_PICKER_SCRIPT)
-        Toast.makeText(this, R.string.toast_element_picker_started, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun cancelElementPicker() {
-        if (!isElementPickerActive) {
-            return
-        }
-        elementPickerDialog?.dismiss()
-        finishElementPickerSession()
-        Toast.makeText(this, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun handleElementPickerCancelledFromPage() {
-        if (!isElementPickerActive) {
-            return
-        }
-        finishElementPickerSession()
-        Toast.makeText(this, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun handlePickedElement(selector: String, description: String) {
-        if (!isElementPickerSessionValid()) {
-            finishElementPickerSession()
-            return
-        }
-
-        val host = currentSiteHost() ?: run {
-            finishElementPickerSession()
-            Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
-        showConfirmElementBlockDialog(host, selector, description)
-    }
-
-    private fun showConfirmElementBlockDialog(host: String, selector: String, description: String) {
-        val detail = listOf(description.trim(), selector.trim())
-            .filter { value -> value.isNotBlank() }
-            .distinct()
-            .joinToString(separator = "\n")
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.title_confirm_element_block)
-            .setMessage(getString(R.string.dialog_confirm_element_block_message, host, detail))
-            .setPositiveButton(R.string.action_block_element) { _, _ ->
-                savePickedElement(host, selector)
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                cancelElementPicker()
-            }
-            .create()
-        elementPickerDialog?.dismiss()
-        elementPickerDialog = dialog
-        dialog.setOnCancelListener {
-            cancelElementPicker()
-        }
-        dialog.setOnDismissListener {
-            if (elementPickerDialog === dialog) {
-                elementPickerDialog = null
-            }
-        }
-        dialog.show()
-    }
-
-    private fun savePickedElement(host: String, selector: String) {
-        val alreadySaved = settingsManager.hasUserElementHideSelectorForSite(host, selector)
-        val saved = alreadySaved || settingsManager.addUserElementHideSelectorForSite(host, selector)
-        finishElementPickerSession()
-        if (!saved) {
-            Toast.makeText(this, R.string.toast_element_picker_invalid, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        injectPageFeatures()
-        Toast.makeText(
-            this,
-            if (alreadySaved) {
-                R.string.toast_element_picker_already_saved
-            } else {
-                R.string.toast_element_picker_saved
-            },
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-
-    private fun isElementPickerSessionValid(): Boolean {
-        return isElementPickerActive &&
-            SystemClock.elapsedRealtime() - elementPickerStartedAt <= ELEMENT_PICKER_TIMEOUT_MS
-    }
-
-    private fun clearElementPickerState() {
-        isElementPickerActive = false
-        elementPickerStartedAt = 0L
-    }
-
-    private fun finishElementPickerSession() {
-        clearElementPickerState()
-        browserManager.evaluateJavascript(FINISH_ELEMENT_PICKER_SCRIPT)
+        elementPickerController.start()
     }
 
     private fun showFunctionCenter() {
@@ -1154,7 +649,7 @@ class MainActivity : AppCompatActivity() {
             ?.let(UrlUtils::displayUrl)
             ?: getString(R.string.function_center_page_action_unavailable)
         val hasPage = pageUrl != null
-        val bookmarkTitle = if (pageUrl?.let { isSavedPage(KEY_BOOKMARKS, it) } == true) {
+        val bookmarkTitle = if (pageUrl?.let(savedPageRepository::isBookmarked) == true) {
             getString(R.string.action_remove_bookmark)
         } else {
             getString(R.string.action_add_bookmark)
@@ -1442,7 +937,7 @@ class MainActivity : AppCompatActivity() {
                 summary = getString(R.string.action_show_bookmarks_summary)
             ) {
                 showSavedPageList(
-                    key = KEY_BOOKMARKS,
+                    collection = SavedPageCollection.BOOKMARKS,
                     title = getString(R.string.title_bookmarks),
                     emptyMessage = getString(R.string.toast_bookmarks_empty)
                 )
@@ -1453,7 +948,7 @@ class MainActivity : AppCompatActivity() {
                 summary = getString(R.string.action_show_history_summary)
             ) {
                 showSavedPageList(
-                    key = KEY_HISTORY,
+                    collection = SavedPageCollection.HISTORY,
                     title = getString(R.string.title_history),
                     emptyMessage = getString(R.string.toast_history_empty)
                 )
@@ -1828,7 +1323,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
             return
         }
-        enqueueDownload(
+        downloadController.enqueue(
             url = url,
             userAgent = browserManager.userAgentString(),
             contentDisposition = null,
@@ -1862,18 +1357,22 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (isSavedPage(KEY_BOOKMARKS, page.url)) {
-            removeSavedPage(KEY_BOOKMARKS, page.url)
+        if (savedPageRepository.isBookmarked(page.url)) {
+            savedPageRepository.removeBookmark(page.url)
             Toast.makeText(this, R.string.toast_bookmark_removed, Toast.LENGTH_SHORT).show()
         } else {
-            addSavedPage(KEY_BOOKMARKS, page, BOOKMARK_LIMIT)
+            savedPageRepository.addBookmark(page)
             Toast.makeText(this, R.string.toast_bookmark_saved, Toast.LENGTH_SHORT).show()
         }
         updateBookmarkButton()
     }
 
-    private fun showSavedPageList(key: String, title: String, emptyMessage: String) {
-        val pages = loadSavedPages(key)
+    private fun showSavedPageList(
+        collection: SavedPageCollection,
+        title: String,
+        emptyMessage: String
+    ) {
+        val pages = savedPageRepository.pages(collection)
         if (pages.isEmpty()) {
             Toast.makeText(this, emptyMessage, Toast.LENGTH_SHORT).show()
             return
@@ -1886,7 +1385,7 @@ class MainActivity : AppCompatActivity() {
                     title = getString(R.string.action_clear),
                     summary = getString(R.string.action_clear_saved_pages_summary)
                 ) {
-                    preferenceStore.remove(key)
+                    savedPageRepository.clear(collection)
                     Toast.makeText(
                         this,
                         R.string.toast_saved_pages_cleared,
@@ -1954,7 +1453,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearBrowserData() {
         browserManager.clearBrowsingData()
-        preferenceStore.remove(KEY_HISTORY)
+        savedPageRepository.clearHistory()
         Toast.makeText(this, R.string.toast_browser_data_cleared, Toast.LENGTH_SHORT).show()
         updateNavigationButtons()
     }
@@ -1980,7 +1479,7 @@ class MainActivity : AppCompatActivity() {
         browserManager.setPrivateBrowsingEnabled(enabled)
         browserManager.clearBrowsingData()
         if (enabled) {
-            preferenceStore.remove(KEY_HISTORY)
+            savedPageRepository.clearHistory()
         }
         updatePrivateBrowsingUi()
         browserManager.reload()
@@ -2018,7 +1517,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         val page = currentSavedPage(url) ?: return
-        addSavedPage(KEY_HISTORY, page, HISTORY_LIMIT)
+        savedPageRepository.addHistory(page)
     }
 
     private fun currentSavedPage(urlOverride: String? = null): SavedPage? {
@@ -2031,77 +1530,6 @@ class MainActivity : AppCompatActivity() {
             ?: Uri.parse(url).host
             ?: url
         return SavedPage(title = title, url = url)
-    }
-
-    private fun addSavedPage(key: String, page: SavedPage, limit: Int) {
-        val pages = loadSavedPages(key)
-            .filterNot { it.url.equals(page.url, ignoreCase = true) }
-            .toMutableList()
-        pages.add(0, page)
-        saveSavedPages(key, pages.take(limit))
-    }
-
-    private fun removeSavedPage(key: String, url: String) {
-        val pages = loadSavedPages(key)
-            .filterNot { it.url.equals(url, ignoreCase = true) }
-        saveSavedPages(key, pages)
-    }
-
-    private fun isSavedPage(key: String, url: String): Boolean {
-        return loadSavedPages(key).any { it.url.equals(url, ignoreCase = true) }
-    }
-
-    private fun loadSavedPages(key: String): MutableList<SavedPage> {
-        val rawValue = preferenceStore.getString(key, null) ?: return mutableListOf()
-        return runCatching {
-            val array = JSONArray(rawValue)
-            MutableList(array.length()) { index ->
-                val item = array.getJSONObject(index)
-                SavedPage(
-                    title = item.optString(JSON_TITLE),
-                    url = item.optString(JSON_URL)
-                )
-            }.filter { it.url.isNotBlank() }.toMutableList()
-        }.getOrDefault(mutableListOf())
-    }
-
-    private fun saveSavedPages(key: String, pages: List<SavedPage>) {
-        val array = JSONArray()
-        pages.forEach { page ->
-            array.put(
-                JSONObject()
-                    .put(JSON_TITLE, page.title)
-                    .put(JSON_URL, page.url)
-            )
-        }
-        preferenceStore.putString(key, array.toString())
-    }
-
-    private fun createRuleEngine(): RuleEngine {
-        val loader = RuleFileLoader.fromAssets(
-            assets = assets,
-            cacheDirectory = File(filesDir, RULE_CACHE_DIR)
-        )
-        val requestResult = loader.loadRequestRules()
-        val cssResult = loader.loadCssRules()
-        val domResult = loader.loadDomRules()
-        logSkippedRules(requestResult.skippedRules + cssResult.skippedRules + domResult.skippedRules)
-        val requestRules = BuiltInAdBlockRules.requestRules() + requestResult.rules
-        val elementRules = cssResult.rules + domResult.rules
-        return RuleEngine(
-            rules = requestRules,
-            elementRules = elementRules
-        )
-    }
-
-    private fun logSkippedRules(skippedRules: List<SkippedRule>) {
-        skippedRules.forEach { skippedRule ->
-            Log.w(
-                RULE_LOG_TAG,
-                "Skipped ${skippedRule.source}:${skippedRule.lineNumber} " +
-                    "(${skippedRule.reason}): ${skippedRule.text}"
-            )
-        }
     }
 
     private fun isAdBlockEnabled(): Boolean {
@@ -2153,57 +1581,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupDownloadHandling() {
-        browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
-            val mediaUri = url?.takeIf {
-                MediaUrlUtils.isPlayableMediaUri(Uri.parse(it), mimeType)
-            }
-            if (mediaUri != null) {
-                openNativePlayer(
-                    url = mediaUri,
-                    mimeType = mimeType,
-                    userAgentOverride = userAgent
-                )
-                return@setDownloadListener
-            }
-
-            enqueueDownload(
-                url = url,
-                userAgent = userAgent,
-                contentDisposition = contentDisposition,
-                mimeType = mimeType
-            )
-        }
-    }
-
-    private fun enqueueDownload(
-        url: String?,
-        userAgent: String?,
-        contentDisposition: String?,
-        mimeType: String?
-    ) {
-        if (url.isNullOrBlank()) {
-            Toast.makeText(this, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
-        runCatching {
-            val request = DownloadManager.Request(Uri.parse(url)).apply {
-                setTitle(fileName)
-                setDescription(getString(R.string.toast_download_started))
-                setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
-                mimeType?.takeIf { it.isNotBlank() }?.let { setMimeType(it) }
-                userAgent?.takeIf { it.isNotBlank() }?.let { addRequestHeader("User-Agent", it) }
-                CookieManager.getInstance().getCookie(url)?.let { addRequestHeader("Cookie", it) }
-            }
-            val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            downloadManager.enqueue(request)
-        }.onSuccess {
-            Toast.makeText(this, R.string.toast_download_started, Toast.LENGTH_SHORT).show()
-        }.onFailure {
-            openExternalUrl(url)
-        }
+        downloadController.attach()
     }
 
     private fun applyDesktopMode(reload: Boolean) {
@@ -2241,14 +1619,6 @@ class MainActivity : AppCompatActivity() {
             ),
             pageUrl = currentPageUrl ?: browserManager.currentUrl()
         )
-    }
-
-    private fun defaultVideoSpeed(): Float {
-        return if (::settingsManager.isInitialized) {
-            settingsManager.defaultVideoSpeed()
-        } else {
-            SettingsManager.DEFAULT_VIDEO_SPEED
-        }
     }
 
     private fun currentShareableUrl(): String? {
@@ -2315,12 +1685,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadAddressInput() {
         val input = addressInput.text?.toString()?.trim().orEmpty()
-        UrlUtils.resolveAddressInput(input, selectedSearchProvider.searchUrlPrefix)
+        UrlUtils.resolveAddressInput(
+            input,
+            searchProviderController.selectedProvider.searchUrlPrefix
+        )
             ?.let { loadUrl(it) }
     }
 
     private fun openHomePage() {
-        loadUrl(settingsManager.homeUrlOr(selectedSearchProvider.homeUrl))
+        loadUrl(settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl))
     }
 
     private fun loadUrl(url: String) {
@@ -2352,14 +1725,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addressBarDisplayText(url: String): String {
-        if (isProviderHomeUrl(url)) {
-            return ""
-        }
-
-        searchProviders.forEach { provider ->
-            UrlUtils.searchQueryFromUrl(url, provider.searchUrlPrefix)?.let { return it }
-        }
-        return UrlUtils.displayUrl(url)
+        return searchProviderController.addressBarDisplayText(url)
     }
 
     private fun updateNavigationButtons() {
@@ -2377,7 +1743,7 @@ class MainActivity : AppCompatActivity() {
         // 页面级收藏入口直接跟随 WebView 当前地址，避免依赖功能中心上下文。
         val url = currentActionableUrl()
         val isEnabled = url != null
-        val isBookmarked = url?.let { isSavedPage(KEY_BOOKMARKS, it) } ?: false
+        val isBookmarked = url?.let(savedPageRepository::isBookmarked) ?: false
         val actionText = getString(
             if (isBookmarked) R.string.action_remove_bookmark else R.string.action_add_bookmark
         )
@@ -2453,44 +1819,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isProviderHomeUrl(url: String?): Boolean {
-        if (url.isNullOrBlank()) {
-            return false
-        }
-
-        val currentUri = Uri.parse(url)
-        return searchProviders.any { provider ->
-            val homeUri = Uri.parse(provider.homeUrl)
-            currentUri.scheme.equals(homeUri.scheme, ignoreCase = true) &&
-                currentUri.host.equals(homeUri.host, ignoreCase = true) &&
-                normalizedPath(currentUri) == normalizedPath(homeUri)
-        }
-    }
-
-    private fun normalizedPath(uri: Uri): String {
-        return uri.path.orEmpty().trim('/')
+        return searchProviderController.isProviderHomeUrl(url)
     }
 
     companion object {
-        private const val KEY_BOOKMARKS = "bookmarks"
-        private const val KEY_HISTORY = "history"
-        private const val JSON_TITLE = "title"
-        private const val JSON_URL = "url"
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
-        private const val START_ELEMENT_PICKER_SCRIPT =
-            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.startElementPicker==='function'){" +
-                "window.VideoBrowserEnhancer.startElementPicker();" +
-                "}"
-        private const val FINISH_ELEMENT_PICKER_SCRIPT =
-            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.finishElementPicker==='function'){" +
-                "window.VideoBrowserEnhancer.finishElementPicker();" +
-                "}"
-        private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
-        private const val ELEMENT_PICKER_TIMEOUT_MS = 60_000L
-        private const val BOOKMARK_LIMIT = 100
-        private const val HISTORY_LIMIT = 80
-        private const val RULE_CACHE_DIR = "rules"
         private const val RULE_LOG_TAG = "VideoBrowserRules"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
