@@ -354,8 +354,8 @@ class SettingsManager(
     }
 
     companion object {
-        const val DEFAULT_SEARCH_ENGINE_ID = "baidu"
-        const val DEFAULT_HOME_URL = "https://m.baidu.com/"
+        const val DEFAULT_SEARCH_ENGINE_ID = "sogou"
+        const val DEFAULT_HOME_URL = "https://m.sogou.com/"
         const val DEFAULT_VIDEO_SPEED = 1f
 
         private const val DEFAULT_AD_BLOCK_ENABLED = true
