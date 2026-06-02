@@ -197,7 +197,7 @@ class CurrentSiteSettingsPage(
                     content,
                     activity.getString(R.string.function_center_site_action_unavailable)
                 )
-                return@showPage
+                return@showBottomSheetPage
             }
 
             host.addFunctionSection(
