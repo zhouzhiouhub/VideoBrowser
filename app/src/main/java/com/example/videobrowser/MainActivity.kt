@@ -17,9 +17,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.SystemClock
-import android.provider.DocumentsContract
 import android.provider.OpenableColumns
-import android.text.InputType
 import android.text.TextUtils
 import android.util.Log
 import android.util.TypedValue
@@ -38,18 +36,13 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -63,9 +56,11 @@ import com.example.videobrowser.adblock.BuiltInAdBlockRules
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
+import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureConfig
 import com.example.videobrowser.inject.ScriptLoader
+import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.rules.RuleFileLoader
 import com.example.videobrowser.rules.SkippedRule
@@ -105,30 +100,6 @@ class MainActivity : AppCompatActivity() {
         val url: String
     )
 
-    private data class LocalDirectoryPathItem(
-        val documentId: String,
-        val title: String
-    )
-
-    private data class LocalDocument(
-        val uri: Uri,
-        val documentId: String,
-        val name: String,
-        val mimeType: String?,
-        val size: Long?,
-        val modifiedAt: Long?,
-        val flags: Int
-    ) {
-        val isDirectory: Boolean
-            get() = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
-
-        val canDelete: Boolean
-            get() = flags and DocumentsContract.Document.FLAG_SUPPORTS_DELETE != 0
-
-        val canRename: Boolean
-            get() = flags and DocumentsContract.Document.FLAG_SUPPORTS_RENAME != 0
-    }
-
     private lateinit var rootView: View
     private lateinit var topBar: View
     private lateinit var bottomBar: View
@@ -150,10 +121,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var ruleEngine: RuleEngine
     private lateinit var browserManager: BrowserManager
+    private lateinit var functionCenterController: FunctionCenterController
+    private lateinit var localFilesController: LocalFilesController
     private lateinit var jsInjector: JsInjector
     private lateinit var chromeClient: ChromeClient
-    private lateinit var openLocalFileLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var openLocalDirectoryLauncher: ActivityResultLauncher<Uri?>
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
@@ -243,9 +214,7 @@ class MainActivity : AppCompatActivity() {
     private var isElementPickerActive = false
     private var elementPickerStartedAt = 0L
     private var elementPickerDialog: AlertDialog? = null
-    private var functionCenterPage: View? = null
-    private var functionCenterBackAction: (() -> Unit)? = null
-    private var isFunctionCenterVisible = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
@@ -269,7 +238,16 @@ class MainActivity : AppCompatActivity() {
         homeButton = findViewById(R.id.homeButton)
         bookmarkButton = findViewById(R.id.bookmarkButton)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
+        functionCenterController = FunctionCenterController(this, rootView, ::dp)
         preferenceStore = PreferenceStore.from(this)
+        localFilesController = LocalFilesController(
+            activity = this,
+            preferenceStore = preferenceStore,
+            functionCenter = functionCenterController,
+            logTag = RULE_LOG_TAG,
+            showMainFunctionCenterPage = ::showFunctionCenterRootPage,
+            onOpenDocumentUri = ::openLocalDocumentUri
+        )
         settingsManager = SettingsManager(preferenceStore)
         setupFileOperationLaunchers()
         ruleEngine = createRuleEngine()
@@ -1120,10 +1098,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun showFunctionCenterRootPage() {
         val onBack: () -> Unit = { closeFunctionCenter() }
-        attachFunctionCenterPage(
-            page = createFunctionCenterRootPage(onBack),
+        showFunctionCenterSubPage(
+            title = getString(R.string.title_page_tools),
             onBack = onBack
-        )
+        ) { content ->
+            val siteHost = currentSiteHost()
+            val pageUrl = currentActionableUrl()
+            addCurrentPageActionSection(content, pageUrl, siteHost)
+            addFunctionNavigationSection(content, siteHost)
+        }
     }
 
     private fun showFunctionCenterSubPage(
@@ -1131,64 +1114,15 @@ class MainActivity : AppCompatActivity() {
         onBack: () -> Unit = { showFunctionCenterRootPage() },
         buildContent: (LinearLayout) -> Unit
     ) {
-        attachFunctionCenterPage(
-            page = createFunctionCenterPage(title, onBack, buildContent),
-            onBack = onBack
-        )
-    }
-
-    private fun attachFunctionCenterPage(page: View, onBack: () -> Unit) {
-        val container = rootView as? ViewGroup ?: return
-        functionCenterPage?.let { currentPage ->
-            (currentPage.parent as? ViewGroup)?.removeView(currentPage)
-        }
-
-        functionCenterPage = page
-        functionCenterBackAction = onBack
-        isFunctionCenterVisible = true
-        container.addView(
-            page,
-            ConstraintLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            ).apply {
-                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-            }
-        )
-        page.bringToFront()
-        page.requestFocus()
+        functionCenterController.showPage(title, onBack, buildContent)
     }
 
     private fun handleFunctionCenterBack(): Boolean {
-        if (!isFunctionCenterVisible || functionCenterPage == null) {
-            return false
-        }
-        functionCenterBackAction?.invoke() ?: closeFunctionCenter()
-        return true
+        return functionCenterController.handleBack()
     }
 
     private fun closeFunctionCenter(): Boolean {
-        val page = functionCenterPage ?: return false
-        (page.parent as? ViewGroup)?.removeView(page)
-        functionCenterPage = null
-        functionCenterBackAction = null
-        isFunctionCenterVisible = false
-        return true
-    }
-
-    private fun createFunctionCenterRootPage(onBack: () -> Unit): View {
-        val siteHost = currentSiteHost()
-        val pageUrl = currentActionableUrl()
-        return createFunctionCenterPage(
-            title = getString(R.string.title_page_tools),
-            onBack = onBack
-        ) { content ->
-            addCurrentPageActionSection(content, pageUrl, siteHost)
-            addFunctionNavigationSection(content, siteHost)
-        }
+        return functionCenterController.close()
     }
 
     private fun addFunctionNavigationSection(parent: LinearLayout, siteHost: String?) {
@@ -1616,242 +1550,58 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addDataManagementSection(parent: LinearLayout) {
-        addFunctionSection(parent, getString(R.string.function_center_section_data)) { section ->
-            addActionRow(
-                parent = section,
-                title = getString(R.string.action_clear_browser_data),
-                summary = getString(R.string.action_clear_browser_data_summary)
-            ) {
-                clearBrowserData()
-            }
-            addActionRow(
-                parent = section,
-                title = getString(R.string.action_restore_default_settings),
-                summary = getString(R.string.action_restore_default_settings_summary)
-            ) {
-                showRestoreDefaultSettingsPage()
-            }
-        }
-    }
-
-    private fun createFunctionCenterPage(
-        title: String,
-        onBack: () -> Unit,
-        buildContent: (LinearLayout) -> Unit
-    ): View {
-        val page = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            isClickable = true
-            isFocusable = true
-            setBackgroundColor(
-                ContextCompat.getColor(this@MainActivity, R.color.browser_background)
-            )
-        }
-        page.addView(
-            createFunctionCenterToolbar(title, onBack),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(56)
-            )
-        )
-
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(12), dp(14), dp(24))
-        }
-        buildContent(content)
-
-        val scrollView = ScrollView(this).apply {
-            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
-            addView(
-                content,
-                ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            )
-        }
-        page.addView(
-            scrollView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
-        )
-        return page
-    }
-
-    private fun createFunctionCenterToolbar(title: String, onBack: () -> Unit): View {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            elevation = dp(4).toFloat()
-            setPadding(dp(4), 0, dp(12), 0)
-            setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.browser_surface))
-
-            val pageBackButton = ImageButton(this@MainActivity).apply {
-                setImageResource(R.drawable.ic_arrow_back_24)
-                setColorFilter(ContextCompat.getColor(this@MainActivity, R.color.browser_icon))
-                background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_icon_button)
-                contentDescription = getString(R.string.action_back)
-                scaleType = ImageView.ScaleType.CENTER
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-                setOnClickListener { onBack() }
-            }
-            ViewCompat.setTooltipText(pageBackButton, getString(R.string.action_back))
-            addView(
-                pageBackButton,
-                LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
-            )
-
-            val titleView = TextView(this@MainActivity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
-                textSize = 18f
-                typeface = Typeface.DEFAULT_BOLD
-                gravity = Gravity.CENTER_VERTICAL
-                includeFontPadding = false
-            }
-            addView(
-                titleView,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
-            )
-        }
-    }
-
-    private fun addFunctionCenterHeader(parent: LinearLayout, siteHost: String?) {
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = createRoundedBackground(
-                ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
-            )
-        }
-
-        val avatar = TextView(this).apply {
-            text = getString(R.string.function_center_profile_badge)
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            textSize = 20f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.WHITE)
-            background = createCircleBackground(
-                ContextCompat.getColor(this@MainActivity, R.color.browser_primary)
-            )
-        }
-        card.addView(
-            avatar,
-            LinearLayout.LayoutParams(dp(52), dp(52))
-        )
-
-        val labels = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(12), 0, 0, 0)
-        }
-        labels.addView(
-            TextView(this).apply {
-                text = getString(R.string.function_center_profile_name)
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
-                textSize = 18f
-                typeface = Typeface.DEFAULT_BOLD
-            }
-        )
-        labels.addView(
-            TextView(this).apply {
-                text = getString(R.string.function_center_profile_summary)
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text_hint))
-                textSize = 13f
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
-            }
-        )
-        labels.addView(
-            TextView(this).apply {
-                text = if (siteHost != null) {
-                    getString(R.string.function_center_current_site, siteHost)
-                } else {
-                    getString(R.string.function_center_no_site)
-                }
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_icon_muted))
-                textSize = 12f
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
-            }
-        )
-        card.addView(
-            labels,
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        )
-
-        parent.addView(
-            card,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-    }
-
     private fun addFunctionSection(
         parent: LinearLayout,
         title: String,
         buildContent: (LinearLayout) -> Unit
     ) {
-        addSectionTitle(parent, title)
-        val section = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(4), dp(14), dp(4))
-            background = createRoundedBackground(
-                ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
-            )
-        }
-        buildContent(section)
-        parent.addView(
-            section,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
+        functionCenterController.addFunctionSection(parent, title, buildContent)
     }
 
-    private fun addSectionTitle(parent: LinearLayout, title: String) {
-        parent.addView(
-            TextView(this).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text_hint))
-                textSize = 13f
-                typeface = Typeface.DEFAULT_BOLD
-                includeFontPadding = false
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(18)
-                bottomMargin = dp(8)
-                marginStart = dp(4)
-                marginEnd = dp(4)
-            }
-        )
+    private fun addInfoRow(parent: LinearLayout, title: String, summary: String) {
+        functionCenterController.addInfoRow(parent, title, summary)
     }
 
-    private fun createRoundedBackground(color: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            cornerRadius = dp(8).toFloat()
-        }
+    private fun addFunctionMessage(parent: LinearLayout, message: String) {
+        functionCenterController.addFunctionMessage(parent, message)
     }
 
-    private fun createCircleBackground(color: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(color)
-        }
+    private fun addEmptyState(parent: LinearLayout, message: String) {
+        functionCenterController.addEmptyState(parent, message)
+    }
+
+    private fun addFunctionActionButton(
+        parent: LinearLayout,
+        title: String,
+        backgroundColor: Int = ContextCompat.getColor(this, R.color.browser_primary),
+        onClick: () -> Unit
+    ) {
+        functionCenterController.addFunctionActionButton(parent, title, backgroundColor, onClick)
+    }
+
+    private fun addSwitchRow(
+        parent: LinearLayout,
+        title: String,
+        summary: String,
+        checked: Boolean,
+        enabled: Boolean = true,
+        onChanged: (Boolean) -> Unit
+    ) {
+        functionCenterController.addSwitchRow(parent, title, summary, checked, enabled, onChanged)
+    }
+
+    private fun addActionRow(
+        parent: LinearLayout,
+        title: String,
+        summary: String,
+        enabled: Boolean = true,
+        onClick: () -> Unit
+    ) {
+        functionCenterController.addActionRow(parent, title, summary, enabled, onClick)
+    }
+
+    private fun addDivider(parent: LinearLayout) {
+        functionCenterController.addDivider(parent)
     }
 
     private fun showAdBlockLog() {
@@ -2034,603 +1784,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addInfoRow(
-        parent: LinearLayout,
-        title: String,
-        summary: String
-    ) {
-        val row = createRowText(title, summary).apply {
-            minimumHeight = dp(58)
-            setPadding(0, dp(9), 0, dp(9))
-        }
-        parent.addView(
-            row,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-    }
-
-    private fun addFunctionMessage(parent: LinearLayout, message: String) {
-        parent.addView(
-            TextView(this).apply {
-                text = message
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
-                textSize = 15f
-                setLineSpacing(dp(2).toFloat(), 1f)
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-                background = createRoundedBackground(
-                    ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
-                )
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(10)
-            }
-        )
-    }
-
-    private fun addEmptyState(parent: LinearLayout, message: String) {
-        parent.addView(
-            TextView(this).apply {
-                text = message
-                gravity = Gravity.CENTER
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text_hint))
-                textSize = 14f
-                setPadding(dp(16), dp(28), dp(16), dp(28))
-                background = createRoundedBackground(
-                    ContextCompat.getColor(this@MainActivity, R.color.browser_surface)
-                )
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(18)
-            }
-        )
-    }
-
-    private fun addFunctionActionButton(
-        parent: LinearLayout,
-        title: String,
-        backgroundColor: Int = ContextCompat.getColor(this, R.color.browser_primary),
-        onClick: () -> Unit
-    ) {
-        parent.addView(
-            TextView(this).apply {
-                text = title
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Color.WHITE)
-                textSize = 15f
-                isClickable = true
-                isFocusable = true
-                background = createRoundedBackground(backgroundColor)
-                setOnClickListener { onClick() }
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(46)
-            ).apply {
-                topMargin = dp(8)
-                bottomMargin = dp(8)
-            }
-        )
-    }
-
-    private fun addSwitchRow(
-        parent: LinearLayout,
-        title: String,
-        summary: String,
-        checked: Boolean,
-        enabled: Boolean = true,
-        onChanged: (Boolean) -> Unit
-    ) {
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            isClickable = enabled
-            isFocusable = enabled
-            isEnabled = enabled
-            minimumHeight = dp(62)
-            setPadding(0, dp(8), 0, dp(8))
-            setSelectableItemBackground()
-        }
-        val labels = createRowText(title, summary)
-        labels.isEnabled = enabled
-        labels.alpha = if (enabled) 1f else 0.48f
-        row.addView(
-            labels,
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        )
-        val switchView = SwitchCompat(this).apply {
-            isChecked = checked
-            isEnabled = enabled
-        }
-        row.addView(
-            switchView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-        switchView.setOnCheckedChangeListener { _, isChecked -> onChanged(isChecked) }
-        row.setOnClickListener {
-            if (enabled) {
-                switchView.isChecked = !switchView.isChecked
-            }
-        }
-        parent.addView(
-            row,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-    }
-
-    private fun addActionRow(
-        parent: LinearLayout,
-        title: String,
-        summary: String,
-        enabled: Boolean = true,
-        onClick: () -> Unit
-    ) {
-        val row = createRowText(title, summary).apply {
-            isClickable = enabled
-            isFocusable = enabled
-            isEnabled = enabled
-            alpha = if (enabled) 1f else 0.48f
-            minimumHeight = dp(58)
-            setPadding(0, dp(9), 0, dp(9))
-            setSelectableItemBackground()
-            if (enabled) {
-                setOnClickListener { onClick() }
-            }
-        }
-        parent.addView(
-            row,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-    }
-
-    private fun createRowText(title: String, summary: String): LinearLayout {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            val titleView = TextView(this@MainActivity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text))
-                textSize = 15f
-                typeface = Typeface.DEFAULT_BOLD
-            }
-            val summaryView = TextView(this@MainActivity).apply {
-                text = summary
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.browser_text_hint))
-                textSize = 12f
-                maxLines = 2
-                ellipsize = TextUtils.TruncateAt.END
-            }
-            addView(titleView)
-            addView(summaryView)
-        }
-    }
-
-    private fun addDivider(parent: LinearLayout) {
-        parent.addView(
-            View(this).apply {
-                setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.browser_control_pressed))
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(1)
-            ).apply {
-                topMargin = dp(6)
-                bottomMargin = dp(6)
-            }
-        )
-    }
-
     private fun setupFileOperationLaunchers() {
-        openLocalFileLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) {
-                return@registerForActivityResult
-            }
-            persistUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            openLocalDocumentUri(uri)
-        }
-
-        openLocalDirectoryLauncher =
-            registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-                if (uri == null) {
-                    return@registerForActivityResult
-                }
-                persistUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                )
-                preferenceStore.putString(KEY_LOCAL_DIRECTORY_URI, uri.toString())
-                showLocalDirectoryPage(uri)
-            }
-    }
-
-    private fun persistUriPermission(uri: Uri, flags: Int) {
-        runCatching {
-            contentResolver.takePersistableUriPermission(uri, flags)
-        }.onFailure {
-            Log.w(RULE_LOG_TAG, "Unable to persist URI permission for $uri", it)
-        }
+        localFilesController.setupLaunchers()
     }
 
     private fun showFileOperationsPage() {
-        showFunctionCenterSubPage(getString(R.string.title_file_operations)) { content ->
-            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_open_local_file),
-                    summary = getString(R.string.action_open_local_file_summary)
-                ) {
-                    openLocalFileLauncher.launch(arrayOf("*/*"))
-                }
-
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_browse_local_folder),
-                    summary = getString(R.string.action_browse_local_folder_summary)
-                ) {
-                    val uri = savedLocalDirectoryUri()
-                    if (uri == null) {
-                        openLocalDirectoryLauncher.launch(null)
-                    } else {
-                        showLocalDirectoryPage(uri)
-                    }
-                }
-
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_choose_local_folder),
-                    summary = getString(R.string.action_choose_local_folder_summary)
-                ) {
-                    openLocalDirectoryLauncher.launch(savedLocalDirectoryUri())
-                }
-            }
-        }
-    }
-
-    private fun savedLocalDirectoryUri(): Uri? {
-        return preferenceStore.getString(KEY_LOCAL_DIRECTORY_URI, null)
-            ?.takeIf { it.isNotBlank() }
-            ?.let(Uri::parse)
-    }
-
-    private fun showLocalDirectoryPage(treeUri: Uri) {
-        val rootDocumentId = runCatching {
-            DocumentsContract.getTreeDocumentId(treeUri)
-        }.getOrNull()
-
-        if (rootDocumentId == null) {
-            preferenceStore.remove(KEY_LOCAL_DIRECTORY_URI)
-            Toast.makeText(this, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT).show()
-            showFileOperationsPage()
-            return
-        }
-
-        showLocalDirectoryPage(
-            treeUri = treeUri,
-            path = listOf(
-                LocalDirectoryPathItem(
-                    documentId = rootDocumentId,
-                    title = getString(R.string.title_local_files)
-                )
-            )
-        )
-    }
-
-    private fun showLocalDirectoryPage(treeUri: Uri, path: List<LocalDirectoryPathItem>) {
-        val current = path.lastOrNull() ?: return showLocalDirectoryPage(treeUri)
-        val onBack: () -> Unit = if (path.size > 1) {
-            { showLocalDirectoryPage(treeUri, path.dropLast(1)) }
-        } else {
-            { showFileOperationsPage() }
-        }
-
-        showFunctionCenterSubPage(
-            title = current.title,
-            onBack = onBack
-        ) { content ->
-            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_new_folder),
-                    summary = getString(R.string.action_new_folder_summary)
-                ) {
-                    promptCreateLocalDocument(
-                        treeUri = treeUri,
-                        path = path,
-                        mimeType = DocumentsContract.Document.MIME_TYPE_DIR,
-                        defaultName = getString(R.string.default_new_folder_name),
-                        dialogTitle = getString(R.string.title_new_folder)
-                    )
-                }
-
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_new_text_file),
-                    summary = getString(R.string.action_new_text_file_summary)
-                ) {
-                    promptCreateLocalDocument(
-                        treeUri = treeUri,
-                        path = path,
-                        mimeType = "text/plain",
-                        defaultName = getString(R.string.default_new_text_file_name),
-                        dialogTitle = getString(R.string.title_new_text_file)
-                    )
-                }
-
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_refresh),
-                    summary = getString(R.string.action_refresh_local_folder_summary)
-                ) {
-                    showLocalDirectoryPage(treeUri, path)
-                }
-            }
-
-            val documents = runCatching {
-                queryLocalDocuments(treeUri, current.documentId)
-            }.onFailure {
-                Log.w(RULE_LOG_TAG, "Unable to query local directory $treeUri", it)
-                Toast.makeText(
-                    this,
-                    R.string.toast_local_folder_unavailable,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }.getOrDefault(emptyList())
-
-            if (documents.isEmpty()) {
-                addEmptyState(content, getString(R.string.dialog_local_folder_empty))
-                return@showFunctionCenterSubPage
-            }
-
-            addFunctionSection(content, getString(R.string.function_center_section_files)) { section ->
-                documents.forEach { document ->
-                    addActionRow(
-                        parent = section,
-                        title = document.name,
-                        summary = localDocumentSummary(document)
-                    ) {
-                        if (document.isDirectory) {
-                            showLocalDirectoryPage(
-                                treeUri = treeUri,
-                                path = path + LocalDirectoryPathItem(document.documentId, document.name)
-                            )
-                        } else {
-                            showLocalDocumentActionsPage(document, treeUri, path)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun queryLocalDocuments(treeUri: Uri, parentDocumentId: String): List<LocalDocument> {
-        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
-            treeUri,
-            parentDocumentId
-        )
-        val projection = arrayOf(
-            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-            DocumentsContract.Document.COLUMN_MIME_TYPE,
-            DocumentsContract.Document.COLUMN_SIZE,
-            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
-            DocumentsContract.Document.COLUMN_FLAGS
-        )
-        val documents = mutableListOf<LocalDocument>()
-        contentResolver.query(childrenUri, projection, null, null, null)?.use { cursor ->
-            val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-            val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-            val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
-            val sizeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
-            val modifiedIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-            val flagsIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_FLAGS)
-
-            while (cursor.moveToNext()) {
-                val documentId = cursor.getStringOrNull(idIndex) ?: continue
-                val name = cursor.getStringOrNull(nameIndex)
-                    ?.takeIf { it.isNotBlank() }
-                    ?: documentId.substringAfterLast(':')
-                documents += LocalDocument(
-                    uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId),
-                    documentId = documentId,
-                    name = name,
-                    mimeType = cursor.getStringOrNull(mimeIndex),
-                    size = cursor.getLongOrNull(sizeIndex),
-                    modifiedAt = cursor.getLongOrNull(modifiedIndex),
-                    flags = cursor.getIntOrNull(flagsIndex) ?: 0
-                )
-            }
-        }
-        return documents.sortedWith(
-            compareBy<LocalDocument> { !it.isDirectory }
-                .thenBy { it.name.lowercase(Locale.getDefault()) }
-        )
-    }
-
-    private fun showLocalDocumentActionsPage(
-        document: LocalDocument,
-        treeUri: Uri,
-        path: List<LocalDirectoryPathItem>
-    ) {
-        showFunctionCenterSubPage(
-            title = document.name,
-            onBack = { showLocalDirectoryPage(treeUri, path) }
-        ) { content ->
-            addFunctionMessage(content, localDocumentSummary(document))
-            addFunctionSection(content, getString(R.string.function_center_section_actions)) { section ->
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_open_file),
-                    summary = getString(R.string.action_open_file_summary)
-                ) {
-                    openLocalDocument(document)
-                }
-
-                addActionRow(
-                    parent = section,
-                    title = getString(R.string.action_share_file),
-                    summary = getString(R.string.action_share_file_summary)
-                ) {
-                    shareLocalDocument(document)
-                }
-
-                if (document.canRename) {
-                    addActionRow(
-                        parent = section,
-                        title = getString(R.string.action_rename_file),
-                        summary = getString(R.string.action_rename_file_summary)
-                    ) {
-                        promptRenameLocalDocument(document, treeUri, path)
-                    }
-                }
-
-                if (document.canDelete) {
-                    addActionRow(
-                        parent = section,
-                        title = getString(R.string.action_delete_file),
-                        summary = getString(R.string.action_delete_file_summary)
-                    ) {
-                        confirmDeleteLocalDocument(document, treeUri, path)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun promptCreateLocalDocument(
-        treeUri: Uri,
-        path: List<LocalDirectoryPathItem>,
-        mimeType: String,
-        defaultName: String,
-        dialogTitle: String
-    ) {
-        showNameInputDialog(
-            title = dialogTitle,
-            initialValue = defaultName,
-            positiveButtonText = getString(R.string.action_create)
-        ) { name ->
-            val parent = path.lastOrNull() ?: return@showNameInputDialog
-            val parentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, parent.documentId)
-            val createdUri = runCatching {
-                DocumentsContract.createDocument(contentResolver, parentUri, mimeType, name)
-            }.getOrNull()
-
-            if (createdUri == null) {
-                Toast.makeText(this, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
-                return@showNameInputDialog
-            }
-
-            Toast.makeText(this, R.string.toast_local_file_created, Toast.LENGTH_SHORT).show()
-            showLocalDirectoryPage(treeUri, path)
-        }
-    }
-
-    private fun promptRenameLocalDocument(
-        document: LocalDocument,
-        treeUri: Uri,
-        path: List<LocalDirectoryPathItem>
-    ) {
-        showNameInputDialog(
-            title = getString(R.string.title_rename_file),
-            initialValue = document.name,
-            positiveButtonText = getString(R.string.action_rename)
-        ) { name ->
-            val renamedUri = runCatching {
-                DocumentsContract.renameDocument(contentResolver, document.uri, name)
-            }.getOrNull()
-
-            if (renamedUri == null) {
-                Toast.makeText(this, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
-                return@showNameInputDialog
-            }
-
-            Toast.makeText(this, R.string.toast_local_file_renamed, Toast.LENGTH_SHORT).show()
-            showLocalDirectoryPage(treeUri, path)
-        }
-    }
-
-    private fun confirmDeleteLocalDocument(
-        document: LocalDocument,
-        treeUri: Uri,
-        path: List<LocalDirectoryPathItem>
-    ) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_delete_file)
-            .setMessage(getString(R.string.dialog_delete_local_file_message, document.name))
-            .setPositiveButton(R.string.action_delete_file) { _, _ ->
-                val deleted = runCatching {
-                    DocumentsContract.deleteDocument(contentResolver, document.uri)
-                }.getOrDefault(false)
-
-                if (!deleted) {
-                    Toast.makeText(
-                        this,
-                        R.string.toast_local_file_operation_failed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@setPositiveButton
-                }
-
-                Toast.makeText(this, R.string.toast_local_file_deleted, Toast.LENGTH_SHORT).show()
-                showLocalDirectoryPage(treeUri, path)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showNameInputDialog(
-        title: String,
-        initialValue: String,
-        positiveButtonText: String,
-        onConfirm: (String) -> Unit
-    ) {
-        val input = EditText(this).apply {
-            setText(initialValue)
-            setSelectAllOnFocus(true)
-            selectAll()
-            setSingleLine(true)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle(title)
-            .setView(input)
-            .setPositiveButton(positiveButtonText) { _, _ ->
-                val name = input.text?.toString()?.trim().orEmpty()
-                if (name.isBlank()) {
-                    Toast.makeText(this, R.string.toast_local_file_name_invalid, Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                onConfirm(name)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun openLocalDocument(document: LocalDocument) {
-        openLocalDocumentUri(
-            uri = document.uri,
-            displayName = document.name,
-            mimeType = document.mimeType
-        )
+        localFilesController.showFileOperationsPage()
     }
 
     private fun openLocalDocumentUri(
@@ -2664,20 +1823,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun shareLocalDocument(document: LocalDocument) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = document.mimeType?.takeUnless { document.isDirectory } ?: "*/*"
-            putExtra(Intent.EXTRA_STREAM, document.uri)
-            clipData = ClipData.newUri(contentResolver, document.name, document.uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        try {
-            startActivity(Intent.createChooser(intent, getString(R.string.action_share_file)))
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun downloadCurrentUrl() {
         val url = currentShareableUrl() ?: run {
             Toast.makeText(this, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -2689,48 +1834,6 @@ class MainActivity : AppCompatActivity() {
             contentDisposition = null,
             mimeType = null
         )
-    }
-
-    private fun localDocumentSummary(document: LocalDocument): String {
-        if (document.isDirectory) {
-            return getString(R.string.local_file_type_folder)
-        }
-
-        val type = document.mimeType
-            ?.takeIf { it.isNotBlank() }
-            ?: getString(R.string.local_file_type_unknown)
-        return listOf(
-            type,
-            formatFileSize(document.size),
-            formatModifiedTime(document.modifiedAt)
-        ).joinToString(separator = " · ")
-    }
-
-    private fun formatFileSize(size: Long?): String {
-        if (size == null || size < 0) {
-            return getString(R.string.local_file_size_unknown)
-        }
-
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        var value = size.toDouble()
-        var unitIndex = 0
-        while (value >= 1024 && unitIndex < units.lastIndex) {
-            value /= 1024
-            unitIndex++
-        }
-        return if (unitIndex == 0) {
-            "$size ${units[unitIndex]}"
-        } else {
-            String.format(Locale.getDefault(), "%.1f %s", value, units[unitIndex])
-        }
-    }
-
-    private fun formatModifiedTime(modifiedAt: Long?): String {
-        if (modifiedAt == null || modifiedAt <= 0L) {
-            return getString(R.string.local_file_time_unknown)
-        }
-        return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-            .format(Date(modifiedAt))
     }
 
     private fun localDisplayName(uri: Uri): String? {
@@ -2751,14 +1854,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun Cursor.getStringOrNull(index: Int): String? {
         return if (index >= 0 && !isNull(index)) getString(index) else null
-    }
-
-    private fun Cursor.getLongOrNull(index: Int): Long? {
-        return if (index >= 0 && !isNull(index)) getLong(index) else null
-    }
-
-    private fun Cursor.getIntOrNull(index: Int): Int? {
-        return if (index >= 0 && !isNull(index)) getInt(index) else null
     }
 
     private fun toggleCurrentBookmark() {
@@ -3229,9 +2324,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUrl(url: String) {
-        if (isFunctionCenterVisible) {
-            closeFunctionCenter()
-        }
+        closeFunctionCenter()
         if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
             openNativePlayer(url)
             return
@@ -3380,7 +2473,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val KEY_BOOKMARKS = "bookmarks"
         private const val KEY_HISTORY = "history"
-        private const val KEY_LOCAL_DIRECTORY_URI = "local_directory_uri"
         private const val JSON_TITLE = "title"
         private const val JSON_URL = "url"
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
