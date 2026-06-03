@@ -129,6 +129,8 @@ class FunctionCenterPages(
                 },
                 onShowHistory = ::showHistory
             )
+            browserSettingsPage.addExpandedBrowserSettings(content)
+            browserSettingsPage.addExpandedDataManagement(content)
         }
     }
 
@@ -281,13 +283,6 @@ class FunctionCenterPages(
                         )
                     },
                     FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_browser_settings),
-                        summary = activity.getString(R.string.action_browser_settings_summary),
-                        iconResId = R.drawable.ic_settings_24
-                    ) {
-                        browserSettingsPage.show()
-                    },
-                    FunctionCenterGridAction(
                         title = activity.getString(R.string.function_center_section_more),
                         summary = siteSummary,
                         iconResId = R.drawable.ic_more_vert_24,
@@ -324,37 +319,19 @@ class FunctionCenterPages(
                         iconResId = R.drawable.ic_file_24
                     ) { showFileOperationsPage() },
                     FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_browser_settings),
-                        summary = activity.getString(R.string.action_browser_settings_summary),
-                        iconResId = R.drawable.ic_settings_24
-                    ) { browserSettingsPage.show() },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_clear_browser_data),
-                        summary = activity.getString(R.string.action_clear_browser_data_summary),
-                        iconResId = R.drawable.ic_download_24
-                    ) { browserSettingsPage.show() }
+                        title = activity.getString(R.string.action_show_ad_block_log),
+                        summary = activity.getString(R.string.action_show_ad_block_log_summary),
+                        iconResId = R.drawable.ic_settings_24,
+                        enabled = !isPrivateBrowsingEnabled()
+                    ) { adBlockLogPage.show() }
                 )
             )
         }
     }
 
     private fun addProfileFeatureSection(parent: LinearLayout) {
-        host.addFunctionSection(parent, activity.getString(R.string.function_center_section_settings)) { section ->
-            host.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.action_clear_browser_data),
-                summary = activity.getString(R.string.action_clear_browser_data_summary)
-            ) {
-                browserSettingsPage.show()
-            }
-            host.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.action_browser_settings),
-                summary = activity.getString(R.string.action_browser_settings_summary)
-            ) {
-                browserSettingsPage.show()
-            }
-        }
+        browserSettingsPage.addExpandedBrowserSettings(parent)
+        browserSettingsPage.addExpandedDataManagement(parent)
     }
 
     private fun addCurrentPageActionSection(
