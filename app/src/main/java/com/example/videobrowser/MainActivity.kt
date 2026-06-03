@@ -1,8 +1,11 @@
 package com.example.videobrowser
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
@@ -20,8 +23,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
@@ -30,7 +35,9 @@ import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserSessionController
+import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
@@ -59,11 +66,12 @@ class MainActivity : AppCompatActivity() {
     private val rootView: View get() = views.rootView
     private val topBar: View get() = views.topBar
     private val bottomBar: View get() = views.bottomBar
-    private val webView: WebView get() = views.webView
+    private val webView: WebView get() = currentBrowserManager().activeWebView
     private val addressInput: EditText get() = views.addressInput
     private val pageProgress: ProgressBar get() = views.pageProgress
     private val searchProviderScroll: HorizontalScrollView get() = views.searchProviderScroll
     private val searchProviderList: LinearLayout get() = views.searchProviderList
+    private val webViewContainer: FrameLayout get() = views.webViewContainer
     private val privateBrowsingBadge: TextView get() = views.privateBrowsingBadge
     private val pageToolsButton: ImageButton get() = views.pageToolsButton
     private val backButton: ImageButton get() = views.backButton
@@ -76,10 +84,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var ruleEngine: RuleEngine
-    private lateinit var browserManager: BrowserManager
+    private lateinit var standardWebView: WebView
+    private lateinit var standardBrowserManager: BrowserManager
+    private lateinit var browserSessionCoordinator: BrowserSessionCoordinator
     private lateinit var browserControlsController: BrowserControlsController
     private lateinit var browserControlsScrollController: BrowserControlsScrollController
-    private lateinit var browserSessionController: BrowserSessionController
+    private lateinit var standardSessionController: BrowserSessionController
+    private lateinit var privateSessionController: BrowserSessionController
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var localFilesController: LocalFilesController
@@ -90,7 +101,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
-    private lateinit var chromeClient: ChromeClient
+    private lateinit var standardChromeClient: ChromeClient
+    private lateinit var privateChromeClient: ChromeClient
     private lateinit var externalNavigator: BrowserExternalNavigator
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
@@ -98,7 +110,7 @@ class MainActivity : AppCompatActivity() {
             isEnabled = { pageFeatureCoordinator.isAdBlockEnabled() },
             isDisabledForCurrentSite = { pageFeatureCoordinator.isCurrentSiteAdBlockDisabled() },
             isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
-            currentPageUrl = { browserSessionController.currentPageUrl },
+            currentPageUrl = { currentSessionController().currentPageUrl },
             currentPageHost = ::currentSiteHost,
             logger = adBlockLogger,
             ruleEngine = ruleEngine
@@ -108,7 +120,9 @@ class MainActivity : AppCompatActivity() {
         AdBlockRequestInterceptor(adBlockManager)
     }
 
-    private var isHomePageVisible = true
+    private var privateBrowsingActive = false
+    private val isHomePageVisible: Boolean
+        get() = currentSessionController().isHomePageVisible
     private val isVideoFullscreenUiActive: Boolean
         get() = ::fullscreenVideoController.isInitialized &&
             fullscreenVideoController.isFullscreenUiActive
@@ -142,17 +156,18 @@ class MainActivity : AppCompatActivity() {
             settingsManager = settingsManager,
             dp = ::dp,
             isHomePageVisible = { isHomePageVisible },
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
             openProviderHome = ::openHomePage
         )
+        setupBrowserWebViews()
         setupFileOperationLaunchers()
         ruleEngine = RuleEngineFactory.create(assets, filesDir)
-        browserManager = BrowserManager(webView)
         externalNavigator = BrowserExternalNavigator(
             activity = this,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
             currentPageTitle = {
-                if (::browserSessionController.isInitialized) {
-                    browserSessionController.currentPageTitle
+                if (areBrowserSessionsInitialized()) {
+                    currentSessionController().currentPageTitle
                 } else {
                     ""
                 }
@@ -162,22 +177,25 @@ class MainActivity : AppCompatActivity() {
         )
         downloadController = DownloadController(
             activity = this,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
             openNativePlayer = ::openNativePlayer,
             openExternalUrl = ::openExternalUrl
         )
         pageActionsController = PageActionsController(
             activity = this,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
+            browserManagers = ::browserManagers,
             downloadController = downloadController,
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
             currentActionableUrl = ::currentActionableUrl,
             currentShareableUrl = ::currentShareableUrl,
-            currentPageTitle = { browserSessionController.currentPageTitle },
+            currentPageTitle = { currentSessionController().currentPageTitle },
             isShareableUrl = ::isShareableUrl,
             openNativePlayer = ::openNativePlayer,
             openExternalUrl = ::openExternalUrl,
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            switchPrivateBrowsing = ::setPrivateBrowsingActive,
             updateBookmarkButton = ::updateBookmarkButton,
             updateNavigationButtons = ::updateNavigationButtons,
             updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
@@ -185,7 +203,7 @@ class MainActivity : AppCompatActivity() {
         )
         browserControlsController = BrowserControlsController(
             activity = this,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
             topBar = topBar,
             bottomBar = bottomBar,
             addressInput = addressInput,
@@ -208,7 +226,7 @@ class MainActivity : AppCompatActivity() {
             onVisibilityChanged = ::syncSearchProviderVisibility
         )
         browserControlsScrollController = BrowserControlsScrollController(
-            webView = webView,
+            webView = standardWebView,
             addressInput = addressInput,
             dp = ::dp,
             areControlsHidden = { browserControlsController.areHidden },
@@ -217,8 +235,9 @@ class MainActivity : AppCompatActivity() {
             applyControlsHidden = browserControlsController::setHidden,
             updatePageProgressVisibility = ::updatePageProgressVisibility
         )
-        browserSessionController = BrowserSessionController(
+        standardSessionController = BrowserSessionController(
             activity = this,
+            isActive = { !privateBrowsingActive },
             clearElementPickerState = {
                 if (::elementPickerController.isInitialized) {
                     elementPickerController.clearState()
@@ -234,19 +253,37 @@ class MainActivity : AppCompatActivity() {
             addHistoryEntry = pageActionsController::addHistoryEntry,
             injectPageFeatures = ::injectPageFeatures
         )
+        privateSessionController = BrowserSessionController(
+            activity = this,
+            isActive = { privateBrowsingActive },
+            clearElementPickerState = {
+                if (::elementPickerController.isInitialized) {
+                    elementPickerController.clearState()
+                }
+            },
+            exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
+            isProviderHomeUrl = ::isProviderHomeUrl,
+            updateAddressBar = ::updateAddressBar,
+            showHomeContent = ::showHomeContent,
+            setPageProgress = browserControlsController::setProgress,
+            updatePageProgressVisibility = ::updatePageProgressVisibility,
+            updateNavigationButtons = ::updateNavigationButtons,
+            addHistoryEntry = {},
+            injectPageFeatures = ::injectPageFeatures
+        )
         fullscreenVideoController = FullscreenVideoController(
             activity = this,
             rootView = rootView as ViewGroup,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
             settingsManager = { settingsManager },
-            chromeClient = { if (::chromeClient.isInitialized) chromeClient else null },
+            chromeClient = { if (areChromeClientsInitialized()) currentChromeClient() else null },
             dp = ::dp
         )
         functionCenterPages = FunctionCenterPages(
             activity = this,
             functionCenter = functionCenterController,
             settingsManager = settingsManager,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
             savedPageRepository = savedPageRepository,
             adBlockLogger = adBlockLogger,
             currentSiteHost = ::currentSiteHost,
@@ -274,19 +311,19 @@ class MainActivity : AppCompatActivity() {
         )
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
-            evaluateJavascript = browserManager::evaluateJavascript,
+            evaluateJavascript = { script -> currentBrowserManager().evaluateJavascript(script) },
             ruleEngine = ruleEngine
         )
         pageFeatureCoordinator = PageFeatureCoordinator(
             settingsManager = settingsManager,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
             jsInjector = jsInjector,
             currentSiteHost = ::currentSiteHost,
-            currentPageUrl = { browserSessionController.currentPageUrl }
+            currentPageUrl = { currentSessionController().currentPageUrl }
         )
         elementPickerController = ElementPickerController(
             activity = this,
-            browserManager = browserManager,
+            browserManager = ::currentBrowserManager,
             settingsManager = settingsManager,
             currentSiteHost = ::currentSiteHost,
             isJsInjectionEnabled = ::isJsInjectionEnabled,
@@ -309,34 +346,31 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.requestApplyInsets(rootView)
 
         setupSearchProviders()
-        browserManager.setup()
-        browserManager.setPrivateBrowsingEnabled(isPrivateBrowsingEnabled())
-        if (isPrivateBrowsingEnabled()) {
-            browserManager.clearBrowsingData()
-        }
         updatePrivateBrowsingUi()
         setupBrowserControls()
         setupWebViewScrollControls()
         setupBackNavigation()
-        defaultUserAgent = browserManager.userAgentString()
+        standardBrowserManager.setup()
+        standardBrowserManager.setPrivateBrowsingEnabled(false)
+        defaultUserAgent = standardBrowserManager.userAgentString()
         applyDesktopMode(reload = false)
         setupDownloadHandling()
         setupChromeClient()
         setupFullscreenGestureOverlay()
-        browserManager.addJavascriptInterface(createNativeBridge(), NATIVE_BRIDGE_NAME)
+        standardBrowserManager.addJavascriptInterface(createNativeBridge(), NATIVE_BRIDGE_NAME)
         setupBrowserClient()
 
         openHomePage()
     }
 
     override fun onPause() {
-        browserManager.onPause()
+        currentBrowserManager().onPause()
         super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
-        browserManager.onResume()
+        currentBrowserManager().onResume()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -351,14 +385,68 @@ class MainActivity : AppCompatActivity() {
             elementPickerController.dispose()
         }
         closeFunctionCenter()
-        if (::chromeClient.isInitialized) {
-            chromeClient.hideCustomView()
+        if (areChromeClientsInitialized()) {
+            currentChromeClient().hideCustomView()
         }
-        if (::settingsManager.isInitialized && settingsManager.isPrivateBrowsingEnabled()) {
-            browserManager.clearBrowsingData()
+        if (::browserSessionCoordinator.isInitialized) {
+            browserSessionCoordinator.destroyPrivateSession()
         }
-        browserManager.destroy()
+        if (::standardBrowserManager.isInitialized) {
+            standardBrowserManager.destroy()
+        }
         super.onDestroy()
+    }
+
+    private fun setupBrowserWebViews() {
+        standardWebView = views.webView
+        standardBrowserManager = BrowserManager(standardWebView)
+        browserSessionCoordinator = BrowserSessionCoordinator(
+            activity = this,
+            webViewContainer = webViewContainer,
+            standardWebView = standardWebView,
+            browserManager = standardBrowserManager,
+            onActiveWebViewChanged = ::handleActiveWebViewChanged
+        )
+    }
+
+    private fun currentBrowserManager(): BrowserManager {
+        return standardBrowserManager
+    }
+
+    private fun browserManagers(): List<BrowserManager> {
+        return listOf(standardBrowserManager)
+    }
+
+    private fun currentSessionController(): BrowserSessionController {
+        return if (privateBrowsingActive) privateSessionController else standardSessionController
+    }
+
+    private fun areBrowserSessionsInitialized(): Boolean {
+        return ::standardSessionController.isInitialized && ::privateSessionController.isInitialized
+    }
+
+    private fun currentChromeClient(): ChromeClient {
+        return if (privateBrowsingActive) privateChromeClient else standardChromeClient
+    }
+
+    private fun areChromeClientsInitialized(): Boolean {
+        return ::standardChromeClient.isInitialized && ::privateChromeClient.isInitialized
+    }
+
+    private fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode) {
+        privateBrowsingActive = mode == BrowserMode.PRIVATE
+        if (::browserControlsScrollController.isInitialized) {
+            browserControlsScrollController.attachToWebView(activeWebView)
+        }
+        if (areChromeClientsInitialized()) {
+            currentBrowserManager().setChromeClient(currentChromeClient())
+        }
+        updatePrivateBrowsingUi()
+        syncSearchProviderVisibility()
+        applyBrowsingModeTheme()
+        if (areBrowserSessionsInitialized()) {
+            currentSessionController().renderCurrentState()
+        }
     }
 
     private fun setupBrowserControls() {
@@ -366,23 +454,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupChromeClient() {
-        chromeClient =
-            ChromeClient(
-                activity = this,
-                fullscreenContainer = fullscreenContainer,
-                decorView = window.decorView,
-                progressChanged = browserSessionController::handlePageProgressChanged,
-                titleReceived = browserSessionController::handlePageTitleReceived,
-                fullscreenChanged = ::handleVideoFullscreenChanged
-            )
-        browserManager.setChromeClient(chromeClient)
+        standardChromeClient = createChromeClient(standardSessionController)
+        privateChromeClient = createChromeClient(privateSessionController)
+        currentBrowserManager().setChromeClient(currentChromeClient())
+    }
+
+    private fun createChromeClient(sessionController: BrowserSessionController): ChromeClient {
+        return ChromeClient(
+            activity = this,
+            fullscreenContainer = fullscreenContainer,
+            decorView = window.decorView,
+            progressChanged = sessionController::handlePageProgressChanged,
+            titleReceived = sessionController::handlePageTitleReceived,
+            fullscreenChanged = ::handleVideoFullscreenChanged
+        )
     }
 
     private fun setupBrowserClient() {
-        browserManager.setBrowserClient(
+        currentBrowserManager().setBrowserClient(
             BrowserClient(
-                pageStarted = browserSessionController::handlePageStarted,
-                pageFinished = browserSessionController::handlePageFinished,
+                pageStarted = { url -> currentSessionController().handlePageStarted(url) },
+                pageFinished = { url -> currentSessionController().handlePageFinished(url) },
                 requestIntercepted = adBlockRequestInterceptor::intercept,
                 urlLoadingRequested = ::shouldBlockUrl
             )
@@ -394,11 +486,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun exitPageFullscreenIfNeeded() {
-        if (::chromeClient.isInitialized &&
-            chromeClient.isFullscreenModeActive() &&
-            !chromeClient.isShowingCustomView()
+        if (areChromeClientsInitialized() &&
+            currentChromeClient().isFullscreenModeActive() &&
+            !currentChromeClient().isShowingCustomView()
         ) {
-            chromeClient.exitPageFullscreen()
+            currentChromeClient().exitPageFullscreen()
         }
     }
 
@@ -414,7 +506,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
         browserControlsController.updatePageProgressVisibility(
-            browserSessionController.isPageLoading,
+            currentSessionController().isPageLoading,
             forceHidden
         )
     }
@@ -451,12 +543,12 @@ class MainActivity : AppCompatActivity() {
                         return
                     } else if (elementPickerController.isActive) {
                         elementPickerController.cancel()
-                    } else if (::chromeClient.isInitialized && chromeClient.isShowingCustomView()) {
-                        chromeClient.hideCustomView()
-                    } else if (::chromeClient.isInitialized && chromeClient.isFullscreenModeActive()) {
-                        browserManager.evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
-                        chromeClient.exitPageFullscreen()
-                    } else if (browserManager.goBack()) {
+                    } else if (areChromeClientsInitialized() && currentChromeClient().isShowingCustomView()) {
+                        currentChromeClient().hideCustomView()
+                    } else if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
+                        currentBrowserManager().evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
+                        currentChromeClient().exitPageFullscreen()
+                    } else if (currentBrowserManager().goBack()) {
                         updateNavigationButtons()
                     } else {
                         isEnabled = false
@@ -471,13 +563,13 @@ class MainActivity : AppCompatActivity() {
         return VideoBrowserNativeBridge(
             postToUi = { action -> runOnUiThread { action() } },
             enterFullscreen = {
-                if (::chromeClient.isInitialized) {
-                    chromeClient.enterPageFullscreen()
+                if (areChromeClientsInitialized()) {
+                    currentChromeClient().enterPageFullscreen()
                 }
             },
             exitFullscreen = {
-                if (::chromeClient.isInitialized) {
-                    chromeClient.exitPageFullscreen()
+                if (areChromeClientsInitialized()) {
+                    currentChromeClient().exitPageFullscreen()
                 }
             },
             updatePlaybackTimeline = fullscreenVideoController::updatePlaybackTimeline,
@@ -530,11 +622,62 @@ class MainActivity : AppCompatActivity() {
         if (!::views.isInitialized || !::settingsManager.isInitialized) {
             return
         }
-        privateBrowsingBadge.visibility = if (isPrivateBrowsingEnabled()) {
-            View.VISIBLE
-        } else {
-            View.GONE
+        privateBrowsingBadge.visibility = View.GONE
+        applyBrowsingModeTheme()
+    }
+
+    private fun applyBrowsingModeTheme() {
+        if (!::views.isInitialized) {
+            return
         }
+
+        val colors = if (isPrivateBrowsingEnabled()) {
+            BrowserUiColors(
+                background = Color.parseColor("#11151B"),
+                surface = Color.parseColor("#181D25"),
+                webViewBackground = Color.parseColor("#0B0F14"),
+                addressBackground = Color.parseColor("#222936"),
+                addressStroke = Color.parseColor("#303948"),
+                text = Color.parseColor("#F4F7FB"),
+                hint = Color.parseColor("#8F9BAD"),
+                icon = Color.parseColor("#E9EEF7"),
+                mutedIcon = Color.parseColor("#AAB4C3"),
+                progress = Color.parseColor("#4D8DFF")
+            )
+        } else {
+            BrowserUiColors(
+                background = ContextCompat.getColor(this, R.color.browser_background),
+                surface = ContextCompat.getColor(this, R.color.browser_surface),
+                webViewBackground = ContextCompat.getColor(this, R.color.webview_background),
+                addressBackground = ContextCompat.getColor(this, R.color.address_bar_background),
+                addressStroke = ContextCompat.getColor(this, R.color.address_bar_stroke),
+                text = ContextCompat.getColor(this, R.color.browser_text),
+                hint = ContextCompat.getColor(this, R.color.browser_text_hint),
+                icon = ContextCompat.getColor(this, R.color.browser_icon),
+                mutedIcon = ContextCompat.getColor(this, R.color.browser_icon_muted),
+                progress = ContextCompat.getColor(this, R.color.progress_active)
+            )
+        }
+
+        rootView.setBackgroundColor(colors.background)
+        topBar.setBackgroundColor(colors.surface)
+        bottomBar.setBackgroundColor(colors.surface)
+        searchProviderScroll.setBackgroundColor(colors.background)
+        webViewContainer.setBackgroundColor(colors.webViewBackground)
+        addressInput.setTextColor(colors.text)
+        addressInput.setHintTextColor(colors.hint)
+        views.addressIcon.setColorFilter(colors.mutedIcon)
+        views.addressBar.background = GradientDrawable().apply {
+            cornerRadius = dp(22).toFloat()
+            setColor(colors.addressBackground)
+            setStroke(dp(1), colors.addressStroke)
+        }
+        listOf(backButton, refreshButton, homeButton, pageToolsButton, bookmarkButton).forEach { button ->
+            button.setColorFilter(colors.icon)
+        }
+        pageProgress.progressTintList = ColorStateList.valueOf(colors.progress)
+        WindowInsetsControllerCompat(window, rootView).isAppearanceLightStatusBars =
+            !isPrivateBrowsingEnabled()
     }
 
     private fun isAdBlockEnabled(): Boolean {
@@ -574,17 +717,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isPrivateBrowsingEnabled(): Boolean {
-        return settingsManager.isPrivateBrowsingEnabled()
+        return privateBrowsingActive
+    }
+
+    private fun setPrivateBrowsingActive(enabled: Boolean) {
+        if (enabled == privateBrowsingActive) {
+            updatePrivateBrowsingUi()
+            return
+        }
+
+        closeFunctionCenter()
+        if (::elementPickerController.isInitialized && elementPickerController.isActive) {
+            elementPickerController.cancel()
+        }
+        exitPageFullscreenIfNeeded()
+
+        if (enabled) {
+            val started = browserSessionCoordinator.enterPrivate()
+            if (!started) {
+                Toast.makeText(this, R.string.toast_private_browsing_failed, Toast.LENGTH_SHORT).show()
+                return
+            }
+            privateSessionController.reset()
+            openHomePage()
+        } else {
+            browserSessionCoordinator.exitPrivate()
+            standardSessionController.renderCurrentState(forceProgressHidden = true)
+        }
+        updatePrivateBrowsingUi()
+        updateNavigationButtons()
     }
 
     private fun setupDownloadHandling() {
-        downloadController.attach()
+        downloadController.attachTo(browserManagers())
     }
 
     private fun applyDesktopMode(reload: Boolean) {
         val desktopModeEnabled = isDesktopModeEnabled()
         applyBrowserContentOrientation(desktopModeEnabled)
-        browserManager.applyDesktopMode(
+        currentBrowserManager().applyDesktopMode(
             enabled = desktopModeEnabled,
             desktopUserAgent = DESKTOP_USER_AGENT,
             defaultUserAgent = defaultUserAgent,
@@ -593,7 +764,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyBrowserContentOrientation(desktopModeEnabled: Boolean) {
-        if (::chromeClient.isInitialized && chromeClient.isFullscreenModeActive()) {
+        if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
             return
         }
         requestedOrientation = if (desktopModeEnabled) {
@@ -615,12 +786,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun currentActionableUrl(): String? {
-        return listOf(browserSessionController.currentPageUrl, browserManager.currentUrl())
+        return listOf(currentSessionController().currentPageUrl, currentBrowserManager().currentUrl())
             .firstOrNull { url -> !url.isNullOrBlank() && isShareableUrl(url) }
     }
 
     private fun currentSiteHost(): String? {
-        return SiteHost.fromUrl(browserSessionController.currentPageUrl)
+        return SiteHost.fromUrl(currentSessionController().currentPageUrl)
     }
 
     private fun isShareableUrl(url: String): Boolean {
@@ -662,12 +833,12 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        browserSessionController.currentPageUrl = url
+        currentSessionController().currentPageUrl = url
         val isProviderHome = isProviderHomeUrl(url)
         updateAddressBar(url)
         hideKeyboard()
         showHomeContent(isProviderHome)
-        browserManager.load(url)
+        currentBrowserManager().load(url)
     }
 
     private fun updateAddressBar(url: String?) {
@@ -698,13 +869,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showHomeContent(show: Boolean) {
-        isHomePageVisible = show
         browserControlsScrollController.resetTracking()
         setBrowserControlsHidden(false)
         syncSearchProviderVisibility()
         webView.visibility = View.VISIBLE
         updatePageProgressVisibility(forceHidden = show)
         updateNavigationButtons()
+        applyBrowsingModeTheme()
     }
 
     private fun hideKeyboard() {
@@ -752,6 +923,19 @@ class MainActivity : AppCompatActivity() {
     private fun isProviderHomeUrl(url: String?): Boolean {
         return searchProviderController.isProviderHomeUrl(url)
     }
+
+    private data class BrowserUiColors(
+        val background: Int,
+        val surface: Int,
+        val webViewBackground: Int,
+        val addressBackground: Int,
+        val addressStroke: Int,
+        val text: Int,
+        val hint: Int,
+        val icon: Int,
+        val mutedIcon: Int,
+        val progress: Int
+    )
 
     companion object {
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"

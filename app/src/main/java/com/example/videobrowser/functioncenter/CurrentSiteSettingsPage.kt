@@ -9,12 +9,13 @@ import com.example.videobrowser.settings.SettingsManager
 class CurrentSiteSettingsPage(
     private val host: FunctionCenterPageHost,
     private val settingsManager: SettingsManager,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val currentSiteHost: () -> String?,
     private val isAdBlockEnabled: () -> Boolean,
     private val isJsInjectionEnabled: () -> Boolean,
     private val isPageCleanupEnabled: () -> Boolean,
     private val isVideoEnhancementEnabled: () -> Boolean,
+    private val isPrivateBrowsingEnabled: () -> Boolean,
     private val startElementPicker: () -> Unit,
     private val injectPageFeatures: () -> Unit,
     private val showRootPage: () -> Unit
@@ -44,6 +45,13 @@ class CurrentSiteSettingsPage(
     }
 
     private fun addCurrentSiteActionSection(parent: LinearLayout, siteHost: String?) {
+        if (isPrivateBrowsingEnabled()) {
+            host.addEmptyState(
+                parent,
+                activity.getString(R.string.function_center_site_action_unavailable)
+            )
+            return
+        }
         val siteSummary = siteHost ?: activity.getString(R.string.function_center_site_action_unavailable)
         val hasSite = siteHost != null
         val isWhitelisted = siteHost?.let(settingsManager::isUserWhitelistedSite) ?: false
@@ -67,7 +75,7 @@ class CurrentSiteSettingsPage(
                     featureName = activity.getString(R.string.setting_current_site_ad_block),
                     hostName = hostName
                 )
-                browserManager.reload()
+                browserManager().reload()
             }
 
             host.addSwitchRow(
@@ -85,7 +93,7 @@ class CurrentSiteSettingsPage(
                     featureName = activity.getString(R.string.setting_current_site_js_injection),
                     hostName = hostName
                 )
-                browserManager.reload()
+                browserManager().reload()
             }
 
             host.addSwitchRow(
@@ -286,6 +294,6 @@ class CurrentSiteSettingsPage(
             },
             Toast.LENGTH_SHORT
         ).show()
-        browserManager.reload()
+        browserManager().reload()
     }
 }

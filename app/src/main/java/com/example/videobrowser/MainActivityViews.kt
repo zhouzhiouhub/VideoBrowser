@@ -6,6 +6,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -15,6 +16,9 @@ data class MainActivityViews(
     val rootView: View,
     val topBar: View,
     val bottomBar: View,
+    val addressBar: LinearLayout,
+    val addressIcon: ImageView,
+    val webViewContainer: FrameLayout,
     val webView: WebView,
     val addressInput: EditText,
     val pageProgress: ProgressBar,
@@ -35,6 +39,9 @@ data class MainActivityViews(
                 rootView = activity.findViewById(R.id.rootView),
                 topBar = activity.findViewById(R.id.topBar),
                 bottomBar = activity.findViewById(R.id.bottomBar),
+                addressBar = activity.findViewById(R.id.addressBar),
+                addressIcon = activity.findViewById(R.id.addressIcon),
+                webViewContainer = activity.findViewById(R.id.webViewContainer),
                 webView = activity.findViewById(R.id.webView),
                 addressInput = activity.findViewById(R.id.addressInput),
                 pageProgress = activity.findViewById(R.id.pageProgress),

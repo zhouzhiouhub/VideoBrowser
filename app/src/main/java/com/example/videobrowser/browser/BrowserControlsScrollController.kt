@@ -9,7 +9,7 @@ import android.widget.EditText
 import kotlin.math.abs
 
 class BrowserControlsScrollController(
-    private val webView: WebView,
+    private var webView: WebView,
     private val addressInput: EditText,
     private val dp: (Int) -> Int,
     private val areControlsHidden: () -> Boolean,
@@ -26,64 +26,23 @@ class BrowserControlsScrollController(
 
     @SuppressLint("ClickableViewAccessibility")
     fun setup() {
-        webView.setOnTouchListener { view, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    isTouchActive = true
-                    pendingControlsHidden = null
-                    view.parent?.requestDisallowInterceptTouchEvent(true)
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    isTouchActive = false
-                    view.parent?.requestDisallowInterceptTouchEvent(false)
-                    applyPendingControlsAfterTouch(view)
-                }
-            }
-            false
+        attachToWebView(webView)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun attachToWebView(nextWebView: WebView) {
+        if (webView !== nextWebView) {
+            webView.setOnTouchListener(null)
+            webView.setOnScrollChangeListener(null)
+            webView = nextWebView
         }
+        resetTracking()
+        isTouchActive = false
+        pendingControlsHidden = null
 
+        webView.setOnTouchListener { view, event -> handleTouch(view, event) }
         webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            if (isVideoFullscreenUiActive()) {
-                return@setOnScrollChangeListener
-            }
-            if (isHomePageVisible() || addressInput.hasFocus()) {
-                resetTracking()
-                setControlsHidden(false)
-                return@setOnScrollChangeListener
-            }
-
-            val deltaY = scrollY - oldScrollY
-            if (scrollY <= dp(4)) {
-                resetTracking()
-                setControlsHidden(false)
-                return@setOnScrollChangeListener
-            }
-            if (abs(deltaY) < dp(2)) {
-                return@setOnScrollChangeListener
-            }
-
-            val direction = if (deltaY > 0) 1 else -1
-            if (direction != scrollDirection) {
-                scrollDirection = direction
-                scrollDeltaY = 0
-            }
-            scrollDeltaY += deltaY
-
-            val now = SystemClock.uptimeMillis()
-            if (now - lastScrollChangeAt < BROWSER_CONTROLS_SCROLL_COOLDOWN_MS) {
-                return@setOnScrollChangeListener
-            }
-
-            when {
-                scrollDeltaY >= dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
-                    resetTracking(now)
-                    setControlsHidden(true)
-                }
-                scrollDeltaY <= -dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
-                    resetTracking(now)
-                    setControlsHidden(false)
-                }
-            }
+            handleScroll(scrollY, oldScrollY)
         }
     }
 
@@ -112,6 +71,66 @@ class BrowserControlsScrollController(
 
         applyControlsHidden(shouldHide)
         updatePageProgressVisibility(shouldHide)
+    }
+
+    private fun handleTouch(view: View, event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                isTouchActive = true
+                pendingControlsHidden = null
+                view.parent?.requestDisallowInterceptTouchEvent(true)
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                isTouchActive = false
+                view.parent?.requestDisallowInterceptTouchEvent(false)
+                applyPendingControlsAfterTouch(view)
+            }
+        }
+        return false
+    }
+
+    private fun handleScroll(scrollY: Int, oldScrollY: Int) {
+        if (isVideoFullscreenUiActive()) {
+            return
+        }
+        if (isHomePageVisible() || addressInput.hasFocus()) {
+            resetTracking()
+            setControlsHidden(false)
+            return
+        }
+
+        val deltaY = scrollY - oldScrollY
+        if (scrollY <= dp(4)) {
+            resetTracking()
+            setControlsHidden(false)
+            return
+        }
+        if (abs(deltaY) < dp(2)) {
+            return
+        }
+
+        val direction = if (deltaY > 0) 1 else -1
+        if (direction != scrollDirection) {
+            scrollDirection = direction
+            scrollDeltaY = 0
+        }
+        scrollDeltaY += deltaY
+
+        val now = SystemClock.uptimeMillis()
+        if (now - lastScrollChangeAt < BROWSER_CONTROLS_SCROLL_COOLDOWN_MS) {
+            return
+        }
+
+        when {
+            scrollDeltaY >= dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
+                resetTracking(now)
+                setControlsHidden(true)
+            }
+            scrollDeltaY <= -dp(BROWSER_CONTROLS_SCROLL_THRESHOLD_DP) -> {
+                resetTracking(now)
+                setControlsHidden(false)
+            }
+        }
     }
 
     private fun applyPendingControlsAfterTouch(view: View) {

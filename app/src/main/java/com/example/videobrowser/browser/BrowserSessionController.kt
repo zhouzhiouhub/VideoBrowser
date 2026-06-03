@@ -5,6 +5,7 @@ import com.example.videobrowser.R
 
 class BrowserSessionController(
     private val activity: AppCompatActivity,
+    private val isActive: () -> Boolean,
     private val clearElementPickerState: () -> Unit,
     private val exitPageFullscreenIfNeeded: () -> Unit,
     private val isProviderHomeUrl: (String?) -> Boolean,
@@ -25,50 +26,90 @@ class BrowserSessionController(
     var isPageLoading = false
         private set
 
+    var isHomePageVisible = true
+        private set
+
+    private var pageProgress = 0
+
     fun handlePageStarted(url: String?) {
-        clearElementPickerState()
+        if (isActive()) {
+            clearElementPickerState()
+            exitPageFullscreenIfNeeded()
+        }
         currentPageUrl = url ?: currentPageUrl
-        exitPageFullscreenIfNeeded()
-        val isProviderHome = isProviderHomeUrl(url)
+        isHomePageVisible = isProviderHomeUrl(url)
         resetPageTitle()
-        updateAddressBar(url)
-        showHomeContent(isProviderHome)
         isPageLoading = true
-        setPageProgress(0)
-        updatePageProgressVisibility(false)
-        updateNavigationButtons()
+        pageProgress = 0
+        renderIfActive()
     }
 
     fun handlePageFinished(url: String?) {
         currentPageUrl = url ?: currentPageUrl
-        val isProviderHome = isProviderHomeUrl(url)
-        updateAddressBar(url)
-        showHomeContent(isProviderHome)
+        isHomePageVisible = isProviderHomeUrl(url)
         isPageLoading = false
-        setPageProgress(100)
-        updatePageProgressVisibility(true)
+        pageProgress = 100
         addHistoryEntry(url)
-        injectPageFeatures()
-        updateNavigationButtons()
+        if (isActive()) {
+            renderCurrentState(forceProgressHidden = true)
+            injectPageFeatures()
+        }
     }
 
     fun handlePageProgressChanged(newProgress: Int) {
         val normalizedProgress = newProgress.coerceIn(0, 100)
         isPageLoading = normalizedProgress in 1..99
-        setPageProgress(normalizedProgress)
-        updatePageProgressVisibility(false)
-        updateNavigationButtons()
+        pageProgress = normalizedProgress
+        if (isActive()) {
+            setPageProgress(pageProgress)
+            updatePageProgressVisibility(false)
+            updateNavigationButtons()
+        }
     }
 
     fun handlePageTitleReceived(title: String) {
         val normalizedTitle = title.trim()
         currentPageTitle = normalizedTitle
-        activity.title = normalizedTitle.takeIf { it.isNotBlank() }
-            ?: activity.getString(R.string.app_name)
+        updateActivityTitleIfActive()
+    }
+
+    fun renderCurrentState(forceProgressHidden: Boolean = !isPageLoading) {
+        if (!isActive()) {
+            return
+        }
+        updateActivityTitleIfActive()
+        updateAddressBar(currentPageUrl)
+        showHomeContent(isHomePageVisible)
+        setPageProgress(pageProgress)
+        updatePageProgressVisibility(forceProgressHidden)
+        updateNavigationButtons()
+    }
+
+    fun reset() {
+        currentPageTitle = ""
+        currentPageUrl = null
+        isPageLoading = false
+        isHomePageVisible = true
+        pageProgress = 0
+        renderCurrentState(forceProgressHidden = true)
     }
 
     private fun resetPageTitle() {
         currentPageTitle = ""
-        activity.title = activity.getString(R.string.app_name)
+        updateActivityTitleIfActive()
+    }
+
+    private fun renderIfActive() {
+        if (isActive()) {
+            renderCurrentState(forceProgressHidden = false)
+        }
+    }
+
+    private fun updateActivityTitleIfActive() {
+        if (!isActive()) {
+            return
+        }
+        activity.title = currentPageTitle.takeIf { it.isNotBlank() }
+            ?: activity.getString(R.string.app_name)
     }
 }

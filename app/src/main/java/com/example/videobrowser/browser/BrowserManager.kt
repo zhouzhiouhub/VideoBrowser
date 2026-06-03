@@ -8,11 +8,32 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewDatabase
 import android.webkit.WebViewClient
+import java.util.Collections
+import java.util.WeakHashMap
 
 class BrowserManager(
-    private val webView: WebView
+    private var webView: WebView
 ) {
+    private data class JavascriptInterfaceBinding(
+        val interfaceObject: Any,
+        val name: String
+    )
+
+    private val configuredWebViews = Collections.newSetFromMap(WeakHashMap<WebView, Boolean>())
+    private val javascriptInterfaces = mutableListOf<JavascriptInterfaceBinding>()
+    private var chromeClient: WebChromeClient? = null
+    private var browserClient: WebViewClient? = null
+    private var downloadListener: DownloadListener? = null
+    private var privateBrowsingEnabled = false
+
+    val activeWebView: WebView
+        get() = webView
+
     fun setup() {
+        if (!configuredWebViews.add(webView)) {
+            return
+        }
+
         CookieManager.getInstance().apply {
             setAcceptCookie(true)
             setAcceptThirdPartyCookies(webView, true)
@@ -40,19 +61,51 @@ class BrowserManager(
         }
     }
 
+    fun switchWebView(
+        nextWebView: WebView,
+        privateBrowsingEnabled: Boolean = this.privateBrowsingEnabled,
+        detachCurrent: Boolean = true
+    ) {
+        if (webView === nextWebView) {
+            setPrivateBrowsingEnabled(privateBrowsingEnabled)
+            return
+        }
+        if (detachCurrent) {
+            webView.webChromeClient = null
+            webView.webViewClient = WebViewClient()
+            webView.setDownloadListener(null)
+        }
+
+        webView = nextWebView
+        this.privateBrowsingEnabled = privateBrowsingEnabled
+        setup()
+        setPrivateBrowsingEnabled(privateBrowsingEnabled)
+        webView.webChromeClient = chromeClient
+        browserClient?.let { webView.webViewClient = it }
+        webView.setDownloadListener(downloadListener)
+        javascriptInterfaces.forEach { binding ->
+            webView.addJavascriptInterface(binding.interfaceObject, binding.name)
+        }
+    }
+
     fun setChromeClient(client: WebChromeClient?) {
+        chromeClient = client
         webView.webChromeClient = client
     }
 
     fun setBrowserClient(client: WebViewClient) {
+        browserClient = client
         webView.webViewClient = client
     }
 
     fun setDownloadListener(listener: DownloadListener?) {
+        downloadListener = listener
         webView.setDownloadListener(listener)
     }
 
     fun addJavascriptInterface(interfaceObject: Any, name: String) {
+        javascriptInterfaces.removeAll { it.name == name }
+        javascriptInterfaces.add(JavascriptInterfaceBinding(interfaceObject, name))
         webView.addJavascriptInterface(interfaceObject, name)
     }
 
@@ -119,10 +172,14 @@ class BrowserManager(
     }
 
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
+        privateBrowsingEnabled = enabled
         CookieManager.getInstance().apply {
             setAcceptCookie(!enabled)
             setAcceptThirdPartyCookies(webView, !enabled)
         }
+        webView.settings.domStorageEnabled = !enabled
+        @Suppress("DEPRECATION")
+        webView.settings.databaseEnabled = !enabled
         webView.settings.cacheMode = if (enabled) {
             WebSettings.LOAD_NO_CACHE
         } else {
@@ -134,19 +191,45 @@ class BrowserManager(
         webView.evaluateJavascript(script, null)
     }
 
-    fun clearBrowsingData() {
-        webView.clearCache(true)
-        webView.clearHistory()
-        webView.clearFormData()
-        webView.clearSslPreferences()
-        WebStorage.getInstance().deleteAllData()
-        WebViewDatabase.getInstance(webView.context).apply {
-            clearHttpAuthUsernamePassword()
+    fun clearBrowsingData(clearSharedStores: Boolean = true) {
+        clearBrowsingData(webView, clearSharedStores)
+    }
+
+    fun destroyWebView(targetWebView: WebView, clearSharedStores: Boolean = true) {
+        targetWebView.webChromeClient = null
+        if (targetWebView === webView) {
+            disposeCurrentPage()
         }
-        CookieManager.getInstance().apply {
-            removeAllCookies(null)
-            flush()
+        targetWebView.stopLoading()
+        targetWebView.loadUrl("about:blank")
+        clearBrowsingData(targetWebView, clearSharedStores)
+        targetWebView.removeAllViews()
+        configuredWebViews.remove(targetWebView)
+        targetWebView.destroy()
+    }
+
+    private fun clearBrowsingData(targetWebView: WebView, clearSharedStores: Boolean) {
+        targetWebView.clearCache(true)
+        targetWebView.clearHistory()
+        targetWebView.clearFormData()
+        targetWebView.clearSslPreferences()
+        if (clearSharedStores) {
+            WebStorage.getInstance().deleteAllData()
+            WebViewDatabase.getInstance(targetWebView.context).apply {
+                clearHttpAuthUsernamePassword()
+            }
+            CookieManager.getInstance().apply {
+                removeAllCookies(null)
+                flush()
+            }
         }
+    }
+
+    fun clearTransientBrowsingData() {
+        disposeCurrentPage()
+        webView.stopLoading()
+        webView.loadUrl("about:blank")
+        clearBrowsingData(clearSharedStores = false)
     }
 
     fun onPause() {
@@ -158,13 +241,7 @@ class BrowserManager(
     }
 
     fun destroy() {
-        webView.webChromeClient = null
-        disposeCurrentPage()
-        webView.stopLoading()
-        webView.loadUrl("about:blank")
-        webView.clearHistory()
-        webView.removeAllViews()
-        webView.destroy()
+        destroyWebView(webView)
     }
 
     private fun suspendCurrentPage() {

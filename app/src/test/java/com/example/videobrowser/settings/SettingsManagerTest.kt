@@ -23,6 +23,29 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun privateBrowsingPreference_isIgnoredOnStartup() {
+        val store = InMemoryPreferenceStore()
+        store.putBoolean("private_browsing", true)
+
+        val settings = SettingsManager(store)
+
+        assertFalse(settings.isPrivateBrowsingEnabled())
+        assertFalse(store.contains("private_browsing"))
+    }
+
+    @Test
+    fun setPrivateBrowsingEnabled_doesNotPersistPrivateMode() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        settings.setPrivateBrowsingEnabled(true)
+
+        val reloaded = SettingsManager(store)
+        assertFalse(reloaded.isPrivateBrowsingEnabled())
+        assertFalse(store.contains("private_browsing"))
+    }
+
+    @Test
     fun settings_arePersistedThroughPreferenceStore() {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)
@@ -43,7 +66,8 @@ class SettingsManagerTest {
         assertFalse(reloaded.isDomAdBlockEnabled())
         assertFalse(reloaded.isVideoEnhancementEnabled())
         assertTrue(reloaded.isDesktopModeEnabled())
-        assertTrue(reloaded.isPrivateBrowsingEnabled())
+        assertFalse(reloaded.isPrivateBrowsingEnabled())
+        assertFalse(store.contains("private_browsing"))
         assertEquals(1.5f, reloaded.defaultVideoSpeed(), 0.001f)
         assertEquals("https://m.sogou.com/", reloaded.homeUrl())
         assertEquals("sogou", reloaded.searchEngineId())

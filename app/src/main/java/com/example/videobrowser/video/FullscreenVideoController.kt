@@ -12,7 +12,7 @@ import java.util.Locale
 class FullscreenVideoController(
     private val activity: Activity,
     private val rootView: ViewGroup,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val settingsManager: () -> SettingsManager?,
     private val chromeClient: () -> ChromeClient?,
     private val dp: (Int) -> Int
@@ -81,7 +81,7 @@ class FullscreenVideoController(
         }
         lastControlsWakeAt = now
 
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.wakeControls==='function'){" +
                 "window.VideoBrowserEnhancer.wakeControls();" +
@@ -130,7 +130,7 @@ class FullscreenVideoController(
     private fun seekBy(offsetMs: Long) {
         val seconds = String.format(Locale.US, "%.3f", offsetMs / 1000.0)
         videoPositionMs = boundedVideoPosition(offsetMs)
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.seekBy==='function'){" +
                 "window.VideoBrowserEnhancer.seekBy($seconds);" +
@@ -147,7 +147,7 @@ class FullscreenVideoController(
         }
         videoPositionMs = boundedPositionMs
         val seconds = String.format(Locale.US, "%.3f", boundedPositionMs / 1000.0)
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.seekTo==='function'){" +
                 "window.VideoBrowserEnhancer.seekTo($seconds);" +
@@ -175,7 +175,7 @@ class FullscreenVideoController(
     }
 
     private fun requestTimeline() {
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.reportPlaybackTimeline==='function'){" +
                 "window.VideoBrowserEnhancer.reportPlaybackTimeline();" +
@@ -189,7 +189,7 @@ class FullscreenVideoController(
     }
 
     private fun togglePlayback(): Boolean? {
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){var enhancer=window.VideoBrowserEnhancer;" +
                 "if(!enhancer)return;" +
                 "if(typeof enhancer.togglePlayPause==='function'){" +
@@ -214,7 +214,7 @@ class FullscreenVideoController(
             gestureOverlay.setPlaybackSpeed(playbackSpeed)
         }
         val speedValue = String.format(Locale.US, "%.2f", normalizedSpeed)
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.setPlaybackSpeed==='function'){" +
                 "window.VideoBrowserEnhancer.setPlaybackSpeed($speedValue);" +
@@ -224,7 +224,7 @@ class FullscreenVideoController(
 
     private fun startDirectionalLongPress(direction: Int) {
         val normalizedDirection = if (direction < 0) -1 else 1
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.startDirectionalPlayback==='function'){" +
                 "window.VideoBrowserEnhancer.startDirectionalPlayback($normalizedDirection);" +
@@ -233,7 +233,7 @@ class FullscreenVideoController(
     }
 
     private fun stopDirectionalLongPress() {
-        browserManager.evaluateJavascript(
+        browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
                 "typeof window.VideoBrowserEnhancer.stopDirectionalPlayback==='function'){" +
                 "window.VideoBrowserEnhancer.stopDirectionalPlayback();" +

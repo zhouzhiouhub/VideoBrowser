@@ -258,11 +258,12 @@ class SettingsManager(
     }
 
     fun isPrivateBrowsingEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_PRIVATE_BROWSING, DEFAULT_PRIVATE_BROWSING_ENABLED)
+        preferenceStore.remove(KEY_PRIVATE_BROWSING)
+        return DEFAULT_PRIVATE_BROWSING_ENABLED
     }
 
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_PRIVATE_BROWSING, enabled)
+        preferenceStore.remove(KEY_PRIVATE_BROWSING)
     }
 
     fun restoreDefaults(): Boolean {

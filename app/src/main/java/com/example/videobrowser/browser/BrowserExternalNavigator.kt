@@ -12,7 +12,7 @@ import com.example.videobrowser.video.PlayerActivity
 
 class BrowserExternalNavigator(
     private val activity: AppCompatActivity,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val currentPageTitle: () -> String,
     private val currentShareableUrl: () -> String?,
     private val isShareableUrl: (String) -> Boolean
@@ -53,7 +53,7 @@ class BrowserExternalNavigator(
             mediaUri = url,
             title = title,
             mimeType = mimeType,
-            userAgent = userAgentOverride ?: browserManager.userAgentString(),
+            userAgent = userAgentOverride ?: browserManager().userAgentString(),
             cookie = cookie,
             referer = referer
         )

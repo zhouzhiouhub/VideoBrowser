@@ -14,7 +14,7 @@ import com.example.videobrowser.utils.MediaUrlUtils
 
 class DownloadController(
     private val activity: AppCompatActivity,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val openNativePlayer: (
         url: String,
         mimeType: String?,
@@ -23,7 +23,7 @@ class DownloadController(
     ) -> Unit,
     private val openExternalUrl: (String) -> Unit
 ) {
-    fun attach() {
+    fun attachTo(browserManager: BrowserManager) {
         browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             val mediaUri = url?.takeIf {
                 MediaUrlUtils.isPlayableMediaUri(Uri.parse(it), mimeType)
@@ -42,6 +42,10 @@ class DownloadController(
         }
     }
 
+    fun attachTo(browserManagers: Iterable<BrowserManager>) {
+        browserManagers.forEach(::attachTo)
+    }
+
     fun enqueue(
         url: String?,
         userAgent: String?,
@@ -55,13 +59,15 @@ class DownloadController(
 
         val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
         runCatching {
+            val resolvedUserAgent = userAgent?.takeIf { it.isNotBlank() }
+                ?: browserManager().userAgentString()?.takeIf { it.isNotBlank() }
             val request = DownloadManager.Request(Uri.parse(url)).apply {
                 setTitle(fileName)
                 setDescription(activity.getString(R.string.toast_download_started))
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
                 mimeType?.takeIf { it.isNotBlank() }?.let { setMimeType(it) }
-                userAgent?.takeIf { it.isNotBlank() }?.let { addRequestHeader("User-Agent", it) }
+                resolvedUserAgent?.let { addRequestHeader("User-Agent", it) }
                 CookieManager.getInstance().getCookie(url)?.let { addRequestHeader("Cookie", it) }
             }
             val downloadManager =

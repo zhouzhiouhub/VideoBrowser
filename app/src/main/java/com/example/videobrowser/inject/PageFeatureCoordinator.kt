@@ -5,7 +5,7 @@ import com.example.videobrowser.settings.SettingsManager
 
 class PageFeatureCoordinator(
     private val settingsManager: SettingsManager,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val jsInjector: JsInjector,
     private val currentSiteHost: () -> String?,
     private val currentPageUrl: () -> String?
@@ -50,7 +50,7 @@ class PageFeatureCoordinator(
                 videoEnabled = isVideoEnhancementEnabled() && !isCurrentSiteVideoEnhancementDisabled(),
                 userCssSelectors = settingsManager.userElementHideSelectorsForSite(currentSiteHost())
             ),
-            pageUrl = currentPageUrl() ?: browserManager.currentUrl()
+            pageUrl = currentPageUrl() ?: browserManager().currentUrl()
         )
     }
 }

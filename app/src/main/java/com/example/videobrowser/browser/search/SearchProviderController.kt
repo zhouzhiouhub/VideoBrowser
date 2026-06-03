@@ -27,6 +27,7 @@ class SearchProviderController(
     private val settingsManager: SettingsManager,
     private val dp: (Int) -> Int,
     private val isHomePageVisible: () -> Boolean,
+    private val isPrivateBrowsingEnabled: () -> Boolean,
     private val openProviderHome: () -> Unit
 ) {
     private data class SearchProviderViews(
@@ -43,7 +44,7 @@ class SearchProviderController(
 
     fun setup() {
         selectedProvider = loadSavedSearchProvider()
-        if (!settingsManager.hasHomeUrl()) {
+        if (!isPrivateBrowsingEnabled() && !settingsManager.hasHomeUrl()) {
             settingsManager.setHomeUrl(selectedProvider.homeUrl)
         }
         providerViews.clear()
@@ -72,7 +73,11 @@ class SearchProviderController(
         isHomePageVisible: Boolean
     ) {
         providerScroll.visibility =
-            if (!areBrowserControlsHidden && !isVideoFullscreenUiActive && isHomePageVisible) {
+            if (!areBrowserControlsHidden &&
+                !isVideoFullscreenUiActive &&
+                isHomePageVisible &&
+                !isPrivateBrowsingEnabled()
+            ) {
                 View.VISIBLE
             } else {
                 View.GONE
@@ -150,8 +155,10 @@ class SearchProviderController(
     private fun selectProvider(provider: SearchProvider) {
         val shouldOpenProviderHome = isHomePageVisible()
         selectedProvider = provider
-        settingsManager.setSearchEngineId(provider.id)
-        settingsManager.setHomeUrl(provider.homeUrl)
+        if (!isPrivateBrowsingEnabled()) {
+            settingsManager.setSearchEngineId(provider.id)
+            settingsManager.setHomeUrl(provider.homeUrl)
+        }
         updateSelection()
         if (shouldOpenProviderHome) {
             openProviderHome()

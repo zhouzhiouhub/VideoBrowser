@@ -19,7 +19,8 @@ import com.example.videobrowser.utils.MediaUrlUtils
 
 class PageActionsController(
     private val activity: AppCompatActivity,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
+    private val browserManagers: () -> List<BrowserManager>,
     private val downloadController: DownloadController,
     private val settingsManager: SettingsManager,
     private val savedPageRepository: SavedPageRepository,
@@ -34,6 +35,8 @@ class PageActionsController(
         titleOverride: String?
     ) -> Unit,
     private val openExternalUrl: (String) -> Unit,
+    private val isPrivateBrowsingEnabled: () -> Boolean,
+    private val switchPrivateBrowsing: (Boolean) -> Unit,
     private val updateBookmarkButton: () -> Unit,
     private val updateNavigationButtons: () -> Unit,
     private val updatePrivateBrowsingUi: () -> Unit,
@@ -66,7 +69,7 @@ class PageActionsController(
         }
         downloadController.enqueue(
             url = url,
-            userAgent = browserManager.userAgentString(),
+            userAgent = browserManager().userAgentString(),
             contentDisposition = null,
             mimeType = null
         )
@@ -133,26 +136,22 @@ class PageActionsController(
     }
 
     fun clearBrowserData() {
-        browserManager.clearBrowsingData()
+        browserManagers().forEachIndexed { index, manager ->
+            manager.clearBrowsingData(clearSharedStores = index == 0)
+        }
         savedPageRepository.clearHistory()
         Toast.makeText(activity, R.string.toast_browser_data_cleared, Toast.LENGTH_SHORT).show()
         updateNavigationButtons()
     }
 
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
-        if (settingsManager.isPrivateBrowsingEnabled() == enabled) {
+        if (isPrivateBrowsingEnabled() == enabled) {
             updatePrivateBrowsingUi()
             return
         }
 
-        settingsManager.setPrivateBrowsingEnabled(enabled)
-        browserManager.setPrivateBrowsingEnabled(enabled)
-        browserManager.clearBrowsingData()
-        if (enabled) {
-            savedPageRepository.clearHistory()
-        }
+        switchPrivateBrowsing(enabled)
         updatePrivateBrowsingUi()
-        browserManager.reload()
         updateNavigationButtons()
         Toast.makeText(
             activity,
@@ -172,7 +171,7 @@ class PageActionsController(
     }
 
     fun addHistoryEntry(url: String?) {
-        if (settingsManager.isPrivateBrowsingEnabled()) {
+        if (isPrivateBrowsingEnabled()) {
             return
         }
         val page = currentSavedPage(url) ?: return

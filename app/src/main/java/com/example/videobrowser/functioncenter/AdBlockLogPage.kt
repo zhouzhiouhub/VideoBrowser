@@ -16,7 +16,7 @@ import java.util.Locale
 class AdBlockLogPage(
     private val host: FunctionCenterPageHost,
     private val settingsManager: SettingsManager,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val adBlockLogger: AdBlockLogger,
     private val showRootPage: () -> Unit
 ) {
@@ -126,7 +126,7 @@ class AdBlockLogPage(
                     activity.getString(R.string.toast_user_whitelist_added, hostName),
                     Toast.LENGTH_SHORT
                 ).show()
-                browserManager.reload()
+                browserManager().reload()
                 show()
             }
             .setNegativeButton(android.R.string.cancel, null)

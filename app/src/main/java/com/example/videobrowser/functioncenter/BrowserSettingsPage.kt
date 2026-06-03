@@ -9,7 +9,7 @@ import com.example.videobrowser.settings.SettingsManager
 class BrowserSettingsPage(
     private val host: FunctionCenterPageHost,
     private val settingsManager: SettingsManager,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val isPrivateBrowsingEnabled: () -> Boolean,
     private val isAdBlockEnabled: () -> Boolean,
     private val isJsInjectionEnabled: () -> Boolean,
@@ -64,6 +64,9 @@ class BrowserSettingsPage(
             ) {
                 showFileOperationsPage()
             }
+            if (isPrivateBrowsingEnabled()) {
+                return@addFunctionSection
+            }
             host.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_show_ad_block_log),
@@ -110,6 +113,10 @@ class BrowserSettingsPage(
                 setPrivateBrowsingEnabled(enabled)
             }
 
+            if (isPrivateBrowsingEnabled()) {
+                return@addFunctionSection
+            }
+
             host.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_ad_block),
@@ -117,7 +124,7 @@ class BrowserSettingsPage(
                 checked = isAdBlockEnabled()
             ) { enabled ->
                 settingsManager.setAdBlockEnabled(enabled)
-                browserManager.reload()
+                browserManager().reload()
             }
 
             host.addSwitchRow(
@@ -127,7 +134,7 @@ class BrowserSettingsPage(
                 checked = isJsInjectionEnabled()
             ) { enabled ->
                 settingsManager.setJsInjectionEnabled(enabled)
-                browserManager.reload()
+                browserManager().reload()
             }
 
             host.addSwitchRow(

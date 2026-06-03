@@ -9,7 +9,7 @@ import com.example.videobrowser.settings.SettingsManager
 class UserWhitelistPage(
     private val host: FunctionCenterPageHost,
     private val settingsManager: SettingsManager,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val currentSiteHost: () -> String?,
     private val showRootPage: () -> Unit
 ) {
@@ -39,7 +39,7 @@ class UserWhitelistPage(
                             activity.getString(R.string.toast_user_whitelist_added, currentHost),
                             Toast.LENGTH_SHORT
                         ).show()
-                        browserManager.reload()
+                        browserManager().reload()
                         show()
                     }
                 }
@@ -77,7 +77,7 @@ class UserWhitelistPage(
                     activity.getString(R.string.toast_user_whitelist_removed, hostName),
                     Toast.LENGTH_SHORT
                 ).show()
-                browserManager.reload()
+                browserManager().reload()
                 show()
             }
             .setNegativeButton(android.R.string.cancel, null)

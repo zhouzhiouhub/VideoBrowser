@@ -14,7 +14,7 @@ import com.example.videobrowser.storage.SavedPageRepository
 
 class BrowserControlsController(
     private val activity: AppCompatActivity,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val topBar: View,
     private val bottomBar: View,
     private val addressInput: EditText,
@@ -67,10 +67,10 @@ class BrowserControlsController(
 
         loadButton.setOnClickListener { onLoadAddress() }
         backButton.setOnClickListener {
-            browserManager.goBack()
+            browserManager().goBack()
             updateNavigationButtons()
         }
-        refreshButton.setOnClickListener { browserManager.reload() }
+        refreshButton.setOnClickListener { browserManager().reload() }
         homeButton.setOnClickListener { onOpenHomePage() }
         bookmarkButton.setOnClickListener { onToggleBookmark() }
         pageToolsButton.setOnClickListener { onShowFunctionCenter() }
@@ -103,13 +103,20 @@ class BrowserControlsController(
     }
 
     fun updateNavigationButtons() {
-        val canGoBack = browserManager.canGoBack()
+        val canGoBack = browserManager().canGoBack()
+        val homeVisible = isHomePageVisible()
         backButton.isEnabled = canGoBack
         backButton.visibility = if (canGoBack) View.VISIBLE else View.GONE
+        homeButton.visibility = if (homeVisible) View.GONE else View.VISIBLE
+        bookmarkButton.visibility = if (homeVisible) View.GONE else View.VISIBLE
         updateBookmarkButton()
     }
 
     fun updateBookmarkButton() {
+        if (isHomePageVisible()) {
+            bookmarkButton.isEnabled = false
+            return
+        }
         val url = currentActionableUrl()
         val isEnabled = url != null
         val isBookmarked = url?.let(savedPageRepository::isBookmarked) ?: false

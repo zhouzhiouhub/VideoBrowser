@@ -15,7 +15,7 @@ class FunctionCenterPages(
     activity: AppCompatActivity,
     functionCenter: FunctionCenterController,
     private val settingsManager: SettingsManager,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val savedPageRepository: SavedPageRepository,
     adBlockLogger: AdBlockLogger,
     private val currentSiteHost: () -> String?,
@@ -51,6 +51,7 @@ class FunctionCenterPages(
         isJsInjectionEnabled = isJsInjectionEnabled,
         isPageCleanupEnabled = isPageCleanupEnabled,
         isVideoEnhancementEnabled = isVideoEnhancementEnabled,
+        isPrivateBrowsingEnabled = isPrivateBrowsingEnabled,
         startElementPicker = startElementPicker,
         injectPageFeatures = injectPageFeatures,
         showRootPage = ::showRootPage
@@ -135,13 +136,15 @@ class FunctionCenterPages(
             parent,
             activity.getString(R.string.function_center_section_more)
         ) { section ->
-            host.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.action_site_settings),
-                summary = siteHost ?: activity.getString(R.string.function_center_site_action_unavailable),
-                enabled = siteHost != null
-            ) {
-                currentSiteSettingsPage.show()
+            if (!isPrivateBrowsingEnabled()) {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_site_settings),
+                    summary = siteHost ?: activity.getString(R.string.function_center_site_action_unavailable),
+                    enabled = siteHost != null
+                ) {
+                    currentSiteSettingsPage.show()
+                }
             }
             host.addActionRow(
                 parent = section,
@@ -174,9 +177,7 @@ class FunctionCenterPages(
             parent,
             activity.getString(R.string.function_center_section_page_actions)
         ) { section ->
-            host.addActionGrid(
-                section,
-                listOf(
+            val actions = mutableListOf(
                     FunctionCenterGridAction(
                         title = bookmarkTitle,
                         summary = pageSummary,
@@ -184,6 +185,9 @@ class FunctionCenterPages(
                     ) {
                         runPageAction(toggleCurrentBookmark)
                     },
+            )
+            if (!isPrivateBrowsingEnabled()) {
+                actions.add(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_pick_element),
                         summary = siteSummary,
@@ -192,6 +196,10 @@ class FunctionCenterPages(
                         close()
                         startElementPicker()
                     },
+                )
+            }
+            actions.addAll(
+                listOf(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_copy_link),
                         summary = activity.getString(R.string.action_copy_link_summary),
@@ -229,6 +237,10 @@ class FunctionCenterPages(
                     }
                 )
             )
+            host.addActionGrid(section, actions)
+            if (isPrivateBrowsingEnabled()) {
+                return@addFunctionSection
+            }
             host.addDivider(section)
             host.addSwitchRow(
                 parent = section,

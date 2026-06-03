@@ -10,7 +10,7 @@ import com.example.videobrowser.settings.SettingsManager
 
 class ElementPickerController(
     private val activity: AppCompatActivity,
-    private val browserManager: BrowserManager,
+    private val browserManager: () -> BrowserManager,
     private val settingsManager: SettingsManager,
     private val currentSiteHost: () -> String?,
     private val isJsInjectionEnabled: () -> Boolean,
@@ -44,7 +44,7 @@ class ElementPickerController(
         isActive = true
         startedAt = SystemClock.elapsedRealtime()
         injectPageFeatures()
-        browserManager.evaluateJavascript(START_ELEMENT_PICKER_SCRIPT)
+        browserManager().evaluateJavascript(START_ELEMENT_PICKER_SCRIPT)
         Toast.makeText(activity, R.string.toast_element_picker_started, Toast.LENGTH_SHORT).show()
     }
 
@@ -147,7 +147,7 @@ class ElementPickerController(
 
     private fun finishSession() {
         clearState()
-        browserManager.evaluateJavascript(FINISH_ELEMENT_PICKER_SCRIPT)
+        browserManager().evaluateJavascript(FINISH_ELEMENT_PICKER_SCRIPT)
     }
 
     private companion object {
