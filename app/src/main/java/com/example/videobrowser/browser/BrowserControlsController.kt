@@ -113,12 +113,15 @@ class BrowserControlsController(
 
     fun updateNavigationButtons() {
         val canGoBack = browserManager().canGoBack()
+        val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible())
         backButton.isEnabled = canGoBack
         backButton.alpha = if (canGoBack) 1f else 0.38f
-        backButton.visibility = View.VISIBLE
-        homeButton.visibility = View.VISIBLE
+        backButton.visibility = if (visibility.showBack) View.VISIBLE else View.GONE
+        pageToolsButton.visibility = if (visibility.showPageTools) View.VISIBLE else View.GONE
+        homeButton.visibility = if (visibility.showTabsHome) View.VISIBLE else View.GONE
+        wenxinButton.visibility = if (visibility.showWenxin) View.VISIBLE else View.GONE
+        profileButton.visibility = if (visibility.showProfile) View.VISIBLE else View.GONE
         bookmarkButton.visibility = View.GONE
-        profileButton.visibility = View.VISIBLE
         updateBookmarkButton()
     }
 
