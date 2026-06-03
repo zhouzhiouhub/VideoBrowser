@@ -159,7 +159,8 @@ class MainActivity : AppCompatActivity() {
             dp = ::dp,
             isHomePageVisible = { isHomePageVisible },
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
-            openProviderHome = ::openHomePage
+            openProviderHome = ::openHomePage,
+            openCustomShortcut = ::loadUrl
         )
         setupBrowserWebViews()
         setupFileOperationLaunchers()

@@ -217,6 +217,75 @@ class SettingsManagerTest {
         assertTrue(settings.userElementHideRules().isEmpty())
     }
 
+    @Test
+    fun customShortcuts_arePersistedInInsertionOrder() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.addCustomShortcut(" 视频站 ", " https://video.example.com/home "))
+        assertTrue(settings.addCustomShortcut("Docs", "http://docs.example.com"))
+
+        val reloaded = SettingsManager(store)
+        assertEquals(
+            listOf(
+                CustomShortcut("视频站", "https://video.example.com/home"),
+                CustomShortcut("Docs", "http://docs.example.com")
+            ),
+            reloaded.customShortcuts()
+        )
+    }
+
+    @Test
+    fun customShortcuts_keepMostRecentTenEntries() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        (1..11).forEach { index ->
+            assertTrue(settings.addCustomShortcut("站点$index", "https://example.com/$index"))
+        }
+
+        assertEquals(
+            (2..11).map { index -> CustomShortcut("站点$index", "https://example.com/$index") },
+            settings.customShortcuts()
+        )
+    }
+
+    @Test
+    fun customShortcuts_rejectInvalidInputAndFilterCorruptStorage() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertFalse(settings.addCustomShortcut("", "https://example.com"))
+        assertFalse(settings.addCustomShortcut("Docs", ""))
+        assertFalse(settings.addCustomShortcut("Script", "javascript:alert(1)"))
+        store.putString(
+            "custom_shortcuts",
+            listOf(
+                "Good\thttps://good.example.com",
+                "BadUrl\tftp://bad.example.com",
+                "\thttps://missing-name.example.com",
+                "MissingUrl\t",
+                "Good\thttps://good.example.com"
+            ).joinToString(separator = "\n")
+        )
+
+        assertEquals(
+            listOf(CustomShortcut("Good", "https://good.example.com")),
+            settings.customShortcuts()
+        )
+    }
+
+    @Test
+    fun customShortcuts_doNotChangeSearchProviderOrHomeUrl() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+        settings.setSearchEngineId("sogou")
+        settings.setHomeUrl("https://m.sogou.com/")
+
+        assertTrue(settings.addCustomShortcut("Bing", "https://www.bing.com/"))
+
+        assertEquals("sogou", settings.searchEngineId())
+        assertEquals("https://m.sogou.com/", settings.homeUrl())
+    }
+
     private class InMemoryPreferenceStore : PreferenceStore {
         private val values = mutableMapOf<String, Any>()
 

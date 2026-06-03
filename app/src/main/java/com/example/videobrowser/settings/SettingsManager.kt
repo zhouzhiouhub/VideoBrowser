@@ -3,10 +3,16 @@ package com.example.videobrowser.settings
 import android.content.Context
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
+import java.net.URI
 
 data class UserElementHideRule(
     val host: String,
     val selector: String
+)
+
+data class CustomShortcut(
+    val name: String,
+    val url: String
 )
 
 class SettingsManager(
@@ -249,6 +255,26 @@ class SettingsManager(
         preferenceStore.putString(KEY_SEARCH_ENGINE, normalizedId)
     }
 
+    fun customShortcuts(): List<CustomShortcut> {
+        return preferenceStore.getString(KEY_CUSTOM_SHORTCUTS, null)
+            ?.lineSequence()
+            ?.mapNotNull(::parseCustomShortcut)
+            ?.distinct()
+            ?.toList()
+            ?.takeLast(MAX_CUSTOM_SHORTCUTS)
+            ?: emptyList()
+    }
+
+    fun addCustomShortcut(name: String, url: String): Boolean {
+        val shortcut = normalizeCustomShortcut(name, url) ?: return false
+        val shortcuts = customShortcuts()
+            .filterNot { existing -> existing == shortcut }
+            .plus(shortcut)
+            .takeLast(MAX_CUSTOM_SHORTCUTS)
+        saveCustomShortcuts(shortcuts)
+        return true
+    }
+
     fun isDesktopModeEnabled(): Boolean {
         return preferenceStore.getBoolean(KEY_DESKTOP_MODE, DEFAULT_DESKTOP_MODE_ENABLED)
     }
@@ -354,6 +380,55 @@ class SettingsManager(
             ?: defaultValue
     }
 
+    private fun parseCustomShortcut(line: String): CustomShortcut? {
+        val separatorIndex = line.indexOf('\t')
+        if (separatorIndex <= 0 || separatorIndex >= line.lastIndex) {
+            return null
+        }
+        return normalizeCustomShortcut(
+            line.substring(0, separatorIndex),
+            line.substring(separatorIndex + 1)
+        )
+    }
+
+    private fun saveCustomShortcuts(shortcuts: List<CustomShortcut>) {
+        val lines = shortcuts
+            .mapNotNull { shortcut -> normalizeCustomShortcut(shortcut.name, shortcut.url) }
+            .distinct()
+            .takeLast(MAX_CUSTOM_SHORTCUTS)
+            .map { shortcut -> "${shortcut.name}\t${shortcut.url}" }
+
+        if (lines.isEmpty()) {
+            preferenceStore.remove(KEY_CUSTOM_SHORTCUTS)
+        } else {
+            preferenceStore.putString(KEY_CUSTOM_SHORTCUTS, lines.joinToString(separator = "\n"))
+        }
+    }
+
+    private fun normalizeCustomShortcut(name: String, url: String): CustomShortcut? {
+        val normalizedName = name.trim().replace(Regex("\\s+"), " ")
+        val normalizedUrl = url.trim()
+        if (normalizedName.isEmpty() || normalizedName.any { it == '\t' || it == '\n' || it == '\r' }) {
+            return null
+        }
+        if (!isHttpUrl(normalizedUrl)) {
+            return null
+        }
+        return CustomShortcut(name = normalizedName, url = normalizedUrl)
+    }
+
+    private fun isHttpUrl(url: String): Boolean {
+        val uri = try {
+            URI(url)
+        } catch (_: IllegalArgumentException) {
+            return false
+        }
+        val scheme = uri.scheme ?: return false
+        return (scheme.equals("http", ignoreCase = true) ||
+            scheme.equals("https", ignoreCase = true)) &&
+            !uri.host.isNullOrBlank()
+    }
+
     companion object {
         const val DEFAULT_SEARCH_ENGINE_ID = "baidu"
         const val DEFAULT_HOME_URL = "https://m.baidu.com/"
@@ -380,9 +455,11 @@ class SettingsManager(
         private const val KEY_DEFAULT_VIDEO_SPEED = "default_video_speed"
         private const val KEY_HOME_URL = "home_url"
         private const val KEY_SEARCH_ENGINE = "search_provider"
+        private const val KEY_CUSTOM_SHORTCUTS = "custom_shortcuts"
         private const val KEY_DESKTOP_MODE = "desktop_mode"
         private const val KEY_PRIVATE_BROWSING = "private_browsing"
         private const val MAX_USER_ELEMENT_SELECTOR_LENGTH = 200
+        private const val MAX_CUSTOM_SHORTCUTS = 10
 
         private val RESET_KEYS = listOf(
             KEY_AD_BLOCK,

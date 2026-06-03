@@ -105,18 +105,11 @@ class FunctionCenterPages(
 
     fun showRootPage() {
         host.showBottomSheetPage(
-            title = activity.getString(R.string.profile_login_now),
+            title = activity.getString(R.string.title_page_tools),
             onClose = { close() }
         ) { content ->
             val siteHost = currentSiteHost()
             val pageUrl = currentActionableUrl()
-            host.addProfileHeader(
-                parent = content,
-                title = activity.getString(R.string.profile_login_now),
-                summary = activity.getString(R.string.profile_login_summary)
-            ) {
-                showProfilePage()
-            }
             addBaiduBrowserActionGrid(content, pageUrl, siteHost)
             host.addHistoryPreview(
                 parent = content,
@@ -141,22 +134,11 @@ class FunctionCenterPages(
         ) { content ->
             host.addProfileHeader(
                 parent = content,
-                title = activity.getString(R.string.profile_phone_mask),
-                summary = activity.getString(R.string.profile_phone_summary)
+                title = activity.getString(R.string.function_center_profile_name),
+                summary = activity.getString(R.string.function_center_profile_summary)
             ) {
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.profile_other_login),
-                    Toast.LENGTH_SHORT
-                ).show()
+                browserSettingsPage.show()
             }
-            host.addBenefitStrip(
-                parent = content,
-                leftTitle = activity.getString(R.string.profile_vip_title),
-                leftSummary = activity.getString(R.string.profile_vip_summary),
-                rightTitle = activity.getString(R.string.profile_reward_title),
-                rightSummary = activity.getString(R.string.profile_reward_summary)
-            )
             addProfileShortcutSection(content)
             addProfileFeatureSection(content)
         }

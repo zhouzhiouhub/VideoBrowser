@@ -181,7 +181,7 @@ class FunctionCenterViewFactory(
         }
         row.addView(
             ImageView(activity).apply {
-                setImageResource(R.drawable.ic_baidu_paw_24)
+                setImageResource(R.drawable.ic_settings_24)
                 setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
                 background = ContextCompat.getDrawable(activity, R.drawable.bg_profile_avatar)
                 setPadding(dp(9), dp(9), dp(9), dp(9))
