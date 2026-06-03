@@ -105,21 +105,58 @@ class FunctionCenterPages(
 
     fun showRootPage() {
         host.showBottomSheetPage(
-            title = activity.getString(R.string.title_page_tools),
+            title = activity.getString(R.string.profile_login_now),
             onClose = { close() }
         ) { content ->
             val siteHost = currentSiteHost()
             val pageUrl = currentActionableUrl()
-            host.addFunctionMessage(
-                content,
-                if (siteHost != null) {
-                    activity.getString(R.string.function_center_current_site, siteHost)
-                } else {
-                    activity.getString(R.string.function_center_no_site)
-                }
+            host.addProfileHeader(
+                parent = content,
+                title = activity.getString(R.string.profile_login_now),
+                summary = activity.getString(R.string.profile_login_summary)
+            ) {
+                showProfilePage()
+            }
+            addBaiduBrowserActionGrid(content, pageUrl, siteHost)
+            host.addHistoryPreview(
+                parent = content,
+                title = activity.getString(R.string.menu_history_title),
+                emptyMessage = activity.getString(R.string.menu_history_empty),
+                pages = savedPageRepository.history(),
+                onOpenPage = { page ->
+                    close()
+                    loadUrl(page.url)
+                },
+                onShowHistory = ::showHistory
             )
-            addCurrentPageActionSection(content, pageUrl, siteHost)
-            addFunctionNavigationSection(content, siteHost)
+        }
+    }
+
+    fun showProfilePage() {
+        host.showPage(
+            title = activity.getString(R.string.title_profile_page),
+            onBack = { close() }
+        ) { content ->
+            host.addProfileHeader(
+                parent = content,
+                title = activity.getString(R.string.profile_phone_mask),
+                summary = activity.getString(R.string.profile_phone_summary)
+            ) {
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.profile_other_login),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            host.addBenefitStrip(
+                parent = content,
+                leftTitle = activity.getString(R.string.profile_vip_title),
+                leftSummary = activity.getString(R.string.profile_vip_summary),
+                rightTitle = activity.getString(R.string.profile_reward_title),
+                rightSummary = activity.getString(R.string.profile_reward_summary)
+            )
+            addProfileShortcutSection(content)
+            addProfileFeatureSection(content)
         }
     }
 
@@ -156,6 +193,170 @@ class FunctionCenterPages(
         }
     }
 
+    private fun addBaiduBrowserActionGrid(
+        parent: LinearLayout,
+        pageUrl: String?,
+        siteHost: String?
+    ) {
+        val pageSummary = pageUrl
+            ?.let(UrlUtils::displayUrl)
+            ?: activity.getString(R.string.function_center_page_action_unavailable)
+        val siteSummary = siteHost
+            ?: activity.getString(R.string.function_center_site_action_unavailable)
+        val hasPage = pageUrl != null
+
+        host.addFunctionSection(parent, "") { section ->
+            host.addActionGrid(
+                section,
+                listOf(
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_share_page),
+                        summary = activity.getString(R.string.action_share_page_summary),
+                        iconResId = R.drawable.ic_share_24,
+                        enabled = hasPage
+                    ) {
+                        runPageAction(shareCurrentUrl)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.title_bookmarks),
+                        summary = activity.getString(R.string.action_show_bookmarks_summary),
+                        iconResId = R.drawable.ic_star_24
+                    ) {
+                        showBookmarks()
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.title_history),
+                        summary = activity.getString(R.string.action_show_history_summary),
+                        iconResId = R.drawable.ic_history_24
+                    ) {
+                        showHistory()
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_file_operations),
+                        summary = activity.getString(R.string.action_file_operations_summary),
+                        iconResId = R.drawable.ic_file_24
+                    ) {
+                        showFileOperationsPage()
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_refresh),
+                        summary = pageSummary,
+                        iconResId = R.drawable.ic_refresh_24,
+                        enabled = hasPage
+                    ) {
+                        browserManager().reload()
+                        close()
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_smart_summary),
+                        summary = pageSummary,
+                        iconResId = R.drawable.ic_search_24,
+                        enabled = hasPage
+                    ) {
+                        Toast.makeText(
+                            activity,
+                            activity.getString(R.string.function_center_current_site, siteSummary),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_add_bookmark),
+                        summary = pageSummary,
+                        iconResId = R.drawable.ic_star_filled_24,
+                        enabled = hasPage
+                    ) {
+                        runPageAction(toggleCurrentBookmark)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_listen_mode),
+                        summary = activity.getString(R.string.setting_video_enhancement_summary),
+                        iconResId = R.drawable.ic_microphone_24,
+                        enabled = hasPage
+                    ) {
+                        settingsManager.setVideoEnhancementEnabled(!isVideoEnhancementEnabled())
+                        injectPageFeatures()
+                        showFeatureToggleToast(
+                            activity.getString(R.string.setting_video_enhancement),
+                            isVideoEnhancementEnabled()
+                        )
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_browser_settings),
+                        summary = activity.getString(R.string.action_browser_settings_summary),
+                        iconResId = R.drawable.ic_settings_24
+                    ) {
+                        browserSettingsPage.show()
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.function_center_section_more),
+                        summary = siteSummary,
+                        iconResId = R.drawable.ic_more_vert_24,
+                        enabled = !isPrivateBrowsingEnabled() && siteHost != null
+                    ) {
+                        currentSiteSettingsPage.show()
+                    }
+                )
+            )
+        }
+    }
+
+    private fun addProfileShortcutSection(parent: LinearLayout) {
+        host.addFunctionSection(
+            parent,
+            activity.getString(R.string.function_center_section_toolbox)
+        ) { section ->
+            host.addActionGrid(
+                section,
+                listOf(
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.title_history),
+                        summary = activity.getString(R.string.action_show_history_summary),
+                        iconResId = R.drawable.ic_history_24
+                    ) { showHistory() },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.title_bookmarks),
+                        summary = activity.getString(R.string.action_show_bookmarks_summary),
+                        iconResId = R.drawable.ic_star_24
+                    ) { showBookmarks() },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_file_operations),
+                        summary = activity.getString(R.string.action_file_operations_summary),
+                        iconResId = R.drawable.ic_file_24
+                    ) { showFileOperationsPage() },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_browser_settings),
+                        summary = activity.getString(R.string.action_browser_settings_summary),
+                        iconResId = R.drawable.ic_settings_24
+                    ) { browserSettingsPage.show() },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_clear_browser_data),
+                        summary = activity.getString(R.string.action_clear_browser_data_summary),
+                        iconResId = R.drawable.ic_download_24
+                    ) { browserSettingsPage.show() }
+                )
+            )
+        }
+    }
+
+    private fun addProfileFeatureSection(parent: LinearLayout) {
+        host.addFunctionSection(parent, activity.getString(R.string.function_center_section_settings)) { section ->
+            host.addActionRow(
+                parent = section,
+                title = activity.getString(R.string.action_clear_browser_data),
+                summary = activity.getString(R.string.action_clear_browser_data_summary)
+            ) {
+                browserSettingsPage.show()
+            }
+            host.addActionRow(
+                parent = section,
+                title = activity.getString(R.string.action_browser_settings),
+                summary = activity.getString(R.string.action_browser_settings_summary)
+            ) {
+                browserSettingsPage.show()
+            }
+        }
+    }
+
     private fun addCurrentPageActionSection(
         parent: LinearLayout,
         pageUrl: String?,
@@ -181,6 +382,7 @@ class FunctionCenterPages(
                     FunctionCenterGridAction(
                         title = bookmarkTitle,
                         summary = pageSummary,
+                        iconResId = R.drawable.ic_star_24,
                         enabled = hasPage
                     ) {
                         runPageAction(toggleCurrentBookmark)
@@ -191,6 +393,7 @@ class FunctionCenterPages(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_pick_element),
                         summary = siteSummary,
+                        iconResId = R.drawable.ic_search_24,
                         enabled = siteHost != null
                     ) {
                         close()
@@ -203,6 +406,7 @@ class FunctionCenterPages(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_copy_link),
                         summary = activity.getString(R.string.action_copy_link_summary),
+                        iconResId = R.drawable.ic_file_24,
                         enabled = hasPage
                     ) {
                         runPageAction(copyCurrentUrl)
@@ -210,6 +414,7 @@ class FunctionCenterPages(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_share_page),
                         summary = activity.getString(R.string.action_share_page_summary),
+                        iconResId = R.drawable.ic_share_24,
                         enabled = hasPage
                     ) {
                         runPageAction(shareCurrentUrl)
@@ -217,6 +422,7 @@ class FunctionCenterPages(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_open_external),
                         summary = activity.getString(R.string.action_open_external_summary),
+                        iconResId = R.drawable.ic_tabs_24,
                         enabled = hasPage
                     ) {
                         runPageAction(openCurrentUrlExternally)
@@ -224,6 +430,7 @@ class FunctionCenterPages(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_download_current_url),
                         summary = activity.getString(R.string.action_download_current_url_summary),
+                        iconResId = R.drawable.ic_download_24,
                         enabled = hasPage
                     ) {
                         runPageAction(downloadCurrentUrl)
@@ -231,6 +438,7 @@ class FunctionCenterPages(
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_open_native_player),
                         summary = activity.getString(R.string.action_open_native_player_summary),
+                        iconResId = R.drawable.ic_wenxin_wave_24,
                         enabled = hasPage
                     ) {
                         runPageAction(openCurrentUrlInNativePlayer)

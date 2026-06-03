@@ -2,6 +2,7 @@ package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.example.videobrowser.storage.SavedPage
 
 class FunctionCenterPageHost(
     val activity: AppCompatActivity,
@@ -54,6 +55,31 @@ class FunctionCenterPageHost(
 
     fun addFunctionMessage(parent: LinearLayout, message: String) {
         functionCenter.addFunctionMessage(parent, message)
+    }
+
+    fun addProfileHeader(parent: LinearLayout, title: String, summary: String, onClick: () -> Unit) {
+        functionCenter.addProfileHeader(parent, title, summary, onClick)
+    }
+
+    fun addBenefitStrip(
+        parent: LinearLayout,
+        leftTitle: String,
+        leftSummary: String,
+        rightTitle: String,
+        rightSummary: String
+    ) {
+        functionCenter.addBenefitStrip(parent, leftTitle, leftSummary, rightTitle, rightSummary)
+    }
+
+    fun addHistoryPreview(
+        parent: LinearLayout,
+        title: String,
+        emptyMessage: String,
+        pages: List<SavedPage>,
+        onOpenPage: (SavedPage) -> Unit,
+        onShowHistory: () -> Unit
+    ) {
+        functionCenter.addHistoryPreview(parent, title, emptyMessage, pages, onOpenPage, onShowHistory)
     }
 
     fun addEmptyState(parent: LinearLayout, message: String) {

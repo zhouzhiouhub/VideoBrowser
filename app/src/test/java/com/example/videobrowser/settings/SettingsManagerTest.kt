@@ -18,8 +18,8 @@ class SettingsManagerTest {
         assertFalse(settings.isDesktopModeEnabled())
         assertFalse(settings.isPrivateBrowsingEnabled())
         assertEquals(SettingsManager.DEFAULT_VIDEO_SPEED, settings.defaultVideoSpeed(), 0.001f)
-        assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
-        assertEquals(SettingsManager.DEFAULT_SEARCH_ENGINE_ID, settings.searchEngineId())
+        assertEquals("https://m.baidu.com/", settings.homeUrl())
+        assertEquals("baidu", settings.searchEngineId())
     }
 
     @Test

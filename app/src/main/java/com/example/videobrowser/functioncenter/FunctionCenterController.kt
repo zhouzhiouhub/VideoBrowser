@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.example.videobrowser.storage.SavedPage
 
 class FunctionCenterController(
     activity: AppCompatActivity,
@@ -76,6 +77,31 @@ class FunctionCenterController(
 
     fun addFunctionMessage(parent: LinearLayout, message: String) {
         viewFactory.addFunctionMessage(parent, message)
+    }
+
+    fun addProfileHeader(parent: LinearLayout, title: String, summary: String, onClick: () -> Unit) {
+        viewFactory.addProfileHeader(parent, title, summary, onClick)
+    }
+
+    fun addBenefitStrip(
+        parent: LinearLayout,
+        leftTitle: String,
+        leftSummary: String,
+        rightTitle: String,
+        rightSummary: String
+    ) {
+        viewFactory.addBenefitStrip(parent, leftTitle, leftSummary, rightTitle, rightSummary)
+    }
+
+    fun addHistoryPreview(
+        parent: LinearLayout,
+        title: String,
+        emptyMessage: String,
+        pages: List<SavedPage>,
+        onOpenPage: (SavedPage) -> Unit,
+        onShowHistory: () -> Unit
+    ) {
+        viewFactory.addHistoryPreview(parent, title, emptyMessage, pages, onOpenPage, onShowHistory)
     }
 
     fun addEmptyState(parent: LinearLayout, message: String) {

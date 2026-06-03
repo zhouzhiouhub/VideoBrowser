@@ -9,15 +9,14 @@
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
-        android:layout_height="64dp"
+        android:layout_height="62dp"
         android:background="@color/browser_surface"
-        android:elevation="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="12dp"
+        android:paddingStart="18dp"
         android:paddingTop="8dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="8dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -35,12 +34,12 @@
 
             <ImageView
                 android:id="@+id/addressIcon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:contentDescription="@null"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_search_24"
-                android:tint="@color/browser_icon_muted" />
+                android:src="@drawable/ic_baidu_paw_24"
+                android:tint="@color/browser_primary" />
 
             <EditText
                 android:id="@+id/addressInput"
@@ -60,16 +59,26 @@
                 android:textColorHint="@color/browser_text_hint"
                 android:textSize="15sp" />
 
+            <ImageView
+                android:id="@+id/voiceIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no"
+                android:padding="9dp"
+                android:src="@drawable/ic_microphone_24"
+                android:tint="@color/browser_primary" />
+
             <ImageButton
                 android:id="@+id/loadButton"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:background="@drawable/bg_address_go_button"
+                android:background="@drawable/bg_icon_button"
                 android:contentDescription="@string/action_load_url"
                 android:padding="9dp"
                 android:scaleType="center"
-                android:src="@drawable/ic_arrow_forward_24"
-                android:tint="@color/address_go_icon" />
+                android:src="@drawable/ic_camera_24"
+                android:tint="@color/browser_primary" />
 
         </LinearLayout>
 
@@ -99,7 +108,8 @@
             android:padding="10dp"
             android:scaleType="center"
             android:src="@drawable/ic_star_24"
-            android:tint="@color/bottom_nav_icon" />
+            android:tint="@color/bottom_nav_icon"
+            android:visibility="gone" />
 
     </LinearLayout>
 
@@ -121,7 +131,7 @@
     <HorizontalScrollView
         android:id="@+id/searchProviderScroll"
         android:layout_width="0dp"
-        android:layout_height="86dp"
+        android:layout_height="0dp"
         android:background="@color/browser_background"
         android:clipToPadding="false"
         android:fillViewport="false"
@@ -131,6 +141,7 @@
         android:scrollbars="none"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/pageProgress">
 
         <LinearLayout
@@ -165,11 +176,10 @@
         android:layout_width="0dp"
         android:layout_height="62dp"
         android:background="@color/browser_surface"
-        android:elevation="6dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -188,30 +198,6 @@
             android:tint="@color/bottom_nav_icon" />
 
         <ImageButton
-            android:id="@+id/refreshButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_icon_button"
-            android:contentDescription="@string/action_refresh"
-            android:padding="18dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_refresh_24"
-            android:tint="@color/bottom_nav_icon" />
-
-        <ImageButton
-            android:id="@+id/homeButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_icon_button"
-            android:contentDescription="@string/action_home"
-            android:padding="18dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_home_24"
-            android:tint="@color/bottom_nav_icon" />
-
-        <ImageButton
             android:id="@+id/pageToolsButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -222,6 +208,57 @@
             android:scaleType="center"
             android:src="@drawable/ic_menu_24"
             android:tint="@color/bottom_nav_icon" />
+
+        <TextView
+            android:id="@+id/wenxinButton"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1.25"
+            android:background="@drawable/bg_wenxin_pill"
+            android:drawablePadding="4dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="@string/action_wenxin"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:drawableStartCompat="@drawable/ic_wenxin_wave_24"
+            app:drawableTint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/homeButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_tabs_home"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_tabs_24"
+            android:tint="@color/bottom_nav_icon" />
+
+        <ImageButton
+            android:id="@+id/profileButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_profile"
+            android:padding="18dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_baidu_paw_24"
+            android:tint="@color/bottom_nav_icon" />
+
+        <ImageButton
+            android:id="@+id/refreshButton"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_refresh"
+            android:scaleType="center"
+            android:src="@drawable/ic_refresh_24"
+            android:tint="@color/bottom_nav_icon"
+            android:visibility="gone" />
 
     </LinearLayout>
 

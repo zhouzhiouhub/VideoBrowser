@@ -74,6 +74,8 @@ class MainActivity : AppCompatActivity() {
     private val webViewContainer: FrameLayout get() = views.webViewContainer
     private val privateBrowsingBadge: TextView get() = views.privateBrowsingBadge
     private val pageToolsButton: ImageButton get() = views.pageToolsButton
+    private val wenxinButton: TextView get() = views.wenxinButton
+    private val profileButton: ImageButton get() = views.profileButton
     private val backButton: ImageButton get() = views.backButton
     private val refreshButton: ImageButton get() = views.refreshButton
     private val homeButton: ImageButton get() = views.homeButton
@@ -209,6 +211,8 @@ class MainActivity : AppCompatActivity() {
             addressInput = addressInput,
             pageProgress = pageProgress,
             pageToolsButton = pageToolsButton,
+            wenxinButton = wenxinButton,
+            profileButton = profileButton,
             backButton = backButton,
             refreshButton = refreshButton,
             homeButton = homeButton,
@@ -220,7 +224,9 @@ class MainActivity : AppCompatActivity() {
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             onLoadAddress = ::loadAddressInput,
             onOpenHomePage = ::openHomePage,
+            onOpenWenxin = ::openWenxinPage,
             onShowFunctionCenter = ::showFunctionCenter,
+            onShowProfilePage = ::showProfilePage,
             onToggleBookmark = pageActionsController::toggleCurrentBookmark,
             onShowControlsRequested = { setBrowserControlsHidden(false) },
             onVisibilityChanged = ::syncSearchProviderVisibility
@@ -594,6 +600,11 @@ class MainActivity : AppCompatActivity() {
         functionCenterPages.showRootPage()
     }
 
+    private fun showProfilePage() {
+        hideKeyboard()
+        functionCenterPages.showProfilePage()
+    }
+
     private fun handleFunctionCenterBack(): Boolean {
         return functionCenterPages.handleBack()
     }
@@ -672,9 +683,10 @@ class MainActivity : AppCompatActivity() {
             setColor(colors.addressBackground)
             setStroke(dp(1), colors.addressStroke)
         }
-        listOf(backButton, refreshButton, homeButton, pageToolsButton, bookmarkButton).forEach { button ->
+        listOf(backButton, refreshButton, homeButton, pageToolsButton, bookmarkButton, profileButton).forEach { button ->
             button.setColorFilter(colors.icon)
         }
+        wenxinButton.setTextColor(Color.WHITE)
         pageProgress.progressTintList = ColorStateList.valueOf(colors.progress)
         WindowInsetsControllerCompat(window, rootView).isAppearanceLightStatusBars =
             !isPrivateBrowsingEnabled()
@@ -826,6 +838,10 @@ class MainActivity : AppCompatActivity() {
         loadUrl(settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl))
     }
 
+    private fun openWenxinPage() {
+        loadUrl(BAIDU_WENXIN_URL)
+    }
+
     private fun loadUrl(url: String) {
         closeFunctionCenter()
         if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
@@ -944,6 +960,7 @@ class MainActivity : AppCompatActivity() {
         private const val RULE_LOG_TAG = "VideoBrowserRules"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
+        private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"

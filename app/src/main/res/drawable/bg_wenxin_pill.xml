@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape>
+            <gradient
+                android:angle="0"
+                android:startColor="@color/browser_primary_pressed"
+                android:endColor="#6652E8" />
+            <corners android:radius="18dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:angle="0"
+                android:startColor="@color/browser_wenxin_start"
+                android:endColor="@color/browser_wenxin_end" />
+            <corners android:radius="18dp" />
+        </shape>
+    </item>
+</selector>

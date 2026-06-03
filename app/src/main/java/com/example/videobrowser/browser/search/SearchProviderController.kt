@@ -72,16 +72,7 @@ class SearchProviderController(
         isVideoFullscreenUiActive: Boolean,
         isHomePageVisible: Boolean
     ) {
-        providerScroll.visibility =
-            if (!areBrowserControlsHidden &&
-                !isVideoFullscreenUiActive &&
-                isHomePageVisible &&
-                !isPrivateBrowsingEnabled()
-            ) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+        providerScroll.visibility = View.GONE
     }
 
     fun addressBarDisplayText(url: String): String {

@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -20,6 +21,8 @@ class BrowserControlsController(
     private val addressInput: EditText,
     private val pageProgress: ProgressBar,
     private val pageToolsButton: ImageButton,
+    private val wenxinButton: TextView,
+    private val profileButton: ImageButton,
     private val backButton: ImageButton,
     private val refreshButton: ImageButton,
     private val homeButton: ImageButton,
@@ -31,7 +34,9 @@ class BrowserControlsController(
     private val isVideoFullscreenUiActive: () -> Boolean,
     private val onLoadAddress: () -> Unit,
     private val onOpenHomePage: () -> Unit,
+    private val onOpenWenxin: () -> Unit,
     private val onShowFunctionCenter: () -> Unit,
+    private val onShowProfilePage: () -> Unit,
     private val onToggleBookmark: () -> Unit,
     private val onShowControlsRequested: () -> Unit,
     private val onVisibilityChanged: () -> Unit
@@ -41,6 +46,8 @@ class BrowserControlsController(
 
     fun setup() {
         ViewCompat.setTooltipText(pageToolsButton, activity.getString(R.string.title_page_tools))
+        ViewCompat.setTooltipText(wenxinButton, activity.getString(R.string.action_wenxin))
+        ViewCompat.setTooltipText(profileButton, activity.getString(R.string.action_profile))
         ViewCompat.setTooltipText(loadButton, activity.getString(R.string.action_load_url))
         ViewCompat.setTooltipText(backButton, activity.getString(R.string.action_back))
         ViewCompat.setTooltipText(refreshButton, activity.getString(R.string.action_refresh))
@@ -72,6 +79,8 @@ class BrowserControlsController(
         }
         refreshButton.setOnClickListener { browserManager().reload() }
         homeButton.setOnClickListener { onOpenHomePage() }
+        wenxinButton.setOnClickListener { onOpenWenxin() }
+        profileButton.setOnClickListener { onShowProfilePage() }
         bookmarkButton.setOnClickListener { onToggleBookmark() }
         pageToolsButton.setOnClickListener { onShowFunctionCenter() }
 
@@ -104,11 +113,12 @@ class BrowserControlsController(
 
     fun updateNavigationButtons() {
         val canGoBack = browserManager().canGoBack()
-        val homeVisible = isHomePageVisible()
         backButton.isEnabled = canGoBack
-        backButton.visibility = if (canGoBack) View.VISIBLE else View.GONE
-        homeButton.visibility = if (homeVisible) View.GONE else View.VISIBLE
-        bookmarkButton.visibility = if (homeVisible) View.GONE else View.VISIBLE
+        backButton.alpha = if (canGoBack) 1f else 0.38f
+        backButton.visibility = View.VISIBLE
+        homeButton.visibility = View.VISIBLE
+        bookmarkButton.visibility = View.GONE
+        profileButton.visibility = View.VISIBLE
         updateBookmarkButton()
     }
 

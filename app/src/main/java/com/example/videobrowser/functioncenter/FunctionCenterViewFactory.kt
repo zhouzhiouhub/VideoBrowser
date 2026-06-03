@@ -19,10 +19,12 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
+import com.example.videobrowser.storage.SavedPage
 
 data class FunctionCenterGridAction(
     val title: String,
     val summary: String,
+    val iconResId: Int,
     val enabled: Boolean = true,
     val onClick: () -> Unit
 )
@@ -88,7 +90,7 @@ class FunctionCenterViewFactory(
         val overlay = FrameLayout(activity).apply {
             isClickable = true
             isFocusable = true
-            setBackgroundColor(Color.argb(92, 17, 24, 39))
+            setBackgroundColor(ContextCompat.getColor(activity, R.color.browser_sheet_scrim))
             setOnClickListener { onClose() }
         }
 
@@ -143,7 +145,7 @@ class FunctionCenterViewFactory(
         )
 
         val displayHeight = activity.resources.displayMetrics.heightPixels
-        val sheetHeight = (displayHeight * 0.68f)
+        val sheetHeight = (displayHeight * 0.54f)
             .toInt()
             .coerceAtLeast(dp(360))
             .coerceAtMost(displayHeight - dp(24))
@@ -159,12 +161,139 @@ class FunctionCenterViewFactory(
         return overlay
     }
 
+    fun addProfileHeader(
+        parent: LinearLayout,
+        title: String,
+        summary: String,
+        onClick: () -> Unit
+    ) {
+        val row = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            background = createRoundedBackground(
+                ContextCompat.getColor(activity, R.color.browser_card_surface),
+                dp(12).toFloat()
+            )
+            setOnClickListener { onClick() }
+        }
+        row.addView(
+            ImageView(activity).apply {
+                setImageResource(R.drawable.ic_baidu_paw_24)
+                setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
+                background = ContextCompat.getDrawable(activity, R.drawable.bg_profile_avatar)
+                setPadding(dp(9), dp(9), dp(9), dp(9))
+            },
+            LinearLayout.LayoutParams(dp(44), dp(44))
+        )
+        row.addView(
+            createRowText(title, summary),
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = dp(12)
+            }
+        )
+        parent.addView(
+            row,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(8)
+            }
+        )
+    }
+
+    fun addBenefitStrip(parent: LinearLayout, leftTitle: String, leftSummary: String, rightTitle: String, rightSummary: String) {
+        val strip = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            background = createRoundedBackground(Color.parseColor("#FFF8DF"), dp(12).toFloat())
+        }
+        strip.addView(createRowText(leftTitle, leftSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        strip.addView(
+            View(activity).apply {
+                setBackgroundColor(Color.parseColor("#F1E3B8"))
+            },
+            LinearLayout.LayoutParams(dp(1), dp(36)).apply {
+                marginStart = dp(10)
+                marginEnd = dp(10)
+            }
+        )
+        strip.addView(createRowText(rightTitle, rightSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        parent.addView(
+            strip,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(10)
+            }
+        )
+    }
+
+    fun addHistoryPreview(
+        parent: LinearLayout,
+        title: String,
+        emptyMessage: String,
+        pages: List<SavedPage>,
+        onOpenPage: (SavedPage) -> Unit,
+        onShowHistory: () -> Unit
+    ) {
+        val card = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(12), dp(14), dp(8))
+            background = createRoundedBackground(
+                ContextCompat.getColor(activity, R.color.browser_card_surface),
+                dp(12).toFloat()
+            )
+        }
+        val header = TextView(activity).apply {
+            text = title
+            setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
+            textSize = 15f
+            typeface = Typeface.DEFAULT_BOLD
+            includeFontPadding = false
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onShowHistory() }
+        }
+        card.addView(header)
+        if (pages.isEmpty()) {
+            card.addView(
+                TextView(activity).apply {
+                    text = emptyMessage
+                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
+                    textSize = 13f
+                    setPadding(0, dp(14), 0, dp(10))
+                }
+            )
+        } else {
+            pages.take(2).forEach { page ->
+                card.addView(createHistoryPreviewRow(page, onOpenPage))
+            }
+        }
+        parent.addView(
+            card,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(12)
+            }
+        )
+    }
+
     fun addFunctionSection(
         parent: LinearLayout,
         title: String,
         buildContent: (LinearLayout) -> Unit
     ) {
-        addSectionTitle(parent, title)
+        if (title.isNotBlank()) {
+            addSectionTitle(parent, title)
+        }
         val section = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(4), dp(14), dp(4))
@@ -277,7 +406,7 @@ class FunctionCenterViewFactory(
         parent: LinearLayout,
         actions: List<FunctionCenterGridAction>
     ) {
-        actions.chunked(2).forEachIndexed { rowIndex, rowActions ->
+        actions.chunked(5).forEachIndexed { rowIndex, rowActions ->
             val row = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
@@ -291,9 +420,9 @@ class FunctionCenterViewFactory(
                         1f
                     ).apply {
                         if (columnIndex == 0) {
-                            marginEnd = dp(4)
+                            marginEnd = dp(2)
                         } else {
-                            marginStart = dp(4)
+                            marginStart = dp(2)
                         }
                     }
                 )
@@ -302,7 +431,7 @@ class FunctionCenterViewFactory(
                 row.addView(
                     View(activity),
                     LinearLayout.LayoutParams(0, dp(1), 1f).apply {
-                        marginStart = dp(4)
+                        marginStart = dp(2)
                     }
                 )
             }
@@ -515,9 +644,9 @@ class FunctionCenterViewFactory(
     private fun createGridActionView(action: FunctionCenterGridAction): View {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = dp(68)
-            setPadding(dp(10), dp(8), dp(10), dp(8))
+            gravity = Gravity.CENTER
+            minimumHeight = dp(72)
+            setPadding(dp(4), dp(8), dp(4), dp(6))
             isClickable = action.enabled
             isFocusable = action.enabled
             isEnabled = action.enabled
@@ -528,24 +657,19 @@ class FunctionCenterViewFactory(
             }
 
             addView(
-                TextView(activity).apply {
-                    text = action.title
-                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                    textSize = 14f
-                    typeface = Typeface.DEFAULT_BOLD
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
+                ImageView(activity).apply {
+                    setImageResource(action.iconResId)
+                    setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
+                    setPadding(dp(6), dp(6), dp(6), dp(6))
                 },
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+                LinearLayout.LayoutParams(dp(34), dp(34))
             )
             addView(
                 TextView(activity).apply {
-                    text = action.summary
-                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
+                    text = action.title
+                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
                     textSize = 12f
+                    gravity = Gravity.CENTER
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
                 },
@@ -595,10 +719,10 @@ class FunctionCenterViewFactory(
         )
     }
 
-    private fun createRoundedBackground(color: Int): GradientDrawable {
+    private fun createRoundedBackground(color: Int, radius: Float = dp(8).toFloat()): GradientDrawable {
         return GradientDrawable().apply {
             setColor(color)
-            cornerRadius = dp(8).toFloat()
+            cornerRadius = radius
         }
     }
 
@@ -641,6 +765,55 @@ class FunctionCenterViewFactory(
             }
             addView(titleView)
             addView(summaryView)
+        }
+    }
+
+    private fun createHistoryPreviewRow(
+        page: SavedPage,
+        onOpenPage: (SavedPage) -> Unit
+    ): View {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            setPadding(0, dp(10), 0, dp(8))
+            setBoundedSelectableItemBackground()
+            setOnClickListener { onOpenPage(page) }
+
+            addView(
+                ImageView(activity).apply {
+                    setImageResource(R.drawable.ic_history_24)
+                    setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
+                    background = createRoundedBackground(
+                        ContextCompat.getColor(activity, R.color.browser_soft_blue),
+                        dp(10).toFloat()
+                    )
+                    setPadding(dp(8), dp(8), dp(8), dp(8))
+                },
+                LinearLayout.LayoutParams(dp(42), dp(42))
+            )
+            addView(
+                createRowText(page.title.ifBlank { page.url }, page.url),
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginStart = dp(10)
+                }
+            )
+            addView(
+                TextView(activity).apply {
+                    text = activity.getString(R.string.action_open_history_item)
+                    gravity = Gravity.CENTER
+                    includeFontPadding = false
+                    setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
+                    textSize = 12f
+                    background = createRoundedBackground(
+                        ContextCompat.getColor(activity, R.color.browser_background),
+                        dp(14).toFloat()
+                    )
+                    setPadding(dp(12), 0, dp(12), 0)
+                },
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(28))
+            )
         }
     }
 
