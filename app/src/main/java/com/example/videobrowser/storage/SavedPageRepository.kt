@@ -43,6 +43,12 @@ class SavedPageRepository(
         preferenceStore.remove(collection.key)
     }
 
+    fun clearAll() {
+        SavedPageCollection.values().forEach { collection ->
+            preferenceStore.remove(collection.key)
+        }
+    }
+
     fun pages(collection: SavedPageCollection): List<SavedPage> {
         return loadSavedPages(collection.key)
     }

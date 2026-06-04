@@ -166,6 +166,9 @@ class PageActionsController(
     }
 
     fun restoreDefaultSettings() {
+        browserManagers().forEachIndexed { index, manager ->
+            manager.clearBrowsingData(clearSharedStores = index == 0)
+        }
         restoreBrowserDefaults()
         Toast.makeText(activity, R.string.toast_default_settings_restored, Toast.LENGTH_SHORT).show()
         recreateActivity()

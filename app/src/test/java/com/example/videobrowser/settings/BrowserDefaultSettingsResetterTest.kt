@@ -1,6 +1,8 @@
 package com.example.videobrowser.settings
 
 import com.example.videobrowser.rules.RuleFileLoader
+import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.storage.PreferenceStore
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -16,15 +18,20 @@ class BrowserDefaultSettingsResetterTest {
     fun restoreDefaults_clearsSettingsAndCachedRules() {
         val store = InMemoryPreferenceStore()
         val settingsManager = SettingsManager(store)
+        val savedPageRepository = SavedPageRepository(store)
         val filesDir = temporaryFolder.newFolder()
         val rulesDirectory = filesDir.resolve("rules").apply { mkdirs() }
         rulesDirectory.resolve(RuleFileLoader.REQUEST_RULES_CACHE_FILE).writeText("/blocked-url/")
 
         settingsManager.setAdBlockEnabled(false)
         settingsManager.addUserElementHideSelectorForSite("video.example.com", ".blocked")
+        settingsManager.addCustomShortcut("Docs", "https://docs.example.com/")
+        store.putString(SavedPageCollection.BOOKMARKS.key, "bookmarks")
+        store.putString(SavedPageCollection.HISTORY.key, "history")
 
         val resetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
+            savedPageRepository = savedPageRepository,
             filesDir = filesDir
         )
 
@@ -32,6 +39,9 @@ class BrowserDefaultSettingsResetterTest {
 
         assertTrue(settingsManager.isAdBlockEnabled())
         assertTrue(settingsManager.userElementHideRules().isEmpty())
+        assertTrue(settingsManager.customShortcuts().isEmpty())
+        assertFalse(store.contains(SavedPageCollection.BOOKMARKS.key))
+        assertFalse(store.contains(SavedPageCollection.HISTORY.key))
         assertFalse(rulesDirectory.exists())
     }
 

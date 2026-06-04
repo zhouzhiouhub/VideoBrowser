@@ -143,8 +143,12 @@ class MainActivity : AppCompatActivity() {
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
-        browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(settingsManager, filesDir)
         savedPageRepository = SavedPageRepository(preferenceStore)
+        browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
+            settingsManager = settingsManager,
+            savedPageRepository = savedPageRepository,
+            filesDir = filesDir
+        )
         localFilesController = LocalFilesController(
             activity = this,
             preferenceStore = preferenceStore,

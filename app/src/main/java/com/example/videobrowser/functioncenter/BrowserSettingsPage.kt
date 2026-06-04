@@ -22,6 +22,7 @@ class BrowserSettingsPage(
     private val showFileOperationsPage: () -> Unit,
     private val showAdBlockLog: () -> Unit,
     private val showUserWhitelistManager: () -> Unit,
+    private val showUserManualRulesManager: () -> Unit,
     private val clearBrowserData: () -> Unit,
     private val showRestoreDefaultSettingsPage: () -> Unit,
     private val showRootPage: () -> Unit
@@ -61,6 +62,13 @@ class BrowserSettingsPage(
                     summary = activity.getString(R.string.action_manage_user_whitelist_summary)
                 ) {
                     showUserWhitelistManager()
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_user_manual_rules),
+                    summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
+                ) {
+                    showUserManualRulesManager()
                 }
                 host.addDivider(section)
             }
@@ -128,6 +136,13 @@ class BrowserSettingsPage(
             summary = activity.getString(R.string.action_manage_user_whitelist_summary)
         ) {
             showUserWhitelistManager()
+        }
+        host.addActionRow(
+            parent = section,
+            title = activity.getString(R.string.action_manage_user_manual_rules),
+            summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
+        ) {
+            showUserManualRulesManager()
         }
         host.addDivider(section)
         host.addActionRow(

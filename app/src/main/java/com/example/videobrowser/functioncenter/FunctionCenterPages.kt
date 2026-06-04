@@ -76,6 +76,12 @@ class FunctionCenterPages(
         currentSiteHost = currentSiteHost,
         showRootPage = ::showRootPage
     )
+    private val userManualRulesPage = UserManualRulesPage(
+        host = host,
+        settingsManager = settingsManager,
+        browserManager = browserManager,
+        showRootPage = ::showRootPage
+    )
     private val restoreDefaultSettingsPage = RestoreDefaultSettingsPage(
         host = host,
         restoreDefaultSettings = restoreDefaultSettings
@@ -96,6 +102,7 @@ class FunctionCenterPages(
         showFileOperationsPage = showFileOperationsPage,
         showAdBlockLog = adBlockLogPage::show,
         showUserWhitelistManager = userWhitelistPage::show,
+        showUserManualRulesManager = userManualRulesPage::show,
         clearBrowserData = clearBrowserData,
         showRestoreDefaultSettingsPage = restoreDefaultSettingsPage::show,
         showRootPage = ::showRootPage

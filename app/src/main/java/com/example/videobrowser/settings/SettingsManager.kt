@@ -187,6 +187,25 @@ class SettingsManager(
             ?: emptyList()
     }
 
+    fun removeUserElementHideRule(rule: UserElementHideRule): Boolean {
+        val normalizedHost = SiteHost.normalize(rule.host) ?: return false
+        val normalizedSelector = normalizeUserElementSelector(rule.selector) ?: return false
+        val rules = userElementHideRules()
+        val remainingRules = rules.filterNot { existingRule ->
+            existingRule.host == normalizedHost && existingRule.selector == normalizedSelector
+        }
+        if (remainingRules.size == rules.size) {
+            return false
+        }
+
+        saveUserElementHideRules(remainingRules)
+        return true
+    }
+
+    fun clearUserElementHideRules() {
+        preferenceStore.remove(KEY_USER_ELEMENT_HIDE_RULES)
+    }
+
     fun isJsInjectionEnabled(): Boolean {
         return preferenceStore.getBoolean(KEY_JS_INJECTION, DEFAULT_JS_INJECTION_ENABLED)
     }
@@ -491,6 +510,7 @@ class SettingsManager(
             KEY_DEFAULT_VIDEO_SPEED,
             KEY_HOME_URL,
             KEY_SEARCH_ENGINE,
+            KEY_CUSTOM_SHORTCUTS,
             KEY_DESKTOP_MODE,
             KEY_PRIVATE_BROWSING
         )

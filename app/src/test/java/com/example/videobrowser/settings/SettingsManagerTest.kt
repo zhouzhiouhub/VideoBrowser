@@ -100,6 +100,7 @@ class SettingsManagerTest {
         settings.setJsInjectionEnabled(false)
         settings.setPrivateBrowsingEnabled(true)
         settings.setHomeUrl("https://m.sogou.com/")
+        settings.addCustomShortcut("Docs", "https://docs.example.com/")
         store.putString("bookmarks", "[]")
 
         assertTrue(settings.restoreDefaults())
@@ -114,6 +115,7 @@ class SettingsManagerTest {
         assertTrue(settings.isJsInjectionEnabled())
         assertFalse(settings.isPrivateBrowsingEnabled())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
+        assertTrue(settings.customShortcuts().isEmpty())
         assertEquals("[]", store.getString("bookmarks", null))
     }
 
@@ -245,6 +247,25 @@ class SettingsManagerTest {
         assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", ""))
         assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", "div{display:none}"))
         assertFalse(settings.addUserElementHideSelectorForSite("video.example.com", "a[href^=\"javascript:\"]"))
+        assertTrue(settings.userElementHideRules().isEmpty())
+    }
+
+    @Test
+    fun userElementHideRules_canBeRemovedIndividuallyAndCleared() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        assertTrue(settings.addUserElementHideSelectorForSite("video.example.com", ".ad-card"))
+        assertTrue(settings.addUserElementHideSelectorForSite("news.example.com", "#sponsor"))
+
+        assertTrue(settings.removeUserElementHideRule(UserElementHideRule("video.example.com", ".ad-card")))
+        assertFalse(settings.removeUserElementHideRule(UserElementHideRule("video.example.com", ".ad-card")))
+        assertEquals(
+            listOf(UserElementHideRule("news.example.com", "#sponsor")),
+            settings.userElementHideRules()
+        )
+
+        settings.clearUserElementHideRules()
+
         assertTrue(settings.userElementHideRules().isEmpty())
     }
 
