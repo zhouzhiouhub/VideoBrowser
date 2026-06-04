@@ -753,7 +753,9 @@ class FunctionCenterViewFactory(
                 ellipsize = TextUtils.TruncateAt.END
             }
             addView(titleView)
-            addView(summaryView)
+            if (summary.isNotBlank()) {
+                addView(summaryView)
+            }
         }
     }
 

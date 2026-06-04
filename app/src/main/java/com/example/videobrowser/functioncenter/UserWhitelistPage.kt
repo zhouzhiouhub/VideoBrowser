@@ -73,7 +73,7 @@ class UserWhitelistPage(
                         host.addActionRow(
                             parent = section,
                             title = hostName,
-                            summary = activity.getString(R.string.user_whitelist_host_summary)
+                            summary = ""
                         ) {
                             showRemoveUserWhitelistHostPage(hostName)
                         }

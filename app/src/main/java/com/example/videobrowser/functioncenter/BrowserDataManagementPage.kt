@@ -10,8 +10,7 @@ import com.example.videobrowser.utils.UrlUtils
 import java.util.Locale
 
 data class BrowserCookieItem(
-    val name: String,
-    val valuePreview: String
+    val name: String
 )
 
 object BrowserCookieParser {
@@ -33,17 +32,31 @@ object BrowserCookieParser {
             return null
         }
         val name = trimmed.substring(0, separatorIndex).trim()
-        val value = trimmed.substring(separatorIndex + 1).trim()
         if (name.isEmpty()) {
             return null
         }
-        return BrowserCookieItem(
-            name = name,
-            valuePreview = value.take(MAX_VALUE_PREVIEW_LENGTH)
-        )
+        return BrowserCookieItem(name = name)
+    }
+}
+
+object BrowserDataDisplayFormatter {
+    fun siteDataUsageSummary(usageBytes: Long): String {
+        return formatBytes(usageBytes)
     }
 
-    private const val MAX_VALUE_PREVIEW_LENGTH = 64
+    fun formatBytes(bytes: Long): String {
+        if (bytes <= 0L) {
+            return "0 B"
+        }
+        val units = arrayOf("B", "KB", "MB", "GB")
+        var value = bytes.toDouble()
+        var unitIndex = 0
+        while (value >= 1024.0 && unitIndex < units.lastIndex) {
+            value /= 1024.0
+            unitIndex += 1
+        }
+        return String.format(Locale.US, "%.1f %s", value, units[unitIndex])
+    }
 }
 
 class BrowserDataManagementPage(
@@ -100,9 +113,7 @@ class BrowserDataManagementPage(
                         host.addActionRow(
                             parent = section,
                             title = cookie.name,
-                            summary = cookie.valuePreview.ifBlank {
-                                activity.getString(R.string.cookie_value_empty)
-                            }
+                            summary = ""
                         ) {
                             showRemoveCookieDialog(pageUrl, cookie.name)
                         }
@@ -130,7 +141,6 @@ class BrowserDataManagementPage(
                     showClearCacheDialog()
                 }
             }
-            host.addFunctionMessage(content, activity.getString(R.string.cache_management_item_limit))
         }
     }
 
@@ -181,8 +191,7 @@ class BrowserDataManagementPage(
                             title = origin.origin,
                             summary = activity.getString(
                                 R.string.site_data_usage_summary,
-                                formatBytes(origin.usage),
-                                formatBytes(origin.quota)
+                                BrowserDataDisplayFormatter.siteDataUsageSummary(origin.usage)
                             )
                         ) {
                             showRemoveSiteDataDialog(origin.origin)
@@ -271,17 +280,4 @@ class BrowserDataManagementPage(
         }
     }
 
-    private fun formatBytes(bytes: Long): String {
-        if (bytes <= 0L) {
-            return activity.getString(R.string.site_data_size_zero)
-        }
-        val units = arrayOf("B", "KB", "MB", "GB")
-        var value = bytes.toDouble()
-        var unitIndex = 0
-        while (value >= 1024.0 && unitIndex < units.lastIndex) {
-            value /= 1024.0
-            unitIndex += 1
-        }
-        return String.format(Locale.US, "%.1f %s", value, units[unitIndex])
-    }
 }
