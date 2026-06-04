@@ -207,6 +207,37 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun userElementHideSelectors_dropPositionalPickerSegmentsWhenStableTokensExist() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(
+            settings.addUserElementHideSelectorForSite(
+                "video.example.com",
+                "div.ad-card:nth-of-type(3)  button.close-ad:nth-of-type(1)"
+            )
+        )
+
+        val reloaded = SettingsManager(store)
+        assertEquals(
+            listOf("div.ad-card button.close-ad"),
+            reloaded.userElementHideSelectorsForSite("video.example.com")
+        )
+    }
+
+    @Test
+    fun userElementHideSelectors_keepPositionalPickerSegmentsWithoutStableTokens() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        assertTrue(settings.addUserElementHideSelectorForSite("video.example.com", "div:nth-of-type(3)"))
+
+        assertEquals(
+            listOf("div:nth-of-type(3)"),
+            settings.userElementHideSelectorsForSite("video.example.com")
+        )
+    }
+
+    @Test
     fun userElementHideSelectors_rejectUnsafeValues() {
         val settings = SettingsManager(InMemoryPreferenceStore())
 

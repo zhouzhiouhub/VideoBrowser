@@ -344,7 +344,8 @@ class SettingsManager(
     }
 
     private fun normalizeUserElementSelector(selector: String): String? {
-        val normalized = selector.trim().replace(Regex("\\s+"), " ")
+        val collapsed = selector.trim().replace(Regex("\\s+"), " ")
+        val normalized = stabilizeUserElementSelector(collapsed)
         if (normalized.isEmpty() || normalized.length > MAX_USER_ELEMENT_SELECTOR_LENGTH) {
             return null
         }
@@ -360,6 +361,18 @@ class SettingsManager(
             return null
         }
         return normalized
+    }
+
+    private fun stabilizeUserElementSelector(selector: String): String {
+        if (!selector.contains(":nth-of-type", ignoreCase = true) ||
+            !USER_ELEMENT_STABLE_TOKEN_REGEX.containsMatchIn(selector)
+        ) {
+            return selector
+        }
+        return USER_ELEMENT_POSITIONAL_SEGMENT_REGEX
+            .replace(selector, "")
+            .replace(Regex("\\s+"), " ")
+            .trim()
     }
 
     private fun normalizeVideoSpeed(speed: Float): Float {
@@ -460,6 +473,9 @@ class SettingsManager(
         private const val KEY_PRIVATE_BROWSING = "private_browsing"
         private const val MAX_USER_ELEMENT_SELECTOR_LENGTH = 200
         private const val MAX_CUSTOM_SHORTCUTS = 10
+        private val USER_ELEMENT_POSITIONAL_SEGMENT_REGEX =
+            Regex(":nth-of-type\\(\\s*\\d+\\s*\\)", RegexOption.IGNORE_CASE)
+        private val USER_ELEMENT_STABLE_TOKEN_REGEX = Regex("[#.][A-Za-z_][A-Za-z0-9_-]*")
 
         private val RESET_KEYS = listOf(
             KEY_AD_BLOCK,
