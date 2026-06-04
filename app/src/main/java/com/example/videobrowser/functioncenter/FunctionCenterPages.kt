@@ -289,6 +289,18 @@ class FunctionCenterPages(
                 }
             }
 
+            FunctionCenterRootAction.PICK_ELEMENT -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_pick_element),
+                    summary = siteSummary,
+                    iconResId = R.drawable.ic_search_24,
+                    enabled = hasPage
+                ) {
+                    close()
+                    startElementPicker()
+                }
+            }
+
             FunctionCenterRootAction.MORE -> {
                 FunctionCenterGridAction(
                     title = activity.getString(R.string.function_center_section_more),

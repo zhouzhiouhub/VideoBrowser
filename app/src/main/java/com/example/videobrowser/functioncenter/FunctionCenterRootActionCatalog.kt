@@ -7,6 +7,7 @@ enum class FunctionCenterRootAction {
     FILE_OPERATIONS,
     REFRESH,
     ADD_BOOKMARK,
+    PICK_ELEMENT,
     MORE
 }
 
@@ -23,6 +24,7 @@ object FunctionCenterRootActionCatalog {
             FunctionCenterRootAction.FILE_OPERATIONS,
             FunctionCenterRootAction.REFRESH,
             FunctionCenterRootAction.ADD_BOOKMARK,
+            FunctionCenterRootAction.PICK_ELEMENT.takeIf { hasPage && hasSite && !isPrivateBrowsing },
             FunctionCenterRootAction.MORE.takeIf { !isPrivateBrowsing && hasSite }
         )
     }
