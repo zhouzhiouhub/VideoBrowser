@@ -133,9 +133,14 @@ class BrowserDataManagementPage(
     }
 
     fun showSiteData() {
-        WebStorage.getInstance().getOrigins { origins: Map<String, WebStorage.Origin> ->
+        WebStorage.getInstance().getOrigins { origins ->
             activity.runOnUiThread {
-                showSiteDataOrigins(origins.values.sortedBy { origin -> origin.origin })
+                val siteDataOrigins = origins
+                    ?.values
+                    ?.filterIsInstance<WebStorage.Origin>()
+                    ?.sortedBy { origin -> origin.origin }
+                    ?: emptyList()
+                showSiteDataOrigins(siteDataOrigins)
             }
         }
     }

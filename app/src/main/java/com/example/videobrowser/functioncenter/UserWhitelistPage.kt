@@ -23,24 +23,40 @@ class UserWhitelistPage(
             title = activity.getString(R.string.title_user_whitelist),
             onBack = showRootPage
         ) { content ->
-            if (currentHost != null && !settingsManager.isUserWhitelistedSite(currentHost)) {
+            val addableCurrentHost = currentHost
+                ?.takeIf { hostName -> !settingsManager.isUserWhitelistedSite(hostName) }
+            if (addableCurrentHost != null || hosts.isNotEmpty()) {
                 host.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
-                    host.addActionRow(
-                        parent = section,
-                        title = activity.getString(R.string.action_add_current_site),
-                        summary = currentHost
-                    ) {
-                        settingsManager.setUserWhitelistedSite(currentHost, true)
-                        Toast.makeText(
-                            activity,
-                            activity.getString(R.string.toast_user_whitelist_added, currentHost),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        browserManager().reload()
-                        show()
+                    if (addableCurrentHost != null) {
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_add_current_site),
+                            summary = addableCurrentHost
+                        ) {
+                            settingsManager.setUserWhitelistedSite(addableCurrentHost, true)
+                            Toast.makeText(
+                                activity,
+                                activity.getString(
+                                    R.string.toast_user_whitelist_added,
+                                    addableCurrentHost
+                                ),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            browserManager().reload()
+                            show()
+                        }
+                    }
+                    if (hosts.isNotEmpty()) {
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_clear),
+                            summary = activity.getString(R.string.action_clear_user_whitelist_summary)
+                        ) {
+                            showClearUserWhitelistDialog()
+                        }
                     }
                 }
             }
@@ -48,18 +64,6 @@ class UserWhitelistPage(
             if (hosts.isEmpty()) {
                 host.addEmptyState(content, activity.getString(R.string.dialog_user_whitelist_empty))
             } else {
-                host.addFunctionSection(
-                    content,
-                    activity.getString(R.string.function_center_section_actions)
-                ) { section ->
-                    host.addActionRow(
-                        parent = section,
-                        title = activity.getString(R.string.action_clear),
-                        summary = activity.getString(R.string.action_clear_user_whitelist_summary)
-                    ) {
-                        showClearUserWhitelistDialog()
-                    }
-                }
                 host.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_sites)

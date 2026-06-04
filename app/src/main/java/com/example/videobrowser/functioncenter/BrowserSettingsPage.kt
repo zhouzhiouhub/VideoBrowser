@@ -49,7 +49,7 @@ class BrowserSettingsPage(
             parent,
             activity.getString(R.string.function_center_section_data)
         ) { section ->
-            addDataManagementActions(section)
+            addDataManagementActions(section, includeSavedPages = true)
         }
     }
 
@@ -87,11 +87,16 @@ class BrowserSettingsPage(
     }
 
     private fun addDataManagementRows(section: LinearLayout) {
-        addDataManagementActions(section)
+        addDataManagementActions(section, includeSavedPages = false)
     }
 
-    private fun addDataManagementActions(section: LinearLayout) {
+    private fun addDataManagementActions(section: LinearLayout, includeSavedPages: Boolean) {
         FunctionCenterDataManagementActionCatalog.actions(isPrivateBrowsingEnabled())
+            .filter { action ->
+                includeSavedPages ||
+                    action != FunctionCenterDataManagementAction.BOOKMARKS &&
+                    action != FunctionCenterDataManagementAction.HISTORY
+            }
             .forEachIndexed { index, action ->
                 if (index > 0 && action == FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS) {
                     host.addDivider(section)
