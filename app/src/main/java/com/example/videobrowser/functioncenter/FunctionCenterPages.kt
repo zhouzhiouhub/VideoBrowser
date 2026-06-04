@@ -32,7 +32,6 @@ class FunctionCenterPages(
     private val openCurrentUrlExternally: () -> Unit,
     private val openCurrentUrlInNativePlayer: () -> Unit,
     private val downloadCurrentUrl: () -> Unit,
-    clearBrowserData: () -> Unit,
     setPrivateBrowsingEnabled: (Boolean) -> Unit,
     restoreDefaultSettings: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
@@ -103,7 +102,6 @@ class FunctionCenterPages(
         showAdBlockLog = adBlockLogPage::show,
         showUserWhitelistManager = userWhitelistPage::show,
         showUserManualRulesManager = userManualRulesPage::show,
-        clearBrowserData = clearBrowserData,
         showRestoreDefaultSettingsPage = restoreDefaultSettingsPage::show,
         showRootPage = ::showRootPage
     )

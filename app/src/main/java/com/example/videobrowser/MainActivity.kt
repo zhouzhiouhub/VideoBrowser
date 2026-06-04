@@ -313,7 +313,6 @@ class MainActivity : AppCompatActivity() {
             openCurrentUrlExternally = pageActionsController::openCurrentUrlExternally,
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
-            clearBrowserData = pageActionsController::clearBrowserData,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
             showFileOperationsPage = ::showFileOperationsPage,

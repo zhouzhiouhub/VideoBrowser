@@ -1,7 +1,6 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
@@ -23,7 +22,6 @@ class BrowserSettingsPage(
     private val showAdBlockLog: () -> Unit,
     private val showUserWhitelistManager: () -> Unit,
     private val showUserManualRulesManager: () -> Unit,
-    private val clearBrowserData: () -> Unit,
     private val showRestoreDefaultSettingsPage: () -> Unit,
     private val showRootPage: () -> Unit
 ) {
@@ -48,44 +46,7 @@ class BrowserSettingsPage(
             parent,
             activity.getString(R.string.function_center_section_data)
         ) { section ->
-            if (!isPrivateBrowsingEnabled()) {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_show_ad_block_log),
-                    summary = activity.getString(R.string.action_show_ad_block_log_summary)
-                ) {
-                    showAdBlockLog()
-                }
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_user_whitelist),
-                    summary = activity.getString(R.string.action_manage_user_whitelist_summary)
-                ) {
-                    showUserWhitelistManager()
-                }
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_user_manual_rules),
-                    summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
-                ) {
-                    showUserManualRulesManager()
-                }
-                host.addDivider(section)
-            }
-            host.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.action_clear_browser_data),
-                summary = activity.getString(R.string.action_clear_browser_data_summary)
-            ) {
-                showClearBrowserDataDialog()
-            }
-            host.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.action_restore_default_settings),
-                summary = activity.getString(R.string.action_restore_default_settings_summary)
-            ) {
-                showRestoreDefaultSettingsPage()
-            }
+            addDataManagementActions(section)
         }
     }
 
@@ -123,41 +84,63 @@ class BrowserSettingsPage(
     }
 
     private fun addDataManagementRows(section: LinearLayout) {
-        host.addActionRow(
-            parent = section,
-            title = activity.getString(R.string.action_show_ad_block_log),
-            summary = activity.getString(R.string.action_show_ad_block_log_summary)
-        ) {
-            showAdBlockLog()
-        }
-        host.addActionRow(
-            parent = section,
-            title = activity.getString(R.string.action_manage_user_whitelist),
-            summary = activity.getString(R.string.action_manage_user_whitelist_summary)
-        ) {
-            showUserWhitelistManager()
-        }
-        host.addActionRow(
-            parent = section,
-            title = activity.getString(R.string.action_manage_user_manual_rules),
-            summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
-        ) {
-            showUserManualRulesManager()
-        }
-        host.addDivider(section)
-        host.addActionRow(
-            parent = section,
-            title = activity.getString(R.string.action_clear_browser_data),
-            summary = activity.getString(R.string.action_clear_browser_data_summary)
-        ) {
-            showClearBrowserDataDialog()
-        }
-        host.addActionRow(
-            parent = section,
-            title = activity.getString(R.string.action_restore_default_settings),
-            summary = activity.getString(R.string.action_restore_default_settings_summary)
-        ) {
-            showRestoreDefaultSettingsPage()
+        addDataManagementActions(section)
+    }
+
+    private fun addDataManagementActions(section: LinearLayout) {
+        FunctionCenterDataManagementActionCatalog.actions(isPrivateBrowsingEnabled())
+            .forEachIndexed { index, action ->
+                if (index > 0 && action == FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS) {
+                    host.addDivider(section)
+                }
+                addDataManagementActionRow(section, action)
+            }
+    }
+
+    private fun addDataManagementActionRow(
+        section: LinearLayout,
+        action: FunctionCenterDataManagementAction
+    ) {
+        when (action) {
+            FunctionCenterDataManagementAction.AD_BLOCK_LOG -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_show_ad_block_log),
+                    summary = activity.getString(R.string.action_show_ad_block_log_summary)
+                ) {
+                    showAdBlockLog()
+                }
+            }
+
+            FunctionCenterDataManagementAction.USER_WHITELIST -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_user_whitelist),
+                    summary = activity.getString(R.string.action_manage_user_whitelist_summary)
+                ) {
+                    showUserWhitelistManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.USER_MANUAL_RULES -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_user_manual_rules),
+                    summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
+                ) {
+                    showUserManualRulesManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_restore_default_settings),
+                    summary = activity.getString(R.string.action_restore_default_settings_summary)
+                ) {
+                    showRestoreDefaultSettingsPage()
+                }
+            }
         }
     }
 
@@ -221,12 +204,4 @@ class BrowserSettingsPage(
         }
     }
 
-    private fun showClearBrowserDataDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear_browser_data)
-            .setMessage(R.string.dialog_clear_browser_data_message)
-            .setPositiveButton(R.string.action_clear) { _, _ -> clearBrowserData() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
 }

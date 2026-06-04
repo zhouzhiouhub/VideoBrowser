@@ -136,15 +136,6 @@ class PageActionsController(
         openNativePlayer(url, null, null, null)
     }
 
-    fun clearBrowserData() {
-        browserManagers().forEachIndexed { index, manager ->
-            manager.clearBrowsingData(clearSharedStores = index == 0)
-        }
-        savedPageRepository.clearHistory()
-        Toast.makeText(activity, R.string.toast_browser_data_cleared, Toast.LENGTH_SHORT).show()
-        updateNavigationButtons()
-    }
-
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
         if (isPrivateBrowsingEnabled() == enabled) {
             updatePrivateBrowsingUi()
