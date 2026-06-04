@@ -16,6 +16,27 @@ class FunctionCenterPageHost(
         functionCenter.showPage(title, onBack, buildContent)
     }
 
+    fun showPage(
+        title: String,
+        onBack: () -> Unit,
+        replaceCurrent: Boolean,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        if (replaceCurrent) {
+            functionCenter.replacePage(title, onBack, buildContent)
+        } else {
+            functionCenter.showPage(title, onBack, buildContent)
+        }
+    }
+
+    fun replacePage(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        functionCenter.replacePage(title, onBack, buildContent)
+    }
+
     fun showBottomSheetPage(
         title: String,
         onClose: () -> Unit,
@@ -31,6 +52,29 @@ class FunctionCenterPageHost(
         buildContent: (LinearLayout) -> Unit
     ) {
         functionCenter.showBottomSheetPage(title, onBack, onClose, buildContent)
+    }
+
+    fun showBottomSheetPage(
+        title: String,
+        onBack: () -> Unit,
+        onClose: () -> Unit,
+        replaceCurrent: Boolean,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        if (replaceCurrent) {
+            functionCenter.replaceBottomSheetPage(title, onBack, onClose, buildContent)
+        } else {
+            functionCenter.showBottomSheetPage(title, onBack, onClose, buildContent)
+        }
+    }
+
+    fun replaceBottomSheetPage(
+        title: String,
+        onBack: () -> Unit,
+        onClose: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        functionCenter.replaceBottomSheetPage(title, onBack, onClose, buildContent)
     }
 
     fun handleBack(): Boolean {

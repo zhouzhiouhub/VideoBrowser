@@ -15,13 +15,14 @@ class UserWhitelistPage(
 ) {
     private val activity = host.activity
 
-    fun show() {
+    fun show(replaceCurrent: Boolean = false) {
         val hosts = settingsManager.userWhitelistedSiteHosts().sorted()
         val currentHost = currentSiteHost()
 
         host.showPage(
             title = activity.getString(R.string.title_user_whitelist),
-            onBack = showRootPage
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
         ) { content ->
             val addableCurrentHost = currentHost
                 ?.takeIf { hostName -> !settingsManager.isUserWhitelistedSite(hostName) }
@@ -46,7 +47,7 @@ class UserWhitelistPage(
                                 Toast.LENGTH_SHORT
                             ).show()
                             browserManager().reload()
-                            show()
+                            show(replaceCurrent = true)
                         }
                     }
                     if (hosts.isNotEmpty()) {
@@ -94,7 +95,7 @@ class UserWhitelistPage(
                     Toast.LENGTH_SHORT
                 ).show()
                 browserManager().reload()
-                show()
+                show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -112,7 +113,7 @@ class UserWhitelistPage(
                     Toast.LENGTH_SHORT
                 ).show()
                 browserManager().reload()
-                show()
+                show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

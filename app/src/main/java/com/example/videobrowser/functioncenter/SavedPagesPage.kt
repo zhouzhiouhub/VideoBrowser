@@ -19,13 +19,15 @@ class SavedPagesPage(
     fun show(
         collection: SavedPageCollection,
         title: String,
-        emptyMessage: String
+        emptyMessage: String,
+        replaceCurrent: Boolean = false
     ) {
         val pages = savedPageRepository.pages(collection)
 
         host.showPage(
             title = title,
-            onBack = showRootPage
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
         ) { content ->
             if (pages.isEmpty()) {
                 host.addEmptyState(content, emptyMessage)
@@ -79,7 +81,7 @@ class SavedPagesPage(
                     R.string.toast_saved_page_removed,
                     Toast.LENGTH_SHORT
                 ).show()
-                show(collection, title, emptyMessage)
+                show(collection, title, emptyMessage, replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -96,9 +98,28 @@ class SavedPagesPage(
                     R.string.toast_saved_pages_cleared,
                     Toast.LENGTH_SHORT
                 ).show()
-                showRootPage()
+                show(
+                    collection = collection,
+                    title = collectionTitle(collection),
+                    emptyMessage = collectionEmptyMessage(collection),
+                    replaceCurrent = true
+                )
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun collectionTitle(collection: SavedPageCollection): String {
+        return when (collection) {
+            SavedPageCollection.BOOKMARKS -> activity.getString(R.string.title_bookmarks)
+            SavedPageCollection.HISTORY -> activity.getString(R.string.title_history)
+        }
+    }
+
+    private fun collectionEmptyMessage(collection: SavedPageCollection): String {
+        return when (collection) {
+            SavedPageCollection.BOOKMARKS -> activity.getString(R.string.toast_bookmarks_empty)
+            SavedPageCollection.HISTORY -> activity.getString(R.string.toast_history_empty)
+        }
     }
 }

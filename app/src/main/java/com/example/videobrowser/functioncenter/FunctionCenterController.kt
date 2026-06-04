@@ -15,13 +15,35 @@ class FunctionCenterController(
     private val viewFactory = FunctionCenterViewFactory(activity, dp)
     private var page: View? = null
     private var backAction: (() -> Unit)? = null
+    private val pageHistory = FunctionCenterPageHistory<PageState>()
+
+    private data class PageState(
+        val view: View,
+        val backAction: (() -> Unit)?
+    )
 
     fun showPage(
         title: String,
         onBack: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ) {
-        attachPage(viewFactory.createPage(title, onBack, buildContent), onBack)
+        attachPage(
+            viewFactory.createPage(title, { handleBack() }, buildContent),
+            onBack,
+            saveCurrentPage = true
+        )
+    }
+
+    fun replacePage(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        attachPage(
+            viewFactory.createPage(title, { handleBack() }, buildContent),
+            onBack,
+            saveCurrentPage = false
+        )
     }
 
     fun showBottomSheetPage(
@@ -29,9 +51,11 @@ class FunctionCenterController(
         onClose: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ) {
+        pageHistory.clear()
         attachPage(
             viewFactory.createBottomSheetPage(title, null, onClose, buildContent),
-            onClose
+            onClose,
+            saveCurrentPage = false
         )
     }
 
@@ -42,14 +66,33 @@ class FunctionCenterController(
         buildContent: (LinearLayout) -> Unit
     ) {
         attachPage(
-            viewFactory.createBottomSheetPage(title, onBack, onClose, buildContent),
-            onBack
+            viewFactory.createBottomSheetPage(title, { handleBack() }, onClose, buildContent),
+            onBack,
+            saveCurrentPage = true
+        )
+    }
+
+    fun replaceBottomSheetPage(
+        title: String,
+        onBack: () -> Unit,
+        onClose: () -> Unit,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        attachPage(
+            viewFactory.createBottomSheetPage(title, { handleBack() }, onClose, buildContent),
+            onBack,
+            saveCurrentPage = false
         )
     }
 
     fun handleBack(): Boolean {
         if (page == null) {
             return false
+        }
+        val previousPage = pageHistory.pop()
+        if (previousPage != null) {
+            restorePage(previousPage)
+            return true
         }
         backAction?.invoke() ?: close()
         return true
@@ -60,6 +103,7 @@ class FunctionCenterController(
         (currentPage.parent as? ViewGroup)?.removeView(currentPage)
         page = null
         backAction = null
+        pageHistory.clear()
         return true
     }
 
@@ -149,14 +193,31 @@ class FunctionCenterController(
         viewFactory.addDivider(parent)
     }
 
-    private fun attachPage(page: View, onBack: () -> Unit) {
+    private fun attachPage(page: View, onBack: () -> Unit, saveCurrentPage: Boolean) {
         val container = rootView as? ViewGroup ?: return
         this.page?.let { currentPage ->
             (currentPage.parent as? ViewGroup)?.removeView(currentPage)
+            if (saveCurrentPage) {
+                pageHistory.push(PageState(currentPage, backAction))
+            }
         }
 
         this.page = page
         backAction = onBack
+        addPageToContainer(container, page)
+    }
+
+    private fun restorePage(pageState: PageState) {
+        val container = rootView as? ViewGroup ?: return
+        page?.let { currentPage ->
+            (currentPage.parent as? ViewGroup)?.removeView(currentPage)
+        }
+        page = pageState.view
+        backAction = pageState.backAction
+        addPageToContainer(container, pageState.view)
+    }
+
+    private fun addPageToContainer(container: ViewGroup, page: View) {
         container.addView(
             page,
             ConstraintLayout.LayoutParams(

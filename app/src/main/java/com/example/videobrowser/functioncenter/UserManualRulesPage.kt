@@ -15,13 +15,14 @@ class UserManualRulesPage(
 ) {
     private val activity = host.activity
 
-    fun show() {
+    fun show(replaceCurrent: Boolean = false) {
         val rules = settingsManager.userElementHideRules()
             .sortedWith(compareBy<UserElementHideRule> { it.host }.thenBy { it.selector })
 
         host.showPage(
             title = activity.getString(R.string.title_user_manual_rules),
-            onBack = showRootPage
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
         ) { content ->
             if (rules.isEmpty()) {
                 host.addEmptyState(content, activity.getString(R.string.dialog_user_manual_rules_empty))
@@ -77,7 +78,7 @@ class UserManualRulesPage(
                     ).show()
                     browserManager().reload()
                 }
-                show()
+                show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -95,7 +96,7 @@ class UserManualRulesPage(
                     Toast.LENGTH_SHORT
                 ).show()
                 browserManager().reload()
-                show()
+                show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

@@ -22,12 +22,13 @@ class CurrentSiteSettingsPage(
 ) {
     private val activity = host.activity
 
-    fun show() {
+    fun show(replaceCurrent: Boolean = false) {
         val siteHost = currentSiteHost()
         host.showBottomSheetPage(
             title = activity.getString(R.string.title_current_site),
             onBack = showRootPage,
-            onClose = { host.close() }
+            onClose = { host.close() },
+            replaceCurrent = replaceCurrent
         ) { content ->
             if (siteHost != null) {
                 host.addFunctionMessage(
@@ -152,7 +153,7 @@ class CurrentSiteSettingsPage(
                 enabled = hasSite
             ) {
                 toggleCurrentSiteWhitelist()
-                show()
+                show(replaceCurrent = true)
             }
             host.addActionRow(
                 parent = section,
@@ -197,7 +198,7 @@ class CurrentSiteSettingsPage(
         val siteHost = currentSiteHost()
         host.showBottomSheetPage(
             title = activity.getString(R.string.title_site_config),
-            onBack = { show() },
+            onBack = { show(replaceCurrent = true) },
             onClose = { host.close() }
         ) { content ->
             if (siteHost == null) {

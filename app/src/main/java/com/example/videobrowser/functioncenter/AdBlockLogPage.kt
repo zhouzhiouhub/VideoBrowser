@@ -22,17 +22,19 @@ class AdBlockLogPage(
 ) {
     private val activity = host.activity
 
-    fun show() {
+    fun show(replaceCurrent: Boolean = false) {
         val entries = adBlockLogger.entries()
-        if (entries.isEmpty()) {
-            Toast.makeText(activity, R.string.toast_ad_block_log_empty, Toast.LENGTH_SHORT).show()
-            return
-        }
 
         host.showPage(
             title = activity.getString(R.string.title_ad_block_log),
-            onBack = showRootPage
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
         ) { content ->
+            if (entries.isEmpty()) {
+                host.addEmptyState(content, activity.getString(R.string.toast_ad_block_log_empty))
+                return@showPage
+            }
+
             host.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
@@ -100,7 +102,7 @@ class AdBlockLogPage(
                     R.string.toast_ad_block_log_cleared,
                     Toast.LENGTH_SHORT
                 ).show()
-                showRootPage()
+                show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -127,7 +129,7 @@ class AdBlockLogPage(
                     Toast.LENGTH_SHORT
                 ).show()
                 browserManager().reload()
-                show()
+                show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

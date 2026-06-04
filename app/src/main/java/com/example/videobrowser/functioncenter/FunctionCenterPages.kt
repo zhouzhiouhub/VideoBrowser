@@ -107,12 +107,12 @@ class FunctionCenterPages(
         showBookmarks = ::showBookmarks,
         showHistory = ::showHistory,
         showFileOperationsPage = showFileOperationsPage,
-        showAdBlockLog = adBlockLogPage::show,
-        showUserWhitelistManager = userWhitelistPage::show,
-        showUserManualRulesManager = userManualRulesPage::show,
-        showCookieManager = browserDataManagementPage::showCookies,
-        showCacheManager = browserDataManagementPage::showCache,
-        showSiteDataManager = browserDataManagementPage::showSiteData,
+        showAdBlockLog = { adBlockLogPage.show() },
+        showUserWhitelistManager = { userWhitelistPage.show() },
+        showUserManualRulesManager = { userManualRulesPage.show() },
+        showCookieManager = { browserDataManagementPage.showCookies() },
+        showCacheManager = { browserDataManagementPage.showCache() },
+        showSiteDataManager = { browserDataManagementPage.showSiteData() },
         showRestoreDefaultSettingsPage = restoreDefaultSettingsPage::show,
         showRootPage = ::showRootPage
     )

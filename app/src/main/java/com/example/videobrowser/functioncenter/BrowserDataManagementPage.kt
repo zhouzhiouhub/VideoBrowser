@@ -55,7 +55,7 @@ class BrowserDataManagementPage(
 ) {
     private val activity = host.activity
 
-    fun showCookies() {
+    fun showCookies(replaceCurrent: Boolean = false) {
         val pageUrl = currentActionableUrl()
         val cookies = BrowserCookieParser.parse(
             pageUrl?.let { url -> CookieManager.getInstance().getCookie(url) }
@@ -63,7 +63,8 @@ class BrowserDataManagementPage(
 
         host.showPage(
             title = activity.getString(R.string.title_cookie_management),
-            onBack = showRootPage
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
         ) { content ->
             if (pageUrl == null) {
                 host.addEmptyState(content, activity.getString(R.string.dialog_cookie_management_no_site))
@@ -111,10 +112,11 @@ class BrowserDataManagementPage(
         }
     }
 
-    fun showCache() {
+    fun showCache(replaceCurrent: Boolean = false) {
         host.showPage(
             title = activity.getString(R.string.title_cache_management),
-            onBack = showRootPage
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
         ) { content ->
             host.addFunctionSection(
                 content,
@@ -132,7 +134,7 @@ class BrowserDataManagementPage(
         }
     }
 
-    fun showSiteData() {
+    fun showSiteData(replaceCurrent: Boolean = false) {
         WebStorage.getInstance().getOrigins { origins ->
             activity.runOnUiThread {
                 val siteDataOrigins = origins
@@ -140,15 +142,16 @@ class BrowserDataManagementPage(
                     ?.filterIsInstance<WebStorage.Origin>()
                     ?.sortedBy { origin -> origin.origin }
                     ?: emptyList()
-                showSiteDataOrigins(siteDataOrigins)
+                showSiteDataOrigins(siteDataOrigins, replaceCurrent)
             }
         }
     }
 
-    private fun showSiteDataOrigins(origins: List<WebStorage.Origin>) {
+    private fun showSiteDataOrigins(origins: List<WebStorage.Origin>, replaceCurrent: Boolean) {
         host.showPage(
             title = activity.getString(R.string.title_site_data_management),
-            onBack = showRootPage
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
         ) { content ->
             if (origins.isNotEmpty()) {
                 host.addFunctionSection(
@@ -198,7 +201,7 @@ class BrowserDataManagementPage(
                 removeCookie(pageUrl, cookieName)
                 Toast.makeText(activity, R.string.toast_cookie_removed, Toast.LENGTH_SHORT).show()
                 browserManager().reload()
-                showCookies()
+                showCookies(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -215,7 +218,7 @@ class BrowserDataManagementPage(
                 }
                 Toast.makeText(activity, R.string.toast_cookies_cleared, Toast.LENGTH_SHORT).show()
                 browserManager().reload()
-                showCookies()
+                showCookies(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -228,7 +231,7 @@ class BrowserDataManagementPage(
             .setPositiveButton(R.string.action_clear) { _, _ ->
                 browserManagers().forEach { manager -> manager.clearCache() }
                 Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
-                showCache()
+                showCache(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -241,7 +244,7 @@ class BrowserDataManagementPage(
             .setPositiveButton(R.string.action_remove) { _, _ ->
                 WebStorage.getInstance().deleteOrigin(origin)
                 Toast.makeText(activity, R.string.toast_site_data_removed, Toast.LENGTH_SHORT).show()
-                showSiteData()
+                showSiteData(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -254,7 +257,7 @@ class BrowserDataManagementPage(
             .setPositiveButton(R.string.action_clear) { _, _ ->
                 WebStorage.getInstance().deleteAllData()
                 Toast.makeText(activity, R.string.toast_site_data_cleared, Toast.LENGTH_SHORT).show()
-                showSiteData()
+                showSiteData(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
