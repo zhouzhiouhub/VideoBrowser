@@ -54,6 +54,7 @@ import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.site.SiteHost
+import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
@@ -84,6 +85,7 @@ class MainActivity : AppCompatActivity() {
     private val fullscreenContainer: FrameLayout get() = views.fullscreenContainer
     private lateinit var preferenceStore: PreferenceStore
     private lateinit var settingsManager: SettingsManager
+    private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var ruleEngine: RuleEngine
     private lateinit var standardWebView: WebView
@@ -141,6 +143,7 @@ class MainActivity : AppCompatActivity() {
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
+        browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(settingsManager, filesDir)
         savedPageRepository = SavedPageRepository(preferenceStore)
         localFilesController = LocalFilesController(
             activity = this,
@@ -202,7 +205,8 @@ class MainActivity : AppCompatActivity() {
             updateBookmarkButton = ::updateBookmarkButton,
             updateNavigationButtons = ::updateNavigationButtons,
             updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
-            recreateActivity = { recreate() }
+            recreateActivity = { recreate() },
+            restoreBrowserDefaults = browserDefaultSettingsResetter::restoreDefaults
         )
         browserControlsController = BrowserControlsController(
             activity = this,

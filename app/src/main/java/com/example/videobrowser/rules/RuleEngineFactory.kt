@@ -30,6 +30,11 @@ object RuleEngineFactory {
         )
     }
 
+    fun clearRuleCache(filesDir: File): Boolean {
+        val cacheDirectory = File(filesDir, RULE_CACHE_DIR)
+        return !cacheDirectory.exists() || cacheDirectory.deleteRecursively()
+    }
+
     private fun logSkippedRules(skippedRules: List<SkippedRule>, logTag: String) {
         skippedRules.forEach { skippedRule ->
             Log.w(

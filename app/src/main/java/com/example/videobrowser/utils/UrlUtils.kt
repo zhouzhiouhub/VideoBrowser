@@ -395,7 +395,7 @@ object UrlUtils {
                 when {
                     char == ' ' -> append("%20")
                     char == '\t' || char == '\n' || char == '\r' -> Unit
-                    char.isISOControl() -> appendUtf8PercentEncoded(char)
+                    char.isISOControl() || char.isUnsafeUrlTailCharacter() -> appendUtf8PercentEncoded(char)
                     else -> append(char)
                 }
             }
@@ -408,6 +408,18 @@ object UrlUtils {
             append(HEX_DIGITS[(byte.toInt() shr 4) and 0xF])
             append(HEX_DIGITS[byte.toInt() and 0xF])
         }
+    }
+
+    private fun Char.isUnsafeUrlTailCharacter(): Boolean {
+        return this == '"' ||
+            this == '<' ||
+            this == '>' ||
+            this == '\\' ||
+            this == '^' ||
+            this == '`' ||
+            this == '{' ||
+            this == '|' ||
+            this == '}'
     }
 
     private fun String.hasUnsafeCharacter(): Boolean {

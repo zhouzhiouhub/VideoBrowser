@@ -207,6 +207,17 @@ class UrlUtilsTest {
     }
 
     @Test
+    fun resolveAddressInput_reEncodesDecodedUrlTailUnsafeCharacters() {
+        assertEquals(
+            "https://mbd.baidu.com/newspage/data/landingsuper?context=%7B%22nid%22:%22news_1%22%7D",
+            UrlUtils.resolveAddressInput(
+                "https://mbd.baidu.com/newspage/data/landingsuper?context={\"nid\":\"news_1\"}",
+                searchUrlPrefix
+            )
+        )
+    }
+
+    @Test
     fun displayUrl_keepsInvalidPercentEscapes() {
         assertEquals(
             "https://example.com/%zz?q=100%",

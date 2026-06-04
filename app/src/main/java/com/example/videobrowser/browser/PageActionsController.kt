@@ -40,7 +40,8 @@ class PageActionsController(
     private val updateBookmarkButton: () -> Unit,
     private val updateNavigationButtons: () -> Unit,
     private val updatePrivateBrowsingUi: () -> Unit,
-    private val recreateActivity: () -> Unit
+    private val recreateActivity: () -> Unit,
+    private val restoreBrowserDefaults: () -> Boolean = settingsManager::restoreDefaults
 ) {
     fun openLocalDocumentUri(
         uri: Uri,
@@ -165,7 +166,7 @@ class PageActionsController(
     }
 
     fun restoreDefaultSettings() {
-        settingsManager.restoreDefaults()
+        restoreBrowserDefaults()
         Toast.makeText(activity, R.string.toast_default_settings_restored, Toast.LENGTH_SHORT).show()
         recreateActivity()
     }
