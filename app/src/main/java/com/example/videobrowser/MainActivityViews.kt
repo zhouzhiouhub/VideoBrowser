@@ -11,11 +11,12 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 
 data class MainActivityViews(
     val rootView: View,
     val topBar: View,
-    val bottomBar: View,
+    val bottomBar: ConstraintLayout,
     val addressBar: LinearLayout,
     val addressIcon: ImageView,
     val webViewContainer: FrameLayout,

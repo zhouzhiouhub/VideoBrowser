@@ -23,6 +23,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -65,7 +66,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var views: MainActivityViews
     private val rootView: View get() = views.rootView
     private val topBar: View get() = views.topBar
-    private val bottomBar: View get() = views.bottomBar
+    private val bottomBar: ConstraintLayout get() = views.bottomBar
     private val webView: WebView get() = currentBrowserManager().activeWebView
     private val addressInput: EditText get() = views.addressInput
     private val pageProgress: ProgressBar get() = views.pageProgress

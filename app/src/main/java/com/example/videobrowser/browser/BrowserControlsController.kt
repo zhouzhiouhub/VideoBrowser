@@ -7,6 +7,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
@@ -16,7 +18,7 @@ class BrowserControlsController(
     private val activity: AppCompatActivity,
     private val browserManager: () -> BrowserManager,
     private val topBar: View,
-    private val bottomBar: View,
+    private val bottomBar: ConstraintLayout,
     private val addressInput: EditText,
     private val pageProgress: ProgressBar,
     private val pageToolsButton: ImageButton,
@@ -116,7 +118,103 @@ class BrowserControlsController(
         wenxinButton.visibility = if (visibility.showWenxin) View.VISIBLE else View.GONE
         profileButton.visibility = if (visibility.showProfile) View.VISIBLE else View.GONE
         bookmarkButton.visibility = View.GONE
+        applyBottomBarButtonArrangement(BottomBarButtonArrangement.forVisibility(visibility))
         updateBookmarkButton()
+    }
+
+    private fun applyBottomBarButtonArrangement(arrangement: BottomBarButtonArrangement) {
+        val constraints = ConstraintSet().apply { clone(bottomBar) }
+        val actionIds = intArrayOf(
+            R.id.backButton,
+            R.id.pageToolsButton,
+            R.id.refreshButton,
+            R.id.wenxinButton,
+            R.id.profileButton
+        )
+
+        actionIds.forEach { id ->
+            constraints.clear(id, ConstraintSet.START)
+            constraints.clear(id, ConstraintSet.END)
+            constraints.clear(id, ConstraintSet.TOP)
+            constraints.clear(id, ConstraintSet.BOTTOM)
+            constraints.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
+            constraints.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
+        }
+
+        when (arrangement) {
+            BottomBarButtonArrangement.HomeSplit -> {
+                constraints.connectHorizontalChain(
+                    startId = ConstraintSet.PARENT_ID,
+                    startSide = ConstraintSet.START,
+                    endId = R.id.bottomBarCenterGuide,
+                    endSide = ConstraintSet.START,
+                    chainIds = intArrayOf(
+                        R.id.backButton,
+                        R.id.pageToolsButton,
+                        R.id.refreshButton,
+                        R.id.wenxinButton
+                    ),
+                    chainStyle = ConstraintSet.CHAIN_PACKED
+                )
+                constraints.connect(
+                    R.id.profileButton,
+                    ConstraintSet.START,
+                    R.id.bottomBarCenterGuide,
+                    ConstraintSet.END
+                )
+                constraints.connect(
+                    R.id.profileButton,
+                    ConstraintSet.END,
+                    ConstraintSet.PARENT_ID,
+                    ConstraintSet.END
+                )
+            }
+
+            BottomBarButtonArrangement.BrowsingEvenlySpaced -> {
+                constraints.connectHorizontalChain(
+                    startId = ConstraintSet.PARENT_ID,
+                    startSide = ConstraintSet.START,
+                    endId = ConstraintSet.PARENT_ID,
+                    endSide = ConstraintSet.END,
+                    chainIds = intArrayOf(
+                        R.id.backButton,
+                        R.id.pageToolsButton,
+                        R.id.wenxinButton,
+                        R.id.profileButton
+                    ),
+                    chainStyle = ConstraintSet.CHAIN_SPREAD
+                )
+            }
+        }
+
+        constraints.applyTo(bottomBar)
+    }
+
+    private fun ConstraintSet.connectHorizontalChain(
+        startId: Int,
+        startSide: Int,
+        endId: Int,
+        endSide: Int,
+        chainIds: IntArray,
+        chainStyle: Int
+    ) {
+        chainIds.forEachIndexed { index, id ->
+            val previousId = chainIds.getOrNull(index - 1)
+            val nextId = chainIds.getOrNull(index + 1)
+            connect(
+                id,
+                ConstraintSet.START,
+                previousId ?: startId,
+                previousId?.let { ConstraintSet.END } ?: startSide
+            )
+            connect(
+                id,
+                ConstraintSet.END,
+                nextId ?: endId,
+                nextId?.let { ConstraintSet.START } ?: endSide
+            )
+        }
+        setHorizontalChainStyle(chainIds.first(), chainStyle)
     }
 
     fun updateBookmarkButton() {
