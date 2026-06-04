@@ -110,20 +110,35 @@ class FunctionCenterPages(
         ) { content ->
             val siteHost = currentSiteHost()
             val pageUrl = currentActionableUrl()
-            addBaiduBrowserActionGrid(content, pageUrl, siteHost)
-            host.addHistoryPreview(
-                parent = content,
-                title = activity.getString(R.string.menu_history_title),
-                emptyMessage = activity.getString(R.string.menu_history_empty),
-                pages = savedPageRepository.history(),
-                onOpenPage = { page ->
-                    close()
-                    loadUrl(page.url)
-                },
-                onShowHistory = ::showHistory
-            )
-            browserSettingsPage.addExpandedBrowserSettings(content)
-            browserSettingsPage.addExpandedDataManagement(content)
+            FunctionCenterRootSheetLayout.blocks().forEach { block ->
+                when (block) {
+                    FunctionCenterRootSheetBlock.ACTION_GRID -> {
+                        addBaiduBrowserActionGrid(content, pageUrl, siteHost)
+                    }
+
+                    FunctionCenterRootSheetBlock.HISTORY_PREVIEW -> {
+                        host.addHistoryPreview(
+                            parent = content,
+                            title = activity.getString(R.string.menu_history_title),
+                            emptyMessage = activity.getString(R.string.menu_history_empty),
+                            pages = savedPageRepository.history(),
+                            onOpenPage = { page ->
+                                close()
+                                loadUrl(page.url)
+                            },
+                            onShowHistory = ::showHistory
+                        )
+                    }
+
+                    FunctionCenterRootSheetBlock.EXPANDED_BROWSER_SETTINGS -> {
+                        browserSettingsPage.addExpandedBrowserSettings(content)
+                    }
+
+                    FunctionCenterRootSheetBlock.EXPANDED_DATA_MANAGEMENT -> {
+                        browserSettingsPage.addExpandedDataManagement(content)
+                    }
+                }
+            }
         }
     }
 

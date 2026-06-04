@@ -2,5 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/refence/filebrowser" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/refence/uBlock" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/refence/uBlock/platform/mv3/extension/lib/codemirror/codemirror-ubol" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/refence/uBlock/publish-extension" vcs="Git" />
   </component>
 </project>
