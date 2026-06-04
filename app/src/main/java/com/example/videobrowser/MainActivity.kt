@@ -78,7 +78,6 @@ class MainActivity : AppCompatActivity() {
     private val profileButton: ImageButton get() = views.profileButton
     private val backButton: ImageButton get() = views.backButton
     private val refreshButton: ImageButton get() = views.refreshButton
-    private val homeButton: ImageButton get() = views.homeButton
     private val bookmarkButton: ImageButton get() = views.bookmarkButton
     private val loadButton: ImageButton get() = views.loadButton
     private val fullscreenContainer: FrameLayout get() = views.fullscreenContainer
@@ -216,7 +215,6 @@ class MainActivity : AppCompatActivity() {
             profileButton = profileButton,
             backButton = backButton,
             refreshButton = refreshButton,
-            homeButton = homeButton,
             bookmarkButton = bookmarkButton,
             loadButton = loadButton,
             savedPageRepository = savedPageRepository,
@@ -224,7 +222,6 @@ class MainActivity : AppCompatActivity() {
             isHomePageVisible = { isHomePageVisible },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             onLoadAddress = ::loadAddressInput,
-            onOpenHomePage = ::openHomePage,
             onOpenWenxin = ::openWenxinPage,
             onShowFunctionCenter = ::showFunctionCenter,
             onShowProfilePage = ::showProfilePage,
@@ -684,7 +681,7 @@ class MainActivity : AppCompatActivity() {
             setColor(colors.addressBackground)
             setStroke(dp(1), colors.addressStroke)
         }
-        listOf(backButton, refreshButton, homeButton, pageToolsButton, bookmarkButton, profileButton).forEach { button ->
+        listOf(backButton, refreshButton, pageToolsButton, bookmarkButton, profileButton).forEach { button ->
             button.setColorFilter(colors.icon)
         }
         wenxinButton.setTextColor(Color.WHITE)

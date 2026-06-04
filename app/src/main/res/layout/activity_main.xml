@@ -59,16 +59,6 @@
                 android:textColorHint="@color/browser_text_hint"
                 android:textSize="15sp" />
 
-            <ImageView
-                android:id="@+id/voiceIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:contentDescription="@null"
-                android:importantForAccessibility="no"
-                android:padding="9dp"
-                android:src="@drawable/ic_microphone_24"
-                android:tint="@color/browser_primary" />
-
             <ImageButton
                 android:id="@+id/loadButton"
                 android:layout_width="38dp"
@@ -77,7 +67,7 @@
                 android:contentDescription="@string/action_load_url"
                 android:padding="9dp"
                 android:scaleType="center"
-                android:src="@drawable/ic_camera_24"
+                android:src="@drawable/ic_search_24"
                 android:tint="@color/browser_primary" />
 
         </LinearLayout>
@@ -224,18 +214,6 @@
             android:textStyle="bold"
             app:drawableStartCompat="@drawable/ic_wenxin_wave_24"
             app:drawableTint="@android:color/white" />
-
-        <ImageButton
-            android:id="@+id/homeButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_icon_button"
-            android:contentDescription="@string/action_tabs_home"
-            android:padding="18dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_tabs_24"
-            android:tint="@color/bottom_nav_icon" />
 
         <ImageButton
             android:id="@+id/profileButton"

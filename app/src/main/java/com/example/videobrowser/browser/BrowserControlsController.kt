@@ -25,7 +25,6 @@ class BrowserControlsController(
     private val profileButton: ImageButton,
     private val backButton: ImageButton,
     private val refreshButton: ImageButton,
-    private val homeButton: ImageButton,
     private val bookmarkButton: ImageButton,
     private val loadButton: ImageButton,
     private val savedPageRepository: SavedPageRepository,
@@ -33,7 +32,6 @@ class BrowserControlsController(
     private val isHomePageVisible: () -> Boolean,
     private val isVideoFullscreenUiActive: () -> Boolean,
     private val onLoadAddress: () -> Unit,
-    private val onOpenHomePage: () -> Unit,
     private val onOpenWenxin: () -> Unit,
     private val onShowFunctionCenter: () -> Unit,
     private val onShowProfilePage: () -> Unit,
@@ -51,7 +49,6 @@ class BrowserControlsController(
         ViewCompat.setTooltipText(loadButton, activity.getString(R.string.action_load_url))
         ViewCompat.setTooltipText(backButton, activity.getString(R.string.action_back))
         ViewCompat.setTooltipText(refreshButton, activity.getString(R.string.action_refresh))
-        ViewCompat.setTooltipText(homeButton, activity.getString(R.string.action_home))
         ViewCompat.setTooltipText(bookmarkButton, activity.getString(R.string.action_add_bookmark))
 
         addressInput.setOnFocusChangeListener { _, hasFocus ->
@@ -78,7 +75,6 @@ class BrowserControlsController(
             updateNavigationButtons()
         }
         refreshButton.setOnClickListener { browserManager().reload() }
-        homeButton.setOnClickListener { onOpenHomePage() }
         wenxinButton.setOnClickListener { onOpenWenxin() }
         profileButton.setOnClickListener { onShowProfilePage() }
         bookmarkButton.setOnClickListener { onToggleBookmark() }
@@ -118,7 +114,6 @@ class BrowserControlsController(
         backButton.alpha = if (canGoBack) 1f else 0.38f
         backButton.visibility = if (visibility.showBack) View.VISIBLE else View.GONE
         pageToolsButton.visibility = if (visibility.showPageTools) View.VISIBLE else View.GONE
-        homeButton.visibility = if (visibility.showTabsHome) View.VISIBLE else View.GONE
         wenxinButton.visibility = if (visibility.showWenxin) View.VISIBLE else View.GONE
         profileButton.visibility = if (visibility.showProfile) View.VISIBLE else View.GONE
         bookmarkButton.visibility = View.GONE

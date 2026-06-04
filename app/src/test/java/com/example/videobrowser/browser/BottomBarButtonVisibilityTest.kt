@@ -11,19 +11,24 @@ class BottomBarButtonVisibilityTest {
 
         assertFalse(visibility.showBack)
         assertFalse(visibility.showPageTools)
-        assertFalse(visibility.showTabsHome)
         assertTrue(visibility.showWenxin)
         assertTrue(visibility.showProfile)
     }
 
     @Test
-    fun browsingPage_showsNavigationToolsAgain() {
+    fun browsingPage_showsOnlyFunctionalNavigationToolsAgain() {
         val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible = false)
 
         assertTrue(visibility.showBack)
         assertTrue(visibility.showPageTools)
-        assertTrue(visibility.showTabsHome)
         assertTrue(visibility.showWenxin)
         assertTrue(visibility.showProfile)
+    }
+
+    @Test
+    fun bottomBarVisibilityDoesNotExposeTabsHomeEntry() {
+        val fieldNames = BottomBarButtonVisibility::class.java.declaredFields.map { it.name }
+
+        assertFalse(fieldNames.contains("showTabsHome"))
     }
 }

@@ -30,7 +30,6 @@ data class MainActivityViews(
     val profileButton: ImageButton,
     val backButton: ImageButton,
     val refreshButton: ImageButton,
-    val homeButton: ImageButton,
     val bookmarkButton: ImageButton,
     val loadButton: ImageButton,
     val fullscreenContainer: FrameLayout
@@ -55,7 +54,6 @@ data class MainActivityViews(
                 profileButton = activity.findViewById(R.id.profileButton),
                 backButton = activity.findViewById(R.id.backButton),
                 refreshButton = activity.findViewById(R.id.refreshButton),
-                homeButton = activity.findViewById(R.id.homeButton),
                 bookmarkButton = activity.findViewById(R.id.bookmarkButton),
                 loadButton = activity.findViewById(R.id.loadButton),
                 fullscreenContainer = activity.findViewById(R.id.fullscreenContainer)

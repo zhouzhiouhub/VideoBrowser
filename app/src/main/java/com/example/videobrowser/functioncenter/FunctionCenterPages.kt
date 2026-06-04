@@ -207,88 +207,97 @@ class FunctionCenterPages(
         host.addFunctionSection(parent, "") { section ->
             host.addActionGrid(
                 section,
-                listOf(
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_share_page),
-                        summary = activity.getString(R.string.action_share_page_summary),
-                        iconResId = R.drawable.ic_share_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(shareCurrentUrl)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.title_bookmarks),
-                        summary = activity.getString(R.string.action_show_bookmarks_summary),
-                        iconResId = R.drawable.ic_star_24
-                    ) {
-                        showBookmarks()
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.title_history),
-                        summary = activity.getString(R.string.action_show_history_summary),
-                        iconResId = R.drawable.ic_history_24
-                    ) {
-                        showHistory()
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_file_operations),
-                        summary = activity.getString(R.string.action_file_operations_summary),
-                        iconResId = R.drawable.ic_file_24
-                    ) {
-                        showFileOperationsPage()
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_refresh),
-                        summary = pageSummary,
-                        iconResId = R.drawable.ic_refresh_24,
-                        enabled = hasPage
-                    ) {
-                        browserManager().reload()
-                        close()
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_smart_summary),
-                        summary = pageSummary,
-                        iconResId = R.drawable.ic_search_24,
-                        enabled = hasPage
-                    ) {
-                        Toast.makeText(
-                            activity,
-                            activity.getString(R.string.function_center_current_site, siteSummary),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_add_bookmark),
-                        summary = pageSummary,
-                        iconResId = R.drawable.ic_star_filled_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(toggleCurrentBookmark)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_listen_mode),
-                        summary = activity.getString(R.string.setting_video_enhancement_summary),
-                        iconResId = R.drawable.ic_microphone_24,
-                        enabled = hasPage
-                    ) {
-                        settingsManager.setVideoEnhancementEnabled(!isVideoEnhancementEnabled())
-                        injectPageFeatures()
-                        showFeatureToggleToast(
-                            activity.getString(R.string.setting_video_enhancement),
-                            isVideoEnhancementEnabled()
-                        )
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.function_center_section_more),
-                        summary = siteSummary,
-                        iconResId = R.drawable.ic_more_vert_24,
-                        enabled = !isPrivateBrowsingEnabled() && siteHost != null
-                    ) {
-                        currentSiteSettingsPage.show()
-                    }
-                )
+                FunctionCenterRootActionCatalog.actions(
+                    hasPage = hasPage,
+                    hasSite = siteHost != null,
+                    isPrivateBrowsing = isPrivateBrowsingEnabled()
+                ).map { action ->
+                    createRootGridAction(action, pageSummary, siteSummary, hasPage)
+                }
             )
+        }
+    }
+
+    private fun createRootGridAction(
+        action: FunctionCenterRootAction,
+        pageSummary: String,
+        siteSummary: String,
+        hasPage: Boolean
+    ): FunctionCenterGridAction {
+        return when (action) {
+            FunctionCenterRootAction.SHARE_PAGE -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_share_page),
+                    summary = activity.getString(R.string.action_share_page_summary),
+                    iconResId = R.drawable.ic_share_24,
+                    enabled = hasPage
+                ) {
+                    runPageAction(shareCurrentUrl)
+                }
+            }
+
+            FunctionCenterRootAction.BOOKMARKS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_bookmarks),
+                    summary = activity.getString(R.string.action_show_bookmarks_summary),
+                    iconResId = R.drawable.ic_star_24
+                ) {
+                    showBookmarks()
+                }
+            }
+
+            FunctionCenterRootAction.HISTORY -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_history),
+                    summary = activity.getString(R.string.action_show_history_summary),
+                    iconResId = R.drawable.ic_history_24
+                ) {
+                    showHistory()
+                }
+            }
+
+            FunctionCenterRootAction.FILE_OPERATIONS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_file_operations),
+                    summary = activity.getString(R.string.action_file_operations_summary),
+                    iconResId = R.drawable.ic_file_24
+                ) {
+                    showFileOperationsPage()
+                }
+            }
+
+            FunctionCenterRootAction.REFRESH -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_refresh),
+                    summary = pageSummary,
+                    iconResId = R.drawable.ic_refresh_24,
+                    enabled = hasPage
+                ) {
+                    browserManager().reload()
+                    close()
+                }
+            }
+
+            FunctionCenterRootAction.ADD_BOOKMARK -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_add_bookmark),
+                    summary = pageSummary,
+                    iconResId = R.drawable.ic_star_filled_24,
+                    enabled = hasPage
+                ) {
+                    runPageAction(toggleCurrentBookmark)
+                }
+            }
+
+            FunctionCenterRootAction.MORE -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.function_center_section_more),
+                    summary = siteSummary,
+                    iconResId = R.drawable.ic_more_vert_24
+                ) {
+                    currentSiteSettingsPage.show()
+                }
+            }
         }
     }
 

@@ -6,10 +6,8 @@
     <string name="action_back">后退</string>
     <string name="action_forward">前进</string>
     <string name="action_refresh">刷新</string>
-    <string name="action_home">首页</string>
     <string name="action_menu">菜单</string>
     <string name="action_wenxin">文心</string>
-    <string name="action_tabs_home">标签页/首页</string>
     <string name="action_profile">功能</string>
     <string name="title_profile_page">功能</string>
     <string name="profile_login_now">浏览器功能</string>
@@ -24,8 +22,6 @@
     <string name="menu_history_title">浏览历史</string>
     <string name="menu_history_empty">暂无浏览历史</string>
     <string name="action_open_history_item">去看看</string>
-    <string name="action_smart_summary">智能总结</string>
-    <string name="action_listen_mode">看听模式</string>
     <string name="anonymous_badge">无痕</string>
     <string name="element_picker_badge">工具</string>
     <string name="action_pick_element">屏蔽元素</string>
