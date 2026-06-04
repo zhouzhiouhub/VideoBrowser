@@ -26,7 +26,7 @@ data class MainActivityViews(
     val searchProviderList: LinearLayout,
     val privateBrowsingBadge: TextView,
     val pageToolsButton: ImageButton,
-    val wenxinButton: TextView,
+    val wenxinButton: ImageButton,
     val profileButton: ImageButton,
     val backButton: ImageButton,
     val refreshButton: ImageButton,

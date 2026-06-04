@@ -6,7 +6,6 @@ import android.view.KeyEvent
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -21,7 +20,7 @@ class BrowserControlsController(
     private val addressInput: EditText,
     private val pageProgress: ProgressBar,
     private val pageToolsButton: ImageButton,
-    private val wenxinButton: TextView,
+    private val wenxinButton: ImageButton,
     private val profileButton: ImageButton,
     private val backButton: ImageButton,
     private val refreshButton: ImageButton,

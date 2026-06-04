@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
     private val webViewContainer: FrameLayout get() = views.webViewContainer
     private val privateBrowsingBadge: TextView get() = views.privateBrowsingBadge
     private val pageToolsButton: ImageButton get() = views.pageToolsButton
-    private val wenxinButton: TextView get() = views.wenxinButton
+    private val wenxinButton: ImageButton get() = views.wenxinButton
     private val profileButton: ImageButton get() = views.profileButton
     private val backButton: ImageButton get() = views.backButton
     private val refreshButton: ImageButton get() = views.refreshButton
@@ -681,10 +681,9 @@ class MainActivity : AppCompatActivity() {
             setColor(colors.addressBackground)
             setStroke(dp(1), colors.addressStroke)
         }
-        listOf(backButton, refreshButton, pageToolsButton, bookmarkButton, profileButton).forEach { button ->
+        listOf(backButton, refreshButton, pageToolsButton, bookmarkButton, wenxinButton, profileButton).forEach { button ->
             button.setColorFilter(colors.icon)
         }
-        wenxinButton.setTextColor(Color.WHITE)
         pageProgress.progressTintList = ColorStateList.valueOf(colors.progress)
         WindowInsetsControllerCompat(window, rootView).isAppearanceLightStatusBars =
             !isPrivateBrowsingEnabled()

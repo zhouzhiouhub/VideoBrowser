@@ -161,84 +161,113 @@
 
     </FrameLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomBar"
         android:layout_width="0dp"
         android:layout_height="62dp"
         android:background="@color/browser_surface"
-        android:gravity="center"
-        android:orientation="horizontal"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/bottomBarCenterGuide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
+
         <ImageButton
             android:id="@+id/backButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/bg_icon_button"
             android:contentDescription="@string/action_back"
             android:enabled="false"
-            android:padding="18dp"
+            android:padding="12dp"
             android:scaleType="center"
             android:src="@drawable/ic_arrow_back_24"
-            android:tint="@color/bottom_nav_icon" />
+            android:tint="@color/bottom_nav_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/pageToolsButton"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/pageToolsButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/bg_icon_button"
             android:contentDescription="@string/title_page_tools"
-            android:padding="18dp"
+            android:padding="12dp"
             android:scaleType="center"
             android:src="@drawable/ic_menu_24"
-            android:tint="@color/bottom_nav_icon" />
+            android:tint="@color/bottom_nav_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/refreshButton"
+            app:layout_constraintStart_toEndOf="@id/backButton"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
+        <ImageButton
             android:id="@+id/wenxinButton"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1.25"
-            android:background="@drawable/bg_wenxin_pill"
-            android:drawablePadding="4dp"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:text="@string/action_wenxin"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:drawableStartCompat="@drawable/ic_wenxin_wave_24"
-            app:drawableTint="@android:color/white" />
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/action_wenxin"
+            android:padding="12dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_wenxin_wave_24"
+            android:tint="@color/bottom_nav_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/bottomBarCenterGuide"
+            app:layout_constraintStart_toEndOf="@id/refreshButton"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/profileButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/bg_icon_button"
             android:contentDescription="@string/action_profile"
-            android:padding="18dp"
+            android:padding="12dp"
             android:scaleType="center"
             android:src="@drawable/ic_settings_24"
-            android:tint="@color/bottom_nav_icon" />
+            android:tint="@color/bottom_nav_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/bottomBarCenterGuide"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/refreshButton"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/bg_icon_button"
             android:contentDescription="@string/action_refresh"
+            android:padding="12dp"
             android:scaleType="center"
             android:src="@drawable/ic_refresh_24"
             android:tint="@color/bottom_nav_icon"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/wenxinButton"
+            app:layout_constraintStart_toEndOf="@id/pageToolsButton"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <FrameLayout
         android:id="@+id/fullscreenContainer"
