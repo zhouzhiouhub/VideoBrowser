@@ -297,6 +297,7 @@ class MainActivity : AppCompatActivity() {
             functionCenter = functionCenterController,
             settingsManager = settingsManager,
             browserManager = ::currentBrowserManager,
+            browserManagers = ::browserManagers,
             savedPageRepository = savedPageRepository,
             adBlockLogger = adBlockLogger,
             currentSiteHost = ::currentSiteHost,

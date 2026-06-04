@@ -195,6 +195,18 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun userWhitelistedSiteHosts_canBeCleared() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        assertTrue(settings.setUserWhitelistedSite("ads.example.com", true))
+        assertTrue(settings.setUserWhitelistedSite("tracker.example.com", true))
+
+        settings.clearUserWhitelistedSites()
+
+        assertTrue(settings.userWhitelistedSiteHosts().isEmpty())
+    }
+
+    @Test
     fun userElementHideSelectors_areNormalizedAndPersistedByHost() {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)

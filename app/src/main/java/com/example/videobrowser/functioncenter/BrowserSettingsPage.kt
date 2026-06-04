@@ -22,6 +22,9 @@ class BrowserSettingsPage(
     private val showAdBlockLog: () -> Unit,
     private val showUserWhitelistManager: () -> Unit,
     private val showUserManualRulesManager: () -> Unit,
+    private val showCookieManager: () -> Unit,
+    private val showCacheManager: () -> Unit,
+    private val showSiteDataManager: () -> Unit,
     private val showRestoreDefaultSettingsPage: () -> Unit,
     private val showRootPage: () -> Unit
 ) {
@@ -129,6 +132,56 @@ class BrowserSettingsPage(
                     summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
                 ) {
                     showUserManualRulesManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.BOOKMARKS -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.title_bookmarks),
+                    summary = activity.getString(R.string.action_show_bookmarks_summary)
+                ) {
+                    showBookmarks()
+                }
+            }
+
+            FunctionCenterDataManagementAction.HISTORY -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.title_history),
+                    summary = activity.getString(R.string.action_show_history_summary)
+                ) {
+                    showHistory()
+                }
+            }
+
+            FunctionCenterDataManagementAction.COOKIES -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_cookies),
+                    summary = activity.getString(R.string.action_manage_cookies_summary)
+                ) {
+                    showCookieManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.CACHE -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_cache),
+                    summary = activity.getString(R.string.action_manage_cache_summary)
+                ) {
+                    showCacheManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.SITE_DATA -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_site_data),
+                    summary = activity.getString(R.string.action_manage_site_data_summary)
+                ) {
+                    showSiteDataManager()
                 }
             }
 

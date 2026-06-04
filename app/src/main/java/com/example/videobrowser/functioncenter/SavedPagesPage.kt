@@ -3,6 +3,7 @@ package com.example.videobrowser.functioncenter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
+import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.utils.UrlUtils
@@ -21,15 +22,16 @@ class SavedPagesPage(
         emptyMessage: String
     ) {
         val pages = savedPageRepository.pages(collection)
-        if (pages.isEmpty()) {
-            Toast.makeText(activity, emptyMessage, Toast.LENGTH_SHORT).show()
-            return
-        }
 
         host.showPage(
             title = title,
             onBack = showRootPage
         ) { content ->
+            if (pages.isEmpty()) {
+                host.addEmptyState(content, emptyMessage)
+                return@showPage
+            }
+
             host.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
@@ -53,11 +55,34 @@ class SavedPagesPage(
                         title = page.title.ifBlank { page.url },
                         summary = UrlUtils.displayUrl(page.url)
                     ) {
-                        loadUrl(page.url)
+                        showSavedPageActionsDialog(collection, page, title, emptyMessage)
                     }
                 }
             }
         }
+    }
+
+    private fun showSavedPageActionsDialog(
+        collection: SavedPageCollection,
+        page: SavedPage,
+        title: String,
+        emptyMessage: String
+    ) {
+        AlertDialog.Builder(activity)
+            .setTitle(page.title.ifBlank { page.url })
+            .setMessage(UrlUtils.displayUrl(page.url))
+            .setPositiveButton(R.string.action_open_page) { _, _ -> loadUrl(page.url) }
+            .setNeutralButton(R.string.action_remove) { _, _ ->
+                savedPageRepository.remove(collection, page.url)
+                Toast.makeText(
+                    activity,
+                    R.string.toast_saved_page_removed,
+                    Toast.LENGTH_SHORT
+                ).show()
+                show(collection, title, emptyMessage)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showClearSavedPagesDialog(collection: SavedPageCollection) {

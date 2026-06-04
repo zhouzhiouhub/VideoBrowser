@@ -150,6 +150,10 @@ class SettingsManager(
         return loadHostSet(KEY_USER_WHITELISTED_SITE_HOSTS)
     }
 
+    fun clearUserWhitelistedSites() {
+        preferenceStore.remove(KEY_USER_WHITELISTED_SITE_HOSTS)
+    }
+
     fun userElementHideSelectorsForSite(host: String?): List<String> {
         val normalizedHost = SiteHost.normalize(host) ?: return emptyList()
         return userElementHideRules()

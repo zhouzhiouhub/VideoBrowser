@@ -50,6 +50,18 @@ class UserWhitelistPage(
             } else {
                 host.addFunctionSection(
                     content,
+                    activity.getString(R.string.function_center_section_actions)
+                ) { section ->
+                    host.addActionRow(
+                        parent = section,
+                        title = activity.getString(R.string.action_clear),
+                        summary = activity.getString(R.string.action_clear_user_whitelist_summary)
+                    ) {
+                        showClearUserWhitelistDialog()
+                    }
+                }
+                host.addFunctionSection(
+                    content,
                     activity.getString(R.string.function_center_section_sites)
                 ) { section ->
                     hosts.forEach { hostName ->
@@ -75,6 +87,24 @@ class UserWhitelistPage(
                 Toast.makeText(
                     activity,
                     activity.getString(R.string.toast_user_whitelist_removed, hostName),
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager().reload()
+                show()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showClearUserWhitelistDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear)
+            .setMessage(R.string.dialog_clear_user_whitelist_message)
+            .setPositiveButton(R.string.action_clear) { _, _ ->
+                settingsManager.clearUserWhitelistedSites()
+                Toast.makeText(
+                    activity,
+                    R.string.toast_user_whitelist_cleared,
                     Toast.LENGTH_SHORT
                 ).show()
                 browserManager().reload()

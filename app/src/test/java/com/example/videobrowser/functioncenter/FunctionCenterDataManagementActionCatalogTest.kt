@@ -16,6 +16,11 @@ class FunctionCenterDataManagementActionCatalogTest {
                 "AD_BLOCK_LOG",
                 "USER_WHITELIST",
                 "USER_MANUAL_RULES",
+                "BOOKMARKS",
+                "HISTORY",
+                "COOKIES",
+                "CACHE",
+                "SITE_DATA",
                 "RESTORE_DEFAULT_SETTINGS"
             ),
             actions
@@ -24,11 +29,11 @@ class FunctionCenterDataManagementActionCatalogTest {
     }
 
     @Test
-    fun privateBrowsingOnlyShowsRestoreDefaultSettings() {
+    fun privateBrowsingOnlyShowsCacheAndRestoreDefaultSettings() {
         val actions = FunctionCenterDataManagementActionCatalog.actions(
             isPrivateBrowsing = true
         ).map { action -> action.name }
 
-        assertEquals(listOf("RESTORE_DEFAULT_SETTINGS"), actions)
+        assertEquals(listOf("CACHE", "RESTORE_DEFAULT_SETTINGS"), actions)
     }
 }

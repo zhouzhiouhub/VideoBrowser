@@ -16,6 +16,7 @@ class FunctionCenterPages(
     functionCenter: FunctionCenterController,
     private val settingsManager: SettingsManager,
     private val browserManager: () -> BrowserManager,
+    private val browserManagers: () -> List<BrowserManager>,
     private val savedPageRepository: SavedPageRepository,
     adBlockLogger: AdBlockLogger,
     private val currentSiteHost: () -> String?,
@@ -81,6 +82,13 @@ class FunctionCenterPages(
         browserManager = browserManager,
         showRootPage = ::showRootPage
     )
+    private val browserDataManagementPage = BrowserDataManagementPage(
+        host = host,
+        browserManager = browserManager,
+        browserManagers = browserManagers,
+        currentActionableUrl = currentActionableUrl,
+        showRootPage = ::showRootPage
+    )
     private val restoreDefaultSettingsPage = RestoreDefaultSettingsPage(
         host = host,
         restoreDefaultSettings = restoreDefaultSettings
@@ -102,6 +110,9 @@ class FunctionCenterPages(
         showAdBlockLog = adBlockLogPage::show,
         showUserWhitelistManager = userWhitelistPage::show,
         showUserManualRulesManager = userManualRulesPage::show,
+        showCookieManager = browserDataManagementPage::showCookies,
+        showCacheManager = browserDataManagementPage::showCache,
+        showSiteDataManager = browserDataManagementPage::showSiteData,
         showRestoreDefaultSettingsPage = restoreDefaultSettingsPage::show,
         showRootPage = ::showRootPage
     )

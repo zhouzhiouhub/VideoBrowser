@@ -43,6 +43,10 @@ class SavedPageRepository(
         preferenceStore.remove(collection.key)
     }
 
+    fun remove(collection: SavedPageCollection, url: String): Boolean {
+        return removeSavedPage(collection.key, url)
+    }
+
     fun clearAll() {
         SavedPageCollection.values().forEach { collection ->
             preferenceStore.remove(collection.key)
@@ -61,10 +65,14 @@ class SavedPageRepository(
         saveSavedPages(key, pages.take(limit))
     }
 
-    private fun removeSavedPage(key: String, url: String) {
+    private fun removeSavedPage(key: String, url: String): Boolean {
         val pages = loadSavedPages(key)
             .filterNot { it.url.equals(url, ignoreCase = true) }
+        if (pages.size == loadSavedPages(key).size) {
+            return false
+        }
         saveSavedPages(key, pages)
+        return true
     }
 
     private fun isSavedPage(key: String, url: String): Boolean {
@@ -86,6 +94,10 @@ class SavedPageRepository(
     }
 
     private fun saveSavedPages(key: String, pages: List<SavedPage>) {
+        if (pages.isEmpty()) {
+            preferenceStore.remove(key)
+            return
+        }
         val array = JSONArray()
         pages.forEach { page ->
             array.put(

@@ -195,6 +195,10 @@ class BrowserManager(
         clearBrowsingData(webView, clearSharedStores)
     }
 
+    fun clearCache() {
+        webView.clearCache(true)
+    }
+
     fun destroyWebView(targetWebView: WebView, clearSharedStores: Boolean = true) {
         targetWebView.webChromeClient = null
         if (targetWebView === webView) {
