@@ -406,32 +406,21 @@ class FunctionCenterViewFactory(
         parent: LinearLayout,
         actions: List<FunctionCenterGridAction>
     ) {
-        actions.chunked(5).forEachIndexed { rowIndex, rowActions ->
+        FunctionCenterActionGridLayout.rows(actions.size).forEachIndexed { rowIndex, rowSlots ->
             val row = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
+                gravity = Gravity.START or Gravity.CENTER_VERTICAL
             }
-            rowActions.forEachIndexed { columnIndex, action ->
+            rowSlots.forEach { actionIndex ->
                 row.addView(
-                    createGridActionView(action),
+                    actionIndex?.let { createGridActionView(actions[it]) } ?: View(activity),
                     LinearLayout.LayoutParams(
                         0,
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         1f
                     ).apply {
-                        if (columnIndex == 0) {
-                            marginEnd = dp(2)
-                        } else {
-                            marginStart = dp(2)
-                        }
-                    }
-                )
-            }
-            if (rowActions.size == 1) {
-                row.addView(
-                    View(activity),
-                    LinearLayout.LayoutParams(0, dp(1), 1f).apply {
                         marginStart = dp(2)
+                        marginEnd = dp(2)
                     }
                 )
             }
