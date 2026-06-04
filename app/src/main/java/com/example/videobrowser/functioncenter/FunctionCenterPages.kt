@@ -336,36 +336,50 @@ class FunctionCenterPages(
         ) { section ->
             host.addActionGrid(
                 section,
-                listOf(
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.title_history),
-                        summary = activity.getString(R.string.action_show_history_summary),
-                        iconResId = R.drawable.ic_history_24
-                    ) { showHistory() },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.title_bookmarks),
-                        summary = activity.getString(R.string.action_show_bookmarks_summary),
-                        iconResId = R.drawable.ic_star_24
-                    ) { showBookmarks() },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_file_operations),
-                        summary = activity.getString(R.string.action_file_operations_summary),
-                        iconResId = R.drawable.ic_file_24
-                    ) { showFileOperationsPage() },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_show_ad_block_log),
-                        summary = activity.getString(R.string.action_show_ad_block_log_summary),
-                        iconResId = R.drawable.ic_settings_24,
-                        enabled = !isPrivateBrowsingEnabled()
-                    ) { adBlockLogPage.show() }
-                )
+                FunctionCenterProfileActionCatalog.shortcuts().map(::createProfileGridAction)
             )
+        }
+    }
+
+    private fun createProfileGridAction(action: FunctionCenterProfileAction): FunctionCenterGridAction {
+        return when (action) {
+            FunctionCenterProfileAction.HISTORY -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_history),
+                    summary = activity.getString(R.string.action_show_history_summary),
+                    iconResId = R.drawable.ic_history_24
+                ) { showHistory() }
+            }
+
+            FunctionCenterProfileAction.BOOKMARKS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_bookmarks),
+                    summary = activity.getString(R.string.action_show_bookmarks_summary),
+                    iconResId = R.drawable.ic_star_24
+                ) { showBookmarks() }
+            }
+
+            FunctionCenterProfileAction.FILE_OPERATIONS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_file_operations),
+                    summary = activity.getString(R.string.action_file_operations_summary),
+                    iconResId = R.drawable.ic_file_24
+                ) { showFileOperationsPage() }
+            }
+
+            FunctionCenterProfileAction.BROWSER_SETTINGS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_browser_settings),
+                    summary = activity.getString(R.string.action_browser_settings_summary),
+                    iconResId = R.drawable.ic_settings_24
+                ) { browserSettingsPage.show() }
+            }
         }
     }
 
     private fun addProfileFeatureSection(parent: LinearLayout) {
         browserSettingsPage.addExpandedBrowserSettings(parent)
-        browserSettingsPage.addExpandedDataManagement(parent)
+        browserSettingsPage.addProfileDataManagement(parent)
     }
 
     private fun addCurrentPageActionSection(

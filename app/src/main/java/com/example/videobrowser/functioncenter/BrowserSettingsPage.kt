@@ -53,6 +53,16 @@ class BrowserSettingsPage(
         }
     }
 
+    fun addProfileDataManagement(parent: LinearLayout) {
+        host.addFunctionSection(
+            parent,
+            activity.getString(R.string.function_center_section_data)
+        ) { section ->
+            FunctionCenterDataManagementActionCatalog.profileActions()
+                .forEach { action -> addDataManagementActionRow(section, action) }
+        }
+    }
+
     private fun addToolboxSection(parent: LinearLayout) {
         host.addFunctionSection(
             parent,

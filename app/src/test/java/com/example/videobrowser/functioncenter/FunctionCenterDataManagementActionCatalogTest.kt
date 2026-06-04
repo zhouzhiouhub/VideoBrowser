@@ -36,4 +36,12 @@ class FunctionCenterDataManagementActionCatalogTest {
 
         assertEquals(listOf("CACHE", "RESTORE_DEFAULT_SETTINGS"), actions)
     }
+
+    @Test
+    fun profileDataManagementOnlyShowsRestoreDefaultSettings() {
+        val actions = FunctionCenterDataManagementActionCatalog.profileActions()
+            .map { action -> action.name }
+
+        assertEquals(listOf("RESTORE_DEFAULT_SETTINGS"), actions)
+    }
 }

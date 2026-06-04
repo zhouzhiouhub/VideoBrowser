@@ -26,4 +26,8 @@ object FunctionCenterDataManagementActionCatalog {
             FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS
         )
     }
+
+    fun profileActions(): List<FunctionCenterDataManagementAction> {
+        return listOf(FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS)
+    }
 }
