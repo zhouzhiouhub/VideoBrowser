@@ -170,15 +170,22 @@ class FunctionCenterPages(
             title = activity.getString(R.string.title_profile_page),
             onBack = { close() }
         ) { content ->
-            host.addProfileHeader(
-                parent = content,
-                title = activity.getString(R.string.function_center_profile_name),
-                summary = activity.getString(R.string.function_center_profile_summary)
-            ) {
-                browserSettingsPage.show()
+            FunctionCenterProfilePageLayout.blocks().forEach { block ->
+                when (block) {
+                    FunctionCenterProfilePageBlock.PROFILE_HEADER -> {
+                        host.addProfileHeader(
+                            parent = content,
+                            title = activity.getString(R.string.function_center_profile_name),
+                            summary = activity.getString(R.string.function_center_profile_summary)
+                        ) {
+                            browserSettingsPage.show()
+                        }
+                    }
+
+                    FunctionCenterProfilePageBlock.SHORTCUTS -> addProfileShortcutSection(content)
+                    FunctionCenterProfilePageBlock.FEATURES -> addProfileFeatureSection(content)
+                }
             }
-            addProfileShortcutSection(content)
-            addProfileFeatureSection(content)
         }
     }
 
@@ -392,13 +399,6 @@ class FunctionCenterPages(
                 ) { showFileOperationsPage() }
             }
 
-            FunctionCenterProfileAction.BROWSER_SETTINGS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_browser_settings),
-                    summary = activity.getString(R.string.action_browser_settings_summary),
-                    iconResId = R.drawable.ic_settings_24
-                ) { browserSettingsPage.show() }
-            }
         }
     }
 

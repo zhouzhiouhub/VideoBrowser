@@ -4,8 +4,7 @@ enum class FunctionCenterProfileAction {
     HISTORY,
     BOOKMARKS,
     DOWNLOADS,
-    FILE_OPERATIONS,
-    BROWSER_SETTINGS
+    FILE_OPERATIONS
 }
 
 object FunctionCenterProfileActionCatalog {
@@ -14,8 +13,7 @@ object FunctionCenterProfileActionCatalog {
             FunctionCenterProfileAction.HISTORY,
             FunctionCenterProfileAction.BOOKMARKS,
             FunctionCenterProfileAction.DOWNLOADS,
-            FunctionCenterProfileAction.FILE_OPERATIONS,
-            FunctionCenterProfileAction.BROWSER_SETTINGS
+            FunctionCenterProfileAction.FILE_OPERATIONS
         )
     }
 }

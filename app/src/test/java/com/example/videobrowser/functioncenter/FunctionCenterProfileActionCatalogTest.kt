@@ -1,11 +1,12 @@
 package com.example.videobrowser.functioncenter
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class FunctionCenterProfileActionCatalogTest {
     @Test
-    fun profileShortcutsEndWithBrowserSettingsInsteadOfDataRows() {
+    fun profileShortcutsExcludeBrowserSettingsBecauseExpandedSettingsAreAlreadyShown() {
         val actions = FunctionCenterProfileActionCatalog.shortcuts()
             .map { action -> action.name }
 
@@ -14,10 +15,10 @@ class FunctionCenterProfileActionCatalogTest {
                 "HISTORY",
                 "BOOKMARKS",
                 "DOWNLOADS",
-                "FILE_OPERATIONS",
-                "BROWSER_SETTINGS"
+                "FILE_OPERATIONS"
             ),
             actions
         )
+        assertFalse(actions.contains("BROWSER_SETTINGS"))
     }
 }
