@@ -360,7 +360,9 @@ class FunctionCenterPages(
         ) { section ->
             host.addActionGrid(
                 section,
-                FunctionCenterProfileActionCatalog.shortcuts().map(::createProfileGridAction)
+                FunctionCenterProfileActionCatalog.shortcuts(
+                    isPrivateBrowsing = isPrivateBrowsingEnabled()
+                ).map(::createProfileGridAction)
             )
         }
     }
@@ -397,6 +399,14 @@ class FunctionCenterPages(
                     summary = activity.getString(R.string.action_file_operations_summary),
                     iconResId = R.drawable.ic_file_24
                 ) { showFileOperationsPage() }
+            }
+
+            FunctionCenterProfileAction.USER_MANUAL_RULES -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_manage_user_manual_rules_short),
+                    summary = activity.getString(R.string.action_manage_user_manual_rules_summary),
+                    iconResId = R.drawable.ic_rule_24
+                ) { userManualRulesPage.show() }
             }
 
         }

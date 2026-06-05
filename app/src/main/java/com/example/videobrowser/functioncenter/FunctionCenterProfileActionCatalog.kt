@@ -4,16 +4,18 @@ enum class FunctionCenterProfileAction {
     HISTORY,
     BOOKMARKS,
     DOWNLOADS,
-    FILE_OPERATIONS
+    FILE_OPERATIONS,
+    USER_MANUAL_RULES
 }
 
 object FunctionCenterProfileActionCatalog {
-    fun shortcuts(): List<FunctionCenterProfileAction> {
-        return listOf(
+    fun shortcuts(isPrivateBrowsing: Boolean): List<FunctionCenterProfileAction> {
+        return listOfNotNull(
             FunctionCenterProfileAction.HISTORY,
             FunctionCenterProfileAction.BOOKMARKS,
             FunctionCenterProfileAction.DOWNLOADS,
-            FunctionCenterProfileAction.FILE_OPERATIONS
+            FunctionCenterProfileAction.FILE_OPERATIONS,
+            FunctionCenterProfileAction.USER_MANUAL_RULES.takeIf { !isPrivateBrowsing }
         )
     }
 }

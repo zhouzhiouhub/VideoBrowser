@@ -27,10 +27,7 @@ object FunctionCenterDataManagementActionCatalog {
         )
     }
 
-    fun profileActions(isPrivateBrowsing: Boolean): List<FunctionCenterDataManagementAction> {
-        return listOfNotNull(
-            FunctionCenterDataManagementAction.USER_MANUAL_RULES.takeIf { !isPrivateBrowsing },
-            FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS
-        )
+    fun profileActions(): List<FunctionCenterDataManagementAction> {
+        return listOf(FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS)
     }
 }

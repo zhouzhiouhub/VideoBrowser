@@ -153,6 +153,7 @@
     <string name="action_manage_user_whitelist">用户白名单</string>
     <string name="action_manage_user_whitelist_summary">添加或移除拦截放行站点</string>
     <string name="action_manage_user_manual_rules">手动屏蔽规则</string>
+    <string name="action_manage_user_manual_rules_short">屏蔽规则</string>
     <string name="action_manage_user_manual_rules_summary">查看或删除手动添加的元素屏蔽规则</string>
     <string name="action_manage_cookies">Cookie</string>
     <string name="action_manage_cookies_summary">删除当前站点 Cookie，或清空全部 Cookie</string>

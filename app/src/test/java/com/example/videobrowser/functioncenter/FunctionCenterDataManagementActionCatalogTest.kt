@@ -38,23 +38,9 @@ class FunctionCenterDataManagementActionCatalogTest {
     }
 
     @Test
-    fun profileDataManagementShowsManualRulesBeforeRestoreDefaultSettings() {
-        val actions = FunctionCenterDataManagementActionCatalog.profileActions(
-            isPrivateBrowsing = false
-        )
+    fun profileDataManagementOnlyShowsRestoreDefaultSettings() {
+        val actions = FunctionCenterDataManagementActionCatalog.profileActions()
             .map { action -> action.name }
-
-        assertEquals(
-            listOf("USER_MANUAL_RULES", "RESTORE_DEFAULT_SETTINGS"),
-            actions
-        )
-    }
-
-    @Test
-    fun profileDataManagementHidesManualRulesInPrivateBrowsing() {
-        val actions = FunctionCenterDataManagementActionCatalog.profileActions(
-            isPrivateBrowsing = true
-        ).map { action -> action.name }
 
         assertEquals(listOf("RESTORE_DEFAULT_SETTINGS"), actions)
     }

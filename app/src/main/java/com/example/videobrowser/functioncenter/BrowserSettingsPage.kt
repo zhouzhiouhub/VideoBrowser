@@ -58,7 +58,7 @@ class BrowserSettingsPage(
             parent,
             activity.getString(R.string.function_center_section_data)
         ) { section ->
-            FunctionCenterDataManagementActionCatalog.profileActions(isPrivateBrowsingEnabled())
+            FunctionCenterDataManagementActionCatalog.profileActions()
                 .forEach { action -> addDataManagementActionRow(section, action) }
         }
     }
