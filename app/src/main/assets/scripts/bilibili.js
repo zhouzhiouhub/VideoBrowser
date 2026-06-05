@@ -8,6 +8,24 @@
   };
   window.__videobrowserBilibiliState = state;
 
+  var playbackOverlaySelectors = [
+    '.mplayer-play-icon',
+    '.mplayer-pause-icon',
+    '.mplayer-icon-play',
+    '.mplayer-icon-pause',
+    '.mplayer-state-play',
+    '.mplayer-state-pause',
+    '.bpx-player-state-wrap',
+    '.bpx-player-state-play',
+    '.bpx-player-state-pause',
+    '.bilibili-player-video-state',
+    '[class*="player-state"]',
+    '[class*="state-play"]',
+    '[class*="state-pause"]',
+    '[class*="mplayer"][class*="play"]',
+    '[class*="mplayer"][class*="pause"]'
+  ];
+
   function query(selector) {
     try {
       return document.querySelectorAll(selector);
@@ -58,6 +76,119 @@
     });
   }
 
+  function hideVideoPlayPauseOverlays() {
+    var videos = Array.prototype.slice.call(query('video')).filter(function (video) {
+      return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
+    });
+    if (!videos.length) return;
+
+    playbackOverlaySelectors.forEach(function (selector) {
+      query(selector).forEach(function (element) {
+        var video = matchingVideoForOverlay(element, videos);
+        if (!video || !isLikelyCenterPlaybackOverlay(element, video)) return;
+        hideElement(playbackOverlayRoot(element, video), 'bilibili-video-play-overlay');
+      });
+    });
+  }
+
+  function matchingVideoForOverlay(element, videos) {
+    var elementRect = safeRect(element);
+    if (!elementRect) return null;
+
+    var bestVideo = null;
+    var bestDistance = Infinity;
+    videos.forEach(function (video) {
+      var videoRect = safeRect(video);
+      if (!videoRect) return;
+      if (!rectsOverlap(elementRect, expandedRect(videoRect, 16))) return;
+
+      var distance = centerDistance(elementRect, videoRect);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestVideo = video;
+      }
+    });
+    return bestVideo;
+  }
+
+  function isLikelyCenterPlaybackOverlay(element, video) {
+    if (!element || !video || element.querySelector('video')) return false;
+
+    var descriptor = (String(element.id || '') + ' ' + String(element.className || '')).toLowerCase();
+    if (!/(^|[-_\s])(play|pause|state|mplayer|bpx-player-state)([-_\s]|$)|player-state|state-play|state-pause/.test(descriptor)) {
+      return false;
+    }
+
+    var elementRect = safeRect(element);
+    var videoRect = safeRect(video);
+    if (!elementRect || !videoRect) return false;
+    if (!rectsOverlap(elementRect, expandedRect(videoRect, 16))) return false;
+
+    var centerLimitX = Math.max(72, videoRect.width * 0.28);
+    var centerLimitY = Math.max(54, videoRect.height * 0.32);
+    var centerAligned =
+      Math.abs(rectCenterX(elementRect) - rectCenterX(videoRect)) <= centerLimitX &&
+      Math.abs(rectCenterY(elementRect) - rectCenterY(videoRect)) <= centerLimitY;
+    if (!centerAligned) return false;
+
+    var compactControl =
+      elementRect.width <= Math.max(144, videoRect.width * 0.72) &&
+      elementRect.height <= Math.max(144, videoRect.height * 0.72);
+    var knownStateLayer = /mplayer|bpx-player-state|player-state|video-state|state-play|state-pause/.test(descriptor);
+    return compactControl || knownStateLayer;
+  }
+
+  function playbackOverlayRoot(element, video) {
+    var root = element;
+    for (var depth = 0; depth < 3 && root.parentElement; depth += 1) {
+      var parent = root.parentElement;
+      if (parent === document.body || parent === document.documentElement) break;
+      if (parent.querySelector('video')) break;
+      if (!isLikelyCenterPlaybackOverlay(parent, video)) break;
+      root = parent;
+    }
+    return root;
+  }
+
+  function safeRect(element) {
+    if (!element || typeof element.getBoundingClientRect !== 'function') return null;
+    var rect = element.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return null;
+    return rect;
+  }
+
+  function expandedRect(rect, amount) {
+    return {
+      left: rect.left - amount,
+      right: rect.right + amount,
+      top: rect.top - amount,
+      bottom: rect.bottom + amount,
+      width: rect.width + amount * 2,
+      height: rect.height + amount * 2
+    };
+  }
+
+  function rectsOverlap(first, second) {
+    return first.left < second.right &&
+      first.right > second.left &&
+      first.top < second.bottom &&
+      first.bottom > second.top;
+  }
+
+  function rectCenterX(rect) {
+    return rect.left + rect.width / 2;
+  }
+
+  function rectCenterY(rect) {
+    return rect.top + rect.height / 2;
+  }
+
+  function centerDistance(first, second) {
+    var dx = rectCenterX(first) - rectCenterX(second);
+    var dy = rectCenterY(first) - rectCenterY(second);
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
   function run(config) {
     if (!document.documentElement) return;
     if (config && config.cleanupEnabled) {
@@ -78,6 +209,7 @@
     if (config && config.videoEnabled) {
       clickTextButtons(/(\u8df3\u8fc7|\u5173\u95ed|skip|close)/i);
       enableVideoControls();
+      hideVideoPlayPauseOverlays();
     }
   }
 
