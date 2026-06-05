@@ -1,6 +1,7 @@
 package com.example.videobrowser.site
 
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -11,7 +12,8 @@ class BilibiliVideoOverlayContractTest {
 
         assertTrue(script.contains("function hideVideoPlayPauseOverlays()"))
         assertTrue(script.contains("function isLikelyCenterPlaybackOverlay(element, video)"))
-        assertTrue(script.contains("enableVideoControls();\n      hideVideoPlayPauseOverlays();"))
+        assertTrue(script.contains("hideVideoPlayPauseOverlays();"))
+        assertFalse(script.contains("enableVideoControls();\n      hideVideoPlayPauseOverlays();"))
         assertTrue(script.contains(".mplayer-play-icon"))
         assertTrue(script.contains(".bpx-player-state-wrap"))
         assertTrue(script.contains("bilibili-video-play-overlay"))

@@ -1374,7 +1374,54 @@
     return Number.isFinite(speed) && speed > 0 ? speed : 1;
   }
 
+  function siteVideoCapabilitiesFor(video, action) {
+    const adapters = window.VideoBrowserSiteAdapters || {};
+    return Object.keys(adapters).map(function (key) {
+      const adapter = adapters[key];
+      return adapter && adapter.videoCapabilities;
+    }).filter(function (capabilities) {
+      if (!capabilities || typeof capabilities !== 'object') return false;
+      if (action && typeof capabilities[action] !== 'function') return false;
+      if (typeof capabilities.supports === 'function') {
+        try {
+          if (!capabilities.supports(video)) return false;
+        } catch (_) {
+          return false;
+        }
+      }
+      if (action && typeof capabilities.canUse === 'function') {
+        try {
+          if (!capabilities.canUse(action, video)) return false;
+        } catch (_) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  function hasSiteVideoCapability(video, action) {
+    return siteVideoCapabilitiesFor(video, action).length > 0;
+  }
+
+  function invokeSiteVideoCapability(video, action, args) {
+    const capabilitiesList = siteVideoCapabilitiesFor(video, action);
+    for (let index = 0; index < capabilitiesList.length; index += 1) {
+      const capabilities = capabilitiesList[index];
+      const method = capabilities && capabilities[action];
+      if (typeof method !== 'function') continue;
+      try {
+        const result = method.apply(capabilities, [video].concat(args || []));
+        if (result !== null && typeof result !== 'undefined') {
+          return { handled: true, value: result };
+        }
+      } catch (_) {}
+    }
+    return { handled: false, value: undefined };
+  }
+
   function applyVideoSpeed(video) {
+    if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;
     const speed = desiredVideoSpeed(video);
     try {
       if (Math.abs(Number(video.playbackRate || 1) - speed) > 0.01) {
@@ -1385,6 +1432,8 @@
   }
 
   function enableVideoControls(video) {
+    const siteResult = invokeSiteVideoCapability(video, 'enableControls', []);
+    if (siteResult.handled) return;
     enableNativeVideoControls(video);
   }
 
@@ -1504,6 +1553,11 @@
 
   function seekVideoTo(video, targetSeconds) {
     if (!video || !Number.isFinite(targetSeconds)) return;
+    const siteResult = invokeSiteVideoCapability(video, 'seekTo', [targetSeconds]);
+    if (siteResult.handled) {
+      reportPlaybackTimeline(video);
+      return;
+    }
     const timeline = videoTimeline(video);
     let targetTime = targetSeconds;
     if (timeline.canSeek) {
@@ -1525,6 +1579,11 @@
 
   function seekVideoBy(video, offsetSeconds) {
     if (!video || !Number.isFinite(offsetSeconds)) return;
+    const siteResult = invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds]);
+    if (siteResult.handled) {
+      reportPlaybackTimeline(video);
+      return;
+    }
     const timeline = videoTimeline(video);
     let targetTime = Number(video.currentTime || 0) + offsetSeconds;
     if (timeline.canSeek) {
@@ -1750,6 +1809,8 @@
   function togglePlayPause() {
     const video = activeFullscreenVideo();
     if (!video) return false;
+    const siteResult = invokeSiteVideoCapability(video, 'togglePlayPause', []);
+    if (siteResult.handled) return siteResult.value;
     if (video.paused || video.ended) {
       try {
         if (video.ended) video.currentTime = 0;
@@ -1903,6 +1964,9 @@
       const normalizedSpeed = Number(speed || 1);
       state.fullscreenPlaybackSpeed =
         Number.isFinite(normalizedSpeed) && normalizedSpeed > 0 ? normalizedSpeed : 1;
+      const video = activeFullscreenVideo();
+      const siteResult = invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed]);
+      if (siteResult.handled) return;
       document.querySelectorAll('video').forEach(applyVideoSpeed);
     },
     startDirectionalPlayback: function (direction) {

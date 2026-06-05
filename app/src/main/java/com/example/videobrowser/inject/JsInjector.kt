@@ -84,12 +84,6 @@ class JsInjector(
                 append(COMMON_SCRIPT_INSTALLED_FLAG)
                 appendLine(" = true;")
                 appendLine("  }")
-                appendLine(
-                    "  if (window.VideoBrowserEnhancer && " +
-                        "typeof window.VideoBrowserEnhancer.apply === 'function') {"
-                )
-                appendLine("    window.VideoBrowserEnhancer.apply(config);")
-                appendLine("  }")
                 if (siteScripts.isNotEmpty()) {
                     append("  window.")
                     append(SITE_SCRIPT_FLAGS)
@@ -112,6 +106,12 @@ class JsInjector(
                         appendLine(siteScript.buildApplyCall())
                     }
                 }
+                appendLine(
+                    "  if (window.VideoBrowserEnhancer && " +
+                        "typeof window.VideoBrowserEnhancer.apply === 'function') {"
+                )
+                appendLine("    window.VideoBrowserEnhancer.apply(config);")
+                appendLine("  }")
                 appendLine("})();")
             }
         }

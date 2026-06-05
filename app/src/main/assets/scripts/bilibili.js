@@ -189,6 +189,84 @@
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  function findBilibiliPlayerApi() {
+    var candidates = [
+      window.player,
+      window.bilibiliPlayer,
+      window.__bilibiliPlayer,
+      window.__PLAYER__,
+      window.$player
+    ];
+
+    for (var index = 0; index < candidates.length; index += 1) {
+      var candidate = candidates[index];
+      if (candidate && typeof candidate === 'object') return candidate;
+    }
+    return null;
+  }
+
+  function playerMethodsFor(action, video) {
+    if (action === 'togglePlayPause') {
+      return video && (video.paused || video.ended)
+        ? ['play']
+        : ['pause'];
+    }
+    if (action === 'seekBy' || action === 'seekTo') {
+      return ['seek', 'seekTo', 'setCurrentTime'];
+    }
+    if (action === 'setPlaybackSpeed') {
+      return ['setPlaybackRate', 'setPlaybackSpeed'];
+    }
+    return [];
+  }
+
+  function hasPlayerMethod(action, video) {
+    var api = findBilibiliPlayerApi();
+    if (!api) return false;
+    return playerMethodsFor(action, video).some(function (methodName) {
+      return typeof api[methodName] === 'function';
+    });
+  }
+
+  function callPlayerMethod(methodNames, args) {
+    var api = findBilibiliPlayerApi();
+    if (!api) return null;
+
+    for (var index = 0; index < methodNames.length; index += 1) {
+      var methodName = methodNames[index];
+      var method = api[methodName];
+      if (typeof method !== 'function') continue;
+      try {
+        return {
+          handled: true,
+          value: method.apply(api, args || [])
+        };
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  function handledValue(callResult, fallbackValue) {
+    if (!callResult || !callResult.handled) return null;
+    return typeof callResult.value === 'undefined' ? fallbackValue : callResult.value;
+  }
+
+  function currentVideoTime(video) {
+    var api = findBilibiliPlayerApi();
+    if (api) {
+      var getterNames = ['getCurrentTime', 'currentTime'];
+      for (var index = 0; index < getterNames.length; index += 1) {
+        var getter = api[getterNames[index]];
+        try {
+          var value = typeof getter === 'function' ? getter.call(api) : getter;
+          var numericValue = Number(value);
+          if (Number.isFinite(numericValue) && numericValue >= 0) return numericValue;
+        } catch (_) {}
+      }
+    }
+    return Number(video && video.currentTime || 0);
+  }
+
   function run(config) {
     if (!document.documentElement) return;
     if (config && config.cleanupEnabled) {
@@ -208,7 +286,6 @@
     }
     if (config && config.videoEnabled) {
       clickTextButtons(/(\u8df3\u8fc7|\u5173\u95ed|skip|close)/i);
-      enableVideoControls();
       hideVideoPlayPauseOverlays();
     }
   }
@@ -221,6 +298,41 @@
   }
 
   adapters.bilibili = adapters.bilibili || {};
+  adapters.bilibili.videoCapabilities = {
+    supports: function (video) {
+      return Boolean(video && video.isConnected);
+    },
+    canUse: function (action, video) {
+      if (action === 'enableControls') return true;
+      return hasPlayerMethod(action, video);
+    },
+    enableControls: function (video) {
+      hideVideoPlayPauseOverlays();
+      return Boolean(video);
+    },
+    togglePlayPause: function (video) {
+      var methodNames = playerMethodsFor('togglePlayPause', video);
+      var result = callPlayerMethod(methodNames, []);
+      if (!result) return null;
+      return video && (video.paused || video.ended);
+    },
+    seekBy: function (video, offsetSeconds) {
+      var offset = Number(offsetSeconds);
+      if (!Number.isFinite(offset)) return null;
+      var target = currentVideoTime(video) + offset;
+      return handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
+    },
+    seekTo: function (video, targetSeconds) {
+      var target = Number(targetSeconds);
+      if (!Number.isFinite(target)) return null;
+      return handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
+    },
+    setPlaybackSpeed: function (video, speed) {
+      var normalizedSpeed = Number(speed);
+      if (!Number.isFinite(normalizedSpeed) || normalizedSpeed <= 0) return null;
+      return handledValue(callPlayerMethod(['setPlaybackRate', 'setPlaybackSpeed'], [normalizedSpeed]), true);
+    }
+  };
   adapters.bilibili.apply = function (config) {
     this.lastConfig = config || {};
     state.config = this.lastConfig;

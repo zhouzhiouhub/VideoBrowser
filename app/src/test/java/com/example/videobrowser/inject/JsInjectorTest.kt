@@ -165,6 +165,29 @@ class JsInjectorTest {
     }
 
     @Test
+    fun inject_registersSiteAdaptersBeforeCommonEnhancerAppliesConfig() {
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = scriptLoaderForSiteScripts(),
+            evaluateJavascript = { script -> evaluatedScripts += script },
+            siteAdapterRegistry = SiteAdapterRegistry.default()
+        )
+
+        injector.inject(
+            PageFeatureConfig(cleanupEnabled = true, videoEnabled = true),
+            pageUrl = "https://www.bilibili.com/video/BV1"
+        )
+
+        val script = evaluatedScripts.single()
+        val siteApplyIndex = script.indexOf("window.VideoBrowserSiteAdapters[\"bilibili\"].apply(config);")
+        val commonApplyIndex = script.indexOf("window.VideoBrowserEnhancer.apply(config);")
+
+        assertTrue(siteApplyIndex >= 0)
+        assertTrue(commonApplyIndex >= 0)
+        assertTrue(siteApplyIndex < commonApplyIndex)
+    }
+
+    @Test
     fun inject_addsElementRuleSelectorsToFeatureConfig() {
         val evaluatedScripts = mutableListOf<String>()
         val injector = JsInjector(
