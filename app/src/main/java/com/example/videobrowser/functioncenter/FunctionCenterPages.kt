@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
@@ -18,6 +19,7 @@ class FunctionCenterPages(
     private val browserManager: () -> BrowserManager,
     private val browserManagers: () -> List<BrowserManager>,
     private val savedPageRepository: SavedPageRepository,
+    private val downloadRecordRepository: DownloadRecordRepository,
     adBlockLogger: AdBlockLogger,
     private val currentSiteHost: () -> String?,
     private val currentActionableUrl: () -> String?,
@@ -60,6 +62,11 @@ class FunctionCenterPages(
         host = host,
         savedPageRepository = savedPageRepository,
         loadUrl = loadUrl,
+        showRootPage = ::showRootPage
+    )
+    private val downloadsPage = DownloadsPage(
+        host = host,
+        downloadRecordRepository = downloadRecordRepository,
         showRootPage = ::showRootPage
     )
     private val adBlockLogPage = AdBlockLogPage(
@@ -272,6 +279,16 @@ class FunctionCenterPages(
                 }
             }
 
+            FunctionCenterRootAction.DOWNLOADS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_downloads),
+                    summary = activity.getString(R.string.action_show_downloads_summary),
+                    iconResId = R.drawable.ic_download_24
+                ) {
+                    downloadsPage.show()
+                }
+            }
+
             FunctionCenterRootAction.FILE_OPERATIONS -> {
                 FunctionCenterGridAction(
                     title = activity.getString(R.string.action_file_operations),
@@ -357,6 +374,14 @@ class FunctionCenterPages(
                     summary = activity.getString(R.string.action_show_bookmarks_summary),
                     iconResId = R.drawable.ic_star_24
                 ) { showBookmarks() }
+            }
+
+            FunctionCenterProfileAction.DOWNLOADS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_downloads),
+                    summary = activity.getString(R.string.action_show_downloads_summary),
+                    iconResId = R.drawable.ic_download_24
+                ) { downloadsPage.show() }
             }
 
             FunctionCenterProfileAction.FILE_OPERATIONS -> {

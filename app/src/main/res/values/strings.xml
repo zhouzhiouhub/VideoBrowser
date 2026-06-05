@@ -59,6 +59,7 @@
     <string name="function_center_site_action_unavailable">打开网页后可使用当前站点功能</string>
     <string name="title_bookmarks">收藏夹</string>
     <string name="title_history">历史记录</string>
+    <string name="title_downloads">下载</string>
     <string name="setting_ad_block">广告请求拦截</string>
     <string name="setting_ad_block_summary">屏蔽常见广告、跟踪和视频广告资源请求</string>
     <string name="setting_current_site_ad_block">广告拦截</string>
@@ -89,6 +90,7 @@
     <string name="action_show_bookmarks_summary">查看并打开本地保存的网页</string>
     <string name="action_show_history">打开历史记录</string>
     <string name="action_show_history_summary">查看最近访问记录</string>
+    <string name="action_show_downloads_summary">查看浏览器下载记录</string>
     <string name="action_copy_link">复制链接</string>
     <string name="action_copy_link_summary">复制当前页面地址</string>
     <string name="action_share_page">分享页面</string>
@@ -114,6 +116,7 @@
     <string name="action_choose_local_folder_summary">授权一个目录用于浏览、创建、重命名和删除</string>
     <string name="action_download_current_url">下载当前地址</string>
     <string name="action_download_current_url_summary">用系统下载器保存当前网页或直链资源</string>
+    <string name="action_clear_download_records_summary">清空本地下载记录，不删除已下载文件</string>
     <string name="action_new_folder">新建文件夹</string>
     <string name="action_new_folder_summary">在当前目录下创建文件夹</string>
     <string name="action_new_text_file">新建文本文件</string>
@@ -137,6 +140,8 @@
     <string name="default_new_text_file_name">新建文件.txt</string>
     <string name="dialog_delete_local_file_message">确定删除“%1$s”吗？</string>
     <string name="dialog_local_folder_empty">当前目录为空。</string>
+    <string name="dialog_download_records_empty">暂无下载记录。</string>
+    <string name="dialog_clear_download_records_message">确定清空下载记录吗？已下载文件不会被删除。</string>
     <string name="local_file_type_folder">文件夹</string>
     <string name="local_file_type_unknown">未知类型</string>
     <string name="local_file_size_unknown">未知大小</string>
@@ -253,6 +258,8 @@
     <string name="toast_element_picker_js_disabled">请先开启网页脚本增强</string>
     <string name="toast_download_started">已开始下载</string>
     <string name="toast_download_failed">下载失败</string>
+    <string name="toast_download_records_cleared">已清空下载记录</string>
+    <string name="toast_download_file_unavailable">无法打开下载文件</string>
     <string name="toast_local_folder_unavailable">无法访问该目录，请重新选择文件夹</string>
     <string name="toast_local_file_operation_failed">文件操作失败</string>
     <string name="toast_local_file_created">已创建</string>

@@ -15,6 +15,7 @@ import com.example.videobrowser.utils.MediaUrlUtils
 class DownloadController(
     private val activity: AppCompatActivity,
     private val browserManager: () -> BrowserManager,
+    private val downloadRecordRepository: DownloadRecordRepository,
     private val openNativePlayer: (
         url: String,
         mimeType: String?,
@@ -72,7 +73,17 @@ class DownloadController(
             }
             val downloadManager =
                 activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            downloadManager.enqueue(request)
+            val downloadId = downloadManager.enqueue(request)
+            downloadRecordRepository.add(
+                DownloadRecord(
+                    downloadId = downloadId,
+                    title = fileName,
+                    sourceUrl = url,
+                    fileName = fileName,
+                    mimeType = mimeType,
+                    createdAtMillis = System.currentTimeMillis()
+                )
+            )
         }.onSuccess {
             Toast.makeText(activity, R.string.toast_download_started, Toast.LENGTH_SHORT).show()
         }.onFailure {

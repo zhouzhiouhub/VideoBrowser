@@ -13,6 +13,7 @@ class FunctionCenterProfileActionCatalogTest {
             listOf(
                 "HISTORY",
                 "BOOKMARKS",
+                "DOWNLOADS",
                 "FILE_OPERATIONS",
                 "BROWSER_SETTINGS"
             ),

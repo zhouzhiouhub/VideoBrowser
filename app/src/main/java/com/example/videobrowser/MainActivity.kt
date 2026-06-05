@@ -44,6 +44,7 @@ import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
 import com.example.videobrowser.browser.search.SearchProviderController
 import com.example.videobrowser.download.DownloadController
+import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterPages
@@ -87,6 +88,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
     private lateinit var savedPageRepository: SavedPageRepository
+    private lateinit var downloadRecordRepository: DownloadRecordRepository
     private lateinit var ruleEngine: RuleEngine
     private lateinit var standardWebView: WebView
     private lateinit var standardBrowserManager: BrowserManager
@@ -144,6 +146,7 @@ class MainActivity : AppCompatActivity() {
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         savedPageRepository = SavedPageRepository(preferenceStore)
+        downloadRecordRepository = DownloadRecordRepository(preferenceStore)
         browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
@@ -188,6 +191,7 @@ class MainActivity : AppCompatActivity() {
         downloadController = DownloadController(
             activity = this,
             browserManager = ::currentBrowserManager,
+            downloadRecordRepository = downloadRecordRepository,
             openNativePlayer = ::openNativePlayer,
             openExternalUrl = ::openExternalUrl
         )
@@ -299,6 +303,7 @@ class MainActivity : AppCompatActivity() {
             browserManager = ::currentBrowserManager,
             browserManagers = ::browserManagers,
             savedPageRepository = savedPageRepository,
+            downloadRecordRepository = downloadRecordRepository,
             adBlockLogger = adBlockLogger,
             currentSiteHost = ::currentSiteHost,
             currentActionableUrl = ::currentActionableUrl,
