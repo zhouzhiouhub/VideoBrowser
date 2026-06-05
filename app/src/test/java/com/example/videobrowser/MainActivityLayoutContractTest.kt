@@ -11,6 +11,26 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 class MainActivityLayoutContractTest {
     @Test
+    fun addressBarUsesGenericSearchEntryStyle() {
+        val layout = activityMainLayout()
+        val addressIcon = layout.elementById("addressIcon")
+        val addressInput = layout.elementById("addressInput")
+
+        assertEquals("@drawable/ic_search_24", addressIcon.androidAttribute("src"))
+        assertEquals("@string/hint_address_bar", addressInput.androidAttribute("hint"))
+    }
+
+    @Test
+    fun addressBarHintDoesNotIncludeSelectedSearchProviderName() {
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
+        ).readText()
+
+        assertFalse(controller.contains("R.string.hint_search_with_provider"))
+        assertTrue(controller.contains("R.string.hint_address_bar"))
+    }
+
+    @Test
     fun addressBarDoesNotExposeUnimplementedVoiceOrCameraEntries() {
         val idNames = R.id::class.java.declaredFields.map { it.name }
         val layout = projectFile("src/main/res/layout/activity_main.xml").readText()

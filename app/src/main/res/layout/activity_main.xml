@@ -38,7 +38,7 @@
                 android:layout_height="24dp"
                 android:contentDescription="@null"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_baidu_paw_24"
+                android:src="@drawable/ic_search_24"
                 android:tint="@color/browser_primary" />
 
             <EditText

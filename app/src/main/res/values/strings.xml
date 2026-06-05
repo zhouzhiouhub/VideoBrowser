@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">VideoBrowser</string>
     <string name="hint_address_bar">输入网址或搜索</string>
-    <string name="hint_search_with_provider">在 %1$s 中搜索或输入网址</string>
     <string name="action_load_url">打开</string>
     <string name="action_back">后退</string>
     <string name="action_forward">前进</string>

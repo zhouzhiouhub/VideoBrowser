@@ -279,10 +279,7 @@ class SearchProviderController(
             )
             views.label.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
         }
-        addressInput.hint = activity.getString(
-            R.string.hint_search_with_provider,
-            selectedProvider.name
-        )
+        addressInput.hint = activity.getString(R.string.hint_address_bar)
     }
 
     private fun createProviderBadgeBackground(
