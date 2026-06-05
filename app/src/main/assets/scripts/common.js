@@ -982,10 +982,15 @@
       listeners: []
     };
 
+    addElementPickerListener('pointerdown', handleElementPickerMove);
+    addElementPickerListener('pointermove', handleElementPickerMove);
+    addElementPickerListener('pointerup', handleElementPickerSelection);
     addElementPickerListener('touchstart', handleElementPickerMove);
     addElementPickerListener('touchmove', handleElementPickerMove);
-    addElementPickerListener('mousemove', handleElementPickerMove);
     addElementPickerListener('touchend', handleElementPickerSelection);
+    addElementPickerListener('mousedown', handleElementPickerMove);
+    addElementPickerListener('mousemove', handleElementPickerMove);
+    addElementPickerListener('mouseup', handleElementPickerSelection);
     addElementPickerListener('click', handleElementPickerSelection);
     return true;
   }
@@ -1001,7 +1006,11 @@
 
   function handleElementPickerMove(event) {
     const picker = state.elementPicker;
-    if (!picker || picker.waitingForNative) return;
+    if (!picker) return;
+    if (picker.waitingForNative) {
+      preventElementPickerEvent(event);
+      return;
+    }
     const element = elementPickerTargetFromEvent(event);
     if (element) highlightPickedElement(element);
     preventElementPickerEvent(event);
@@ -1009,7 +1018,11 @@
 
   function handleElementPickerSelection(event) {
     const picker = state.elementPicker;
-    if (!picker || picker.waitingForNative) return;
+    if (!picker) return;
+    if (picker.waitingForNative) {
+      preventElementPickerEvent(event);
+      return;
+    }
 
     preventElementPickerEvent(event);
     const now = Date.now();
@@ -1023,7 +1036,6 @@
     if (!selector || !isSafeSelector(selector)) return;
 
     picker.waitingForNative = true;
-    detachElementPickerListeners(picker);
     highlightPickedElement(element);
 
     const bridge = window.VideoBrowserNative;
