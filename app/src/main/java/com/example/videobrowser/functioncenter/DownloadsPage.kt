@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadRecord
+import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.utils.UrlUtils
 import java.text.DateFormat
@@ -70,12 +71,19 @@ class DownloadsPage(
             .setTitle(R.string.action_clear)
             .setMessage(R.string.dialog_clear_download_records_message)
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                downloadRecordRepository.clear()
+                clearRecordsAndFiles()
                 Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
                 show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun clearRecordsAndFiles() {
+        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
+            downloadManager.remove(*downloadIds)
+        }.clearRecordsAndFiles()
     }
 
     private fun openDownloadedFile(record: DownloadRecord) {
