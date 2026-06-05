@@ -165,6 +165,7 @@ class MainActivity : AppCompatActivity() {
             providerScroll = searchProviderScroll,
             providerList = searchProviderList,
             addressInput = addressInput,
+            addressProviderBadge = views.addressProviderBadge,
             settingsManager = settingsManager,
             dp = ::dp,
             isHomePageVisible = { isHomePageVisible },
@@ -689,7 +690,6 @@ class MainActivity : AppCompatActivity() {
         webViewContainer.setBackgroundColor(colors.webViewBackground)
         addressInput.setTextColor(colors.text)
         addressInput.setHintTextColor(colors.hint)
-        views.addressIcon.setColorFilter(colors.mutedIcon)
         views.addressBar.background = GradientDrawable().apply {
             cornerRadius = dp(22).toFloat()
             setColor(colors.addressBackground)

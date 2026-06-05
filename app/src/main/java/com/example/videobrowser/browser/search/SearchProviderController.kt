@@ -29,6 +29,7 @@ class SearchProviderController(
     private val providerScroll: HorizontalScrollView,
     private val providerList: LinearLayout,
     private val addressInput: EditText,
+    private val addressProviderBadge: TextView,
     private val settingsManager: SettingsManager,
     private val dp: (Int) -> Int,
     private val isHomePageVisible: () -> Boolean,
@@ -280,6 +281,21 @@ class SearchProviderController(
             views.label.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
         }
         addressInput.hint = activity.getString(R.string.hint_address_bar)
+        updateAddressProviderBadge()
+    }
+
+    private fun updateAddressProviderBadge() {
+        addressProviderBadge.text = selectedProvider.badge
+        addressProviderBadge.setTextColor(Color.WHITE)
+        addressProviderBadge.setTypeface(addressProviderBadge.typeface, Typeface.BOLD)
+        addressProviderBadge.setTextSize(
+            TypedValue.COMPLEX_UNIT_SP,
+            if (selectedProvider.badge.length > 1) 9f else 12f
+        )
+        addressProviderBadge.background = createProviderBadgeBackground(
+            selectedProvider,
+            selected = true
+        )
     }
 
     private fun createProviderBadgeBackground(

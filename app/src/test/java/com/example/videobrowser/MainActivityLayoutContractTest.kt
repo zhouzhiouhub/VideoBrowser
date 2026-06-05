@@ -11,13 +11,35 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 class MainActivityLayoutContractTest {
     @Test
-    fun addressBarUsesGenericSearchEntryStyle() {
+    fun addressBarUsesSelectedProviderBadgeStyle() {
         val layout = activityMainLayout()
-        val addressIcon = layout.elementById("addressIcon")
+        val providerBadge = layout.elementById("addressProviderBadge")
         val addressInput = layout.elementById("addressInput")
 
-        assertEquals("@drawable/ic_search_24", addressIcon.androidAttribute("src"))
+        assertEquals("TextView", providerBadge.tagName)
+        assertEquals("24dp", providerBadge.androidAttribute("layout_width"))
+        assertEquals("24dp", providerBadge.androidAttribute("layout_height"))
+        assertEquals("center", providerBadge.androidAttribute("gravity"))
+        assertEquals("bold", providerBadge.androidAttribute("textStyle"))
+        assertFalse(providerBadge.hasAndroidAttribute("src"))
         assertEquals("@string/hint_address_bar", addressInput.androidAttribute("hint"))
+    }
+
+    @Test
+    fun addressBarProviderBadgeFollowsSelectedSearchProvider() {
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
+        ).readText()
+        val viewBinding = projectFile("src/main/java/com/example/videobrowser/MainActivityViews.kt")
+            .readText()
+
+        assertTrue(viewBinding.contains("val addressProviderBadge: TextView"))
+        assertTrue(viewBinding.contains("R.id.addressProviderBadge"))
+        assertTrue(controller.contains("addressProviderBadge.text = selectedProvider.badge"))
+        assertTrue(controller.contains("createProviderBadgeBackground("))
+        assertTrue(controller.contains("selectedProvider"))
+        assertTrue(controller.contains("selected = true"))
+        assertTrue(controller.contains("addressProviderBadge.setTextColor(Color.WHITE)"))
     }
 
     @Test
