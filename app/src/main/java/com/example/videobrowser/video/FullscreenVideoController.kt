@@ -40,6 +40,7 @@ class FullscreenVideoController(
             onToggleOrientation = {
                 chromeClient()?.toggleFullscreenOrientation() ?: true
             }
+            onExitFullscreen = ::exitFullscreen
         }
 
         rootView.addView(
@@ -66,7 +67,7 @@ class FullscreenVideoController(
         when {
             fullscreen && !wasFullscreen -> enterFullscreen()
             fullscreen -> refreshFullscreenOverlay()
-            wasFullscreen -> exitFullscreen()
+            wasFullscreen -> hideFullscreenOverlay()
         }
     }
 
@@ -119,6 +120,17 @@ class FullscreenVideoController(
     }
 
     private fun exitFullscreen() {
+        if (chromeClient()?.isShowingCustomView() == true) {
+            chromeClient()?.hideCustomView()
+            return
+        }
+        if (chromeClient()?.isFullscreenModeActive() == true) {
+            browserManager().evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
+            chromeClient()?.exitPageFullscreen()
+        }
+    }
+
+    private fun hideFullscreenOverlay() {
         val defaultSpeed = defaultVideoSpeed()
         resetTimeline()
         lastControlsWakeAt = 0L
@@ -248,5 +260,7 @@ class FullscreenVideoController(
 
     private companion object {
         private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
+        private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
+            "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
     }
 }

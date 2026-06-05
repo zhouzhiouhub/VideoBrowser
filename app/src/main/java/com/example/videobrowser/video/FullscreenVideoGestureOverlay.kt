@@ -18,6 +18,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -44,6 +46,7 @@ class FullscreenVideoGestureOverlay(
     var onDirectionalLongPressEnd: (() -> Unit)? = null
     var onToggleOrientation: (() -> Boolean)? = null
     var onUserInteraction: (() -> Unit)? = null
+    var onExitFullscreen: (() -> Unit)? = null
 
     private val audioManager =
         activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -52,6 +55,7 @@ class FullscreenVideoGestureOverlay(
     private val swipeStartDistance by lazy { maxOf(dp(MIN_SWIPE_DISTANCE_DP), touchSlop) }
     private val speedOptions = floatArrayOf(0.75f, 1f, 1.25f, 1.5f, 2f, 3f)
 
+    private val exitButton = ImageButton(context)
     private val lockButton = controlTextView()
     private val speedButton = controlTextView()
     private val rotateButton = controlTextView()
@@ -113,6 +117,7 @@ class FullscreenVideoGestureOverlay(
         isFocusable = false
         setBackgroundColor(Color.TRANSPARENT)
 
+        setupExitButton()
         setupLockButton()
         setupControlsGroup()
         setupSeekProgress()
@@ -219,6 +224,36 @@ class FullscreenVideoGestureOverlay(
     override fun onDetachedFromWindow() {
         hideOverlay()
         super.onDetachedFromWindow()
+    }
+
+    private fun setupExitButton() {
+        val label = context.getString(R.string.video_control_exit_fullscreen)
+        exitButton.apply {
+            background = roundedBackground(Color.argb(178, 0, 0, 0), dp(20))
+            contentDescription = label
+            isClickable = true
+            isFocusable = true
+            scaleType = ImageView.ScaleType.CENTER
+            setColorFilter(Color.WHITE)
+            setImageResource(R.drawable.ic_close_24)
+            setPadding(dp(10), dp(10), dp(10), dp(10))
+            setOnClickListener {
+                notifyUserInteraction()
+                onExitFullscreen?.invoke()
+            }
+        }
+        ViewCompat.setTooltipText(exitButton, label)
+        addView(
+            exitButton,
+            LayoutParams(
+                dp(44),
+                dp(44)
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                topMargin = dp(14)
+                leftMargin = dp(14)
+            }
+        )
     }
 
     private fun setupLockButton() {
@@ -694,7 +729,8 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun isControlPoint(x: Float, y: Float): Boolean {
-        return isPointInside(lockButton, x, y) ||
+        return isPointInside(exitButton, x, y) ||
+            isPointInside(lockButton, x, y) ||
             (!locked && isPointInside(controlsGroup, x, y))
     }
 

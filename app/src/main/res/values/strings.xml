@@ -272,6 +272,7 @@
     <string name="toast_media_playback_failed">视频播放失败</string>
     <string name="video_control_lock">锁定</string>
     <string name="video_control_unlock">解锁</string>
+    <string name="video_control_exit_fullscreen">退出全屏</string>
     <string name="video_control_rotate_to_portrait">竖屏</string>
     <string name="video_control_rotate_to_landscape">横屏</string>
     <string name="video_control_speed">倍速 %1$s</string>
