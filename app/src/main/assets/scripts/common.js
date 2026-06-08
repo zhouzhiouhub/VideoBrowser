@@ -1315,7 +1315,7 @@
 
   function enhanceVideos() {
     document.querySelectorAll('video').forEach(function (video) {
-      enableNativeVideoControls(video);
+      enableVideoControls(video);
       installVideoFullscreenHooks(video);
       installPlaybackSpeedHooks(video);
       applyVideoSpeed(video);
@@ -1453,7 +1453,7 @@
     const target = video || activeFullscreenVideo();
     if (!target) return false;
 
-    enableNativeVideoControls(target);
+    enableVideoControls(target);
     reportPlaybackTimeline(target);
 
     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;

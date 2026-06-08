@@ -50,13 +50,6 @@
     });
   }
 
-  function enableVideoControls() {
-    query('video').forEach(function (video) {
-      if (!video.controls) video.controls = true;
-      video.setAttribute('controls', 'controls');
-    });
-  }
-
   function run(config) {
     if (!document.documentElement) return;
     if (config && config.cleanupEnabled) {
@@ -76,7 +69,6 @@
     }
     if (config && config.videoEnabled) {
       clickTextButtons(/(\u8df3\u8fc7|\u5173\u95ed|skip|close)/i);
-      enableVideoControls();
     }
   }
 
@@ -88,6 +80,17 @@
   }
 
   adapters.youku = adapters.youku || {};
+  adapters.youku.videoCapabilities = {
+    supports: function (video) {
+      return Boolean(video && video.isConnected);
+    },
+    canUse: function (action) {
+      return action === 'enableControls';
+    },
+    enableControls: function (video) {
+      return Boolean(video);
+    }
+  };
   adapters.youku.apply = function (config) {
     this.lastConfig = config || {};
     state.config = this.lastConfig;

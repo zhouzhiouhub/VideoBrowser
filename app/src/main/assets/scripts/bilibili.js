@@ -69,13 +69,6 @@
     });
   }
 
-  function enableVideoControls() {
-    query('video').forEach(function (video) {
-      if (!video.controls) video.controls = true;
-      video.setAttribute('controls', 'controls');
-    });
-  }
-
   function hideVideoPlayPauseOverlays() {
     var videos = Array.prototype.slice.call(query('video')).filter(function (video) {
       return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
