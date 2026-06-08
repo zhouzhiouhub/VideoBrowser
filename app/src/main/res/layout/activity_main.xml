@@ -120,6 +120,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar" />
 
+    <LinearLayout
+        android:id="@+id/addressSuggestionPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/browser_surface"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pageProgress" />
+
     <HorizontalScrollView
         android:id="@+id/searchProviderScroll"
         android:layout_width="0dp"
@@ -134,7 +148,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/pageProgress">
+        app:layout_constraintTop_toBottomOf="@id/addressSuggestionPanel">
 
         <LinearLayout
             android:id="@+id/searchProviderList"

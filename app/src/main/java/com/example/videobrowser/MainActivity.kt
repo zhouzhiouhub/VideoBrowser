@@ -42,6 +42,8 @@ import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
+import com.example.videobrowser.browser.search.AddressSuggestionController
+import com.example.videobrowser.browser.search.SearchSuggestionClient
 import com.example.videobrowser.browser.search.SearchProviderController
 import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.download.DownloadRecordRepository
@@ -62,6 +64,8 @@ import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.FullscreenVideoController
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class MainActivity : AppCompatActivity() {
 
@@ -72,6 +76,7 @@ class MainActivity : AppCompatActivity() {
     private val webView: WebView get() = currentBrowserManager().activeWebView
     private val addressInput: EditText get() = views.addressInput
     private val pageProgress: ProgressBar get() = views.pageProgress
+    private val addressSuggestionPanel: LinearLayout get() = views.addressSuggestionPanel
     private val searchProviderScroll: HorizontalScrollView get() = views.searchProviderScroll
     private val searchProviderList: LinearLayout get() = views.searchProviderList
     private val webViewContainer: FrameLayout get() = views.webViewContainer
@@ -102,6 +107,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var localFilesController: LocalFilesController
     private lateinit var pageActionsController: PageActionsController
     private lateinit var searchProviderController: SearchProviderController
+    private lateinit var addressSuggestionController: AddressSuggestionController
     private lateinit var downloadController: DownloadController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var elementPickerController: ElementPickerController
@@ -173,6 +179,22 @@ class MainActivity : AppCompatActivity() {
             openProviderHome = ::openHomePage,
             openCustomShortcut = ::loadUrl
         )
+        addressSuggestionController = AddressSuggestionController(
+            activity = this,
+            panel = addressSuggestionPanel,
+            addressInput = addressInput,
+            savedPageRepository = savedPageRepository,
+            suggestionClient = SearchSuggestionClient(),
+            selectedProvider = { searchProviderController.selectedProvider },
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            areBrowserControlsHidden = {
+                ::browserControlsController.isInitialized && browserControlsController.areHidden
+            },
+            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            openUrl = ::loadUrl,
+            searchKeyword = ::searchAddressKeyword,
+            dp = ::dp
+        )
         setupBrowserWebViews()
         setupFileOperationLaunchers()
         ruleEngine = RuleEngineFactory.create(assets, filesDir)
@@ -241,6 +263,7 @@ class MainActivity : AppCompatActivity() {
             onShowProfilePage = ::showProfilePage,
             onToggleBookmark = pageActionsController::toggleCurrentBookmark,
             onShowControlsRequested = { setBrowserControlsHidden(false) },
+            onAddressFocusChanged = ::handleAddressFocusChanged,
             onVisibilityChanged = ::syncSearchProviderVisibility
         )
         browserControlsScrollController = BrowserControlsScrollController(
@@ -365,6 +388,7 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.requestApplyInsets(rootView)
 
         setupSearchProviders()
+        addressSuggestionController.setup()
         updatePrivateBrowsingUi()
         setupBrowserControls()
         setupWebViewScrollControls()
@@ -547,6 +571,15 @@ class MainActivity : AppCompatActivity() {
             isVideoFullscreenUiActive = isVideoFullscreenUiActive,
             isHomePageVisible = isHomePageVisible
         )
+        if (::addressSuggestionController.isInitialized) {
+            addressSuggestionController.syncVisibility()
+        }
+    }
+
+    private fun handleAddressFocusChanged(hasFocus: Boolean) {
+        if (::addressSuggestionController.isInitialized) {
+            addressSuggestionController.handleAddressFocusChanged(hasFocus)
+        }
     }
 
     private fun setupSearchProviders() {
@@ -687,6 +720,7 @@ class MainActivity : AppCompatActivity() {
         topBar.setBackgroundColor(colors.surface)
         bottomBar.setBackgroundColor(colors.surface)
         searchProviderScroll.setBackgroundColor(colors.background)
+        addressSuggestionPanel.setBackgroundColor(colors.surface)
         webViewContainer.setBackgroundColor(colors.webViewBackground)
         addressInput.setTextColor(colors.text)
         addressInput.setHintTextColor(colors.hint)
@@ -838,11 +872,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadAddressInput() {
         val input = addressInput.text?.toString()?.trim().orEmpty()
-        UrlUtils.resolveAddressInput(
-            input,
-            searchProviderController.selectedProvider.searchUrlPrefix
-        )
-            ?.let { loadUrl(it) }
+        addressSuggestionController.runWithSuggestionsSuppressed {
+            UrlUtils.resolveAddressInput(
+                input,
+                searchProviderController.selectedProvider.searchUrlPrefix
+            )
+                ?.let { loadUrl(it) }
+        }
+    }
+
+    private fun searchAddressKeyword(keyword: String) {
+        val query = keyword.replace(WHITESPACE_SEQUENCE, " ").trim()
+        if (query.isEmpty()) {
+            return
+        }
+        val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.name())
+        loadUrl("${searchProviderController.selectedProvider.searchUrlPrefix}$encodedQuery")
     }
 
     private fun openHomePage() {
@@ -906,6 +951,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hideKeyboard() {
+        if (::addressSuggestionController.isInitialized) {
+            addressSuggestionController.hide()
+        }
         addressInput.clearFocus()
         val inputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -972,6 +1020,7 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
+        private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"

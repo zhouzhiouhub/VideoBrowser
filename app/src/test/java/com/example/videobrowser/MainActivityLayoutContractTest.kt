@@ -62,6 +62,38 @@ class MainActivityLayoutContractTest {
     }
 
     @Test
+    fun addressSuggestionPanelSitsBetweenProgressAndSearchProviders() {
+        val layout = activityMainLayout()
+        val suggestionPanel = layout.elementById("addressSuggestionPanel")
+        val providerScroll = layout.elementById("searchProviderScroll")
+        val webViewContainer = layout.elementById("webViewContainer")
+
+        assertEquals("LinearLayout", suggestionPanel.tagName)
+        assertEquals("gone", suggestionPanel.androidAttribute("visibility"))
+        assertEquals("@id/pageProgress", suggestionPanel.appAttribute("layout_constraintTop_toBottomOf"))
+        assertEquals("@id/addressSuggestionPanel", providerScroll.appAttribute("layout_constraintTop_toBottomOf"))
+        assertEquals("@id/searchProviderScroll", webViewContainer.appAttribute("layout_constraintTop_toBottomOf"))
+    }
+
+    @Test
+    fun addressSuggestionControllerIsWiredToHistoryAndRemoteSuggestions() {
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/AddressSuggestionController.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+
+        assertTrue(controller.contains("addTextChangedListener"))
+        assertTrue(controller.contains("savedPageRepository.history()"))
+        assertTrue(controller.contains("suggestionClient.fetch"))
+        assertTrue(controller.contains("AddressSuggestionRanker.build"))
+        assertTrue(controller.contains("val includePrivateSources = !isPrivateBrowsingEnabled()"))
+        assertTrue(mainActivity.contains("private lateinit var addressSuggestionController: AddressSuggestionController"))
+        assertTrue(mainActivity.contains("addressSuggestionController.setup()"))
+        assertTrue(mainActivity.contains("addressSuggestionController.hide()"))
+    }
+
+    @Test
     fun bottomBarActionsUseIntrinsicWidthsInsteadOfFillingAvailableSpace() {
         val layout = activityMainLayout()
         val bottomBarActionIds = listOf(

@@ -38,6 +38,7 @@ class BrowserControlsController(
     private val onShowProfilePage: () -> Unit,
     private val onToggleBookmark: () -> Unit,
     private val onShowControlsRequested: () -> Unit,
+    private val onAddressFocusChanged: (Boolean) -> Unit,
     private val onVisibilityChanged: () -> Unit
 ) {
     var areHidden = false
@@ -57,6 +58,7 @@ class BrowserControlsController(
                 onShowControlsRequested()
                 addressInput.selectAll()
             }
+            onAddressFocusChanged(hasFocus)
         }
 
         addressInput.setOnEditorActionListener { _, actionId, event ->
