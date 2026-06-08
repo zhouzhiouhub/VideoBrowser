@@ -2,6 +2,28 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+fun gitCommitCount(): Int {
+    return try {
+        providers.exec {
+            commandLine("git", "rev-list", "--count", "HEAD")
+            isIgnoreExitValue = true
+        }.standardOutput.asText.get().trim().toIntOrNull() ?: 0
+    } catch (_: Exception) {
+        0
+    }
+}
+
+fun formatCommitCountVersion(commitCount: Int): String {
+    val count = commitCount.coerceAtLeast(0)
+    val major = count / 1000
+    val hundreds = (count / 100) % 10
+    val tens = (count / 10) % 10
+    val ones = count % 10
+    return "$major.$hundreds.$tens.$ones"
+}
+
+val gitCommitCount = gitCommitCount()
+
 android {
     namespace = "com.example.videobrowser"
     compileSdk {
@@ -10,12 +32,18 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.videobrowser"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = gitCommitCount.coerceAtLeast(1)
+        versionName = formatCommitCountVersion(gitCommitCount)
+
+        buildConfigField("int", "GIT_COMMIT_COUNT", gitCommitCount.toString())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
