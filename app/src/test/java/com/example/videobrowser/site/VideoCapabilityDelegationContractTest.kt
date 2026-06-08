@@ -45,7 +45,29 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("function logVideoDiagnostic(event, details)"))
         assertTrue(script.contains("bridge.logVideoEvent(message);"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-site'"))
+        assertTrue(script.contains("logVideoDiagnostic('enable-controls-custom-player'"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-native'"))
+    }
+
+    @Test
+    fun commonScriptAvoidsNativeControlsWhenUnknownSiteAlreadyHasCustomPlayerControls() {
+        val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val enableVideoControlsBody = functionBody(script, "function enableVideoControls(video)")
+
+        assertTrue(script.contains("function hasLikelyCustomPlayerControls(video)"))
+        assertTrue(script.contains("function removeNativeVideoControls(video, reason)"))
+        assertTrue(script.contains("function expandedRect(rect, amount)"))
+        assertTrue(script.contains("function rectsOverlap(first, second)"))
+        assertTrue(script.contains("'.xgplayer-controls'"))
+        assertTrue(script.contains("'.dplayer-controller'"))
+        assertTrue(script.contains("'.art-controls'"))
+        assertTrue(script.contains("'.vjs-control-bar'"))
+        assertTrue(script.contains("'[class*=\"player-control\"]'"))
+        assertTrue(enableVideoControlsBody.contains("hasLikelyCustomPlayerControls(video)"))
+        assertTrue(enableVideoControlsBody.contains("removeNativeVideoControls(video, 'custom-player')"))
+        assertTrue(enableVideoControlsBody.contains("logVideoDiagnostic('enable-controls-custom-player'"))
+        assertTrue(enableVideoControlsBody.indexOf("hasLikelyCustomPlayerControls(video)") <
+            enableVideoControlsBody.indexOf("enableNativeVideoControls(video)"))
     }
 
     @Test

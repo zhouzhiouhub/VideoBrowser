@@ -1369,6 +1369,29 @@
     });
   }
 
+  const customPlayerControlSelectors = [
+    '.xgplayer-controls',
+    '.xgplayer-progress',
+    '.xgplayer-start',
+    '.dplayer-controller',
+    '.dplayer-icons',
+    '.art-controls',
+    '.art-control',
+    '.vjs-control-bar',
+    '.jw-controls',
+    '.plyr__controls',
+    '.ckplayer-control',
+    '.ckplayer-controls',
+    '.prism-controlbar',
+    '.mejs__controls',
+    '[class*="player-control"]',
+    '[class*="player_control"]',
+    '[class*="video-control"]',
+    '[class*="video_control"]',
+    '[class*="control-bar"]',
+    '[class*="controlbar"]'
+  ];
+
   function enableNativeVideoControls(video) {
     if (!video.controls) video.controls = true;
     if (video.getAttribute('controls') !== 'controls') {
@@ -1377,6 +1400,109 @@
     if (video.hasAttribute('playsinline')) video.removeAttribute('playsinline');
     if (video.hasAttribute('webkit-playsinline')) video.removeAttribute('webkit-playsinline');
     if (video.style.maxWidth !== '100%') video.style.maxWidth = '100%';
+  }
+
+  function removeNativeVideoControls(video, reason) {
+    if (!video) return false;
+    const hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
+    try { video.controls = false; } catch (_) {}
+    try { video.removeAttribute('controls'); } catch (_) {}
+    if (hadNativeControls) {
+      logVideoDiagnostic('remove-native-controls-generic', videoLogDetails(video, {
+        reason: reason || 'custom-player'
+      }));
+    }
+    return hadNativeControls;
+  }
+
+  function hasLikelyCustomPlayerControls(video) {
+    const root = customPlayerRootFor(video);
+    if (!root) return false;
+    const controls = customPlayerControlSelectors.some(function (selector) {
+      return querySelectorAllSafeWithin(root, selector).some(function (element) {
+        return isLikelyCustomControlElement(element, video);
+      });
+    });
+    if (controls) return true;
+
+    return querySelectorAllSafeWithin(root, 'button,[role="button"],input[type="range"]').some(function (element) {
+      return isLikelyMediaControlElement(element, video);
+    });
+  }
+
+  function customPlayerRootFor(video) {
+    if (!video || !video.isConnected) return null;
+    let current = video.parentElement || video;
+    for (let depth = 0; current && depth < 8; depth += 1, current = current.parentElement) {
+      if (current === document.body || current === document.documentElement) break;
+      if (!current.contains(video)) continue;
+      if (isLikelyCustomPlayerRoot(current)) return current;
+    }
+    return video.parentElement || video;
+  }
+
+  function isLikelyCustomPlayerRoot(element) {
+    const descriptor = elementDescriptor(element).toLowerCase();
+    return /xgplayer|dplayer|artplayer|jwplayer|video-js|vjs-|plyr|ckplayer|prism-player|mejs|hls-player|video-player|player-container|player-wrap|player_box|playerbox|video-container|video-wrap|video_box|videobox/i
+      .test(descriptor);
+  }
+
+  function querySelectorAllSafeWithin(root, selector) {
+    if (!root || typeof root.querySelectorAll !== 'function') return [];
+    try {
+      return Array.prototype.slice.call(root.querySelectorAll(selector));
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function isLikelyCustomControlElement(element, video) {
+    if (!element || element === video || element.querySelector('video')) return false;
+    if (element.getAttribute('data-videobrowser-dismissed')) return false;
+
+    const rect = element.getBoundingClientRect();
+    const videoRect = video && typeof video.getBoundingClientRect === 'function'
+      ? video.getBoundingClientRect()
+      : null;
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+      return true;
+    }
+    if (!videoRect || videoRect.width <= 0 || videoRect.height <= 0) {
+      return true;
+    }
+    return rectsOverlap(rect, expandedRect(videoRect, 12));
+  }
+
+  function expandedRect(rect, amount) {
+    return {
+      left: rect.left - amount,
+      right: rect.right + amount,
+      top: rect.top - amount,
+      bottom: rect.bottom + amount,
+      width: rect.width + amount * 2,
+      height: rect.height + amount * 2
+    };
+  }
+
+  function rectsOverlap(first, second) {
+    return first.left < second.right &&
+      first.right > second.left &&
+      first.top < second.bottom &&
+      first.bottom > second.top;
+  }
+
+  function isLikelyMediaControlElement(element, video) {
+    if (!isLikelyCustomControlElement(element, video)) return false;
+    const descriptor = elementDescriptor(element).toLowerCase();
+    const text = normalizeText(
+      element.innerText ||
+      element.textContent ||
+      element.getAttribute('aria-label') ||
+      element.getAttribute('title')
+    ).toLowerCase();
+    if (element.matches && element.matches('input[type="range"]')) return true;
+    return /play|pause|seek|progress|volume|fullscreen|screenfull|control|播放|暂停|进度|音量|全屏/i
+      .test(descriptor + ' ' + text);
   }
 
   function installVideoFullscreenHooks(video) {
@@ -1496,6 +1622,13 @@
       logVideoDiagnostic('enable-controls-site', videoLogDetails(video, {
         handled: true,
         result: siteResult.value
+      }));
+      return;
+    }
+    if (hasLikelyCustomPlayerControls(video)) {
+      removeNativeVideoControls(video, 'custom-player');
+      logVideoDiagnostic('enable-controls-custom-player', videoLogDetails(video, {
+        handled: true
       }));
       return;
     }
