@@ -18,7 +18,8 @@ class FunctionCenterProfileActionCatalogTest {
                 "BOOKMARKS",
                 "DOWNLOADS",
                 "FILE_OPERATIONS",
-                "USER_MANUAL_RULES"
+                "USER_MANUAL_RULES",
+                "ABOUT"
             ),
             actions
         )
@@ -36,7 +37,8 @@ class FunctionCenterProfileActionCatalogTest {
                 "HISTORY",
                 "BOOKMARKS",
                 "DOWNLOADS",
-                "FILE_OPERATIONS"
+                "FILE_OPERATIONS",
+                "ABOUT"
             ),
             actions
         )

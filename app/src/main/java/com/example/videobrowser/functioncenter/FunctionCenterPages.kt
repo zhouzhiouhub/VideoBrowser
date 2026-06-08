@@ -89,6 +89,10 @@ class FunctionCenterPages(
         browserManager = browserManager,
         showRootPage = ::showRootPage
     )
+    private val aboutPage = AboutPage(
+        host = host,
+        showProfilePage = ::showProfilePage
+    )
     private val browserDataManagementPage = BrowserDataManagementPage(
         host = host,
         browserManager = browserManager,
@@ -409,6 +413,13 @@ class FunctionCenterPages(
                 ) { userManualRulesPage.show() }
             }
 
+            FunctionCenterProfileAction.ABOUT -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_about),
+                    summary = activity.getString(R.string.action_about_summary),
+                    iconResId = R.drawable.ic_info_24
+                ) { aboutPage.show() }
+            }
         }
     }
 

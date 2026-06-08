@@ -41,6 +41,7 @@
     <string name="title_current_site">当前站点</string>
     <string name="title_browser_settings">浏览器设置</string>
     <string name="title_site_config">站点配置</string>
+    <string name="title_about">关于</string>
     <string name="function_center_profile_badge">工</string>
     <string name="function_center_profile_name">浏览器功能</string>
     <string name="function_center_profile_summary">常用工具、增强入口和必要设置</string>
@@ -54,6 +55,7 @@
     <string name="function_center_section_settings">浏览器增强</string>
     <string name="function_center_section_data">站点与数据</string>
     <string name="function_center_section_more">更多</string>
+    <string name="function_center_section_about">软件信息</string>
     <string name="function_center_section_actions">操作</string>
     <string name="function_center_section_records">记录</string>
     <string name="function_center_section_sites">站点</string>
@@ -157,6 +159,12 @@
     <string name="action_manage_user_manual_rules">手动屏蔽规则</string>
     <string name="action_manage_user_manual_rules_short">屏蔽规则</string>
     <string name="action_manage_user_manual_rules_summary">查看或删除手动添加的元素屏蔽规则</string>
+    <string name="action_about">关于</string>
+    <string name="action_about_summary">查看版本号和软件信息</string>
+    <string name="about_app_name">应用名称</string>
+    <string name="about_version">版本号</string>
+    <string name="about_git_commit_count">Git 提交次数</string>
+    <string name="about_git_commit_count_summary">%1$d 次提交</string>
     <string name="action_manage_cookies">Cookie</string>
     <string name="action_manage_cookies_summary">删除当前站点 Cookie，或清空全部 Cookie</string>
     <string name="action_manage_cache">缓存</string>
