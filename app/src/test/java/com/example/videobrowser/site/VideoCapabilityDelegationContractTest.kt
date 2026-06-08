@@ -39,6 +39,16 @@ class VideoCapabilityDelegationContractTest {
     }
 
     @Test
+    fun commonScriptReportsVideoControlDiagnosticsToNativeLog() {
+        val script = projectFile("src/main/assets/scripts/common.js").readText()
+
+        assertTrue(script.contains("function logVideoDiagnostic(event, details)"))
+        assertTrue(script.contains("bridge.logVideoEvent(message);"))
+        assertTrue(script.contains("logVideoDiagnostic('enable-controls-site'"))
+        assertTrue(script.contains("logVideoDiagnostic('enable-controls-native'"))
+    }
+
+    @Test
     fun bilibiliAdapterExposesPlatformVideoCapabilitiesForCommonBroker() {
         val script = projectFile("src/main/assets/scripts/bilibili.js").readText()
 
@@ -67,6 +77,11 @@ class VideoCapabilityDelegationContractTest {
 
             assertTrue(script.contains("adapters.$adapterId.videoCapabilities"))
             assertTrue(script.contains("enableControls: function (video)"))
+            assertTrue(script.contains("function removeNativeVideoControls(video)"))
+            assertTrue(script.contains("query('video').forEach(removeNativeVideoControls);"))
+            assertTrue(script.contains("logVideoDiagnostic('remove-native-controls'"))
+            assertTrue(script.contains("video.controls = false"))
+            assertTrue(script.contains("video.removeAttribute('controls')"))
             assertFalse(script.contains("video.controls = true"))
             assertFalse(script.contains("setAttribute('controls', 'controls')"))
         }

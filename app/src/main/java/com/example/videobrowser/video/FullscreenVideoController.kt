@@ -2,6 +2,7 @@ package com.example.videobrowser.video
 
 import android.app.Activity
 import android.os.SystemClock
+import android.util.Log
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.browser.BrowserManager
@@ -60,6 +61,10 @@ class FullscreenVideoController(
     fun handleFullscreenChanged(fullscreen: Boolean) {
         val wasFullscreen = isFullscreenUiActive
         isFullscreenUiActive = fullscreen
+        Log.d(
+            VIDEO_LOG_TAG,
+            "event=web-fullscreen-changed fullscreen=$fullscreen wasFullscreen=$wasFullscreen"
+        )
         if (!::gestureOverlay.isInitialized) {
             return
         }
@@ -78,9 +83,11 @@ class FullscreenVideoController(
 
         val now = SystemClock.elapsedRealtime()
         if (now - lastControlsWakeAt < FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS) {
+            Log.d(VIDEO_LOG_TAG, "event=web-wake-controls throttled=true")
             return
         }
         lastControlsWakeAt = now
+        Log.d(VIDEO_LOG_TAG, "event=web-wake-controls throttled=false")
 
         browserManager().evaluateJavascript(
             "(function(){if(window.VideoBrowserEnhancer&&" +
@@ -101,6 +108,7 @@ class FullscreenVideoController(
 
     private fun enterFullscreen() {
         val defaultSpeed = defaultVideoSpeed()
+        Log.d(VIDEO_LOG_TAG, "event=web-enter-fullscreen defaultSpeed=$defaultSpeed")
         resetTimeline()
         lastControlsWakeAt = 0L
         playbackSpeed = defaultSpeed
@@ -113,6 +121,10 @@ class FullscreenVideoController(
     }
 
     private fun refreshFullscreenOverlay() {
+        Log.d(
+            VIDEO_LOG_TAG,
+            "event=web-refresh-fullscreen landscape=${chromeClient()?.isFullscreenLandscape()}"
+        )
         gestureOverlay.setLandscape(chromeClient()?.isFullscreenLandscape() ?: false)
         gestureOverlay.bringToFront()
         wakeControls()
@@ -120,6 +132,11 @@ class FullscreenVideoController(
     }
 
     private fun exitFullscreen() {
+        Log.d(
+            VIDEO_LOG_TAG,
+            "event=web-exit-fullscreen customView=${chromeClient()?.isShowingCustomView()} " +
+                "pageFullscreen=${chromeClient()?.isFullscreenModeActive()}"
+        )
         if (chromeClient()?.isShowingCustomView() == true) {
             chromeClient()?.hideCustomView()
             return
@@ -132,6 +149,7 @@ class FullscreenVideoController(
 
     private fun hideFullscreenOverlay() {
         val defaultSpeed = defaultVideoSpeed()
+        Log.d(VIDEO_LOG_TAG, "event=web-hide-fullscreen-overlay defaultSpeed=$defaultSpeed")
         resetTimeline()
         lastControlsWakeAt = 0L
         playbackSpeed = defaultSpeed
@@ -140,6 +158,7 @@ class FullscreenVideoController(
     }
 
     private fun seekBy(offsetMs: Long) {
+        Log.d(VIDEO_LOG_TAG, "event=web-seek-by offsetMs=$offsetMs positionMs=$videoPositionMs")
         val seconds = String.format(Locale.US, "%.3f", offsetMs / 1000.0)
         videoPositionMs = boundedVideoPosition(offsetMs)
         browserManager().evaluateJavascript(
@@ -152,6 +171,7 @@ class FullscreenVideoController(
 
     private fun seekTo(positionMs: Long) {
         val duration = videoDurationMs
+        Log.d(VIDEO_LOG_TAG, "event=web-seek-to requestedMs=$positionMs durationMs=$duration")
         val boundedPositionMs = if (duration != null && duration > 0L) {
             positionMs.coerceIn(0L, duration)
         } else {
@@ -201,6 +221,7 @@ class FullscreenVideoController(
     }
 
     private fun togglePlayback(): Boolean? {
+        Log.d(VIDEO_LOG_TAG, "event=web-toggle-playback")
         browserManager().evaluateJavascript(
             "(function(){var enhancer=window.VideoBrowserEnhancer;" +
                 "if(!enhancer)return;" +
@@ -259,6 +280,7 @@ class FullscreenVideoController(
     }
 
     private companion object {
+        private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"

@@ -32,6 +32,36 @@
     });
   }
 
+  function logVideoDiagnostic(event, details) {
+    var bridge = window.VideoBrowserNative;
+    var message = 'event=' + event + ' adapter=youtube host=' + location.hostname + ' ' + (details || '');
+    if (bridge && typeof bridge.logVideoEvent === 'function') {
+      try {
+        bridge.logVideoEvent(message);
+        return;
+      } catch (_) {}
+    }
+    try {
+      if (window.console && typeof window.console.log === 'function') {
+        window.console.log('[VideoBrowserVideo] ' + message);
+      }
+    } catch (_) {}
+  }
+
+  function videoSource(video) {
+    return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
+  }
+
+  function removeNativeVideoControls(video) {
+    if (!video) return;
+    var hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
+    try { video.controls = false; } catch (_) {}
+    try { video.removeAttribute('controls'); } catch (_) {}
+    if (hadNativeControls) {
+      logVideoDiagnostic('remove-native-controls', 'src=' + videoSource(video));
+    }
+  }
+
   function clickSkipButtons() {
     [
       '.ytp-ad-skip-button',
@@ -65,6 +95,7 @@
       ]);
     }
     if (config && config.videoEnabled) {
+      query('video').forEach(removeNativeVideoControls);
       clickSkipButtons();
     }
   }
@@ -85,6 +116,7 @@
       return action === 'enableControls';
     },
     enableControls: function (video) {
+      removeNativeVideoControls(video);
       return Boolean(video);
     }
   };

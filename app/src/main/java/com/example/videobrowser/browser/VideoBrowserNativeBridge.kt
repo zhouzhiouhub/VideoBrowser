@@ -9,8 +9,11 @@ class VideoBrowserNativeBridge(
     private val updatePlaybackTimeline: (Double, Double) -> Unit,
     private val requestElementBlock: (String, String) -> Unit,
     private val blockSelectedElement: (String) -> Unit,
-    private val cancelElementPicker: () -> Unit
+    private val cancelElementPicker: () -> Unit,
+    logVideoEvent: (String) -> Unit = {}
 ) {
+    private val videoEventLogger = logVideoEvent
+
     @JavascriptInterface
     fun enterFullscreen() {
         postToUi { enterFullscreen.invoke() }
@@ -39,5 +42,21 @@ class VideoBrowserNativeBridge(
     @JavascriptInterface
     fun cancelElementPicker() {
         postToUi { cancelElementPicker.invoke() }
+    }
+
+    @JavascriptInterface
+    fun logVideoEvent(message: String) {
+        val sanitizedMessage = message
+            .replace(Regex("\\s+"), " ")
+            .trim()
+            .take(MAX_VIDEO_LOG_LENGTH)
+        if (sanitizedMessage.isBlank()) {
+            return
+        }
+        postToUi { videoEventLogger.invoke(sanitizedMessage) }
+    }
+
+    private companion object {
+        private const val MAX_VIDEO_LOG_LENGTH = 600
     }
 }

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -145,8 +146,13 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun initializePlayer() {
         if (player != null) {
+            Log.d(VIDEO_LOG_TAG, "event=native-initialize skipped=true")
             return
         }
+        Log.d(
+            VIDEO_LOG_TAG,
+            "event=native-initialize uri=${mediaUri().take(180)} mime=${intent.getStringExtra(EXTRA_MIME_TYPE)}"
+        )
 
         val dataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
@@ -170,6 +176,10 @@ class PlayerActivity : AppCompatActivity() {
                 exoPlayer.addListener(
                     object : Player.Listener {
                         override fun onPlayerError(error: PlaybackException) {
+                            Log.d(
+                                VIDEO_LOG_TAG,
+                                "event=native-player-error code=${error.errorCode} message=${error.message}"
+                            )
                             Toast.makeText(
                                 this@PlayerActivity,
                                 R.string.toast_media_playback_failed,
@@ -181,10 +191,18 @@ class PlayerActivity : AppCompatActivity() {
                             playWhenReady: Boolean,
                             reason: Int
                         ) {
+                            Log.d(
+                                VIDEO_LOG_TAG,
+                                "event=native-play-when-ready playWhenReady=$playWhenReady reason=$reason"
+                            )
                             wakePlayerControls()
                         }
 
                         override fun onPlaybackStateChanged(playbackState: Int) {
+                            Log.d(
+                                VIDEO_LOG_TAG,
+                                "event=native-playback-state state=$playbackState"
+                            )
                             wakePlayerControls()
                         }
                     }
@@ -249,6 +267,11 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun togglePlayerPlayPause(): Boolean? {
         val exoPlayer = player ?: return null
+        Log.d(
+            VIDEO_LOG_TAG,
+            "event=native-toggle-playback isPlaying=${exoPlayer.isPlaying} " +
+                "playWhenReady=${exoPlayer.playWhenReady} state=${exoPlayer.playbackState}"
+        )
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
         } else {
@@ -265,8 +288,14 @@ class PlayerActivity : AppCompatActivity() {
         if (!::playerView.isInitialized) {
             return
         }
+        val keepVisible = shouldKeepPlayerControlsVisible()
+        Log.d(
+            VIDEO_LOG_TAG,
+            "event=native-wake-controls keepVisible=$keepVisible " +
+                "state=${player?.playbackState} playWhenReady=${player?.playWhenReady}"
+        )
         playerView.setControllerShowTimeoutMs(
-            if (shouldKeepPlayerControlsVisible()) {
+            if (keepVisible) {
                 0
             } else {
                 CONTROLS_HIDE_DELAY_MS
@@ -415,6 +444,7 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
         private const val STATE_LANDSCAPE = "landscape"
         private const val STATE_PLAYBACK_SPEED = "playback_speed"
+        private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val CONTROLS_HIDE_DELAY_MS = 3000
         private const val LONG_PRESS_PLAYBACK_SPEED = 2f

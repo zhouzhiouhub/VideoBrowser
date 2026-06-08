@@ -61,8 +61,6 @@ class FullscreenVideoGestureOverlay(
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
     private val feedbackView = TextView(context)
-    private val seekProgressTrack = FrameLayout(context)
-    private val seekProgressFill = View(context)
     private var speedPopup: PopupWindow? = null
 
     private var locked = false
@@ -93,10 +91,6 @@ class FullscreenVideoGestureOverlay(
         feedbackView.visibility = View.GONE
     }
 
-    private val hideSeekProgressRunnable = Runnable {
-        seekProgressTrack.visibility = View.GONE
-    }
-
     private val clearPendingTapRunnable = Runnable {
         pendingTapZone = ScreenZone.NONE
         pendingTapTime = 0L
@@ -120,7 +114,6 @@ class FullscreenVideoGestureOverlay(
         setupExitButton()
         setupLockButton()
         setupControlsGroup()
-        setupSeekProgress()
         setupFeedbackView()
         updateLockUi()
         setPlaybackSpeed(DEFAULT_PLAYBACK_SPEED)
@@ -147,8 +140,6 @@ class FullscreenVideoGestureOverlay(
         feedbackHandler.removeCallbacks(clearPendingTapRunnable)
         feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
         feedbackHandler.removeCallbacks(longPressRunnable)
-        feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
-        seekProgressTrack.visibility = View.GONE
         feedbackView.visibility = View.GONE
         visibility = View.GONE
     }
@@ -345,38 +336,6 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
-    private fun setupSeekProgress() {
-        seekProgressTrack.apply {
-            visibility = View.GONE
-            background = roundedBackground(Color.argb(96, 255, 255, 255), dp(2))
-            clipToOutline = false
-        }
-        seekProgressFill.apply {
-            pivotX = 0f
-            scaleX = 0f
-            background = roundedBackground(Color.WHITE, dp(2))
-        }
-        seekProgressTrack.addView(
-            seekProgressFill,
-            FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        )
-        addView(
-            seekProgressTrack,
-            LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(4)
-            ).apply {
-                gravity = Gravity.BOTTOM
-                leftMargin = dp(24)
-                rightMargin = dp(24)
-                bottomMargin = dp(78)
-            }
-        )
-    }
-
     private fun controlTextView(): TextView {
         return TextView(context).apply {
             gravity = Gravity.CENTER
@@ -483,7 +442,6 @@ class FullscreenVideoGestureOverlay(
         clearPendingSideTap()
         clearSeekAccumulator()
         feedbackHandler.removeCallbacks(longPressRunnable)
-        feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
 
         val position = onSeekPreviewStart?.invoke()
         seekStartPositionMs = position?.positionMs?.takeIf { it >= 0L }
@@ -513,7 +471,6 @@ class FullscreenVideoGestureOverlay(
             VideoGestureFeedbackFormatter.formatSeekPreview(offsetMs, target, duration),
             autoHide = false
         )
-        updateSeekProgress(target, duration)
     }
 
     private fun finishHorizontalSeek(commit: Boolean) {
@@ -525,13 +482,9 @@ class FullscreenVideoGestureOverlay(
 
         if (commit && feedbackText.isNotBlank()) {
             showFeedback(feedbackText)
-            feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
-            feedbackHandler.postDelayed(hideSeekProgressRunnable, FEEDBACK_DURATION_MS)
         } else {
             feedbackHandler.removeCallbacks(hideFeedbackRunnable)
-            feedbackHandler.removeCallbacks(hideSeekProgressRunnable)
             feedbackView.visibility = View.GONE
-            seekProgressTrack.visibility = View.GONE
         }
 
         seekStartPositionMs = null
@@ -548,16 +501,6 @@ class FullscreenVideoGestureOverlay(
 
     private fun horizontalSeekSpanMs(): Long {
         return seekDurationMs?.takeIf { it > 0L } ?: DEFAULT_HORIZONTAL_SEEK_MS
-    }
-
-    private fun updateSeekProgress(targetMs: Long?, durationMs: Long?) {
-        if (targetMs == null || durationMs == null || durationMs <= 0L) {
-            seekProgressTrack.visibility = View.GONE
-            return
-        }
-        seekProgressFill.scaleX = (targetMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
-        seekProgressTrack.visibility = View.VISIBLE
-        seekProgressTrack.bringToFront()
     }
 
     private fun updateBrightness(deltaY: Float) {

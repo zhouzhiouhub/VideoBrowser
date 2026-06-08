@@ -50,6 +50,36 @@
     });
   }
 
+  function logVideoDiagnostic(event, details) {
+    var bridge = window.VideoBrowserNative;
+    var message = 'event=' + event + ' adapter=youku host=' + location.hostname + ' ' + (details || '');
+    if (bridge && typeof bridge.logVideoEvent === 'function') {
+      try {
+        bridge.logVideoEvent(message);
+        return;
+      } catch (_) {}
+    }
+    try {
+      if (window.console && typeof window.console.log === 'function') {
+        window.console.log('[VideoBrowserVideo] ' + message);
+      }
+    } catch (_) {}
+  }
+
+  function videoSource(video) {
+    return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
+  }
+
+  function removeNativeVideoControls(video) {
+    if (!video) return;
+    var hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
+    try { video.controls = false; } catch (_) {}
+    try { video.removeAttribute('controls'); } catch (_) {}
+    if (hadNativeControls) {
+      logVideoDiagnostic('remove-native-controls', 'src=' + videoSource(video));
+    }
+  }
+
   function run(config) {
     if (!document.documentElement) return;
     if (config && config.cleanupEnabled) {
@@ -68,6 +98,7 @@
       clickTextButtons(/(\u5173\u95ed|\u53d6\u6d88|\u7a0d\u540e|close|cancel)/i);
     }
     if (config && config.videoEnabled) {
+      query('video').forEach(removeNativeVideoControls);
       clickTextButtons(/(\u8df3\u8fc7|\u5173\u95ed|skip|close)/i);
     }
   }
@@ -88,6 +119,7 @@
       return action === 'enableControls';
     },
     enableControls: function (video) {
+      removeNativeVideoControls(video);
       return Boolean(video);
     }
   };

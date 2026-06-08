@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -629,7 +630,10 @@ class MainActivity : AppCompatActivity() {
             blockSelectedElement = { selector ->
                 elementPickerController.handlePickedElement(selector, "")
             },
-            cancelElementPicker = elementPickerController::handleCancelledFromPage
+            cancelElementPicker = elementPickerController::handleCancelledFromPage,
+            logVideoEvent = { message ->
+                Log.d(VIDEO_LOG_TAG, message)
+            }
         )
     }
 
@@ -1017,6 +1021,7 @@ class MainActivity : AppCompatActivity() {
         private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
             "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
         private const val RULE_LOG_TAG = "VideoBrowserRules"
+        private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"

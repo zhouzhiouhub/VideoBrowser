@@ -198,6 +198,53 @@
     if (style) style.remove();
   }
 
+  function logVideoDiagnostic(event, details) {
+    const values = details && typeof details === 'object' ? details : {};
+    const parts = [
+      'event=' + safeLogValue(event),
+      'host=' + safeLogValue(location.hostname || ''),
+      'path=' + safeLogValue(location.pathname || '/')
+    ];
+    Object.keys(values).forEach(function (key) {
+      parts.push(safeLogValue(key) + '=' + safeLogValue(values[key]));
+    });
+    const message = parts.join(' ');
+    const bridge = window.VideoBrowserNative;
+    if (bridge && typeof bridge.logVideoEvent === 'function') {
+      try {
+        bridge.logVideoEvent(message);
+        return;
+      } catch (_) {}
+    }
+    try {
+      if (window.console && typeof window.console.log === 'function') {
+        window.console.log('[VideoBrowserVideo] ' + message);
+      }
+    } catch (_) {}
+  }
+
+  function safeLogValue(value) {
+    return String(value === null || typeof value === 'undefined' ? '' : value)
+      .replace(/\s+/g, ' ')
+      .replace(/[|]/g, '/')
+      .slice(0, 180);
+  }
+
+  function videoLogDetails(video, extra) {
+    const values = extra && typeof extra === 'object' ? extra : {};
+    const source = video && (video.currentSrc || video.src || video.getAttribute('src') || '');
+    const className = video && String(video.className || '');
+    return Object.assign({
+      tag: video && video.tagName ? video.tagName.toLowerCase() : '',
+      controls: video ? Boolean(video.controls) : false,
+      controlsAttr: video ? video.hasAttribute('controls') : false,
+      paused: video ? Boolean(video.paused) : false,
+      readyState: video ? Number(video.readyState || 0) : 0,
+      className: className,
+      src: source
+    }, values);
+  }
+
   function cleanupLegacyVideoOverlays() {
     if (state.videoOverlays && typeof state.videoOverlays.forEach === 'function') {
       state.videoOverlays.forEach(function (controls) {
@@ -1445,8 +1492,17 @@
 
   function enableVideoControls(video) {
     const siteResult = invokeSiteVideoCapability(video, 'enableControls', []);
-    if (siteResult.handled) return;
+    if (siteResult.handled) {
+      logVideoDiagnostic('enable-controls-site', videoLogDetails(video, {
+        handled: true,
+        result: siteResult.value
+      }));
+      return;
+    }
     enableNativeVideoControls(video);
+    logVideoDiagnostic('enable-controls-native', videoLogDetails(video, {
+      handled: false
+    }));
   }
 
   function wakeVideoControls(video) {
