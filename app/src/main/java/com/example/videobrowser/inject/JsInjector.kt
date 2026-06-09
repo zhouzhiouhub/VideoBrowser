@@ -10,7 +10,11 @@ data class PageFeatureConfig(
     val cssSelectors: List<String> = emptyList(),
     val userCssSelectors: List<String> = emptyList(),
     val domSelectors: List<String> = emptyList(),
-    val blockedUrlKeywords: List<String> = emptyList()
+    val blockedUrlKeywords: List<String> = emptyList(),
+    val scriptletWindowOpenBlockedKeywords: List<String> = emptyList(),
+    val scriptletFetchBlockedKeywords: List<String> = emptyList(),
+    val scriptletSkipButtonsEnabled: Boolean = false,
+    val scriptletVideoControlsEnabled: Boolean = false
 )
 
 /**
@@ -36,7 +40,19 @@ class JsInjector(
             domSelectors = (config.domSelectors + ruleEngine.domSelectorsFor(pageUrl)).distinct(),
             blockedUrlKeywords = (
                 config.blockedUrlKeywords + ruleEngine.urlContainsBlockPatternsFor(pageUrl)
-            ).distinct()
+            ).distinct(),
+            scriptletWindowOpenBlockedKeywords = (
+                config.scriptletWindowOpenBlockedKeywords +
+                    ruleEngine.scriptletWindowOpenBlockedKeywordsFor(pageUrl)
+            ).distinct(),
+            scriptletFetchBlockedKeywords = (
+                config.scriptletFetchBlockedKeywords +
+                    ruleEngine.scriptletFetchBlockedKeywordsFor(pageUrl)
+            ).distinct(),
+            scriptletSkipButtonsEnabled = config.scriptletSkipButtonsEnabled ||
+                ruleEngine.isScriptletSkipButtonsEnabledFor(pageUrl),
+            scriptletVideoControlsEnabled = config.scriptletVideoControlsEnabled ||
+                ruleEngine.isScriptletVideoControlsEnabledFor(pageUrl)
         )
         val commonScriptContent = commonScript
         val siteScripts = siteAdapterRegistry.matchingAdapters(pageUrl).flatMap { adapter ->
@@ -130,6 +146,14 @@ class JsInjector(
                 append(domSelectors.toJsonArrayLiteral())
                 append(",\"blockedUrlKeywords\":")
                 append(blockedUrlKeywords.toJsonArrayLiteral())
+                append(",\"scriptletWindowOpenBlockedKeywords\":")
+                append(scriptletWindowOpenBlockedKeywords.toJsonArrayLiteral())
+                append(",\"scriptletFetchBlockedKeywords\":")
+                append(scriptletFetchBlockedKeywords.toJsonArrayLiteral())
+                append(",\"scriptletSkipButtonsEnabled\":")
+                append(scriptletSkipButtonsEnabled)
+                append(",\"scriptletVideoControlsEnabled\":")
+                append(scriptletVideoControlsEnabled)
                 append("}")
             }
         }

@@ -145,6 +145,32 @@ class RuleEngine(
             .distinct()
     }
 
+    fun scriptletWindowOpenBlockedKeywordsFor(pageUrl: String?): List<String> {
+        return scriptletArgumentsFor(
+            pageUrl = pageUrl,
+            hookName = "window-open-block-keyword"
+        )
+    }
+
+    fun scriptletFetchBlockedKeywordsFor(pageUrl: String?): List<String> {
+        return scriptletArgumentsFor(
+            pageUrl = pageUrl,
+            hookName = "fetch-block-keyword"
+        )
+    }
+
+    fun isScriptletSkipButtonsEnabledFor(pageUrl: String?): Boolean {
+        return scriptletHooksFor(pageUrl).any { capability ->
+            capability.hookName == "click-skip-buttons"
+        }
+    }
+
+    fun isScriptletVideoControlsEnabledFor(pageUrl: String?): Boolean {
+        return scriptletHooksFor(pageUrl).any { capability ->
+            capability.hookName == "enable-video-controls"
+        }
+    }
+
     fun urlContainsBlockPatternsFor(pageUrl: String?): List<String> {
         val pageHost = SiteHost.fromUrl(pageUrl)
         return requestCapabilities
@@ -201,6 +227,20 @@ class RuleEngine(
                 pageHost = pageHost,
                 resourceType = resourceType
             )
+            }
+    }
+
+    private fun scriptletArgumentsFor(pageUrl: String?, hookName: String): List<String> {
+        return scriptletHooksFor(pageUrl)
+            .filter { capability -> capability.hookName == hookName }
+            .flatMap { capability -> capability.arguments }
+            .distinct()
+    }
+
+    private fun scriptletHooksFor(pageUrl: String?): List<RuleCapability.SafeHook> {
+        val pageHost = SiteHost.fromUrl(pageUrl)
+        return compiledRules.safeHookCapabilities.filter { capability ->
+            capability.domainScope.matches(pageHost)
         }
     }
 }

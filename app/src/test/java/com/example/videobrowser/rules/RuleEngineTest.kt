@@ -10,6 +10,51 @@ import org.junit.Test
 
 class RuleEngineTest {
     @Test
+    fun scriptletHooksFor_filtersByPageDomainAndMapsSupportedHooks() {
+        val engine = RuleEngine(
+            rules = emptyList(),
+            scriptletRules = listOf(
+                ScriptletRule(
+                    id = "hook:fetch",
+                    name = "fetch-block-keyword",
+                    arguments = listOf("/pagead/"),
+                    domainScope = DomainScope(includedDomains = setOf("example.com"))
+                ),
+                ScriptletRule(
+                    id = "hook:fetch-duplicate",
+                    name = "fetch-block-keyword",
+                    arguments = listOf("/pagead/"),
+                    domainScope = DomainScope(includedDomains = setOf("example.com"))
+                ),
+                ScriptletRule(
+                    id = "hook:open",
+                    name = "window-open-block-keyword",
+                    arguments = listOf("/popup-ad/"),
+                    domainScope = DomainScope(includedDomains = setOf("example.com"))
+                ),
+                ScriptletRule(
+                    id = "hook:skip",
+                    name = "click-skip-buttons",
+                    domainScope = DomainScope(includedDomains = setOf("other.com"))
+                ),
+                ScriptletRule(
+                    id = "hook:controls",
+                    name = "enable-video-controls",
+                    domainScope = DomainScope(includedDomains = setOf("example.com"))
+                )
+            )
+        )
+
+        val pageUrl = "https://www.example.com/watch"
+
+        assertEquals(listOf("/pagead/"), engine.scriptletFetchBlockedKeywordsFor(pageUrl))
+        assertEquals(listOf("/popup-ad/"), engine.scriptletWindowOpenBlockedKeywordsFor(pageUrl))
+        assertFalse(engine.isScriptletSkipButtonsEnabledFor(pageUrl))
+        assertTrue(engine.isScriptletVideoControlsEnabledFor(pageUrl))
+        assertTrue(engine.isScriptletSkipButtonsEnabledFor("https://other.com/watch"))
+    }
+
+    @Test
     fun matchRequest_blocksUrlContainsRule() {
         val rule = Rule.blockUrlContains("/pagead/")
         val engine = RuleEngine(listOf(rule))

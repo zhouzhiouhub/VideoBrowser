@@ -5,6 +5,7 @@ import com.example.videobrowser.rules.ElementRule
 import com.example.videobrowser.rules.ElementRuleType
 import com.example.videobrowser.rules.Rule
 import com.example.videobrowser.rules.RuleEngine
+import com.example.videobrowser.rules.ScriptletRule
 import java.io.ByteArrayInputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,7 +33,9 @@ class JsInjectorTest {
             script.contains(
                 "var config = {\"cleanupEnabled\":true,\"videoEnabled\":false," +
                     "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
-                    "\"blockedUrlKeywords\":[]};"
+                    "\"blockedUrlKeywords\":[],\"scriptletWindowOpenBlockedKeywords\":[]," +
+                    "\"scriptletFetchBlockedKeywords\":[],\"scriptletSkipButtonsEnabled\":false," +
+                    "\"scriptletVideoControlsEnabled\":false};"
             )
         )
         assertTrue(script.contains("if (!window.__VIDEOBROWSER_COMMON_SCRIPT_INSTALLED__) {"))
@@ -62,7 +65,9 @@ class JsInjectorTest {
             evaluatedScripts[1].contains(
                 "var config = {\"cleanupEnabled\":false,\"videoEnabled\":true," +
                     "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
-                    "\"blockedUrlKeywords\":[]};"
+                    "\"blockedUrlKeywords\":[],\"scriptletWindowOpenBlockedKeywords\":[]," +
+                    "\"scriptletFetchBlockedKeywords\":[],\"scriptletSkipButtonsEnabled\":false," +
+                    "\"scriptletVideoControlsEnabled\":false};"
             )
         )
     }
@@ -220,6 +225,51 @@ class JsInjectorTest {
         assertTrue(script.contains("\"userCssSelectors\":[]"))
         assertTrue(script.contains("\"domSelectors\":[\".popup-ad\"]"))
         assertTrue(script.contains("\"blockedUrlKeywords\":[\"/pagead/\"]"))
+    }
+
+    @Test
+    fun inject_addsScriptletHookConfigWithoutRemovingSiteScripts() {
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = scriptLoaderForSiteScripts(),
+            evaluateJavascript = { script -> evaluatedScripts += script },
+            siteAdapterRegistry = SiteAdapterRegistry.default(),
+            ruleEngine = RuleEngine(
+                rules = emptyList(),
+                scriptletRules = listOf(
+                    ScriptletRule(
+                        id = "hook:open",
+                        name = "window-open-block-keyword",
+                        arguments = listOf("/popup-ad/")
+                    ),
+                    ScriptletRule(
+                        id = "hook:fetch",
+                        name = "fetch-block-keyword",
+                        arguments = listOf("/pagead/")
+                    ),
+                    ScriptletRule(
+                        id = "hook:skip",
+                        name = "click-skip-buttons"
+                    ),
+                    ScriptletRule(
+                        id = "hook:controls",
+                        name = "enable-video-controls"
+                    )
+                )
+            )
+        )
+
+        injector.inject(
+            PageFeatureConfig(cleanupEnabled = true, videoEnabled = true),
+            pageUrl = "https://m.youtube.com/watch?v=1"
+        )
+
+        val script = evaluatedScripts.single()
+        assertTrue(script.contains("\"scriptletWindowOpenBlockedKeywords\":[\"/popup-ad/\"]"))
+        assertTrue(script.contains("\"scriptletFetchBlockedKeywords\":[\"/pagead/\"]"))
+        assertTrue(script.contains("\"scriptletSkipButtonsEnabled\":true"))
+        assertTrue(script.contains("\"scriptletVideoControlsEnabled\":true"))
+        assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"youtube\"].apply(config);"))
     }
 
     @Test
