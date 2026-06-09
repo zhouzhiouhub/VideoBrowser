@@ -16,3 +16,4 @@
 local.properties
 tmp
 /.worktrees/
+/.codex/
