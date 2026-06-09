@@ -36,3 +36,8 @@
 ||cnzz.com^$third-party
 ||hm-tjj.weiaona.com^$third-party
 ||hm-static.weiaona.com^*/script.pageview-props.js$script
+
+! Gzwanmei mobile video ad scripts.
+||t1e8s2.com^$domain=m.gzwanmei.com,third-party,script
+||e1d8a4.com^$domain=m.gzwanmei.com,third-party,script
+||api.ttkxny.com^$domain=m.gzwanmei.com,third-party,script
