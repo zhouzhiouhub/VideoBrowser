@@ -129,14 +129,33 @@
   ];
 
   function shouldBlockUrl(value) {
+    return shouldBlockUrlAgainstKeywords(
+      value,
+      blockedKeywords.concat(externalBlockedKeywords())
+    );
+  }
+
+  function shouldBlockUrlAgainstKeywords(value, keywords) {
     const url = String(value || '').toLowerCase();
-    return blockedKeywords.concat(externalBlockedKeywords()).some(function (keyword) {
+    return keywords.some(function (keyword) {
       return url.indexOf(keyword) !== -1;
     });
   }
 
   function externalBlockedKeywords() {
-    const values = state.config && state.config.blockedUrlKeywords;
+    return configKeywordList('blockedUrlKeywords');
+  }
+
+  function scriptletWindowOpenBlockedKeywords() {
+    return configKeywordList('scriptletWindowOpenBlockedKeywords');
+  }
+
+  function scriptletFetchBlockedKeywords() {
+    return configKeywordList('scriptletFetchBlockedKeywords');
+  }
+
+  function configKeywordList(fieldName) {
+    const values = state.config && state.config[fieldName];
     if (!Array.isArray(values)) return [];
     return values.map(function (keyword) {
       return String(keyword || '').trim().toLowerCase();
@@ -1473,7 +1492,10 @@
 
   function enhanceVideos() {
     document.querySelectorAll('video').forEach(function (video) {
-      enableVideoControls(video);
+      if (state.config.videoEnabled || state.config.scriptletVideoControlsEnabled) {
+        enableVideoControls(video);
+      }
+      if (!state.config.videoEnabled) return;
       preferBestVideoQuality(video);
       installVideoFullscreenHooks(video);
       installPlaybackSpeedHooks(video);
@@ -2038,7 +2060,7 @@
   }
 
   function clickSkipButtons() {
-    if (!state.config.videoEnabled) return;
+    if (!state.config.videoEnabled && !state.config.scriptletSkipButtonsEnabled) return;
     skipSelectors.forEach(function (selector) {
       document.querySelectorAll(selector).forEach(function (button) {
         const text = String(button.innerText || button.textContent || button.getAttribute('aria-label') || '');
@@ -2101,17 +2123,25 @@
 
     const originalOpen = window.open;
     window.open = function (url) {
-      if (state.config.cleanupEnabled && shouldBlockUrl(url)) return null;
+      if (
+        (state.config.cleanupEnabled && shouldBlockUrl(url)) ||
+        shouldBlockUrlAgainstKeywords(url, scriptletWindowOpenBlockedKeywords())
+      ) {
+        return null;
+      }
       return originalOpen.apply(this, arguments);
     };
 
     const originalFetch = window.fetch;
     if (typeof originalFetch === 'function') {
       window.fetch = function () {
-        if (state.config.cleanupEnabled && arguments.length > 0) {
+        if (arguments.length > 0) {
           const input = arguments[0];
           const url = typeof input === 'string' ? input : input && input.url;
-          if (shouldBlockUrl(url)) {
+          if (
+            (state.config.cleanupEnabled && shouldBlockUrl(url)) ||
+            shouldBlockUrlAgainstKeywords(url, scriptletFetchBlockedKeywords())
+          ) {
             return Promise.reject(new Error('Blocked by VideoBrowser'));
           }
         }

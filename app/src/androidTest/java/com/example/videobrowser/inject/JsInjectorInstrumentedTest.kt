@@ -74,6 +74,125 @@ class JsInjectorInstrumentedTest {
     }
 
     @Test
+    fun scriptletWindowOpenAndFetchKeywordsWorkWhenCleanupDisabled() {
+        loadHtml(SCRIPTLET_HOOK_HTML)
+        injectPageFeatures(
+            config = PageFeatureConfig(
+                cleanupEnabled = false,
+                videoEnabled = false,
+                scriptletWindowOpenBlockedKeywords = listOf("/popup-ad/"),
+                scriptletFetchBlockedKeywords = listOf("/fetch-ad/")
+            )
+        )
+
+        val openResult = evaluateJsonArray(
+            """
+                (function () {
+                  window.__fetchBlocked = false;
+                  window.__fetchPassed = false;
+                  var opened = window.open('/popup-ad/landing');
+                  window.fetch('/fetch-ad/pixel')
+                    .then(function () { window.__fetchPassed = true; })
+                    .catch(function () { window.__fetchBlocked = true; });
+                  return [
+                    opened === null,
+                    window.__openCalls.length
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        Thread.sleep(100)
+
+        val fetchResult = evaluateJsonArray(
+            """
+                (function () {
+                  return [
+                    window.__fetchBlocked === true,
+                    window.__fetchPassed === true,
+                    window.__fetchCalls.length
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertTrue(openResult.toString(), openResult.getBoolean(0))
+        assertEquals(0, openResult.getInt(1))
+        assertTrue(fetchResult.toString(), fetchResult.getBoolean(0))
+        assertFalse(fetchResult.toString(), fetchResult.getBoolean(1))
+        assertEquals(0, fetchResult.getInt(2))
+    }
+
+    @Test
+    fun scriptletSkipButtonsCanRunWhenVideoEnhancementDisabled() {
+        loadHtml(TEST_HTML)
+        injectPageFeatures(
+            config = PageFeatureConfig(
+                cleanupEnabled = false,
+                videoEnabled = false,
+                scriptletSkipButtonsEnabled = true
+            )
+        )
+
+        val result = evaluateJsonArray("[(window.__skipClicked === true)]")
+
+        assertTrue(result.toString(), result.getBoolean(0))
+    }
+
+    @Test
+    fun scriptletVideoControlsCanRunWhenVideoEnhancementDisabled() {
+        loadHtml(TEST_HTML)
+        injectPageFeatures(
+            config = PageFeatureConfig(
+                cleanupEnabled = false,
+                videoEnabled = false,
+                scriptletVideoControlsEnabled = true
+            )
+        )
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var video = document.getElementById('video');
+                  return [
+                    video.controls === true,
+                    video.hasAttribute('controls')
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertTrue(result.toString(), result.getBoolean(0))
+        assertTrue(result.toString(), result.getBoolean(1))
+    }
+
+    @Test
+    fun videoControlsStayDisabledWithoutVideoEnhancementOrScriptletHook() {
+        loadHtml(TEST_HTML)
+        injectPageFeatures(
+            config = PageFeatureConfig(
+                cleanupEnabled = false,
+                videoEnabled = false
+            )
+        )
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var video = document.getElementById('video');
+                  return [
+                    video.controls === true,
+                    video.hasAttribute('controls')
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertFalse(result.toString(), result.getBoolean(0))
+        assertFalse(result.toString(), result.getBoolean(1))
+    }
+
+    @Test
     fun setPlaybackSpeed_appliesToActiveVideoWhenAndroidCustomViewFullscreenHasNoDocumentFullscreen() {
         loadHtml(TEST_HTML)
         injectPageFeatures()
@@ -393,6 +512,10 @@ class JsInjectorInstrumentedTest {
     }
 
     private fun injectPageFeatures(
+        config: PageFeatureConfig = PageFeatureConfig(
+            cleanupEnabled = true,
+            videoEnabled = true
+        ),
         pageUrl: String? = null,
         siteAdapterRegistry: SiteAdapterRegistry = SiteAdapterRegistry.default()
     ) {
@@ -407,10 +530,7 @@ class JsInjectorInstrumentedTest {
                     }
                 }
             ).inject(
-                PageFeatureConfig(
-                    cleanupEnabled = true,
-                    videoEnabled = true
-                ),
+                config,
                 pageUrl = pageUrl
             )
         }
@@ -460,6 +580,26 @@ class JsInjectorInstrumentedTest {
                 <button id="skip" class="skip-button" onclick="window.__skipClicked=true">Skip ad</button>
                 <video id="video"></video>
                 <script>window.__skipClicked=false;</script>
+              </body>
+            </html>
+        """
+
+        private const val SCRIPTLET_HOOK_HTML = """
+            <!doctype html>
+            <html>
+              <body>
+                <script>
+                  window.__openCalls = [];
+                  window.__fetchCalls = [];
+                  window.open = function (url) {
+                    window.__openCalls.push(url);
+                    return { url: url };
+                  };
+                  window.fetch = function (url) {
+                    window.__fetchCalls.push(url);
+                    return Promise.resolve({ ok: true });
+                  };
+                </script>
               </body>
             </html>
         """
