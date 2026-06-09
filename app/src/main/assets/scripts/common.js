@@ -2166,6 +2166,9 @@
       state.fullscreenPlaybackSpeed =
         Number.isFinite(normalizedSpeed) && normalizedSpeed > 0 ? normalizedSpeed : 1;
       const video = activeFullscreenVideo();
+      if (video && !(document.fullscreenElement || document.webkitFullscreenElement)) {
+        state.nativeFullscreenVideo = video;
+      }
       const siteResult = invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed]);
       if (siteResult.handled) return;
       document.querySelectorAll('video').forEach(applyVideoSpeed);

@@ -69,6 +69,28 @@ class JsInjectorInstrumentedTest {
     }
 
     @Test
+    fun setPlaybackSpeed_appliesToActiveVideoWhenAndroidCustomViewFullscreenHasNoDocumentFullscreen() {
+        loadHtml(TEST_HTML)
+        injectPageFeatures()
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var video = document.getElementById('video');
+                  window.VideoBrowserEnhancer.setPlaybackSpeed(1.5);
+                  return [
+                    Boolean(document.fullscreenElement || document.webkitFullscreenElement),
+                    video.playbackRate
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertFalse(result.getBoolean(0))
+        assertEquals(1.5, result.getDouble(1), 0.01)
+    }
+
+    @Test
     fun inject_loadsOnlyMatchingSiteAdapterInWebView() {
         loadHtml(TEST_HTML)
         injectPageFeatures(
