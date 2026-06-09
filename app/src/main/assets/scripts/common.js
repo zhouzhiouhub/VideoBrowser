@@ -14,6 +14,8 @@
   state.suppressMutationWork = false;
   state.lastCleanupAt = Number(state.lastCleanupAt || 0);
   if (!Number.isFinite(state.lastCleanupAt)) state.lastCleanupAt = 0;
+  state.lastGeneratedAdCleanupAt = Number(state.lastGeneratedAdCleanupAt || 0);
+  if (!Number.isFinite(state.lastGeneratedAdCleanupAt)) state.lastGeneratedAdCleanupAt = 0;
   if (!state.fullscreenHookedVideos || typeof state.fullscreenHookedVideos.add !== 'function') {
     state.fullscreenHookedVideos = new WeakSet();
   }
@@ -31,6 +33,7 @@
   const styleId = '__videobrowser_css_filter__';
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
+  const generatedAdCleanupIntervalMs = 100;
   const normalWorkDelayMs = 250;
   const activeVideoWorkDelayMs = 750;
   const adSelectors = [
@@ -327,6 +330,15 @@
       clearOverlayScrollLocks();
     });
 
+    runGeneratedAdScaffoldCleanup(Date.now(), true);
+  }
+
+  function runGeneratedAdScaffoldCleanup(now, force) {
+    const timestamp = Number(now || Date.now());
+    if (!force && timestamp - Number(state.lastGeneratedAdCleanupAt || 0) < generatedAdCleanupIntervalMs) {
+      return;
+    }
+    state.lastGeneratedAdCleanupAt = timestamp;
     removeGeneratedAdScaffolds();
   }
 
@@ -2071,6 +2083,9 @@
     const cleanupInterval = hasActiveVideo() ? activeVideoCleanupIntervalMs : normalCleanupIntervalMs;
     state.lastWorkAt = now;
     if (state.config.cleanupEnabled) {
+      if (!isBilibiliHost()) {
+        runGeneratedAdScaffoldCleanup(now, false);
+      }
       if (now - Number(state.lastCleanupAt || 0) >= cleanupInterval) {
         state.lastCleanupAt = now;
         removeAds();

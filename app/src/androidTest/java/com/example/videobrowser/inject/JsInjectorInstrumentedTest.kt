@@ -271,6 +271,66 @@ class JsInjectorInstrumentedTest {
         assertTrue(result.isNull(11))
     }
 
+    @Test
+    fun inject_removesRegeneratedSlicedImageAdsBeforeGenericCleanupInterval() {
+        loadHtml(GENERATED_SLICED_AD_HTML)
+        injectPageFeatures()
+
+        Thread.sleep(100)
+
+        val inserted = evaluateJsonArray(
+            """
+                (function () {
+                  for (var row = 0; row < 4; row += 1) {
+                    for (var col = 0; col < 10; col += 1) {
+                      var tile = document.createElement('div');
+                      tile.className = 'lateGeneratedTile';
+                      tile.style.cssText = [
+                        'position:fixed',
+                        'top:' + (row * 32) + 'px',
+                        'left:' + (col * 40) + 'px',
+                        'z-index:2147483646',
+                        'display:block',
+                        'width:40px',
+                        'height:32px',
+                        'background-image:url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==")',
+                        'background-size:400px 128px'
+                      ].join(';');
+                      document.body.appendChild(tile);
+                    }
+                  }
+                  return [document.querySelectorAll('.lateGeneratedTile').length];
+                })();
+            """.trimIndent()
+        )
+        assertEquals(40, inserted.getInt(0))
+
+        Thread.sleep(1200)
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var lateTiles = document.querySelectorAll('.lateGeneratedTile');
+                  return [
+                    lateTiles.length,
+                    Array.prototype.every.call(lateTiles, function (tile) {
+                      return window.getComputedStyle(tile).display === 'none' &&
+                        tile.getAttribute('data-videobrowser-dismissed') === 'generated-sliced-ad';
+                    }),
+                    Date.now() - Number((window.__videobrowserState && window.__videobrowserState.lastCleanupAt) || 0)
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertEquals(40, result.getInt(0))
+        assertTrue(result.toString(), result.getBoolean(1))
+        assertTrue(
+            "Regenerated ad cleanup should not wait for the generic cleanup interval: $result",
+            result.getDouble(2) < 3000.0
+        )
+    }
+
     private fun loadHtml(html: String, baseUrl: String? = null) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
