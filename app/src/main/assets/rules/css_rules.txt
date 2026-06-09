@@ -39,9 +39,3 @@ youtube.com##ytd-display-ad-renderer
 youtube.com##ytd-promoted-sparkles-web-renderer
 youtube.com##ytd-promoted-video-renderer
 bilibili.com##.ad-report
-
-! Gzwanmei generated bottom ad scaffold.
-m.gzwanmei.com##.kpulx
-m.gzwanmei.com##lwyqvs
-m.gzwanmei.com##fpjzxz
-m.gzwanmei.com##.tdqqy

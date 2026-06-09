@@ -1,5 +1,6 @@
 package com.example.videobrowser.inject
 
+import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -29,6 +30,10 @@ class JsInjectorInstrumentedTest {
             webView = WebView(instrumentation.targetContext).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                val widthSpec = View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY)
+                val heightSpec = View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY)
+                measure(widthSpec, heightSpec)
+                layout(0, 0, 1080, 1920)
             }
         }
     }
@@ -212,6 +217,60 @@ class JsInjectorInstrumentedTest {
         assertFalse("none" == result.getString(10))
     }
 
+    @Test
+    fun inject_removesGeneratedSlicedImageAdsWithoutDomainOrClassRules() {
+        loadHtml(GENERATED_SLICED_AD_HTML)
+        injectPageFeatures()
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var topTiles = document.querySelectorAll('.randomTopTile');
+                  var bottomTiles = document.querySelectorAll('xrandad');
+                  var clickGrid = document.querySelectorAll('.transparent-click-grid');
+                  var normalNav = document.getElementById('normal-bottom-nav');
+                  var normalHero = document.getElementById('normal-hero');
+                  return [
+                    window.__VIDEOBROWSER_COMMON_SCRIPT_INSTALLED__ === true,
+                    Boolean(window.VideoBrowserEnhancer),
+                    topTiles.length,
+                    bottomTiles.length,
+                    clickGrid.length,
+                    Array.prototype.every.call(topTiles, function (tile) {
+                      return window.getComputedStyle(tile).display === 'none' &&
+                        tile.getAttribute('data-videobrowser-dismissed') === 'generated-sliced-ad';
+                    }),
+                    Array.prototype.every.call(bottomTiles, function (tile) {
+                      return window.getComputedStyle(tile).display === 'none' &&
+                        tile.getAttribute('data-videobrowser-dismissed') === 'generated-sliced-ad';
+                    }),
+                    Array.prototype.every.call(clickGrid, function (tile) {
+                      return window.getComputedStyle(tile).display === 'none' &&
+                        tile.getAttribute('data-videobrowser-dismissed') === 'generated-click-grid';
+                    }),
+                    window.getComputedStyle(normalNav).display,
+                    normalNav.getAttribute('data-videobrowser-dismissed'),
+                    window.getComputedStyle(normalHero).display,
+                    normalHero.getAttribute('data-videobrowser-dismissed')
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertTrue(result.toString(), result.getBoolean(0))
+        assertTrue(result.toString(), result.getBoolean(1))
+        assertEquals(40, result.getInt(2))
+        assertEquals(40, result.getInt(3))
+        assertEquals(80, result.getInt(4))
+        assertTrue(result.toString(), result.getBoolean(5))
+        assertTrue(result.toString(), result.getBoolean(6))
+        assertTrue(result.toString(), result.getBoolean(7))
+        assertFalse("none" == result.getString(8))
+        assertTrue(result.isNull(9))
+        assertFalse("none" == result.getString(10))
+        assertTrue(result.isNull(11))
+    }
+
     private fun loadHtml(html: String, baseUrl: String? = null) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
@@ -371,6 +430,86 @@ class JsInjectorInstrumentedTest {
                 <div id="promo-grid" style="width:100vw;height:154px">
                   注册即送 超高爆率 同城约炮 PG电子 开户送钱 提款秒到
                 </div>
+              </body>
+            </html>
+        """
+
+        private const val GENERATED_SLICED_AD_HTML = """
+            <!doctype html>
+            <html>
+              <head>
+                <style>
+                  body { margin: 0; min-height: 1200px; }
+                  #normal-hero {
+                    width: 100vw;
+                    height: 160px;
+                    background-image: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==");
+                    background-size: cover;
+                  }
+                  #normal-bottom-nav {
+                    position: fixed;
+                    left: 0;
+                    bottom: 0;
+                    width: 100vw;
+                    height: 56px;
+                    z-index: 999999994;
+                    background: #111;
+                    color: #fff;
+                  }
+                  .randomTopTile,
+                  xrandad {
+                    position: fixed;
+                    z-index: 2147483646;
+                    display: block;
+                    width: 40px;
+                    height: 32px;
+                    background-image: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==");
+                    background-size: 400px 128px !important;
+                  }
+                </style>
+              </head>
+              <body>
+                <div id="normal-hero"></div>
+                <p>page content</p>
+                <div id="normal-bottom-nav">Home Video Profile</div>
+                <script>
+                  (function () {
+                    for (var row = 0; row < 4; row += 1) {
+                      for (var col = 0; col < 10; col += 1) {
+                        var topTile = document.createElement('div');
+                        topTile.className = 'randomTopTile';
+                        topTile.style.top = (row * 32) + 'px';
+                        topTile.style.left = (col * 40) + 'px';
+                        topTile.style.backgroundPosition = '-' + (col * 40) + 'px -' + (row * 32) + 'px';
+                        document.body.appendChild(topTile);
+
+                        var bottomTile = document.createElement('xrandad');
+                        bottomTile.style.bottom = (row * 32 + 56) + 'px';
+                        bottomTile.style.left = (col * 40) + 'px';
+                        bottomTile.style.backgroundPosition = '-' + (col * 40) + 'px -' + (row * 32) + 'px';
+                        document.body.appendChild(bottomTile);
+                      }
+                    }
+                    for (var hitRow = 0; hitRow < 8; hitRow += 1) {
+                      for (var hitCol = 0; hitCol < 10; hitCol += 1) {
+                        var hit = document.createElement('div');
+                        hit.className = 'transparent-click-grid';
+                        hit.style.cssText = [
+                          'position:fixed',
+                          'top:' + (hitRow * 32) + 'px',
+                          'left:' + (hitCol * 40) + 'px',
+                          'z-index:100',
+                          'display:block',
+                          'width:38px',
+                          'height:30px',
+                          'background:#000',
+                          'opacity:0.01'
+                        ].join(';');
+                        document.body.appendChild(hit);
+                      }
+                    }
+                  })();
+                </script>
               </body>
             </html>
         """
