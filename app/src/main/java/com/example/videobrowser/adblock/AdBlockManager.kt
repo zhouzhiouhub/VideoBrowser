@@ -21,14 +21,15 @@ class AdBlockManager(
             request = request,
             pageUrl = request.pageUrl ?: currentPageUrl()
         )
+        val resolvedContext = context.copy(pageHost = context.pageHost ?: currentPageHost())
         val decision = AdBlockRequestPolicy.evaluate(
             enabled = isEnabled(),
             siteAdBlockDisabled = isDisabledForCurrentSite(),
             userWhitelisted = isUserWhitelistedRequestHost(context.requestHost),
-            context = context.copy(pageHost = context.pageHost ?: currentPageHost()),
+            context = resolvedContext,
             ruleEngine = ruleEngine
         )
-        logDecision(request, decision)
+        logDecision(request, resolvedContext, decision)
         return decision
     }
 
@@ -36,7 +37,11 @@ class AdBlockManager(
         return evaluate(request).shouldBlock
     }
 
-    private fun logDecision(request: BrowserRequest, decision: AdBlockDecision) {
+    private fun logDecision(
+        request: BrowserRequest,
+        context: RequestContext,
+        decision: AdBlockDecision
+    ) {
         if (!decision.shouldLog) {
             return
         }
@@ -44,7 +49,8 @@ class AdBlockManager(
             action = if (decision.shouldBlock) AdBlockLogAction.BLOCK else AdBlockLogAction.ALLOW,
             url = request.url.toString(),
             host = request.url.host,
-            decision = decision
+            decision = decision,
+            pageHost = context.pageHost
         )
     }
 }

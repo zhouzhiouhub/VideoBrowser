@@ -204,6 +204,7 @@
     <string name="title_remove_user_whitelist">移除白名单</string>
     <string name="dialog_add_user_whitelist_message">将 %1$s 加入白名单，避免拦截影响页面。</string>
     <string name="dialog_remove_user_whitelist_message">从白名单移除 %1$s。</string>
+    <string name="dialog_restore_site_ad_block_message">恢复 %1$s 的广告请求拦截。</string>
     <string name="dialog_clear_user_whitelist_message">确定清空全部用户白名单吗？此操作无法撤销。</string>
     <string name="dialog_user_whitelist_empty">暂无用户白名单。</string>
     <string name="dialog_user_manual_rules_empty">暂无手动屏蔽规则。</string>

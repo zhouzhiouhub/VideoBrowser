@@ -7,6 +7,7 @@ data class AdBlockLogEntry(
     val action: AdBlockLogAction,
     val url: String,
     val host: String?,
+    val pageHost: String? = null,
     val reason: AdBlockDecisionReason,
     val ruleId: String?,
     val ruleSource: String?,

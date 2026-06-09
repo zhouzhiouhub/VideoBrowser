@@ -4,9 +4,11 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
+import com.example.videobrowser.adblock.AdBlockLogEntryFormatter
 import com.example.videobrowser.adblock.AdBlockLogAction
 import com.example.videobrowser.adblock.AdBlockLogEntry
 import com.example.videobrowser.adblock.AdBlockLogger
+import com.example.videobrowser.adblock.AdBlockLogRecoveryActionType
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import java.text.SimpleDateFormat
@@ -54,21 +56,30 @@ class AdBlockLogPage(
             ) { section ->
                 entries.forEach { entry ->
                     val hostName = adBlockLogHost(entry)
-                    val source = entry.ruleSource ?: entry.reason.name.lowercase(Locale.US)
-                    val rule = entry.ruleId ?: entry.rulePattern ?: entry.reason.name
                     val rowTitle = "${adBlockLogTime(entry)} ${adBlockLogActionLabel(entry)} · $hostName"
-                    val rowSummary = "$source  $rule"
-                    val whitelistHost = entry.host?.takeIf { value -> value.isNotBlank() }
-                    if (
-                        entry.action == AdBlockLogAction.BLOCK &&
-                        whitelistHost != null &&
-                        !settingsManager.isUserWhitelistedSite(whitelistHost)
+                    val rowSummary = AdBlockLogEntryFormatter.summary(entry)
+                    when (
+                        val recoveryAction = AdBlockLogEntryFormatter.recoveryActionFor(
+                            entry = entry,
+                            isUserWhitelisted = { hostName ->
+                                settingsManager.isUserWhitelistedSite(hostName)
+                            },
+                            isAdBlockDisabledForSite = { hostName ->
+                                settingsManager.isAdBlockDisabledForSite(hostName)
+                            }
+                        )
                     ) {
-                        host.addActionRow(section, rowTitle, rowSummary) {
-                            showAddWhitelistFromLogDialog(whitelistHost)
+                        null -> host.addInfoRow(section, rowTitle, rowSummary)
+                        else -> host.addActionRow(section, rowTitle, rowSummary) {
+                            when (recoveryAction.type) {
+                                AdBlockLogRecoveryActionType.ADD_TO_USER_WHITELIST -> {
+                                    showAddWhitelistFromLogDialog(recoveryAction.host)
+                                }
+                                AdBlockLogRecoveryActionType.RESTORE_SITE_AD_BLOCK -> {
+                                    showRestoreSiteAdBlockFromLogDialog(recoveryAction.host)
+                                }
+                            }
                         }
-                    } else {
-                        host.addInfoRow(section, rowTitle, rowSummary)
                     }
                 }
             }
@@ -126,6 +137,34 @@ class AdBlockLogPage(
                 Toast.makeText(
                     activity,
                     activity.getString(R.string.toast_user_whitelist_added, hostName),
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager().reload()
+                show(replaceCurrent = true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showRestoreSiteAdBlockFromLogDialog(hostName: String) {
+        if (!settingsManager.isAdBlockDisabledForSite(hostName)) {
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.toast_current_site_ad_block_restored, hostName),
+                Toast.LENGTH_SHORT
+            ).show()
+            show(replaceCurrent = true)
+            return
+        }
+
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.setting_current_site_ad_block)
+            .setMessage(activity.getString(R.string.dialog_restore_site_ad_block_message, hostName))
+            .setPositiveButton(R.string.action_restore) { _, _ ->
+                settingsManager.setAdBlockDisabledForSite(hostName, false)
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.toast_current_site_ad_block_restored, hostName),
                     Toast.LENGTH_SHORT
                 ).show()
                 browserManager().reload()

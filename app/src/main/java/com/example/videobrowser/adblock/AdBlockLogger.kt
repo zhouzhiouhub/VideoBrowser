@@ -10,7 +10,8 @@ class AdBlockLogger(
         action: AdBlockLogAction,
         url: String,
         host: String?,
-        decision: AdBlockDecision
+        decision: AdBlockDecision,
+        pageHost: String? = null
     ) {
         val rule = decision.ruleMatchResult.rule
         log(
@@ -19,6 +20,7 @@ class AdBlockLogger(
                 action = action,
                 url = url,
                 host = host,
+                pageHost = pageHost,
                 reason = decision.reason,
                 ruleId = rule?.id,
                 ruleSource = rule?.source,
