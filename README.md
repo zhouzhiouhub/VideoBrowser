@@ -95,7 +95,7 @@ https://m.baidu.com/
 7. 进入 `RuleEngine` 匹配阻断规则。
 8. 无命中则放行。
 
-命中阻断时，`AdBlockRequestInterceptor` 返回空响应。
+命中阻断时，`AdBlockRequestInterceptor` 默认返回 204 空响应。如果阻断规则带有允许的 `$redirect=` 内置资源，并且请求不是主文档，则返回项目内置 noop 响应。目前只允许 `noopjs`、`noopcss`、`nooptext`，不会加载远程替代资源。
 
 关键代码：
 
@@ -103,6 +103,8 @@ https://m.baidu.com/
 - `app/src/main/java/com/example/videobrowser/adblock/AdBlockManager.kt`
 - `app/src/main/java/com/example/videobrowser/adblock/AdBlockRequestInterceptor.kt`
 - `app/src/main/java/com/example/videobrowser/adblock/EmptyResponseFactory.kt`
+- `app/src/main/java/com/example/videobrowser/adblock/SyntheticResponseFactory.kt`
+- `app/src/main/java/com/example/videobrowser/adblock/SyntheticResponseRegistry.kt`
 - `app/src/main/java/com/example/videobrowser/adblock/BuiltInAdBlockRules.kt`
 - `app/src/main/java/com/example/videobrowser/adblock/AdBlockLogger.kt`
 
@@ -119,6 +121,9 @@ https://m.baidu.com/
 - 用户手动选择的 CSS selector。
 - 规则系统提供的 DOM remove selector。
 - URL contains 阻断关键词。
+- 安全 scriptlet 映射出的 `window.open` 阻断关键词。
+- 安全 scriptlet 映射出的 `fetch` 阻断关键词。
+- 安全 scriptlet 映射出的跳过按钮点击和 video controls 开关。
 
 页面净化主要由 `assets/scripts/common.js` 执行，能力包括：
 
@@ -127,6 +132,7 @@ https://m.baidu.com/
 - 拦截常见广告相关 URL 关键词。
 - 尝试点击跳过广告按钮。
 - 处理网页 video 元素和全屏增强。
+- 消费白名单 scriptlet 映射配置，但不执行规则原文 JavaScript。
 - 支持元素选择器回调到 Android 侧保存用户规则。
 
 用户可通过“屏蔽元素”在当前页面选择元素，保存为当前 host 的用户隐藏规则。用户手动规则保存在 `SettingsManager` 中，并可在功能中心管理。
@@ -510,10 +516,12 @@ Manifest 当前声明：
    - `app/src/main/assets/rules/request_rules.txt`
    - `app/src/main/assets/rules/css_rules.txt`
    - `app/src/main/assets/rules/dom_rules.txt`
+   - `app/src/main/assets/rules/scriptlet_rules.txt`
 3. 本地缓存目录：
    - `filesDir/rules/request_rules.txt`
    - `filesDir/rules/css_rules.txt`
    - `filesDir/rules/dom_rules.txt`
+   - `filesDir/rules/scriptlet_rules.txt`
 
 `RuleEngineFactory` 会加载 assets 和缓存目录中的规则，并记录被跳过的规则。
 
@@ -530,6 +538,7 @@ Manifest 当前声明：
 - `$domain=` 作用域。
 - `$third-party` / `$3p`。
 - `$~third-party` / `$1p` / `$first-party`。
+- `$redirect=noopjs`、`$redirect=noopcss`、`$redirect=nooptext`，只映射到项目内置 noop 响应。
 - 安全资源类型选项：
   - `document`
   - `script`
@@ -554,7 +563,7 @@ Manifest 当前声明：
 - 未识别的请求规则 option。
 - 反向资源类型选项，例如 `$~script`。
 - 完整 uBlock / AdGuard 规则语义。
-- 任意远程 redirect 资源。
+- 任意远程 redirect 资源或未知 redirect 资源名。
 - 规则原文 JavaScript 执行。
 
 ### CSS 规则支持范围
@@ -590,6 +599,31 @@ remove:selector
 
 当前 `dom_rules.txt` 解析为全局规则，不支持在 DOM 删除规则行内声明域名作用域。
 
+### 安全 scriptlet 规则支持范围
+
+scriptlet 规则来自 `scriptlet_rules.txt`，只映射到项目已有的本地 Hook，不拼接或执行规则原文 JavaScript。
+
+支持语法：
+
+```text
+example.com##+js(window-open-block-keyword, /popup-ad/)
+example.com#%#//scriptlet('fetch-block-keyword', '/pagead/')
+```
+
+当前白名单 scriptlet：
+
+- `window-open-block-keyword`：参数为安全关键词，映射到 `window.open` URL 关键词阻断。
+- `fetch-block-keyword`：参数为安全关键词，映射到 `fetch` URL 关键词阻断。
+- `click-skip-buttons`：无参数，允许在视频增强关闭时单独运行跳过按钮点击。
+- `enable-video-controls`：无参数，允许在视频增强关闭时单独启用 video controls。
+
+会跳过：
+
+- 未知 scriptlet 名称。
+- 参数数量或内容不合法的 scriptlet。
+- 域名作用域不合法的 scriptlet。
+- 原始 `#%#` JavaScript。
+
 ### 规则索引
 
 规则编译后会建立索引：
@@ -603,6 +637,8 @@ remove:selector
 
 - `app/src/main/java/com/example/videobrowser/rules/Rule.kt`
 - `app/src/main/java/com/example/videobrowser/rules/ElementRule.kt`
+- `app/src/main/java/com/example/videobrowser/rules/ScriptletRule.kt`
+- `app/src/main/java/com/example/videobrowser/rules/ScriptletRegistry.kt`
 - `app/src/main/java/com/example/videobrowser/rules/RuleFileLoader.kt`
 - `app/src/main/java/com/example/videobrowser/rules/RuleCompiler.kt`
 - `app/src/main/java/com/example/videobrowser/rules/RuleEngine.kt`
@@ -825,6 +861,7 @@ app/src/androidTest/java/com/example/videobrowser/
 - 无痕状态。
 - 原生播放器和网页视频手势契约。
 - 广告拦截和 JS 注入的 Android 环境测试。
+- G6 回归集合：广告决策、noop redirect 边界、站点开关、用户白名单、规则 cache 回退、页面功能配置、WebView 视频 controls/倍速/fullscreen 事件状态。
 
 常用命令：
 
@@ -833,6 +870,18 @@ app/src/androidTest/java/com/example/videobrowser/
 .\gradlew.bat connectedDebugAndroidTest
 .\gradlew.bat assembleDebug
 ```
+
+G6 最近一次验证记录为 2026-06-09：
+
+```powershell
+.\gradlew.bat testDebugUnitTest
+.\gradlew.bat assembleDebug
+.\gradlew.bat assembleDebugAndroidTest
+.\gradlew.bat connectedDebugAndroidTest "-Pandroid.testInstrumentationRunnerArguments.class=com.example.videobrowser.regression.VideoPlaybackRegressionInstrumentedTest"
+.\gradlew.bat connectedDebugAndroidTest "-Pandroid.testInstrumentationRunnerArguments.class=com.example.videobrowser.inject.JsInjectorInstrumentedTest,com.example.videobrowser.adblock.AdBlockRequestInterceptorInstrumentedTest"
+```
+
+上述仪器测试在 `Pixel_9a(AVD) - 16` 上通过。视频回归测试覆盖的是 `common.js` 在 WebView 中对 controls、倍速和 fullscreen 事件状态的处理，不等同于真实原生全屏 UI 手工验收。
 
 ## 当前边界和非目标
 
