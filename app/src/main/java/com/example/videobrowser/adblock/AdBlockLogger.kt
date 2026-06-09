@@ -22,7 +22,17 @@ class AdBlockLogger(
                 reason = decision.reason,
                 ruleId = rule?.id,
                 ruleSource = rule?.source,
-                rulePattern = rule?.pattern
+                rulePattern = rule?.pattern,
+                overrideReason = decision.overrideReason,
+                ruleCandidates = decision.ruleCandidates.mapNotNull { result ->
+                    val candidateRule = result.rule ?: return@mapNotNull null
+                    AdBlockRuleCandidate(
+                        ruleId = candidateRule.id,
+                        action = result.action,
+                        ruleSource = candidateRule.source,
+                        rulePattern = candidateRule.pattern
+                    )
+                }
             )
         )
     }

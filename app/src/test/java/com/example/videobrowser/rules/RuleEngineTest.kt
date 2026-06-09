@@ -97,6 +97,29 @@ class RuleEngineTest {
     }
 
     @Test
+    fun matchRequestCandidates_returnsAllMatchedRulesInOriginalRuleOrder() {
+        val blockRule = Rule.blockDomainContains("doubleclick.net")
+        val allowRule = Rule.allowUrlContains("/pagead/allowed.js")
+        val engine = RuleEngine(
+            listOf(
+                blockRule,
+                allowRule
+            )
+        )
+
+        val results = engine.matchRequestCandidates(
+            url = "https://stats.g.doubleclick.net/pagead/allowed.js",
+            host = "stats.g.doubleclick.net"
+        )
+
+        assertEquals(2, results.size)
+        assertTrue(results[0].shouldBlock)
+        assertSame(blockRule, results[0].rule)
+        assertTrue(results[1].shouldAllow)
+        assertSame(allowRule, results[1].rule)
+    }
+
+    @Test
     fun matchRequest_domainIndexUsesUrlHostWhenHostIsMissing() {
         val allowRule = Rule.allowDomainContains("doubleclick.net")
         val blockRule = Rule.blockDomainContains("doubleclick.net")

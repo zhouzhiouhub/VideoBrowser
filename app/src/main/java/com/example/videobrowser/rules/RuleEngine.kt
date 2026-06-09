@@ -17,6 +17,9 @@ class RuleEngine(
         elementRules = elementRules
     )
     private val requestCapabilities = compiledRules.requestCapabilities
+    private val requestRuleOrder = requestCapabilities
+        .mapIndexed { index, capability -> capability.rule to index }
+        .toMap()
 
     fun matchRequest(request: BrowserRequest): RuleMatchResult {
         return matchRequest(RequestContext.from(request))
@@ -58,6 +61,47 @@ class RuleEngine(
         }
 
         return RuleMatchResult.NoMatch
+    }
+
+    fun matchRequestCandidates(context: RequestContext): List<RuleMatchResult> {
+        return matchRequestCandidates(
+            url = context.requestUrl,
+            host = context.requestHost,
+            pageHost = context.pageHost,
+            resourceType = context.resourceType
+        )
+    }
+
+    fun matchRequestCandidates(
+        url: String,
+        host: String? = null,
+        pageHost: String? = null,
+        resourceType: ResourceType = ResourceType.UNKNOWN
+    ): List<RuleMatchResult> {
+        val requestHost = host ?: SiteHost.fromUrl(url)
+        return (matchingCapabilitiesFor(RuleAction.ALLOW, url, requestHost, pageHost, resourceType) +
+            matchingCapabilitiesFor(RuleAction.BLOCK, url, requestHost, pageHost, resourceType))
+            .distinctBy { capability -> requestRuleOrder[capability.rule] ?: Int.MAX_VALUE }
+            .sortedBy { capability -> requestRuleOrder[capability.rule] ?: Int.MAX_VALUE }
+            .map { capability ->
+                when (capability.rule.action) {
+                    RuleAction.ALLOW -> RuleMatchResult.allow(capability.rule)
+                    RuleAction.BLOCK -> RuleMatchResult.block(capability.rule)
+                    RuleAction.NONE -> RuleMatchResult.NoMatch
+                }
+            }
+            .filter { result -> result.matched }
+    }
+
+    fun matchRequestSummary(context: RequestContext): RequestRuleMatchSummary {
+        val candidates = matchRequestCandidates(context)
+        return RequestRuleMatchSummary(
+            allowMatch = candidates.firstOrNull { result -> result.shouldAllow }
+                ?: RuleMatchResult.NoMatch,
+            blockMatch = candidates.firstOrNull { result -> result.shouldBlock }
+                ?: RuleMatchResult.NoMatch,
+            ruleCandidates = candidates
+        )
     }
 
     fun rules(): List<Rule> {
@@ -126,19 +170,35 @@ class RuleEngine(
         } else {
             SiteHost.fromUrl(url)
         }
+        return matchingCapabilitiesFor(
+            action = action,
+            url = url,
+            host = requestHost,
+            pageHost = pageHost,
+            resourceType = resourceType
+        ).firstOrNull()?.rule
+    }
+
+    private fun matchingCapabilitiesFor(
+        action: RuleAction,
+        url: String,
+        host: String?,
+        pageHost: String?,
+        resourceType: ResourceType
+    ): List<RuleCapability.Request> {
         return compiledRules.requestCandidatesFor(
             action = action,
-            host = requestHost,
+            host = host,
             url = url
-        ).firstOrNull { capability ->
+        ).filter { capability ->
             val rule = capability.rule
             ruleMatcher.matches(
                 rule = rule,
                 url = url,
-                host = requestHost,
+                host = host,
                 pageHost = pageHost,
                 resourceType = resourceType
             )
-        }?.rule
+        }
     }
 }

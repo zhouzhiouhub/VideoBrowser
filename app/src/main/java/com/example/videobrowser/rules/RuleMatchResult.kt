@@ -41,3 +41,30 @@ data class RuleMatchResult(
         }
     }
 }
+
+data class RequestRuleMatchSummary(
+    val allowMatch: RuleMatchResult = RuleMatchResult.NoMatch,
+    val forceBlockMatch: RuleMatchResult = RuleMatchResult.NoMatch,
+    val blockMatch: RuleMatchResult = RuleMatchResult.NoMatch,
+    val ruleCandidates: List<RuleMatchResult> = listOf(
+        allowMatch,
+        forceBlockMatch,
+        blockMatch
+    ).filter { result -> result.matched }
+) {
+    init {
+        require(!allowMatch.matched || allowMatch.shouldAllow) {
+            "Allow match must use ALLOW action."
+        }
+        require(!forceBlockMatch.matched || forceBlockMatch.shouldBlock) {
+            "Force block match must use BLOCK action."
+        }
+        require(!blockMatch.matched || blockMatch.shouldBlock) {
+            "Block match must use BLOCK action."
+        }
+    }
+
+    companion object {
+        val NoMatch = RequestRuleMatchSummary()
+    }
+}
