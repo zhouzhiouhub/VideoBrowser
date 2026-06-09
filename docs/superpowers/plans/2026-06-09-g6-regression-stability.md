@@ -56,7 +56,7 @@ git commit -m "test: add adblock regression coverage"
 ### Task 2: Site Switch And Page Feature Regression Tests
 
 **Files:**
-- Create: `app/src/test/java/com/example/videobrowser/regression/PageFeatureRegressionTest.kt`
+- Create: `app/src/test/java/com/example/videobrowser/inject/PageFeatureCoordinatorTest.kt`
 
 - [ ] **Step 1: Write failing regression tests**
 
@@ -74,7 +74,7 @@ The first test should use `SettingsManager` and `AdBlockManager` to prove site-l
 
 - [ ] **Step 2: Run tests to verify RED**
 
-Run: `.\gradlew.bat testDebugUnitTest --tests com.example.videobrowser.regression.PageFeatureRegressionTest`
+Run: `.\gradlew.bat testDebugUnitTest --tests com.example.videobrowser.inject.PageFeatureCoordinatorTest`
 
 Expected: FAIL because the new regression test class does not exist yet.
 
@@ -84,14 +84,14 @@ Use an in-memory `PreferenceStore` test helper and a `JsInjector` with a tiny co
 
 - [ ] **Step 4: Run tests to verify GREEN**
 
-Run: `.\gradlew.bat testDebugUnitTest --tests com.example.videobrowser.regression.PageFeatureRegressionTest`
+Run: `.\gradlew.bat testDebugUnitTest --tests com.example.videobrowser.inject.PageFeatureCoordinatorTest`
 
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```powershell
-git add app/src/test/java/com/example/videobrowser/regression/PageFeatureRegressionTest.kt
+git add app/src/test/java/com/example/videobrowser/inject/PageFeatureCoordinatorTest.kt
 git commit -m "test: add page feature regression coverage"
 ```
 
@@ -175,6 +175,6 @@ git commit -m "docs: 更新 G6 回归稳定性进度"
 
 - G6-01 is covered by `AdBlockRegressionTest`.
 - G6-02 is covered by `VideoPlaybackRegressionInstrumentedTest`.
-- G6-03 is covered by `PageFeatureRegressionTest`.
+- G6-03 is covered by `PageFeatureCoordinatorTest`.
 - G6-04 is covered by the RuleFileLoader cache fallback test.
 - G6-05 is covered by the final verification records in both Markdown files.
