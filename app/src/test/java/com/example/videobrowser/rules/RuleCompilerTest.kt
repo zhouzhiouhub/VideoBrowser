@@ -72,6 +72,29 @@ class RuleCompilerTest {
     }
 
     @Test
+    fun compile_createsNoopResponseCapabilityForRedirectRules() {
+        val redirectRule = requireNotNull(
+            Rule.fromRequestRuleText(
+                text = "||ads.example.com^\$redirect=noopjs",
+                id = "test:redirect",
+                source = "test-source"
+            )
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = listOf(redirectRule),
+            elementRules = emptyList()
+        )
+
+        assertEquals(listOf(redirectRule), result.requestRules())
+        assertEquals(1, result.noopResponseCapabilities.size)
+        assertEquals("test:redirect", result.noopResponseCapabilities.single().id)
+        assertEquals("test-source", result.noopResponseCapabilities.single().source)
+        assertEquals("noopjs", result.noopResponseCapabilities.single().resourceName)
+        assertTrue(result.skippedRules.isEmpty())
+    }
+
+    @Test
     fun capabilityKinds_distinguishRequestPageHookAndNoopCapabilities() {
         val requestCapability = RuleCapability.Request(Rule.blockUrlContains("/ad/"))
         val hideCapability = RuleCapability.CssHide(

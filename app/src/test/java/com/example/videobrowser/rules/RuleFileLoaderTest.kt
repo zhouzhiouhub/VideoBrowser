@@ -32,6 +32,28 @@ class RuleFileLoaderTest {
     }
 
     @Test
+    fun loadRequestRules_skipsUnknownRedirectResources() {
+        val loader = loaderFor(
+            assets = mapOf(
+                RuleFileLoader.REQUEST_RULES_ASSET to """
+                    ||ads.example.com^${'$'}redirect=noopjs
+                    ||evil.example.com^${'$'}redirect=https://evil.test/noop.js
+                    ||unknown.example.com^${'$'}redirect=unknown
+                """.trimIndent()
+            )
+        )
+
+        val result = loader.loadRequestRules()
+
+        assertEquals(1, result.rules.size)
+        assertEquals("noopjs", result.rules.single().redirectResourceName)
+        assertEquals(2, result.skippedRules.size)
+        assertTrue(result.skippedRules.all { skippedRule ->
+            skippedRule.reason == "unsupported request rule syntax"
+        })
+    }
+
+    @Test
     fun loadCssRules_parsesGlobalAndDomainScopedSelectors() {
         val loader = loaderFor(
             assets = mapOf(

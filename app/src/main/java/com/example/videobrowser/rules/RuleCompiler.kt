@@ -15,6 +15,9 @@ class RuleCompiler {
         val requestCapabilities = requestRules.mapNotNull { rule ->
             compileRequestRule(rule, skippedRules)
         }
+        val noopResponseCapabilities = requestCapabilities.mapNotNull { capability ->
+            compileNoopResponseCapability(capability)
+        }
         val cssHideCapabilities = mutableListOf<RuleCapability.CssHide>()
         val cssUnhideCapabilities = mutableListOf<RuleCapability.CssUnhide>()
         val domRemoveCapabilities = mutableListOf<RuleCapability.DomRemove>()
@@ -32,6 +35,7 @@ class RuleCompiler {
             cssHideCapabilities = cssHideCapabilities,
             cssUnhideCapabilities = cssUnhideCapabilities,
             domRemoveCapabilities = domRemoveCapabilities,
+            noopResponseCapabilities = noopResponseCapabilities,
             skippedRules = skippedRules
         )
     }
@@ -45,6 +49,17 @@ class RuleCompiler {
             return null
         }
         return RuleCapability.Request(rule)
+    }
+
+    private fun compileNoopResponseCapability(
+        requestCapability: RuleCapability.Request
+    ): RuleCapability.NoopResponse? {
+        val resourceName = requestCapability.rule.redirectResourceName ?: return null
+        return RuleCapability.NoopResponse(
+            id = requestCapability.id,
+            source = requestCapability.source,
+            resourceName = resourceName
+        )
     }
 
     private fun compileElementRule(rule: ElementRule): RuleCapability.PageMutation {

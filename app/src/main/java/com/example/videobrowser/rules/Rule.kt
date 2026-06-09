@@ -14,7 +14,8 @@ data class Rule(
     val source: String = SOURCE_BUILT_IN,
     val domainScope: DomainScope = DomainScope.Empty,
     val thirdParty: Boolean? = null,
-    val resourceTypes: Set<ResourceType> = emptySet()
+    val resourceTypes: Set<ResourceType> = emptySet(),
+    val redirectResourceName: String? = null
 ) {
     init {
         require(id.isNotBlank()) { "Rule id must not be blank." }
@@ -121,6 +122,9 @@ data class Rule(
             val type = requestRuleTypeFor(body)
             val domainPattern = parsePureDomainRule(body)
             val pattern = domainPattern ?: body
+            if (action == RuleAction.ALLOW && options.redirectResourceName != null) {
+                return null
+            }
             val generatedId = id ?: "${action.name.lowercase(Locale.US)}:" +
                 "${type.name.lowercase(Locale.US)}:$pattern"
             return requestRule(
@@ -131,7 +135,8 @@ data class Rule(
                 source = source,
                 domainScope = options.domainScope,
                 thirdParty = options.thirdParty,
-                resourceTypes = options.resourceTypes
+                resourceTypes = options.resourceTypes,
+                redirectResourceName = options.redirectResourceName
             )
         }
 
@@ -143,7 +148,8 @@ data class Rule(
             source: String,
             domainScope: DomainScope = DomainScope.Empty,
             thirdParty: Boolean? = null,
-            resourceTypes: Set<ResourceType> = emptySet()
+            resourceTypes: Set<ResourceType> = emptySet(),
+            redirectResourceName: String? = null
         ): Rule {
             val normalizedPattern = when (type) {
                 RuleType.URL_CONTAINS -> pattern.trim()
@@ -158,7 +164,8 @@ data class Rule(
                 source = source,
                 domainScope = domainScope,
                 thirdParty = thirdParty,
-                resourceTypes = resourceTypes
+                resourceTypes = resourceTypes,
+                redirectResourceName = redirectResourceName
             )
         }
 
@@ -223,6 +230,7 @@ data class Rule(
             var domainScope = DomainScope.Empty
             var thirdParty: Boolean? = null
             val resourceTypes = mutableSetOf<ResourceType>()
+            var redirectResourceName: String? = null
             text.split(',')
                 .map { option -> option.trim() }
                 .filter { option -> option.isNotEmpty() }
@@ -235,6 +243,10 @@ data class Rule(
                         }
                         lower.startsWith("domain=") -> {
                             domainScope = parseOptionDomainScope(option.substringAfter("="))
+                                ?: return null
+                        }
+                        lower.startsWith("redirect=") -> {
+                            redirectResourceName = parseRedirectResourceName(option.substringAfter("="))
                                 ?: return null
                         }
                         RESOURCE_TYPE_OPTIONS.containsKey(lower) -> {
@@ -250,8 +262,16 @@ data class Rule(
             return RequestRuleOptions(
                 domainScope = domainScope,
                 thirdParty = thirdParty,
-                resourceTypes = resourceTypes.toSet()
+                resourceTypes = resourceTypes.toSet(),
+                redirectResourceName = redirectResourceName
             )
+        }
+
+        private fun parseRedirectResourceName(text: String): String? {
+            val normalized = text.trim().lowercase(Locale.US)
+            return normalized.takeIf { resourceName ->
+                resourceName in SUPPORTED_REDIRECT_RESOURCES
+            }
         }
 
         private fun parseOptionDomainScope(text: String): DomainScope? {
@@ -338,6 +358,12 @@ data class Rule(
             "beacon" to setOf(ResourceType.FETCH),
             "other" to setOf(ResourceType.OTHER)
         )
+
+        private val SUPPORTED_REDIRECT_RESOURCES = setOf(
+            "noopjs",
+            "noopcss",
+            "nooptext"
+        )
     }
 }
 
@@ -356,5 +382,6 @@ enum class RuleAction {
 private data class RequestRuleOptions(
     val domainScope: DomainScope = DomainScope.Empty,
     val thirdParty: Boolean? = null,
-    val resourceTypes: Set<ResourceType> = emptySet()
+    val resourceTypes: Set<ResourceType> = emptySet(),
+    val redirectResourceName: String? = null
 )

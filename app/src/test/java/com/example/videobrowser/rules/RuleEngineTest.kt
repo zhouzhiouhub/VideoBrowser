@@ -166,6 +166,7 @@ class RuleEngineTest {
         val patternRule = requireNotNull(Rule.fromRequestRuleText("||doubleclick.net^*/ad_status^"))
         val thirdPartyRule = requireNotNull(Rule.fromRequestRuleText("||ads.example.com^\$third-party"))
         val scriptRule = requireNotNull(Rule.fromRequestRuleText("||ads.example.com^\$script"))
+        val redirectRule = requireNotNull(Rule.fromRequestRuleText("||ads.example.com^\$redirect=noopjs"))
         val domainScopedRule = requireNotNull(
             Rule.fromRequestRuleText("||ads.example.com^\$domain=video.example.com|~safe.video.example.com")
         )
@@ -185,6 +186,7 @@ class RuleEngineTest {
         assertEquals(RuleType.URL_PATTERN, patternRule.type)
         assertEquals(true, thirdPartyRule.thirdParty)
         assertEquals(setOf(ResourceType.SCRIPT), scriptRule.resourceTypes)
+        assertEquals("noopjs", redirectRule.redirectResourceName)
         assertEquals(setOf("video.example.com"), domainScopedRule.domainScope.normalizedIncludedDomains)
         assertEquals(setOf("safe.video.example.com"), domainScopedRule.domainScope.normalizedExcludedDomains)
     }
@@ -192,7 +194,8 @@ class RuleEngineTest {
     @Test
     fun fromRequestRuleText_rejectsUnsupportedSyntaxForP6() {
         assertNull(Rule.fromRequestRuleText("example.com##.ad"))
-        assertNull(Rule.fromRequestRuleText("||example.com^\$redirect=noopjs"))
+        assertNull(Rule.fromRequestRuleText("||example.com^\$redirect=unknown"))
+        assertNull(Rule.fromRequestRuleText("||example.com^\$redirect=https://evil.test/noop.js"))
         assertNull(Rule.fromRequestRuleText("||example.com^\$~script"))
         assertNull(Rule.fromRequestRuleText("! comment"))
     }
