@@ -20,21 +20,8 @@ class AboutPage(
             ) { section ->
                 host.addInfoRow(
                     parent = section,
-                    title = activity.getString(R.string.about_app_name),
-                    summary = activity.getString(R.string.app_name)
-                )
-                host.addInfoRow(
-                    parent = section,
                     title = activity.getString(R.string.about_version),
                     summary = BuildConfig.VERSION_NAME
-                )
-                host.addInfoRow(
-                    parent = section,
-                    title = activity.getString(R.string.about_git_commit_count),
-                    summary = activity.getString(
-                        R.string.about_git_commit_count_summary,
-                        BuildConfig.GIT_COMMIT_COUNT
-                    )
                 )
             }
         }
