@@ -23,6 +23,7 @@
     state.speedHookedVideos = new WeakSet();
   }
   state.nativeFullscreenVideo = state.nativeFullscreenVideo || null;
+  state.documentFullscreenActive = Boolean(state.documentFullscreenActive);
   state.directionalPlayback = state.directionalPlayback || null;
   state.elementPicker = state.elementPicker || null;
   state.fullscreenPlaybackSpeed = Number(state.fullscreenPlaybackSpeed || 1);
@@ -1628,6 +1629,7 @@
     video.addEventListener('webkitendfullscreen', function () {
       stopDirectionalPlayback();
       state.nativeFullscreenVideo = null;
+      state.documentFullscreenActive = false;
       state.fullscreenPlaybackSpeed = 1;
       applyVideoSpeed(video);
       exitNativeFullscreen();
@@ -1960,6 +1962,7 @@
   function exitVideoFullscreen() {
     stopDirectionalPlayback();
     state.nativeFullscreenVideo = null;
+    state.documentFullscreenActive = false;
     state.fullscreenPlaybackSpeed = 1;
     document.querySelectorAll('video').forEach(applyVideoSpeed);
     if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
@@ -2034,6 +2037,7 @@
   function syncDocumentFullscreenState() {
     const hasDocumentFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
     if (hasDocumentFullscreen) {
+      state.documentFullscreenActive = true;
       state.nativeFullscreenVideo = activeFullscreenVideo();
       reportPlaybackTimeline(state.nativeFullscreenVideo);
       document.querySelectorAll('video').forEach(applyVideoSpeed);
@@ -2041,6 +2045,16 @@
       return;
     }
 
+    if (!state.documentFullscreenActive &&
+      state.nativeFullscreenVideo &&
+      state.nativeFullscreenVideo.isConnected
+    ) {
+      reportPlaybackTimeline(state.nativeFullscreenVideo);
+      document.querySelectorAll('video').forEach(applyVideoSpeed);
+      return;
+    }
+
+    state.documentFullscreenActive = false;
     stopDirectionalPlayback();
     state.nativeFullscreenVideo = null;
     state.fullscreenPlaybackSpeed = 1;

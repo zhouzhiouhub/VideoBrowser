@@ -96,6 +96,48 @@ class JsInjectorInstrumentedTest {
     }
 
     @Test
+    fun setPlaybackSpeed_survivesDocumentFullscreenSyncWhileAndroidCustomViewFullscreenIsActive() {
+        loadHtml(TEST_HTML)
+        injectPageFeatures()
+
+        val setup = evaluateJsonArray(
+            """
+                (function () {
+                  var video = document.getElementById('video');
+                  window.VideoBrowserEnhancer.setPlaybackSpeed(1.5);
+                  document.dispatchEvent(new Event('fullscreenchange'));
+                  video.playbackRate = 1;
+                  video.dispatchEvent(new Event('ratechange'));
+                  return [
+                    Boolean(document.fullscreenElement || document.webkitFullscreenElement),
+                    window.__videobrowserState.fullscreenPlaybackSpeed
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertFalse(setup.getBoolean(0))
+        assertEquals(1.5, setup.getDouble(1), 0.01)
+
+        Thread.sleep(100)
+
+        val result = evaluateJsonArray(
+            """
+                (function () {
+                  var video = document.getElementById('video');
+                  return [
+                    window.__videobrowserState.fullscreenPlaybackSpeed,
+                    video.playbackRate
+                  ];
+                })();
+            """.trimIndent()
+        )
+
+        assertEquals(1.5, result.getDouble(0), 0.01)
+        assertEquals(1.5, result.getDouble(1), 0.01)
+    }
+
+    @Test
     fun inject_loadsOnlyMatchingSiteAdapterInWebView() {
         loadHtml(TEST_HTML)
         injectPageFeatures(
