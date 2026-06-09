@@ -22,6 +22,9 @@
   if (!state.speedHookedVideos || typeof state.speedHookedVideos.add !== 'function') {
     state.speedHookedVideos = new WeakSet();
   }
+  if (!state.bestQualityAttempts || typeof state.bestQualityAttempts.get !== 'function') {
+    state.bestQualityAttempts = new WeakMap();
+  }
   state.nativeFullscreenVideo = state.nativeFullscreenVideo || null;
   state.documentFullscreenActive = Boolean(state.documentFullscreenActive);
   state.directionalPlayback = state.directionalPlayback || null;
@@ -35,6 +38,7 @@
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
   const generatedAdCleanupIntervalMs = 100;
+  const bestQualityAttemptIntervalMs = 30000;
   const normalWorkDelayMs = 250;
   const activeVideoWorkDelayMs = 750;
   const adSelectors = [
@@ -1470,6 +1474,7 @@
   function enhanceVideos() {
     document.querySelectorAll('video').forEach(function (video) {
       enableVideoControls(video);
+      preferBestVideoQuality(video);
       installVideoFullscreenHooks(video);
       installPlaybackSpeedHooks(video);
       applyVideoSpeed(video);
@@ -1722,6 +1727,34 @@
       }
       video.defaultPlaybackRate = speed;
     } catch (_) {}
+  }
+
+  function preferBestVideoQuality(video) {
+    if (!state.config.videoEnabled || !video || !video.isConnected) return;
+    if (!hasSiteVideoCapability(video, 'preferBestQuality')) return;
+
+    const now = Date.now();
+    const lastAttempt = state.bestQualityAttempts.get(video);
+    if (lastAttempt && lastAttempt.success) return;
+    if (lastAttempt && now - Number(lastAttempt.at || 0) < bestQualityAttemptIntervalMs) return;
+
+    state.bestQualityAttempts.set(video, { at: now, success: false });
+    logVideoDiagnostic('quality-prefer-start', videoLogDetails(video, {}));
+
+    const siteResult = invokeSiteVideoCapability(video, 'preferBestQuality', []);
+    if (siteResult.handled) {
+      const success = siteResult.value !== false;
+      state.bestQualityAttempts.set(video, { at: now, success: success });
+      logVideoDiagnostic(
+        success ? 'quality-prefer-success' : 'quality-prefer-unavailable',
+        videoLogDetails(video, { result: siteResult.value })
+      );
+      return;
+    }
+
+    logVideoDiagnostic('quality-prefer-unavailable', videoLogDetails(video, {
+      result: 'no-site-handler'
+    }));
   }
 
   function enableVideoControls(video) {

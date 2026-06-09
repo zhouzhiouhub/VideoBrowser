@@ -17,6 +17,7 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds])"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'seekTo', [targetSeconds])"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
+        assertTrue(script.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [])"))
         assertTrue(script.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
     }
 
@@ -27,6 +28,18 @@ class VideoCapabilityDelegationContractTest {
 
         assertTrue(enhanceVideosBody.contains("enableVideoControls(video);"))
         assertFalse(enhanceVideosBody.contains("enableNativeVideoControls(video);"))
+    }
+
+    @Test
+    fun commonVideoEnhancementRequestsBestQualityThroughSiteCapabilitiesWithoutCustomUi() {
+        val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val enhanceVideosBody = functionBody(script, "function enhanceVideos()")
+
+        assertTrue(script.contains("function preferBestVideoQuality(video)"))
+        assertTrue(enhanceVideosBody.contains("preferBestVideoQuality(video);"))
+        assertFalse(script.contains("qualitySelector"))
+        assertFalse(script.contains("quality-select"))
+        assertFalse(script.contains("清晰度选择"))
     }
 
     @Test
@@ -81,9 +94,24 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("seekBy: function (video, offsetSeconds)"))
         assertTrue(script.contains("seekTo: function (video, targetSeconds)"))
         assertTrue(script.contains("setPlaybackSpeed: function (video, speed)"))
+        assertTrue(script.contains("preferBestQuality: function (video)"))
         assertTrue(script.contains("findBilibiliPlayerApi()"))
         assertTrue(script.contains("'setPlaybackRate'"))
         assertTrue(script.contains("'seek'"))
+    }
+
+    @Test
+    fun unsupportedSiteAdaptersDoNotFakeBestQualityCapability() {
+        listOf(
+            "youtube" to "src/main/assets/scripts/youtube.js",
+            "iqiyi" to "src/main/assets/scripts/iqiyi.js",
+            "tencent" to "src/main/assets/scripts/tencent.js",
+            "youku" to "src/main/assets/scripts/youku.js"
+        ).forEach { (_, path) ->
+            val script = projectFile(path).readText()
+
+            assertFalse(script.contains("preferBestQuality"))
+        }
     }
 
     @Test

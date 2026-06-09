@@ -33,11 +33,56 @@ class VideoDiagnosticsContractTest {
         assertFalse(source.contains("updateSeekProgress("))
     }
 
+    @Test
+    fun nativePlayerAppliesDefaultEnhancementBeforePreparingAndCanRetryWithoutEffects() {
+        val source = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+        ).readText()
+
+        assertTrue(source.contains("NativeVideoEnhancement.defaultEffects()"))
+        assertTrue(source.contains("exoPlayer.setVideoEffects(videoEffects)"))
+        assertTrue(source.contains("retryPlaybackWithoutVideoEffects()"))
+        assertTrue(
+            source.indexOf("exoPlayer.setVideoEffects(videoEffects)") <
+                source.indexOf("exoPlayer.prepare()")
+        )
+    }
+
+    @Test
+    fun nativeVideoEnhancementUsesMedia3EffectModuleAndConservativeEffect() {
+        val versionCatalog = projectFile("gradle/libs.versions.toml").readText()
+        val buildFile = projectFile("app/build.gradle.kts").readText()
+        val enhancementFile = projectFileOrNull(
+            "src/main/java/com/example/videobrowser/video/NativeVideoEnhancement.kt"
+        )
+
+        assertTrue(versionCatalog.contains("androidx-media3-effect"))
+        assertTrue(buildFile.contains("libs.androidx.media3.effect"))
+        assertTrue("Missing NativeVideoEnhancement.kt", enhancementFile?.exists() == true)
+
+        val enhancementSource = enhancementFile!!.readText()
+        assertTrue(enhancementSource.contains("fun defaultEffects()"))
+        assertTrue(enhancementSource.contains("Contrast("))
+        assertFalse(enhancementSource.contains("RIFE"))
+        assertFalse(enhancementSource.contains("RealESRGAN"))
+        assertFalse(enhancementSource.contains("RealCUGAN"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            File(workingDirectory.parentFile, path)
         ).first { it.exists() }
+    }
+
+    private fun projectFileOrNull(path: String): File? {
+        val workingDirectory = File("").absoluteFile
+        return listOf(
+            File(workingDirectory, path),
+            File(workingDirectory, "app/$path"),
+            File(workingDirectory.parentFile, path)
+        ).firstOrNull { it.exists() }
     }
 }

@@ -46,6 +46,8 @@ class PlayerActivity : AppCompatActivity() {
     private var longPressDirection = 0
     private var directionalLongPressActive = false
     private var isLandscape = true
+    private var videoEffectsEnabled = true
+    private var retriedPlaybackWithoutVideoEffects = false
 
     private val reverseScanRunnable = object : Runnable {
         override fun run() {
@@ -80,6 +82,11 @@ class PlayerActivity : AppCompatActivity() {
                 it.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
             )
             longPressRestoreSpeed = selectedPlaybackSpeed
+            videoEffectsEnabled = it.getBoolean(STATE_VIDEO_EFFECTS_ENABLED, true)
+            retriedPlaybackWithoutVideoEffects = it.getBoolean(
+                STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
+                false
+            )
         }
         applyRequestedOrientation()
         setupGestureOverlay()
@@ -136,6 +143,11 @@ class PlayerActivity : AppCompatActivity() {
         outState.putInt(STATE_MEDIA_ITEM_INDEX, currentMediaItemIndex)
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
         outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
+        outState.putBoolean(STATE_VIDEO_EFFECTS_ENABLED, videoEffectsEnabled)
+        outState.putBoolean(
+            STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
+            retriedPlaybackWithoutVideoEffects
+        )
         super.onSaveInstanceState(outState)
     }
 
@@ -168,11 +180,28 @@ class PlayerActivity : AppCompatActivity() {
             .setUri(Uri.parse(mediaUri()))
             .setMimeType(normalizedMimeType(intent.getStringExtra(EXTRA_MIME_TYPE)))
             .build()
+        val videoEffects = NativeVideoEnhancement.defaultEffects()
 
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
             .also { exoPlayer ->
+                if (videoEffectsEnabled && videoEffects.isNotEmpty()) {
+                    runCatching {
+                        exoPlayer.setVideoEffects(videoEffects)
+                    }.onSuccess {
+                        Log.d(
+                            VIDEO_LOG_TAG,
+                            "event=native-video-effects applied=true count=${videoEffects.size}"
+                        )
+                    }.onFailure { error ->
+                        videoEffectsEnabled = false
+                        Log.d(
+                            VIDEO_LOG_TAG,
+                            "event=native-video-effects applied=false error=${error.message}"
+                        )
+                    }
+                }
                 exoPlayer.addListener(
                     object : Player.Listener {
                         override fun onPlayerError(error: PlaybackException) {
@@ -180,6 +209,10 @@ class PlayerActivity : AppCompatActivity() {
                                 VIDEO_LOG_TAG,
                                 "event=native-player-error code=${error.errorCode} message=${error.message}"
                             )
+                            if (videoEffectsEnabled && !retriedPlaybackWithoutVideoEffects) {
+                                retryPlaybackWithoutVideoEffects()
+                                return
+                            }
                             Toast.makeText(
                                 this@PlayerActivity,
                                 R.string.toast_media_playback_failed,
@@ -215,6 +248,18 @@ class PlayerActivity : AppCompatActivity() {
                 exoPlayer.seekTo(currentMediaItemIndex, playbackPosition)
                 exoPlayer.prepare()
             }
+    }
+
+    private fun retryPlaybackWithoutVideoEffects() {
+        if (retriedPlaybackWithoutVideoEffects) {
+            return
+        }
+        Log.d(VIDEO_LOG_TAG, "event=native-video-effects retryWithoutEffects=true")
+        savePlayerState()
+        retriedPlaybackWithoutVideoEffects = true
+        videoEffectsEnabled = false
+        releasePlayer()
+        initializePlayer()
     }
 
     private fun setupGestureOverlay() {
@@ -444,6 +489,8 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
         private const val STATE_LANDSCAPE = "landscape"
         private const val STATE_PLAYBACK_SPEED = "playback_speed"
+        private const val STATE_VIDEO_EFFECTS_ENABLED = "video_effects_enabled"
+        private const val STATE_RETRIED_WITHOUT_VIDEO_EFFECTS = "retried_without_video_effects"
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val CONTROLS_HIDE_DELAY_MS = 3000
