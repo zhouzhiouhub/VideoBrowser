@@ -1,6 +1,8 @@
 package com.example.videobrowser.rules
 
 import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.io.InputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -29,6 +31,51 @@ class RuleFileLoaderTest {
         assertTrue(result.rules.any { rule -> rule.source == "asset:${RuleFileLoader.REQUEST_RULES_ASSET}" })
         assertTrue(result.rules.any { rule -> rule.source == "cache:${RuleFileLoader.REQUEST_RULES_CACHE_FILE}" })
         assertTrue(result.skippedRules.isEmpty())
+    }
+
+    @Test
+    fun loadRequestRules_usesCacheWhenAssetOpenFails() {
+        val cacheDirectory = temporaryFolder.newFolder()
+        cacheDirectory.resolve(RuleFileLoader.REQUEST_RULES_CACHE_FILE)
+            .writeText("/cache-ad/\n", Charsets.UTF_8)
+        val loader = RuleFileLoader(
+            openAsset = { error("asset open failed") },
+            cacheDirectory = cacheDirectory
+        )
+
+        val result = loader.loadRequestRules()
+
+        assertEquals(1, result.rules.size)
+        assertEquals("/cache-ad/", result.rules.single().pattern)
+        assertEquals("cache:${RuleFileLoader.REQUEST_RULES_CACHE_FILE}", result.rules.single().source)
+        assertTrue(result.skippedRules.isEmpty())
+    }
+
+    @Test
+    fun loadRequestRules_usesCacheRulesAndRecordsSkippedAssetWhenAssetReadFails() {
+        val cacheDirectory = temporaryFolder.newFolder()
+        cacheDirectory.resolve(RuleFileLoader.REQUEST_RULES_CACHE_FILE)
+            .writeText("||cache-ad.example^\n", Charsets.UTF_8)
+        val loader = RuleFileLoader(
+            openAsset = { path ->
+                if (path == RuleFileLoader.REQUEST_RULES_ASSET) {
+                    FailingInputStream("asset failure")
+                } else {
+                    null
+                }
+            },
+            cacheDirectory = cacheDirectory
+        )
+
+        val result = loader.loadRequestRules()
+
+        assertEquals(1, result.rules.size)
+        assertEquals("cache-ad.example", result.rules.single().pattern)
+        assertEquals("cache:${RuleFileLoader.REQUEST_RULES_CACHE_FILE}", result.rules.single().source)
+        assertEquals(1, result.skippedRules.size)
+        assertEquals("asset:${RuleFileLoader.REQUEST_RULES_ASSET}", result.skippedRules.single().source)
+        assertEquals(0, result.skippedRules.single().lineNumber)
+        assertEquals("asset failure", result.skippedRules.single().reason)
     }
 
     @Test
@@ -161,5 +208,13 @@ class RuleFileLoaderTest {
             },
             cacheDirectory = cacheDirectory
         )
+    }
+
+    private class FailingInputStream(
+        private val message: String
+    ) : InputStream() {
+        override fun read(): Int {
+            throw IOException(message)
+        }
     }
 }

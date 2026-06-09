@@ -1,5 +1,7 @@
 package com.example.videobrowser.adblock
 
+import com.example.videobrowser.browser.RequestContext
+import com.example.videobrowser.rules.Rule
 import com.example.videobrowser.rules.RuleEngine
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -99,6 +101,95 @@ class AdBlockRequestPolicyTest {
     }
 
     @Test
+    fun evaluate_allowsExplicitRuleAndKeepsBlockedCandidateForDiagnostics() {
+        val blockRule = Rule.blockUrlContains("/pagead/", id = "test:block-pagead")
+        val allowRule = Rule.allowUrlContains("/pagead/allowed.js", id = "test:allow-pagead")
+        val decision = AdBlockRequestPolicy.evaluate(
+            enabled = true,
+            context = RequestContext(
+                requestUrl = "https://stats.g.doubleclick.net/pagead/allowed.js",
+                pageUrl = "https://video.example.com/watch"
+            ),
+            ruleEngine = RuleEngine(listOf(blockRule, allowRule))
+        )
+
+        assertFalse(decision.shouldBlock)
+        assertEquals(AdBlockDecisionReason.RULE_ALLOWED, decision.reason)
+        assertEquals(AdBlockOverrideReason.EXPLICIT_ALLOW_RULE, decision.overrideReason)
+        assertEquals(allowRule, decision.ruleMatchResult.rule)
+        assertEquals(listOf(blockRule, allowRule), decision.candidateRules)
+    }
+
+    @Test
+    fun evaluate_appliesThirdPartyScriptRulesWithoutBlockingFirstPartyScripts() {
+        val rule = requireNotNull(
+            Rule.fromRequestRuleText("||ads.video.example.com^\$third-party,script")
+        )
+        val engine = RuleEngine(listOf(rule))
+        val thirdPartyDecision = AdBlockRequestPolicy.evaluate(
+            enabled = true,
+            context = scriptRequest(
+                requestUrl = "https://ads.video.example.com/banner.js",
+                pageUrl = "https://other.example.org/watch"
+            ),
+            ruleEngine = engine
+        )
+        val firstPartyDecision = AdBlockRequestPolicy.evaluate(
+            enabled = true,
+            context = scriptRequest(
+                requestUrl = "https://ads.video.example.com/banner.js",
+                pageUrl = "https://www.video.example.com/watch"
+            ),
+            ruleEngine = engine
+        )
+
+        assertTrue(thirdPartyDecision.shouldBlock)
+        assertEquals(AdBlockDecisionReason.RULE_BLOCKED, thirdPartyDecision.reason)
+        assertFalse(firstPartyDecision.shouldBlock)
+        assertEquals(AdBlockDecisionReason.NO_MATCH, firstPartyDecision.reason)
+    }
+
+    @Test
+    fun evaluate_userWhitelistOverridesSiteDisabledAndRuleMatch() {
+        val blockRule = Rule.blockDomainContains("doubleclick.net", id = "test:block-doubleclick")
+        val decision = AdBlockRequestPolicy.evaluate(
+            enabled = true,
+            siteAdBlockDisabled = true,
+            userWhitelisted = true,
+            context = RequestContext(
+                requestUrl = "https://stats.g.doubleclick.net/pagead/script.js",
+                pageUrl = "https://video.example.com/watch"
+            ),
+            ruleEngine = RuleEngine(listOf(blockRule))
+        )
+
+        assertFalse(decision.shouldBlock)
+        assertEquals(AdBlockDecisionReason.USER_WHITELISTED, decision.reason)
+        assertEquals(AdBlockOverrideReason.USER_WHITELIST, decision.overrideReason)
+        assertEquals(listOf(blockRule), decision.candidateRules)
+    }
+
+    @Test
+    fun evaluate_currentSiteDisabledOverridesRuleMatchWhenUserWhitelistDoesNotApply() {
+        val blockRule = Rule.blockDomainContains("doubleclick.net", id = "test:block-doubleclick")
+        val decision = AdBlockRequestPolicy.evaluate(
+            enabled = true,
+            siteAdBlockDisabled = true,
+            userWhitelisted = false,
+            context = RequestContext(
+                requestUrl = "https://stats.g.doubleclick.net/pagead/script.js",
+                pageUrl = "https://video.example.com/watch"
+            ),
+            ruleEngine = RuleEngine(listOf(blockRule))
+        )
+
+        assertFalse(decision.shouldBlock)
+        assertEquals(AdBlockDecisionReason.SITE_AD_BLOCK_DISABLED, decision.reason)
+        assertEquals(AdBlockOverrideReason.SITE_AD_BLOCK_DISABLED, decision.overrideReason)
+        assertEquals(listOf(blockRule), decision.candidateRules)
+    }
+
+    @Test
     fun shouldBlock_allowsNonHttpRequests() {
         assertFalse(
             AdBlockRequestPolicy.shouldBlock(
@@ -109,6 +200,14 @@ class AdBlockRequestPolicyTest {
                 isForMainFrame = false,
                 ruleEngine = ruleEngine
             )
+        )
+    }
+
+    private fun scriptRequest(requestUrl: String, pageUrl: String): RequestContext {
+        return RequestContext(
+            requestUrl = requestUrl,
+            pageUrl = pageUrl,
+            requestHeaders = mapOf("Sec-Fetch-Dest" to "script")
         )
     }
 }
