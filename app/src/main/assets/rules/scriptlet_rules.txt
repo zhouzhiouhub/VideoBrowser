@@ -1,0 +1,2 @@
+! Safe scriptlet mappings.
+! Only project-whitelisted scriptlets are parsed; raw JavaScript is skipped.

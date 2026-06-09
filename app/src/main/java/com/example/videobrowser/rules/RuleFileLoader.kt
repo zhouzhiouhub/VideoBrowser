@@ -38,6 +38,16 @@ class RuleFileLoader(
         )
     }
 
+    fun loadScriptletRules(): RuleLoadResult<ScriptletRule> {
+        return loadRules(
+            assetPath = SCRIPTLET_RULES_ASSET,
+            cacheFileName = SCRIPTLET_RULES_CACHE_FILE,
+            parser = { line, source, lineNumber ->
+                parseScriptletRule(line, source, lineNumber)
+            }
+        )
+    }
+
     private fun <T> loadRules(
         assetPath: String,
         cacheFileName: String,
@@ -120,7 +130,10 @@ class RuleFileLoader(
             return ParsedRule.Ignored
         }
         val trimmed = line.trim()
-        if (trimmed.contains("#%#") || trimmed.contains("#?#")) {
+        if (isScriptletRuleLine(trimmed)) {
+            return ParsedRule.Ignored
+        }
+        if (trimmed.contains("#?#")) {
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported css exception syntax"))
         }
 
@@ -151,6 +164,20 @@ class RuleFileLoader(
                 excludedDomains = domainScope.excludedDomains
             )
         )
+    }
+
+    private fun parseScriptletRule(
+        line: String,
+        source: String,
+        lineNumber: Int
+    ): ParsedRule<ScriptletRule> {
+        return when (val result = ScriptletRegistry.parse(line, "$source:$lineNumber", source)) {
+            ScriptletParseResult.Ignored -> ParsedRule.Ignored
+            is ScriptletParseResult.Rule -> ParsedRule.Rule(result.value)
+            is ScriptletParseResult.Skipped -> {
+                ParsedRule.Skipped(skipped(source, lineNumber, line, result.reason))
+            }
+        }
     }
 
     private fun parseDomRule(line: String, source: String, lineNumber: Int): ParsedRule<ElementRule> {
@@ -231,6 +258,11 @@ class RuleFileLoader(
         return !UNSUPPORTED_SELECTOR_TOKENS.any { token -> lowered.contains(token) }
     }
 
+    private fun isScriptletRuleLine(trimmed: String): Boolean {
+        return trimmed.contains("##+js(") ||
+            trimmed.contains("#%#")
+    }
+
     private fun skipped(source: String, lineNumber: Int, text: String, reason: String): SkippedRule {
         return SkippedRule(
             source = source,
@@ -244,9 +276,11 @@ class RuleFileLoader(
         const val REQUEST_RULES_ASSET = "rules/request_rules.txt"
         const val CSS_RULES_ASSET = "rules/css_rules.txt"
         const val DOM_RULES_ASSET = "rules/dom_rules.txt"
+        const val SCRIPTLET_RULES_ASSET = "rules/scriptlet_rules.txt"
         const val REQUEST_RULES_CACHE_FILE = "request_rules.txt"
         const val CSS_RULES_CACHE_FILE = "css_rules.txt"
         const val DOM_RULES_CACHE_FILE = "dom_rules.txt"
+        const val SCRIPTLET_RULES_CACHE_FILE = "scriptlet_rules.txt"
         private const val DOM_REMOVE_PREFIX = "remove:"
         private const val MAX_SELECTOR_LENGTH = 200
 

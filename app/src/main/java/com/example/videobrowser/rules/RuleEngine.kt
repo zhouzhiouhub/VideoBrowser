@@ -8,13 +8,15 @@ import com.example.videobrowser.site.SiteHost
 class RuleEngine(
     rules: List<Rule>,
     elementRules: List<ElementRule> = emptyList(),
+    scriptletRules: List<ScriptletRule> = emptyList(),
     private val ruleMatcher: RuleMatcher = RuleMatcher(),
     ruleCompiler: RuleCompiler = RuleCompiler()
 ) {
     // G2-03 起请求匹配从编译产物索引取候选规则，未索引规则仍由 fallback 保持兼容。
     private val compiledRules = ruleCompiler.compile(
         requestRules = rules,
-        elementRules = elementRules
+        elementRules = elementRules,
+        scriptletRules = scriptletRules
     )
     private val requestCapabilities = compiledRules.requestCapabilities
     private val requestRuleOrder = requestCapabilities

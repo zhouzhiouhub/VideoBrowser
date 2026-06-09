@@ -54,6 +54,39 @@ class RuleFileLoaderTest {
     }
 
     @Test
+    fun loadScriptletRules_readsAssetsAndCacheFilesAndSkipsUnknownScriptlets() {
+        val cacheDirectory = temporaryFolder.newFolder()
+        cacheDirectory.resolve(RuleFileLoader.SCRIPTLET_RULES_CACHE_FILE)
+            .writeText("example.com##+js(fetch-block-keyword, /cache-ad/)\n", Charsets.UTF_8)
+        val loader = loaderFor(
+            cacheDirectory = cacheDirectory,
+            assets = mapOf(
+                RuleFileLoader.SCRIPTLET_RULES_ASSET to """
+                    example.com##+js(window-open-block-keyword, /popup-ad/)
+                    example.com##+js(unknown-scriptlet, value)
+                    example.com#%#alert('raw')
+                """.trimIndent()
+            )
+        )
+
+        val result = loader.loadScriptletRules()
+
+        assertEquals(2, result.rules.size)
+        assertEquals(
+            listOf("window-open-block-keyword", "fetch-block-keyword"),
+            result.rules.map { rule -> rule.name }
+        )
+        assertEquals(2, result.skippedRules.size)
+        assertEquals(
+            listOf(
+                ScriptletRegistry.REASON_UNSUPPORTED_SCRIPTLET,
+                ScriptletRegistry.REASON_RAW_SCRIPTLET_JAVASCRIPT
+            ),
+            result.skippedRules.map { skippedRule -> skippedRule.reason }
+        )
+    }
+
+    @Test
     fun loadCssRules_parsesGlobalAndDomainScopedSelectors() {
         val loader = loaderFor(
             assets = mapOf(
@@ -75,6 +108,25 @@ class RuleFileLoaderTest {
         assertEquals(ElementRuleType.CSS_UNHIDE, result.rules[2].type)
         assertEquals(setOf("example.com"), result.rules[2].normalizedDomains)
         assertEquals(setOf("safe.example.com"), result.rules[3].normalizedExcludedDomains)
+        assertTrue(result.skippedRules.isEmpty())
+    }
+
+    @Test
+    fun loadCssRules_doesNotTreatScriptletRulesAsSelectors() {
+        val loader = loaderFor(
+            assets = mapOf(
+                RuleFileLoader.CSS_RULES_ASSET to """
+                    example.com##+js(window-open-block-keyword, /popup-ad/)
+                    example.com#%#//scriptlet('fetch-block-keyword', '/pagead/')
+                    ##.ad-banner
+                """.trimIndent()
+            )
+        )
+
+        val result = loader.loadCssRules()
+
+        assertEquals(1, result.rules.size)
+        assertEquals(".ad-banner", result.rules.single().selector)
         assertTrue(result.skippedRules.isEmpty())
     }
 

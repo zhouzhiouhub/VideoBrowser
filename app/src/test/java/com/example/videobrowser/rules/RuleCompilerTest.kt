@@ -95,6 +95,55 @@ class RuleCompilerTest {
     }
 
     @Test
+    fun compile_createsSafeHookCapabilitiesForScriptletRules() {
+        val scriptletRule = ScriptletRule(
+            id = "scriptlet:fetch",
+            name = "fetch-block-keyword",
+            arguments = listOf("/pagead/"),
+            source = "test-source",
+            domainScope = DomainScope(includedDomains = setOf("example.com"))
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = emptyList(),
+            elementRules = emptyList(),
+            scriptletRules = listOf(scriptletRule)
+        )
+
+        assertEquals(1, result.safeHookCapabilities.size)
+        val capability = result.safeHookCapabilities.single()
+        assertEquals("scriptlet:fetch", capability.id)
+        assertEquals("test-source", capability.source)
+        assertEquals("fetch-block-keyword", capability.hookName)
+        assertEquals(listOf("/pagead/"), capability.arguments)
+        assertTrue(capability.domainScope.matches("www.example.com"))
+        assertTrue(result.skippedRules.isEmpty())
+    }
+
+    @Test
+    fun compile_skipsInvalidScriptletRules() {
+        val scriptletRule = ScriptletRule(
+            id = "scriptlet:unknown",
+            name = "unknown-scriptlet",
+            arguments = listOf("alert(1)"),
+            source = "test-source"
+        )
+
+        val result = RuleCompiler().compile(
+            requestRules = emptyList(),
+            elementRules = emptyList(),
+            scriptletRules = listOf(scriptletRule)
+        )
+
+        assertTrue(result.safeHookCapabilities.isEmpty())
+        assertEquals(1, result.skippedRules.size)
+        assertEquals(
+            ScriptletRegistry.REASON_UNSUPPORTED_SCRIPTLET,
+            result.skippedRules.single().reason
+        )
+    }
+
+    @Test
     fun capabilityKinds_distinguishRequestPageHookAndNoopCapabilities() {
         val requestCapability = RuleCapability.Request(Rule.blockUrlContains("/ad/"))
         val hideCapability = RuleCapability.CssHide(

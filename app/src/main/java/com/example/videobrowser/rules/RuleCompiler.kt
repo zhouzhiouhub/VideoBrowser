@@ -1,5 +1,7 @@
 package com.example.videobrowser.rules
 
+import java.util.Locale
+
 /**
  * 把解析后的安全规则子集转换为项目内部能力模型。
  *
@@ -9,7 +11,8 @@ package com.example.videobrowser.rules
 class RuleCompiler {
     fun compile(
         requestRules: List<Rule>,
-        elementRules: List<ElementRule>
+        elementRules: List<ElementRule>,
+        scriptletRules: List<ScriptletRule> = emptyList()
     ): CompiledRuleSet {
         val skippedRules = mutableListOf<SkippedRule>()
         val requestCapabilities = requestRules.mapNotNull { rule ->
@@ -29,12 +32,16 @@ class RuleCompiler {
                 is RuleCapability.DomRemove -> domRemoveCapabilities += capability
             }
         }
+        val safeHookCapabilities = scriptletRules.mapNotNull { rule ->
+            compileScriptletRule(rule, skippedRules)
+        }
 
         return CompiledRuleSet(
             requestCapabilities = requestCapabilities,
             cssHideCapabilities = cssHideCapabilities,
             cssUnhideCapabilities = cssUnhideCapabilities,
             domRemoveCapabilities = domRemoveCapabilities,
+            safeHookCapabilities = safeHookCapabilities,
             noopResponseCapabilities = noopResponseCapabilities,
             skippedRules = skippedRules
         )
@@ -70,11 +77,44 @@ class RuleCompiler {
         }
     }
 
+    private fun compileScriptletRule(
+        rule: ScriptletRule,
+        skippedRules: MutableList<SkippedRule>
+    ): RuleCapability.SafeHook? {
+        val normalizedName = rule.name.trim().lowercase(Locale.US)
+        return when (ScriptletRegistry.validate(normalizedName, rule.arguments)) {
+            ScriptletValidation.Valid -> RuleCapability.SafeHook(
+                id = rule.id,
+                source = rule.source,
+                hookName = normalizedName,
+                arguments = rule.arguments,
+                domainScope = rule.domainScope
+            )
+            ScriptletValidation.Unsupported -> {
+                skippedRules += skipped(rule, ScriptletRegistry.REASON_UNSUPPORTED_SCRIPTLET)
+                null
+            }
+            ScriptletValidation.InvalidArguments -> {
+                skippedRules += skipped(rule, ScriptletRegistry.REASON_INVALID_ARGUMENTS)
+                null
+            }
+        }
+    }
+
     private fun skipped(rule: Rule, reason: String): SkippedRule {
         return SkippedRule(
             source = rule.source,
             lineNumber = 0,
             text = "${rule.id}:${rule.pattern}",
+            reason = reason
+        )
+    }
+
+    private fun skipped(rule: ScriptletRule, reason: String): SkippedRule {
+        return SkippedRule(
+            source = rule.source,
+            lineNumber = 0,
+            text = "${rule.id}:${rule.name}",
             reason = reason
         )
     }
@@ -197,7 +237,8 @@ sealed class RuleCapability {
         override val id: String,
         override val source: String,
         val hookName: String,
-        val arguments: List<String> = emptyList()
+        val arguments: List<String> = emptyList(),
+        val domainScope: DomainScope = DomainScope.Empty
     ) : RuleCapability() {
         override val kind: RuleCapabilityKind = RuleCapabilityKind.SAFE_HOOK
     }

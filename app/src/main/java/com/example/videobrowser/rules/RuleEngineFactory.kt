@@ -18,15 +18,20 @@ object RuleEngineFactory {
         val requestResult = loader.loadRequestRules()
         val cssResult = loader.loadCssRules()
         val domResult = loader.loadDomRules()
+        val scriptletResult = loader.loadScriptletRules()
         logSkippedRules(
-            skippedRules = requestResult.skippedRules + cssResult.skippedRules + domResult.skippedRules,
+            skippedRules = requestResult.skippedRules +
+                cssResult.skippedRules +
+                domResult.skippedRules +
+                scriptletResult.skippedRules,
             logTag = logTag
         )
         val requestRules = BuiltInAdBlockRules.requestRules() + requestResult.rules
         val elementRules = cssResult.rules + domResult.rules
         return RuleEngine(
             rules = requestRules,
-            elementRules = elementRules
+            elementRules = elementRules,
+            scriptletRules = scriptletResult.rules
         )
     }
 
