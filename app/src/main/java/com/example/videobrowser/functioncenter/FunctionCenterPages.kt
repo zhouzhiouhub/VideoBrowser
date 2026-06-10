@@ -28,6 +28,7 @@ class FunctionCenterPages(
     private val isDesktopModeEnabled: () -> Boolean,
     private val isPrivateBrowsingEnabled: () -> Boolean,
     private val isAdBlockEnabled: () -> Boolean,
+    private val isSmartNoImageEnabled: () -> Boolean,
     private val isJsInjectionEnabled: () -> Boolean,
     private val isPageCleanupEnabled: () -> Boolean,
     private val isVideoEnhancementEnabled: () -> Boolean,
@@ -53,6 +54,7 @@ class FunctionCenterPages(
         browserManager = browserManager,
         currentSiteHost = currentSiteHost,
         isAdBlockEnabled = isAdBlockEnabled,
+        isSmartNoImageEnabled = isSmartNoImageEnabled,
         isJsInjectionEnabled = isJsInjectionEnabled,
         isPageCleanupEnabled = isPageCleanupEnabled,
         isVideoEnhancementEnabled = isVideoEnhancementEnabled,
@@ -119,6 +121,7 @@ class FunctionCenterPages(
         browserManager = browserManager,
         isPrivateBrowsingEnabled = isPrivateBrowsingEnabled,
         isAdBlockEnabled = isAdBlockEnabled,
+        isSmartNoImageEnabled = isSmartNoImageEnabled,
         isJsInjectionEnabled = isJsInjectionEnabled,
         isPageCleanupEnabled = isPageCleanupEnabled,
         isVideoEnhancementEnabled = isVideoEnhancementEnabled,
@@ -540,6 +543,17 @@ class FunctionCenterPages(
             ) { enabled ->
                 settingsManager.setDesktopModeEnabled(enabled)
                 applyDesktopMode(true)
+            }
+            host.addSwitchRow(
+                parent = section,
+                title = activity.getString(R.string.setting_smart_no_image),
+                summary = activity.getString(R.string.setting_smart_no_image_summary),
+                checked = isSmartNoImageEnabled(),
+                enabled = hasPage
+            ) { enabled ->
+                settingsManager.setSmartNoImageEnabled(enabled)
+                browserManager().reload()
+                showFeatureToggleToast(activity.getString(R.string.setting_smart_no_image), enabled)
             }
             host.addSwitchRow(
                 parent = section,

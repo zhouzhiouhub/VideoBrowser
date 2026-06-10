@@ -15,6 +15,7 @@ class SettingsManagerTest {
         assertTrue(settings.isJsInjectionEnabled())
         assertTrue(settings.isDomAdBlockEnabled())
         assertTrue(settings.isVideoEnhancementEnabled())
+        assertFalse(settings.isSmartNoImageEnabled())
         assertFalse(settings.isDesktopModeEnabled())
         assertFalse(settings.isPrivateBrowsingEnabled())
         assertEquals(SettingsManager.DEFAULT_VIDEO_SPEED, settings.defaultVideoSpeed(), 0.001f)
@@ -54,6 +55,7 @@ class SettingsManagerTest {
         settings.setJsInjectionEnabled(false)
         settings.setDomAdBlockEnabled(false)
         settings.setVideoEnhancementEnabled(false)
+        settings.setSmartNoImageEnabled(true)
         settings.setDesktopModeEnabled(true)
         settings.setPrivateBrowsingEnabled(true)
         settings.setDefaultVideoSpeed(1.5f)
@@ -65,6 +67,7 @@ class SettingsManagerTest {
         assertFalse(reloaded.isJsInjectionEnabled())
         assertFalse(reloaded.isDomAdBlockEnabled())
         assertFalse(reloaded.isVideoEnhancementEnabled())
+        assertTrue(reloaded.isSmartNoImageEnabled())
         assertTrue(reloaded.isDesktopModeEnabled())
         assertFalse(reloaded.isPrivateBrowsingEnabled())
         assertFalse(store.contains("private_browsing"))
@@ -95,9 +98,11 @@ class SettingsManagerTest {
         settings.setJsInjectionDisabledForSite("video.example.com", true)
         settings.setDomAdBlockDisabledForSite("video.example.com", true)
         settings.setVideoEnhancementDisabledForSite("video.example.com", true)
+        settings.setSmartNoImageDisabledForSite("video.example.com", true)
         settings.setUserWhitelistedSite("ads.example.com", true)
         settings.addUserElementHideSelectorForSite("video.example.com", "#ad")
         settings.setJsInjectionEnabled(false)
+        settings.setSmartNoImageEnabled(true)
         settings.setPrivateBrowsingEnabled(true)
         settings.setHomeUrl("https://m.sogou.com/")
         settings.addCustomShortcut("Docs", "https://docs.example.com/")
@@ -110,9 +115,11 @@ class SettingsManagerTest {
         assertFalse(settings.isJsInjectionDisabledForSite("video.example.com"))
         assertFalse(settings.isDomAdBlockDisabledForSite("video.example.com"))
         assertFalse(settings.isVideoEnhancementDisabledForSite("video.example.com"))
+        assertFalse(settings.isSmartNoImageDisabledForSite("video.example.com"))
         assertFalse(settings.isUserWhitelistedSite("ads.example.com"))
         assertTrue(settings.userElementHideSelectorsForSite("video.example.com").isEmpty())
         assertTrue(settings.isJsInjectionEnabled())
+        assertFalse(settings.isSmartNoImageEnabled())
         assertFalse(settings.isPrivateBrowsingEnabled())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
         assertTrue(settings.customShortcuts().isEmpty())
@@ -177,6 +184,21 @@ class SettingsManagerTest {
 
         assertTrue(reloaded.setVideoEnhancementDisabledForSite("video.example.com", false))
         assertFalse(reloaded.isVideoEnhancementDisabledForSite("video.example.com"))
+    }
+
+    @Test
+    fun siteSmartNoImageDisabledHosts_areNormalizedAndPersisted() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.setSmartNoImageDisabledForSite(" Video.Example.COM. ", true))
+
+        val reloaded = SettingsManager(store)
+        assertTrue(reloaded.isSmartNoImageDisabledForSite("video.example.com"))
+        assertEquals(setOf("video.example.com"), reloaded.smartNoImageDisabledSiteHosts())
+
+        assertTrue(reloaded.setSmartNoImageDisabledForSite("video.example.com", false))
+        assertFalse(reloaded.isSmartNoImageDisabledForSite("video.example.com"))
     }
 
     @Test

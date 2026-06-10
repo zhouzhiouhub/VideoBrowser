@@ -70,6 +70,9 @@
     <string name="setting_current_site_ad_block_disabled">当前站点关闭广告拦截</string>
     <string name="setting_current_site_ad_block_disabled_summary">对 %1$s 放行广告请求</string>
     <string name="setting_current_site_ad_block_disabled_summary_empty">打开网页后可单独设置当前站点</string>
+    <string name="setting_smart_no_image">智能无图</string>
+    <string name="setting_smart_no_image_summary">拦截网页图片请求，保留文字、脚本和视频加载</string>
+    <string name="setting_current_site_smart_no_image">智能无图</string>
     <string name="setting_js_injection">网页脚本增强</string>
     <string name="setting_js_injection_summary">允许执行内置 common.js 和站点适配脚本</string>
     <string name="setting_current_site_js_injection">脚本增强</string>

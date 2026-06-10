@@ -11,6 +11,7 @@ class BrowserSettingsPage(
     private val browserManager: () -> BrowserManager,
     private val isPrivateBrowsingEnabled: () -> Boolean,
     private val isAdBlockEnabled: () -> Boolean,
+    private val isSmartNoImageEnabled: () -> Boolean,
     private val isJsInjectionEnabled: () -> Boolean,
     private val isPageCleanupEnabled: () -> Boolean,
     private val isVideoEnhancementEnabled: () -> Boolean,
@@ -248,6 +249,16 @@ class BrowserSettingsPage(
                 checked = isAdBlockEnabled()
             ) { enabled ->
                 settingsManager.setAdBlockEnabled(enabled)
+                browserManager().reload()
+            }
+
+            host.addSwitchRow(
+                parent = section,
+                title = activity.getString(R.string.setting_smart_no_image),
+                summary = activity.getString(R.string.setting_smart_no_image_summary),
+                checked = isSmartNoImageEnabled()
+            ) { enabled ->
+                settingsManager.setSmartNoImageEnabled(enabled)
                 browserManager().reload()
             }
 

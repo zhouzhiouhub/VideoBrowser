@@ -128,6 +128,28 @@ class SettingsManager(
         return loadHostSet(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS)
     }
 
+    fun isSmartNoImageDisabledForSite(host: String?): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        return smartNoImageDisabledSiteHosts().contains(normalizedHost)
+    }
+
+    fun setSmartNoImageDisabledForSite(host: String?, disabled: Boolean): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val hosts = smartNoImageDisabledSiteHosts().toMutableSet()
+        if (disabled) {
+            hosts.add(normalizedHost)
+        } else {
+            hosts.remove(normalizedHost)
+        }
+
+        saveHostSet(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, hosts)
+        return true
+    }
+
+    fun smartNoImageDisabledSiteHosts(): Set<String> {
+        return loadHostSet(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS)
+    }
+
     fun isUserWhitelistedSite(host: String?): Boolean {
         val normalizedHost = SiteHost.normalize(host) ?: return false
         return userWhitelistedSiteHosts().contains(normalizedHost)
@@ -232,6 +254,14 @@ class SettingsManager(
 
     fun setVideoEnhancementEnabled(enabled: Boolean) {
         preferenceStore.putBoolean(KEY_VIDEO_ENHANCEMENT, enabled)
+    }
+
+    fun isSmartNoImageEnabled(): Boolean {
+        return preferenceStore.getBoolean(KEY_SMART_NO_IMAGE, DEFAULT_SMART_NO_IMAGE_ENABLED)
+    }
+
+    fun setSmartNoImageEnabled(enabled: Boolean) {
+        preferenceStore.putBoolean(KEY_SMART_NO_IMAGE, enabled)
     }
 
     fun defaultVideoSpeed(): Float {
@@ -474,6 +504,7 @@ class SettingsManager(
         private const val DEFAULT_JS_INJECTION_ENABLED = true
         private const val DEFAULT_DOM_AD_BLOCK_ENABLED = true
         private const val DEFAULT_VIDEO_ENHANCEMENT_ENABLED = true
+        private const val DEFAULT_SMART_NO_IMAGE_ENABLED = false
         private const val DEFAULT_DESKTOP_MODE_ENABLED = false
         private const val DEFAULT_PRIVATE_BROWSING_ENABLED = false
 
@@ -483,11 +514,14 @@ class SettingsManager(
         private const val KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS = "site_dom_ad_block_disabled_hosts"
         private const val KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS =
             "site_video_enhancement_disabled_hosts"
+        private const val KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS =
+            "site_smart_no_image_disabled_hosts"
         private const val KEY_USER_WHITELISTED_SITE_HOSTS = "user_whitelisted_site_hosts"
         private const val KEY_USER_ELEMENT_HIDE_RULES = "user_element_hide_rules"
         private const val KEY_JS_INJECTION = "js_injection"
         private const val KEY_DOM_AD_BLOCK = "page_cleanup"
         private const val KEY_VIDEO_ENHANCEMENT = "video_enhancement"
+        private const val KEY_SMART_NO_IMAGE = "smart_no_image"
         private const val KEY_DEFAULT_VIDEO_SPEED = "default_video_speed"
         private const val KEY_HOME_URL = "home_url"
         private const val KEY_SEARCH_ENGINE = "search_provider"
@@ -506,11 +540,13 @@ class SettingsManager(
             KEY_SITE_JS_INJECTION_DISABLED_HOSTS,
             KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS,
             KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS,
+            KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS,
             KEY_USER_WHITELISTED_SITE_HOSTS,
             KEY_USER_ELEMENT_HIDE_RULES,
             KEY_JS_INJECTION,
             KEY_DOM_AD_BLOCK,
             KEY_VIDEO_ENHANCEMENT,
+            KEY_SMART_NO_IMAGE,
             KEY_DEFAULT_VIDEO_SPEED,
             KEY_HOME_URL,
             KEY_SEARCH_ENGINE,

@@ -39,10 +39,12 @@ import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserMode
+import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.PageActionsController
+import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.SearchSuggestionClient
@@ -134,6 +136,13 @@ class MainActivity : AppCompatActivity() {
     }
     private val adBlockRequestInterceptor: AdBlockRequestInterceptor by lazy {
         AdBlockRequestInterceptor(adBlockManager)
+    }
+    private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor by lazy {
+        SmartNoImageRequestInterceptor(
+            isEnabled = { pageFeatureCoordinator.isSmartNoImageEnabled() },
+            isDisabledForCurrentSite = { pageFeatureCoordinator.isCurrentSiteSmartNoImageDisabled() },
+            currentPageUrl = { currentSessionController().currentPageUrl }
+        )
     }
 
     private var privateBrowsingActive = false
@@ -346,6 +355,7 @@ class MainActivity : AppCompatActivity() {
             isDesktopModeEnabled = ::isDesktopModeEnabled,
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
             isAdBlockEnabled = ::isAdBlockEnabled,
+            isSmartNoImageEnabled = ::isSmartNoImageEnabled,
             isJsInjectionEnabled = ::isJsInjectionEnabled,
             isPageCleanupEnabled = ::isPageCleanupEnabled,
             isVideoEnhancementEnabled = ::isVideoEnhancementEnabled,
@@ -531,11 +541,14 @@ class MainActivity : AppCompatActivity() {
             BrowserClient(
                 pageStarted = { url -> currentSessionController().handlePageStarted(url) },
                 pageFinished = { url -> currentSessionController().handlePageFinished(url) },
-                requestIntercepted = adBlockRequestInterceptor::intercept,
+                requestIntercepted = ::interceptBrowserRequest,
                 urlLoadingRequested = ::shouldBlockUrl
             )
         )
     }
+
+    private fun interceptBrowserRequest(request: BrowserRequest) =
+        adBlockRequestInterceptor.intercept(request) ?: smartNoImageRequestInterceptor.intercept(request)
 
     private fun setupFullscreenGestureOverlay() {
         fullscreenVideoController.attachOverlay()
@@ -759,6 +772,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun isCurrentSiteAdBlockDisabled(): Boolean {
         return pageFeatureCoordinator.isCurrentSiteAdBlockDisabled()
+    }
+
+    private fun isSmartNoImageEnabled(): Boolean {
+        return pageFeatureCoordinator.isSmartNoImageEnabled()
     }
 
     private fun isJsInjectionEnabled(): Boolean {

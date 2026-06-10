@@ -38,6 +38,7 @@ class PageFeatureCoordinatorTest {
         settings.setJsInjectionDisabledForSite("video.example.com", true)
         settings.setDomAdBlockDisabledForSite("video.example.com", true)
         settings.setVideoEnhancementDisabledForSite("video.example.com", true)
+        settings.setSmartNoImageDisabledForSite("video.example.com", true)
         settings.setUserWhitelistedSite("ads.example.com", true)
         val coordinator = coordinatorFor(
             settings = settings,
@@ -50,6 +51,7 @@ class PageFeatureCoordinatorTest {
         assertTrue(coordinator.isCurrentSiteJsInjectionDisabled())
         assertTrue(coordinator.isCurrentSitePageCleanupDisabled())
         assertTrue(coordinator.isCurrentSiteVideoEnhancementDisabled())
+        assertTrue(coordinator.isCurrentSiteSmartNoImageDisabled())
 
         val decision = AdBlockRequestPolicy.evaluate(
             enabled = settings.isAdBlockEnabled(),

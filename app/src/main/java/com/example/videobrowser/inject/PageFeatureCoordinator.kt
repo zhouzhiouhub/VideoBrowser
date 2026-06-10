@@ -42,6 +42,14 @@ class PageFeatureCoordinator(
         return settingsManager.isVideoEnhancementDisabledForSite(currentSiteHost())
     }
 
+    fun isSmartNoImageEnabled(): Boolean {
+        return settingsManager.isSmartNoImageEnabled()
+    }
+
+    fun isCurrentSiteSmartNoImageDisabled(): Boolean {
+        return settingsManager.isSmartNoImageDisabledForSite(currentSiteHost())
+    }
+
     fun injectPageFeatures() {
         jsInjector.inject(
             PageFeatureConfig(

@@ -12,6 +12,7 @@ class CurrentSiteSettingsPage(
     private val browserManager: () -> BrowserManager,
     private val currentSiteHost: () -> String?,
     private val isAdBlockEnabled: () -> Boolean,
+    private val isSmartNoImageEnabled: () -> Boolean,
     private val isJsInjectionEnabled: () -> Boolean,
     private val isPageCleanupEnabled: () -> Boolean,
     private val isVideoEnhancementEnabled: () -> Boolean,
@@ -74,6 +75,24 @@ class CurrentSiteSettingsPage(
                 showCurrentSiteFeatureToast(
                     enabled = enabled,
                     featureName = activity.getString(R.string.setting_current_site_ad_block),
+                    hostName = hostName
+                )
+                browserManager().reload()
+            }
+
+            host.addSwitchRow(
+                parent = section,
+                title = activity.getString(R.string.setting_current_site_smart_no_image),
+                summary = currentSiteFeatureSummary(siteHost, isSmartNoImageEnabled()),
+                checked = isSmartNoImageEnabled() &&
+                    !(siteHost?.let(settingsManager::isSmartNoImageDisabledForSite) ?: false),
+                enabled = hasSite && isSmartNoImageEnabled()
+            ) { enabled ->
+                val hostName = currentSiteHost() ?: return@addSwitchRow
+                settingsManager.setSmartNoImageDisabledForSite(hostName, !enabled)
+                showCurrentSiteFeatureToast(
+                    enabled = enabled,
+                    featureName = activity.getString(R.string.setting_current_site_smart_no_image),
                     hostName = hostName
                 )
                 browserManager().reload()
@@ -224,6 +243,14 @@ class CurrentSiteSettingsPage(
                     summary = currentSiteFeatureStatus(
                         globalEnabled = isAdBlockEnabled(),
                         siteDisabled = settingsManager.isAdBlockDisabledForSite(siteHost)
+                    )
+                )
+                host.addInfoRow(
+                    parent = section,
+                    title = activity.getString(R.string.setting_current_site_smart_no_image),
+                    summary = currentSiteFeatureStatus(
+                        globalEnabled = isSmartNoImageEnabled(),
+                        siteDisabled = settingsManager.isSmartNoImageDisabledForSite(siteHost)
                     )
                 )
                 host.addInfoRow(
