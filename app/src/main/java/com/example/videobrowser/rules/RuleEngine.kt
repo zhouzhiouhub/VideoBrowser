@@ -4,11 +4,15 @@ import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.RequestContext
 import com.example.videobrowser.browser.ResourceType
 import com.example.videobrowser.site.SiteHost
+import java.net.URI
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 class RuleEngine(
     rules: List<Rule>,
     elementRules: List<ElementRule> = emptyList(),
     scriptletRules: List<ScriptletRule> = emptyList(),
+    removeParamRules: List<RemoveParamRule> = emptyList(),
     private val ruleMatcher: RuleMatcher = RuleMatcher(),
     ruleCompiler: RuleCompiler = RuleCompiler()
 ) {
@@ -16,7 +20,8 @@ class RuleEngine(
     private val compiledRules = ruleCompiler.compile(
         requestRules = rules,
         elementRules = elementRules,
-        scriptletRules = scriptletRules
+        scriptletRules = scriptletRules,
+        removeParamRules = removeParamRules
     )
     private val requestCapabilities = compiledRules.requestCapabilities
     private val requestRuleOrder = requestCapabilities
@@ -118,6 +123,45 @@ class RuleEngine(
         return compiledRules.skippedRules
     }
 
+    fun cleanNavigationUrl(url: String, pageUrl: String? = null): String {
+        val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return url
+        val scheme = uri.scheme?.lowercase().orEmpty()
+        if (scheme != "http" && scheme != "https") {
+            return url
+        }
+        val rawQuery = uri.rawQuery ?: return url
+        if (rawQuery.isEmpty()) {
+            return url
+        }
+
+        val requestHost = SiteHost.fromUrl(url)
+        val pageHost = SiteHost.fromUrl(pageUrl)
+        val parametersToRemove = compiledRules.removeParamCapabilities
+            .filter { capability ->
+                ruleMatcher.matches(
+                    rule = capability.rule.toRequestMatcherRule(),
+                    url = url,
+                    host = requestHost,
+                    pageHost = pageHost,
+                    resourceType = ResourceType.DOCUMENT
+                )
+            }
+            .map { capability -> capability.rule.parameterName }
+            .toSet()
+        if (parametersToRemove.isEmpty()) {
+            return url
+        }
+
+        val queryParts = rawQuery.split("&")
+        val keptQueryParts = queryParts.filterNot { part ->
+            decodedQueryName(part.substringBefore("=")) in parametersToRemove
+        }
+        if (keptQueryParts.size == queryParts.size) {
+            return url
+        }
+        return renderUriWithQuery(uri, keptQueryParts.joinToString("&").takeIf { it.isNotEmpty() })
+    }
+
     fun cssSelectorsFor(pageUrl: String?): List<String> {
         val pageHost = SiteHost.fromUrl(pageUrl)
         val exceptions = compiledRules.cssUnhideCandidatesFor(pageHost)
@@ -184,6 +228,32 @@ class RuleEngine(
             }
             .map { rule -> rule.pattern }
             .distinct()
+    }
+
+    private fun decodedQueryName(rawName: String): String {
+        return runCatching {
+            URLDecoder.decode(rawName, StandardCharsets.UTF_8.name())
+        }.getOrDefault(rawName)
+    }
+
+    private fun renderUriWithQuery(uri: URI, rawQuery: String?): String {
+        return buildString {
+            append(uri.scheme)
+            append(":")
+            uri.rawAuthority?.let { authority ->
+                append("//")
+                append(authority)
+            }
+            append(uri.rawPath.orEmpty())
+            rawQuery?.let { query ->
+                append("?")
+                append(query)
+            }
+            uri.rawFragment?.let { fragment ->
+                append("#")
+                append(fragment)
+            }
+        }
     }
 
     private fun findFirstMatchingRule(

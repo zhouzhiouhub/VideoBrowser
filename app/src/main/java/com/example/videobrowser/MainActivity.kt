@@ -903,18 +903,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUrl(url: String) {
+        val cleanedUrl = if (::ruleEngine.isInitialized) {
+            ruleEngine.cleanNavigationUrl(url, currentSessionController().currentPageUrl)
+        } else {
+            url
+        }
         closeFunctionCenter()
-        if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
-            openNativePlayer(url)
+        if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(cleanedUrl))) {
+            openNativePlayer(cleanedUrl)
             return
         }
 
-        currentSessionController().currentPageUrl = url
-        val isProviderHome = isProviderHomeUrl(url)
-        updateAddressBar(url)
+        currentSessionController().currentPageUrl = cleanedUrl
+        val isProviderHome = isProviderHomeUrl(cleanedUrl)
+        updateAddressBar(cleanedUrl)
         hideKeyboard()
         showHomeContent(isProviderHome)
-        currentBrowserManager().load(url)
+        currentBrowserManager().load(cleanedUrl)
     }
 
     private fun updateAddressBar(url: String?) {
@@ -987,7 +992,24 @@ class MainActivity : AppCompatActivity() {
             return true
         }
 
-        return !isWebUrl(uri.scheme)
+        if (!isWebUrl(uri.scheme)) {
+            return true
+        }
+
+        if (openMedia && ::ruleEngine.isInitialized) {
+            val originalUrl = uri.toString()
+            val cleanedUrl = ruleEngine.cleanNavigationUrl(
+                url = originalUrl,
+                pageUrl = currentSessionController().currentPageUrl
+            )
+            if (cleanedUrl != originalUrl) {
+                view?.stopLoading()
+                loadUrl(cleanedUrl)
+                return true
+            }
+        }
+
+        return false
     }
 
     private fun isUnavailableUcDownloadUrl(uri: Uri): Boolean {

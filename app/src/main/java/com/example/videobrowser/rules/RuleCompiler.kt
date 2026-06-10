@@ -12,7 +12,8 @@ class RuleCompiler {
     fun compile(
         requestRules: List<Rule>,
         elementRules: List<ElementRule>,
-        scriptletRules: List<ScriptletRule> = emptyList()
+        scriptletRules: List<ScriptletRule> = emptyList(),
+        removeParamRules: List<RemoveParamRule> = emptyList()
     ): CompiledRuleSet {
         val skippedRules = mutableListOf<SkippedRule>()
         val requestCapabilities = requestRules.mapNotNull { rule ->
@@ -35,6 +36,9 @@ class RuleCompiler {
         val safeHookCapabilities = scriptletRules.mapNotNull { rule ->
             compileScriptletRule(rule, skippedRules)
         }
+        val removeParamCapabilities = removeParamRules.map { rule ->
+            RuleCapability.RemoveParam(rule)
+        }
 
         return CompiledRuleSet(
             requestCapabilities = requestCapabilities,
@@ -43,6 +47,7 @@ class RuleCompiler {
             domRemoveCapabilities = domRemoveCapabilities,
             safeHookCapabilities = safeHookCapabilities,
             noopResponseCapabilities = noopResponseCapabilities,
+            removeParamCapabilities = removeParamCapabilities,
             skippedRules = skippedRules
         )
     }
@@ -127,6 +132,7 @@ data class CompiledRuleSet(
     val domRemoveCapabilities: List<RuleCapability.DomRemove> = emptyList(),
     val safeHookCapabilities: List<RuleCapability.SafeHook> = emptyList(),
     val noopResponseCapabilities: List<RuleCapability.NoopResponse> = emptyList(),
+    val removeParamCapabilities: List<RuleCapability.RemoveParam> = emptyList(),
     val skippedRules: List<SkippedRule> = emptyList(),
     val requestRuleIndex: RequestRuleIndex = RequestRuleIndex.from(requestCapabilities),
     val cssHideRuleIndex: ElementRuleIndex<RuleCapability.CssHide> =
@@ -141,7 +147,8 @@ data class CompiledRuleSet(
             elementHideCapabilities() +
             domRemoveCapabilities +
             safeHookCapabilities +
-            noopResponseCapabilities
+            noopResponseCapabilities +
+            removeParamCapabilities
     }
 
     fun elementHideCapabilities(): List<RuleCapability.ElementHide> {
@@ -190,6 +197,10 @@ data class CompiledRuleSet(
 
     fun domRemoveRules(): List<ElementRule> {
         return domRemoveCapabilities.map { capability -> capability.rule }
+    }
+
+    fun removeParamRules(): List<RemoveParamRule> {
+        return removeParamCapabilities.map { capability -> capability.rule }
     }
 }
 
@@ -253,6 +264,12 @@ sealed class RuleCapability {
     ) : RuleCapability() {
         override val kind: RuleCapabilityKind = RuleCapabilityKind.NOOP_RESPONSE
     }
+
+    data class RemoveParam(val rule: RemoveParamRule) : RuleCapability() {
+        override val id: String = rule.id
+        override val source: String = rule.source
+        override val kind: RuleCapabilityKind = RuleCapabilityKind.REMOVE_PARAM
+    }
 }
 
 enum class RuleCapabilityKind {
@@ -260,7 +277,8 @@ enum class RuleCapabilityKind {
     ELEMENT_HIDE,
     DOM_REMOVE,
     SAFE_HOOK,
-    NOOP_RESPONSE
+    NOOP_RESPONSE,
+    REMOVE_PARAM
 }
 
 enum class ElementHideEffect {
