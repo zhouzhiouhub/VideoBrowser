@@ -28,6 +28,7 @@ class PageActionsController(
     private val currentShareableUrl: () -> String?,
     private val currentPageTitle: () -> String,
     private val isShareableUrl: (String) -> Boolean,
+    private val shouldRecordHistoryUrl: (String?) -> Boolean = { true },
     private val openNativePlayer: (
         url: String,
         mimeType: String?,
@@ -170,6 +171,9 @@ class PageActionsController(
             return
         }
         val page = currentSavedPage(url) ?: return
+        if (!shouldRecordHistoryUrl(page.url)) {
+            return
+        }
         savedPageRepository.addHistory(page)
     }
 

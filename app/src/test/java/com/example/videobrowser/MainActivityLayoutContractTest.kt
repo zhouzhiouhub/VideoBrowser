@@ -94,6 +94,22 @@ class MainActivityLayoutContractTest {
     }
 
     @Test
+    fun historyRecordingSkipsProviderAndConfiguredHomeUrls() {
+        val pageActions = projectFile(
+            "src/main/java/com/example/videobrowser/browser/PageActionsController.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+
+        assertTrue(pageActions.contains("private val shouldRecordHistoryUrl: (String?) -> Boolean"))
+        assertTrue(pageActions.contains("if (!shouldRecordHistoryUrl(page.url))"))
+        assertTrue(mainActivity.contains("private lateinit var historyRecordPolicy: HistoryRecordPolicy"))
+        assertTrue(mainActivity.contains("shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord"))
+        assertTrue(mainActivity.contains("SearchProviders.defaults.map { provider -> provider.homeUrl }"))
+        assertTrue(mainActivity.contains("settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)"))
+    }
+
+    @Test
     fun bottomBarActionsUseIntrinsicWidthsInsteadOfFillingAvailableSpace() {
         val layout = activityMainLayout()
         val bottomBarActionIds = listOf(

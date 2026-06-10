@@ -36,6 +36,7 @@ import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserExternalNavigator
+import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserSessionController
@@ -46,6 +47,7 @@ import com.example.videobrowser.browser.VideoBrowserNativeBridge
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.SearchSuggestionClient
 import com.example.videobrowser.browser.search.SearchProviderController
+import com.example.videobrowser.browser.search.SearchProviders
 import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
@@ -107,6 +109,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var localFilesController: LocalFilesController
     private lateinit var pageActionsController: PageActionsController
+    private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
     private lateinit var addressSuggestionController: AddressSuggestionController
     private lateinit var downloadController: DownloadController
@@ -180,6 +183,12 @@ class MainActivity : AppCompatActivity() {
             openProviderHome = ::openHomePage,
             openCustomShortcut = ::loadUrl
         )
+        historyRecordPolicy = HistoryRecordPolicy(
+            homeUrls = {
+                SearchProviders.defaults.map { provider -> provider.homeUrl } +
+                    settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)
+            }
+        )
         addressSuggestionController = AddressSuggestionController(
             activity = this,
             panel = addressSuggestionPanel,
@@ -230,6 +239,7 @@ class MainActivity : AppCompatActivity() {
             currentShareableUrl = ::currentShareableUrl,
             currentPageTitle = { currentSessionController().currentPageTitle },
             isShareableUrl = ::isShareableUrl,
+            shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
             openNativePlayer = ::openNativePlayer,
             openExternalUrl = ::openExternalUrl,
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
