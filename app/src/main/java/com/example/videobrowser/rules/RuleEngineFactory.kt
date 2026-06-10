@@ -19,11 +19,13 @@ object RuleEngineFactory {
         val cssResult = loader.loadCssRules()
         val domResult = loader.loadDomRules()
         val scriptletResult = loader.loadScriptletRules()
+        val removeParamResult = loader.loadRemoveParamRules()
         logSkippedRules(
             skippedRules = requestResult.skippedRules +
                 cssResult.skippedRules +
                 domResult.skippedRules +
-                scriptletResult.skippedRules,
+                scriptletResult.skippedRules +
+                removeParamResult.skippedRules,
             logTag = logTag
         )
         val requestRules = BuiltInAdBlockRules.requestRules() + requestResult.rules
@@ -31,13 +33,18 @@ object RuleEngineFactory {
         return RuleEngine(
             rules = requestRules,
             elementRules = elementRules,
-            scriptletRules = scriptletResult.rules
+            scriptletRules = scriptletResult.rules,
+            removeParamRules = removeParamResult.rules
         )
     }
 
     fun clearRuleCache(filesDir: File): Boolean {
-        val cacheDirectory = File(filesDir, RULE_CACHE_DIR)
+        val cacheDirectory = ruleCacheDirectory(filesDir)
         return !cacheDirectory.exists() || cacheDirectory.deleteRecursively()
+    }
+
+    fun ruleCacheDirectory(filesDir: File): File {
+        return File(filesDir, RULE_CACHE_DIR)
     }
 
     private fun logSkippedRules(skippedRules: List<SkippedRule>, logTag: String) {

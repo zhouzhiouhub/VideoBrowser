@@ -196,6 +196,29 @@ class RuleFileLoaderTest {
         assertEquals(2, result.skippedRules.size)
     }
 
+    @Test
+    fun loadRemoveParamRules_readsAssetsAndCacheFiles() {
+        val cacheDirectory = temporaryFolder.newFolder()
+        cacheDirectory.resolve(RuleFileLoader.REMOVE_PARAM_RULES_CACHE_FILE)
+            .writeText("||cache.example.com^${'$'}removeparam=fbclid\n", Charsets.UTF_8)
+        val loader = loaderFor(
+            cacheDirectory = cacheDirectory,
+            assets = mapOf(
+                RuleFileLoader.REMOVE_PARAM_RULES_ASSET to
+                    "||asset.example.com^${'$'}removeparam=utm_source\n"
+            )
+        )
+
+        val result = loader.loadRemoveParamRules()
+
+        assertEquals(2, result.rules.size)
+        assertEquals("asset.example.com", result.rules[0].pattern)
+        assertEquals("cache.example.com", result.rules[1].pattern)
+        assertEquals("utm_source", result.rules[0].parameterName)
+        assertEquals("fbclid", result.rules[1].parameterName)
+        assertTrue(result.skippedRules.isEmpty())
+    }
+
     private fun loaderFor(
         cacheDirectory: java.io.File? = null,
         assets: Map<String, String>

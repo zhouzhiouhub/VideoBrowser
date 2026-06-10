@@ -1,0 +1,2 @@
+! Navigation URL query cleanup rules.
+! Supported safe subset: ||domain^$removeparam=parameter_name[,domain=include|~exclude]

@@ -1,15 +1,20 @@
 package com.example.videobrowser.rules
 
 import android.content.res.AssetManager
+import com.example.videobrowser.adguard.AdGuardRuleParser
 import com.example.videobrowser.site.SiteHost
 import java.io.File
 import java.io.InputStream
 import java.util.Locale
+import java.util.Properties
 
 class RuleFileLoader(
     private val openAsset: (String) -> InputStream?,
     private val cacheDirectory: File? = null
 ) {
+    private val adGuardRuleParser = AdGuardRuleParser()
+    private val cacheSourceLabel: String? by lazy { readCacheSourceLabel() }
+
     fun loadRequestRules(): RuleLoadResult<Rule> {
         return loadRules(
             assetPath = REQUEST_RULES_ASSET,
@@ -48,6 +53,16 @@ class RuleFileLoader(
         )
     }
 
+    fun loadRemoveParamRules(): RuleLoadResult<RemoveParamRule> {
+        return loadRules(
+            assetPath = REMOVE_PARAM_RULES_ASSET,
+            cacheFileName = REMOVE_PARAM_RULES_CACHE_FILE,
+            parser = { line, source, lineNumber ->
+                parseRemoveParamRule(line, source, lineNumber)
+            }
+        )
+    }
+
     private fun <T> loadRules(
         assetPath: String,
         cacheFileName: String,
@@ -64,7 +79,7 @@ class RuleFileLoader(
             skippedRules = skippedRules
         )
         readRules(
-            source = "cache:$cacheFileName",
+            source = cacheSource(cacheFileName),
             streamProvider = { openCacheFile(cacheFileName) },
             parser = parser,
             rules = rules,
@@ -107,6 +122,29 @@ class RuleFileLoader(
             ?.resolve(fileName)
             ?.takeIf { file -> file.isFile }
             ?.inputStream()
+    }
+
+    private fun cacheSource(fileName: String): String {
+        val label = cacheSourceLabel
+        return if (label.isNullOrBlank()) {
+            "cache:$fileName"
+        } else {
+            "cache:$fileName:$label"
+        }
+    }
+
+    private fun readCacheSourceLabel(): String? {
+        val metadataFile = cacheDirectory
+            ?.resolve(RULE_CACHE_METADATA_FILE)
+            ?.takeIf { file -> file.isFile }
+            ?: return null
+        return runCatching {
+            metadataFile.inputStream().use { input ->
+                Properties().apply { load(input) }
+            }.getProperty(METADATA_SOURCE_LABEL)
+                ?.trim()
+                ?.takeIf { label -> label.isNotEmpty() }
+        }.getOrNull()
     }
 
     private fun parseRequestRule(line: String, source: String, lineNumber: Int): ParsedRule<Rule> {
@@ -177,6 +215,22 @@ class RuleFileLoader(
             is ScriptletParseResult.Skipped -> {
                 ParsedRule.Skipped(skipped(source, lineNumber, line, result.reason))
             }
+        }
+    }
+
+    private fun parseRemoveParamRule(
+        line: String,
+        source: String,
+        lineNumber: Int
+    ): ParsedRule<RemoveParamRule> {
+        if (shouldIgnoreRuleLine(line)) {
+            return ParsedRule.Ignored
+        }
+        val rule = adGuardRuleParser.parseRemoveParamRule(line, "$source:$lineNumber", source)
+        return if (rule != null) {
+            ParsedRule.Rule(rule)
+        } else {
+            ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported removeparam rule syntax"))
         }
     }
 
@@ -277,10 +331,14 @@ class RuleFileLoader(
         const val CSS_RULES_ASSET = "rules/css_rules.txt"
         const val DOM_RULES_ASSET = "rules/dom_rules.txt"
         const val SCRIPTLET_RULES_ASSET = "rules/scriptlet_rules.txt"
+        const val REMOVE_PARAM_RULES_ASSET = "rules/removeparam_rules.txt"
         const val REQUEST_RULES_CACHE_FILE = "request_rules.txt"
         const val CSS_RULES_CACHE_FILE = "css_rules.txt"
         const val DOM_RULES_CACHE_FILE = "dom_rules.txt"
         const val SCRIPTLET_RULES_CACHE_FILE = "scriptlet_rules.txt"
+        const val REMOVE_PARAM_RULES_CACHE_FILE = "removeparam_rules.txt"
+        const val RULE_CACHE_METADATA_FILE = "metadata.properties"
+        const val METADATA_SOURCE_LABEL = "source_label"
         private const val DOM_REMOVE_PREFIX = "remove:"
         private const val MAX_SELECTOR_LENGTH = 200
 
