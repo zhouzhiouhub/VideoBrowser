@@ -22,6 +22,7 @@ class BrowserSettingsPage(
     private val showAdBlockLog: () -> Unit,
     private val showUserWhitelistManager: () -> Unit,
     private val showUserManualRulesManager: () -> Unit,
+    private val showRuleSubscriptionsManager: () -> Unit,
     private val showCookieManager: () -> Unit,
     private val showCacheManager: () -> Unit,
     private val showSiteDataManager: () -> Unit,
@@ -147,6 +148,16 @@ class BrowserSettingsPage(
                     summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
                 ) {
                     showUserManualRulesManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.RULE_SUBSCRIPTIONS -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_rule_subscriptions),
+                    summary = activity.getString(R.string.action_manage_rule_subscriptions_summary)
+                ) {
+                    showRuleSubscriptionsManager()
                 }
             }
 

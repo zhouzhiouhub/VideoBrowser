@@ -159,6 +159,8 @@
     <string name="action_manage_user_manual_rules">手动屏蔽规则</string>
     <string name="action_manage_user_manual_rules_short">屏蔽规则</string>
     <string name="action_manage_user_manual_rules_summary">查看或删除手动添加的元素屏蔽规则</string>
+    <string name="action_manage_rule_subscriptions">规则订阅</string>
+    <string name="action_manage_rule_subscriptions_summary">导入或更新 AdGuard 安全子集规则缓存</string>
     <string name="action_about">关于</string>
     <string name="action_about_summary">查看版本号</string>
     <string name="about_version">版本号</string>
@@ -178,6 +180,8 @@
     <string name="dialog_clear_ad_block_log_message">确定清空最近拦截日志吗？</string>
     <string name="action_restore">恢复</string>
     <string name="action_add">添加</string>
+    <string name="action_update">更新</string>
+    <string name="action_import">导入</string>
     <string name="action_add_current_site">添加当前站点</string>
     <string name="action_remove_current_site">移除当前站点</string>
     <string name="action_remove">移除</string>
@@ -194,6 +198,7 @@
     <string name="title_ad_block_log">拦截日志</string>
     <string name="title_user_whitelist">用户白名单</string>
     <string name="title_user_manual_rules">手动屏蔽规则</string>
+    <string name="title_rule_subscriptions">规则订阅</string>
     <string name="title_remove_user_manual_rule">删除手动屏蔽规则</string>
     <string name="title_cookie_management">Cookie 管理</string>
     <string name="title_cache_management">缓存管理</string>
@@ -210,6 +215,19 @@
     <string name="dialog_user_manual_rules_empty">暂无手动屏蔽规则。</string>
     <string name="dialog_remove_user_manual_rule_message">从 %1$s 删除这条手动屏蔽规则？\n\n%2$s</string>
     <string name="dialog_clear_user_manual_rules_message">确定删除所有手动添加的元素屏蔽规则吗？此操作无法撤销。</string>
+    <string name="action_update_rule_subscription_url">从 URL 更新</string>
+    <string name="action_update_rule_subscription_url_summary">下载规则文本并写入本地规则缓存</string>
+    <string name="action_import_rule_subscription_text">粘贴规则文本</string>
+    <string name="action_import_rule_subscription_text_summary">手动导入请求、CSS、scriptlet 和 URL 清理规则</string>
+    <string name="action_clear_rule_subscription_cache">清除规则缓存</string>
+    <string name="action_clear_rule_subscription_cache_summary">删除订阅导入的本地规则文件</string>
+    <string name="hint_rule_subscription_url">https://example.com/filter.txt</string>
+    <string name="hint_rule_subscription_text">粘贴 AdGuard / EasyList 风格规则文本</string>
+    <string name="rule_subscription_empty">暂无导入的规则订阅缓存。</string>
+    <string name="rule_subscription_source">来源</string>
+    <string name="rule_subscription_counts">规则数量</string>
+    <string name="rule_subscription_counts_summary">请求 %1$s，CSS %2$s，脚本 %3$s，URL 清理 %4$s，跳过 %5$s</string>
+    <string name="dialog_clear_rule_subscription_cache_message">确定删除订阅导入的规则缓存吗？内置规则不会受影响。</string>
     <string name="dialog_cookie_management_no_site">打开网页后可查看当前站点 Cookie。</string>
     <string name="dialog_cookie_management_empty">当前站点暂无 Cookie。</string>
     <string name="dialog_remove_cookie_message">删除 Cookie：%1$s？</string>
@@ -254,6 +272,9 @@
     <string name="toast_user_whitelist_cleared">已清空用户白名单</string>
     <string name="toast_user_manual_rule_removed">已删除手动屏蔽规则</string>
     <string name="toast_user_manual_rules_cleared">已清空手动屏蔽规则</string>
+    <string name="toast_rule_subscription_imported">已导入规则：请求 %1$d，CSS %2$d，脚本 %3$d，URL 清理 %4$d，跳过 %5$d</string>
+    <string name="toast_rule_subscription_update_failed">规则更新失败，保留现有缓存：%1$s</string>
+    <string name="toast_rule_subscription_cache_cleared">已清除规则缓存</string>
     <string name="toast_cookie_removed">已删除 Cookie</string>
     <string name="toast_cookies_cleared">已清空 Cookie</string>
     <string name="toast_cache_cleared">已清空缓存</string>

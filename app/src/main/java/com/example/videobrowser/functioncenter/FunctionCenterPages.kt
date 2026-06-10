@@ -11,6 +11,7 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.utils.UrlUtils
+import java.io.File
 
 class FunctionCenterPages(
     activity: AppCompatActivity,
@@ -21,6 +22,7 @@ class FunctionCenterPages(
     private val savedPageRepository: SavedPageRepository,
     private val downloadRecordRepository: DownloadRecordRepository,
     adBlockLogger: AdBlockLogger,
+    filesDir: File,
     private val currentSiteHost: () -> String?,
     private val currentActionableUrl: () -> String?,
     private val isDesktopModeEnabled: () -> Boolean,
@@ -41,7 +43,8 @@ class FunctionCenterPages(
     private val startElementPicker: () -> Unit,
     private val applyDesktopMode: (Boolean) -> Unit,
     private val injectPageFeatures: () -> Unit,
-    private val loadUrl: (String) -> Unit
+    private val loadUrl: (String) -> Unit,
+    private val recreateActivity: () -> Unit
 ) {
     private val host = FunctionCenterPageHost(activity, functionCenter)
     private val currentSiteSettingsPage = CurrentSiteSettingsPage(
@@ -89,6 +92,12 @@ class FunctionCenterPages(
         browserManager = browserManager,
         showRootPage = ::showRootPage
     )
+    private val ruleSubscriptionPage = RuleSubscriptionPage(
+        host = host,
+        filesDir = filesDir,
+        onRulesChanged = recreateActivity,
+        showRootPage = ::showRootPage
+    )
     private val aboutPage = AboutPage(
         host = host,
         showProfilePage = ::showProfilePage
@@ -121,6 +130,7 @@ class FunctionCenterPages(
         showAdBlockLog = { adBlockLogPage.show() },
         showUserWhitelistManager = { userWhitelistPage.show() },
         showUserManualRulesManager = { userManualRulesPage.show() },
+        showRuleSubscriptionsManager = { ruleSubscriptionPage.show() },
         showCookieManager = { browserDataManagementPage.showCookies() },
         showCacheManager = { browserDataManagementPage.showCache() },
         showSiteDataManager = { browserDataManagementPage.showSiteData() },

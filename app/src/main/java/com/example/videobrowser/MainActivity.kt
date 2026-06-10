@@ -330,6 +330,7 @@ class MainActivity : AppCompatActivity() {
             savedPageRepository = savedPageRepository,
             downloadRecordRepository = downloadRecordRepository,
             adBlockLogger = adBlockLogger,
+            filesDir = filesDir,
             currentSiteHost = ::currentSiteHost,
             currentActionableUrl = ::currentActionableUrl,
             isDesktopModeEnabled = ::isDesktopModeEnabled,
@@ -350,7 +351,8 @@ class MainActivity : AppCompatActivity() {
             startElementPicker = ::startElementPicker,
             applyDesktopMode = ::applyDesktopMode,
             injectPageFeatures = ::injectPageFeatures,
-            loadUrl = ::loadUrl
+            loadUrl = ::loadUrl,
+            recreateActivity = { recreate() }
         )
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
