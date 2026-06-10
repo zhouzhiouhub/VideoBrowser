@@ -285,6 +285,7 @@ https://m.baidu.com/
 - 广告拦截日志。
 - 用户白名单。
 - 手动屏蔽规则。
+- 规则订阅。
 - Cookie 管理。
 - 缓存管理。
 - 站点数据管理。
@@ -391,6 +392,7 @@ VideoBrowser/
 | `browser/` | WebView 管理、页面状态、请求上下文、地址栏、外部打开 |
 | `browser/search/` | 搜索入口、地址建议、远程建议解析 |
 | `adblock/` | 广告请求拦截策略、拦截器、日志、内置请求规则 |
+| `adguard/` | AdGuard / EasyList 风格文本规则的安全子集解析入口 |
 | `rules/` | 请求规则、CSS 规则、DOM 规则、编译、索引、匹配 |
 | `inject/` | 本地 JavaScript 加载和注入 |
 | `site/` | 站点适配器注册和 host 匹配 |
@@ -517,13 +519,16 @@ Manifest 当前声明：
    - `app/src/main/assets/rules/css_rules.txt`
    - `app/src/main/assets/rules/dom_rules.txt`
    - `app/src/main/assets/rules/scriptlet_rules.txt`
+   - `app/src/main/assets/rules/removeparam_rules.txt`
 3. 本地缓存目录：
    - `filesDir/rules/request_rules.txt`
    - `filesDir/rules/css_rules.txt`
    - `filesDir/rules/dom_rules.txt`
    - `filesDir/rules/scriptlet_rules.txt`
+   - `filesDir/rules/removeparam_rules.txt`
+   - `filesDir/rules/metadata.properties`
 
-`RuleEngineFactory` 会加载 assets 和缓存目录中的规则，并记录被跳过的规则。
+`RuleEngineFactory` 会加载 assets 和缓存目录中的规则，并记录被跳过的规则。浏览器设置中的“规则订阅”页面支持从 URL 下载规则文本，或手动粘贴规则文本导入。导入时会按当前安全子集拆分为请求规则、CSS 规则、scriptlet 规则和 URL 参数清理规则，并写入本地缓存；更新失败时保留上一份可用缓存。
 
 ### 请求规则支持范围
 
@@ -565,6 +570,21 @@ Manifest 当前声明：
 - 完整 uBlock / AdGuard 规则语义。
 - 任意远程 redirect 资源或未知 redirect 资源名。
 - 规则原文 JavaScript 执行。
+
+### URL 参数清理规则支持范围
+
+`$removeparam` 规则只作用于主框架导航 URL，不处理子资源请求参数。
+
+支持：
+
+- `||domain^$removeparam=parameter_name`
+- `||domain^$removeparam=parameter_name,domain=include.example|~exclude.example`
+
+安全限制：
+
+- 只支持精确参数名，参数名长度 1-64。
+- 参数名只能包含字母、数字、`.`、`_`、`~`、`-`。
+- 不支持 `$removeparam` 正则、空参数名、任意脚本或子资源参数重写。
 
 ### CSS 规则支持范围
 
@@ -636,9 +656,12 @@ example.com#%#//scriptlet('fetch-block-keyword', '/pagead/')
 关键代码：
 
 - `app/src/main/java/com/example/videobrowser/rules/Rule.kt`
+- `app/src/main/java/com/example/videobrowser/rules/RemoveParamRule.kt`
 - `app/src/main/java/com/example/videobrowser/rules/ElementRule.kt`
 - `app/src/main/java/com/example/videobrowser/rules/ScriptletRule.kt`
 - `app/src/main/java/com/example/videobrowser/rules/ScriptletRegistry.kt`
+- `app/src/main/java/com/example/videobrowser/adguard/AdGuardRuleParser.kt`
+- `app/src/main/java/com/example/videobrowser/rules/RuleSubscriptionImporter.kt`
 - `app/src/main/java/com/example/videobrowser/rules/RuleFileLoader.kt`
 - `app/src/main/java/com/example/videobrowser/rules/RuleCompiler.kt`
 - `app/src/main/java/com/example/videobrowser/rules/RuleEngine.kt`
@@ -854,6 +877,7 @@ app/src/androidTest/java/com/example/videobrowser/
 - 请求上下文和资源类型推断。
 - 广告请求策略。
 - 规则解析、编译、索引、性能。
+- AdGuard 安全子集解析、订阅导入、缓存回退和 URL 参数清理。
 - JS 注入脚本拼接。
 - 设置管理。
 - 收藏、历史和下载记录。
@@ -893,7 +917,7 @@ G6 最近一次验证记录为 2026-06-09：
 - 不支持任意远程 redirect 资源。
 - 不保证拦截所有广告请求。
 - 不保证处理服务端拼接广告、DRM、加密流或站点强绑定播放器逻辑。
-- 不提供后端同步、账号系统或云端规则订阅。
+- 不提供后端同步、账号系统或云端规则服务。
 - 不把无痕模式作为持久设置保存。
 
 ## 文档归档
