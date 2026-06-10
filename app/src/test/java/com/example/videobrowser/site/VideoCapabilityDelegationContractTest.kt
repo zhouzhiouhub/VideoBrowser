@@ -18,7 +18,8 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'seekTo', [targetSeconds])"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [])"))
-        assertTrue(script.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
+        assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed])"))
+        assertFalse(script.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
     }
 
     @Test
@@ -60,6 +61,27 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-site'"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-custom-player'"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-native'"))
+    }
+
+    @Test
+    fun commonScriptKeepsSelectedFullscreenSpeedWhenPageFeaturesReapply() {
+        val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val applyBody = functionBody(script, "apply: function (config)")
+
+        assertFalse(applyBody.contains("state.fullscreenPlaybackSpeed = 1;"))
+    }
+
+    @Test
+    fun commonScriptReappliesSitePlaybackSpeedBeforeGenericFallback() {
+        val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val applyVideoSpeedBody = functionBody(script, "function applyVideoSpeed(video)")
+
+        assertTrue(applyVideoSpeedBody.contains("const speed = desiredVideoSpeed(video);"))
+        assertTrue(applyVideoSpeedBody.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed])"))
+        assertTrue(
+            applyVideoSpeedBody.indexOf("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed])") <
+                applyVideoSpeedBody.indexOf("video.playbackRate = speed;")
+        )
     }
 
     @Test

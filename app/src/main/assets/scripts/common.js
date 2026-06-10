@@ -1684,14 +1684,17 @@
 
   function desiredVideoSpeed(video) {
     const speed = currentFullscreenPlaybackSpeed();
-    const activeFullscreen = video && (isVideoFullscreen(video) || state.nativeFullscreenVideo === video);
-    if (!state.config.videoEnabled || !activeFullscreen) return 1;
+    if (!state.config.videoEnabled || !isFullscreenPlaybackTarget(video)) return 1;
     return Number.isFinite(speed) && speed > 0 ? speed : 1;
   }
 
   function currentFullscreenPlaybackSpeed() {
     const speed = Number(state.fullscreenPlaybackSpeed || 1);
     return Number.isFinite(speed) && speed > 0 ? speed : 1;
+  }
+
+  function isFullscreenPlaybackTarget(video) {
+    return Boolean(video && (isVideoFullscreen(video) || state.nativeFullscreenVideo === video));
   }
 
   function siteVideoCapabilitiesFor(video, action) {
@@ -1741,8 +1744,12 @@
   }
 
   function applyVideoSpeed(video) {
-    if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;
     const speed = desiredVideoSpeed(video);
+    if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) {
+      if (!isFullscreenPlaybackTarget(video)) return;
+      const siteResult = invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed]);
+      if (siteResult.handled) return;
+    }
     try {
       if (Math.abs(Number(video.playbackRate || 1) - speed) > 0.01) {
         video.playbackRate = speed;
@@ -2322,7 +2329,6 @@
       state.disposed = false;
       state.config = config || {};
       state.lastCleanupAt = 0;
-      state.fullscreenPlaybackSpeed = 1;
       cleanupLegacyVideoOverlays();
       installHooks();
       runPageWork();
