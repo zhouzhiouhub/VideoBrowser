@@ -16,6 +16,10 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.MediaUrlUtils
+import com.example.videobrowser.video.MediaRouteAction
+import com.example.videobrowser.video.MediaRouteRequest
+import com.example.videobrowser.video.MediaRouteSource
+import com.example.videobrowser.video.MediaRoutingController
 
 class PageActionsController(
     private val activity: AppCompatActivity,
@@ -51,12 +55,21 @@ class PageActionsController(
     ) {
         val resolvedMimeType = mimeType ?: activity.contentResolver.getType(uri)
         val title = displayName ?: localDisplayName(uri)
-        if (MediaUrlUtils.isPlayableMediaUri(uri, resolvedMimeType)) {
+        val mediaDecision = MediaRoutingController.route(
+            MediaRouteRequest(
+                source = MediaRouteSource.LOCAL_DOCUMENT,
+                url = uri.toString(),
+                mimeType = resolvedMimeType,
+                displayName = title
+            )
+        )
+        if (mediaDecision.action == MediaRouteAction.OPEN_NATIVE_PLAYER) {
+            val mediaItem = mediaDecision.mediaItem
             openNativePlayer(
-                uri.toString(),
-                resolvedMimeType,
+                mediaItem?.uri ?: uri.toString(),
+                mediaItem?.mimeType ?: resolvedMimeType,
                 null,
-                title
+                mediaItem?.title ?: title
             )
             return
         }

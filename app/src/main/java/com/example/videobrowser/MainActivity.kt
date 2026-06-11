@@ -66,9 +66,13 @@ import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
-import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.FullscreenVideoController
+import com.example.videobrowser.video.MediaRouteAction
+import com.example.videobrowser.video.MediaRouteDecision
+import com.example.videobrowser.video.MediaRouteRequest
+import com.example.videobrowser.video.MediaRouteSource
+import com.example.videobrowser.video.MediaRoutingController
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -903,6 +907,16 @@ class MainActivity : AppCompatActivity() {
         externalNavigator.openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
     }
 
+    private fun openNativePlayer(decision: MediaRouteDecision) {
+        val mediaItem = decision.mediaItem ?: return
+        openNativePlayer(
+            mediaItem.uri,
+            mediaItem.mimeType,
+            mediaItem.userAgent,
+            mediaItem.title
+        )
+    }
+
     private fun loadAddressInput() {
         val input = addressInput.text?.toString()?.trim().orEmpty()
         addressSuggestionController.runWithSuggestionsSuppressed {
@@ -938,9 +952,23 @@ class MainActivity : AppCompatActivity() {
             url
         }
         closeFunctionCenter()
-        if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(cleanedUrl))) {
-            openNativePlayer(cleanedUrl)
-            return
+        val mediaDecision = MediaRoutingController.route(
+            MediaRouteRequest(
+                source = MediaRouteSource.ADDRESS_BAR,
+                url = cleanedUrl,
+                currentPageUrl = currentSessionController().currentPageUrl,
+                currentPageTitle = currentSessionController().currentPageTitle,
+                userAgent = currentBrowserManager().userAgentString()
+            )
+        )
+        when (mediaDecision.action) {
+            MediaRouteAction.OPEN_NATIVE_PLAYER -> {
+                openNativePlayer(mediaDecision)
+                return
+            }
+
+            MediaRouteAction.BLOCK -> return
+            else -> Unit
         }
 
         currentSessionController().currentPageUrl = cleanedUrl
@@ -1009,10 +1037,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun shouldBlockUrl(view: WebView?, uri: Uri, openMedia: Boolean = true): Boolean {
-        if (openMedia && MediaUrlUtils.isPlayableMediaUri(uri)) {
-            view?.stopLoading()
-            openNativePlayer(uri.toString())
-            return true
+        if (openMedia) {
+            val mediaDecision = MediaRoutingController.route(
+                MediaRouteRequest(
+                    source = MediaRouteSource.WEBVIEW_OVERRIDE,
+                    url = uri.toString(),
+                    currentPageUrl = currentSessionController().currentPageUrl,
+                    currentPageTitle = currentSessionController().currentPageTitle,
+                    userAgent = currentBrowserManager().userAgentString()
+                )
+            )
+            when (mediaDecision.action) {
+                MediaRouteAction.OPEN_NATIVE_PLAYER -> {
+                    view?.stopLoading()
+                    openNativePlayer(mediaDecision)
+                    return true
+                }
+
+                MediaRouteAction.BLOCK -> return true
+                else -> Unit
+            }
         }
 
         if (isUnavailableUcDownloadUrl(uri)) {
