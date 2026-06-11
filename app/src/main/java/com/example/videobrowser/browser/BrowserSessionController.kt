@@ -15,7 +15,8 @@ class BrowserSessionController(
     private val updatePageProgressVisibility: (Boolean) -> Unit,
     private val updateNavigationButtons: () -> Unit,
     private val addHistoryEntry: (String?) -> Unit,
-    private val injectPageFeatures: () -> Unit
+    private val injectPageFeatures: () -> Unit,
+    private val onPageMetadataChanged: (String?, String?) -> Unit = { _, _ -> }
 ) {
     var currentPageTitle = ""
         private set
@@ -41,6 +42,7 @@ class BrowserSessionController(
         resetPageTitle()
         isPageLoading = true
         pageProgress = 0
+        notifyPageMetadataChanged()
         renderIfActive()
     }
 
@@ -50,6 +52,7 @@ class BrowserSessionController(
         isPageLoading = false
         pageProgress = 100
         addHistoryEntry(url)
+        notifyPageMetadataChanged()
         if (isActive()) {
             renderCurrentState(forceProgressHidden = true)
             injectPageFeatures()
@@ -61,6 +64,7 @@ class BrowserSessionController(
         isHomePageVisible = false
         isPageLoading = false
         pageProgress = 100
+        notifyPageMetadataChanged()
         if (isActive()) {
             renderCurrentState(forceProgressHidden = true)
         }
@@ -80,6 +84,7 @@ class BrowserSessionController(
     fun handlePageTitleReceived(title: String) {
         val normalizedTitle = title.trim()
         currentPageTitle = normalizedTitle
+        notifyPageMetadataChanged()
         updateActivityTitleIfActive()
     }
 
@@ -101,6 +106,7 @@ class BrowserSessionController(
         isPageLoading = false
         isHomePageVisible = true
         pageProgress = 0
+        notifyPageMetadataChanged()
         renderCurrentState(forceProgressHidden = true)
     }
 
@@ -121,5 +127,9 @@ class BrowserSessionController(
         }
         activity.title = currentPageTitle.takeIf { it.isNotBlank() }
             ?: activity.getString(R.string.app_name)
+    }
+
+    private fun notifyPageMetadataChanged() {
+        onPageMetadataChanged(currentPageUrl, currentPageTitle)
     }
 }

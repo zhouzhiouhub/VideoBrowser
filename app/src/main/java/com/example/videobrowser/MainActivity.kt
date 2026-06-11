@@ -52,6 +52,8 @@ import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
+import com.example.videobrowser.browser.BrowserTabSessionBinding
+import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
@@ -143,6 +145,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var standardChromeClient: ChromeClient
     private lateinit var privateChromeClient: ChromeClient
     private lateinit var externalNavigator: BrowserExternalNavigator
+    private val standardTabStore = BrowserTabStore()
+    private val privateTabStore = BrowserTabStore()
+    private val standardTabSessionBinding = BrowserTabSessionBinding(standardTabStore)
+    private val privateTabSessionBinding = BrowserTabSessionBinding(privateTabStore)
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
@@ -384,7 +390,8 @@ class MainActivity : AppCompatActivity() {
             updatePageProgressVisibility = ::updatePageProgressVisibility,
             updateNavigationButtons = ::updateNavigationButtons,
             addHistoryEntry = pageActionsController::addHistoryEntry,
-            injectPageFeatures = ::injectPageFeatures
+            injectPageFeatures = ::injectPageFeatures,
+            onPageMetadataChanged = standardTabSessionBinding::handlePageMetadataChanged
         )
         privateSessionController = BrowserSessionController(
             activity = this,
@@ -402,7 +409,8 @@ class MainActivity : AppCompatActivity() {
             updatePageProgressVisibility = ::updatePageProgressVisibility,
             updateNavigationButtons = ::updateNavigationButtons,
             addHistoryEntry = {},
-            injectPageFeatures = ::injectPageFeatures
+            injectPageFeatures = ::injectPageFeatures,
+            onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
         )
         fullscreenVideoController = FullscreenVideoController(
             activity = this,
