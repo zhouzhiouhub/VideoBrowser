@@ -8,6 +8,7 @@ enum class FunctionCenterRootAction {
     DOWNLOADS,
     FILE_OPERATIONS,
     REFRESH,
+    DESKTOP_MODE,
     ADD_BOOKMARK,
     PICK_ELEMENT,
     MORE
@@ -22,6 +23,7 @@ object FunctionCenterRootActionCatalog {
         return listOfNotNull(
             FunctionCenterRootAction.SHARE_PAGE,
             FunctionCenterRootAction.REFRESH,
+            FunctionCenterRootAction.DESKTOP_MODE.takeIf { hasPage && !isPrivateBrowsing },
             FunctionCenterRootAction.ADD_BOOKMARK,
             FunctionCenterRootAction.PICK_ELEMENT.takeIf { hasPage && hasSite && !isPrivateBrowsing },
             FunctionCenterRootAction.BOOKMARKS,

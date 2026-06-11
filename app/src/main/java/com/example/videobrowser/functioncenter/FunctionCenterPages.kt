@@ -355,6 +355,21 @@ class FunctionCenterPages(
                 }
             }
 
+            FunctionCenterRootAction.DESKTOP_MODE -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.setting_desktop_mode),
+                    summary = activity.getString(R.string.setting_desktop_mode_summary),
+                    iconResId = R.drawable.ic_tabs_24,
+                    enabled = hasPage
+                ) {
+                    val enabled = !isDesktopModeEnabled()
+                    settingsManager.setDesktopModeEnabled(enabled)
+                    applyDesktopMode(true)
+                    showFeatureToggleToast(activity.getString(R.string.setting_desktop_mode), enabled)
+                    close()
+                }
+            }
+
             FunctionCenterRootAction.ADD_BOOKMARK -> {
                 FunctionCenterGridAction(
                     title = activity.getString(R.string.action_add_bookmark),
