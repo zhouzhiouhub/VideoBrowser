@@ -1,11 +1,13 @@
 package com.example.videobrowser
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
@@ -15,6 +17,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebView
 import android.webkit.WebChromeClient.FileChooserParams
@@ -168,6 +171,21 @@ class MainActivity : AppCompatActivity() {
                 FileChooserParams.parseResult(result.resultCode, result.data)
             )
             pendingFileChooserCallback = null
+        }
+    private var pendingWebPermissionRequest: PermissionRequest? = null
+    private val webPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+            val request = pendingWebPermissionRequest ?: return@registerForActivityResult
+            pendingWebPermissionRequest = null
+            val requiredPermissions = androidPermissionsForWebResources(request.resources)
+            if (requiredPermissions != null && requiredPermissions.all { permission ->
+                    grants[permission] == true || hasAndroidPermission(permission)
+                }
+            ) {
+                request.grant(request.resources)
+            } else {
+                request.deny()
+            }
         }
 
     private var privateBrowsingActive = false
@@ -501,6 +519,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         cancelPendingWebFileChooser()
+        cancelPendingWebPermissionRequest()
         if (::elementPickerController.isInitialized) {
             elementPickerController.dispose()
         }
@@ -587,7 +606,9 @@ class MainActivity : AppCompatActivity() {
             progressChanged = sessionController::handlePageProgressChanged,
             titleReceived = sessionController::handlePageTitleReceived,
             fullscreenChanged = ::handleVideoFullscreenChanged,
-            fileChooserRequested = ::showWebFileChooser
+            fileChooserRequested = ::showWebFileChooser,
+            permissionRequested = ::handleWebPermissionRequest,
+            permissionRequestCanceled = ::handleWebPermissionRequestCanceled
         )
     }
 
@@ -670,6 +691,56 @@ class MainActivity : AppCompatActivity() {
             type = "*/*"
             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         }
+    }
+
+    private fun handleWebPermissionRequest(request: PermissionRequest?) {
+        request ?: return
+        val requiredPermissions = androidPermissionsForWebResources(request.resources)
+        if (requiredPermissions == null) {
+            request.deny()
+            return
+        }
+        val missingPermissions = requiredPermissions
+            .filterNot(::hasAndroidPermission)
+            .toTypedArray()
+        if (missingPermissions.isEmpty()) {
+            request.grant(request.resources)
+            return
+        }
+
+        pendingWebPermissionRequest?.deny()
+        pendingWebPermissionRequest = request
+        webPermissionLauncher.launch(missingPermissions)
+    }
+
+    private fun handleWebPermissionRequestCanceled(request: PermissionRequest?) {
+        if (request == null || request == pendingWebPermissionRequest) {
+            pendingWebPermissionRequest = null
+        }
+    }
+
+    private fun cancelPendingWebPermissionRequest() {
+        pendingWebPermissionRequest?.deny()
+        pendingWebPermissionRequest = null
+    }
+
+    private fun androidPermissionsForWebResources(resources: Array<String>): List<String>? {
+        val permissions = mutableListOf<String>()
+        resources.forEach { resource ->
+            val permission = when (resource) {
+                PermissionRequest.RESOURCE_VIDEO_CAPTURE -> Manifest.permission.CAMERA
+                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> Manifest.permission.RECORD_AUDIO
+                else -> return null
+            }
+            if (permission !in permissions) {
+                permissions += permission
+            }
+        }
+        return permissions
+    }
+
+    private fun hasAndroidPermission(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.ValueCallback
+import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebChromeClient.CustomViewCallback
 import android.webkit.WebChromeClient.FileChooserParams
@@ -20,7 +21,9 @@ class ChromeClient(
     private val titleReceived: (String) -> Unit = {},
     private val fullscreenChanged: (Boolean) -> Unit = {},
     private val fileChooserRequested: (ValueCallback<Array<Uri>>?, FileChooserParams?) -> Boolean =
-        { _, _ -> false }
+        { _, _ -> false },
+    private val permissionRequested: (PermissionRequest?) -> Unit = {},
+    private val permissionRequestCanceled: (PermissionRequest?) -> Unit = {}
 ) : WebChromeClient() {
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
@@ -75,6 +78,14 @@ class ChromeClient(
         fileChooserParams: FileChooserParams?
     ): Boolean {
         return fileChooserRequested(filePathCallback, fileChooserParams)
+    }
+
+    override fun onPermissionRequest(request: PermissionRequest?) {
+        permissionRequested(request)
+    }
+
+    override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+        permissionRequestCanceled(request)
     }
 
     override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
