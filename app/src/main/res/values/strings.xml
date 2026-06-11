@@ -63,6 +63,7 @@
     <string name="function_center_site_action_unavailable">打开网页后可使用当前站点功能</string>
     <string name="title_bookmarks">收藏夹</string>
     <string name="title_history">历史记录</string>
+    <string name="title_playback_history">播放历史</string>
     <string name="title_downloads">下载</string>
     <string name="setting_ad_block">广告请求拦截</string>
     <string name="setting_ad_block_summary">屏蔽常见广告、跟踪和视频广告资源请求</string>
@@ -99,6 +100,7 @@
     <string name="action_show_bookmarks_summary">查看并打开本地保存的网页</string>
     <string name="action_show_history">打开历史记录</string>
     <string name="action_show_history_summary">查看最近访问记录</string>
+    <string name="action_show_playback_history_summary">继续播放原生播放器记录</string>
     <string name="action_show_downloads_summary">查看浏览器下载记录</string>
     <string name="action_copy_link">复制链接</string>
     <string name="action_copy_link_summary">复制当前页面地址</string>
@@ -126,6 +128,7 @@
     <string name="action_download_current_url">下载当前地址</string>
     <string name="action_download_current_url_summary">用系统下载器保存当前网页或直链资源</string>
     <string name="action_clear_download_records_summary">清空下载记录并删除对应下载文件</string>
+    <string name="action_clear_playback_history_summary">清空原生播放器进度记录</string>
     <string name="action_new_folder">新建文件夹</string>
     <string name="action_new_folder_summary">在当前目录下创建文件夹</string>
     <string name="action_new_text_file">新建文本文件</string>
@@ -151,6 +154,8 @@
     <string name="dialog_local_folder_empty">当前目录为空。</string>
     <string name="dialog_download_records_empty">暂无下载记录。</string>
     <string name="dialog_clear_download_records_message">确定清空下载记录并删除对应下载文件吗？此操作无法撤销。</string>
+    <string name="dialog_playback_history_empty">暂无播放历史。</string>
+    <string name="dialog_clear_playback_history_message">确定清空原生播放器播放历史吗？此操作无法撤销。</string>
     <string name="local_file_type_folder">文件夹</string>
     <string name="local_file_type_unknown">未知类型</string>
     <string name="local_file_size_unknown">未知大小</string>
@@ -294,6 +299,7 @@
     <string name="toast_download_started">已开始下载</string>
     <string name="toast_download_failed">下载失败</string>
     <string name="toast_download_records_cleared">已清空下载记录并删除对应下载文件</string>
+    <string name="toast_playback_history_cleared">已清空播放历史</string>
     <string name="toast_download_file_unavailable">无法打开下载文件</string>
     <string name="toast_local_folder_unavailable">无法访问该目录，请重新选择文件夹</string>
     <string name="toast_local_file_operation_failed">文件操作失败</string>

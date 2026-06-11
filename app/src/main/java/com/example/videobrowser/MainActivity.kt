@@ -55,6 +55,7 @@ import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterPages
+import com.example.videobrowser.functioncenter.PlaybackHistoryDisplayText
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.inject.ScriptLoader
@@ -74,6 +75,8 @@ import com.example.videobrowser.video.MediaRouteDecision
 import com.example.videobrowser.video.MediaRouteRequest
 import com.example.videobrowser.video.MediaRouteSource
 import com.example.videobrowser.video.MediaRoutingController
+import com.example.videobrowser.video.PlaybackHistoryRepository
+import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -105,6 +108,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var downloadRecordRepository: DownloadRecordRepository
+    private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var ruleEngine: RuleEngine
     private lateinit var standardWebView: WebView
     private lateinit var standardBrowserManager: BrowserManager
@@ -172,6 +176,7 @@ class MainActivity : AppCompatActivity() {
         settingsManager = SettingsManager(preferenceStore)
         savedPageRepository = SavedPageRepository(preferenceStore)
         downloadRecordRepository = DownloadRecordRepository(preferenceStore)
+        playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
         browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
@@ -371,6 +376,7 @@ class MainActivity : AppCompatActivity() {
             browserManagers = ::browserManagers,
             savedPageRepository = savedPageRepository,
             downloadRecordRepository = downloadRecordRepository,
+            playbackHistoryRepository = playbackHistoryRepository,
             adBlockLogger = adBlockLogger,
             filesDir = filesDir,
             currentSiteHost = ::currentSiteHost,
@@ -387,6 +393,7 @@ class MainActivity : AppCompatActivity() {
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
             openCurrentUrlExternally = pageActionsController::openCurrentUrlExternally,
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
+            openPlaybackHistoryItem = ::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
@@ -732,6 +739,13 @@ class MainActivity : AppCompatActivity() {
             mimeType,
             subtitleCandidates,
             playbackQueue
+        )
+    }
+
+    private fun openPlaybackHistoryItem(progress: PlaybackProgress) {
+        openNativePlayer(
+            url = progress.mediaIdentity,
+            titleOverride = PlaybackHistoryDisplayText.title(progress)
         )
     }
 

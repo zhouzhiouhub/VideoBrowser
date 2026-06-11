@@ -1,0 +1,72 @@
+package com.example.videobrowser.functioncenter
+
+import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.video.PlaybackProgress
+import java.net.URI
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+import java.text.DateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+
+object PlaybackHistoryDisplayText {
+    fun title(record: PlaybackProgress): String {
+        return decodedLastPathSegment(record.mediaIdentity)
+            ?: UrlUtils.displayUrl(record.mediaIdentity).takeIf { it.isNotBlank() }
+            ?: record.mediaIdentity
+    }
+
+    fun summary(
+        record: PlaybackProgress,
+        updatedAtFormatter: (Long) -> String = ::formatUpdatedAt
+    ): String {
+        val progress = if (record.durationMs > 0L) {
+            "${formatDuration(record.positionMs)} / ${formatDuration(record.durationMs)}"
+        } else {
+            formatDuration(record.positionMs)
+        }
+        return "${updatedAtFormatter(record.updatedAtMillis)} | $progress | ${formatSpeed(record.speed)}"
+    }
+
+    private fun decodedLastPathSegment(value: String): String? {
+        val rawPath = runCatching { URI(value.trim()).rawPath }.getOrNull() ?: return null
+        val rawSegment = rawPath.substringAfterLast('/').takeIf { it.isNotBlank() } ?: return null
+        return runCatching {
+            URLDecoder.decode(rawSegment, StandardCharsets.UTF_8.name())
+        }.getOrElse {
+            rawSegment
+        }.takeIf { it.isNotBlank() }
+    }
+
+    private fun formatUpdatedAt(updatedAtMillis: Long): String {
+        return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+            .format(Date(updatedAtMillis))
+    }
+
+    private fun formatDuration(durationMs: Long): String {
+        val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(durationMs.coerceAtLeast(0L))
+        val hours = totalSeconds / SECONDS_PER_HOUR
+        val minutes = (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
+        val seconds = totalSeconds % SECONDS_PER_MINUTE
+
+        return if (hours > 0L) {
+            String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.US, "%d:%02d", minutes, seconds)
+        }
+    }
+
+    private fun formatSpeed(speed: Float): String {
+        val normalized = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) speed else 1f
+        val numeric = if (normalized % 1f == 0f) {
+            normalized.toInt().toString()
+        } else {
+            String.format(Locale.US, "%.2f", normalized).trimEnd('0').trimEnd('.')
+        }
+        return "${numeric}x"
+    }
+
+    private const val SECONDS_PER_MINUTE = 60L
+    private const val SECONDS_PER_HOUR = 60L * SECONDS_PER_MINUTE
+}

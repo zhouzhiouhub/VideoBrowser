@@ -19,6 +19,7 @@ class FunctionCenterRootActionCatalogTest {
                 "SHARE_PAGE",
                 "BOOKMARKS",
                 "HISTORY",
+                "PLAYBACK_HISTORY",
                 "DOWNLOADS",
                 "FILE_OPERATIONS",
                 "REFRESH",

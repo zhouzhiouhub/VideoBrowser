@@ -11,6 +11,8 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.video.PlaybackHistoryRepository
+import com.example.videobrowser.video.PlaybackProgress
 import java.io.File
 
 class FunctionCenterPages(
@@ -21,6 +23,7 @@ class FunctionCenterPages(
     private val browserManagers: () -> List<BrowserManager>,
     private val savedPageRepository: SavedPageRepository,
     private val downloadRecordRepository: DownloadRecordRepository,
+    private val playbackHistoryRepository: PlaybackHistoryRepository,
     adBlockLogger: AdBlockLogger,
     filesDir: File,
     private val currentSiteHost: () -> String?,
@@ -37,6 +40,7 @@ class FunctionCenterPages(
     private val shareCurrentUrl: () -> Unit,
     private val openCurrentUrlExternally: () -> Unit,
     private val openCurrentUrlInNativePlayer: () -> Unit,
+    private val openPlaybackHistoryItem: (PlaybackProgress) -> Unit,
     private val downloadCurrentUrl: () -> Unit,
     setPrivateBrowsingEnabled: (Boolean) -> Unit,
     restoreDefaultSettings: () -> Unit,
@@ -72,6 +76,12 @@ class FunctionCenterPages(
     private val downloadsPage = DownloadsPage(
         host = host,
         downloadRecordRepository = downloadRecordRepository,
+        showRootPage = ::showRootPage
+    )
+    private val playbackHistoryPage = PlaybackHistoryPage(
+        host = host,
+        playbackHistoryRepository = playbackHistoryRepository,
+        openPlaybackHistoryItem = openPlaybackHistoryItem,
         showRootPage = ::showRootPage
     )
     private val adBlockLogPage = AdBlockLogPage(
@@ -303,6 +313,16 @@ class FunctionCenterPages(
                 }
             }
 
+            FunctionCenterRootAction.PLAYBACK_HISTORY -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_playback_history),
+                    summary = activity.getString(R.string.action_show_playback_history_summary),
+                    iconResId = R.drawable.ic_history_24
+                ) {
+                    playbackHistoryPage.show()
+                }
+            }
+
             FunctionCenterRootAction.DOWNLOADS -> {
                 FunctionCenterGridAction(
                     title = activity.getString(R.string.title_downloads),
@@ -392,6 +412,14 @@ class FunctionCenterPages(
                     summary = activity.getString(R.string.action_show_history_summary),
                     iconResId = R.drawable.ic_history_24
                 ) { showHistory() }
+            }
+
+            FunctionCenterProfileAction.PLAYBACK_HISTORY -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.title_playback_history),
+                    summary = activity.getString(R.string.action_show_playback_history_summary),
+                    iconResId = R.drawable.ic_history_24
+                ) { playbackHistoryPage.show() }
             }
 
             FunctionCenterProfileAction.BOOKMARKS -> {

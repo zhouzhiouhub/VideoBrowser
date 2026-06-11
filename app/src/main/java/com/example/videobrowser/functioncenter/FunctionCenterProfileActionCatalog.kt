@@ -2,6 +2,7 @@ package com.example.videobrowser.functioncenter
 
 enum class FunctionCenterProfileAction {
     HISTORY,
+    PLAYBACK_HISTORY,
     BOOKMARKS,
     DOWNLOADS,
     FILE_OPERATIONS,
@@ -13,6 +14,7 @@ object FunctionCenterProfileActionCatalog {
     fun shortcuts(isPrivateBrowsing: Boolean): List<FunctionCenterProfileAction> {
         return listOfNotNull(
             FunctionCenterProfileAction.HISTORY,
+            FunctionCenterProfileAction.PLAYBACK_HISTORY,
             FunctionCenterProfileAction.BOOKMARKS,
             FunctionCenterProfileAction.DOWNLOADS,
             FunctionCenterProfileAction.FILE_OPERATIONS,
