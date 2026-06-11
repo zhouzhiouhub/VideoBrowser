@@ -35,7 +35,7 @@ class ExternalSubtitleWiringContractTest {
         ).readText()
         val pageActions = projectFile(
             "src/main/java/com/example/videobrowser/browser/PageActionsController.kt"
-        ).readText()
+        ).readText().replace("\r\n", "\n")
 
         assertTrue(localFiles.contains("LocalSubtitleMatcher.findSubtitleCandidates"))
         assertTrue(localFiles.contains("onOpenDocumentUri("))
