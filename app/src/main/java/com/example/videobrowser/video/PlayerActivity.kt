@@ -13,6 +13,8 @@ import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.annotation.OptIn
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -22,10 +24,12 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.TrackSelectionDialogBuilder
 import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
@@ -278,6 +282,7 @@ class PlayerActivity : AppCompatActivity() {
             onToggleOrientation = ::togglePlayerOrientation
             onUserInteraction = ::wakePlayerControls
             onExitFullscreen = ::finish
+            onTrackSelectionRequested = ::showTrackSelectionMenu
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(isLandscape)
         }
@@ -365,6 +370,52 @@ class PlayerActivity : AppCompatActivity() {
         selectedPlaybackSpeed = normalizePlaybackSpeed(speed)
         settingsManager.setDefaultVideoSpeed(selectedPlaybackSpeed)
         player?.setPlaybackSpeed(selectedPlaybackSpeed)
+    }
+
+    private fun showTrackSelectionMenu() {
+        if (player == null) {
+            Toast.makeText(this, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        wakePlayerControls()
+        AlertDialog.Builder(this)
+            .setTitle(R.string.video_control_tracks)
+            .setItems(
+                arrayOf(
+                    getString(R.string.video_track_audio),
+                    getString(R.string.video_track_subtitles)
+                )
+            ) { _, which ->
+                when (which) {
+                    0 -> showTrackSelectionDialog(C.TRACK_TYPE_AUDIO, R.string.video_track_audio)
+                    1 -> showTrackSelectionDialog(C.TRACK_TYPE_TEXT, R.string.video_track_subtitles)
+                }
+            }
+            .show()
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun showTrackSelectionDialog(trackType: Int, titleResId: Int) {
+        val exoPlayer = player ?: run {
+            Toast.makeText(this, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val hasTracks = exoPlayer.currentTracks.groups.any { group -> group.type == trackType }
+        if (!hasTracks) {
+            Toast.makeText(this, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        TrackSelectionDialogBuilder(
+            this,
+            getString(titleResId),
+            exoPlayer,
+            trackType
+        )
+            .setShowDisableOption(trackType == C.TRACK_TYPE_TEXT)
+            .setAllowAdaptiveSelections(false)
+            .setAllowMultipleOverrides(false)
+            .build()
+            .show()
     }
 
     private fun startDirectionalLongPress(direction: Int) {

@@ -309,6 +309,10 @@
     <string name="video_control_rotate_to_portrait">竖屏</string>
     <string name="video_control_rotate_to_landscape">横屏</string>
     <string name="video_control_speed">倍速 %1$s</string>
+    <string name="video_control_tracks">轨道</string>
+    <string name="video_track_audio">音轨</string>
+    <string name="video_track_subtitles">字幕</string>
+    <string name="toast_video_tracks_unavailable">当前视频暂无可选轨道</string>
     <string name="video_feedback_brightness">亮度 %1$d%%</string>
     <string name="video_feedback_volume">音量 %1$d%%</string>
     <string name="video_feedback_rewind">快退 10 秒</string>

@@ -47,6 +47,7 @@ class FullscreenVideoGestureOverlay(
     var onToggleOrientation: (() -> Boolean)? = null
     var onUserInteraction: (() -> Unit)? = null
     var onExitFullscreen: (() -> Unit)? = null
+    var onTrackSelectionRequested: (() -> Unit)? = null
 
     private val audioManager =
         activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -58,6 +59,7 @@ class FullscreenVideoGestureOverlay(
     private val exitButton = ImageButton(context)
     private val lockButton = controlTextView()
     private val speedButton = controlTextView()
+    private val trackButton = controlTextView()
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
     private val feedbackView = TextView(context)
@@ -277,6 +279,15 @@ class FullscreenVideoGestureOverlay(
             }
         )
         controlsGroup.addView(
+            trackButton,
+            LinearLayout.LayoutParams(
+                dp(44),
+                dp(40)
+            ).apply {
+                marginEnd = dp(8)
+            }
+        )
+        controlsGroup.addView(
             rotateButton,
             LinearLayout.LayoutParams(
                 dp(44),
@@ -287,6 +298,15 @@ class FullscreenVideoGestureOverlay(
         speedButton.setOnClickListener {
             notifyUserInteraction()
             if (!locked) showSpeedPopup()
+        }
+        val trackLabel = context.getString(R.string.video_control_tracks)
+        trackButton.text = TRACK_ICON
+        trackButton.contentDescription = trackLabel
+        ViewCompat.setTooltipText(trackButton, trackLabel)
+        trackButton.setOnClickListener {
+            notifyUserInteraction()
+            if (locked) return@setOnClickListener
+            onTrackSelectionRequested?.invoke()
         }
         rotateButton.setOnClickListener {
             notifyUserInteraction()
@@ -838,6 +858,7 @@ class FullscreenVideoGestureOverlay(
         private const val LOCKED_ICON = "\ud83d\udd12"
         private const val UNLOCKED_ICON = "\ud83d\udd13"
         private const val ROTATE_ICON = "\u21bb"
+        private const val TRACK_ICON = "轨"
         private const val BRIGHTNESS_ICON = "\u2600"
         private const val VOLUME_ICON = "\ud83d\udd0a"
     }
