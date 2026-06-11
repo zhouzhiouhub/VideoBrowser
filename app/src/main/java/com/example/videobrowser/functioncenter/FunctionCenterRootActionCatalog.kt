@@ -24,12 +24,12 @@ object FunctionCenterRootActionCatalog {
             FunctionCenterRootAction.REFRESH,
             FunctionCenterRootAction.ADD_BOOKMARK,
             FunctionCenterRootAction.PICK_ELEMENT.takeIf { hasPage && hasSite && !isPrivateBrowsing },
-            FunctionCenterRootAction.MORE.takeIf { !isPrivateBrowsing && hasSite },
             FunctionCenterRootAction.BOOKMARKS,
             FunctionCenterRootAction.HISTORY,
             FunctionCenterRootAction.PLAYBACK_HISTORY,
             FunctionCenterRootAction.DOWNLOADS,
-            FunctionCenterRootAction.FILE_OPERATIONS
+            FunctionCenterRootAction.FILE_OPERATIONS,
+            FunctionCenterRootAction.MORE.takeIf { !isPrivateBrowsing && hasSite }
         )
     }
 }

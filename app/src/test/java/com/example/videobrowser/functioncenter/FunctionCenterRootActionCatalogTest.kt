@@ -6,7 +6,7 @@ import org.junit.Test
 
 class FunctionCenterRootActionCatalogTest {
     @Test
-    fun rootPageActionsPrioritizeCurrentPageActionsBeforeGlobalEntries() {
+    fun rootPageActionsPrioritizeCurrentPageActionsAndKeepMoreLast() {
         val actions = FunctionCenterRootActionCatalog.actions(
             hasPage = true,
             hasSite = true,
@@ -20,12 +20,12 @@ class FunctionCenterRootActionCatalogTest {
                 "REFRESH",
                 "ADD_BOOKMARK",
                 "PICK_ELEMENT",
-                "MORE",
                 "BOOKMARKS",
                 "HISTORY",
                 "PLAYBACK_HISTORY",
                 "DOWNLOADS",
-                "FILE_OPERATIONS"
+                "FILE_OPERATIONS",
+                "MORE"
             ),
             names
         )
