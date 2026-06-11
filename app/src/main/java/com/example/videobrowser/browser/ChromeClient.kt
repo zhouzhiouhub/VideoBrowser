@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.GeolocationPermissions
 import android.webkit.ValueCallback
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
@@ -23,7 +24,10 @@ class ChromeClient(
     private val fileChooserRequested: (ValueCallback<Array<Uri>>?, FileChooserParams?) -> Boolean =
         { _, _ -> false },
     private val permissionRequested: (PermissionRequest?) -> Unit = {},
-    private val permissionRequestCanceled: (PermissionRequest?) -> Unit = {}
+    private val permissionRequestCanceled: (PermissionRequest?) -> Unit = {},
+    private val geolocationPermissionRequested: (String?, GeolocationPermissions.Callback?) -> Unit =
+        { _, _ -> },
+    private val geolocationPermissionHidden: () -> Unit = {}
 ) : WebChromeClient() {
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
@@ -86,6 +90,17 @@ class ChromeClient(
 
     override fun onPermissionRequestCanceled(request: PermissionRequest?) {
         permissionRequestCanceled(request)
+    }
+
+    override fun onGeolocationPermissionsShowPrompt(
+        origin: String?,
+        callback: GeolocationPermissions.Callback?
+    ) {
+        geolocationPermissionRequested(origin, callback)
+    }
+
+    override fun onGeolocationPermissionsHidePrompt() {
+        geolocationPermissionHidden()
     }
 
     override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {

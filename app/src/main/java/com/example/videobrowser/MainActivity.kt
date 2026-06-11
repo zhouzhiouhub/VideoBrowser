@@ -17,6 +17,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebView
@@ -186,6 +187,16 @@ class MainActivity : AppCompatActivity() {
             } else {
                 request.deny()
             }
+        }
+    private var pendingGeolocationPermissionPrompt: GeolocationPermissionPrompt? = null
+    private val geolocationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+            val prompt = pendingGeolocationPermissionPrompt ?: return@registerForActivityResult
+            pendingGeolocationPermissionPrompt = null
+            val allowed = geolocationAndroidPermissions().any { permission ->
+                grants[permission] == true || hasAndroidPermission(permission)
+            }
+            prompt.callback.invoke(prompt.origin, allowed, false)
         }
 
     private var privateBrowsingActive = false
@@ -520,6 +531,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         cancelPendingWebFileChooser()
         cancelPendingWebPermissionRequest()
+        cancelPendingGeolocationPermissionPrompt()
         if (::elementPickerController.isInitialized) {
             elementPickerController.dispose()
         }
@@ -608,7 +620,9 @@ class MainActivity : AppCompatActivity() {
             fullscreenChanged = ::handleVideoFullscreenChanged,
             fileChooserRequested = ::showWebFileChooser,
             permissionRequested = ::handleWebPermissionRequest,
-            permissionRequestCanceled = ::handleWebPermissionRequestCanceled
+            permissionRequestCanceled = ::handleWebPermissionRequestCanceled,
+            geolocationPermissionRequested = ::handleGeolocationPermissionRequest,
+            geolocationPermissionHidden = ::handleGeolocationPermissionHidden
         )
     }
 
@@ -722,6 +736,46 @@ class MainActivity : AppCompatActivity() {
     private fun cancelPendingWebPermissionRequest() {
         pendingWebPermissionRequest?.deny()
         pendingWebPermissionRequest = null
+    }
+
+    private fun handleGeolocationPermissionRequest(
+        origin: String?,
+        callback: GeolocationPermissions.Callback?
+    ) {
+        callback ?: return
+        val permissions = geolocationAndroidPermissions()
+        if (permissions.any(::hasAndroidPermission)) {
+            callback.invoke(origin, true, false)
+            return
+        }
+
+        cancelPendingGeolocationPermissionPrompt()
+        pendingGeolocationPermissionPrompt = GeolocationPermissionPrompt(origin, callback)
+        geolocationPermissionLauncher.launch(permissions)
+    }
+
+    private fun handleGeolocationPermissionHidden() {
+        cancelPendingGeolocationPermissionPrompt()
+    }
+
+    private fun cancelPendingGeolocationPermissionPrompt() {
+        val prompt = pendingGeolocationPermissionPrompt ?: return
+        pendingGeolocationPermissionPrompt = null
+        denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
+    }
+
+    private fun denyGeolocationPermissionPrompt(
+        origin: String?,
+        callback: GeolocationPermissions.Callback
+    ) {
+        callback.invoke(origin, false, false)
+    }
+
+    private fun geolocationAndroidPermissions(): Array<String> {
+        return arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
     }
 
     private fun androidPermissionsForWebResources(resources: Array<String>): List<String>? {
@@ -1319,6 +1373,11 @@ class MainActivity : AppCompatActivity() {
         val icon: Int,
         val mutedIcon: Int,
         val progress: Int
+    )
+
+    private data class GeolocationPermissionPrompt(
+        val origin: String?,
+        val callback: GeolocationPermissions.Callback
     )
 
     companion object {

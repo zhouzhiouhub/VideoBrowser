@@ -50,7 +50,7 @@ class BrowserManager(
             loadsImagesAutomatically = true
             blockNetworkImage = false
             setSupportMultipleWindows(false)
-            setGeolocationEnabled(false)
+            setGeolocationEnabled(true)
             allowFileAccess = false
             allowContentAccess = true
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
