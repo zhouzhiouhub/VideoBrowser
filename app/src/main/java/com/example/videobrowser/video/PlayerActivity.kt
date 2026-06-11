@@ -37,6 +37,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var gestureOverlay: FullscreenVideoGestureOverlay
     private lateinit var settingsManager: SettingsManager
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
+    private lateinit var playbackQueue: PlaybackQueue
     private var player: ExoPlayer? = null
     private val scanHandler = Handler(Looper.getMainLooper())
     private var playbackPosition = 0L
@@ -69,6 +70,7 @@ class PlayerActivity : AppCompatActivity() {
         val preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
+        playbackQueue = PlaybackQueue.single(currentPlayableMediaItem())
         selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
         longPressRestoreSpeed = selectedPlaybackSpeed
 
@@ -182,10 +184,7 @@ class PlayerActivity : AppCompatActivity() {
         val mediaSourceFactory = DefaultMediaSourceFactory(
             DefaultDataSource.Factory(this, dataSourceFactory)
         )
-        val mediaItem = MediaItem.Builder()
-            .setUri(Uri.parse(mediaUri()))
-            .setMimeType(normalizedMimeType(intent.getStringExtra(EXTRA_MIME_TYPE)))
-            .build()
+        val mediaItems = playbackQueue.items.map(::toMediaItem)
         val videoEffects = NativeVideoEnhancement.defaultEffects()
 
         player = ExoPlayer.Builder(this)
@@ -248,10 +247,9 @@ class PlayerActivity : AppCompatActivity() {
                 )
                 playerView.player = exoPlayer
                 exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
-                exoPlayer.setMediaItem(mediaItem)
+                exoPlayer.setMediaItems(mediaItems, currentMediaItemIndex, playbackPosition)
                 exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
                 exoPlayer.playWhenReady = playWhenReady
-                exoPlayer.seekTo(currentMediaItemIndex, playbackPosition)
                 exoPlayer.prepare()
             }
     }
@@ -478,6 +476,35 @@ class PlayerActivity : AppCompatActivity() {
             ?.takeIf { it.isNotBlank() }
             ?.let { headers["Referer"] = it }
         return headers
+    }
+
+    private fun currentPlayableMediaItem(): PlayableMediaItem {
+        val uri = mediaUri()
+        return PlayableMediaItem(
+            uri = uri,
+            title = intent.getStringExtra(EXTRA_MEDIA_TITLE),
+            mimeType = intent.getStringExtra(EXTRA_MIME_TYPE),
+            source = if (isLocalMediaUri(uri)) {
+                PlayableMediaSource.LOCAL_DOCUMENT
+            } else {
+                PlayableMediaSource.REMOTE_URL
+            },
+            userAgent = intent.getStringExtra(EXTRA_USER_AGENT),
+            referer = intent.getStringExtra(EXTRA_REFERER),
+            headers = requestHeaders()
+        )
+    }
+
+    private fun toMediaItem(item: PlayableMediaItem): MediaItem {
+        return MediaItem.Builder()
+            .setUri(Uri.parse(item.uri))
+            .setMimeType(normalizedMimeType(item.mimeType))
+            .build()
+    }
+
+    private fun isLocalMediaUri(uri: String): Boolean {
+        return uri.startsWith("content:", ignoreCase = true) ||
+            uri.startsWith("file:", ignoreCase = true)
     }
 
     private fun normalizedMimeType(mimeType: String?): String? {
