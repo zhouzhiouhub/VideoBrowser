@@ -6,16 +6,16 @@ import org.junit.Test
 
 class FunctionCenterRootSheetLayoutTest {
     @Test
-    fun pageToolsBottomSheetStopsAtHistoryPreview() {
+    fun pageToolsBottomSheetOnlyShowsCurrentPageActionGrid() {
         val blocks = FunctionCenterRootSheetLayout.blocks()
 
         assertEquals(
             listOf(
-                FunctionCenterRootSheetBlock.ACTION_GRID,
-                FunctionCenterRootSheetBlock.HISTORY_PREVIEW
+                FunctionCenterRootSheetBlock.ACTION_GRID
             ),
             blocks
         )
+        assertFalse(blocks.contains(FunctionCenterRootSheetBlock.HISTORY_PREVIEW))
         assertFalse(blocks.contains(FunctionCenterRootSheetBlock.EXPANDED_BROWSER_SETTINGS))
         assertFalse(blocks.contains(FunctionCenterRootSheetBlock.EXPANDED_DATA_MANAGEMENT))
     }

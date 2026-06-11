@@ -10,8 +10,7 @@ enum class FunctionCenterRootSheetBlock {
 object FunctionCenterRootSheetLayout {
     fun blocks(): List<FunctionCenterRootSheetBlock> {
         return listOf(
-            FunctionCenterRootSheetBlock.ACTION_GRID,
-            FunctionCenterRootSheetBlock.HISTORY_PREVIEW
+            FunctionCenterRootSheetBlock.ACTION_GRID
         )
     }
 }

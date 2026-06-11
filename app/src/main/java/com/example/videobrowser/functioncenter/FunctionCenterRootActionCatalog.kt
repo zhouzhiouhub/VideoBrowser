@@ -21,17 +21,12 @@ object FunctionCenterRootActionCatalog {
         isPrivateBrowsing: Boolean
     ): List<FunctionCenterRootAction> {
         return listOfNotNull(
-            FunctionCenterRootAction.SHARE_PAGE,
-            FunctionCenterRootAction.REFRESH,
+            FunctionCenterRootAction.SHARE_PAGE.takeIf { hasPage },
+            FunctionCenterRootAction.REFRESH.takeIf { hasPage },
             FunctionCenterRootAction.DESKTOP_MODE.takeIf { hasPage && !isPrivateBrowsing },
-            FunctionCenterRootAction.ADD_BOOKMARK,
+            FunctionCenterRootAction.ADD_BOOKMARK.takeIf { hasPage },
             FunctionCenterRootAction.PICK_ELEMENT.takeIf { hasPage && hasSite && !isPrivateBrowsing },
-            FunctionCenterRootAction.BOOKMARKS,
-            FunctionCenterRootAction.HISTORY,
-            FunctionCenterRootAction.PLAYBACK_HISTORY,
-            FunctionCenterRootAction.DOWNLOADS,
-            FunctionCenterRootAction.FILE_OPERATIONS,
-            FunctionCenterRootAction.MORE.takeIf { !isPrivateBrowsing && hasSite }
+            FunctionCenterRootAction.MORE.takeIf { hasPage && !isPrivateBrowsing && hasSite }
         )
     }
 }

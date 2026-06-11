@@ -2,11 +2,12 @@ package com.example.videobrowser.functioncenter
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FunctionCenterRootActionCatalogTest {
     @Test
-    fun rootPageActionsPrioritizeCurrentPageActionsAndKeepMoreLast() {
+    fun rootPageActionsShowOnlyCurrentPageActionsWithinTwoRows() {
         val actions = FunctionCenterRootActionCatalog.actions(
             hasPage = true,
             hasSite = true,
@@ -21,33 +22,39 @@ class FunctionCenterRootActionCatalogTest {
                 "DESKTOP_MODE",
                 "ADD_BOOKMARK",
                 "PICK_ELEMENT",
-                "BOOKMARKS",
-                "HISTORY",
-                "PLAYBACK_HISTORY",
-                "DOWNLOADS",
-                "FILE_OPERATIONS",
                 "MORE"
             ),
             names
         )
+        assertTrue(FunctionCenterActionGridLayout.rows(actions.size).size <= 2)
+        assertFalse(names.contains("BOOKMARKS"))
+        assertFalse(names.contains("HISTORY"))
+        assertFalse(names.contains("PLAYBACK_HISTORY"))
+        assertFalse(names.contains("DOWNLOADS"))
+        assertFalse(names.contains("FILE_OPERATIONS"))
         assertFalse(names.contains("SMART_SUMMARY"))
         assertFalse(names.contains("LISTEN_MODE"))
     }
 
     @Test
-    fun rootPageActionsHideDesktopModeWithoutPageOrInPrivateBrowsing() {
+    fun rootPageActionsHidePageActionsWithoutPage() {
         val noPageActions = FunctionCenterRootActionCatalog.actions(
             hasPage = false,
             hasSite = true,
             isPrivateBrowsing = false
         ).map { it.name }
+
+        assertEquals(emptyList<String>(), noPageActions)
+    }
+
+    @Test
+    fun rootPageActionsHideDesktopModeInPrivateBrowsing() {
         val privateActions = FunctionCenterRootActionCatalog.actions(
             hasPage = true,
             hasSite = true,
             isPrivateBrowsing = true
         ).map { it.name }
 
-        assertFalse(noPageActions.contains("DESKTOP_MODE"))
         assertFalse(privateActions.contains("DESKTOP_MODE"))
     }
 
