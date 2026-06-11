@@ -48,6 +48,7 @@ class FullscreenVideoGestureOverlay(
     var onExitFullscreen: (() -> Unit)? = null
     var onTrackSelectionRequested: (() -> Unit)? = null
     var onPlaybackQueueRequested: (() -> Unit)? = null
+    var onVideoZoomRequested: (() -> VideoZoomMode)? = null
     var onPreviousMediaRequested: (() -> Unit)? = null
     var onNextMediaRequested: (() -> Unit)? = null
     var onRepeatModeRequested: (() -> PlaybackRepeatMode)? = null
@@ -67,6 +68,7 @@ class FullscreenVideoGestureOverlay(
     private val queueButton = controlTextView()
     private val speedButton = controlTextView()
     private val trackButton = controlTextView()
+    private val zoomButton = controlTextView()
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
     private val feedbackView = TextView(context)
@@ -76,6 +78,7 @@ class FullscreenVideoGestureOverlay(
     private var landscape = true
     private var playbackSpeed = DEFAULT_PLAYBACK_SPEED
     private var repeatMode = PlaybackRepeatMode.NONE
+    private var videoZoomMode = VideoZoomMode.FIT
     private var savedWindowBrightness: Float? = null
     private var touchStartedOnControl = false
     private var touchStartedInBottomPassthrough = false
@@ -197,6 +200,22 @@ class FullscreenVideoGestureOverlay(
         }
         repeatButton.contentDescription = label
         ViewCompat.setTooltipText(repeatButton, label)
+    }
+
+    fun setVideoZoomMode(mode: VideoZoomMode) {
+        videoZoomMode = mode
+        zoomButton.text = when (mode) {
+            VideoZoomMode.FIT -> ZOOM_FIT_ICON
+            VideoZoomMode.STRETCH -> ZOOM_STRETCH_ICON
+            VideoZoomMode.CROP -> ZOOM_CROP_ICON
+        }
+        val label = when (mode) {
+            VideoZoomMode.FIT -> context.getString(R.string.video_control_zoom_fit)
+            VideoZoomMode.STRETCH -> context.getString(R.string.video_control_zoom_stretch)
+            VideoZoomMode.CROP -> context.getString(R.string.video_control_zoom_crop)
+        }
+        zoomButton.contentDescription = label
+        ViewCompat.setTooltipText(zoomButton, label)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -356,6 +375,15 @@ class FullscreenVideoGestureOverlay(
             }
         )
         controlsGroup.addView(
+            zoomButton,
+            LinearLayout.LayoutParams(
+                dp(44),
+                dp(40)
+            ).apply {
+                marginEnd = dp(8)
+            }
+        )
+        controlsGroup.addView(
             rotateButton,
             LinearLayout.LayoutParams(
                 dp(44),
@@ -412,6 +440,14 @@ class FullscreenVideoGestureOverlay(
             notifyUserInteraction()
             if (locked) return@setOnClickListener
             onTrackSelectionRequested?.invoke()
+        }
+        setVideoZoomMode(VideoZoomMode.FIT)
+        zoomButton.setOnClickListener {
+            notifyUserInteraction()
+            if (locked) return@setOnClickListener
+            val mode = onVideoZoomRequested?.invoke() ?: videoZoomMode.next()
+            setVideoZoomMode(mode)
+            showFeedback(zoomButton.contentDescription?.toString().orEmpty())
         }
         rotateButton.setOnClickListener {
             notifyUserInteraction()
@@ -959,6 +995,9 @@ class FullscreenVideoGestureOverlay(
         private const val REPEAT_ONE_ICON = "\u267e1"
         private const val REPEAT_ALL_ICON = "\u267e"
         private const val QUEUE_ICON = "\u2630"
+        private const val ZOOM_FIT_ICON = "\u9002"
+        private const val ZOOM_STRETCH_ICON = "\u62c9"
+        private const val ZOOM_CROP_ICON = "\u88c1"
         private const val BRIGHTNESS_ICON = "\u2600"
         private const val VOLUME_ICON = "\ud83d\udd0a"
     }

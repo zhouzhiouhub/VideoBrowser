@@ -58,6 +58,7 @@ class PlayerActivity : AppCompatActivity() {
     private var videoEffectsEnabled = true
     private var retriedPlaybackWithoutVideoEffects = false
     private var repeatMode = PlaybackRepeatMode.NONE
+    private var videoZoomMode = VideoZoomMode.FIT
 
     private val reverseScanRunnable = object : Runnable {
         override fun run() {
@@ -99,6 +100,9 @@ class PlayerActivity : AppCompatActivity() {
             repeatMode = savedInstanceState.getString(STATE_REPEAT_MODE)
                 ?.let { runCatching { PlaybackRepeatMode.valueOf(it) }.getOrNull() }
                 ?: repeatMode
+            videoZoomMode = savedInstanceState.getString(STATE_VIDEO_ZOOM_MODE)
+                ?.let { runCatching { VideoZoomMode.valueOf(it) }.getOrNull() }
+                ?: videoZoomMode
             longPressRestoreSpeed = selectedPlaybackSpeed
             videoEffectsEnabled = savedInstanceState.getBoolean(STATE_VIDEO_EFFECTS_ENABLED, true)
             retriedPlaybackWithoutVideoEffects = savedInstanceState.getBoolean(
@@ -109,6 +113,7 @@ class PlayerActivity : AppCompatActivity() {
             restorePlaybackHistory()
         }
         applyRequestedOrientation()
+        applyVideoZoomMode()
         setupGestureOverlay()
 
         if (mediaUri().isBlank()) {
@@ -164,6 +169,7 @@ class PlayerActivity : AppCompatActivity() {
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
         outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
         outState.putString(STATE_REPEAT_MODE, repeatMode.name)
+        outState.putString(STATE_VIDEO_ZOOM_MODE, videoZoomMode.name)
         outState.putBoolean(STATE_VIDEO_EFFECTS_ENABLED, videoEffectsEnabled)
         outState.putBoolean(
             STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
@@ -305,6 +311,7 @@ class PlayerActivity : AppCompatActivity() {
             onExitFullscreen = ::finish
             onTrackSelectionRequested = ::showTrackSelectionMenu
             onPlaybackQueueRequested = ::showPlaybackQueueMenu
+            onVideoZoomRequested = ::cycleVideoZoomMode
             onPreviousMediaRequested = ::playPreviousMedia
             onNextMediaRequested = ::playNextMedia
             onRepeatModeRequested = ::cycleRepeatMode
@@ -312,6 +319,7 @@ class PlayerActivity : AppCompatActivity() {
             setLandscape(isLandscape)
             setQueueControlsVisible(playbackQueue.items.size > 1)
             setRepeatMode(repeatMode)
+            setVideoZoomMode(videoZoomMode)
         }
         playerRoot.addView(
             gestureOverlay,
@@ -467,6 +475,22 @@ class PlayerActivity : AppCompatActivity() {
             PlaybackRepeatMode.NONE -> Player.REPEAT_MODE_OFF
             PlaybackRepeatMode.ONE -> Player.REPEAT_MODE_ONE
             PlaybackRepeatMode.ALL -> Player.REPEAT_MODE_ALL
+        }
+    }
+
+    private fun cycleVideoZoomMode(): VideoZoomMode {
+        videoZoomMode = videoZoomMode.next()
+        applyVideoZoomMode()
+        wakePlayerControls()
+        return videoZoomMode
+    }
+
+    private fun applyVideoZoomMode() {
+        if (::playerView.isInitialized) {
+            playerView.resizeMode = videoZoomMode.resizeMode
+        }
+        if (::gestureOverlay.isInitialized) {
+            gestureOverlay.setVideoZoomMode(videoZoomMode)
         }
     }
 
@@ -878,6 +902,7 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_LANDSCAPE = "landscape"
         private const val STATE_PLAYBACK_SPEED = "playback_speed"
         private const val STATE_REPEAT_MODE = "repeat_mode"
+        private const val STATE_VIDEO_ZOOM_MODE = "video_zoom_mode"
         private const val STATE_VIDEO_EFFECTS_ENABLED = "video_effects_enabled"
         private const val STATE_RETRIED_WITHOUT_VIDEO_EFFECTS = "retried_without_video_effects"
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"

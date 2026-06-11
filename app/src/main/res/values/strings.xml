@@ -311,6 +311,9 @@
     <string name="video_control_speed">倍速 %1$s</string>
     <string name="video_control_tracks">轨道</string>
     <string name="video_control_queue">播放队列</string>
+    <string name="video_control_zoom_fit">画面适应</string>
+    <string name="video_control_zoom_stretch">画面拉伸</string>
+    <string name="video_control_zoom_crop">画面裁剪</string>
     <string name="video_control_previous">上一项</string>
     <string name="video_control_next">下一项</string>
     <string name="video_control_repeat_none">顺序播放</string>
