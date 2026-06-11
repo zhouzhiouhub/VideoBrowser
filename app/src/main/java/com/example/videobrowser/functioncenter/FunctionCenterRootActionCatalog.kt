@@ -21,15 +21,15 @@ object FunctionCenterRootActionCatalog {
     ): List<FunctionCenterRootAction> {
         return listOfNotNull(
             FunctionCenterRootAction.SHARE_PAGE,
+            FunctionCenterRootAction.REFRESH,
+            FunctionCenterRootAction.ADD_BOOKMARK,
+            FunctionCenterRootAction.PICK_ELEMENT.takeIf { hasPage && hasSite && !isPrivateBrowsing },
+            FunctionCenterRootAction.MORE.takeIf { !isPrivateBrowsing && hasSite },
             FunctionCenterRootAction.BOOKMARKS,
             FunctionCenterRootAction.HISTORY,
             FunctionCenterRootAction.PLAYBACK_HISTORY,
             FunctionCenterRootAction.DOWNLOADS,
-            FunctionCenterRootAction.FILE_OPERATIONS,
-            FunctionCenterRootAction.REFRESH,
-            FunctionCenterRootAction.ADD_BOOKMARK,
-            FunctionCenterRootAction.PICK_ELEMENT.takeIf { hasPage && hasSite && !isPrivateBrowsing },
-            FunctionCenterRootAction.MORE.takeIf { !isPrivateBrowsing && hasSite }
+            FunctionCenterRootAction.FILE_OPERATIONS
         )
     }
 }
