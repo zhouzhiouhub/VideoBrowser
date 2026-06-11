@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.video.ExternalSubtitleCandidate
+import com.example.videobrowser.video.LocalSubtitleMatcher
 
 class LocalFilesController(
     private val activity: AppCompatActivity,
@@ -21,7 +23,7 @@ class LocalFilesController(
     private val functionCenter: FunctionCenterController,
     private val logTag: String,
     private val showMainFunctionCenterPage: () -> Unit,
-    private val onOpenDocumentUri: (Uri, String?, String?) -> Unit
+    private val onOpenDocumentUri: (Uri, String?, String?, List<ExternalSubtitleCandidate>) -> Unit
 ) {
     private val directoryPermissions =
         LocalDirectoryPermissionManager(activity, preferenceStore, logTag)
@@ -197,7 +199,7 @@ class LocalFilesController(
                                 path = path + LocalDirectoryPathItem(document.documentId, document.name)
                             )
                         } else {
-                            showLocalDocumentActionsPage(document, treeUri, path)
+                            showLocalDocumentActionsPage(document, treeUri, path, documents)
                         }
                     }
                 }
@@ -208,7 +210,8 @@ class LocalFilesController(
     private fun showLocalDocumentActionsPage(
         document: LocalDocument,
         treeUri: Uri,
-        path: List<LocalDirectoryPathItem>
+        path: List<LocalDirectoryPathItem>,
+        siblingDocuments: List<LocalDocument>
     ) {
         functionCenter.showPage(
             title = document.name,
@@ -224,7 +227,24 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_open_file),
                     summary = activity.getString(R.string.action_open_file_summary)
                 ) {
-                    onOpenDocumentUri(document.uri, document.name, document.mimeType)
+                    val subtitleCandidates = LocalSubtitleMatcher.findSubtitleCandidates(
+                        mediaName = document.name,
+                        documents = siblingDocuments
+                            .filterNot { it.isDirectory }
+                            .map {
+                                LocalSubtitleMatcher.Document(
+                                    uri = it.uri.toString(),
+                                    name = it.name,
+                                    mimeType = it.mimeType
+                                )
+                            }
+                    )
+                    onOpenDocumentUri(
+                        document.uri,
+                        document.name,
+                        document.mimeType,
+                        subtitleCandidates
+                    )
                 }
 
                 functionCenter.addActionRow(

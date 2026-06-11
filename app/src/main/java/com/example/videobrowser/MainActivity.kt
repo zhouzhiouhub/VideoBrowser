@@ -67,6 +67,7 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.FullscreenVideoController
 import com.example.videobrowser.video.MediaRouteAction
 import com.example.videobrowser.video.MediaRouteDecision
@@ -238,7 +239,9 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             browserManager = ::currentBrowserManager,
             downloadRecordRepository = downloadRecordRepository,
-            openNativePlayer = ::openNativePlayer,
+            openNativePlayer = { url, mimeType, userAgentOverride, titleOverride ->
+                openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
+            },
             openExternalUrl = ::openExternalUrl
         )
         pageActionsController = PageActionsController(
@@ -253,7 +256,15 @@ class MainActivity : AppCompatActivity() {
             currentPageTitle = { currentSessionController().currentPageTitle },
             isShareableUrl = ::isShareableUrl,
             shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
-            openNativePlayer = ::openNativePlayer,
+            openNativePlayer = { url, mimeType, userAgentOverride, titleOverride, subtitleCandidates ->
+                openNativePlayer(
+                    url = url,
+                    mimeType = mimeType,
+                    userAgentOverride = userAgentOverride,
+                    titleOverride = titleOverride,
+                    subtitleCandidates = subtitleCandidates
+                )
+            },
             openExternalUrl = ::openExternalUrl,
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
             switchPrivateBrowsing = ::setPrivateBrowsingActive,
@@ -703,9 +714,10 @@ class MainActivity : AppCompatActivity() {
     private fun openLocalDocumentUri(
         uri: Uri,
         displayName: String? = null,
-        mimeType: String? = null
+        mimeType: String? = null,
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
     ) {
-        pageActionsController.openLocalDocumentUri(uri, displayName, mimeType)
+        pageActionsController.openLocalDocumentUri(uri, displayName, mimeType, subtitleCandidates)
     }
 
     private fun updatePrivateBrowsingUi() {
@@ -902,14 +914,16 @@ class MainActivity : AppCompatActivity() {
         url: String,
         mimeType: String? = null,
         userAgentOverride: String? = null,
-        titleOverride: String? = null
+        titleOverride: String? = null,
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
     ) {
         externalNavigator.openNativePlayer(
-            url,
-            mimeType,
-            userAgentOverride,
-            titleOverride,
-            privateBrowsing = isPrivateBrowsingEnabled()
+            url = url,
+            mimeType = mimeType,
+            userAgentOverride = userAgentOverride,
+            titleOverride = titleOverride,
+            privateBrowsing = isPrivateBrowsingEnabled(),
+            subtitleCandidates = subtitleCandidates
         )
     }
 
@@ -919,7 +933,8 @@ class MainActivity : AppCompatActivity() {
             mediaItem.uri,
             mediaItem.mimeType,
             mediaItem.userAgent,
-            mediaItem.title
+            mediaItem.title,
+            mediaItem.subtitleCandidates
         )
     }
 

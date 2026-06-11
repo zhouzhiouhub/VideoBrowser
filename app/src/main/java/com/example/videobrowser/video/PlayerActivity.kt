@@ -543,7 +543,8 @@ class PlayerActivity : AppCompatActivity() {
             },
             userAgent = intent.getStringExtra(EXTRA_USER_AGENT),
             referer = intent.getStringExtra(EXTRA_REFERER),
-            headers = requestHeaders()
+            headers = requestHeaders(),
+            subtitleCandidates = subtitleCandidatesFromIntent()
         )
     }
 
@@ -551,7 +552,20 @@ class PlayerActivity : AppCompatActivity() {
         return MediaItem.Builder()
             .setUri(Uri.parse(item.uri))
             .setMimeType(normalizedMimeType(item.mimeType))
+            .setSubtitleConfigurations(
+                item.subtitleCandidates.map(::toSubtitleConfiguration)
+            )
             .build()
+    }
+
+    private fun toSubtitleConfiguration(
+        candidate: ExternalSubtitleCandidate
+    ): MediaItem.SubtitleConfiguration {
+        val builder = MediaItem.SubtitleConfiguration.Builder(Uri.parse(candidate.uri))
+        candidate.mimeType?.takeIf { it.isNotBlank() }?.let(builder::setMimeType)
+        candidate.language?.takeIf { it.isNotBlank() }?.let(builder::setLanguage)
+        candidate.label?.takeIf { it.isNotBlank() }?.let(builder::setLabel)
+        return builder.build()
     }
 
     private fun isLocalMediaUri(uri: String): Boolean {
@@ -593,6 +607,23 @@ class PlayerActivity : AppCompatActivity() {
         return intent.getBooleanExtra(EXTRA_PRIVATE_BROWSING, false)
     }
 
+    private fun subtitleCandidatesFromIntent(): List<ExternalSubtitleCandidate> {
+        val uris = intent.getStringArrayListExtra(EXTRA_SUBTITLE_URIS).orEmpty()
+        val labels = intent.getStringArrayListExtra(EXTRA_SUBTITLE_LABELS).orEmpty()
+        val mimeTypes = intent.getStringArrayListExtra(EXTRA_SUBTITLE_MIME_TYPES).orEmpty()
+        val languages = intent.getStringArrayListExtra(EXTRA_SUBTITLE_LANGUAGES).orEmpty()
+
+        return uris.mapIndexedNotNull { index, uri ->
+            val normalizedUri = uri.takeIf { it.isNotBlank() } ?: return@mapIndexedNotNull null
+            ExternalSubtitleCandidate(
+                uri = normalizedUri,
+                label = labels.getOrNull(index)?.takeIf { it.isNotBlank() },
+                mimeType = mimeTypes.getOrNull(index)?.takeIf { it.isNotBlank() },
+                language = languages.getOrNull(index)?.takeIf { it.isNotBlank() }
+            )
+        }
+    }
+
     private fun normalizePlaybackSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -610,6 +641,12 @@ class PlayerActivity : AppCompatActivity() {
         private const val EXTRA_REFERER = "com.example.videobrowser.extra.REFERER"
         private const val EXTRA_PRIVATE_BROWSING =
             "com.example.videobrowser.extra.PRIVATE_BROWSING"
+        private const val EXTRA_SUBTITLE_URIS = "com.example.videobrowser.extra.SUBTITLE_URIS"
+        private const val EXTRA_SUBTITLE_LABELS = "com.example.videobrowser.extra.SUBTITLE_LABELS"
+        private const val EXTRA_SUBTITLE_MIME_TYPES =
+            "com.example.videobrowser.extra.SUBTITLE_MIME_TYPES"
+        private const val EXTRA_SUBTITLE_LANGUAGES =
+            "com.example.videobrowser.extra.SUBTITLE_LANGUAGES"
         private const val STATE_PLAYBACK_POSITION = "playback_position"
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
@@ -634,7 +671,8 @@ class PlayerActivity : AppCompatActivity() {
             userAgent: String?,
             cookie: String?,
             referer: String?,
-            privateBrowsing: Boolean = false
+            privateBrowsing: Boolean = false,
+            subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra(EXTRA_MEDIA_URI, mediaUri)
@@ -644,6 +682,24 @@ class PlayerActivity : AppCompatActivity() {
                 putExtra(EXTRA_COOKIE, cookie)
                 putExtra(EXTRA_REFERER, referer)
                 putExtra(EXTRA_PRIVATE_BROWSING, privateBrowsing)
+                if (subtitleCandidates.isNotEmpty()) {
+                    putStringArrayListExtra(
+                        EXTRA_SUBTITLE_URIS,
+                        ArrayList(subtitleCandidates.map { it.uri })
+                    )
+                    putStringArrayListExtra(
+                        EXTRA_SUBTITLE_LABELS,
+                        ArrayList(subtitleCandidates.map { it.label.orEmpty() })
+                    )
+                    putStringArrayListExtra(
+                        EXTRA_SUBTITLE_MIME_TYPES,
+                        ArrayList(subtitleCandidates.map { it.mimeType.orEmpty() })
+                    )
+                    putStringArrayListExtra(
+                        EXTRA_SUBTITLE_LANGUAGES,
+                        ArrayList(subtitleCandidates.map { it.language.orEmpty() })
+                    )
+                }
             }
         }
     }

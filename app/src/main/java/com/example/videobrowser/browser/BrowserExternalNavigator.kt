@@ -8,6 +8,7 @@ import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.PlayerActivity
 
 class BrowserExternalNavigator(
@@ -31,7 +32,8 @@ class BrowserExternalNavigator(
         mimeType: String? = null,
         userAgentOverride: String? = null,
         titleOverride: String? = null,
-        privateBrowsing: Boolean = false
+        privateBrowsing: Boolean = false,
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
     ) {
         val title = titleOverride
             ?.takeIf { it.isNotBlank() }
@@ -57,7 +59,8 @@ class BrowserExternalNavigator(
             userAgent = userAgentOverride ?: browserManager().userAgentString(),
             cookie = cookie,
             referer = referer,
-            privateBrowsing = privateBrowsing
+            privateBrowsing = privateBrowsing,
+            subtitleCandidates = subtitleCandidates
         )
         activity.startActivity(intent)
     }
