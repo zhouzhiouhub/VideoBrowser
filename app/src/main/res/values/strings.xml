@@ -322,6 +322,8 @@
     <string name="video_queue_title">播放队列（%1$d）</string>
     <string name="video_queue_remove">移除</string>
     <string name="video_queue_now_playing">正在播放</string>
+    <string name="video_queue_shuffle">随机</string>
+    <string name="video_queue_restore_order">恢复顺序</string>
     <string name="video_track_audio">音轨</string>
     <string name="video_track_subtitles">字幕</string>
     <string name="toast_video_tracks_unavailable">当前视频暂无可选轨道</string>

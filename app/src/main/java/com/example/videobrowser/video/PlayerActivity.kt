@@ -78,7 +78,12 @@ class PlayerActivity : AppCompatActivity() {
         val preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
-        playbackQueue = playbackQueueFromIntent()
+        val savedPlaybackQueue = if (savedInstanceState != null) {
+            savedInstanceState.getString(STATE_PLAYBACK_QUEUE)?.let(::decodePlaybackQueue)
+        } else {
+            null
+        }
+        playbackQueue = savedPlaybackQueue ?: playbackQueueFromIntent()
         currentMediaItemIndex = playbackQueue.currentIndex
         repeatMode = playbackQueue.repeatMode
         selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
@@ -93,6 +98,14 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition = savedInstanceState.getLong(STATE_PLAYBACK_POSITION)
             playWhenReady = savedInstanceState.getBoolean(STATE_PLAY_WHEN_READY, true)
             currentMediaItemIndex = savedInstanceState.getInt(STATE_MEDIA_ITEM_INDEX)
+                .let { index ->
+                    if (playbackQueue.items.isEmpty()) {
+                        0
+                    } else {
+                        index.coerceIn(0, playbackQueue.items.lastIndex)
+                    }
+                }
+            playbackQueue = playbackQueue.select(currentMediaItemIndex)
             isLandscape = savedInstanceState.getBoolean(STATE_LANDSCAPE, true)
             selectedPlaybackSpeed = normalizePlaybackSpeed(
                 savedInstanceState.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
@@ -100,6 +113,7 @@ class PlayerActivity : AppCompatActivity() {
             repeatMode = savedInstanceState.getString(STATE_REPEAT_MODE)
                 ?.let { runCatching { PlaybackRepeatMode.valueOf(it) }.getOrNull() }
                 ?: repeatMode
+            playbackQueue = playbackQueue.copy(repeatMode = repeatMode)
             videoZoomMode = savedInstanceState.getString(STATE_VIDEO_ZOOM_MODE)
                 ?.let { runCatching { VideoZoomMode.valueOf(it) }.getOrNull() }
                 ?: videoZoomMode
@@ -169,6 +183,7 @@ class PlayerActivity : AppCompatActivity() {
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
         outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
         outState.putString(STATE_REPEAT_MODE, repeatMode.name)
+        outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJson.encode(playbackQueue))
         outState.putString(STATE_VIDEO_ZOOM_MODE, videoZoomMode.name)
         outState.putBoolean(STATE_VIDEO_EFFECTS_ENABLED, videoEffectsEnabled)
         outState.putBoolean(
@@ -494,6 +509,33 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun toggleShuffleMode(): Boolean {
+        if (playbackQueue.items.size <= 1) {
+            wakePlayerControls()
+            return playbackQueue.isShuffled
+        }
+        savePlayerState()
+        playbackQueue = if (playbackQueue.isShuffled) {
+            playbackQueue.restoreOriginalOrder()
+        } else {
+            playbackQueue.shuffle()
+        }
+        currentMediaItemIndex = playbackQueue.currentIndex
+        syncPlayerQueueToPlaybackQueue()
+        updateQueueControls()
+        wakePlayerControls()
+        return playbackQueue.isShuffled
+    }
+
+    private fun syncPlayerQueueToPlaybackQueue() {
+        val exoPlayer = player ?: return
+        exoPlayer.setMediaItems(playbackQueue.items.map(::toMediaItem), currentMediaItemIndex, playbackPosition)
+        exoPlayer.repeatMode = media3RepeatMode(repeatMode)
+        exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
+        exoPlayer.playWhenReady = playWhenReady
+        exoPlayer.prepare()
+    }
+
     private fun showPlaybackQueueMenu() {
         if (playbackQueue.items.size <= 1) {
             wakePlayerControls()
@@ -505,10 +547,22 @@ class PlayerActivity : AppCompatActivity() {
             .setItems(playbackQueueLabels()) { _, index ->
                 playMediaAt(index)
             }
+            .setPositiveButton(shuffleActionLabel()) { _, _ ->
+                toggleShuffleMode()
+                showPlaybackQueueMenu()
+            }
             .setNeutralButton(R.string.video_queue_remove) { _, _ ->
                 showPlaybackQueueRemoveMenu()
             }
             .show()
+    }
+
+    private fun shuffleActionLabel(): Int {
+        return if (playbackQueue.isShuffled) {
+            R.string.video_queue_restore_order
+        } else {
+            R.string.video_queue_shuffle
+        }
     }
 
     private fun showPlaybackQueueRemoveMenu() {
@@ -838,8 +892,24 @@ class PlayerActivity : AppCompatActivity() {
                 .takeIf { it.isNotBlank() }
                 ?.let { runCatching { PlaybackRepeatMode.valueOf(it) }.getOrNull() }
                 ?: PlaybackRepeatMode.NONE
-            PlaybackQueue(items = items, currentIndex = index, repeatMode = repeat)
+            val originalItems = playableItemsFromJson(root.optJSONArray("originalItems"))
+                .takeIf { it.isNotEmpty() }
+            PlaybackQueue(
+                items = items,
+                currentIndex = index,
+                repeatMode = repeat,
+                originalItems = originalItems
+            )
         }.getOrNull()
+    }
+
+    private fun playableItemsFromJson(array: JSONArray?): List<PlayableMediaItem> {
+        if (array == null) {
+            return emptyList()
+        }
+        return (0 until array.length()).mapNotNull { index ->
+            array.optJSONObject(index)?.toPlayableMediaItem()
+        }
     }
 
     private fun JSONObject.toPlayableMediaItem(): PlayableMediaItem? {
@@ -902,6 +972,7 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_LANDSCAPE = "landscape"
         private const val STATE_PLAYBACK_SPEED = "playback_speed"
         private const val STATE_REPEAT_MODE = "repeat_mode"
+        private const val STATE_PLAYBACK_QUEUE = "playback_queue"
         private const val STATE_VIDEO_ZOOM_MODE = "video_zoom_mode"
         private const val STATE_VIDEO_EFFECTS_ENABLED = "video_effects_enabled"
         private const val STATE_RETRIED_WITHOUT_VIDEO_EFFECTS = "retried_without_video_effects"
@@ -969,6 +1040,16 @@ class PlayerActivity : AppCompatActivity() {
                             queue.items.forEach { item -> put(item.toJson()) }
                         }
                     )
+                    .apply {
+                        queue.originalItems?.let { originalItems ->
+                            put(
+                                "originalItems",
+                                JSONArray().apply {
+                                    originalItems.forEach { item -> put(item.toJson()) }
+                                }
+                            )
+                        }
+                    }
                     .toString()
             }
 

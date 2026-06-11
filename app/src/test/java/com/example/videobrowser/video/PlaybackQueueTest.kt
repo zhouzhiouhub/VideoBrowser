@@ -1,7 +1,9 @@
 package com.example.videobrowser.video
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlaybackQueueTest {
@@ -101,6 +103,57 @@ class PlaybackQueueTest {
         assertEquals(queue, queue.removeAt(-1))
         assertEquals(queue, queue.removeAt(1))
         assertEquals(queue, queue.removeAt(0))
+    }
+
+    @Test
+    fun shuffleKeepsCurrentItemFirstAndCanRestoreOriginalOrder() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val third = playable("https://cdn.example.com/three.mp4")
+        val fourth = playable("https://cdn.example.com/four.mp4")
+        val queue = PlaybackQueue(
+            items = listOf(first, second, third, fourth),
+            currentIndex = 2
+        )
+
+        val shuffled = queue.shuffle { it.asReversed() }
+        val restored = shuffled.restoreOriginalOrder()
+
+        assertTrue(shuffled.isShuffled)
+        assertEquals(listOf(third, fourth, second, first), shuffled.items)
+        assertEquals(0, shuffled.currentIndex)
+        assertEquals(third, shuffled.currentItem())
+        assertFalse(restored.isShuffled)
+        assertEquals(listOf(first, second, third, fourth), restored.items)
+        assertEquals(2, restored.currentIndex)
+        assertEquals(third, restored.currentItem())
+    }
+
+    @Test
+    fun restoreOriginalOrderKeepsUnshuffledQueueUnchanged() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val queue = PlaybackQueue(items = listOf(first, second), currentIndex = 1)
+
+        assertEquals(queue, queue.restoreOriginalOrder())
+    }
+
+    @Test
+    fun removeFromShuffledQueueAlsoRemovesFromOriginalOrder() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val third = playable("https://cdn.example.com/three.mp4")
+        val fourth = playable("https://cdn.example.com/four.mp4")
+        val queue = PlaybackQueue(
+            items = listOf(first, second, third, fourth),
+            currentIndex = 2
+        ).shuffle { it.asReversed() }
+
+        val updated = queue.removeAt(1).restoreOriginalOrder()
+
+        assertEquals(listOf(first, second, third), updated.items)
+        assertEquals(2, updated.currentIndex)
+        assertEquals(third, updated.currentItem())
     }
 
     @Test

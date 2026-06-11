@@ -1,10 +1,16 @@
 package com.example.videobrowser.video
 
+import kotlin.random.Random
+
 data class PlaybackQueue(
     val items: List<PlayableMediaItem>,
     val currentIndex: Int = 0,
-    val repeatMode: PlaybackRepeatMode = PlaybackRepeatMode.NONE
+    val repeatMode: PlaybackRepeatMode = PlaybackRepeatMode.NONE,
+    val originalItems: List<PlayableMediaItem>? = null
 ) {
+    val isShuffled: Boolean
+        get() = originalItems != null
+
     fun currentItem(): PlayableMediaItem? {
         return items.getOrNull(currentIndex)
     }
@@ -45,6 +51,7 @@ data class PlaybackQueue(
         if (index !in items.indices || items.size <= 1) {
             return this
         }
+        val removedItem = items[index]
         val updatedItems = items.toMutableList().apply {
             removeAt(index)
         }
@@ -55,7 +62,47 @@ data class PlaybackQueue(
         }
         return copy(
             items = updatedItems,
-            currentIndex = updatedIndex.coerceIn(0, updatedItems.lastIndex)
+            currentIndex = updatedIndex.coerceIn(0, updatedItems.lastIndex),
+            originalItems = originalItems
+                ?.filterNot { it == removedItem }
+                ?.takeIf { updatedItems.size > 1 }
+        )
+    }
+
+    fun shuffle(random: Random = Random.Default): PlaybackQueue {
+        return shuffle { tail -> tail.shuffled(random) }
+    }
+
+    fun shuffle(reorderTail: (List<PlayableMediaItem>) -> List<PlayableMediaItem>): PlaybackQueue {
+        if (items.size <= 1) {
+            return this
+        }
+        val current = currentItem() ?: return this
+        val originalOrder = originalItems ?: items
+        val tail = items.filterIndexed { index, _ -> index != currentIndex }
+        val reorderedTail = reorderTail(tail)
+        val uniqueTail = reorderedTail
+            .filter { item -> item in tail }
+            .distinct()
+        val missingTail = tail.filterNot { item -> item in uniqueTail }
+        return copy(
+            items = listOf(current) + uniqueTail + missingTail,
+            currentIndex = 0,
+            originalItems = originalOrder
+        )
+    }
+
+    fun restoreOriginalOrder(): PlaybackQueue {
+        val originalOrder = originalItems ?: return this
+        val current = currentItem()
+        val restoredIndex = current
+            ?.let { originalOrder.indexOf(it) }
+            ?.takeIf { it >= 0 }
+            ?: currentIndex.coerceIn(0, originalOrder.lastIndex)
+        return copy(
+            items = originalOrder,
+            currentIndex = restoredIndex,
+            originalItems = null
         )
     }
 
