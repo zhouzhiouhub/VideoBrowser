@@ -1,6 +1,7 @@
 package com.example.videobrowser
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
@@ -457,7 +458,15 @@ class MainActivity : AppCompatActivity() {
         standardBrowserManager.addJavascriptInterface(createNativeBridge(), NATIVE_BRIDGE_NAME)
         setupBrowserClient()
 
-        openHomePage()
+        if (!handleLaunchIntent(intent)) {
+            openHomePage()
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleLaunchIntent(intent)
     }
 
     override fun onPause() {
@@ -999,6 +1008,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun openWenxinPage() {
         loadUrl(BAIDU_WENXIN_URL)
+    }
+
+    private fun handleLaunchIntent(intent: Intent?): Boolean {
+        val launchUrl = externalWebUrlFromIntent(intent) ?: return false
+        loadUrl(launchUrl)
+        return true
+    }
+
+    private fun externalWebUrlFromIntent(intent: Intent?): String? {
+        if (intent?.action != Intent.ACTION_VIEW) {
+            return null
+        }
+        return intent.dataString
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() && isShareableUrl(it) }
     }
 
     private fun loadUrl(url: String) {
