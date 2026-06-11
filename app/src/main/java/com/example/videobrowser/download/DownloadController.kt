@@ -10,7 +10,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
-import com.example.videobrowser.utils.MediaUrlUtils
+import com.example.videobrowser.video.MediaRouteAction
+import com.example.videobrowser.video.MediaRouteRequest
+import com.example.videobrowser.video.MediaRouteSource
+import com.example.videobrowser.video.MediaRoutingController
 
 class DownloadController(
     private val activity: AppCompatActivity,
@@ -26,11 +29,26 @@ class DownloadController(
 ) {
     fun attachTo(browserManager: BrowserManager) {
         browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
-            val mediaUri = url?.takeIf {
-                MediaUrlUtils.isPlayableMediaUri(Uri.parse(it), mimeType)
-            }
-            if (mediaUri != null) {
-                openNativePlayer(mediaUri, mimeType, userAgent, null)
+            val mediaDecision = url
+                ?.takeIf { it.isNotBlank() }
+                ?.let {
+                    MediaRoutingController.route(
+                        MediaRouteRequest(
+                            source = MediaRouteSource.DOWNLOAD,
+                            url = it,
+                            mimeType = mimeType,
+                            userAgent = userAgent
+                        )
+                    )
+                }
+            if (mediaDecision?.action == MediaRouteAction.OPEN_NATIVE_PLAYER) {
+                val mediaItem = mediaDecision.mediaItem ?: return@setDownloadListener
+                openNativePlayer(
+                    mediaItem.uri,
+                    mediaItem.mimeType,
+                    mediaItem.userAgent,
+                    mediaItem.title
+                )
                 return@setDownloadListener
             }
 

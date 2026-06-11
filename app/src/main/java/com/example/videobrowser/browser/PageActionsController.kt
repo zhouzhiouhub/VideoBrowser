@@ -16,6 +16,12 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.MediaUrlUtils
+import com.example.videobrowser.video.ExternalSubtitleCandidate
+import com.example.videobrowser.video.MediaRouteAction
+import com.example.videobrowser.video.MediaRouteRequest
+import com.example.videobrowser.video.MediaRouteSource
+import com.example.videobrowser.video.MediaRoutingController
+import com.example.videobrowser.video.PlaybackQueue
 
 class PageActionsController(
     private val activity: AppCompatActivity,
@@ -33,7 +39,9 @@ class PageActionsController(
         url: String,
         mimeType: String?,
         userAgentOverride: String?,
-        titleOverride: String?
+        titleOverride: String?,
+        subtitleCandidates: List<ExternalSubtitleCandidate>,
+        playbackQueue: PlaybackQueue?
     ) -> Unit,
     private val openExternalUrl: (String) -> Unit,
     private val isPrivateBrowsingEnabled: () -> Boolean,
@@ -47,16 +55,29 @@ class PageActionsController(
     fun openLocalDocumentUri(
         uri: Uri,
         displayName: String? = null,
-        mimeType: String? = null
+        mimeType: String? = null,
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
+        playbackQueue: PlaybackQueue? = null
     ) {
         val resolvedMimeType = mimeType ?: activity.contentResolver.getType(uri)
         val title = displayName ?: localDisplayName(uri)
-        if (MediaUrlUtils.isPlayableMediaUri(uri, resolvedMimeType)) {
+        val mediaDecision = MediaRoutingController.route(
+            MediaRouteRequest(
+                source = MediaRouteSource.LOCAL_DOCUMENT,
+                url = uri.toString(),
+                mimeType = resolvedMimeType,
+                displayName = title
+            )
+        )
+        if (mediaDecision.action == MediaRouteAction.OPEN_NATIVE_PLAYER) {
+            val mediaItem = mediaDecision.mediaItem
             openNativePlayer(
-                uri.toString(),
-                resolvedMimeType,
+                mediaItem?.uri ?: uri.toString(),
+                mediaItem?.mimeType ?: resolvedMimeType,
                 null,
-                title
+                mediaItem?.title ?: title,
+                subtitleCandidates,
+                playbackQueue
             )
             return
         }
@@ -134,7 +155,7 @@ class PageActionsController(
             Toast.makeText(activity, R.string.toast_media_url_unsupported, Toast.LENGTH_SHORT).show()
             return
         }
-        openNativePlayer(url, null, null, null)
+        openNativePlayer(url, null, null, null, emptyList(), null)
     }
 
     fun setPrivateBrowsingEnabled(enabled: Boolean) {

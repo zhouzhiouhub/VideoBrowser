@@ -55,6 +55,7 @@ import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterPages
+import com.example.videobrowser.functioncenter.PlaybackHistoryDisplayText
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.inject.ScriptLoader
@@ -66,9 +67,18 @@ import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
-import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.FullscreenVideoController
+import com.example.videobrowser.video.MediaRouteAction
+import com.example.videobrowser.video.MediaRouteDecision
+import com.example.videobrowser.video.MediaRouteRequest
+import com.example.videobrowser.video.MediaRouteSource
+import com.example.videobrowser.video.MediaRoutingController
+import com.example.videobrowser.video.PlaybackHistoryRepository
+import com.example.videobrowser.video.PlaybackProgress
+import com.example.videobrowser.video.PlaybackQueue
+import com.example.videobrowser.video.WebViewVideoCommand
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -99,6 +109,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var downloadRecordRepository: DownloadRecordRepository
+    private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var ruleEngine: RuleEngine
     private lateinit var standardWebView: WebView
     private lateinit var standardBrowserManager: BrowserManager
@@ -166,6 +177,7 @@ class MainActivity : AppCompatActivity() {
         settingsManager = SettingsManager(preferenceStore)
         savedPageRepository = SavedPageRepository(preferenceStore)
         downloadRecordRepository = DownloadRecordRepository(preferenceStore)
+        playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
         browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
@@ -234,7 +246,9 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             browserManager = ::currentBrowserManager,
             downloadRecordRepository = downloadRecordRepository,
-            openNativePlayer = ::openNativePlayer,
+            openNativePlayer = { url, mimeType, userAgentOverride, titleOverride ->
+                openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
+            },
             openExternalUrl = ::openExternalUrl
         )
         pageActionsController = PageActionsController(
@@ -249,7 +263,22 @@ class MainActivity : AppCompatActivity() {
             currentPageTitle = { currentSessionController().currentPageTitle },
             isShareableUrl = ::isShareableUrl,
             shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
-            openNativePlayer = ::openNativePlayer,
+            openNativePlayer = {
+                    url,
+                    mimeType,
+                    userAgentOverride,
+                    titleOverride,
+                    subtitleCandidates,
+                    playbackQueue ->
+                openNativePlayer(
+                    url = url,
+                    mimeType = mimeType,
+                    userAgentOverride = userAgentOverride,
+                    titleOverride = titleOverride,
+                    subtitleCandidates = subtitleCandidates,
+                    playbackQueue = playbackQueue
+                )
+            },
             openExternalUrl = ::openExternalUrl,
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
             switchPrivateBrowsing = ::setPrivateBrowsingActive,
@@ -348,6 +377,7 @@ class MainActivity : AppCompatActivity() {
             browserManagers = ::browserManagers,
             savedPageRepository = savedPageRepository,
             downloadRecordRepository = downloadRecordRepository,
+            playbackHistoryRepository = playbackHistoryRepository,
             adBlockLogger = adBlockLogger,
             filesDir = filesDir,
             currentSiteHost = ::currentSiteHost,
@@ -364,6 +394,7 @@ class MainActivity : AppCompatActivity() {
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
             openCurrentUrlExternally = pageActionsController::openCurrentUrlExternally,
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
+            openPlaybackHistoryItem = ::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
@@ -624,7 +655,9 @@ class MainActivity : AppCompatActivity() {
                     } else if (areChromeClientsInitialized() && currentChromeClient().isShowingCustomView()) {
                         currentChromeClient().hideCustomView()
                     } else if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
-                        currentBrowserManager().evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
+                        currentBrowserManager().evaluateJavascript(
+                            WebViewVideoCommand.ExitFullscreen.toJavascript()
+                        )
                         currentChromeClient().exitPageFullscreen()
                     } else if (currentBrowserManager().goBack()) {
                         updateNavigationButtons()
@@ -699,9 +732,24 @@ class MainActivity : AppCompatActivity() {
     private fun openLocalDocumentUri(
         uri: Uri,
         displayName: String? = null,
-        mimeType: String? = null
+        mimeType: String? = null,
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
+        playbackQueue: PlaybackQueue? = null
     ) {
-        pageActionsController.openLocalDocumentUri(uri, displayName, mimeType)
+        pageActionsController.openLocalDocumentUri(
+            uri,
+            displayName,
+            mimeType,
+            subtitleCandidates,
+            playbackQueue
+        )
+    }
+
+    private fun openPlaybackHistoryItem(progress: PlaybackProgress) {
+        openNativePlayer(
+            url = progress.mediaIdentity,
+            titleOverride = PlaybackHistoryDisplayText.title(progress)
+        )
     }
 
     private fun updatePrivateBrowsingUi() {
@@ -898,9 +946,31 @@ class MainActivity : AppCompatActivity() {
         url: String,
         mimeType: String? = null,
         userAgentOverride: String? = null,
-        titleOverride: String? = null
+        titleOverride: String? = null,
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
+        playbackQueue: PlaybackQueue? = null
     ) {
-        externalNavigator.openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
+        externalNavigator.openNativePlayer(
+            url = url,
+            mimeType = mimeType,
+            userAgentOverride = userAgentOverride,
+            titleOverride = titleOverride,
+            privateBrowsing = isPrivateBrowsingEnabled(),
+            subtitleCandidates = subtitleCandidates,
+            playbackQueue = playbackQueue
+        )
+    }
+
+    private fun openNativePlayer(decision: MediaRouteDecision) {
+        val mediaItem = decision.mediaItem ?: return
+        openNativePlayer(
+            mediaItem.uri,
+            mediaItem.mimeType,
+            mediaItem.userAgent,
+            mediaItem.title,
+            mediaItem.subtitleCandidates,
+            null
+        )
     }
 
     private fun loadAddressInput() {
@@ -938,9 +1008,23 @@ class MainActivity : AppCompatActivity() {
             url
         }
         closeFunctionCenter()
-        if (MediaUrlUtils.isPlayableMediaUri(Uri.parse(cleanedUrl))) {
-            openNativePlayer(cleanedUrl)
-            return
+        val mediaDecision = MediaRoutingController.route(
+            MediaRouteRequest(
+                source = MediaRouteSource.ADDRESS_BAR,
+                url = cleanedUrl,
+                currentPageUrl = currentSessionController().currentPageUrl,
+                currentPageTitle = currentSessionController().currentPageTitle,
+                userAgent = currentBrowserManager().userAgentString()
+            )
+        )
+        when (mediaDecision.action) {
+            MediaRouteAction.OPEN_NATIVE_PLAYER -> {
+                openNativePlayer(mediaDecision)
+                return
+            }
+
+            MediaRouteAction.BLOCK -> return
+            else -> Unit
         }
 
         currentSessionController().currentPageUrl = cleanedUrl
@@ -1009,10 +1093,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun shouldBlockUrl(view: WebView?, uri: Uri, openMedia: Boolean = true): Boolean {
-        if (openMedia && MediaUrlUtils.isPlayableMediaUri(uri)) {
-            view?.stopLoading()
-            openNativePlayer(uri.toString())
-            return true
+        if (openMedia) {
+            val mediaDecision = MediaRoutingController.route(
+                MediaRouteRequest(
+                    source = MediaRouteSource.WEBVIEW_OVERRIDE,
+                    url = uri.toString(),
+                    currentPageUrl = currentSessionController().currentPageUrl,
+                    currentPageTitle = currentSessionController().currentPageTitle,
+                    userAgent = currentBrowserManager().userAgentString()
+                )
+            )
+            when (mediaDecision.action) {
+                MediaRouteAction.OPEN_NATIVE_PLAYER -> {
+                    view?.stopLoading()
+                    openNativePlayer(mediaDecision)
+                    return true
+                }
+
+                MediaRouteAction.BLOCK -> return true
+                else -> Unit
+            }
         }
 
         if (isUnavailableUcDownloadUrl(uri)) {
@@ -1069,8 +1169,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
-        private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
-            "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
         private const val RULE_LOG_TAG = "VideoBrowserRules"
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48

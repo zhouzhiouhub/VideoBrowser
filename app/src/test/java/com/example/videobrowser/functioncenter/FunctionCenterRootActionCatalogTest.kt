@@ -6,7 +6,7 @@ import org.junit.Test
 
 class FunctionCenterRootActionCatalogTest {
     @Test
-    fun rootPageActionsContainOnlyImplementedEntries() {
+    fun rootPageActionsPrioritizeCurrentPageActionsAndKeepMoreLast() {
         val actions = FunctionCenterRootActionCatalog.actions(
             hasPage = true,
             hasSite = true,
@@ -17,13 +17,14 @@ class FunctionCenterRootActionCatalogTest {
         assertEquals(
             listOf(
                 "SHARE_PAGE",
-                "BOOKMARKS",
-                "HISTORY",
-                "DOWNLOADS",
-                "FILE_OPERATIONS",
                 "REFRESH",
                 "ADD_BOOKMARK",
                 "PICK_ELEMENT",
+                "BOOKMARKS",
+                "HISTORY",
+                "PLAYBACK_HISTORY",
+                "DOWNLOADS",
+                "FILE_OPERATIONS",
                 "MORE"
             ),
             names

@@ -1,0 +1,29 @@
+package com.example.videobrowser.video
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class VideoSpeedOptionsTest {
+    @Test
+    fun `menu speeds are sorted and include conservative iris inspired stops`() {
+        val speeds = VideoSpeedOptions.menuSpeeds()
+
+        assertEquals(listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f, 2.5f, 3f), speeds)
+        assertTrue(speeds.zipWithNext().all { (previous, next) -> previous < next })
+    }
+
+    @Test
+    fun `speed menu keeps browser safe playback bounds`() {
+        val speeds = VideoSpeedOptions.menuSpeeds()
+
+        assertEquals(0.5f, speeds.first())
+        assertEquals(3f, speeds.last())
+        assertTrue(1f in speeds)
+    }
+
+    @Test
+    fun `long press speed stays at a predictable temporary boost`() {
+        assertEquals(2f, VideoSpeedOptions.longPressSpeed)
+    }
+}

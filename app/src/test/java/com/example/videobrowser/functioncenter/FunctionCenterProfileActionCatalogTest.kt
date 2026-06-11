@@ -15,6 +15,7 @@ class FunctionCenterProfileActionCatalogTest {
         assertEquals(
             listOf(
                 "HISTORY",
+                "PLAYBACK_HISTORY",
                 "BOOKMARKS",
                 "DOWNLOADS",
                 "FILE_OPERATIONS",
@@ -35,6 +36,7 @@ class FunctionCenterProfileActionCatalogTest {
         assertEquals(
             listOf(
                 "HISTORY",
+                "PLAYBACK_HISTORY",
                 "BOOKMARKS",
                 "DOWNLOADS",
                 "FILE_OPERATIONS",

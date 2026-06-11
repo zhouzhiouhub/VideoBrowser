@@ -1,5 +1,36 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+data class ReleaseSigningProperties(
+    val storeFile: String,
+    val storePassword: String,
+    val keyAlias: String,
+    val keyPassword: String
+)
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.isFile) {
+        localPropertiesFile.inputStream().use(::load)
+    }
+}
+
+fun localProperty(name: String): String? = localProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+
+val releaseSigningProperties = run {
+    val storeFile = localProperty("RELEASE_STORE_FILE")
+    val storePassword = localProperty("RELEASE_STORE_PASSWORD")
+    val keyAlias = localProperty("RELEASE_KEY_ALIAS")
+    val keyPassword = localProperty("RELEASE_KEY_PASSWORD")
+
+    if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
+        ReleaseSigningProperties(storeFile, storePassword, keyAlias, keyPassword)
+    } else {
+        null
+    }
 }
 
 fun gitCommitCount(): Int {
@@ -48,8 +79,22 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        releaseSigningProperties?.let { properties ->
+            create("release") {
+                storeFile = file(properties.storeFile)
+                storePassword = properties.storePassword
+                keyAlias = properties.keyAlias
+                keyPassword = properties.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            releaseSigningProperties?.let {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
