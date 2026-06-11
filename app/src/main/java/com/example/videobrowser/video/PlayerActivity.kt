@@ -277,6 +277,7 @@ class PlayerActivity : AppCompatActivity() {
             onDirectionalLongPressEnd = ::stopDirectionalLongPress
             onToggleOrientation = ::togglePlayerOrientation
             onUserInteraction = ::wakePlayerControls
+            onExitFullscreen = ::finish
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(isLandscape)
         }

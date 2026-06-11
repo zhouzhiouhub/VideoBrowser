@@ -37,6 +37,15 @@ class FullscreenVideoExitButtonContractTest {
         assertTrue(source.contains("chromeClient()?.exitPageFullscreen()"))
     }
 
+    @Test
+    fun nativePlayerWiresExitButtonToFinishActivity() {
+        val source = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+        ).readText()
+
+        assertTrue(source.contains("onExitFullscreen = ::finish"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(
