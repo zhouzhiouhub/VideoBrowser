@@ -114,6 +114,17 @@ class BrowserManager(
         webView.loadUrl(url)
     }
 
+    fun loadErrorPage(error: BrowserPageError) {
+        disposeCurrentPage()
+        webView.loadDataWithBaseURL(
+            "about:blank",
+            BrowserErrorPage.render(error),
+            "text/html",
+            "UTF-8",
+            null
+        )
+    }
+
     fun goBack(): Boolean {
         if (!webView.canGoBack()) {
             return false

@@ -56,6 +56,16 @@ class BrowserSessionController(
         }
     }
 
+    fun handlePageFailed(url: String?) {
+        currentPageUrl = url ?: currentPageUrl
+        isHomePageVisible = false
+        isPageLoading = false
+        pageProgress = 100
+        if (isActive()) {
+            renderCurrentState(forceProgressHidden = true)
+        }
+    }
+
     fun handlePageProgressChanged(newProgress: Int) {
         val normalizedProgress = newProgress.coerceIn(0, 100)
         isPageLoading = normalizedProgress in 1..99

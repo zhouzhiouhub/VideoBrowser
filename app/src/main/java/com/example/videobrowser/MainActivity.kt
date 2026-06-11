@@ -36,6 +36,7 @@ import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
+import com.example.videobrowser.browser.BrowserPageError
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserManager
@@ -581,6 +582,7 @@ class MainActivity : AppCompatActivity() {
             BrowserClient(
                 pageStarted = { url -> currentSessionController().handlePageStarted(url) },
                 pageFinished = { url -> currentSessionController().handlePageFinished(url) },
+                pageLoadFailed = ::showBrowserErrorPage,
                 requestIntercepted = ::interceptBrowserRequest,
                 urlLoadingRequested = ::shouldBlockUrl
             )
@@ -589,6 +591,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun interceptBrowserRequest(request: BrowserRequest) =
         adBlockRequestInterceptor.intercept(request) ?: smartNoImageRequestInterceptor.intercept(request)
+
+    private fun showBrowserErrorPage(error: BrowserPageError) {
+        currentSessionController().handlePageFailed(error.url)
+        currentBrowserManager().loadErrorPage(error)
+    }
 
     private fun setupFullscreenGestureOverlay() {
         fullscreenVideoController.attachOverlay()

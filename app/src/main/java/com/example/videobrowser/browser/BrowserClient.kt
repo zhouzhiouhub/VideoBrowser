@@ -2,8 +2,11 @@ package com.example.videobrowser.browser
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.net.http.SslError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.webkit.WebResourceError
+import android.webkit.SslErrorHandler
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
@@ -13,6 +16,7 @@ import android.webkit.WebViewClient
 class BrowserClient(
     private val pageStarted: (String?) -> Unit = {},
     private val pageFinished: (String?) -> Unit = {},
+    private val pageLoadFailed: (BrowserPageError) -> Unit = {},
     private val requestIntercepted: (BrowserRequest) -> WebResourceResponse? = { null },
     private val urlLoadingRequested: (WebView?, Uri, Boolean) -> Boolean = { _, _, _ -> false }
 ) : WebViewClient() {
@@ -51,5 +55,55 @@ class BrowserClient(
     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
         val uri = url?.let(Uri::parse) ?: return false
         return urlLoadingRequested(view, uri, true)
+    }
+
+    override fun onReceivedError(
+        view: WebView?,
+        request: WebResourceRequest?,
+        error: WebResourceError?
+    ) {
+        if (request?.isForMainFrame != true) {
+            return
+        }
+        pageLoadFailed(
+            BrowserPageError.Network(
+                url = request.url?.toString(),
+                code = error?.errorCode ?: 0,
+                description = error?.description?.toString().orEmpty()
+                    .ifBlank { "网络错误" }
+            )
+        )
+    }
+
+    override fun onReceivedHttpError(
+        view: WebView?,
+        request: WebResourceRequest?,
+        errorResponse: WebResourceResponse?
+    ) {
+        if (request?.isForMainFrame != true) {
+            return
+        }
+        pageLoadFailed(
+            BrowserPageError.Http(
+                url = request.url?.toString(),
+                statusCode = errorResponse?.statusCode ?: 0,
+                reasonPhrase = errorResponse?.reasonPhrase.orEmpty()
+                    .ifBlank { "HTTP 错误" }
+            )
+        )
+    }
+
+    override fun onReceivedSslError(
+        view: WebView?,
+        handler: SslErrorHandler?,
+        error: SslError?
+    ) {
+        handler?.cancel()
+        pageLoadFailed(
+            BrowserPageError.Ssl(
+                url = error?.url,
+                description = error?.toString().orEmpty().ifBlank { "SSL 证书错误" }
+            )
+        )
     }
 }
