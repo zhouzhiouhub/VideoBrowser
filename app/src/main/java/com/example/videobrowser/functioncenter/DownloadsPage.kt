@@ -7,6 +7,8 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
+import com.example.videobrowser.download.DownloadCategory
+import com.example.videobrowser.download.DownloadCategoryGroup
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
@@ -49,17 +51,19 @@ class DownloadsPage(
                 return@showPage
             }
 
-            host.addFunctionSection(
-                content,
-                activity.getString(R.string.function_center_section_records)
-            ) { section ->
-                records.forEach { record ->
-                    host.addActionRow(
-                        parent = section,
-                        title = record.title.ifBlank { record.fileName },
-                        summary = recordSummary(record)
-                    ) {
-                        openDownloadedFile(record)
+            DownloadCategoryGroup.from(records).forEach { group ->
+                host.addFunctionSection(
+                    content,
+                    activity.getString(categoryTitleResId(group.category))
+                ) { section ->
+                    group.records.forEach { record ->
+                        host.addActionRow(
+                            parent = section,
+                            title = record.title.ifBlank { record.fileName },
+                            summary = recordSummary(record)
+                        ) {
+                            openDownloadedFile(record)
+                        }
                     }
                 }
             }
@@ -116,5 +120,17 @@ class DownloadsPage(
         val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
             .format(Date(record.createdAtMillis))
         return "$createdAt | ${UrlUtils.displayUrl(record.sourceUrl)}"
+    }
+
+    private fun categoryTitleResId(category: DownloadCategory): Int {
+        return when (category) {
+            DownloadCategory.VIDEO -> R.string.download_category_video
+            DownloadCategory.IMAGE -> R.string.download_category_image
+            DownloadCategory.AUDIO -> R.string.download_category_audio
+            DownloadCategory.DOCUMENT -> R.string.download_category_document
+            DownloadCategory.APP -> R.string.download_category_app
+            DownloadCategory.ARCHIVE -> R.string.download_category_archive
+            DownloadCategory.OTHER -> R.string.download_category_other
+        }
     }
 }
