@@ -11,9 +11,11 @@ class PlaybackQueueMenuWiringContractTest {
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
 
-        assertTrue(source.contains("onPlaybackQueueRequested = ::showPlaybackQueueMenu"))
+        assertTrue(source.contains("PlaybackCommand.ShowQueue"))
         assertTrue(source.contains("private fun showPlaybackQueueMenu()"))
         assertTrue(source.contains("private fun removeMediaFromQueue(index: Int)"))
+        assertTrue(source.contains("PlaybackCommand.SelectQueueItem(index)"))
+        assertTrue(source.contains("PlaybackCommand.ToggleShuffle"))
         assertTrue(source.contains("playbackQueue = playbackQueue.select(index)"))
         assertTrue(source.contains("playbackQueue = playbackQueue.removeAt(index)"))
         assertTrue(source.contains("showPlaybackQueueMenu()"))

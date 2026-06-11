@@ -26,9 +26,11 @@ class NativeTrackSelectionContractTest {
 
         assertTrue(source.contains("TrackSelectionDialogBuilder"))
         assertTrue(source.contains("showTrackSelectionMenu()"))
-        assertTrue(source.contains("showTrackSelectionDialog(C.TRACK_TYPE_AUDIO"))
-        assertTrue(source.contains("showTrackSelectionDialog(C.TRACK_TYPE_TEXT"))
-        assertTrue(source.contains("onTrackSelectionRequested = ::showTrackSelectionMenu"))
+        assertTrue(source.contains("PlaybackCommand.SelectTrack(PlaybackTrackType.AUDIO)"))
+        assertTrue(source.contains("PlaybackCommand.SelectTrack(PlaybackTrackType.SUBTITLE)"))
+        assertTrue(source.contains("C.TRACK_TYPE_AUDIO"))
+        assertTrue(source.contains("C.TRACK_TYPE_TEXT"))
+        assertTrue(source.contains("PlaybackCommand.ShowTrackSelection"))
     }
 
     @Test

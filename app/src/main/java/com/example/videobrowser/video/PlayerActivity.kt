@@ -177,14 +177,15 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         savePlayerState()
-        outState.putLong(STATE_PLAYBACK_POSITION, playbackPosition)
-        outState.putBoolean(STATE_PLAY_WHEN_READY, playWhenReady)
-        outState.putInt(STATE_MEDIA_ITEM_INDEX, currentMediaItemIndex)
+        val sessionState = currentPlaybackSessionState()
+        outState.putLong(STATE_PLAYBACK_POSITION, sessionState.positionMs)
+        outState.putBoolean(STATE_PLAY_WHEN_READY, sessionState.playWhenReady)
+        outState.putInt(STATE_MEDIA_ITEM_INDEX, sessionState.currentIndex)
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
-        outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
-        outState.putString(STATE_REPEAT_MODE, repeatMode.name)
+        outState.putFloat(STATE_PLAYBACK_SPEED, sessionState.speed)
+        outState.putString(STATE_REPEAT_MODE, sessionState.repeatMode.name)
         outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJson.encode(playbackQueue))
-        outState.putString(STATE_VIDEO_ZOOM_MODE, videoZoomMode.name)
+        outState.putString(STATE_VIDEO_ZOOM_MODE, sessionState.zoomMode.name)
         outState.putBoolean(STATE_VIDEO_EFFECTS_ENABLED, videoEffectsEnabled)
         outState.putBoolean(
             STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
@@ -314,22 +315,34 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setupGestureOverlay() {
         gestureOverlay = FullscreenVideoGestureOverlay(this).apply {
-            onSeekBy = ::seekPlayerBy
-            onSeekTo = ::seekPlayerTo
+            onSeekBy = { offsetMs -> handlePlaybackCommand(PlaybackCommand.SeekBy(offsetMs)) }
+            onSeekTo = { positionMs -> handlePlaybackCommand(PlaybackCommand.SeekTo(positionMs)) }
             onSeekPreviewStart = ::currentPlayerSeekPosition
-            onTogglePlayPause = ::togglePlayerPlayPause
-            onPlaybackSpeedSelected = ::setPlayerPlaybackSpeed
+            onTogglePlayPause = {
+                handlePlaybackCommand(PlaybackCommand.TogglePlayPause) as? Boolean
+            }
+            onPlaybackSpeedSelected = { speed ->
+                handlePlaybackCommand(PlaybackCommand.SetSpeed(speed))
+            }
             onDirectionalLongPressStart = ::startDirectionalLongPress
             onDirectionalLongPressEnd = ::stopDirectionalLongPress
             onToggleOrientation = ::togglePlayerOrientation
             onUserInteraction = ::wakePlayerControls
             onExitFullscreen = ::finish
-            onTrackSelectionRequested = ::showTrackSelectionMenu
-            onPlaybackQueueRequested = ::showPlaybackQueueMenu
-            onVideoZoomRequested = ::cycleVideoZoomMode
-            onPreviousMediaRequested = ::playPreviousMedia
-            onNextMediaRequested = ::playNextMedia
-            onRepeatModeRequested = ::cycleRepeatMode
+            onTrackSelectionRequested = {
+                handlePlaybackCommand(PlaybackCommand.ShowTrackSelection)
+            }
+            onPlaybackQueueRequested = { handlePlaybackCommand(PlaybackCommand.ShowQueue) }
+            onVideoZoomRequested = {
+                handlePlaybackCommand(PlaybackCommand.CycleZoom) as? VideoZoomMode
+                    ?: videoZoomMode
+            }
+            onPreviousMediaRequested = { handlePlaybackCommand(PlaybackCommand.Previous) }
+            onNextMediaRequested = { handlePlaybackCommand(PlaybackCommand.Next) }
+            onRepeatModeRequested = {
+                handlePlaybackCommand(PlaybackCommand.ToggleRepeat) as? PlaybackRepeatMode
+                    ?: repeatMode
+            }
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(isLandscape)
             setQueueControlsVisible(playbackQueue.items.size > 1)
@@ -342,6 +355,77 @@ class PlayerActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
+        )
+    }
+
+    private fun handlePlaybackCommand(command: PlaybackCommand): Any? {
+        return when (command) {
+            PlaybackCommand.Play -> playPlayer()
+            PlaybackCommand.Pause -> pausePlayer()
+            PlaybackCommand.TogglePlayPause -> togglePlayerPlayPause()
+            is PlaybackCommand.SeekBy -> {
+                seekPlayerBy(command.offsetMs)
+                Unit
+            }
+            is PlaybackCommand.SeekTo -> {
+                seekPlayerTo(command.positionMs)
+                Unit
+            }
+            is PlaybackCommand.SetSpeed -> {
+                setPlayerPlaybackSpeed(command.speed)
+                Unit
+            }
+            PlaybackCommand.Previous -> {
+                playPreviousMedia()
+                Unit
+            }
+            PlaybackCommand.Next -> {
+                playNextMedia()
+                Unit
+            }
+            PlaybackCommand.ToggleRepeat -> cycleRepeatMode()
+            is PlaybackCommand.SelectQueueItem -> {
+                playMediaAt(command.index)
+                Unit
+            }
+            PlaybackCommand.ShowQueue -> {
+                showPlaybackQueueMenu()
+                Unit
+            }
+            PlaybackCommand.ToggleShuffle -> toggleShuffleMode()
+            PlaybackCommand.CycleZoom -> cycleVideoZoomMode()
+            PlaybackCommand.ShowTrackSelection -> {
+                showTrackSelectionMenu()
+                Unit
+            }
+            is PlaybackCommand.SelectTrack -> {
+                when (command.trackType) {
+                    PlaybackTrackType.AUDIO -> showTrackSelectionDialog(
+                        C.TRACK_TYPE_AUDIO,
+                        R.string.video_track_audio
+                    )
+                    PlaybackTrackType.SUBTITLE -> showTrackSelectionDialog(
+                        C.TRACK_TYPE_TEXT,
+                        R.string.video_track_subtitles
+                    )
+                }
+                Unit
+            }
+        }
+    }
+
+    private fun currentPlaybackSessionState(): PlaybackSessionState {
+        val exoPlayer = player
+        val durationMs = exoPlayer
+            ?.duration
+            ?.takeIf { it != C.TIME_UNSET && it > 0L }
+        return PlaybackSessionState.fromQueue(
+            queue = playbackQueue,
+            positionMs = exoPlayer?.currentPosition ?: playbackPosition,
+            durationMs = durationMs,
+            speed = selectedPlaybackSpeed,
+            playWhenReady = exoPlayer?.playWhenReady ?: playWhenReady,
+            zoomMode = videoZoomMode
         )
     }
 
@@ -385,6 +469,23 @@ class PlayerActivity : AppCompatActivity() {
             }
             exoPlayer.play()
         }
+        wakePlayerControls()
+        return exoPlayer.playWhenReady
+    }
+
+    private fun playPlayer(): Boolean? {
+        val exoPlayer = player ?: return null
+        if (exoPlayer.playbackState == Player.STATE_ENDED) {
+            exoPlayer.seekTo(0)
+        }
+        exoPlayer.play()
+        wakePlayerControls()
+        return exoPlayer.playWhenReady
+    }
+
+    private fun pausePlayer(): Boolean? {
+        val exoPlayer = player ?: return null
+        exoPlayer.pause()
         wakePlayerControls()
         return exoPlayer.playWhenReady
     }
@@ -545,10 +646,10 @@ class PlayerActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.video_queue_title, playbackQueue.items.size))
             .setItems(playbackQueueLabels()) { _, index ->
-                playMediaAt(index)
+                handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))
             }
             .setPositiveButton(shuffleActionLabel()) { _, _ ->
-                toggleShuffleMode()
+                handlePlaybackCommand(PlaybackCommand.ToggleShuffle)
                 showPlaybackQueueMenu()
             }
             .setNeutralButton(R.string.video_queue_remove) { _, _ ->
@@ -633,8 +734,8 @@ class PlayerActivity : AppCompatActivity() {
                 )
             ) { _, which ->
                 when (which) {
-                    0 -> showTrackSelectionDialog(C.TRACK_TYPE_AUDIO, R.string.video_track_audio)
-                    1 -> showTrackSelectionDialog(C.TRACK_TYPE_TEXT, R.string.video_track_subtitles)
+                    0 -> handlePlaybackCommand(PlaybackCommand.SelectTrack(PlaybackTrackType.AUDIO))
+                    1 -> handlePlaybackCommand(PlaybackCommand.SelectTrack(PlaybackTrackType.SUBTITLE))
                 }
             }
             .show()

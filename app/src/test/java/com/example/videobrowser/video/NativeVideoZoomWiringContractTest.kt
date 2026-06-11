@@ -13,9 +13,9 @@ class NativeVideoZoomWiringContractTest {
 
         assertTrue(source.contains("private var videoZoomMode = VideoZoomMode.FIT"))
         assertTrue(source.contains("savedInstanceState.getString(STATE_VIDEO_ZOOM_MODE)"))
-        assertTrue(source.contains("outState.putString(STATE_VIDEO_ZOOM_MODE, videoZoomMode.name)"))
+        assertTrue(source.contains("outState.putString(STATE_VIDEO_ZOOM_MODE, sessionState.zoomMode.name)"))
         assertTrue(source.contains("playerView.resizeMode = videoZoomMode.resizeMode"))
-        assertTrue(source.contains("onVideoZoomRequested = ::cycleVideoZoomMode"))
+        assertTrue(source.contains("PlaybackCommand.CycleZoom"))
         assertTrue(source.contains("private fun cycleVideoZoomMode(): VideoZoomMode"))
         assertTrue(source.contains("gestureOverlay.setVideoZoomMode(videoZoomMode)"))
     }
