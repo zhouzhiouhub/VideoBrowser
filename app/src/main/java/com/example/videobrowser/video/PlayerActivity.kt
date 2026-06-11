@@ -428,7 +428,7 @@ class PlayerActivity : AppCompatActivity() {
         longPressRestorePlayWhenReady = exoPlayer.playWhenReady
 
         if (longPressDirection > 0) {
-            exoPlayer.setPlaybackSpeed(LONG_PRESS_PLAYBACK_SPEED)
+            exoPlayer.setPlaybackSpeed(VideoSpeedOptions.longPressSpeed)
             exoPlayer.play()
         } else {
             exoPlayer.pause()
@@ -620,7 +620,6 @@ class PlayerActivity : AppCompatActivity() {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val CONTROLS_HIDE_DELAY_MS = 3000
-        private const val LONG_PRESS_PLAYBACK_SPEED = 2f
         private const val LONG_PRESS_SCAN_STEP_MS = 500L
         private const val LONG_PRESS_SCAN_INTERVAL_MS = 250L
         private const val MIME_HLS = "application/x-mpegURL"
