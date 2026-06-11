@@ -6,13 +6,20 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.video.ExternalSubtitleCandidate
+import com.example.videobrowser.video.PlaybackQueue
 
 class LocalFileLaunchers(
     private val activity: AppCompatActivity,
     private val directoryPermissions: LocalDirectoryPermissionManager,
     private val documentRepository: LocalDocumentRepository,
     private val logTag: String,
-    private val onOpenDocumentUri: (Uri, String?, String?, List<ExternalSubtitleCandidate>) -> Unit,
+    private val onOpenDocumentUri: (
+        Uri,
+        String?,
+        String?,
+        List<ExternalSubtitleCandidate>,
+        PlaybackQueue?
+    ) -> Unit,
     private val onDirectoryReady: (Uri) -> Unit,
     private val onDirectoryUnavailable: () -> Unit
 ) {
@@ -23,7 +30,7 @@ class LocalFileLaunchers(
         openLocalFileLauncher =
             activity.registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
                 if (uri != null) {
-                    onOpenDocumentUri(uri, null, null, emptyList())
+                    onOpenDocumentUri(uri, null, null, emptyList(), null)
                 }
             }
 

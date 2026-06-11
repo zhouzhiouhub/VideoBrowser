@@ -15,7 +15,9 @@ import com.example.videobrowser.R
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.video.ExternalSubtitleCandidate
+import com.example.videobrowser.video.LocalPlaybackQueueBuilder
 import com.example.videobrowser.video.LocalSubtitleMatcher
+import com.example.videobrowser.video.PlaybackQueue
 
 class LocalFilesController(
     private val activity: AppCompatActivity,
@@ -23,7 +25,13 @@ class LocalFilesController(
     private val functionCenter: FunctionCenterController,
     private val logTag: String,
     private val showMainFunctionCenterPage: () -> Unit,
-    private val onOpenDocumentUri: (Uri, String?, String?, List<ExternalSubtitleCandidate>) -> Unit
+    private val onOpenDocumentUri: (
+        Uri,
+        String?,
+        String?,
+        List<ExternalSubtitleCandidate>,
+        PlaybackQueue?
+    ) -> Unit
 ) {
     private val directoryPermissions =
         LocalDirectoryPermissionManager(activity, preferenceStore, logTag)
@@ -227,6 +235,20 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_open_file),
                     summary = activity.getString(R.string.action_open_file_summary)
                 ) {
+                    val queueDocuments = siblingDocuments.map {
+                        LocalPlaybackQueueBuilder.Document(
+                            uri = it.uri.toString(),
+                            name = it.name,
+                            mimeType = it.mimeType,
+                            isDirectory = it.isDirectory
+                        )
+                    }
+                    val playbackQueue = LocalPlaybackQueueBuilder.fromDocuments(
+                        currentUri = document.uri.toString(),
+                        currentName = document.name,
+                        currentMimeType = document.mimeType,
+                        documents = queueDocuments
+                    )
                     val subtitleCandidates = LocalSubtitleMatcher.findSubtitleCandidates(
                         mediaName = document.name,
                         documents = siblingDocuments
@@ -243,7 +265,8 @@ class LocalFilesController(
                         document.uri,
                         document.name,
                         document.mimeType,
-                        subtitleCandidates
+                        subtitleCandidates,
+                        playbackQueue
                     )
                 }
 

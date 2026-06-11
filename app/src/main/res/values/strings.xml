@@ -310,6 +310,11 @@
     <string name="video_control_rotate_to_landscape">横屏</string>
     <string name="video_control_speed">倍速 %1$s</string>
     <string name="video_control_tracks">轨道</string>
+    <string name="video_control_previous">上一项</string>
+    <string name="video_control_next">下一项</string>
+    <string name="video_control_repeat_none">顺序播放</string>
+    <string name="video_control_repeat_one">单项循环</string>
+    <string name="video_control_repeat_all">列表循环</string>
     <string name="video_track_audio">音轨</string>
     <string name="video_track_subtitles">字幕</string>
     <string name="toast_video_tracks_unavailable">当前视频暂无可选轨道</string>

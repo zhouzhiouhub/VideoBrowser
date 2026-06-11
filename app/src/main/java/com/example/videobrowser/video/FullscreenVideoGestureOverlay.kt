@@ -47,6 +47,9 @@ class FullscreenVideoGestureOverlay(
     var onUserInteraction: (() -> Unit)? = null
     var onExitFullscreen: (() -> Unit)? = null
     var onTrackSelectionRequested: (() -> Unit)? = null
+    var onPreviousMediaRequested: (() -> Unit)? = null
+    var onNextMediaRequested: (() -> Unit)? = null
+    var onRepeatModeRequested: (() -> PlaybackRepeatMode)? = null
 
     private val audioManager =
         activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -57,6 +60,9 @@ class FullscreenVideoGestureOverlay(
 
     private val exitButton = ImageButton(context)
     private val lockButton = controlTextView()
+    private val previousButton = controlTextView()
+    private val nextButton = controlTextView()
+    private val repeatButton = controlTextView()
     private val speedButton = controlTextView()
     private val trackButton = controlTextView()
     private val rotateButton = controlTextView()
@@ -67,6 +73,7 @@ class FullscreenVideoGestureOverlay(
     private var locked = false
     private var landscape = true
     private var playbackSpeed = DEFAULT_PLAYBACK_SPEED
+    private var repeatMode = PlaybackRepeatMode.NONE
     private var savedWindowBrightness: Float? = null
     private var touchStartedOnControl = false
     private var touchStartedInBottomPassthrough = false
@@ -164,6 +171,29 @@ class FullscreenVideoGestureOverlay(
         rotateButton.text = ROTATE_ICON
         rotateButton.contentDescription = label
         ViewCompat.setTooltipText(rotateButton, label)
+    }
+
+    fun setQueueControlsVisible(visible: Boolean) {
+        val visibility = if (visible) View.VISIBLE else View.GONE
+        previousButton.visibility = visibility
+        nextButton.visibility = visibility
+        repeatButton.visibility = visibility
+    }
+
+    fun setRepeatMode(mode: PlaybackRepeatMode) {
+        repeatMode = mode
+        repeatButton.text = when (mode) {
+            PlaybackRepeatMode.NONE -> REPEAT_NONE_ICON
+            PlaybackRepeatMode.ONE -> REPEAT_ONE_ICON
+            PlaybackRepeatMode.ALL -> REPEAT_ALL_ICON
+        }
+        val label = when (mode) {
+            PlaybackRepeatMode.NONE -> context.getString(R.string.video_control_repeat_none)
+            PlaybackRepeatMode.ONE -> context.getString(R.string.video_control_repeat_one)
+            PlaybackRepeatMode.ALL -> context.getString(R.string.video_control_repeat_all)
+        }
+        repeatButton.contentDescription = label
+        ViewCompat.setTooltipText(repeatButton, label)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -269,6 +299,33 @@ class FullscreenVideoGestureOverlay(
         controlsGroup.orientation = LinearLayout.HORIZONTAL
         controlsGroup.gravity = Gravity.CENTER_VERTICAL
         controlsGroup.addView(
+            previousButton,
+            LinearLayout.LayoutParams(
+                dp(44),
+                dp(40)
+            ).apply {
+                marginEnd = dp(8)
+            }
+        )
+        controlsGroup.addView(
+            nextButton,
+            LinearLayout.LayoutParams(
+                dp(44),
+                dp(40)
+            ).apply {
+                marginEnd = dp(8)
+            }
+        )
+        controlsGroup.addView(
+            repeatButton,
+            LinearLayout.LayoutParams(
+                dp(44),
+                dp(40)
+            ).apply {
+                marginEnd = dp(8)
+            }
+        )
+        controlsGroup.addView(
             speedButton,
             LinearLayout.LayoutParams(
                 dp(62),
@@ -298,6 +355,34 @@ class FullscreenVideoGestureOverlay(
             notifyUserInteraction()
             if (!locked) showSpeedPopup()
         }
+        previousButton.text = PREVIOUS_ICON
+        previousButton.contentDescription = context.getString(R.string.video_control_previous)
+        ViewCompat.setTooltipText(
+            previousButton,
+            context.getString(R.string.video_control_previous)
+        )
+        previousButton.setOnClickListener {
+            notifyUserInteraction()
+            if (locked) return@setOnClickListener
+            onPreviousMediaRequested?.invoke()
+        }
+        nextButton.text = NEXT_ICON
+        nextButton.contentDescription = context.getString(R.string.video_control_next)
+        ViewCompat.setTooltipText(nextButton, context.getString(R.string.video_control_next))
+        nextButton.setOnClickListener {
+            notifyUserInteraction()
+            if (locked) return@setOnClickListener
+            onNextMediaRequested?.invoke()
+        }
+        repeatButton.setOnClickListener {
+            notifyUserInteraction()
+            if (locked) return@setOnClickListener
+            val mode = onRepeatModeRequested?.invoke() ?: repeatMode
+            setRepeatMode(mode)
+            showFeedback(repeatButton.contentDescription?.toString().orEmpty())
+        }
+        setQueueControlsVisible(false)
+        setRepeatMode(PlaybackRepeatMode.NONE)
         val trackLabel = context.getString(R.string.video_control_tracks)
         trackButton.text = TRACK_ICON
         trackButton.contentDescription = trackLabel
@@ -847,6 +932,11 @@ class FullscreenVideoGestureOverlay(
         private const val UNLOCKED_ICON = "\ud83d\udd13"
         private const val ROTATE_ICON = "\u21bb"
         private const val TRACK_ICON = "轨"
+        private const val PREVIOUS_ICON = "\u23ee"
+        private const val NEXT_ICON = "\u23ed"
+        private const val REPEAT_NONE_ICON = "\u21c4"
+        private const val REPEAT_ONE_ICON = "\u267e1"
+        private const val REPEAT_ALL_ICON = "\u267e"
         private const val BRIGHTNESS_ICON = "\u2600"
         private const val VOLUME_ICON = "\ud83d\udd0a"
     }

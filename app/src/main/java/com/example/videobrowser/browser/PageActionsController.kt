@@ -21,6 +21,7 @@ import com.example.videobrowser.video.MediaRouteAction
 import com.example.videobrowser.video.MediaRouteRequest
 import com.example.videobrowser.video.MediaRouteSource
 import com.example.videobrowser.video.MediaRoutingController
+import com.example.videobrowser.video.PlaybackQueue
 
 class PageActionsController(
     private val activity: AppCompatActivity,
@@ -39,7 +40,8 @@ class PageActionsController(
         mimeType: String?,
         userAgentOverride: String?,
         titleOverride: String?,
-        subtitleCandidates: List<ExternalSubtitleCandidate>
+        subtitleCandidates: List<ExternalSubtitleCandidate>,
+        playbackQueue: PlaybackQueue?
     ) -> Unit,
     private val openExternalUrl: (String) -> Unit,
     private val isPrivateBrowsingEnabled: () -> Boolean,
@@ -54,7 +56,8 @@ class PageActionsController(
         uri: Uri,
         displayName: String? = null,
         mimeType: String? = null,
-        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
+        playbackQueue: PlaybackQueue? = null
     ) {
         val resolvedMimeType = mimeType ?: activity.contentResolver.getType(uri)
         val title = displayName ?: localDisplayName(uri)
@@ -73,7 +76,8 @@ class PageActionsController(
                 mediaItem?.mimeType ?: resolvedMimeType,
                 null,
                 mediaItem?.title ?: title,
-                subtitleCandidates
+                subtitleCandidates,
+                playbackQueue
             )
             return
         }
@@ -151,7 +155,7 @@ class PageActionsController(
             Toast.makeText(activity, R.string.toast_media_url_unsupported, Toast.LENGTH_SHORT).show()
             return
         }
-        openNativePlayer(url, null, null, null, emptyList())
+        openNativePlayer(url, null, null, null, emptyList(), null)
     }
 
     fun setPrivateBrowsingEnabled(enabled: Boolean) {

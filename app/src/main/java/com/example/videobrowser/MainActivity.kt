@@ -74,6 +74,7 @@ import com.example.videobrowser.video.MediaRouteDecision
 import com.example.videobrowser.video.MediaRouteRequest
 import com.example.videobrowser.video.MediaRouteSource
 import com.example.videobrowser.video.MediaRoutingController
+import com.example.videobrowser.video.PlaybackQueue
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -256,13 +257,20 @@ class MainActivity : AppCompatActivity() {
             currentPageTitle = { currentSessionController().currentPageTitle },
             isShareableUrl = ::isShareableUrl,
             shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
-            openNativePlayer = { url, mimeType, userAgentOverride, titleOverride, subtitleCandidates ->
+            openNativePlayer = {
+                    url,
+                    mimeType,
+                    userAgentOverride,
+                    titleOverride,
+                    subtitleCandidates,
+                    playbackQueue ->
                 openNativePlayer(
                     url = url,
                     mimeType = mimeType,
                     userAgentOverride = userAgentOverride,
                     titleOverride = titleOverride,
-                    subtitleCandidates = subtitleCandidates
+                    subtitleCandidates = subtitleCandidates,
+                    playbackQueue = playbackQueue
                 )
             },
             openExternalUrl = ::openExternalUrl,
@@ -715,9 +723,16 @@ class MainActivity : AppCompatActivity() {
         uri: Uri,
         displayName: String? = null,
         mimeType: String? = null,
-        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
+        playbackQueue: PlaybackQueue? = null
     ) {
-        pageActionsController.openLocalDocumentUri(uri, displayName, mimeType, subtitleCandidates)
+        pageActionsController.openLocalDocumentUri(
+            uri,
+            displayName,
+            mimeType,
+            subtitleCandidates,
+            playbackQueue
+        )
     }
 
     private fun updatePrivateBrowsingUi() {
@@ -915,7 +930,8 @@ class MainActivity : AppCompatActivity() {
         mimeType: String? = null,
         userAgentOverride: String? = null,
         titleOverride: String? = null,
-        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
+        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
+        playbackQueue: PlaybackQueue? = null
     ) {
         externalNavigator.openNativePlayer(
             url = url,
@@ -923,7 +939,8 @@ class MainActivity : AppCompatActivity() {
             userAgentOverride = userAgentOverride,
             titleOverride = titleOverride,
             privateBrowsing = isPrivateBrowsingEnabled(),
-            subtitleCandidates = subtitleCandidates
+            subtitleCandidates = subtitleCandidates,
+            playbackQueue = playbackQueue
         )
     }
 
@@ -934,7 +951,8 @@ class MainActivity : AppCompatActivity() {
             mediaItem.mimeType,
             mediaItem.userAgent,
             mediaItem.title,
-            mediaItem.subtitleCandidates
+            mediaItem.subtitleCandidates,
+            null
         )
     }
 

@@ -34,6 +34,8 @@ import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
+import org.json.JSONArray
+import org.json.JSONObject
 
 class PlayerActivity : AppCompatActivity() {
     private lateinit var playerRoot: FrameLayout
@@ -55,6 +57,7 @@ class PlayerActivity : AppCompatActivity() {
     private var isLandscape = true
     private var videoEffectsEnabled = true
     private var retriedPlaybackWithoutVideoEffects = false
+    private var repeatMode = PlaybackRepeatMode.NONE
 
     private val reverseScanRunnable = object : Runnable {
         override fun run() {
@@ -74,7 +77,9 @@ class PlayerActivity : AppCompatActivity() {
         val preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
-        playbackQueue = PlaybackQueue.single(currentPlayableMediaItem())
+        playbackQueue = playbackQueueFromIntent()
+        currentMediaItemIndex = playbackQueue.currentIndex
+        repeatMode = playbackQueue.repeatMode
         selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
         longPressRestoreSpeed = selectedPlaybackSpeed
 
@@ -91,6 +96,9 @@ class PlayerActivity : AppCompatActivity() {
             selectedPlaybackSpeed = normalizePlaybackSpeed(
                 savedInstanceState.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
             )
+            repeatMode = savedInstanceState.getString(STATE_REPEAT_MODE)
+                ?.let { runCatching { PlaybackRepeatMode.valueOf(it) }.getOrNull() }
+                ?: repeatMode
             longPressRestoreSpeed = selectedPlaybackSpeed
             videoEffectsEnabled = savedInstanceState.getBoolean(STATE_VIDEO_EFFECTS_ENABLED, true)
             retriedPlaybackWithoutVideoEffects = savedInstanceState.getBoolean(
@@ -155,6 +163,7 @@ class PlayerActivity : AppCompatActivity() {
         outState.putInt(STATE_MEDIA_ITEM_INDEX, currentMediaItemIndex)
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
         outState.putFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
+        outState.putString(STATE_REPEAT_MODE, repeatMode.name)
         outState.putBoolean(STATE_VIDEO_EFFECTS_ENABLED, videoEffectsEnabled)
         outState.putBoolean(
             STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
@@ -247,11 +256,20 @@ class PlayerActivity : AppCompatActivity() {
                             )
                             wakePlayerControls()
                         }
+
+                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            currentMediaItemIndex = exoPlayer.currentMediaItemIndex
+                            playbackPosition = 0L
+                            title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title.orEmpty()
+                            updateQueueControls()
+                            wakePlayerControls()
+                        }
                     }
                 )
                 playerView.player = exoPlayer
                 exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
                 exoPlayer.setMediaItems(mediaItems, currentMediaItemIndex, playbackPosition)
+                exoPlayer.repeatMode = media3RepeatMode(repeatMode)
                 exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.prepare()
@@ -283,8 +301,13 @@ class PlayerActivity : AppCompatActivity() {
             onUserInteraction = ::wakePlayerControls
             onExitFullscreen = ::finish
             onTrackSelectionRequested = ::showTrackSelectionMenu
+            onPreviousMediaRequested = ::playPreviousMedia
+            onNextMediaRequested = ::playNextMedia
+            onRepeatModeRequested = ::cycleRepeatMode
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(isLandscape)
+            setQueueControlsVisible(playbackQueue.items.size > 1)
+            setRepeatMode(repeatMode)
         }
         playerRoot.addView(
             gestureOverlay,
@@ -370,6 +393,70 @@ class PlayerActivity : AppCompatActivity() {
         selectedPlaybackSpeed = normalizePlaybackSpeed(speed)
         settingsManager.setDefaultVideoSpeed(selectedPlaybackSpeed)
         player?.setPlaybackSpeed(selectedPlaybackSpeed)
+    }
+
+    private fun playPreviousMedia() {
+        val previousIndex = when {
+            currentMediaItemIndex > 0 -> currentMediaItemIndex - 1
+            repeatMode == PlaybackRepeatMode.ALL && playbackQueue.items.size > 1 -> {
+                playbackQueue.items.lastIndex
+            }
+            else -> currentMediaItemIndex
+        }
+        playMediaAt(previousIndex)
+    }
+
+    private fun playNextMedia() {
+        val nextIndex = when {
+            currentMediaItemIndex + 1 < playbackQueue.items.size -> currentMediaItemIndex + 1
+            repeatMode == PlaybackRepeatMode.ALL && playbackQueue.items.size > 1 -> 0
+            else -> currentMediaItemIndex
+        }
+        playMediaAt(nextIndex)
+    }
+
+    private fun playMediaAt(index: Int) {
+        val exoPlayer = player ?: return
+        if (index !in playbackQueue.items.indices || index == currentMediaItemIndex) {
+            wakePlayerControls()
+            return
+        }
+
+        savePlayerState()
+        currentMediaItemIndex = index
+        playbackPosition = playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity()) ?: 0L
+        exoPlayer.seekTo(index, playbackPosition)
+        exoPlayer.play()
+        title = playbackQueue.items[index].title.orEmpty()
+        updateQueueControls()
+        wakePlayerControls()
+    }
+
+    private fun cycleRepeatMode(): PlaybackRepeatMode {
+        repeatMode = when (repeatMode) {
+            PlaybackRepeatMode.NONE -> PlaybackRepeatMode.ONE
+            PlaybackRepeatMode.ONE -> PlaybackRepeatMode.ALL
+            PlaybackRepeatMode.ALL -> PlaybackRepeatMode.NONE
+        }
+        player?.repeatMode = media3RepeatMode(repeatMode)
+        updateQueueControls()
+        return repeatMode
+    }
+
+    private fun updateQueueControls() {
+        if (!::gestureOverlay.isInitialized) {
+            return
+        }
+        gestureOverlay.setQueueControlsVisible(playbackQueue.items.size > 1)
+        gestureOverlay.setRepeatMode(repeatMode)
+    }
+
+    private fun media3RepeatMode(mode: PlaybackRepeatMode): Int {
+        return when (mode) {
+            PlaybackRepeatMode.NONE -> Player.REPEAT_MODE_OFF
+            PlaybackRepeatMode.ONE -> Player.REPEAT_MODE_ONE
+            PlaybackRepeatMode.ALL -> Player.REPEAT_MODE_ALL
+        }
     }
 
     private fun showTrackSelectionMenu() {
@@ -600,7 +687,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playbackHistoryIdentity(): String {
-        return mediaUri().trim()
+        return playbackQueue.items.getOrNull(currentMediaItemIndex)?.uri?.trim()
+            ?: mediaUri().trim()
     }
 
     private fun isPrivateBrowsingPlayback(): Boolean {
@@ -620,6 +708,61 @@ class PlayerActivity : AppCompatActivity() {
                 label = labels.getOrNull(index)?.takeIf { it.isNotBlank() },
                 mimeType = mimeTypes.getOrNull(index)?.takeIf { it.isNotBlank() },
                 language = languages.getOrNull(index)?.takeIf { it.isNotBlank() }
+            )
+        }
+    }
+
+    private fun playbackQueueFromIntent(): PlaybackQueue {
+        val encodedQueue = intent.getStringExtra(EXTRA_PLAYBACK_QUEUE)
+        return encodedQueue?.let(::decodePlaybackQueue)
+            ?: PlaybackQueue.single(currentPlayableMediaItem())
+    }
+
+    private fun decodePlaybackQueue(encodedQueue: String): PlaybackQueue? {
+        return runCatching {
+            val root = JSONObject(encodedQueue)
+            val itemArray = root.getJSONArray("items")
+            val items = (0 until itemArray.length()).mapNotNull { index ->
+                itemArray.optJSONObject(index)?.toPlayableMediaItem()
+            }
+            if (items.isEmpty()) {
+                return@runCatching null
+            }
+            val index = root.optInt("currentIndex", 0).coerceIn(0, items.lastIndex)
+            val repeat = root.optString("repeatMode")
+                .takeIf { it.isNotBlank() }
+                ?.let { runCatching { PlaybackRepeatMode.valueOf(it) }.getOrNull() }
+                ?: PlaybackRepeatMode.NONE
+            PlaybackQueue(items = items, currentIndex = index, repeatMode = repeat)
+        }.getOrNull()
+    }
+
+    private fun JSONObject.toPlayableMediaItem(): PlayableMediaItem? {
+        val uri = optString("uri").takeIf { it.isNotBlank() } ?: return null
+        return PlayableMediaItem(
+            uri = uri,
+            title = optString("title").takeIf { it.isNotBlank() },
+            mimeType = optString("mimeType").takeIf { it.isNotBlank() },
+            source = PlaybackQueueJson.sourceFromName(optString("source")),
+            userAgent = optString("userAgent").takeIf { it.isNotBlank() },
+            referer = optString("referer").takeIf { it.isNotBlank() },
+            subtitleCandidates = subtitleArrayFromJson(optJSONArray("subtitles"))
+        )
+    }
+
+    private fun subtitleArrayFromJson(array: JSONArray?): List<ExternalSubtitleCandidate> {
+        if (array == null) {
+            return emptyList()
+        }
+        return (0 until array.length()).mapNotNull { index ->
+            val subtitle = array.optJSONObject(index) ?: return@mapNotNull null
+            val uri = subtitle.optString("uri").takeIf { it.isNotBlank() }
+                ?: return@mapNotNull null
+            ExternalSubtitleCandidate(
+                uri = uri,
+                label = subtitle.optString("label").takeIf { it.isNotBlank() },
+                mimeType = subtitle.optString("mimeType").takeIf { it.isNotBlank() },
+                language = subtitle.optString("language").takeIf { it.isNotBlank() }
             )
         }
     }
@@ -647,11 +790,13 @@ class PlayerActivity : AppCompatActivity() {
             "com.example.videobrowser.extra.SUBTITLE_MIME_TYPES"
         private const val EXTRA_SUBTITLE_LANGUAGES =
             "com.example.videobrowser.extra.SUBTITLE_LANGUAGES"
+        private const val EXTRA_PLAYBACK_QUEUE = "com.example.videobrowser.extra.PLAYBACK_QUEUE"
         private const val STATE_PLAYBACK_POSITION = "playback_position"
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
         private const val STATE_LANDSCAPE = "landscape"
         private const val STATE_PLAYBACK_SPEED = "playback_speed"
+        private const val STATE_REPEAT_MODE = "repeat_mode"
         private const val STATE_VIDEO_EFFECTS_ENABLED = "video_effects_enabled"
         private const val STATE_RETRIED_WITHOUT_VIDEO_EFFECTS = "retried_without_video_effects"
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
@@ -672,7 +817,8 @@ class PlayerActivity : AppCompatActivity() {
             cookie: String?,
             referer: String?,
             privateBrowsing: Boolean = false,
-            subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()
+            subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
+            playbackQueue: PlaybackQueue? = null
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra(EXTRA_MEDIA_URI, mediaUri)
@@ -700,6 +846,53 @@ class PlayerActivity : AppCompatActivity() {
                         ArrayList(subtitleCandidates.map { it.language.orEmpty() })
                     )
                 }
+                playbackQueue?.let {
+                    putExtra(EXTRA_PLAYBACK_QUEUE, PlaybackQueueJson.encode(it))
+                }
+            }
+        }
+
+        private object PlaybackQueueJson {
+            fun encode(queue: PlaybackQueue): String {
+                return JSONObject()
+                    .put("currentIndex", queue.currentIndex)
+                    .put("repeatMode", queue.repeatMode.name)
+                    .put(
+                        "items",
+                        JSONArray().apply {
+                            queue.items.forEach { item -> put(item.toJson()) }
+                        }
+                    )
+                    .toString()
+            }
+
+            fun sourceFromName(name: String): PlayableMediaSource {
+                return runCatching { PlayableMediaSource.valueOf(name) }
+                    .getOrDefault(PlayableMediaSource.REMOTE_URL)
+            }
+
+            private fun PlayableMediaItem.toJson(): JSONObject {
+                return JSONObject()
+                    .put("uri", uri)
+                    .put("title", title.orEmpty())
+                    .put("mimeType", mimeType.orEmpty())
+                    .put("source", source.name)
+                    .put("userAgent", userAgent.orEmpty())
+                    .put("referer", referer.orEmpty())
+                    .put(
+                        "subtitles",
+                        JSONArray().apply {
+                            subtitleCandidates.forEach { put(it.toJson()) }
+                        }
+                    )
+            }
+
+            private fun ExternalSubtitleCandidate.toJson(): JSONObject {
+                return JSONObject()
+                    .put("uri", uri)
+                    .put("label", label.orEmpty())
+                    .put("mimeType", mimeType.orEmpty())
+                    .put("language", language.orEmpty())
             }
         }
     }
