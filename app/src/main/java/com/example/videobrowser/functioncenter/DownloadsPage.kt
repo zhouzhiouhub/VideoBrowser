@@ -12,6 +12,7 @@ import com.example.videobrowser.download.DownloadCategoryGroup
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
+import com.example.videobrowser.download.DownloadStatus
 import com.example.videobrowser.utils.UrlUtils
 import java.text.DateFormat
 import java.util.Date
@@ -119,7 +120,16 @@ class DownloadsPage(
     private fun recordSummary(record: DownloadRecord): String {
         val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
             .format(Date(record.createdAtMillis))
-        return "$createdAt | ${UrlUtils.displayUrl(record.sourceUrl)}"
+        val status = activity.getString(downloadStatusTitleResId(record.status))
+        return "$status | $createdAt | ${UrlUtils.displayUrl(record.sourceUrl)}"
+    }
+
+    private fun downloadStatusTitleResId(status: DownloadStatus): Int {
+        return when (status) {
+            DownloadStatus.IN_PROGRESS -> R.string.download_status_in_progress
+            DownloadStatus.COMPLETED -> R.string.download_status_completed
+            DownloadStatus.FAILED -> R.string.download_status_failed
+        }
     }
 
     private fun categoryTitleResId(category: DownloadCategory): Int {

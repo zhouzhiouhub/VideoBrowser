@@ -1,13 +1,17 @@
 package com.example.videobrowser.download
 
 import android.app.DownloadManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Environment
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.video.MediaRouteAction
@@ -27,6 +31,17 @@ class DownloadController(
     ) -> Unit,
     private val openExternalUrl: (String) -> Unit
 ) {
+    private val downloadCompleteReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            handleDownloadComplete(intent)
+        }
+    }
+    private var receiverRegistered = false
+
+    init {
+        registerDownloadCompletionReceiver()
+    }
+
     fun attachTo(browserManager: BrowserManager) {
         browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             val mediaDecision = url
@@ -65,6 +80,16 @@ class DownloadController(
         browserManagers.forEach(::attachTo)
     }
 
+    fun dispose() {
+        if (!receiverRegistered) {
+            return
+        }
+        runCatching {
+            activity.unregisterReceiver(downloadCompleteReceiver)
+        }
+        receiverRegistered = false
+    }
+
     fun enqueue(
         url: String?,
         userAgent: String?,
@@ -99,13 +124,62 @@ class DownloadController(
                     sourceUrl = url,
                     fileName = fileName,
                     mimeType = mimeType,
-                    createdAtMillis = System.currentTimeMillis()
+                    createdAtMillis = System.currentTimeMillis(),
+                    status = DownloadStatus.IN_PROGRESS
                 )
             )
         }.onSuccess {
             Toast.makeText(activity, R.string.toast_download_started, Toast.LENGTH_SHORT).show()
         }.onFailure {
             openExternalUrl(url)
+        }
+    }
+
+    private fun registerDownloadCompletionReceiver() {
+        if (receiverRegistered) {
+            return
+        }
+        ContextCompat.registerReceiver(
+            activity,
+            downloadCompleteReceiver,
+            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+            ContextCompat.RECEIVER_EXPORTED
+        )
+        receiverRegistered = true
+    }
+
+    private fun handleDownloadComplete(intent: Intent?) {
+        if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
+            return
+        }
+        val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+        if (downloadId < 0L) {
+            return
+        }
+        val status = queryDownloadStatus(downloadId) ?: return
+        downloadRecordRepository.updateStatus(downloadId, status)
+    }
+
+    private fun queryDownloadStatus(downloadId: Long): DownloadStatus? {
+        val downloadManager =
+            activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val cursor = runCatching {
+            downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
+        }.getOrNull() ?: return DownloadStatus.FAILED
+
+        cursor.use {
+            if (!it.moveToFirst()) {
+                return null
+            }
+            val statusColumn = it.getColumnIndex(DownloadManager.COLUMN_STATUS)
+            if (statusColumn < 0) {
+                return null
+            }
+            return when (it.getInt(statusColumn)) {
+                DownloadManager.STATUS_SUCCESSFUL -> DownloadStatus.COMPLETED
+                DownloadManager.STATUS_FAILED -> DownloadStatus.FAILED
+                else -> null
+            }
         }
     }
 }

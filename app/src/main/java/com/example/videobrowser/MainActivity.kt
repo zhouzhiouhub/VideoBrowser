@@ -532,6 +532,9 @@ class MainActivity : AppCompatActivity() {
         cancelPendingWebFileChooser()
         cancelPendingWebPermissionRequest()
         cancelPendingGeolocationPermissionPrompt()
+        if (::downloadController.isInitialized) {
+            downloadController.dispose()
+        }
         if (::elementPickerController.isInitialized) {
             elementPickerController.dispose()
         }

@@ -39,6 +39,45 @@ class DownloadRecordRepositoryTest {
     }
 
     @Test
+    fun recordsPersistStatusAndAllowStatusUpdates() {
+        val store = InMemoryPreferenceStore()
+        val repository = DownloadRecordRepository(store)
+
+        repository.add(
+            record(
+                id = 9L,
+                fileName = "movie.mp4",
+                createdAtMillis = 90L,
+                status = DownloadStatus.IN_PROGRESS
+            )
+        )
+
+        assertEquals(DownloadStatus.IN_PROGRESS, DownloadRecordRepository(store).records().single().status)
+        assertEquals(true, repository.updateStatus(9L, DownloadStatus.COMPLETED))
+        assertEquals(DownloadStatus.COMPLETED, DownloadRecordRepository(store).records().single().status)
+    }
+
+    @Test
+    fun legacyRecordsWithoutStatusAreReadAsCompleted() {
+        val store = InMemoryPreferenceStore()
+        store.putString(
+            "download_records",
+            "10\tlegacy.mp4\thttps://example.com/legacy.mp4\tlegacy.mp4\tvideo/mp4\t100"
+        )
+
+        val repository = DownloadRecordRepository(store)
+
+        assertEquals(DownloadStatus.COMPLETED, repository.records().single().status)
+    }
+
+    @Test
+    fun updateStatusReturnsFalseWhenDownloadIdIsUnknown() {
+        val repository = DownloadRecordRepository(InMemoryPreferenceStore())
+
+        assertEquals(false, repository.updateStatus(404L, DownloadStatus.FAILED))
+    }
+
+    @Test
     fun recordsKeepMostRecentEightyEntries() {
         val repository = DownloadRecordRepository(InMemoryPreferenceStore())
 
@@ -76,7 +115,8 @@ class DownloadRecordRepositoryTest {
     private fun record(
         id: Long,
         fileName: String,
-        createdAtMillis: Long
+        createdAtMillis: Long,
+        status: DownloadStatus = DownloadStatus.COMPLETED
     ): DownloadRecord {
         return DownloadRecord(
             downloadId = id,
@@ -84,7 +124,8 @@ class DownloadRecordRepositoryTest {
             sourceUrl = "https://example.com/$fileName",
             fileName = fileName,
             mimeType = "application/octet-stream",
-            createdAtMillis = createdAtMillis
+            createdAtMillis = createdAtMillis,
+            status = status
         )
     }
 
