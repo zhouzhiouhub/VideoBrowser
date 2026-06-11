@@ -83,6 +83,8 @@
     <string name="setting_page_cleanup_summary">隐藏和移除常见广告浮层、弹窗和信息流广告</string>
     <string name="setting_video_enhancement">视频增强</string>
     <string name="setting_video_enhancement_summary">启用网页原生视频控件并尝试点击跳过广告</string>
+    <string name="setting_always_start_videos_from_beginning">视频总是从头播放</string>
+    <string name="setting_always_start_videos_from_beginning_summary">打开原生播放器时忽略历史进度，从 0 秒开始</string>
     <string name="setting_disabled_in_browser_settings">浏览器设置中已关闭</string>
     <string name="setting_private_browsing">无痕浏览</string>
     <string name="setting_private_browsing_summary">不记录历史，并在切换或退出时清理 Cookie、缓存和站点数据</string>

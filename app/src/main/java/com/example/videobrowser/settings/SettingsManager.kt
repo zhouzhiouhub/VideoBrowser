@@ -256,6 +256,17 @@ class SettingsManager(
         preferenceStore.putBoolean(KEY_VIDEO_ENHANCEMENT, enabled)
     }
 
+    fun alwaysStartVideosFromBeginning(): Boolean {
+        return preferenceStore.getBoolean(
+            KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING,
+            DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING
+        )
+    }
+
+    fun setAlwaysStartVideosFromBeginning(enabled: Boolean) {
+        preferenceStore.putBoolean(KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING, enabled)
+    }
+
     fun isSmartNoImageEnabled(): Boolean {
         return preferenceStore.getBoolean(KEY_SMART_NO_IMAGE, DEFAULT_SMART_NO_IMAGE_ENABLED)
     }
@@ -504,6 +515,7 @@ class SettingsManager(
         private const val DEFAULT_JS_INJECTION_ENABLED = true
         private const val DEFAULT_DOM_AD_BLOCK_ENABLED = true
         private const val DEFAULT_VIDEO_ENHANCEMENT_ENABLED = true
+        private const val DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING = false
         private const val DEFAULT_SMART_NO_IMAGE_ENABLED = false
         private const val DEFAULT_DESKTOP_MODE_ENABLED = false
         private const val DEFAULT_PRIVATE_BROWSING_ENABLED = false
@@ -521,6 +533,8 @@ class SettingsManager(
         private const val KEY_JS_INJECTION = "js_injection"
         private const val KEY_DOM_AD_BLOCK = "page_cleanup"
         private const val KEY_VIDEO_ENHANCEMENT = "video_enhancement"
+        private const val KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING =
+            "always_start_videos_from_beginning"
         private const val KEY_SMART_NO_IMAGE = "smart_no_image"
         private const val KEY_DEFAULT_VIDEO_SPEED = "default_video_speed"
         private const val KEY_HOME_URL = "home_url"
@@ -546,6 +560,7 @@ class SettingsManager(
             KEY_JS_INJECTION,
             KEY_DOM_AD_BLOCK,
             KEY_VIDEO_ENHANCEMENT,
+            KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING,
             KEY_SMART_NO_IMAGE,
             KEY_DEFAULT_VIDEO_SPEED,
             KEY_HOME_URL,

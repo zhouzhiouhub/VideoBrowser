@@ -291,6 +291,17 @@ class BrowserSettingsPage(
                 settingsManager.setVideoEnhancementEnabled(enabled)
                 injectPageFeatures()
             }
+
+            host.addSwitchRow(
+                parent = section,
+                title = activity.getString(R.string.setting_always_start_videos_from_beginning),
+                summary = activity.getString(
+                    R.string.setting_always_start_videos_from_beginning_summary
+                ),
+                checked = settingsManager.alwaysStartVideosFromBeginning()
+            ) { enabled ->
+                settingsManager.setAlwaysStartVideosFromBeginning(enabled)
+            }
         }
     }
 

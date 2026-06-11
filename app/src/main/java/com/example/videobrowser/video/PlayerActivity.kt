@@ -736,6 +736,10 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun restorePlaybackHistory() {
+        if (settingsManager.alwaysStartVideosFromBeginning()) {
+            playbackPosition = 0L
+            return
+        }
         val progress = playbackHistoryRepository.progressFor(playbackHistoryIdentity())
         val resumePosition = playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity())
         if (resumePosition != null) {
