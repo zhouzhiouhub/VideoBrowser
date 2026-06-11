@@ -4,6 +4,12 @@ VideoBrowser 是一个单模块 Android 视频浏览器应用。项目以 Androi
 
 本文严格按当前代码和构建配置整理，不把设计文档中尚未落地的计划项写成已实现能力。
 
+## 下载
+
+[直接下载最新版 APK](https://github.com/zhouzhiouhub/VideoBrowser/releases/latest/download/app-release.apk)
+
+如果 Android 系统提示未知来源安装，需要在系统设置中允许当前浏览器或文件管理器安装应用。
+
 ## 项目定位
 
 VideoBrowser 的目标是提供一个偏视频场景的移动浏览器壳层：
