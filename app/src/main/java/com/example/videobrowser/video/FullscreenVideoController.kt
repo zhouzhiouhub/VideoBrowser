@@ -8,7 +8,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.settings.SettingsManager
-import java.util.Locale
 
 class FullscreenVideoController(
     private val activity: Activity,
@@ -89,21 +88,13 @@ class FullscreenVideoController(
         lastControlsWakeAt = now
         Log.d(VIDEO_LOG_TAG, "event=web-wake-controls throttled=false")
 
-        browserManager().evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.wakeControls==='function'){" +
-                "window.VideoBrowserEnhancer.wakeControls();" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.WakeControls)
     }
 
     fun updatePlaybackTimeline(positionMs: Double, durationMs: Double) {
-        videoPositionMs = positionMs
-            .takeIf { it.isFinite() && it >= 0.0 }
-            ?.toLong()
-        videoDurationMs = durationMs
-            .takeIf { it.isFinite() && it > 0.0 }
-            ?.toLong()
+        val timeline = WebViewVideoTimeline.fromBridge(positionMs, durationMs)
+        videoPositionMs = timeline.positionMs
+        videoDurationMs = timeline.durationMs
     }
 
     private fun enterFullscreen() {
@@ -142,7 +133,7 @@ class FullscreenVideoController(
             return
         }
         if (chromeClient()?.isFullscreenModeActive() == true) {
-            browserManager().evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
+            evaluateWebVideoCommand(WebViewVideoCommand.ExitFullscreen)
             chromeClient()?.exitPageFullscreen()
         }
     }
@@ -159,14 +150,8 @@ class FullscreenVideoController(
 
     private fun seekBy(offsetMs: Long) {
         Log.d(VIDEO_LOG_TAG, "event=web-seek-by offsetMs=$offsetMs positionMs=$videoPositionMs")
-        val seconds = String.format(Locale.US, "%.3f", offsetMs / 1000.0)
         videoPositionMs = boundedVideoPosition(offsetMs)
-        browserManager().evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.seekBy==='function'){" +
-                "window.VideoBrowserEnhancer.seekBy($seconds);" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.SeekBy(offsetMs))
     }
 
     private fun seekTo(positionMs: Long) {
@@ -178,13 +163,7 @@ class FullscreenVideoController(
             positionMs.coerceAtLeast(0L)
         }
         videoPositionMs = boundedPositionMs
-        val seconds = String.format(Locale.US, "%.3f", boundedPositionMs / 1000.0)
-        browserManager().evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.seekTo==='function'){" +
-                "window.VideoBrowserEnhancer.seekTo($seconds);" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.SeekTo(boundedPositionMs))
     }
 
     private fun currentSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition {
@@ -207,12 +186,7 @@ class FullscreenVideoController(
     }
 
     private fun requestTimeline() {
-        browserManager().evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.reportPlaybackTimeline==='function'){" +
-                "window.VideoBrowserEnhancer.reportPlaybackTimeline();" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.RequestTimeline)
     }
 
     private fun resetTimeline() {
@@ -222,16 +196,7 @@ class FullscreenVideoController(
 
     private fun togglePlayback(): Boolean? {
         Log.d(VIDEO_LOG_TAG, "event=web-toggle-playback")
-        browserManager().evaluateJavascript(
-            "(function(){var enhancer=window.VideoBrowserEnhancer;" +
-                "if(!enhancer)return;" +
-                "if(typeof enhancer.togglePlayPause==='function'){" +
-                "enhancer.togglePlayPause();" +
-                "}" +
-                "if(typeof enhancer.wakeControls==='function'){" +
-                "enhancer.wakeControls();" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.TogglePlayPause)
         return null
     }
 
@@ -246,33 +211,20 @@ class FullscreenVideoController(
         if (::gestureOverlay.isInitialized) {
             gestureOverlay.setPlaybackSpeed(playbackSpeed)
         }
-        val speedValue = String.format(Locale.US, "%.2f", normalizedSpeed)
-        browserManager().evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.setPlaybackSpeed==='function'){" +
-                "window.VideoBrowserEnhancer.setPlaybackSpeed($speedValue);" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.SetPlaybackSpeed(normalizedSpeed))
     }
 
     private fun startDirectionalLongPress(direction: Int) {
-        val normalizedDirection = if (direction < 0) -1 else 1
-        browserManager().evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.startDirectionalPlayback==='function'){" +
-                "window.VideoBrowserEnhancer.startDirectionalPlayback($normalizedDirection);" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.StartDirectionalPlayback(direction))
     }
 
     private fun stopDirectionalLongPress() {
-        browserManager().evaluateJavascript(
-            "(function(){if(window.VideoBrowserEnhancer&&" +
-                "typeof window.VideoBrowserEnhancer.stopDirectionalPlayback==='function'){" +
-                "window.VideoBrowserEnhancer.stopDirectionalPlayback();" +
-                "}})();"
-        )
+        evaluateWebVideoCommand(WebViewVideoCommand.StopDirectionalPlayback)
         setPlaybackSpeed(playbackSpeed)
+    }
+
+    private fun evaluateWebVideoCommand(command: WebViewVideoCommand) {
+        browserManager().evaluateJavascript(command.toJavascript())
     }
 
     private fun defaultVideoSpeed(): Float {
@@ -282,7 +234,5 @@ class FullscreenVideoController(
     private companion object {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val FULLSCREEN_CONTROLS_WAKE_THROTTLE_MS = 250L
-        private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
-            "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
     }
 }

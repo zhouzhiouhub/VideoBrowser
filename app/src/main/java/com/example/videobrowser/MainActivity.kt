@@ -78,6 +78,7 @@ import com.example.videobrowser.video.MediaRoutingController
 import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
+import com.example.videobrowser.video.WebViewVideoCommand
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -654,7 +655,9 @@ class MainActivity : AppCompatActivity() {
                     } else if (areChromeClientsInitialized() && currentChromeClient().isShowingCustomView()) {
                         currentChromeClient().hideCustomView()
                     } else if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
-                        currentBrowserManager().evaluateJavascript(EXIT_VIDEO_FULLSCREEN_SCRIPT)
+                        currentBrowserManager().evaluateJavascript(
+                            WebViewVideoCommand.ExitFullscreen.toJavascript()
+                        )
                         currentChromeClient().exitPageFullscreen()
                     } else if (currentBrowserManager().goBack()) {
                         updateNavigationButtons()
@@ -1166,8 +1169,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
-        private const val EXIT_VIDEO_FULLSCREEN_SCRIPT =
-            "if(window.VideoBrowserEnhancer){window.VideoBrowserEnhancer.exitFullscreen();}"
         private const val RULE_LOG_TAG = "VideoBrowserRules"
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
