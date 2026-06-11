@@ -1,5 +1,6 @@
 package com.example.videobrowser
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -14,7 +15,9 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.webkit.ValueCallback
 import android.webkit.WebView
+import android.webkit.WebChromeClient.FileChooserParams
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
@@ -24,6 +27,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -157,6 +161,14 @@ class MainActivity : AppCompatActivity() {
             currentPageUrl = { currentSessionController().currentPageUrl }
         )
     }
+    private var pendingFileChooserCallback: ValueCallback<Array<Uri>>? = null
+    private val webFileChooserLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            pendingFileChooserCallback?.onReceiveValue(
+                FileChooserParams.parseResult(result.resultCode, result.data)
+            )
+            pendingFileChooserCallback = null
+        }
 
     private var privateBrowsingActive = false
     private val isHomePageVisible: Boolean
@@ -488,6 +500,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        cancelPendingWebFileChooser()
         if (::elementPickerController.isInitialized) {
             elementPickerController.dispose()
         }
@@ -573,7 +586,8 @@ class MainActivity : AppCompatActivity() {
             decorView = window.decorView,
             progressChanged = sessionController::handlePageProgressChanged,
             titleReceived = sessionController::handlePageTitleReceived,
-            fullscreenChanged = ::handleVideoFullscreenChanged
+            fullscreenChanged = ::handleVideoFullscreenChanged,
+            fileChooserRequested = ::showWebFileChooser
         )
     }
 
@@ -617,6 +631,44 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.requestApplyInsets(rootView)
         if (!fullscreen) {
             applyBrowserContentOrientation(isDesktopModeEnabled())
+        }
+    }
+
+    private fun showWebFileChooser(
+        filePathCallback: ValueCallback<Array<Uri>>?,
+        fileChooserParams: FileChooserParams?
+    ): Boolean {
+        val callback = filePathCallback ?: return false
+        pendingFileChooserCallback?.onReceiveValue(null)
+        pendingFileChooserCallback = callback
+
+        val pickerIntent = runCatching {
+            fileChooserParams?.createIntent() ?: defaultWebFileChooserIntent()
+        }.getOrDefault(defaultWebFileChooserIntent())
+
+        return try {
+            webFileChooserLauncher.launch(
+                Intent.createChooser(pickerIntent, getString(R.string.action_open_file))
+            )
+            true
+        } catch (_: ActivityNotFoundException) {
+            pendingFileChooserCallback = null
+            callback.onReceiveValue(null)
+            Toast.makeText(this, R.string.toast_file_chooser_unavailable, Toast.LENGTH_SHORT).show()
+            false
+        }
+    }
+
+    private fun cancelPendingWebFileChooser() {
+        pendingFileChooserCallback?.onReceiveValue(null)
+        pendingFileChooserCallback = null
+    }
+
+    private fun defaultWebFileChooserIntent(): Intent {
+        return Intent(Intent.ACTION_GET_CONTENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         }
     }
 

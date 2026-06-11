@@ -2,10 +2,13 @@ package com.example.videobrowser.browser
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebChromeClient.CustomViewCallback
+import android.webkit.WebChromeClient.FileChooserParams
 import android.webkit.WebView
 import android.widget.FrameLayout
 
@@ -15,7 +18,9 @@ class ChromeClient(
     private val decorView: View,
     private val progressChanged: (Int) -> Unit = {},
     private val titleReceived: (String) -> Unit = {},
-    private val fullscreenChanged: (Boolean) -> Unit = {}
+    private val fullscreenChanged: (Boolean) -> Unit = {},
+    private val fileChooserRequested: (ValueCallback<Array<Uri>>?, FileChooserParams?) -> Boolean =
+        { _, _ -> false }
 ) : WebChromeClient() {
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
@@ -62,6 +67,14 @@ class ChromeClient(
 
     override fun onReceivedTitle(view: WebView?, title: String?) {
         titleReceived(title?.trim().orEmpty())
+    }
+
+    override fun onShowFileChooser(
+        webView: WebView?,
+        filePathCallback: ValueCallback<Array<Uri>>?,
+        fileChooserParams: FileChooserParams?
+    ): Boolean {
+        return fileChooserRequested(filePathCallback, fileChooserParams)
     }
 
     override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
