@@ -27,12 +27,43 @@ object MediaUrlUtils {
         "audio/x-mpegurl"
     )
 
+    fun isPlayableMediaUri(url: String, mimeType: String? = null): Boolean {
+        val rawUrl = url.trim()
+        val scheme = rawUrl.substringBefore(':', missingDelimiterValue = "")
+            .takeIf { it.matches(SCHEME_PATTERN) }
+            ?.lowercase()
+            .orEmpty()
+        val path = runCatching { java.net.URI(rawUrl).path }
+            .getOrNull()
+            .orEmpty()
+            .lowercase()
+        return isPlayableMedia(
+            scheme = scheme,
+            path = path,
+            rawUrl = rawUrl,
+            mimeType = mimeType
+        )
+    }
+
     fun isPlayableMediaUri(uri: Uri, mimeType: String? = null): Boolean {
+        return isPlayableMedia(
+            scheme = uri.scheme?.lowercase().orEmpty(),
+            path = uri.path.orEmpty().lowercase(),
+            rawUrl = uri.toString(),
+            mimeType = mimeType
+        )
+    }
+
+    private fun isPlayableMedia(
+        scheme: String,
+        path: String,
+        rawUrl: String,
+        mimeType: String?
+    ): Boolean {
         if (isPlayableMimeType(mimeType)) {
             return true
         }
 
-        val scheme = uri.scheme?.lowercase().orEmpty()
         if (scheme == "rtsp" || scheme == "rtspt") {
             return true
         }
@@ -40,12 +71,11 @@ object MediaUrlUtils {
             return false
         }
 
-        val path = uri.path.orEmpty().lowercase()
         if (playableExtensions.any { path.endsWith(it) }) {
             return true
         }
 
-        val normalizedUrl = uri.toString()
+        val normalizedUrl = rawUrl
             .substringBefore('#')
             .substringBefore('?')
             .lowercase()
@@ -62,4 +92,6 @@ object MediaUrlUtils {
         return normalizedMimeType.startsWith("video/") ||
             normalizedMimeType in playableMimeTypes
     }
+
+    private val SCHEME_PATTERN = Regex("^[A-Za-z][A-Za-z0-9+.-]*$")
 }
