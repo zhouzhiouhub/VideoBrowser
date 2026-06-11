@@ -33,6 +33,32 @@ data class PlaybackQueue(
         }
     }
 
+    fun select(index: Int): PlaybackQueue {
+        return if (index in items.indices) {
+            copy(currentIndex = index)
+        } else {
+            this
+        }
+    }
+
+    fun removeAt(index: Int): PlaybackQueue {
+        if (index !in items.indices || items.size <= 1) {
+            return this
+        }
+        val updatedItems = items.toMutableList().apply {
+            removeAt(index)
+        }
+        val updatedIndex = when {
+            index < currentIndex -> currentIndex - 1
+            index == currentIndex -> currentIndex.coerceAtMost(updatedItems.lastIndex)
+            else -> currentIndex
+        }
+        return copy(
+            items = updatedItems,
+            currentIndex = updatedIndex.coerceIn(0, updatedItems.lastIndex)
+        )
+    }
+
     companion object {
         fun single(item: PlayableMediaItem): PlaybackQueue {
             return PlaybackQueue(items = listOf(item))

@@ -47,6 +47,7 @@ class FullscreenVideoGestureOverlay(
     var onUserInteraction: (() -> Unit)? = null
     var onExitFullscreen: (() -> Unit)? = null
     var onTrackSelectionRequested: (() -> Unit)? = null
+    var onPlaybackQueueRequested: (() -> Unit)? = null
     var onPreviousMediaRequested: (() -> Unit)? = null
     var onNextMediaRequested: (() -> Unit)? = null
     var onRepeatModeRequested: (() -> PlaybackRepeatMode)? = null
@@ -63,6 +64,7 @@ class FullscreenVideoGestureOverlay(
     private val previousButton = controlTextView()
     private val nextButton = controlTextView()
     private val repeatButton = controlTextView()
+    private val queueButton = controlTextView()
     private val speedButton = controlTextView()
     private val trackButton = controlTextView()
     private val rotateButton = controlTextView()
@@ -178,6 +180,7 @@ class FullscreenVideoGestureOverlay(
         previousButton.visibility = visibility
         nextButton.visibility = visibility
         repeatButton.visibility = visibility
+        queueButton.visibility = visibility
     }
 
     fun setRepeatMode(mode: PlaybackRepeatMode) {
@@ -326,6 +329,15 @@ class FullscreenVideoGestureOverlay(
             }
         )
         controlsGroup.addView(
+            queueButton,
+            LinearLayout.LayoutParams(
+                dp(44),
+                dp(40)
+            ).apply {
+                marginEnd = dp(8)
+            }
+        )
+        controlsGroup.addView(
             speedButton,
             LinearLayout.LayoutParams(
                 dp(62),
@@ -380,6 +392,15 @@ class FullscreenVideoGestureOverlay(
             val mode = onRepeatModeRequested?.invoke() ?: repeatMode
             setRepeatMode(mode)
             showFeedback(repeatButton.contentDescription?.toString().orEmpty())
+        }
+        val queueLabel = context.getString(R.string.video_control_queue)
+        queueButton.text = QUEUE_ICON
+        queueButton.contentDescription = queueLabel
+        ViewCompat.setTooltipText(queueButton, queueLabel)
+        queueButton.setOnClickListener {
+            notifyUserInteraction()
+            if (locked) return@setOnClickListener
+            onPlaybackQueueRequested?.invoke()
         }
         setQueueControlsVisible(false)
         setRepeatMode(PlaybackRepeatMode.NONE)
@@ -937,6 +958,7 @@ class FullscreenVideoGestureOverlay(
         private const val REPEAT_NONE_ICON = "\u21c4"
         private const val REPEAT_ONE_ICON = "\u267e1"
         private const val REPEAT_ALL_ICON = "\u267e"
+        private const val QUEUE_ICON = "\u2630"
         private const val BRIGHTNESS_ICON = "\u2600"
         private const val VOLUME_ICON = "\ud83d\udd0a"
     }

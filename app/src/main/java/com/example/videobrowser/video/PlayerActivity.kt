@@ -259,6 +259,9 @@ class PlayerActivity : AppCompatActivity() {
 
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                             currentMediaItemIndex = exoPlayer.currentMediaItemIndex
+                            playbackQueue = playbackQueue
+                                .select(currentMediaItemIndex)
+                                .copy(repeatMode = repeatMode)
                             playbackPosition = 0L
                             title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title.orEmpty()
                             updateQueueControls()
@@ -301,6 +304,7 @@ class PlayerActivity : AppCompatActivity() {
             onUserInteraction = ::wakePlayerControls
             onExitFullscreen = ::finish
             onTrackSelectionRequested = ::showTrackSelectionMenu
+            onPlaybackQueueRequested = ::showPlaybackQueueMenu
             onPreviousMediaRequested = ::playPreviousMedia
             onNextMediaRequested = ::playNextMedia
             onRepeatModeRequested = ::cycleRepeatMode
@@ -417,13 +421,19 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playMediaAt(index: Int) {
         val exoPlayer = player ?: return
-        if (index !in playbackQueue.items.indices || index == currentMediaItemIndex) {
+        if (index !in playbackQueue.items.indices) {
+            wakePlayerControls()
+            return
+        }
+        if (index == currentMediaItemIndex) {
+            playbackQueue = playbackQueue.select(index)
             wakePlayerControls()
             return
         }
 
         savePlayerState()
-        currentMediaItemIndex = index
+        playbackQueue = playbackQueue.select(index)
+        currentMediaItemIndex = playbackQueue.currentIndex
         playbackPosition = playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity()) ?: 0L
         exoPlayer.seekTo(index, playbackPosition)
         exoPlayer.play()
@@ -438,6 +448,7 @@ class PlayerActivity : AppCompatActivity() {
             PlaybackRepeatMode.ONE -> PlaybackRepeatMode.ALL
             PlaybackRepeatMode.ALL -> PlaybackRepeatMode.NONE
         }
+        playbackQueue = playbackQueue.copy(repeatMode = repeatMode)
         player?.repeatMode = media3RepeatMode(repeatMode)
         updateQueueControls()
         return repeatMode
@@ -457,6 +468,76 @@ class PlayerActivity : AppCompatActivity() {
             PlaybackRepeatMode.ONE -> Player.REPEAT_MODE_ONE
             PlaybackRepeatMode.ALL -> Player.REPEAT_MODE_ALL
         }
+    }
+
+    private fun showPlaybackQueueMenu() {
+        if (playbackQueue.items.size <= 1) {
+            wakePlayerControls()
+            return
+        }
+        wakePlayerControls()
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.video_queue_title, playbackQueue.items.size))
+            .setItems(playbackQueueLabels()) { _, index ->
+                playMediaAt(index)
+            }
+            .setNeutralButton(R.string.video_queue_remove) { _, _ ->
+                showPlaybackQueueRemoveMenu()
+            }
+            .show()
+    }
+
+    private fun showPlaybackQueueRemoveMenu() {
+        if (playbackQueue.items.size <= 1) {
+            wakePlayerControls()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.video_queue_remove)
+            .setItems(playbackQueueLabels()) { _, index ->
+                removeMediaFromQueue(index)
+                showPlaybackQueueMenu()
+            }
+            .show()
+    }
+
+    private fun removeMediaFromQueue(index: Int) {
+        if (index !in playbackQueue.items.indices || playbackQueue.items.size <= 1) {
+            wakePlayerControls()
+            return
+        }
+        savePlayerState()
+        val removedCurrentItem = index == currentMediaItemIndex
+        playbackQueue = playbackQueue.removeAt(index)
+        currentMediaItemIndex = playbackQueue.currentIndex
+        val exoPlayer = player
+        if (exoPlayer != null && index < exoPlayer.mediaItemCount) {
+            exoPlayer.removeMediaItem(index)
+            if (removedCurrentItem) {
+                playbackPosition = playbackHistoryRepository.resumePositionFor(
+                    playbackHistoryIdentity()
+                ) ?: 0L
+                exoPlayer.seekTo(currentMediaItemIndex, playbackPosition)
+                exoPlayer.play()
+            }
+        }
+        title = playbackQueue.currentItem()?.title.orEmpty()
+        updateQueueControls()
+        wakePlayerControls()
+    }
+
+    private fun playbackQueueLabels(): Array<String> {
+        return playbackQueue.items.mapIndexed { index, item ->
+            val title = item.title
+                ?.takeIf { it.isNotBlank() }
+                ?: item.uri.substringAfterLast('/').ifBlank { item.uri }
+            val currentLabel = if (index == currentMediaItemIndex) {
+                " - ${getString(R.string.video_queue_now_playing)}"
+            } else {
+                ""
+            }
+            "${index + 1}. $title$currentLabel"
+        }.toTypedArray()
     }
 
     private fun showTrackSelectionMenu() {

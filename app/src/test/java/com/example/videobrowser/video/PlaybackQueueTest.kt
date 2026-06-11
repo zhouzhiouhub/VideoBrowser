@@ -42,6 +42,68 @@ class PlaybackQueueTest {
     }
 
     @Test
+    fun selectMovesToValidIndexAndIgnoresInvalidIndex() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val third = playable("https://cdn.example.com/three.mp4")
+        val queue = PlaybackQueue(items = listOf(first, second, third))
+
+        assertEquals(third, queue.select(2).currentItem())
+        assertEquals(first, queue.select(-1).currentItem())
+        assertEquals(first, queue.select(3).currentItem())
+    }
+
+    @Test
+    fun removeBeforeCurrentKeepsSameMediaSelected() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val third = playable("https://cdn.example.com/three.mp4")
+        val queue = PlaybackQueue(
+            items = listOf(first, second, third),
+            currentIndex = 2
+        )
+
+        val updated = queue.removeAt(0)
+
+        assertEquals(listOf(second, third), updated.items)
+        assertEquals(third, updated.currentItem())
+        assertEquals(1, updated.currentIndex)
+    }
+
+    @Test
+    fun removeCurrentSelectsNextItemOrPreviousWhenAtEnd() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val third = playable("https://cdn.example.com/three.mp4")
+
+        val middleRemoved = PlaybackQueue(
+            items = listOf(first, second, third),
+            currentIndex = 1
+        ).removeAt(1)
+        val lastRemoved = PlaybackQueue(
+            items = listOf(first, second, third),
+            currentIndex = 2
+        ).removeAt(2)
+
+        assertEquals(listOf(first, third), middleRemoved.items)
+        assertEquals(third, middleRemoved.currentItem())
+        assertEquals(1, middleRemoved.currentIndex)
+        assertEquals(listOf(first, second), lastRemoved.items)
+        assertEquals(second, lastRemoved.currentItem())
+        assertEquals(1, lastRemoved.currentIndex)
+    }
+
+    @Test
+    fun removeAtIgnoresInvalidIndexAndDoesNotRemoveLastItem() {
+        val item = playable("https://cdn.example.com/one.mp4")
+        val queue = PlaybackQueue.single(item)
+
+        assertEquals(queue, queue.removeAt(-1))
+        assertEquals(queue, queue.removeAt(1))
+        assertEquals(queue, queue.removeAt(0))
+    }
+
+    @Test
     fun invalidCurrentIndexProducesEmptyCurrentItem() {
         val queue = PlaybackQueue(
             items = listOf(playable("https://cdn.example.com/one.mp4")),
