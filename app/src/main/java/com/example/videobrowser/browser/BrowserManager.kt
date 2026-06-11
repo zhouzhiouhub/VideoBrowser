@@ -202,6 +202,18 @@ class BrowserManager(
         webView.evaluateJavascript(script, null)
     }
 
+    fun findAllAsync(query: String) {
+        webView.findAllAsync(query)
+    }
+
+    fun findNext(forward: Boolean = true) {
+        webView.findNext(forward)
+    }
+
+    fun clearFindMatches() {
+        webView.clearMatches()
+    }
+
     fun clearBrowsingData(clearSharedStores: Boolean = true) {
         clearBrowsingData(webView, clearSharedStores)
     }

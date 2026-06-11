@@ -32,6 +32,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -55,6 +56,7 @@ import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.ChromeClient
+import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
@@ -149,6 +151,11 @@ class MainActivity : AppCompatActivity() {
     private val privateTabStore = BrowserTabStore()
     private val standardTabSessionBinding = BrowserTabSessionBinding(standardTabStore)
     private val privateTabSessionBinding = BrowserTabSessionBinding(privateTabStore)
+    private val findInPageController = FindInPageController(
+        findAll = { query -> currentBrowserManager().findAllAsync(query) },
+        findNext = { forward -> currentBrowserManager().findNext(forward) },
+        clearMatches = { currentBrowserManager().clearFindMatches() }
+    )
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
@@ -444,6 +451,7 @@ class MainActivity : AppCompatActivity() {
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
             openCurrentUrlExternally = pageActionsController::openCurrentUrlExternally,
+            findInPage = ::showFindInPageDialog,
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
             openPlaybackHistoryItem = ::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
@@ -910,6 +918,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun showFunctionCenterRootPage() {
         functionCenterPages.showRootPage()
+    }
+
+    private fun showFindInPageDialog() {
+        closeFunctionCenter()
+        val input = EditText(this).apply {
+            hint = getString(R.string.hint_find_in_page)
+            setSingleLine(true)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.action_find_in_page)
+            .setView(input)
+            .setPositiveButton(R.string.action_find) { _, _ ->
+                val started = findInPageController.search(input.text?.toString().orEmpty())
+                if (!started) {
+                    Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNeutralButton(R.string.action_find_next) { _, _ ->
+                val moved = findInPageController.findNext()
+                if (!moved) {
+                    Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(R.string.action_clear) { _, _ ->
+                findInPageController.clear()
+            }
+            .show()
     }
 
     private fun showProfilePage() {

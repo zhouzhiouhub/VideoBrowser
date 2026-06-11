@@ -39,6 +39,7 @@ class FunctionCenterPages(
     private val copyCurrentUrl: () -> Unit,
     private val shareCurrentUrl: () -> Unit,
     private val openCurrentUrlExternally: () -> Unit,
+    private val findInPage: () -> Unit,
     private val openCurrentUrlInNativePlayer: () -> Unit,
     private val openPlaybackHistoryItem: (PlaybackProgress) -> Unit,
     private val downloadCurrentUrl: () -> Unit,
@@ -530,6 +531,14 @@ class FunctionCenterPages(
             }
             actions.addAll(
                 listOf(
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_find_in_page),
+                        summary = activity.getString(R.string.action_find_in_page_summary),
+                        iconResId = R.drawable.ic_search_24,
+                        enabled = hasPage
+                    ) {
+                        runPageAction(findInPage)
+                    },
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_copy_link),
                         summary = activity.getString(R.string.action_copy_link_summary),

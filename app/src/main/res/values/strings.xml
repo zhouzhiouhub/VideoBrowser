@@ -104,6 +104,8 @@
     <string name="action_show_downloads_summary">查看浏览器下载记录</string>
     <string name="action_copy_link">复制链接</string>
     <string name="action_copy_link_summary">复制当前页面地址</string>
+    <string name="action_find_in_page">页内查找</string>
+    <string name="action_find_in_page_summary">在当前网页中搜索文字</string>
     <string name="action_share_page">分享页面</string>
     <string name="action_share_page_summary">用系统分享面板发送当前页面</string>
     <string name="action_open_external">系统浏览器打开</string>
@@ -192,6 +194,8 @@
     <string name="action_manage_site_data_summary">查看或删除网页本地存储数据</string>
     <string name="action_close">关闭</string>
     <string name="action_clear">清空</string>
+    <string name="action_find">查找</string>
+    <string name="action_find_next">下一处</string>
     <string name="action_open_page">打开页面</string>
     <string name="action_clear_saved_pages_summary">清空当前列表</string>
     <string name="action_clear_ad_block_log_summary">清空最近拦截记录</string>
@@ -243,6 +247,7 @@
     <string name="action_clear_rule_subscription_cache_summary">删除订阅导入的本地规则文件</string>
     <string name="hint_rule_subscription_url">https://example.com/filter.txt</string>
     <string name="hint_rule_subscription_text">粘贴 AdGuard / EasyList 风格规则文本</string>
+    <string name="hint_find_in_page">查找文字</string>
     <string name="rule_subscription_empty">暂无导入的规则订阅缓存。</string>
     <string name="rule_subscription_source">来源</string>
     <string name="rule_subscription_counts">规则数量</string>
@@ -312,6 +317,7 @@
     <string name="toast_playback_history_cleared">已清空播放历史</string>
     <string name="toast_download_file_unavailable">无法打开下载文件</string>
     <string name="toast_file_chooser_unavailable">没有可用的文件选择器</string>
+    <string name="toast_find_query_empty">请输入要查找的文字</string>
     <string name="toast_local_folder_unavailable">无法访问该目录，请重新选择文件夹</string>
     <string name="toast_local_file_operation_failed">文件操作失败</string>
     <string name="toast_local_file_created">已创建</string>
