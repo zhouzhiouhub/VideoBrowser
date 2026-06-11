@@ -29,12 +29,14 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.storage.PreferenceStore
 
 class PlayerActivity : AppCompatActivity() {
     private lateinit var playerRoot: FrameLayout
     private lateinit var playerView: PlayerView
     private lateinit var gestureOverlay: FullscreenVideoGestureOverlay
     private lateinit var settingsManager: SettingsManager
+    private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private var player: ExoPlayer? = null
     private val scanHandler = Handler(Looper.getMainLooper())
     private var playbackPosition = 0L
@@ -64,7 +66,9 @@ class PlayerActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_player)
-        settingsManager = SettingsManager.from(this)
+        val preferenceStore = PreferenceStore.from(this)
+        settingsManager = SettingsManager(preferenceStore)
+        playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
         selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
         longPressRestoreSpeed = selectedPlaybackSpeed
 
@@ -73,20 +77,22 @@ class PlayerActivity : AppCompatActivity() {
         playerView.keepScreenOn = true
         playerView.setControllerShowTimeoutMs(CONTROLS_HIDE_DELAY_MS)
 
-        savedInstanceState?.let {
-            playbackPosition = it.getLong(STATE_PLAYBACK_POSITION)
-            playWhenReady = it.getBoolean(STATE_PLAY_WHEN_READY, true)
-            currentMediaItemIndex = it.getInt(STATE_MEDIA_ITEM_INDEX)
-            isLandscape = it.getBoolean(STATE_LANDSCAPE, true)
+        if (savedInstanceState != null) {
+            playbackPosition = savedInstanceState.getLong(STATE_PLAYBACK_POSITION)
+            playWhenReady = savedInstanceState.getBoolean(STATE_PLAY_WHEN_READY, true)
+            currentMediaItemIndex = savedInstanceState.getInt(STATE_MEDIA_ITEM_INDEX)
+            isLandscape = savedInstanceState.getBoolean(STATE_LANDSCAPE, true)
             selectedPlaybackSpeed = normalizePlaybackSpeed(
-                it.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
+                savedInstanceState.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
             )
             longPressRestoreSpeed = selectedPlaybackSpeed
-            videoEffectsEnabled = it.getBoolean(STATE_VIDEO_EFFECTS_ENABLED, true)
-            retriedPlaybackWithoutVideoEffects = it.getBoolean(
+            videoEffectsEnabled = savedInstanceState.getBoolean(STATE_VIDEO_EFFECTS_ENABLED, true)
+            retriedPlaybackWithoutVideoEffects = savedInstanceState.getBoolean(
                 STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
                 false
             )
+        } else {
+            restorePlaybackHistory()
         }
         applyRequestedOrientation()
         setupGestureOverlay()
@@ -429,7 +435,38 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition = it.currentPosition
             playWhenReady = it.playWhenReady
             currentMediaItemIndex = it.currentMediaItemIndex
+            savePlaybackHistory(it)
         }
+    }
+
+    private fun restorePlaybackHistory() {
+        val progress = playbackHistoryRepository.progressFor(playbackHistoryIdentity())
+        val resumePosition = playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity())
+        if (resumePosition != null) {
+            playbackPosition = resumePosition
+        }
+        if (progress != null) {
+            selectedPlaybackSpeed = normalizePlaybackSpeed(progress.speed)
+            longPressRestoreSpeed = selectedPlaybackSpeed
+        }
+    }
+
+    private fun savePlaybackHistory(exoPlayer: ExoPlayer) {
+        val identity = playbackHistoryIdentity()
+        if (identity.isBlank()) {
+            return
+        }
+        val duration = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
+        playbackHistoryRepository.save(
+            PlaybackProgress(
+                mediaIdentity = identity,
+                positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
+                durationMs = duration,
+                speed = selectedPlaybackSpeed,
+                updatedAtMillis = System.currentTimeMillis()
+            ),
+            privateBrowsing = isPrivateBrowsingPlayback()
+        )
     }
 
     private fun requestHeaders(): Map<String, String> {
@@ -469,6 +506,14 @@ class PlayerActivity : AppCompatActivity() {
         return intent.getStringExtra(EXTRA_MEDIA_URI).orEmpty()
     }
 
+    private fun playbackHistoryIdentity(): String {
+        return mediaUri().trim()
+    }
+
+    private fun isPrivateBrowsingPlayback(): Boolean {
+        return intent.getBooleanExtra(EXTRA_PRIVATE_BROWSING, false)
+    }
+
     private fun normalizePlaybackSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -484,6 +529,8 @@ class PlayerActivity : AppCompatActivity() {
         private const val EXTRA_USER_AGENT = "com.example.videobrowser.extra.USER_AGENT"
         private const val EXTRA_COOKIE = "com.example.videobrowser.extra.COOKIE"
         private const val EXTRA_REFERER = "com.example.videobrowser.extra.REFERER"
+        private const val EXTRA_PRIVATE_BROWSING =
+            "com.example.videobrowser.extra.PRIVATE_BROWSING"
         private const val STATE_PLAYBACK_POSITION = "playback_position"
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
@@ -508,7 +555,8 @@ class PlayerActivity : AppCompatActivity() {
             mimeType: String?,
             userAgent: String?,
             cookie: String?,
-            referer: String?
+            referer: String?,
+            privateBrowsing: Boolean = false
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra(EXTRA_MEDIA_URI, mediaUri)
@@ -517,6 +565,7 @@ class PlayerActivity : AppCompatActivity() {
                 putExtra(EXTRA_USER_AGENT, userAgent)
                 putExtra(EXTRA_COOKIE, cookie)
                 putExtra(EXTRA_REFERER, referer)
+                putExtra(EXTRA_PRIVATE_BROWSING, privateBrowsing)
             }
         }
     }

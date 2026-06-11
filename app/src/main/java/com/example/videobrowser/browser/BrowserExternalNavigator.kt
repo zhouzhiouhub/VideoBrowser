@@ -30,7 +30,8 @@ class BrowserExternalNavigator(
         url: String,
         mimeType: String? = null,
         userAgentOverride: String? = null,
-        titleOverride: String? = null
+        titleOverride: String? = null,
+        privateBrowsing: Boolean = false
     ) {
         val title = titleOverride
             ?.takeIf { it.isNotBlank() }
@@ -55,7 +56,8 @@ class BrowserExternalNavigator(
             mimeType = mimeType,
             userAgent = userAgentOverride ?: browserManager().userAgentString(),
             cookie = cookie,
-            referer = referer
+            referer = referer,
+            privateBrowsing = privateBrowsing
         )
         activity.startActivity(intent)
     }

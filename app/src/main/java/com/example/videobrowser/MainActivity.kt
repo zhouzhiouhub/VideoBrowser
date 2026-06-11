@@ -904,7 +904,13 @@ class MainActivity : AppCompatActivity() {
         userAgentOverride: String? = null,
         titleOverride: String? = null
     ) {
-        externalNavigator.openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
+        externalNavigator.openNativePlayer(
+            url,
+            mimeType,
+            userAgentOverride,
+            titleOverride,
+            privateBrowsing = isPrivateBrowsingEnabled()
+        )
     }
 
     private fun openNativePlayer(decision: MediaRouteDecision) {
