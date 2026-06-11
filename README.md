@@ -175,6 +175,8 @@ https://m.baidu.com/
 1. 网页内 video：通过 WebView + 注入脚本 + `FullscreenVideoController` 增强。
 2. 直链或本地视频：通过 `PlayerActivity` 使用 Media3 ExoPlayer 播放。
 
+当前视频重构已经按 `refence/iris` 的能力边界完成取舍：参考其播放状态、队列、历史续播、字幕音轨和控制模型，但继续保留 Android WebView + Media3 架构，不迁移 Flutter、MediaKit、FVP 或桌面文件管理能力。
+
 可识别为可播放媒体的 URL 或文件包括：
 
 - 扩展名：`.mp4`、`.m4v`、`.webm`、`.mkv`、`.mov`、`.3gp`、`.ts`、`.mpeg`、`.mpg`、`.flv`、`.m3u8`、`.mpd`
@@ -188,29 +190,61 @@ https://m.baidu.com/
 - 支持 HTTP 重定向。
 - 可传递 User-Agent。
 - 可传递 Cookie 和 Referer 请求头。
-- 保存播放位置、播放状态、媒体项索引、横竖屏状态和倍速。
+- 通过 `MediaRoutingController` 集中处理地址栏、WebView URL override、下载监听和本地 SAF 文档的媒体路由。
+- 使用 `PlayableMediaItem`、`PlaybackQueue`、`PlaybackSessionState` 和 `PlaybackCommand` 表达原生播放输入、队列、状态和控制命令。
+- 按媒体身份保存播放历史：远程媒体用 URL，本地 SAF 文档用 `content://` URI。
+- 恢复播放位置和倍速；媒体接近结尾时不自动续播。
+- 无痕模式下不写入原生播放历史。
+- 可在功能中心查看和清空原生播放历史，也可选择“视频总是从头播放”忽略历史进度。
+- 支持单项队列、SAF 同目录 sibling 视频队列、上一项/下一项、顺序播放、单项循环、列表循环、随机播放和恢复顺序。
+- 支持队列面板、移除队列项、当前播放项标记。
+- 支持本地同名字幕候选自动关联，外部字幕通过 Media3 `SubtitleConfiguration` 挂载。
+- 支持 Media3 音轨和字幕轨选择面板。
+- 支持画面适应、拉伸和裁剪缩放模式。
+- 保存播放位置、播放状态、媒体项索引、横竖屏状态、倍速、repeat、队列和缩放模式。
 - 默认横屏，可切换横竖屏。
 - 全屏沉浸式隐藏系统栏。
+- 视频增强效果失败时会自动重试无效果播放。
 
 手势层能力按代码实现包括：
 
 - 点击唤醒控制层。
 - 播放/暂停。
 - 快进、快退。
-- 拖动进度。
+- 拖动进度：未知时长使用 1 分钟 seek span，长视频 seek span 上限为 10 分钟，松手后提交。
 - 左侧亮度调节。
 - 右侧音量调节。
 - 锁定和解锁。
 - 横竖屏切换。
-- 倍速选择和默认倍速。
-- 长按扫描相关处理。
+- 倍速选择：`0.5x`、`0.75x`、`1x`、`1.25x`、`1.5x`、`2x`、`2.5x`、`3x`。
+- 默认倍速持久化。
+- 侧边长按扫描：向右临时 `2x`，向左按固定步长回退扫描，松手恢复原倍速和播放状态。
+- 队列、repeat、轨道和缩放按钮。
+
+WebView 视频路径保留网页播放器边界：
+
+- `common.js` 暴露 `VideoBrowserEnhancer.seekBy()`、`seekTo()`、`togglePlayPause()`、`setPlaybackSpeed()`、`startDirectionalPlayback()`、`stopDirectionalPlayback()`、`reportPlaybackTimeline()`。
+- 站点脚本的 `videoCapabilities` 优先处理站点播放器能力，通用 HTMLVideoElement 操作作为 fallback。
+- Kotlin 侧通过 `WebViewVideoCommand` 和 `WebViewVideoTimeline` 类型化 WebView 视频控制脚本和 timeline 数据。
+- WebView 视频只控制网页播放器，不写入原生播放队列或原生播放历史。
 
 关键代码：
 
+- `app/src/main/java/com/example/videobrowser/video/MediaRoutingController.kt`
+- `app/src/main/java/com/example/videobrowser/video/PlayableMediaItem.kt`
+- `app/src/main/java/com/example/videobrowser/video/PlaybackQueue.kt`
+- `app/src/main/java/com/example/videobrowser/video/PlaybackSessionState.kt`
+- `app/src/main/java/com/example/videobrowser/video/PlaybackHistoryRepository.kt`
+- `app/src/main/java/com/example/videobrowser/video/LocalPlaybackQueueBuilder.kt`
+- `app/src/main/java/com/example/videobrowser/video/LocalSubtitleMatcher.kt`
+- `app/src/main/java/com/example/videobrowser/video/WebViewVideoProtocol.kt`
 - `app/src/main/java/com/example/videobrowser/video/PlayerActivity.kt`
 - `app/src/main/java/com/example/videobrowser/video/FullscreenVideoController.kt`
 - `app/src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt`
 - `app/src/main/java/com/example/videobrowser/video/VideoGestureFeedbackFormatter.kt`
+- `app/src/main/java/com/example/videobrowser/video/VideoSeekDragCalculator.kt`
+- `app/src/main/java/com/example/videobrowser/video/VideoSpeedOptions.kt`
+- `app/src/main/java/com/example/videobrowser/functioncenter/PlaybackHistoryPage.kt`
 - `app/src/main/java/com/example/videobrowser/utils/MediaUrlUtils.kt`
 
 ### 下载
@@ -698,6 +732,7 @@ browser_preferences
 - 收藏。
 - 历史。
 - 下载记录。
+- 原生播放历史。
 - 已授权本地目录 URI。
 
 收藏和历史限制：
@@ -716,6 +751,7 @@ browser_preferences
 - `app/src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt`
 - `app/src/main/java/com/example/videobrowser/settings/SettingsManager.kt`
 - `app/src/main/java/com/example/videobrowser/download/DownloadRecordRepository.kt`
+- `app/src/main/java/com/example/videobrowser/video/PlaybackHistoryRepository.kt`
 - `app/src/main/java/com/example/videobrowser/localfiles/LocalDirectoryPermissionManager.kt`
 
 ## 默认设置
@@ -727,6 +763,7 @@ browser_preferences
 | 搜索引擎 | `baidu` |
 | 首页 | `https://m.baidu.com/` |
 | 默认视频倍速 | `1f` |
+| 视频总是从头播放 | 关闭 |
 | 广告请求拦截 | 开启 |
 | 网页脚本增强 | 开启 |
 | 页面净化 | 开启 |
@@ -847,12 +884,16 @@ app/src/main/res/values/strings.xml
 app/src/main/java/com/example/videobrowser/video/PlayerActivity.kt
 app/src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt
 app/src/main/java/com/example/videobrowser/video/VideoGestureFeedbackFormatter.kt
+app/src/main/java/com/example/videobrowser/video/PlaybackSessionState.kt
+app/src/main/java/com/example/videobrowser/video/PlaybackQueue.kt
+app/src/main/java/com/example/videobrowser/video/WebViewVideoProtocol.kt
 ```
 
 如果涉及可识别媒体类型，修改：
 
 ```text
 app/src/main/java/com/example/videobrowser/utils/MediaUrlUtils.kt
+app/src/main/java/com/example/videobrowser/video/MediaRoutingController.kt
 ```
 
 ## 测试
@@ -881,9 +922,10 @@ app/src/androidTest/java/com/example/videobrowser/
 - JS 注入脚本拼接。
 - 设置管理。
 - 收藏、历史和下载记录。
+- 原生播放历史、续播、播放队列和本地字幕候选。
 - 功能中心页面和入口顺序。
 - 无痕状态。
-- 原生播放器和网页视频手势契约。
+- 原生播放器状态/命令、队列、轨道、缩放、进度拖动、倍速和网页视频协议契约。
 - 广告拦截和 JS 注入的 Android 环境测试。
 - G6 回归集合：广告决策、noop redirect 边界、站点开关、用户白名单、规则 cache 回退、页面功能配置、WebView 视频 controls/倍速/fullscreen 事件状态。
 
