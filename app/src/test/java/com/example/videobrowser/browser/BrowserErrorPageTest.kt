@@ -55,6 +55,21 @@ class BrowserErrorPageTest {
     }
 
     @Test
+    fun rendersRendererCrashesAsRetryablePageCrashes() {
+        val html = BrowserErrorPage.render(
+            BrowserPageError.RenderProcessGone(
+                url = "https://video.example.com/watch",
+                didCrash = true
+            )
+        )
+
+        assertTrue(html.contains("网页已崩溃"))
+        assertTrue(html.contains("网页渲染进程已崩溃"))
+        assertTrue(html.contains("https://video.example.com/watch"))
+        assertTrue(html.contains("重试"))
+    }
+
+    @Test
     fun omitsRetryLinkWhenUrlIsMissing() {
         val html = BrowserErrorPage.render(
             BrowserPageError.Network(

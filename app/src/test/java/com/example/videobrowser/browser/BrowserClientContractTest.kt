@@ -109,6 +109,43 @@ class BrowserClientContractTest {
         assertTrue(readme.contains("Android 系统证书选择器"))
     }
 
+    @Test
+    fun browserClientRoutesRenderProcessGoneToActivityRecovery() {
+        val browserClient = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val sessionCoordinator = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserSessionCoordinator.kt"
+        ).readText()
+        val tabRegistry = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabWebViewRegistry.kt"
+        ).readText()
+        val errorPage = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserErrorPage.kt"
+        ).readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(browserClient.contains("import android.webkit.RenderProcessGoneDetail"))
+        assertTrue(browserClient.contains("renderProcessGone: (WebView?, Boolean) -> Boolean"))
+        assertTrue(browserClient.contains("override fun onRenderProcessGone"))
+        assertTrue(browserClient.contains("detail?.didCrash() == true"))
+        assertTrue(browserClient.contains("return renderProcessGone(view, detail?.didCrash() == true)"))
+        assertTrue(mainActivity.contains("renderProcessGone = ::handleRenderProcessGone"))
+        assertTrue(mainActivity.contains("private fun handleRenderProcessGone(view: WebView?, didCrash: Boolean): Boolean"))
+        assertTrue(mainActivity.contains("BrowserPageError.RenderProcessGone"))
+        assertTrue(mainActivity.contains("standardTabWebViews.replaceView(tabId, replacementWebView)"))
+        assertTrue(mainActivity.contains("browserSessionCoordinator.replacePrivateWebView()"))
+        assertTrue(mainActivity.contains("private fun disposeGoneWebView(goneWebView: WebView)"))
+        assertTrue(sessionCoordinator.contains("fun replacePrivateWebView(): WebView?"))
+        assertTrue(sessionCoordinator.contains("detachCurrent = false"))
+        assertTrue(tabRegistry.contains("data class ReplaceResult"))
+        assertTrue(tabRegistry.contains("fun replaceView(tabId: Long, replacementView: T): ReplaceResult<T>?"))
+        assertTrue(errorPage.contains("data class RenderProcessGone"))
+        assertTrue(readme.contains("网页渲染进程退出时自动恢复"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

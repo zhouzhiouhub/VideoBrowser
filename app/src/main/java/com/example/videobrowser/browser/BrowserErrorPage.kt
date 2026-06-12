@@ -25,6 +25,11 @@ sealed class BrowserPageError(
         val threatType: Int,
         val description: String
     ) : BrowserPageError(url)
+
+    data class RenderProcessGone(
+        override val url: String?,
+        val didCrash: Boolean
+    ) : BrowserPageError(url)
 }
 
 object BrowserErrorPage {
@@ -32,6 +37,7 @@ object BrowserErrorPage {
         val title = when (error) {
             is BrowserPageError.SafeBrowsing -> "连接已被阻止"
             is BrowserPageError.Ssl -> "连接已被阻止"
+            is BrowserPageError.RenderProcessGone -> "网页已崩溃"
             else -> "网页无法打开"
         }
         val detail = when (error) {
@@ -39,6 +45,11 @@ object BrowserErrorPage {
             is BrowserPageError.Http -> "HTTP ${error.statusCode} ${error.reasonPhrase}".trim()
             is BrowserPageError.Ssl -> error.description
             is BrowserPageError.SafeBrowsing -> error.description
+            is BrowserPageError.RenderProcessGone -> if (error.didCrash) {
+                "网页渲染进程已崩溃，浏览器已重新创建页面。"
+            } else {
+                "网页渲染进程已退出，浏览器已重新创建页面。"
+            }
         }
         val url = error.url.orEmpty()
         val retryAction = if (error is BrowserPageError.SafeBrowsing) {

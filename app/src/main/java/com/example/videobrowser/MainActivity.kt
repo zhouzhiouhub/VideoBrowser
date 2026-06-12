@@ -691,6 +691,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showStandardTabWebView(tabWebView: WebView) {
+        showStandardTabWebView(tabWebView, detachCurrent = true)
+    }
+
+    private fun showStandardTabWebView(tabWebView: WebView, detachCurrent: Boolean) {
         if (tabWebView.parent == null) {
             webViewContainer.addView(tabWebView)
         }
@@ -698,7 +702,8 @@ class MainActivity : AppCompatActivity() {
         browserSessionCoordinator.setStandardWebView(tabWebView)
         standardBrowserManager.switchWebView(
             nextWebView = tabWebView,
-            privateBrowsingEnabled = false
+            privateBrowsingEnabled = false,
+            detachCurrent = detachCurrent
         )
         handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)
     }
@@ -823,9 +828,64 @@ class MainActivity : AppCompatActivity() {
                 requestIntercepted = ::interceptBrowserRequest,
                 urlLoadingRequested = ::shouldBlockUrl,
                 clientCertRequested = ::handleClientCertRequest,
+                renderProcessGone = ::handleRenderProcessGone,
                 httpAuthRequested = ::handleHttpAuthRequest
             )
         )
+    }
+
+    private fun handleRenderProcessGone(view: WebView?, didCrash: Boolean): Boolean {
+        val goneWebView = view ?: return true
+        val pageUrl = currentSessionController().currentPageUrl
+            ?: goneWebView.url
+
+        if (privateBrowsingActive && browserSessionCoordinator.activeWebView === goneWebView) {
+            val previousWebView = browserSessionCoordinator.replacePrivateWebView()
+            if (previousWebView != null) {
+                disposeGoneWebView(previousWebView)
+                showBrowserErrorPage(
+                    BrowserPageError.RenderProcessGone(
+                        url = pageUrl,
+                        didCrash = didCrash
+                    )
+                )
+            }
+            return true
+        }
+
+        val tabId = standardTabWebViews.tabIdFor(goneWebView)
+        if (tabId != null) {
+            val replacementWebView = createStandardTabWebView()
+            val result = standardTabWebViews.replaceView(tabId, replacementWebView)
+            if (result != null && result.replacedActiveView && !privateBrowsingActive) {
+                showStandardTabWebView(replacementWebView, detachCurrent = false)
+                showBrowserErrorPage(
+                    BrowserPageError.RenderProcessGone(
+                        url = pageUrl,
+                        didCrash = didCrash
+                    )
+                )
+            }
+            disposeGoneWebView(goneWebView)
+            saveStandardTabSession()
+            return true
+        }
+
+        disposeGoneWebView(goneWebView)
+        return true
+    }
+
+    private fun disposeGoneWebView(goneWebView: WebView) {
+        if (goneWebView.parent == webViewContainer) {
+            webViewContainer.removeView(goneWebView)
+        } else {
+            (goneWebView.parent as? ViewGroup)?.removeView(goneWebView)
+        }
+        goneWebView.webChromeClient = null
+        goneWebView.webViewClient = android.webkit.WebViewClient()
+        goneWebView.setDownloadListener(null)
+        goneWebView.removeAllViews()
+        goneWebView.destroy()
     }
 
     private fun handleClientCertRequest(

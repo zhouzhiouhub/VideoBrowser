@@ -39,6 +39,13 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         val activeTab: BrowserTab
     )
 
+    data class ReplaceResult<T : Any>(
+        val previousView: T,
+        val replacementView: T,
+        val replacedActiveView: Boolean,
+        val activeTab: BrowserTab
+    )
+
     constructor(
         tabs: BrowserTabStore,
         initialView: T
@@ -116,6 +123,19 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         return viewsByTabId.entries
             .firstOrNull { (_, tabView) -> tabView === view }
             ?.key
+    }
+
+    fun replaceView(tabId: Long, replacementView: T): ReplaceResult<T>? {
+        val previousView = viewsByTabId[tabId] ?: return null
+        val tabStore = requireTabs()
+        val replacedActiveView = activeViewTabId == tabId
+        viewsByTabId[tabId] = replacementView
+        return ReplaceResult(
+            previousView = previousView,
+            replacementView = replacementView,
+            replacedActiveView = replacedActiveView,
+            activeTab = tabStore.activeTab()
+        )
     }
 
     fun activate(tabId: Long): T {

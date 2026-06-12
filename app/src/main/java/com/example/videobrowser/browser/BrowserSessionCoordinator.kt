@@ -105,4 +105,28 @@ class BrowserSessionCoordinator(
             privateWebView = null
         }
     }
+
+    fun replacePrivateWebView(): WebView? {
+        if (!isPrivate) {
+            return null
+        }
+        val previousWebView = privateWebView ?: return null
+        val replacementWebView = WebView(activity).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            overScrollMode = standardWebView.overScrollMode
+            setBackgroundColor(0x00000000)
+        }
+        privateWebView = replacementWebView
+        webViewContainer.addView(replacementWebView)
+        browserManager.switchWebView(
+            nextWebView = replacementWebView,
+            privateBrowsingEnabled = true,
+            detachCurrent = false
+        )
+        onActiveWebViewChanged(replacementWebView, BrowserMode.PRIVATE)
+        return previousWebView
+    }
 }

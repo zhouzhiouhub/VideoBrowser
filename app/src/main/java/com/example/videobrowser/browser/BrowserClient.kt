@@ -7,6 +7,7 @@ import android.net.http.SslError
 import android.os.Build
 import android.webkit.ClientCertRequest
 import android.webkit.HttpAuthHandler
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.SafeBrowsingResponse
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -26,6 +27,7 @@ class BrowserClient(
     private val urlLoadingRequested: (WebView?, Uri, Boolean) -> Boolean = { _, _, _ -> false },
     private val clientCertRequested: (WebView?, ClientCertRequest?) -> Unit =
         { _, request -> request?.cancel() },
+    private val renderProcessGone: (WebView?, Boolean) -> Boolean = { _, _ -> false },
     private val httpAuthRequested: (WebView?, HttpAuthHandler?, String?, String?) -> Unit =
         { _, handler, _, _ -> handler?.cancel() }
 ) : WebViewClient() {
@@ -150,6 +152,14 @@ class BrowserClient(
         request: ClientCertRequest?
     ) {
         clientCertRequested(view, request)
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    override fun onRenderProcessGone(
+        view: WebView?,
+        detail: RenderProcessGoneDetail?
+    ): Boolean {
+        return renderProcessGone(view, detail?.didCrash() == true)
     }
 
     private fun safeBrowsingThreatDescription(threatType: Int): String {

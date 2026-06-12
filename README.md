@@ -52,6 +52,7 @@ VideoBrowser 的目标是提供一个偏视频场景的移动浏览器壳层：
 - 默认阻止 HTTPS 页面混合内容，并可在浏览器设置中调整。
 - 支持在浏览器设置中调整网页文字大小。
 - 网页请求相机、麦克风或定位时，除 Android 运行时权限外，还会按站点确认允许/阻止；当前站点设置中可改回每次询问。
+- 支持网页渲染进程退出时自动恢复，并显示本地错误页。
 - Debug 包中启用 WebView 调试：`WebView.setWebContentsDebuggingEnabled(true)`。
 
 关键代码：

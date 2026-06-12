@@ -89,6 +89,33 @@ class BrowserTabWebViewRegistryTest {
     }
 
     @Test
+    fun replaceViewSwapsTabViewWithoutChangingActiveTab() {
+        val tabs = BrowserTabStore()
+        val firstTabId = tabs.activeTabId
+        val secondTab = tabs.openTab(url = "https://second.example.com")
+        tabs.switchTo(firstTabId)
+        val registry = BrowserTabWebViewRegistry(
+            tabs = tabs,
+            initialView = "webView-1",
+            createWebView = { "webView-2" },
+            showWebView = {},
+            hideWebView = {},
+            destroyWebView = {}
+        )
+        registry.activate(secondTab.id)
+        registry.activate(firstTabId)
+
+        val result = registry.replaceView(secondTab.id, "webView-2b")
+
+        assertEquals("webView-2", result?.previousView)
+        assertEquals("webView-2b", result?.replacementView)
+        assertEquals(false, result?.replacedActiveView)
+        assertEquals(firstTabId, registry.activeTabId)
+        assertEquals("webView-1", registry.activeWebView())
+        assertEquals("webView-2b", registry.webViewFor(secondTab.id))
+    }
+
+    @Test
     fun closingActiveTabShowsFallbackViewAndDestroysClosedView() {
         val calls = RegistryCalls()
         val registry = registry(
