@@ -30,6 +30,10 @@ class SearchSuggestionClient(
         }
     }
 
+    fun dispose() {
+        executor.shutdownNow()
+    }
+
     private fun fetchSuggestions(provider: SearchProvider, query: String): List<String> {
         val endpoint = suggestionEndpoint(provider, query)
         val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {

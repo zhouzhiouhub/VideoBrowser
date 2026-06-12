@@ -98,6 +98,7 @@ https://m.baidu.com/
 - 其他默认走百度建议接口：`https://suggestion.baidu.com/su`
 
 无痕模式下不会读取历史记录，也不会发起远程搜索建议请求，只保留当前输入的兜底搜索项。
+Activity 销毁时会关闭远程建议线程。
 
 关键代码：
 

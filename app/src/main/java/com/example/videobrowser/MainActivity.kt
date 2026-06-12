@@ -623,6 +623,9 @@ class MainActivity : AppCompatActivity() {
         cancelPendingGeolocationPermissionPrompt()
         cancelPendingHttpAuthRequest()
         cancelPendingClientCertRequest()
+        if (::addressSuggestionController.isInitialized) {
+            addressSuggestionController.dispose()
+        }
         if (::downloadController.isInitialized) {
             downloadController.dispose()
         }

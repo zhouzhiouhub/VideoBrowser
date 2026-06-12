@@ -1,6 +1,7 @@
 package com.example.videobrowser.browser.search
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SearchSuggestionClientTest {
@@ -25,5 +26,15 @@ class SearchSuggestionClientTest {
     @Test
     fun parseSuggestions_ignoresMalformedPayload() {
         assertEquals(emptyList<String>(), SearchSuggestionClient.parseSuggestions("not json"))
+    }
+
+    @Test
+    fun disposeShutsDownExecutor() {
+        val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
+        val client = SearchSuggestionClient(executor)
+
+        client.dispose()
+
+        assertTrue(executor.isShutdown)
     }
 }

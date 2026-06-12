@@ -140,11 +140,17 @@ class MainActivityLayoutContractTest {
         assertTrue(controller.contains("AddressSuggestionRanker.build"))
         assertTrue(controller.contains("AddressSuggestion.Bookmark"))
         assertTrue(controller.contains("val includePrivateSources = !isPrivateBrowsingEnabled()"))
+        assertTrue(controller.contains("fun dispose()"))
+        assertTrue(controller.contains("disposed = true"))
+        assertTrue(controller.contains("!disposed &&"))
+        assertTrue(controller.contains("suggestionClient.dispose()"))
+        assertTrue(mainActivity.contains("addressSuggestionController.dispose()"))
         assertTrue(mainActivity.contains("private lateinit var addressSuggestionController: AddressSuggestionController"))
         assertTrue(mainActivity.contains("addressSuggestionController.setup()"))
         assertTrue(mainActivity.contains("addressSuggestionController.hide()"))
         assertTrue(strings.contains("address_suggestion_bookmark"))
         assertTrue(readme.contains("收藏夹匹配"))
+        assertTrue(readme.contains("Activity 销毁时会关闭远程建议线程"))
     }
 
     @Test

@@ -32,6 +32,7 @@ class AddressSuggestionController(
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private var requestSequence = 0
     private var suppressTextChanges = false
+    private var disposed = false
 
     fun setup() {
         addressInput.addTextChangedListener(
@@ -70,6 +71,12 @@ class AddressSuggestionController(
         panel.removeAllViews()
     }
 
+    fun dispose() {
+        disposed = true
+        hide()
+        suggestionClient.dispose()
+    }
+
     fun runWithSuggestionsSuppressed(action: () -> Unit) {
         suppressTextChanges = true
         hide()
@@ -81,6 +88,9 @@ class AddressSuggestionController(
     }
 
     private fun handleInputChanged() {
+        if (disposed) {
+            return
+        }
         requestSequence += 1
         handler.removeCallbacksAndMessages(null)
         val query = currentQuery()
@@ -100,6 +110,7 @@ class AddressSuggestionController(
                 suggestionClient.fetch(selectedProvider(), query) { remoteKeywords ->
                     activity.runOnUiThread {
                         if (
+                            !disposed &&
                             sequence == requestSequence &&
                             currentQuery() == query &&
                             canShowSuggestions(query)
