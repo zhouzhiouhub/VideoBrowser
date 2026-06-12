@@ -316,6 +316,7 @@
     <string name="action_update">更新</string>
     <string name="action_import">导入</string>
     <string name="action_allow">允许</string>
+    <string name="action_allow_once">仅本次允许</string>
     <string name="action_deny">拒绝</string>
     <string name="action_leave_page">离开</string>
     <string name="action_stay_on_page">留在此页</string>

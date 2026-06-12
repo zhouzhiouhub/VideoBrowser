@@ -57,8 +57,12 @@ class WebGeolocationPermissionContractTest {
         assertTrue(mainActivity.contains("Manifest.permission.ACCESS_FINE_LOCATION"))
         assertTrue(mainActivity.contains("Manifest.permission.ACCESS_COARSE_LOCATION"))
         assertTrue(mainActivity.contains("SitePermission.LOCATION"))
+        assertTrue(mainActivity.contains("SessionSitePermissionStore"))
+        assertTrue(mainActivity.contains("private val sessionSitePermissionStore = SessionSitePermissionStore()"))
         assertTrue(mainActivity.contains("settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)"))
         assertTrue(mainActivity.contains("settingsManager.setSitePermissionDecision("))
+        assertTrue(mainActivity.contains("sessionSitePermissionStore.isAllowed(hostName, SitePermission.LOCATION)"))
+        assertTrue(mainActivity.contains("allowGeolocationPermissionForSession(prompt.origin)"))
         assertTrue(mainActivity.contains("SitePermissionDecision.ALLOW -> prompt.callback.invoke(prompt.origin, true, false)"))
         assertTrue(mainActivity.contains("SitePermissionDecision.BLOCK -> denyGeolocationPermissionPrompt"))
         assertTrue(mainActivity.contains("geolocationPermissionRequested = ::handleGeolocationPermissionRequest"))
@@ -67,13 +71,24 @@ class WebGeolocationPermissionContractTest {
         assertTrue(mainActivity.contains("R.string.title_geolocation_permission_request"))
         assertTrue(mainActivity.contains("R.string.dialog_geolocation_permission_request_message"))
         assertTrue(mainActivity.contains("R.string.action_allow"))
+        assertTrue(mainActivity.contains("R.string.action_allow_once"))
+        assertTrue(mainActivity.contains("rememberDecision = false"))
         assertTrue(mainActivity.contains("R.string.action_deny"))
         assertTrue(mainActivity.contains("prompt.callback.invoke(prompt.origin, allowed, false)"))
         assertTrue(mainActivity.contains("callback.invoke(origin, false, false)"))
         assertTrue(mainActivity.contains("cancelPendingGeolocationPermissionPrompt()"))
+        assertTrue(mainActivity.contains("if (isPrivateBrowsingEnabled())"))
+        assertTrue(mainActivity.contains("sessionSitePermissionStore.clear()"))
         assertTrue(strings.contains("title_geolocation_permission_request"))
         assertTrue(strings.contains("dialog_geolocation_permission_request_message"))
+        assertTrue(strings.contains("action_allow_once"))
         assertTrue(strings.contains("permission_origin_unknown"))
+        assertTrue(readme().contains("仅本次允许"))
+        assertTrue(readme().contains("不会写入持久记录"))
+    }
+
+    private fun readme(): String {
+        return projectFile("README.md").readText()
     }
 
     private fun manifest(): Element {
@@ -96,9 +111,10 @@ class WebGeolocationPermissionContractTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 

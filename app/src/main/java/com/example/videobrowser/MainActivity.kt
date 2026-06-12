@@ -95,6 +95,7 @@ import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.settings.SitePermission
 import com.example.videobrowser.settings.SitePermissionDecision
 import com.example.videobrowser.storage.PreferenceStore
@@ -241,6 +242,7 @@ class MainActivity : AppCompatActivity() {
     private var pendingGeolocationPermissionPrompt: GeolocationPermissionPrompt? = null
     private var pendingGeolocationSitePrompt: GeolocationPermissionPrompt? = null
     private var pendingGeolocationDialog: AlertDialog? = null
+    private val sessionSitePermissionStore = SessionSitePermissionStore()
     private val geolocationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
             val prompt = pendingGeolocationPermissionPrompt ?: return@registerForActivityResult
@@ -1225,6 +1227,9 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton(R.string.action_allow) { _, _ ->
                 answerWebPermissionPrompt(request, allowed = true)
             }
+            .setNeutralButton(R.string.action_allow_once) { _, _ ->
+                answerWebPermissionPrompt(request, allowed = true, rememberDecision = false)
+            }
             .setNegativeButton(R.string.action_deny) { _, _ ->
                 answerWebPermissionPrompt(request, allowed = false)
             }
@@ -1236,17 +1241,27 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun answerWebPermissionPrompt(request: PermissionRequest, allowed: Boolean) {
+    private fun answerWebPermissionPrompt(
+        request: PermissionRequest,
+        allowed: Boolean,
+        rememberDecision: Boolean = true
+    ) {
         if (pendingWebPermissionPromptRequest != request) {
             return
         }
         pendingWebPermissionPromptRequest = null
         pendingWebPermissionDialog = null
         if (allowed) {
-            saveWebPermissionDecision(request, allowed = true)
+            if (rememberDecision) {
+                saveWebPermissionDecision(request, allowed = true)
+            } else {
+                allowWebPermissionForSession(request)
+            }
             grantSupportedWebPermissionResources(request)
         } else {
-            saveWebPermissionDecision(request, allowed = false)
+            if (rememberDecision) {
+                saveWebPermissionDecision(request, allowed = false)
+            }
             request.deny()
         }
     }
@@ -1283,24 +1298,43 @@ class MainActivity : AppCompatActivity() {
 
     private fun webPermissionDecision(request: PermissionRequest): SitePermissionDecision {
         val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return SitePermissionDecision.ASK
-        val decisions = request.resources
+        val permissions = request.resources
             .mapNotNull(::sitePermissionForWebResource)
+        val decisions = permissions
             .map { permission -> settingsManager.sitePermissionDecision(hostName, permission) }
         return when {
             decisions.any { decision -> decision == SitePermissionDecision.BLOCK } -> SitePermissionDecision.BLOCK
-            decisions.isNotEmpty() &&
-                decisions.all { decision -> decision == SitePermissionDecision.ALLOW } -> SitePermissionDecision.ALLOW
+            permissions.isNotEmpty() &&
+                permissions.all { permission ->
+                    settingsManager.sitePermissionDecision(hostName, permission) == SitePermissionDecision.ALLOW ||
+                        sessionSitePermissionStore.isAllowed(hostName, permission)
+                } -> SitePermissionDecision.ALLOW
             else -> SitePermissionDecision.ASK
         }
     }
 
     private fun saveWebPermissionDecision(request: PermissionRequest, allowed: Boolean) {
+        if (isPrivateBrowsingEnabled()) {
+            if (allowed) {
+                allowWebPermissionForSession(request)
+            }
+            return
+        }
         val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
         val decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
         request.resources
             .mapNotNull(::sitePermissionForWebResource)
             .forEach { permission ->
                 settingsManager.setSitePermissionDecision(hostName, permission, decision)
+            }
+    }
+
+    private fun allowWebPermissionForSession(request: PermissionRequest) {
+        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
+        request.resources
+            .mapNotNull(::sitePermissionForWebResource)
+            .forEach { permission ->
+                sessionSitePermissionStore.allow(hostName, permission)
             }
     }
 
@@ -1406,6 +1440,9 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton(R.string.action_allow) { _, _ ->
                 answerGeolocationPermissionPrompt(prompt, allowed = true)
             }
+            .setNeutralButton(R.string.action_allow_once) { _, _ ->
+                answerGeolocationPermissionPrompt(prompt, allowed = true, rememberDecision = false)
+            }
             .setNegativeButton(R.string.action_deny) { _, _ ->
                 answerGeolocationPermissionPrompt(prompt, allowed = false)
             }
@@ -1419,29 +1456,55 @@ class MainActivity : AppCompatActivity() {
 
     private fun answerGeolocationPermissionPrompt(
         prompt: GeolocationPermissionPrompt,
-        allowed: Boolean
+        allowed: Boolean,
+        rememberDecision: Boolean = true
     ) {
         if (pendingGeolocationSitePrompt != prompt) {
             return
         }
         pendingGeolocationSitePrompt = null
         pendingGeolocationDialog = null
-        saveGeolocationPermissionDecision(prompt.origin, allowed)
+        if (allowed) {
+            if (rememberDecision) {
+                saveGeolocationPermissionDecision(prompt.origin, allowed = true)
+            } else {
+                allowGeolocationPermissionForSession(prompt.origin)
+            }
+        } else if (rememberDecision) {
+            saveGeolocationPermissionDecision(prompt.origin, allowed = false)
+        }
         prompt.callback.invoke(prompt.origin, allowed, false)
     }
 
     private fun geolocationPermissionDecision(origin: String?): SitePermissionDecision {
         val hostName = SiteHost.fromUrl(origin) ?: return SitePermissionDecision.ASK
-        return settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)
+        val decision = settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)
+        return when {
+            decision == SitePermissionDecision.BLOCK -> SitePermissionDecision.BLOCK
+            decision == SitePermissionDecision.ALLOW ||
+                sessionSitePermissionStore.isAllowed(hostName, SitePermission.LOCATION) -> SitePermissionDecision.ALLOW
+            else -> SitePermissionDecision.ASK
+        }
     }
 
     private fun saveGeolocationPermissionDecision(origin: String?, allowed: Boolean) {
+        if (isPrivateBrowsingEnabled()) {
+            if (allowed) {
+                allowGeolocationPermissionForSession(origin)
+            }
+            return
+        }
         val hostName = SiteHost.fromUrl(origin) ?: return
         settingsManager.setSitePermissionDecision(
             host = hostName,
             permission = SitePermission.LOCATION,
             decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
         )
+    }
+
+    private fun allowGeolocationPermissionForSession(origin: String?) {
+        val hostName = SiteHost.fromUrl(origin) ?: return
+        sessionSitePermissionStore.allow(hostName, SitePermission.LOCATION)
     }
 
     private fun denyGeolocationPermissionPrompt(
@@ -2003,6 +2066,7 @@ class MainActivity : AppCompatActivity() {
             elementPickerController.cancel()
         }
         exitPageFullscreenIfNeeded()
+        sessionSitePermissionStore.clear()
 
         if (enabled) {
             val started = browserSessionCoordinator.enterPrivate()
