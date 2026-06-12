@@ -17,12 +17,14 @@ import android.os.Bundle
 import android.os.Message
 import android.print.PrintAttributes
 import android.print.PrintManager
+import android.security.KeyChain
 import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.webkit.ClientCertRequest
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
@@ -109,6 +111,8 @@ import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebViewVideoCommand
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
 
 class MainActivity : AppCompatActivity() {
 
@@ -248,6 +252,7 @@ class MainActivity : AppCompatActivity() {
                 denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
             }
         }
+    private var pendingClientCertRequest: ClientCertRequest? = null
 
     private var privateBrowsingActive = false
     private val isHomePageVisible: Boolean
@@ -613,6 +618,7 @@ class MainActivity : AppCompatActivity() {
         cancelPendingWebFileChooser()
         cancelPendingWebPermissionRequest()
         cancelPendingGeolocationPermissionPrompt()
+        cancelPendingClientCertRequest()
         if (::downloadController.isInitialized) {
             downloadController.dispose()
         }
@@ -816,9 +822,80 @@ class MainActivity : AppCompatActivity() {
                 pageLoadFailed = ::showBrowserErrorPage,
                 requestIntercepted = ::interceptBrowserRequest,
                 urlLoadingRequested = ::shouldBlockUrl,
+                clientCertRequested = ::handleClientCertRequest,
                 httpAuthRequested = ::handleHttpAuthRequest
             )
         )
+    }
+
+    private fun handleClientCertRequest(
+        view: WebView?,
+        request: ClientCertRequest?
+    ) {
+        val certRequest = request ?: return
+        pendingClientCertRequest?.cancel()
+        pendingClientCertRequest = certRequest
+        KeyChain.choosePrivateKeyAlias(
+            this,
+            { alias -> handleClientCertAliasSelected(certRequest, alias) },
+            certRequest.keyTypes,
+            certRequest.principals,
+            certRequest.host,
+            certRequest.port,
+            null
+        )
+    }
+
+    private fun handleClientCertAliasSelected(
+        request: ClientCertRequest,
+        alias: String?
+    ) {
+        if (pendingClientCertRequest != request) {
+            return
+        }
+        if (alias.isNullOrBlank()) {
+            pendingClientCertRequest = null
+            request.cancel()
+            return
+        }
+
+        val appContext = applicationContext
+        Thread {
+            val credential = runCatching {
+                val privateKey = KeyChain.getPrivateKey(appContext, alias)
+                    ?: error("Client certificate private key is unavailable.")
+                val certificateChain = KeyChain.getCertificateChain(appContext, alias)
+                    ?: emptyArray()
+                ClientCertificateCredential(privateKey, certificateChain)
+            }.getOrElse { error ->
+                if (error is InterruptedException) {
+                    Thread.currentThread().interrupt()
+                }
+                null
+            }
+
+            runOnUiThread {
+                if (pendingClientCertRequest != request) {
+                    return@runOnUiThread
+                }
+                pendingClientCertRequest = null
+                if (credential != null && credential.certificateChain.isNotEmpty()) {
+                    request.proceed(credential.privateKey, credential.certificateChain)
+                } else {
+                    request.cancel()
+                    Toast.makeText(
+                        this,
+                        R.string.toast_client_certificate_unavailable,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun cancelPendingClientCertRequest() {
+        pendingClientCertRequest?.cancel()
+        pendingClientCertRequest = null
     }
 
     private fun interceptBrowserRequest(request: BrowserRequest) =
@@ -2413,6 +2490,11 @@ class MainActivity : AppCompatActivity() {
     private data class GeolocationPermissionPrompt(
         val origin: String?,
         val callback: GeolocationPermissions.Callback
+    )
+
+    private data class ClientCertificateCredential(
+        val privateKey: PrivateKey,
+        val certificateChain: Array<X509Certificate>
     )
 
     companion object {

@@ -80,6 +80,35 @@ class BrowserClientContractTest {
         assertTrue(readme.contains("HTTP Basic Auth"))
     }
 
+    @Test
+    fun browserClientRoutesClientCertificateRequestsToSystemSelector() {
+        val browserClient = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(browserClient.contains("import android.webkit.ClientCertRequest"))
+        assertTrue(browserClient.contains("clientCertRequested: (WebView?, ClientCertRequest?) -> Unit"))
+        assertTrue(browserClient.contains("request?.cancel()"))
+        assertTrue(browserClient.contains("override fun onReceivedClientCertRequest"))
+        assertTrue(browserClient.contains("clientCertRequested(view, request)"))
+        assertTrue(mainActivity.contains("import android.security.KeyChain"))
+        assertTrue(mainActivity.contains("import android.webkit.ClientCertRequest"))
+        assertTrue(mainActivity.contains("clientCertRequested = ::handleClientCertRequest"))
+        assertTrue(mainActivity.contains("private fun handleClientCertRequest("))
+        assertTrue(mainActivity.contains("KeyChain.choosePrivateKeyAlias("))
+        assertTrue(mainActivity.contains("KeyChain.getPrivateKey(appContext, alias)"))
+        assertTrue(mainActivity.contains("KeyChain.getCertificateChain(appContext, alias)"))
+        assertTrue(mainActivity.contains("request.proceed(credential.privateKey, credential.certificateChain)"))
+        assertTrue(mainActivity.contains("private fun cancelPendingClientCertRequest()"))
+        assertTrue(mainActivity.contains("cancelPendingClientCertRequest()"))
+        assertTrue(strings.contains("toast_client_certificate_unavailable"))
+        assertTrue(readme.contains("Android 系统证书选择器"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

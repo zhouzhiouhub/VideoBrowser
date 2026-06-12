@@ -505,6 +505,7 @@
     <string name="toast_local_file_deleted">已删除</string>
     <string name="toast_local_file_name_invalid">文件名不能为空</string>
     <string name="toast_no_external_browser">没有可用的外部应用</string>
+    <string name="toast_client_certificate_unavailable">无法读取所选客户端证书</string>
     <string name="toast_media_url_invalid">视频地址无效</string>
     <string name="toast_media_url_unsupported">当前地址不是可识别的视频直链</string>
     <string name="toast_media_playback_failed">视频播放失败</string>

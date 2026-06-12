@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
+import android.webkit.ClientCertRequest
 import android.webkit.HttpAuthHandler
 import android.webkit.SafeBrowsingResponse
 import android.webkit.WebResourceRequest
@@ -23,6 +24,8 @@ class BrowserClient(
     private val pageLoadFailed: (BrowserPageError) -> Unit = {},
     private val requestIntercepted: (BrowserRequest) -> WebResourceResponse? = { null },
     private val urlLoadingRequested: (WebView?, Uri, Boolean) -> Boolean = { _, _, _ -> false },
+    private val clientCertRequested: (WebView?, ClientCertRequest?) -> Unit =
+        { _, request -> request?.cancel() },
     private val httpAuthRequested: (WebView?, HttpAuthHandler?, String?, String?) -> Unit =
         { _, handler, _, _ -> handler?.cancel() }
 ) : WebViewClient() {
@@ -140,6 +143,13 @@ class BrowserClient(
         realm: String?
     ) {
         httpAuthRequested(view, handler, host, realm)
+    }
+
+    override fun onReceivedClientCertRequest(
+        view: WebView?,
+        request: ClientCertRequest?
+    ) {
+        clientCertRequested(view, request)
     }
 
     private fun safeBrowsingThreatDescription(threatType: Int): String {
