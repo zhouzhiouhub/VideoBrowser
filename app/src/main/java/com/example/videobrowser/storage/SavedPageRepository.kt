@@ -50,6 +50,27 @@ class SavedPageRepository(
         return removeSavedPage(collection.key, url)
     }
 
+    fun updateTitle(collection: SavedPageCollection, url: String, title: String): Boolean {
+        val normalizedTitle = title.trim()
+        if (normalizedTitle.isEmpty()) {
+            return false
+        }
+        var updated = false
+        val pages = loadSavedPages(collection.key).map { page ->
+            if (page.url.equals(url, ignoreCase = true)) {
+                updated = true
+                page.copy(title = normalizedTitle, updatedAtMillis = currentTimeMillis())
+            } else {
+                page
+            }
+        }
+        if (!updated) {
+            return false
+        }
+        saveSavedPages(collection.key, pages)
+        return true
+    }
+
     fun clearAll() {
         SavedPageCollection.values().forEach { collection ->
             preferenceStore.remove(collection.key)

@@ -71,6 +71,49 @@ class SavedPageRepositoryTest {
     }
 
     @Test
+    fun updateTitleChangesOnePageAndRefreshesUpdatedTime() {
+        var now = 1_000L
+        val repository = SavedPageRepository(InMemoryPreferenceStore()) { now }
+        repository.addBookmark(SavedPage(title = "Old", url = "https://example.com"))
+        now = 2_000L
+
+        assertTrue(
+            repository.updateTitle(
+                SavedPageRepository.SavedPageCollection.BOOKMARKS,
+                url = "https://example.com",
+                title = " New title "
+            )
+        )
+
+        val bookmark = repository.bookmarks().single()
+        assertEquals("New title", bookmark.title)
+        assertEquals(1_000L, bookmark.createdAtMillis)
+        assertEquals(2_000L, bookmark.updatedAtMillis)
+    }
+
+    @Test
+    fun updateTitleRejectsBlankOrMissingPages() {
+        val repository = SavedPageRepository(InMemoryPreferenceStore())
+        repository.addBookmark(SavedPage(title = "Old", url = "https://example.com"))
+
+        assertFalse(
+            repository.updateTitle(
+                SavedPageRepository.SavedPageCollection.BOOKMARKS,
+                url = "https://example.com",
+                title = " "
+            )
+        )
+        assertFalse(
+            repository.updateTitle(
+                SavedPageRepository.SavedPageCollection.BOOKMARKS,
+                url = "https://missing.example.com",
+                title = "New"
+            )
+        )
+        assertEquals("Old", repository.bookmarks().single().title)
+    }
+
+    @Test
     fun historyKeepsMostRecentThousandEntries() {
         var now = 0L
         val repository = SavedPageRepository(InMemoryPreferenceStore()) { ++now }

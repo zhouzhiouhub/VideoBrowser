@@ -47,6 +47,27 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
     }
 
+    @Test
+    fun savedPagesPageCanRenameBookmarks() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        ).readText()
+        val repository = projectFile(
+            "src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(repository.contains("fun updateTitle(collection: SavedPageCollection, url: String, title: String): Boolean"))
+        assertTrue(page.contains("collection == SavedPageCollection.BOOKMARKS"))
+        assertTrue(page.contains("private fun showRenameBookmarkDialog"))
+        assertTrue(page.contains("savedPageRepository.updateTitle("))
+        assertTrue(page.contains("R.string.title_rename_bookmark"))
+        assertTrue(strings.contains("title_rename_bookmark"))
+        assertTrue(strings.contains("hint_saved_page_title"))
+        assertTrue(strings.contains("toast_saved_page_renamed"))
+        assertTrue(strings.contains("toast_saved_page_title_invalid"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

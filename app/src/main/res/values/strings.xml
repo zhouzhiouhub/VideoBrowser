@@ -177,6 +177,7 @@
     <string name="title_new_folder">新建文件夹</string>
     <string name="title_new_text_file">新建文本文件</string>
     <string name="title_rename_file">重命名</string>
+    <string name="title_rename_bookmark">重命名收藏</string>
     <string name="title_delete_file">删除文件</string>
     <string name="default_new_folder_name">新建文件夹</string>
     <string name="default_new_text_file_name">新建文件.txt</string>
@@ -277,6 +278,7 @@
     <string name="hint_rule_subscription_text">粘贴 AdGuard / EasyList 风格规则文本</string>
     <string name="hint_find_in_page">查找文字</string>
     <string name="hint_home_page_url">https://example.com/</string>
+    <string name="hint_saved_page_title">标题</string>
     <string name="hint_saved_pages_search">标题或网址</string>
     <string name="rule_subscription_empty">暂无导入的规则订阅缓存。</string>
     <string name="rule_subscription_source">来源</string>
@@ -307,6 +309,8 @@
     <string name="toast_history_empty">暂无历史记录</string>
     <string name="toast_saved_pages_cleared">已清空</string>
     <string name="toast_saved_page_removed">已删除记录</string>
+    <string name="toast_saved_page_renamed">已重命名收藏</string>
+    <string name="toast_saved_page_title_invalid">标题不能为空</string>
     <string name="toast_link_copied">链接已复制</string>
     <string name="toast_default_settings_restored">已恢复默认设置</string>
     <string name="toast_home_page_updated">已更新主页</string>

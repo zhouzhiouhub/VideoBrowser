@@ -155,6 +155,13 @@ class SavedPagesPage(
             SavedPageAction(activity.getString(R.string.action_open_page)) {
                 loadUrl(page.url)
             },
+            if (collection == SavedPageCollection.BOOKMARKS) {
+                SavedPageAction(activity.getString(R.string.action_rename)) {
+                    showRenameBookmarkDialog(page, title, emptyMessage)
+                }
+            } else {
+                null
+            },
             SavedPageAction(activity.getString(R.string.action_copy_link)) {
                 copySavedPageUrl(page)
             },
@@ -170,7 +177,44 @@ class SavedPagesPage(
                 ).show()
                 show(collection, title, emptyMessage, replaceCurrent = true)
             }
-        )
+        ).filterNotNull()
+    }
+
+    private fun showRenameBookmarkDialog(
+        page: SavedPage,
+        title: String,
+        emptyMessage: String
+    ) {
+        val input = EditText(activity).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            setSingleLine(true)
+            hint = activity.getString(R.string.hint_saved_page_title)
+            setText(page.title.ifBlank { page.url })
+            setSelection(text?.length ?: 0)
+        }
+        val dialog = AlertDialog.Builder(activity)
+            .setTitle(R.string.title_rename_bookmark)
+            .setView(input)
+            .setPositiveButton(R.string.action_rename, null)
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val updated = savedPageRepository.updateTitle(
+                    collection = SavedPageCollection.BOOKMARKS,
+                    url = page.url,
+                    title = input.text?.toString().orEmpty()
+                )
+                if (!updated) {
+                    Toast.makeText(activity, R.string.toast_saved_page_title_invalid, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                Toast.makeText(activity, R.string.toast_saved_page_renamed, Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                show(SavedPageCollection.BOOKMARKS, title, emptyMessage, replaceCurrent = true)
+            }
+        }
+        dialog.show()
     }
 
     private fun copySavedPageUrl(page: SavedPage) {
