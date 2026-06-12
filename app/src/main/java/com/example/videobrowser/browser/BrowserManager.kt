@@ -1,5 +1,6 @@
 package com.example.videobrowser.browser
 
+import android.os.Build
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.WebStorage
@@ -59,6 +60,9 @@ class BrowserManager(
             allowFileAccess = false
             allowContentAccess = true
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                safeBrowsingEnabled = true
+            }
             @Suppress("DEPRECATION")
             databaseEnabled = true
             @Suppress("DEPRECATION")
