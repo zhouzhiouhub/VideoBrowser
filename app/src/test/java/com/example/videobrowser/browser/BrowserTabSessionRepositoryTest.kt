@@ -45,6 +45,48 @@ class BrowserTabSessionRepositoryTest {
     }
 
     @Test
+    fun saveIgnoresTabsWithNonWebUrls() {
+        val store = InMemoryPreferenceStore()
+        val repository = BrowserTabSessionRepository(store)
+
+        repository.save(
+            tabs = listOf(
+                BrowserTab(id = 1L, url = "javascript:alert(1)", title = "Script"),
+                BrowserTab(id = 2L, url = "file:///sdcard/page.html", title = "File"),
+                BrowserTab(id = 3L, url = "about:blank", title = "About"),
+                BrowserTab(id = 4L, url = "https:/missing-host", title = "Broken"),
+                BrowserTab(id = 5L, url = " https://example.com/page ", title = " Example ")
+            ),
+            activeTabId = 1L
+        )
+
+        val restored = repository.restore()
+
+        assertEquals(5L, restored?.activeTabId)
+        assertEquals(listOf("https://example.com/page"), restored?.tabs?.map { tab -> tab.url })
+        assertEquals("Example", restored?.tabs?.single()?.title)
+    }
+
+    @Test
+    fun restoreDropsStoredNonWebUrls() {
+        val store = InMemoryPreferenceStore()
+        val repository = BrowserTabSessionRepository(store)
+        store.putString(
+            BrowserTabSessionRepository.KEY_STANDARD_TAB_SESSION,
+            listOf(
+                "1",
+                "1\t100\tjavascript%3Aalert%281%29\tScript",
+                "2\t100\thttps%3A%2F%2Fexample.com\tExample"
+            ).joinToString(separator = "\n")
+        )
+
+        val restored = repository.restore()
+
+        assertEquals(2L, restored?.activeTabId)
+        assertEquals(listOf("https://example.com"), restored?.tabs?.map { tab -> tab.url })
+    }
+
+    @Test
     fun saveClearsEmptySession() {
         val store = InMemoryPreferenceStore()
         val repository = BrowserTabSessionRepository(store)

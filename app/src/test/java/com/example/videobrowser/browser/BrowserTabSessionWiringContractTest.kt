@@ -21,6 +21,19 @@ class BrowserTabSessionWiringContractTest {
     }
 
     @Test
+    fun tabSessionRepositoryRestoresOnlyWebUrls() {
+        val repository = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabSessionRepository.kt"
+        ).readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(repository.contains("private fun normalizeRestorableWebUrl(url: String?): String?"))
+        assertTrue(repository.contains("scheme != \"http\" && scheme != \"https\""))
+        assertTrue(repository.contains("uri.host.isNullOrBlank()"))
+        assertTrue(readme.contains("标准标签页会话只恢复带主机名的 HTTP/HTTPS 页面 URL"))
+    }
+
+    @Test
     fun sessionControllerExposesPageMetadataCallback() {
         val sessionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSessionController.kt"
@@ -32,9 +45,10 @@ class BrowserTabSessionWiringContractTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 }

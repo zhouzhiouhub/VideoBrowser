@@ -1,8 +1,10 @@
 package com.example.videobrowser.browser
 
 import com.example.videobrowser.storage.PreferenceStore
+import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
+import java.util.Locale
 
 data class BrowserTabSession(
     val tabs: List<BrowserTab>,
@@ -47,15 +49,33 @@ class BrowserTabSessionRepository(
 
     private fun normalizeTabs(tabs: List<BrowserTab>): List<BrowserTab> {
         return tabs
-            .filter { tab -> tab.id > 0L && !tab.url.isNullOrBlank() }
+            .mapNotNull { tab -> normalizeTab(tab) }
             .distinctBy { tab -> tab.id }
             .take(MAX_SESSION_TABS)
-            .map { tab ->
-                tab.copy(
-                    url = tab.url?.trim(),
-                    title = tab.title.trim().take(MAX_TITLE_LENGTH)
-                )
-            }
+    }
+
+    private fun normalizeTab(tab: BrowserTab): BrowserTab? {
+        if (tab.id <= 0L) {
+            return null
+        }
+        val url = normalizeRestorableWebUrl(tab.url) ?: return null
+        return tab.copy(
+            url = url,
+            title = tab.title.trim().take(MAX_TITLE_LENGTH)
+        )
+    }
+
+    private fun normalizeRestorableWebUrl(url: String?): String? {
+        val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return null
+        val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return null
+        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
+        if (scheme != "http" && scheme != "https") {
+            return null
+        }
+        if (uri.host.isNullOrBlank()) {
+            return null
+        }
+        return normalizedUrl
     }
 
     private fun renderSession(activeTabId: Long, tabs: List<BrowserTab>): String {
