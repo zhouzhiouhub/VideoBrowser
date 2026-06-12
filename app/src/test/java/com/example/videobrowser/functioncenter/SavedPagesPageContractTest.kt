@@ -33,6 +33,20 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("R.string.toast_link_copied"))
     }
 
+    @Test
+    fun savedPagesPageCanShareRecordLinks() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        ).readText()
+
+        assertTrue(page.contains("R.string.action_share_page"))
+        assertTrue(page.contains("shareSavedPageUrl(page)"))
+        assertTrue(page.contains("Intent(Intent.ACTION_SEND)"))
+        assertTrue(page.contains("type = \"text/plain\""))
+        assertTrue(page.contains("putExtra(Intent.EXTRA_TEXT, page.url)"))
+        assertTrue(page.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

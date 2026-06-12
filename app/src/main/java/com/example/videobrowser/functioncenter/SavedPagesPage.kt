@@ -3,6 +3,7 @@ package com.example.videobrowser.functioncenter
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
@@ -157,6 +158,9 @@ class SavedPagesPage(
             SavedPageAction(activity.getString(R.string.action_copy_link)) {
                 copySavedPageUrl(page)
             },
+            SavedPageAction(activity.getString(R.string.action_share_page)) {
+                shareSavedPageUrl(page)
+            },
             SavedPageAction(activity.getString(R.string.action_remove)) {
                 savedPageRepository.remove(collection, page.url)
                 Toast.makeText(
@@ -178,6 +182,14 @@ class SavedPagesPage(
             )
         )
         Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shareSavedPageUrl(page: SavedPage) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, page.url)
+        }
+        activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
     }
 
     private fun showClearSavedPagesDialog(collection: SavedPageCollection) {
