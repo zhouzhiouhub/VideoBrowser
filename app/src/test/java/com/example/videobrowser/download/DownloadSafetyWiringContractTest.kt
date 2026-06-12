@@ -20,7 +20,10 @@ class DownloadSafetyWiringContractTest {
         assertTrue(policy.contains("DownloadCategory.APP"))
         assertTrue(policy.contains("requiresInsecureTransportConfirmation(pageUrl: String?, downloadUrl: String)"))
         assertTrue(policy.contains("schemeOf(pageUrl) == \"https\" && schemeOf(downloadUrl) == \"http\""))
+        assertTrue(policy.contains("fun isDownloadableNetworkUrl(url: String): Boolean"))
+        assertTrue(policy.contains("(scheme == \"http\" || scheme == \"https\")"))
         assertTrue(controller.contains("DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)"))
+        assertTrue(controller.contains("DownloadSafetyPolicy.isDownloadableNetworkUrl(url)"))
         assertTrue(controller.contains("DownloadSafetyPolicy.requiresInsecureTransportConfirmation(browserManager().currentUrl(), url)"))
         assertTrue(controller.contains("private fun confirmDownloadIfNeeded("))
         assertTrue(controller.contains("private fun showRiskyDownloadConfirmation"))
@@ -39,6 +42,7 @@ class DownloadSafetyWiringContractTest {
         assertTrue(strings.contains("action_download_anyway"))
         assertTrue(readme.contains("应用安装包类文件下载前会先确认"))
         assertTrue(readme.contains("HTTPS 页面触发 HTTP 明文下载前会先确认"))
+        assertTrue(readme.contains("下载器只接受 HTTP/HTTPS 下载地址"))
     }
 
     private fun projectFile(path: String): File {

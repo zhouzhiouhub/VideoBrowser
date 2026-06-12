@@ -12,10 +12,20 @@ object DownloadSafetyPolicy {
         return schemeOf(pageUrl) == "https" && schemeOf(downloadUrl) == "http"
     }
 
+    fun isDownloadableNetworkUrl(url: String): Boolean {
+        val uri = uriOf(url) ?: return false
+        val scheme = uri.scheme?.lowercase(Locale.ROOT)
+        return (scheme == "http" || scheme == "https") &&
+            !uri.host.isNullOrBlank()
+    }
+
     private fun schemeOf(url: String?): String? {
-        return runCatching {
-            URI(url?.trim().orEmpty()).scheme
-                ?.lowercase(Locale.ROOT)
-        }.getOrNull()
+        return uriOf(url)
+            ?.scheme
+            ?.lowercase(Locale.ROOT)
+    }
+
+    private fun uriOf(url: String?): URI? {
+        return runCatching { URI(url?.trim().orEmpty()) }.getOrNull()
     }
 }

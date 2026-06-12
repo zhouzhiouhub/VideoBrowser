@@ -76,4 +76,14 @@ class DownloadSafetyPolicyTest {
             )
         )
     }
+
+    @Test
+    fun isDownloadableNetworkUrlOnlyAllowsHttpAndHttpsWithHosts() {
+        assertTrue(DownloadSafetyPolicy.isDownloadableNetworkUrl("https://example.com/file.zip"))
+        assertTrue(DownloadSafetyPolicy.isDownloadableNetworkUrl(" http://downloads.example.com/file.zip "))
+        assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("data:text/plain,hello"))
+        assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("file:///sdcard/Download/file.zip"))
+        assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("javascript:alert(1)"))
+        assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("https:/missing-host/file.zip"))
+    }
 }

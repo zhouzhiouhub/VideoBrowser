@@ -101,6 +101,10 @@ class DownloadController(
             Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
             return
         }
+        if (!DownloadSafetyPolicy.isDownloadableNetworkUrl(url)) {
+            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
 
         val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
         confirmDownloadIfNeeded(
