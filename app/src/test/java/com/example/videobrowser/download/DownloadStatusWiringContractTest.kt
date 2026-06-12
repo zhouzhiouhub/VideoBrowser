@@ -17,8 +17,10 @@ class DownloadStatusWiringContractTest {
         assertTrue(controller.contains("DownloadManager.STATUS_SUCCESSFUL"))
         assertTrue(controller.contains("DownloadManager.STATUS_FAILED"))
         assertTrue(controller.contains("DownloadManager.COLUMN_REASON"))
+        assertTrue(controller.contains("DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR"))
+        assertTrue(controller.contains("DownloadManager.COLUMN_TOTAL_SIZE_BYTES"))
         assertTrue(controller.contains("statusReason"))
-        assertTrue(controller.contains("downloadRecordRepository.updateStatus"))
+        assertTrue(controller.contains("downloadRecordRepository.updateSnapshot"))
     }
 
     @Test
@@ -37,10 +39,15 @@ class DownloadStatusWiringContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(downloadsPage.contains("downloadStatusTitleResId(record.status)"))
+        assertTrue(downloadsPage.contains("DownloadStatusSynchronizer"))
+        assertTrue(downloadsPage.contains("queryDownloadStatusSnapshot"))
+        assertTrue(downloadsPage.contains("progressSummary(record)"))
         assertTrue(downloadsPage.contains("downloadFailureReasonText(record.statusReason)"))
         assertTrue(strings.contains("download_status_in_progress"))
         assertTrue(strings.contains("download_status_completed"))
         assertTrue(strings.contains("download_status_failed"))
+        assertTrue(strings.contains("download_progress_percent"))
+        assertTrue(strings.contains("download_progress_downloaded"))
         assertTrue(strings.contains("download_failure_reason"))
     }
 

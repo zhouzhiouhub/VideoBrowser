@@ -166,10 +166,12 @@ class DownloadController(
             return
         }
         val status = queryDownloadStatus(downloadId) ?: return
-        downloadRecordRepository.updateStatus(
-            downloadId,
-            status.status,
-            statusReason = status.statusReason
+        downloadRecordRepository.updateSnapshot(
+            downloadId = downloadId,
+            status = status.status,
+            statusReason = status.statusReason,
+            bytesDownloaded = status.bytesDownloaded,
+            totalBytes = status.totalBytes
         )
     }
 
@@ -178,7 +180,12 @@ class DownloadController(
             activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val cursor = runCatching {
             downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
-        }.getOrNull() ?: return DownloadCompletionStatus(DownloadStatus.FAILED, statusReason = null)
+        }.getOrNull() ?: return DownloadCompletionStatus(
+            status = DownloadStatus.FAILED,
+            statusReason = null,
+            bytesDownloaded = null,
+            totalBytes = null
+        )
 
         cursor.use {
             if (!it.moveToFirst()) {
@@ -192,14 +199,28 @@ class DownloadController(
             val statusReason = reasonColumn
                 .takeIf { column -> column >= 0 }
                 ?.let { column -> it.getInt(column) }
+            val downloadedColumn = it.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+            val totalColumn = it.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+            val bytesDownloaded = downloadedColumn
+                .takeIf { column -> column >= 0 }
+                ?.let { column -> it.getLong(column) }
+                ?.takeIf { value -> value >= 0L }
+            val totalBytes = totalColumn
+                .takeIf { column -> column >= 0 }
+                ?.let { column -> it.getLong(column) }
+                ?.takeIf { value -> value >= 0L }
             return when (it.getInt(statusColumn)) {
                 DownloadManager.STATUS_SUCCESSFUL -> DownloadCompletionStatus(
                     status = DownloadStatus.COMPLETED,
-                    statusReason = null
+                    statusReason = null,
+                    bytesDownloaded = bytesDownloaded,
+                    totalBytes = totalBytes
                 )
                 DownloadManager.STATUS_FAILED -> DownloadCompletionStatus(
                     status = DownloadStatus.FAILED,
-                    statusReason = statusReason
+                    statusReason = statusReason,
+                    bytesDownloaded = bytesDownloaded,
+                    totalBytes = totalBytes
                 )
                 else -> null
             }
@@ -208,6 +229,8 @@ class DownloadController(
 
     private data class DownloadCompletionStatus(
         val status: DownloadStatus,
-        val statusReason: Int?
+        val statusReason: Int?,
+        val bytesDownloaded: Long?,
+        val totalBytes: Long?
     )
 }

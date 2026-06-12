@@ -18,11 +18,32 @@ class DownloadRecordRepository(
         status: DownloadStatus,
         statusReason: Int? = null
     ): Boolean {
+        return updateSnapshot(
+            downloadId = downloadId,
+            status = status,
+            statusReason = statusReason,
+            bytesDownloaded = null,
+            totalBytes = null
+        )
+    }
+
+    fun updateSnapshot(
+        downloadId: Long,
+        status: DownloadStatus,
+        statusReason: Int? = null,
+        bytesDownloaded: Long? = null,
+        totalBytes: Long? = null
+    ): Boolean {
         var updated = false
         val updatedRecords = records().map { record ->
             if (record.downloadId == downloadId) {
                 updated = true
-                record.copy(status = status, statusReason = statusReason)
+                record.copy(
+                    status = status,
+                    statusReason = statusReason,
+                    bytesDownloaded = bytesDownloaded?.takeIf { it >= 0L } ?: record.bytesDownloaded,
+                    totalBytes = totalBytes?.takeIf { it >= 0L } ?: record.totalBytes
+                )
             } else {
                 record
             }
@@ -62,6 +83,7 @@ class DownloadRecordRepository(
         val fields = splitEscaped(line)
         if (fields.size != LEGACY_FIELD_COUNT &&
             fields.size != STATUS_FIELD_COUNT &&
+            fields.size != STATUS_REASON_FIELD_COUNT &&
             fields.size != FIELD_COUNT
         ) {
             return null
@@ -75,8 +97,18 @@ class DownloadRecordRepository(
         } else {
             DownloadStatus.COMPLETED
         }
-        val statusReason = if (fields.size == FIELD_COUNT) {
+        val statusReason = if (fields.size >= STATUS_REASON_FIELD_COUNT) {
             fields[7].takeIf { it.isNotBlank() }?.toIntOrNull()
+        } else {
+            null
+        }
+        val bytesDownloaded = if (fields.size == FIELD_COUNT) {
+            fields[8].takeIf { it.isNotBlank() }?.toLongOrNull()?.takeIf { it >= 0L }
+        } else {
+            null
+        }
+        val totalBytes = if (fields.size == FIELD_COUNT) {
+            fields[9].takeIf { it.isNotBlank() }?.toLongOrNull()?.takeIf { it >= 0L }
         } else {
             null
         }
@@ -88,7 +120,9 @@ class DownloadRecordRepository(
             mimeType = fields[4].takeIf { it.isNotBlank() },
             createdAtMillis = createdAtMillis,
             status = status,
-            statusReason = statusReason
+            statusReason = statusReason,
+            bytesDownloaded = bytesDownloaded,
+            totalBytes = totalBytes
         )
     }
 
@@ -101,7 +135,9 @@ class DownloadRecordRepository(
             record.mimeType.orEmpty(),
             record.createdAtMillis.toString(),
             record.status.storageValue,
-            record.statusReason?.toString().orEmpty()
+            record.statusReason?.toString().orEmpty(),
+            record.bytesDownloaded?.toString().orEmpty(),
+            record.totalBytes?.toString().orEmpty()
         ).joinToString(separator = "\t", transform = ::escape)
     }
 
@@ -156,7 +192,8 @@ class DownloadRecordRepository(
         private const val KEY_DOWNLOAD_RECORDS = "download_records"
         private const val LEGACY_FIELD_COUNT = 6
         private const val STATUS_FIELD_COUNT = 7
-        private const val FIELD_COUNT = 8
+        private const val STATUS_REASON_FIELD_COUNT = 8
+        private const val FIELD_COUNT = 10
         private const val RECORD_LIMIT = 80
     }
 }

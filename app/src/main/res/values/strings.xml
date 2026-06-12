@@ -148,6 +148,8 @@
     <string name="download_status_in_progress">下载中</string>
     <string name="download_status_completed">已完成</string>
     <string name="download_status_failed">失败</string>
+    <string name="download_progress_percent">进度 %1$d%%（%2$s / %3$s）</string>
+    <string name="download_progress_downloaded">已下载 %1$s</string>
     <string name="download_failure_reason">原因 %1$d</string>
     <string name="action_clear_playback_history_summary">清空原生播放器进度记录</string>
     <string name="action_new_folder">新建文件夹</string>
@@ -209,6 +211,7 @@
     <string name="site_security_not_secure">连接不安全</string>
     <string name="action_open_page">打开页面</string>
     <string name="action_clear_saved_pages_summary">清空当前列表</string>
+    <string name="action_refresh_download_records_summary">刷新进行中的下载状态和进度</string>
     <string name="action_search_saved_pages">搜索</string>
     <string name="action_search_saved_pages_summary">按标题或网址过滤当前列表</string>
     <string name="action_clear_search">清除搜索</string>

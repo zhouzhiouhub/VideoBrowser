@@ -78,6 +78,61 @@ class DownloadRecordRepositoryTest {
     }
 
     @Test
+    fun recordsPersistProgressSnapshot() {
+        val store = InMemoryPreferenceStore()
+        val repository = DownloadRecordRepository(store)
+        repository.add(
+            record(
+                id = 13L,
+                fileName = "progress.zip",
+                createdAtMillis = 130L,
+                status = DownloadStatus.IN_PROGRESS
+            )
+        )
+
+        assertEquals(
+            true,
+            repository.updateSnapshot(
+                downloadId = 13L,
+                status = DownloadStatus.IN_PROGRESS,
+                bytesDownloaded = 512L,
+                totalBytes = 1024L
+            )
+        )
+
+        val reloaded = DownloadRecordRepository(store).records().single()
+        assertEquals(512L, reloaded.bytesDownloaded)
+        assertEquals(1024L, reloaded.totalBytes)
+        assertEquals(50, reloaded.progress.percent())
+    }
+
+    @Test
+    fun statusUpdatesPreserveExistingProgressSnapshot() {
+        val repository = DownloadRecordRepository(InMemoryPreferenceStore())
+        repository.add(
+            record(
+                id = 14L,
+                fileName = "done.zip",
+                createdAtMillis = 140L,
+                status = DownloadStatus.IN_PROGRESS
+            )
+        )
+        repository.updateSnapshot(
+            downloadId = 14L,
+            status = DownloadStatus.IN_PROGRESS,
+            bytesDownloaded = 100L,
+            totalBytes = 200L
+        )
+
+        repository.updateStatus(14L, DownloadStatus.COMPLETED)
+
+        val record = repository.records().single()
+        assertEquals(DownloadStatus.COMPLETED, record.status)
+        assertEquals(100L, record.bytesDownloaded)
+        assertEquals(200L, record.totalBytes)
+    }
+
+    @Test
     fun legacyRecordsWithoutStatusAreReadAsCompleted() {
         val store = InMemoryPreferenceStore()
         store.putString(
@@ -103,6 +158,23 @@ class DownloadRecordRepositoryTest {
 
         assertEquals(DownloadStatus.FAILED, repository.records().single().status)
         assertEquals(null, repository.records().single().statusReason)
+    }
+
+    @Test
+    fun reasonRecordsWithoutProgressRemainCompatible() {
+        val store = InMemoryPreferenceStore()
+        store.putString(
+            "download_records",
+            "15\treason.zip\thttps://example.com/reason.zip\treason.zip\tapplication/zip\t150\tfailed\t1006"
+        )
+
+        val repository = DownloadRecordRepository(store)
+
+        val record = repository.records().single()
+        assertEquals(DownloadStatus.FAILED, record.status)
+        assertEquals(1006, record.statusReason)
+        assertEquals(null, record.bytesDownloaded)
+        assertEquals(null, record.totalBytes)
     }
 
     @Test

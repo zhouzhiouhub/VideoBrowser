@@ -4,6 +4,7 @@ import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
@@ -14,6 +15,8 @@ import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.download.DownloadRetryPolicy
 import com.example.videobrowser.download.DownloadStatus
+import com.example.videobrowser.download.DownloadStatusSnapshot
+import com.example.videobrowser.download.DownloadStatusSynchronizer
 import com.example.videobrowser.utils.UrlUtils
 import java.text.DateFormat
 import java.util.Date
@@ -27,7 +30,7 @@ class DownloadsPage(
     private val activity = host.activity
 
     fun show(replaceCurrent: Boolean = false) {
-        val records = downloadRecordRepository.records()
+        val records = refreshDownloadRecords()
 
         host.showPage(
             title = activity.getString(R.string.title_downloads),
@@ -39,6 +42,13 @@ class DownloadsPage(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
+                    host.addActionRow(
+                        parent = section,
+                        title = activity.getString(R.string.action_refresh),
+                        summary = activity.getString(R.string.action_refresh_download_records_summary)
+                    ) {
+                        show(replaceCurrent = true)
+                    }
                     host.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_clear),
@@ -82,6 +92,13 @@ class DownloadsPage(
                 }
             }
         }
+    }
+
+    private fun refreshDownloadRecords(): List<DownloadRecord> {
+        return DownloadStatusSynchronizer(
+            repository = downloadRecordRepository,
+            querySnapshot = ::queryDownloadStatusSnapshot
+        ).refresh()
     }
 
     private fun confirmClearRecords() {
@@ -134,6 +151,7 @@ class DownloadsPage(
         val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
             .format(Date(record.createdAtMillis))
         val status = activity.getString(downloadStatusTitleResId(record.status))
+        val progress = progressSummary(record)
         val failureReason = if (record.status == DownloadStatus.FAILED) {
             downloadFailureReasonText(record.statusReason)
         } else {
@@ -144,8 +162,32 @@ class DownloadsPage(
         } else {
             null
         }
-        return listOfNotNull(status, failureReason, retryAction, createdAt, UrlUtils.displayUrl(record.sourceUrl))
+        return listOfNotNull(status, progress, failureReason, retryAction, createdAt, UrlUtils.displayUrl(record.sourceUrl))
             .joinToString(" | ")
+    }
+
+    private fun progressSummary(record: DownloadRecord): String? {
+        val progress = record.progress
+        val downloaded = record.bytesDownloaded
+        val total = record.totalBytes
+        val percent = progress.percent()
+        return when {
+            percent != null && downloaded != null && total != null -> {
+                activity.getString(
+                    R.string.download_progress_percent,
+                    percent,
+                    BrowserDataDisplayFormatter.formatBytes(downloaded),
+                    BrowserDataDisplayFormatter.formatBytes(total)
+                )
+            }
+            progress.hasDownloadedBytes && downloaded != null -> {
+                activity.getString(
+                    R.string.download_progress_downloaded,
+                    BrowserDataDisplayFormatter.formatBytes(downloaded)
+                )
+            }
+            else -> null
+        }
     }
 
     private fun downloadFailureReasonText(statusReason: Int?): String? {
@@ -171,6 +213,60 @@ class DownloadsPage(
             DownloadCategory.APP -> R.string.download_category_app
             DownloadCategory.ARCHIVE -> R.string.download_category_archive
             DownloadCategory.OTHER -> R.string.download_category_other
+        }
+    }
+
+    private fun queryDownloadStatusSnapshot(downloadId: Long): DownloadStatusSnapshot? {
+        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val cursor = runCatching {
+            downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
+        }.getOrNull() ?: return null
+        return cursor.use(::snapshotFromCursor)
+    }
+
+    private fun snapshotFromCursor(cursor: Cursor): DownloadStatusSnapshot? {
+        if (!cursor.moveToFirst()) {
+            return null
+        }
+        val statusColumn = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+        if (statusColumn < 0) {
+            return null
+        }
+        val reasonColumn = cursor.getColumnIndex(DownloadManager.COLUMN_REASON)
+        val downloadedColumn = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+        val totalColumn = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+        val statusReason = reasonColumn
+            .takeIf { column -> column >= 0 }
+            ?.let { column -> cursor.getInt(column) }
+        val bytesDownloaded = downloadedColumn
+            .takeIf { column -> column >= 0 }
+            ?.let { column -> cursor.getLong(column) }
+            ?.takeIf { value -> value >= 0L }
+        val totalBytes = totalColumn
+            .takeIf { column -> column >= 0 }
+            ?.let { column -> cursor.getLong(column) }
+            ?.takeIf { value -> value >= 0L }
+
+        return when (cursor.getInt(statusColumn)) {
+            DownloadManager.STATUS_SUCCESSFUL -> DownloadStatusSnapshot(
+                status = DownloadStatus.COMPLETED,
+                bytesDownloaded = bytesDownloaded,
+                totalBytes = totalBytes
+            )
+            DownloadManager.STATUS_FAILED -> DownloadStatusSnapshot(
+                status = DownloadStatus.FAILED,
+                statusReason = statusReason,
+                bytesDownloaded = bytesDownloaded,
+                totalBytes = totalBytes
+            )
+            DownloadManager.STATUS_PENDING,
+            DownloadManager.STATUS_PAUSED,
+            DownloadManager.STATUS_RUNNING -> DownloadStatusSnapshot(
+                status = DownloadStatus.IN_PROGRESS,
+                bytesDownloaded = bytesDownloaded,
+                totalBytes = totalBytes
+            )
+            else -> null
         }
     }
 }
