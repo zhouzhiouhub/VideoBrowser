@@ -2,6 +2,8 @@ package com.example.videobrowser
 
 import android.Manifest
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -633,6 +635,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupBrowserWebViews() {
         standardWebView = views.webView
+        configureLinkContextMenu(standardWebView)
         standardBrowserManager = BrowserManager(standardWebView)
         standardTabWebViews = BrowserTabWebViewRegistry(
             tabs = standardTabStore,
@@ -729,6 +732,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode) {
         privateBrowsingActive = mode == BrowserMode.PRIVATE
+        configureLinkContextMenu(activeWebView)
         if (::browserControlsScrollController.isInitialized) {
             browserControlsScrollController.attachToWebView(activeWebView)
         }
@@ -1776,6 +1780,64 @@ class MainActivity : AppCompatActivity() {
 
     private fun openExternalUrl(url: String) {
         externalNavigator.openExternalUrl(url)
+    }
+
+    private fun configureLinkContextMenu(targetWebView: WebView) {
+        targetWebView.setOnLongClickListener { view ->
+            val linkUrl = linkHitTestUrl((view as? WebView)?.hitTestResult)
+                ?: return@setOnLongClickListener false
+            showLinkContextMenu(linkUrl)
+            true
+        }
+    }
+
+    private fun linkHitTestUrl(hitTestResult: WebView.HitTestResult?): String? {
+        val type = hitTestResult?.type ?: return null
+        if (type != WebView.HitTestResult.SRC_ANCHOR_TYPE &&
+            type != WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE
+        ) {
+            return null
+        }
+        return hitTestResult.extra
+            ?.trim()
+            ?.takeIf(::isShareableUrl)
+    }
+
+    private fun showLinkContextMenu(url: String) {
+        val actions = arrayOf(
+            getString(R.string.action_open_link_new_tab),
+            getString(R.string.action_copy_link),
+            getString(R.string.action_share_link),
+            getString(R.string.action_open_external)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_link_context_menu)
+            .setItems(actions) { dialog, which ->
+                when (which) {
+                    0 -> openUrlInNewTab(url)
+                    1 -> copyLinkUrl(url)
+                    2 -> shareLinkUrl(url)
+                    3 -> openExternalUrl(url)
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun copyLinkUrl(url: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText(getString(R.string.clipboard_page_url), url)
+        )
+        Toast.makeText(this, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shareLinkUrl(url: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        startActivity(Intent.createChooser(intent, getString(R.string.action_share_link)))
     }
 
     private fun openNativePlayer(

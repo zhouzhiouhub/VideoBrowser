@@ -136,8 +136,11 @@
     <string name="action_close_all_tabs_summary">关闭所有当前标签并打开一个新标签页</string>
     <string name="tab_current">当前标签</string>
     <string name="tab_untitled">新标签页</string>
+    <string name="title_link_context_menu">链接操作</string>
+    <string name="action_open_link_new_tab">新标签页打开</string>
     <string name="action_copy_link">复制链接</string>
     <string name="action_copy_link_summary">复制当前页面地址</string>
+    <string name="action_share_link">分享链接</string>
     <string name="action_find_in_page">页内查找</string>
     <string name="action_find_in_page_summary">在当前网页中搜索文字</string>
     <string name="action_share_page">分享页面</string>
