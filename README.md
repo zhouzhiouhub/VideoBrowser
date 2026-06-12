@@ -788,6 +788,7 @@ browser_preferences
 
 - 最多 10 条。
 - URL 必须是 `http` 或 `https`。
+- 首页快捷入口可长按移除。
 
 相关代码：
 

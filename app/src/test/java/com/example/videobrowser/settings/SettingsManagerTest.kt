@@ -537,6 +537,21 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun customShortcuts_canBeRemoved() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+        assertTrue(settings.addCustomShortcut("Video", "https://video.example.com"))
+        assertTrue(settings.addCustomShortcut("Docs", "https://docs.example.com"))
+
+        assertTrue(settings.removeCustomShortcut(CustomShortcut(" Video ", " https://video.example.com ")))
+        assertFalse(settings.removeCustomShortcut(CustomShortcut("Missing", "https://missing.example.com")))
+
+        assertEquals(
+            listOf(CustomShortcut("Docs", "https://docs.example.com")),
+            settings.customShortcuts()
+        )
+    }
+
+    @Test
     fun customShortcuts_rejectInvalidInputAndFilterCorruptStorage() {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)

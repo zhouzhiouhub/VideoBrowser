@@ -464,6 +464,17 @@ class SettingsManager(
         return true
     }
 
+    fun removeCustomShortcut(shortcut: CustomShortcut): Boolean {
+        val normalizedShortcut = normalizeCustomShortcut(shortcut.name, shortcut.url) ?: return false
+        val shortcuts = customShortcuts()
+        val remainingShortcuts = shortcuts.filterNot { existing -> existing == normalizedShortcut }
+        if (remainingShortcuts.size == shortcuts.size) {
+            return false
+        }
+        saveCustomShortcuts(remainingShortcuts)
+        return true
+    }
+
     fun isDesktopModeEnabled(): Boolean {
         return preferenceStore.getBoolean(KEY_DESKTOP_MODE, DEFAULT_DESKTOP_MODE_ENABLED)
     }

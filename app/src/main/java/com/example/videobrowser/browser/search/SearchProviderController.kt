@@ -175,6 +175,10 @@ class SearchProviderController(
             setPadding(dp(4), 0, dp(4), 0)
             setBoundedSelectableItemBackground()
             setOnClickListener { openCustomShortcut(shortcut.url) }
+            setOnLongClickListener {
+                showRemoveCustomShortcutDialog(shortcut)
+                true
+            }
         }
     }
 
@@ -379,6 +383,29 @@ class SearchProviderController(
             }
         }
         dialog.show()
+    }
+
+    private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.title_remove_custom_shortcut)
+            .setMessage(
+                activity.getString(
+                    R.string.dialog_remove_custom_shortcut_message,
+                    shortcut.name
+                )
+            )
+            .setPositiveButton(R.string.action_remove) { _, _ ->
+                if (settingsManager.removeCustomShortcut(shortcut)) {
+                    setup()
+                    Toast.makeText(
+                        activity,
+                        R.string.toast_custom_shortcut_removed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun providerItemLayoutParams(): LinearLayout.LayoutParams {
