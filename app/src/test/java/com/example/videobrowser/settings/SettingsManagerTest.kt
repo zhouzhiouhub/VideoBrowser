@@ -114,6 +114,9 @@ class SettingsManagerTest {
         settings.setVideoEnhancementDisabledForSite("video.example.com", true)
         settings.setSmartNoImageDisabledForSite("video.example.com", true)
         settings.setUserWhitelistedSite("ads.example.com", true)
+        settings.setSitePermissionDecision("camera.example.com", SitePermission.CAMERA, SitePermissionDecision.ALLOW)
+        settings.setSitePermissionDecision("mic.example.com", SitePermission.MICROPHONE, SitePermissionDecision.BLOCK)
+        settings.setSitePermissionDecision("maps.example.com", SitePermission.LOCATION, SitePermissionDecision.ALLOW)
         settings.addUserElementHideSelectorForSite("video.example.com", "#ad")
         settings.setJsInjectionEnabled(false)
         settings.setSmartNoImageEnabled(true)
@@ -132,6 +135,18 @@ class SettingsManagerTest {
         assertFalse(settings.isVideoEnhancementDisabledForSite("video.example.com"))
         assertFalse(settings.isSmartNoImageDisabledForSite("video.example.com"))
         assertFalse(settings.isUserWhitelistedSite("ads.example.com"))
+        assertEquals(
+            SitePermissionDecision.ASK,
+            settings.sitePermissionDecision("camera.example.com", SitePermission.CAMERA)
+        )
+        assertEquals(
+            SitePermissionDecision.ASK,
+            settings.sitePermissionDecision("mic.example.com", SitePermission.MICROPHONE)
+        )
+        assertEquals(
+            SitePermissionDecision.ASK,
+            settings.sitePermissionDecision("maps.example.com", SitePermission.LOCATION)
+        )
         assertTrue(settings.userElementHideSelectorsForSite("video.example.com").isEmpty())
         assertTrue(settings.isJsInjectionEnabled())
         assertFalse(settings.isSmartNoImageEnabled())
@@ -242,6 +257,77 @@ class SettingsManagerTest {
         settings.clearUserWhitelistedSites()
 
         assertTrue(settings.userWhitelistedSiteHosts().isEmpty())
+    }
+
+    @Test
+    fun sitePermissionDecisions_areNormalizedPersistedAndMutuallyExclusive() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(
+            settings.setSitePermissionDecision(
+                " Camera.Example.COM. ",
+                SitePermission.CAMERA,
+                SitePermissionDecision.ALLOW
+            )
+        )
+        assertTrue(
+            settings.setSitePermissionDecision(
+                " Mic.Example.COM. ",
+                SitePermission.MICROPHONE,
+                SitePermissionDecision.BLOCK
+            )
+        )
+        assertTrue(
+            settings.setSitePermissionDecision(
+                " Maps.Example.COM. ",
+                SitePermission.LOCATION,
+                SitePermissionDecision.ALLOW
+            )
+        )
+
+        val reloaded = SettingsManager(store)
+        assertEquals(
+            SitePermissionDecision.ALLOW,
+            reloaded.sitePermissionDecision("camera.example.com", SitePermission.CAMERA)
+        )
+        assertEquals(
+            SitePermissionDecision.BLOCK,
+            reloaded.sitePermissionDecision("mic.example.com", SitePermission.MICROPHONE)
+        )
+        assertEquals(
+            SitePermissionDecision.ALLOW,
+            reloaded.sitePermissionDecision("maps.example.com", SitePermission.LOCATION)
+        )
+        assertEquals(setOf("camera.example.com"), reloaded.allowedSitePermissionHosts(SitePermission.CAMERA))
+        assertEquals(setOf("mic.example.com"), reloaded.blockedSitePermissionHosts(SitePermission.MICROPHONE))
+
+        assertTrue(
+            reloaded.setSitePermissionDecision(
+                "camera.example.com",
+                SitePermission.CAMERA,
+                SitePermissionDecision.BLOCK
+            )
+        )
+        assertEquals(
+            SitePermissionDecision.BLOCK,
+            reloaded.sitePermissionDecision("camera.example.com", SitePermission.CAMERA)
+        )
+        assertTrue(reloaded.allowedSitePermissionHosts(SitePermission.CAMERA).isEmpty())
+        assertEquals(setOf("camera.example.com"), reloaded.blockedSitePermissionHosts(SitePermission.CAMERA))
+
+        assertTrue(
+            reloaded.setSitePermissionDecision(
+                "camera.example.com",
+                SitePermission.CAMERA,
+                SitePermissionDecision.ASK
+            )
+        )
+        assertEquals(
+            SitePermissionDecision.ASK,
+            reloaded.sitePermissionDecision("camera.example.com", SitePermission.CAMERA)
+        )
+        assertTrue(reloaded.blockedSitePermissionHosts(SitePermission.CAMERA).isEmpty())
     }
 
     @Test

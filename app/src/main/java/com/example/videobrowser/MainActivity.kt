@@ -85,6 +85,8 @@ import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.settings.SitePermission
+import com.example.videobrowser.settings.SitePermissionDecision
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
@@ -207,7 +209,7 @@ class MainActivity : AppCompatActivity() {
                     grants[permission] == true || hasAndroidPermission(permission)
                 }
             ) {
-                showWebPermissionPrompt(request)
+                handleWebPermissionRequestAfterAndroidPermission(request)
             } else {
                 request.deny()
             }
@@ -223,7 +225,7 @@ class MainActivity : AppCompatActivity() {
                 grants[permission] == true || hasAndroidPermission(permission)
             }
             if (allowed) {
-                showGeolocationPermissionPrompt(prompt)
+                handleGeolocationPermissionAfterAndroidPermission(prompt)
             } else {
                 denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
             }
@@ -854,11 +856,15 @@ class MainActivity : AppCompatActivity() {
             request.deny()
             return
         }
+        if (webPermissionDecision(request) == SitePermissionDecision.BLOCK) {
+            request.deny()
+            return
+        }
         val missingPermissions = requiredPermissions
             .filterNot(::hasAndroidPermission)
             .toTypedArray()
         if (missingPermissions.isEmpty()) {
-            showWebPermissionPrompt(request)
+            handleWebPermissionRequestAfterAndroidPermission(request)
             return
         }
 
@@ -866,6 +872,14 @@ class MainActivity : AppCompatActivity() {
         cancelPendingWebPermissionPrompt()
         pendingWebPermissionRequest = request
         webPermissionLauncher.launch(missingPermissions)
+    }
+
+    private fun handleWebPermissionRequestAfterAndroidPermission(request: PermissionRequest) {
+        when (webPermissionDecision(request)) {
+            SitePermissionDecision.ALLOW -> request.grant(request.resources)
+            SitePermissionDecision.BLOCK -> request.deny()
+            SitePermissionDecision.ASK -> showWebPermissionPrompt(request)
+        }
     }
 
     private fun handleWebPermissionRequestCanceled(request: PermissionRequest?) {
@@ -922,8 +936,10 @@ class MainActivity : AppCompatActivity() {
         pendingWebPermissionPromptRequest = null
         pendingWebPermissionDialog = null
         if (allowed) {
+            saveWebPermissionDecision(request, allowed = true)
             request.grant(request.resources)
         } else {
+            saveWebPermissionDecision(request, allowed = false)
             request.deny()
         }
     }
@@ -958,20 +974,66 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun webPermissionDecision(request: PermissionRequest): SitePermissionDecision {
+        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return SitePermissionDecision.ASK
+        val decisions = request.resources
+            .mapNotNull(::sitePermissionForWebResource)
+            .map { permission -> settingsManager.sitePermissionDecision(hostName, permission) }
+        return when {
+            decisions.any { decision -> decision == SitePermissionDecision.BLOCK } -> SitePermissionDecision.BLOCK
+            decisions.isNotEmpty() &&
+                decisions.all { decision -> decision == SitePermissionDecision.ALLOW } -> SitePermissionDecision.ALLOW
+            else -> SitePermissionDecision.ASK
+        }
+    }
+
+    private fun saveWebPermissionDecision(request: PermissionRequest, allowed: Boolean) {
+        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
+        val decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
+        request.resources
+            .mapNotNull(::sitePermissionForWebResource)
+            .forEach { permission ->
+                settingsManager.setSitePermissionDecision(hostName, permission, decision)
+            }
+    }
+
+    private fun sitePermissionForWebResource(resource: String): SitePermission? {
+        return when (resource) {
+            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> SitePermission.CAMERA
+            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> SitePermission.MICROPHONE
+            else -> null
+        }
+    }
+
     private fun handleGeolocationPermissionRequest(
         origin: String?,
         callback: GeolocationPermissions.Callback?
     ) {
         callback ?: return
+        val siteDecision = geolocationPermissionDecision(origin)
+        if (siteDecision == SitePermissionDecision.BLOCK) {
+            denyGeolocationPermissionPrompt(origin, callback)
+            return
+        }
         val permissions = geolocationAndroidPermissions()
         if (permissions.any(::hasAndroidPermission)) {
-            showGeolocationPermissionPrompt(GeolocationPermissionPrompt(origin, callback))
+            handleGeolocationPermissionAfterAndroidPermission(
+                GeolocationPermissionPrompt(origin, callback)
+            )
             return
         }
 
         cancelPendingGeolocationPermissionPrompt()
         pendingGeolocationPermissionPrompt = GeolocationPermissionPrompt(origin, callback)
         geolocationPermissionLauncher.launch(permissions)
+    }
+
+    private fun handleGeolocationPermissionAfterAndroidPermission(prompt: GeolocationPermissionPrompt) {
+        when (geolocationPermissionDecision(prompt.origin)) {
+            SitePermissionDecision.ALLOW -> prompt.callback.invoke(prompt.origin, true, false)
+            SitePermissionDecision.BLOCK -> denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
+            SitePermissionDecision.ASK -> showGeolocationPermissionPrompt(prompt)
+        }
     }
 
     private fun handleGeolocationPermissionHidden() {
@@ -1029,7 +1091,22 @@ class MainActivity : AppCompatActivity() {
         }
         pendingGeolocationSitePrompt = null
         pendingGeolocationDialog = null
+        saveGeolocationPermissionDecision(prompt.origin, allowed)
         prompt.callback.invoke(prompt.origin, allowed, false)
+    }
+
+    private fun geolocationPermissionDecision(origin: String?): SitePermissionDecision {
+        val hostName = SiteHost.fromUrl(origin) ?: return SitePermissionDecision.ASK
+        return settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)
+    }
+
+    private fun saveGeolocationPermissionDecision(origin: String?, allowed: Boolean) {
+        val hostName = SiteHost.fromUrl(origin) ?: return
+        settingsManager.setSitePermissionDecision(
+            host = hostName,
+            permission = SitePermission.LOCATION,
+            decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
+        )
     }
 
     private fun denyGeolocationPermissionPrompt(

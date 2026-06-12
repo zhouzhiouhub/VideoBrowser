@@ -15,6 +15,18 @@ data class CustomShortcut(
     val url: String
 )
 
+enum class SitePermission {
+    CAMERA,
+    MICROPHONE,
+    LOCATION
+}
+
+enum class SitePermissionDecision {
+    ASK,
+    ALLOW,
+    BLOCK
+}
+
 class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
@@ -174,6 +186,45 @@ class SettingsManager(
 
     fun clearUserWhitelistedSites() {
         preferenceStore.remove(KEY_USER_WHITELISTED_SITE_HOSTS)
+    }
+
+    fun sitePermissionDecision(host: String?, permission: SitePermission): SitePermissionDecision {
+        val normalizedHost = SiteHost.normalize(host) ?: return SitePermissionDecision.ASK
+        return when {
+            allowedSitePermissionHosts(permission).contains(normalizedHost) -> SitePermissionDecision.ALLOW
+            blockedSitePermissionHosts(permission).contains(normalizedHost) -> SitePermissionDecision.BLOCK
+            else -> SitePermissionDecision.ASK
+        }
+    }
+
+    fun setSitePermissionDecision(
+        host: String?,
+        permission: SitePermission,
+        decision: SitePermissionDecision
+    ): Boolean {
+        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val allowedHosts = allowedSitePermissionHosts(permission).toMutableSet()
+        val blockedHosts = blockedSitePermissionHosts(permission).toMutableSet()
+
+        allowedHosts.remove(normalizedHost)
+        blockedHosts.remove(normalizedHost)
+        when (decision) {
+            SitePermissionDecision.ALLOW -> allowedHosts.add(normalizedHost)
+            SitePermissionDecision.BLOCK -> blockedHosts.add(normalizedHost)
+            SitePermissionDecision.ASK -> Unit
+        }
+
+        saveHostSet(sitePermissionAllowedKey(permission), allowedHosts)
+        saveHostSet(sitePermissionBlockedKey(permission), blockedHosts)
+        return true
+    }
+
+    fun allowedSitePermissionHosts(permission: SitePermission): Set<String> {
+        return loadHostSet(sitePermissionAllowedKey(permission))
+    }
+
+    fun blockedSitePermissionHosts(permission: SitePermission): Set<String> {
+        return loadHostSet(sitePermissionBlockedKey(permission))
     }
 
     fun userElementHideSelectorsForSite(host: String?): List<String> {
@@ -383,6 +434,22 @@ class SettingsManager(
         }
     }
 
+    private fun sitePermissionAllowedKey(permission: SitePermission): String {
+        return when (permission) {
+            SitePermission.CAMERA -> KEY_SITE_PERMISSION_CAMERA_ALLOWED_HOSTS
+            SitePermission.MICROPHONE -> KEY_SITE_PERMISSION_MICROPHONE_ALLOWED_HOSTS
+            SitePermission.LOCATION -> KEY_SITE_PERMISSION_LOCATION_ALLOWED_HOSTS
+        }
+    }
+
+    private fun sitePermissionBlockedKey(permission: SitePermission): String {
+        return when (permission) {
+            SitePermission.CAMERA -> KEY_SITE_PERMISSION_CAMERA_BLOCKED_HOSTS
+            SitePermission.MICROPHONE -> KEY_SITE_PERMISSION_MICROPHONE_BLOCKED_HOSTS
+            SitePermission.LOCATION -> KEY_SITE_PERMISSION_LOCATION_BLOCKED_HOSTS
+        }
+    }
+
     private fun parseUserElementHideRule(line: String): UserElementHideRule? {
         val separatorIndex = line.indexOf('\t')
         if (separatorIndex <= 0 || separatorIndex >= line.lastIndex) {
@@ -529,6 +596,18 @@ class SettingsManager(
         private const val KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS =
             "site_smart_no_image_disabled_hosts"
         private const val KEY_USER_WHITELISTED_SITE_HOSTS = "user_whitelisted_site_hosts"
+        private const val KEY_SITE_PERMISSION_CAMERA_ALLOWED_HOSTS =
+            "site_permission_camera_allowed_hosts"
+        private const val KEY_SITE_PERMISSION_CAMERA_BLOCKED_HOSTS =
+            "site_permission_camera_blocked_hosts"
+        private const val KEY_SITE_PERMISSION_MICROPHONE_ALLOWED_HOSTS =
+            "site_permission_microphone_allowed_hosts"
+        private const val KEY_SITE_PERMISSION_MICROPHONE_BLOCKED_HOSTS =
+            "site_permission_microphone_blocked_hosts"
+        private const val KEY_SITE_PERMISSION_LOCATION_ALLOWED_HOSTS =
+            "site_permission_location_allowed_hosts"
+        private const val KEY_SITE_PERMISSION_LOCATION_BLOCKED_HOSTS =
+            "site_permission_location_blocked_hosts"
         private const val KEY_USER_ELEMENT_HIDE_RULES = "user_element_hide_rules"
         private const val KEY_JS_INJECTION = "js_injection"
         private const val KEY_DOM_AD_BLOCK = "page_cleanup"
@@ -556,6 +635,12 @@ class SettingsManager(
             KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS,
             KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS,
             KEY_USER_WHITELISTED_SITE_HOSTS,
+            KEY_SITE_PERMISSION_CAMERA_ALLOWED_HOSTS,
+            KEY_SITE_PERMISSION_CAMERA_BLOCKED_HOSTS,
+            KEY_SITE_PERMISSION_MICROPHONE_ALLOWED_HOSTS,
+            KEY_SITE_PERMISSION_MICROPHONE_BLOCKED_HOSTS,
+            KEY_SITE_PERMISSION_LOCATION_ALLOWED_HOSTS,
+            KEY_SITE_PERMISSION_LOCATION_BLOCKED_HOSTS,
             KEY_USER_ELEMENT_HIDE_RULES,
             KEY_JS_INJECTION,
             KEY_DOM_AD_BLOCK,

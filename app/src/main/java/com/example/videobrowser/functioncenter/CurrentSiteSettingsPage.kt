@@ -2,9 +2,12 @@ package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.settings.SitePermission
+import com.example.videobrowser.settings.SitePermissionDecision
 
 class CurrentSiteSettingsPage(
     private val host: FunctionCenterPageHost,
@@ -154,6 +157,12 @@ class CurrentSiteSettingsPage(
 
             host.addDivider(section)
 
+            addSitePermissionRow(section, siteHost, hasSite, SitePermission.CAMERA)
+            addSitePermissionRow(section, siteHost, hasSite, SitePermission.MICROPHONE)
+            addSitePermissionRow(section, siteHost, hasSite, SitePermission.LOCATION)
+
+            host.addDivider(section)
+
             host.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_add_site_rule),
@@ -288,6 +297,21 @@ class CurrentSiteSettingsPage(
                 )
                 host.addInfoRow(
                     parent = section,
+                    title = sitePermissionTitle(SitePermission.CAMERA),
+                    summary = currentSitePermissionSummary(siteHost, SitePermission.CAMERA)
+                )
+                host.addInfoRow(
+                    parent = section,
+                    title = sitePermissionTitle(SitePermission.MICROPHONE),
+                    summary = currentSitePermissionSummary(siteHost, SitePermission.MICROPHONE)
+                )
+                host.addInfoRow(
+                    parent = section,
+                    title = sitePermissionTitle(SitePermission.LOCATION),
+                    summary = currentSitePermissionSummary(siteHost, SitePermission.LOCATION)
+                )
+                host.addInfoRow(
+                    parent = section,
                     title = activity.getString(R.string.action_add_site_rule),
                     summary = activity.getString(
                         R.string.site_config_rule_count,
@@ -296,6 +320,78 @@ class CurrentSiteSettingsPage(
                 )
             }
         }
+    }
+
+    private fun addSitePermissionRow(
+        section: LinearLayout,
+        siteHost: String?,
+        hasSite: Boolean,
+        permission: SitePermission
+    ) {
+        host.addActionRow(
+            parent = section,
+            title = sitePermissionTitle(permission),
+            summary = currentSitePermissionSummary(siteHost, permission),
+            enabled = hasSite
+        ) {
+            showSitePermissionDialog(permission)
+        }
+    }
+
+    private fun showSitePermissionDialog(permission: SitePermission) {
+        val hostName = currentSiteHost() ?: return
+        val decisions = SitePermissionDecision.entries
+        val labels = decisions
+            .map { decision -> sitePermissionDecisionText(decision) }
+            .toTypedArray()
+        val checkedIndex = decisions.indexOf(settingsManager.sitePermissionDecision(hostName, permission))
+
+        AlertDialog.Builder(activity)
+            .setTitle(sitePermissionTitle(permission))
+            .setSingleChoiceItems(labels, checkedIndex) { dialog, index ->
+                val decision = decisions[index]
+                settingsManager.setSitePermissionDecision(hostName, permission, decision)
+                Toast.makeText(
+                    activity,
+                    activity.getString(
+                        R.string.toast_site_permission_updated,
+                        sitePermissionTitle(permission),
+                        hostName
+                    ),
+                    Toast.LENGTH_SHORT
+                ).show()
+                dialog.dismiss()
+                show(replaceCurrent = true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun currentSitePermissionSummary(siteHost: String?, permission: SitePermission): String {
+        return siteHost
+            ?.let { hostName -> settingsManager.sitePermissionDecision(hostName, permission) }
+            ?.let(::sitePermissionDecisionText)
+            ?: activity.getString(R.string.function_center_site_action_unavailable)
+    }
+
+    private fun sitePermissionTitle(permission: SitePermission): String {
+        return activity.getString(
+            when (permission) {
+                SitePermission.CAMERA -> R.string.setting_site_permission_camera
+                SitePermission.MICROPHONE -> R.string.setting_site_permission_microphone
+                SitePermission.LOCATION -> R.string.setting_site_permission_location
+            }
+        )
+    }
+
+    private fun sitePermissionDecisionText(decision: SitePermissionDecision): String {
+        return activity.getString(
+            when (decision) {
+                SitePermissionDecision.ASK -> R.string.site_permission_ask
+                SitePermissionDecision.ALLOW -> R.string.site_permission_allowed
+                SitePermissionDecision.BLOCK -> R.string.site_permission_blocked
+            }
+        )
     }
 
     private fun currentSiteFeatureStatus(globalEnabled: Boolean, siteDisabled: Boolean): String {

@@ -76,6 +76,9 @@
     <string name="setting_smart_no_image">智能无图</string>
     <string name="setting_smart_no_image_summary">拦截网页图片请求，保留文字、脚本和视频加载</string>
     <string name="setting_current_site_smart_no_image">智能无图</string>
+    <string name="setting_site_permission_camera">摄像头权限</string>
+    <string name="setting_site_permission_microphone">麦克风权限</string>
+    <string name="setting_site_permission_location">位置权限</string>
     <string name="setting_js_injection">网页脚本增强</string>
     <string name="setting_js_injection_summary">允许执行内置 common.js 和站点适配脚本</string>
     <string name="setting_current_site_js_injection">脚本增强</string>
@@ -265,6 +268,9 @@
     <string name="site_config_whitelisted">已加入白名单</string>
     <string name="site_config_not_whitelisted">未加入白名单</string>
     <string name="site_config_rule_count">%1$d 条站点规则</string>
+    <string name="site_permission_ask">每次询问</string>
+    <string name="site_permission_allowed">已允许</string>
+    <string name="site_permission_blocked">已阻止</string>
     <string name="dialog_restore_default_settings_message">将恢复默认设置，并清除用户添加的手动屏蔽规则、白名单、站点例外、快捷入口、收藏、历史记录、缓存、Cookie 和站点数据。此操作无法撤销。</string>
     <string name="title_confirm_element_block">屏蔽此元素？</string>
     <string name="dialog_confirm_element_block_message">将在 %1$s 自动隐藏匹配元素。\n\n%2$s</string>
@@ -368,6 +374,7 @@
     <string name="toast_current_site_js_injection_restored">已恢复 %1$s 的脚本增强</string>
     <string name="toast_current_site_feature_enabled">已开启 %2$s 的%1$s</string>
     <string name="toast_current_site_feature_disabled">已关闭 %2$s 的%1$s</string>
+    <string name="toast_site_permission_updated">已更新 %2$s 的%1$s</string>
     <string name="toast_ad_block_log_empty">暂无拦截日志</string>
     <string name="toast_ad_block_log_cleared">已清空拦截日志</string>
     <string name="toast_user_whitelist_added">已加入白名单：%1$s</string>
