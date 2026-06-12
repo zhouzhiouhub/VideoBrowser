@@ -467,6 +467,7 @@ class MainActivity : AppCompatActivity() {
             openNewTab = ::openNewTab,
             switchTab = ::switchTab,
             closeTab = ::closeTab,
+            closeOtherTabs = ::closeOtherTabs,
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
@@ -1270,6 +1271,28 @@ class MainActivity : AppCompatActivity() {
         val tabStore = currentTabStore()
         val closingActiveTab = tabStore.activeTabId == tabId
         if (!tabStore.closeTab(tabId) || !closingActiveTab) {
+            return
+        }
+        showActiveTab(tabStore.activeTab())
+    }
+
+    private fun closeOtherTabs(tabId: Long) {
+        if (!privateBrowsingActive) {
+            val previousView = standardTabWebViews.activeWebView()
+            val result = standardTabWebViews.closeOtherTabs(tabId) ?: return
+            if (previousView !== result.activeView) {
+                hideStandardTabWebView(previousView)
+                showStandardTabWebView(result.activeView)
+            }
+            result.closedViews.forEach(::destroyStandardTabWebView)
+            showActiveTab(result.activeTab)
+            saveStandardTabSession()
+            return
+        }
+
+        val tabStore = currentTabStore()
+        val closedTabs = tabStore.closeOtherTabs(tabId)
+        if (closedTabs.isEmpty()) {
             return
         }
         showActiveTab(tabStore.activeTab())

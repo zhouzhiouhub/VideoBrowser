@@ -63,6 +63,33 @@ class BrowserTabStoreTest {
     }
 
     @Test
+    fun closingOtherTabsKeepsTargetTabAndActivatesIt() {
+        val tabs = BrowserTabStore()
+        val firstTabId = tabs.activeTabId
+        val secondTab = tabs.openTab(url = "https://example.com/second", title = "Second")
+        val thirdTab = tabs.openTab(url = "https://example.com/third", title = "Third")
+
+        val closedTabs = tabs.closeOtherTabs(secondTab.id)
+
+        assertEquals(listOf(firstTabId, thirdTab.id), closedTabs.map { tab -> tab.id })
+        assertEquals(listOf(secondTab.id), tabs.tabs().map { tab -> tab.id })
+        assertEquals(secondTab.id, tabs.activeTabId)
+        assertEquals("https://example.com/second", tabs.activeTab().url)
+    }
+
+    @Test
+    fun closingOtherTabsRejectsUnknownTarget() {
+        val tabs = BrowserTabStore()
+        val secondTab = tabs.openTab(url = "https://example.com")
+
+        val closedTabs = tabs.closeOtherTabs(99L)
+
+        assertEquals(emptyList<BrowserTab>(), closedTabs)
+        assertEquals(2, tabs.tabs().size)
+        assertEquals(secondTab.id, tabs.activeTabId)
+    }
+
+    @Test
     fun updatesActiveTabMetadata() {
         val tabs = BrowserTabStore()
 

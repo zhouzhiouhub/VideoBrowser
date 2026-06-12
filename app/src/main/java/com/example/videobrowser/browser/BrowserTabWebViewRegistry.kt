@@ -27,6 +27,12 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         val activeTab: BrowserTab
     )
 
+    data class CloseOthersResult<T : Any>(
+        val closedViews: List<T>,
+        val activeView: T,
+        val activeTab: BrowserTab
+    )
+
     constructor(
         tabs: BrowserTabStore,
         initialView: T
@@ -178,6 +184,24 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         return CloseResult(
             closedView = closedView,
             activeView = activeWebView(),
+            activeTab = tabStore.activeTab()
+        )
+    }
+
+    fun closeOtherTabs(tabId: Long): CloseOthersResult<T>? {
+        val tabStore = requireTabs()
+        val closedTabs = tabStore.closeOtherTabs(tabId)
+        if (closedTabs.isEmpty()) {
+            return null
+        }
+        val closedViews = closedTabs.mapNotNull { tab -> viewsByTabId.remove(tab.id) }
+        val activeView = viewsByTabId.getOrPut(tabId) {
+            requireCreateWebView().invoke()
+        }
+        activeViewTabId = tabId
+        return CloseOthersResult(
+            closedViews = closedViews,
+            activeView = activeView,
             activeTab = tabStore.activeTab()
         )
     }

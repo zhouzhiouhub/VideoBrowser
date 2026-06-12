@@ -25,6 +25,7 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(pages.contains("currentTabs: () -> List<BrowserTab>"))
         assertTrue(pages.contains("switchTab: (Long) -> Unit"))
         assertTrue(pages.contains("closeTab: (Long) -> Unit"))
+        assertTrue(pages.contains("closeOtherTabs: (Long) -> Unit"))
         assertTrue(pages.contains("FunctionCenterRootAction.TABS"))
         assertTrue(pages.contains("browserTabsPage.show()"))
     }
@@ -38,12 +39,15 @@ class BrowserTabsPageWiringContractTest {
 
         assertTrue(tabsPage.contains("action_new_tab"))
         assertTrue(tabsPage.contains("action_close_tab"))
+        assertTrue(tabsPage.contains("action_close_other_tabs"))
         assertTrue(tabsPage.contains("switchTab(tab.id)"))
         assertTrue(tabsPage.contains("closeTab(tab.id)"))
+        assertTrue(tabsPage.contains("closeOtherTabs(tab.id)"))
         assertTrue(strings.contains("title_tabs"))
         assertTrue(strings.contains("action_show_tabs"))
         assertTrue(strings.contains("action_new_tab"))
         assertTrue(strings.contains("action_close_tab"))
+        assertTrue(strings.contains("action_close_other_tabs"))
     }
 
     @Test
@@ -70,6 +74,7 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(mainActivity.contains("openNewTab = ::openNewTab"))
         assertTrue(mainActivity.contains("switchTab = ::switchTab"))
         assertTrue(mainActivity.contains("closeTab = ::closeTab"))
+        assertTrue(mainActivity.contains("closeOtherTabs = ::closeOtherTabs"))
     }
 
     private fun projectFile(path: String): File {

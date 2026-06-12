@@ -15,6 +15,7 @@ class BrowserTabsPage(
     private val openNewTab: () -> Unit,
     private val switchTab: (Long) -> Unit,
     private val closeTab: (Long) -> Unit,
+    private val closeOtherTabs: (Long) -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -69,6 +70,14 @@ class BrowserTabsPage(
                         }
                     }
                     if (tabs.size > 1) {
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_close_other_tabs),
+                            summary = title
+                        ) {
+                            closeOtherTabs(tab.id)
+                            show(replaceCurrent = true)
+                        }
                         host.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_close_tab),

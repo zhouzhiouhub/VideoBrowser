@@ -15,6 +15,7 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(mainActivity.contains("standardTabWebViews.openTab"))
         assertTrue(mainActivity.contains("standardTabWebViews.switchTo"))
         assertTrue(mainActivity.contains("standardTabWebViews.closeTab"))
+        assertTrue(mainActivity.contains("standardTabWebViews.closeOtherTabs"))
         assertTrue(mainActivity.contains("createStandardTabWebView"))
     }
 

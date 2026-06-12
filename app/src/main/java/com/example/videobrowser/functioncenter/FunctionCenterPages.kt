@@ -42,6 +42,7 @@ class FunctionCenterPages(
     private val openNewTab: () -> Unit,
     private val switchTab: (Long) -> Unit,
     private val closeTab: (Long) -> Unit,
+    private val closeOtherTabs: (Long) -> Unit,
     private val toggleCurrentBookmark: () -> Unit,
     private val copyCurrentUrl: () -> Unit,
     private val shareCurrentUrl: () -> Unit,
@@ -97,6 +98,7 @@ class FunctionCenterPages(
         openNewTab = openNewTab,
         switchTab = switchTab,
         closeTab = closeTab,
+        closeOtherTabs = closeOtherTabs,
         showRootPage = ::showRootPage
     )
     private val playbackHistoryPage = PlaybackHistoryPage(

@@ -155,6 +155,78 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(1, tabs.tabs().size)
     }
 
+    @Test
+    fun closeOtherTabsReturnsClosedViewsAndKeepsTargetViewActive() {
+        val calls = RegistryCalls()
+        val tabs = BrowserTabStore()
+        tabs.restore(
+            restoredTabs = listOf(
+                BrowserTab(id = 1L, url = "https://a.example.com"),
+                BrowserTab(id = 2L, url = "https://b.example.com"),
+                BrowserTab(id = 3L, url = "https://c.example.com")
+            ),
+            restoredActiveTabId = 1L
+        )
+        val registry = BrowserTabWebViewRegistry(
+            tabs = tabs,
+            initialView = "webView-1",
+            createWebView = {
+                val webView = "webView-${calls.created.size + 2}"
+                calls.created += webView
+                webView
+            },
+            showWebView = { calls.shown += it },
+            hideWebView = { calls.hidden += it },
+            destroyWebView = { calls.destroyed += it }
+        )
+        registry.switchTo(2L)
+        registry.switchTo(3L)
+
+        val result = registry.closeOtherTabs(2L)
+
+        assertEquals(listOf("webView-1", "webView-3"), result?.closedViews)
+        assertEquals("webView-2", result?.activeView)
+        assertEquals(2L, result?.activeTab?.id)
+        assertEquals(2L, registry.activeTabId)
+        assertEquals(listOf(2L), tabs.tabs().map { tab -> tab.id })
+        assertNull(registry.webViewFor(1L))
+        assertEquals("webView-2", registry.webViewFor(2L))
+        assertNull(registry.webViewFor(3L))
+    }
+
+    @Test
+    fun closeOtherTabsCreatesMissingTargetViewForRestoredTab() {
+        val calls = RegistryCalls()
+        val tabs = BrowserTabStore()
+        tabs.restore(
+            restoredTabs = listOf(
+                BrowserTab(id = 1L, url = "https://a.example.com"),
+                BrowserTab(id = 2L, url = "https://b.example.com")
+            ),
+            restoredActiveTabId = 1L
+        )
+        val registry = BrowserTabWebViewRegistry(
+            tabs = tabs,
+            initialView = "webView-1",
+            createWebView = {
+                val webView = "webView-${calls.created.size + 2}"
+                calls.created += webView
+                webView
+            },
+            showWebView = { calls.shown += it },
+            hideWebView = { calls.hidden += it },
+            destroyWebView = { calls.destroyed += it }
+        )
+
+        val result = registry.closeOtherTabs(2L)
+
+        assertEquals(listOf("webView-1"), result?.closedViews)
+        assertEquals("webView-2", result?.activeView)
+        assertEquals(listOf("webView-2"), calls.created)
+        assertEquals(2L, registry.activeTabId)
+        assertEquals(listOf(2L), tabs.tabs().map { tab -> tab.id })
+    }
+
     private fun registry(
         initialTabId: Long,
         initialWebView: String,

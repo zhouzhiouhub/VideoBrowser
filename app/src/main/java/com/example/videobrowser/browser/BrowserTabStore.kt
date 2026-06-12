@@ -50,6 +50,19 @@ class BrowserTabStore(
         return true
     }
 
+    fun closeOtherTabs(tabId: Long): List<BrowserTab> {
+        val targetTab = tabs.firstOrNull { tab -> tab.id == tabId } ?: return emptyList()
+        val closedTabs = tabs.filter { tab -> tab.id != tabId }
+        if (closedTabs.isEmpty()) {
+            return emptyList()
+        }
+
+        tabs.clear()
+        tabs += targetTab
+        activeTabId = tabId
+        return closedTabs
+    }
+
     fun updateActiveTab(url: String? = activeTab().url, title: String = activeTab().title) {
         updateTab(activeTabId, url, title)
     }
