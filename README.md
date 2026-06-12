@@ -553,7 +553,7 @@ Manifest 当前声明：
 
 应用配置：
 
-- `android:allowBackup="true"`
+- `android:allowBackup="false"`，避免系统自动备份本地浏览数据。
 - `android:networkSecurityConfig="@xml/network_security_config"`
 - `android:hardwareAccelerated="true"`
 - 支持 RTL。

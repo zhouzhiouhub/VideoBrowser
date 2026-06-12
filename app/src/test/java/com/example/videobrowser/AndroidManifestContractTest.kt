@@ -44,6 +44,25 @@ class AndroidManifestContractTest {
         assertTrue(mainActivity.contains("intent.dataString"))
     }
 
+    @Test
+    fun browserLocalDataIsExcludedFromSystemBackup() {
+        val application = manifest().elements("application").first()
+        val backupRules = projectFile("src/main/res/xml/backup_rules.xml").readText()
+        val dataExtractionRules = projectFile("src/main/res/xml/data_extraction_rules.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(application.androidAttribute("allowBackup") == "false")
+        assertTrue(backupRules.contains("<exclude domain=\"file\" path=\".\""))
+        assertTrue(backupRules.contains("<exclude domain=\"database\" path=\".\""))
+        assertTrue(backupRules.contains("<exclude domain=\"sharedpref\" path=\".\""))
+        assertTrue(dataExtractionRules.contains("<cloud-backup>"))
+        assertTrue(dataExtractionRules.contains("<device-transfer>"))
+        assertTrue(dataExtractionRules.contains("<exclude domain=\"file\" path=\".\""))
+        assertTrue(dataExtractionRules.contains("<exclude domain=\"database\" path=\".\""))
+        assertTrue(dataExtractionRules.contains("<exclude domain=\"sharedpref\" path=\".\""))
+        assertTrue(readme.contains("避免系统自动备份本地浏览数据"))
+    }
+
     private fun manifest(): Element {
         return DocumentBuilderFactory.newInstance().apply {
             isNamespaceAware = true
@@ -72,9 +91,10 @@ class AndroidManifestContractTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 
