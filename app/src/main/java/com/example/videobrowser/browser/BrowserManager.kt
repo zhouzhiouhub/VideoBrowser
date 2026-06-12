@@ -28,6 +28,7 @@ class BrowserManager(
     private var findResultListener: ((Int, Int, Boolean) -> Unit)? = null
     private var privateBrowsingEnabled = false
     private var thirdPartyCookiesEnabled = true
+    private var mixedContentBlocked = true
     private var textZoomPercent = 100
 
     val activeWebView: WebView
@@ -59,7 +60,7 @@ class BrowserManager(
             setGeolocationEnabled(true)
             allowFileAccess = false
             allowContentAccess = true
-            mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            applyMixedContentMode(webView)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 safeBrowsingEnabled = true
             }
@@ -218,6 +219,11 @@ class BrowserManager(
         configuredWebViews.forEach(::applyCookiePolicy)
     }
 
+    fun setMixedContentBlocked(blocked: Boolean) {
+        mixedContentBlocked = blocked
+        configuredWebViews.forEach(::applyMixedContentMode)
+    }
+
     fun setTextZoomPercent(percent: Int) {
         textZoomPercent = percent
         configuredWebViews.forEach(::applyTextZoom)
@@ -284,6 +290,14 @@ class BrowserManager(
                 targetWebView,
                 !privateBrowsingEnabled && thirdPartyCookiesEnabled
             )
+        }
+    }
+
+    private fun applyMixedContentMode(targetWebView: WebView) {
+        targetWebView.settings.mixedContentMode = if (mixedContentBlocked) {
+            WebSettings.MIXED_CONTENT_NEVER_ALLOW
+        } else {
+            WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
         }
     }
 

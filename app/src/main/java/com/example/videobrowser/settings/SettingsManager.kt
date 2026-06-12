@@ -337,6 +337,14 @@ class SettingsManager(
         preferenceStore.putBoolean(KEY_THIRD_PARTY_COOKIES, enabled)
     }
 
+    fun isMixedContentBlocked(): Boolean {
+        return preferenceStore.getBoolean(KEY_MIXED_CONTENT_BLOCKED, DEFAULT_MIXED_CONTENT_BLOCKED)
+    }
+
+    fun setMixedContentBlocked(blocked: Boolean) {
+        preferenceStore.putBoolean(KEY_MIXED_CONTENT_BLOCKED, blocked)
+    }
+
     fun defaultVideoSpeed(): Float {
         return normalizeVideoSpeed(
             preferenceStore.getFloat(KEY_DEFAULT_VIDEO_SPEED, DEFAULT_VIDEO_SPEED)
@@ -619,6 +627,7 @@ class SettingsManager(
         private const val DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING = false
         private const val DEFAULT_SMART_NO_IMAGE_ENABLED = false
         private const val DEFAULT_THIRD_PARTY_COOKIES_ENABLED = true
+        private const val DEFAULT_MIXED_CONTENT_BLOCKED = true
         private const val DEFAULT_DESKTOP_MODE_ENABLED = false
         private const val DEFAULT_PRIVATE_BROWSING_ENABLED = false
 
@@ -651,6 +660,7 @@ class SettingsManager(
             "always_start_videos_from_beginning"
         private const val KEY_SMART_NO_IMAGE = "smart_no_image"
         private const val KEY_THIRD_PARTY_COOKIES = "third_party_cookies"
+        private const val KEY_MIXED_CONTENT_BLOCKED = "mixed_content_blocked"
         private const val KEY_DEFAULT_VIDEO_SPEED = "default_video_speed"
         private const val KEY_TEXT_ZOOM_PERCENT = "text_zoom_percent"
         private const val KEY_HOME_URL = "home_url"
@@ -685,6 +695,7 @@ class SettingsManager(
             KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING,
             KEY_SMART_NO_IMAGE,
             KEY_THIRD_PARTY_COOKIES,
+            KEY_MIXED_CONTENT_BLOCKED,
             KEY_DEFAULT_VIDEO_SPEED,
             KEY_TEXT_ZOOM_PERCENT,
             KEY_HOME_URL,

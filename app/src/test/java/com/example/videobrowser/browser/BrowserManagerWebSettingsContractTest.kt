@@ -31,6 +31,21 @@ class BrowserManagerWebSettingsContractTest {
         assertTrue(readme.contains("WebView Safe Browsing"))
     }
 
+    @Test
+    fun browserManagerBlocksMixedContentByDefaultButAllowsCompatibilityModeSetting() {
+        val browserManager = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(browserManager.contains("private var mixedContentBlocked = true"))
+        assertTrue(browserManager.contains("fun setMixedContentBlocked(blocked: Boolean)"))
+        assertTrue(browserManager.contains("private fun applyMixedContentMode(targetWebView: WebView)"))
+        assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_NEVER_ALLOW"))
+        assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE"))
+        assertTrue(readme.contains("默认阻止 HTTPS 页面混合内容"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

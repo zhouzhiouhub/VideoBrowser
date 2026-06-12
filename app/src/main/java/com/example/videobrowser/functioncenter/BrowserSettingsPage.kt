@@ -397,6 +397,17 @@ class BrowserSettingsPage(
                 browserManager().reload()
             }
 
+            host.addSwitchRow(
+                parent = section,
+                title = activity.getString(R.string.setting_mixed_content_blocking),
+                summary = activity.getString(R.string.setting_mixed_content_blocking_summary),
+                checked = settingsManager.isMixedContentBlocked()
+            ) { blocked ->
+                settingsManager.setMixedContentBlocked(blocked)
+                browserManager().setMixedContentBlocked(blocked)
+                browserManager().reload()
+            }
+
             host.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.setting_text_zoom),

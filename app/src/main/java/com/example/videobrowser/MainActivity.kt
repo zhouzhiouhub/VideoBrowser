@@ -569,6 +569,7 @@ class MainActivity : AppCompatActivity() {
         setupBackNavigation()
         standardBrowserManager.setup()
         standardBrowserManager.setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())
+        standardBrowserManager.setMixedContentBlocked(settingsManager.isMixedContentBlocked())
         standardBrowserManager.setTextZoomPercent(settingsManager.textZoomPercent())
         standardBrowserManager.setPrivateBrowsingEnabled(false)
         defaultUserAgent = standardBrowserManager.userAgentString()

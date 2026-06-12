@@ -90,6 +90,39 @@ class BrowserSettingsPageContractTest {
     }
 
     @Test
+    fun browserSettingsPageCanControlMixedContentBlocking() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
+        ).readText()
+        val browserManager = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val settings = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(settings.contains("fun isMixedContentBlocked(): Boolean"))
+        assertTrue(settings.contains("fun setMixedContentBlocked(blocked: Boolean)"))
+        assertTrue(settings.contains("DEFAULT_MIXED_CONTENT_BLOCKED = true"))
+        assertTrue(settings.contains("KEY_MIXED_CONTENT_BLOCKED = \"mixed_content_blocked\""))
+        assertTrue(page.contains("R.string.setting_mixed_content_blocking"))
+        assertTrue(page.contains("settingsManager.isMixedContentBlocked()"))
+        assertTrue(page.contains("settingsManager.setMixedContentBlocked(blocked)"))
+        assertTrue(page.contains("browserManager().setMixedContentBlocked(blocked)"))
+        assertTrue(browserManager.contains("fun setMixedContentBlocked(blocked: Boolean)"))
+        assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_NEVER_ALLOW"))
+        assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE"))
+        assertTrue(mainActivity.contains("setMixedContentBlocked(settingsManager.isMixedContentBlocked())"))
+        assertTrue(strings.contains("setting_mixed_content_blocking"))
+        assertTrue(strings.contains("setting_mixed_content_blocking_summary"))
+        assertTrue(readme.contains("混合内容"))
+    }
+
+    @Test
     fun browserSettingsPageCanControlWebPageTextZoom() {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
