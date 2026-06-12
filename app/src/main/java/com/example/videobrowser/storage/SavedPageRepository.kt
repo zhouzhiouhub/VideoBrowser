@@ -8,7 +8,8 @@ data class SavedPage(
     val title: String,
     val url: String,
     val createdAtMillis: Long = 0L,
-    val updatedAtMillis: Long = 0L
+    val updatedAtMillis: Long = 0L,
+    val folder: String = ""
 )
 
 data class BookmarkImportResult(
@@ -42,6 +43,13 @@ class SavedPageRepository(
 
     fun exportBookmarks(): String {
         return renderPages(bookmarks())
+    }
+
+    fun bookmarkFolders(): List<String> {
+        return bookmarks()
+            .mapNotNull { page -> normalizeBookmarkFolder(page.folder) }
+            .distinct()
+            .sorted()
     }
 
     fun importBookmarks(rawValue: String): BookmarkImportResult {
@@ -112,6 +120,29 @@ class SavedPageRepository(
         return true
     }
 
+    fun updateBookmarkFolder(url: String, folder: String): Boolean {
+        val collapsedFolder = folder.trim().replace(Regex("\\s+"), " ")
+        val normalizedFolder = if (collapsedFolder.isEmpty()) {
+            ""
+        } else {
+            normalizeBookmarkFolder(collapsedFolder) ?: return false
+        }
+        var updated = false
+        val pages = bookmarks().map { page ->
+            if (page.url.equals(url, ignoreCase = true)) {
+                updated = true
+                page.copy(folder = normalizedFolder, updatedAtMillis = currentTimeMillis())
+            } else {
+                page
+            }
+        }
+        if (!updated) {
+            return false
+        }
+        saveSavedPages(KEY_BOOKMARKS, pages)
+        return true
+    }
+
     fun clearAll() {
         SavedPageCollection.values().forEach { collection ->
             preferenceStore.remove(collection.key)
@@ -153,7 +184,7 @@ class SavedPageRepository(
 
     private fun parseSavedPages(rawValue: String): List<SavedPage> {
         return when {
-            rawValue.startsWith(FORMAT_HEADER) -> loadVersionedPages(rawValue)
+            rawValue.startsWith(FORMAT_HEADER_PREFIX) -> loadVersionedPages(rawValue)
             rawValue.trimStart().startsWith("[") -> loadLegacyJsonPages(rawValue)
             else -> emptyList()
         }
@@ -178,7 +209,8 @@ class SavedPageRepository(
             title = page.title.trim(),
             url = page.url.trim(),
             createdAtMillis = createdAt,
-            updatedAtMillis = updatedAt
+            updatedAtMillis = updatedAt,
+            folder = normalizeBookmarkFolder(page.folder).orEmpty()
         )
     }
 
@@ -189,12 +221,27 @@ class SavedPageRepository(
             title = page.title.trim().ifBlank { url },
             url = url,
             createdAtMillis = page.createdAtMillis.takeIf { it > 0L } ?: timestamp,
-            updatedAtMillis = page.updatedAtMillis.takeIf { it > 0L } ?: timestamp
+            updatedAtMillis = page.updatedAtMillis.takeIf { it > 0L } ?: timestamp,
+            folder = normalizeBookmarkFolder(page.folder).orEmpty()
         )
     }
 
     private fun bookmarkUrlKey(url: String): String {
         return url.trim().lowercase(Locale.ROOT)
+    }
+
+    private fun normalizeBookmarkFolder(folder: String): String? {
+        val normalized = folder.trim().replace(Regex("\\s+"), " ")
+        if (normalized.isEmpty()) {
+            return null
+        }
+        if (normalized.length > MAX_BOOKMARK_FOLDER_LENGTH) {
+            return null
+        }
+        if (normalized.any { char -> char == '\t' || char == '\n' || char == '\r' }) {
+            return null
+        }
+        return normalized
     }
 
     private fun renderPages(pages: List<SavedPage>): String {
@@ -208,6 +255,8 @@ class SavedPageRepository(
                     .append(encode(page.title))
                     .append('\t')
                     .append(encode(page.url))
+                    .append('\t')
+                    .append(encode(page.folder))
                     .append('\n')
             }
         }
@@ -224,18 +273,20 @@ class SavedPageRepository(
 
     private fun parseVersionedPageLine(line: String): SavedPage? {
         val parts = line.split('\t')
-        if (parts.size != 4) {
+        if (parts.size != 4 && parts.size != 5) {
             return null
         }
         val createdAt = parts[0].toLongOrNull() ?: 0L
         val updatedAt = parts[1].toLongOrNull() ?: createdAt
         val title = decode(parts[2]) ?: return null
         val url = decode(parts[3])?.takeIf { it.isNotBlank() } ?: return null
+        val folder = parts.getOrNull(4)?.let(::decode)?.let(::normalizeBookmarkFolder).orEmpty()
         return SavedPage(
             title = title,
             url = url,
             createdAtMillis = createdAt,
-            updatedAtMillis = updatedAt
+            updatedAtMillis = updatedAt,
+            folder = folder
         )
     }
 
@@ -311,11 +362,13 @@ class SavedPageRepository(
     private companion object {
         private const val KEY_BOOKMARKS = "bookmarks"
         private const val KEY_HISTORY = "history"
-        private const val FORMAT_HEADER = "VideoBrowserSavedPages\t2"
+        private const val FORMAT_HEADER = "VideoBrowserSavedPages\t3"
+        private const val FORMAT_HEADER_PREFIX = "VideoBrowserSavedPages\t"
         private const val JSON_TITLE = "title"
         private const val JSON_URL = "url"
         private const val CHARSET_NAME = "UTF-8"
         private const val BOOKMARK_LIMIT = 500
+        private const val MAX_BOOKMARK_FOLDER_LENGTH = 60
         private const val HISTORY_LIMIT = 1000
         private val LEGACY_OBJECT_REGEX = Regex("\\{[^{}]*\\}")
     }

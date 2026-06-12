@@ -11,13 +11,20 @@ class SavedPageRepositoryTest {
         val store = InMemoryPreferenceStore()
         val repository = SavedPageRepository(store, currentTimeMillis = { 1_000L })
 
-        repository.addBookmark(SavedPage(title = "Example", url = "https://example.com"))
+        repository.addBookmark(
+            SavedPage(
+                title = "Example",
+                url = "https://example.com",
+                folder = "视频"
+            )
+        )
 
         val bookmark = repository.bookmarks().single()
         assertEquals("Example", bookmark.title)
         assertEquals("https://example.com", bookmark.url)
         assertEquals(1_000L, bookmark.createdAtMillis)
         assertEquals(1_000L, bookmark.updatedAtMillis)
+        assertEquals("视频", bookmark.folder)
     }
 
     @Test
@@ -112,7 +119,7 @@ class SavedPageRepositoryTest {
             listOf("https://second.example.com", "https://first.example.com"),
             target.bookmarks().map { page -> page.url }
         )
-        assertTrue(target.exportBookmarks().startsWith("VideoBrowserSavedPages\t2"))
+        assertTrue(target.exportBookmarks().startsWith("VideoBrowserSavedPages\t3"))
     }
 
     @Test
@@ -124,6 +131,45 @@ class SavedPageRepositoryTest {
         assertEquals(0, result.importedCount)
         assertEquals(0, result.skippedCount)
         assertTrue(repository.bookmarks().isEmpty())
+    }
+
+    @Test
+    fun bookmarkFoldersCanBeUpdatedAndListed() {
+        var now = 1_000L
+        val repository = SavedPageRepository(InMemoryPreferenceStore()) { now }
+        repository.addBookmark(SavedPage(title = "Video", url = "https://video.example.com"))
+        repository.addBookmark(SavedPage(title = "Docs", url = "https://docs.example.com", folder = "工作"))
+
+        now = 2_000L
+        assertTrue(repository.updateBookmarkFolder("https://video.example.com", " 视频  收藏 "))
+
+        assertEquals(listOf("工作", "视频 收藏"), repository.bookmarkFolders())
+        val video = repository.bookmarks().first { page -> page.url == "https://video.example.com" }
+        assertEquals("视频 收藏", video.folder)
+        assertEquals(2_000L, video.updatedAtMillis)
+
+        assertTrue(repository.updateBookmarkFolder("https://video.example.com", " "))
+        assertEquals("", repository.bookmarks().first { page -> page.url == "https://video.example.com" }.folder)
+        assertFalse(repository.updateBookmarkFolder("https://missing.example.com", "视频"))
+        assertFalse(repository.updateBookmarkFolder("https://docs.example.com", "x".repeat(61)))
+    }
+
+    @Test
+    fun versionedBookmarkImportKeepsFoldersAndReadsOlderRows() {
+        val repository = SavedPageRepository(InMemoryPreferenceStore(), currentTimeMillis = { 5_000L })
+        val payload = listOf(
+            "VideoBrowserSavedPages\t3",
+            "1000\t2000\tVideo\thttps%3A%2F%2Fvideo.example.com\t%E8%A7%86%E9%A2%91",
+            "3000\t4000\tOld\thttps%3A%2F%2Fold.example.com"
+        ).joinToString(separator = "\n")
+
+        val result = repository.importBookmarks(payload)
+
+        assertEquals(2, result.importedCount)
+        assertEquals(
+            listOf("视频", ""),
+            repository.bookmarks().map { page -> page.folder }
+        )
     }
 
     @Test

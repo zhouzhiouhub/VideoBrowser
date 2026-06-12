@@ -88,11 +88,44 @@ class SavedPagesPageContractTest {
         assertTrue(strings.contains("toast_saved_page_title_invalid"))
     }
 
+    @Test
+    fun savedPagesPageCanGroupAndMoveBookmarksByFolder() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        ).readText()
+        val repository = projectFile(
+            "src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt"
+        ).readText()
+        val search = projectFile("src/main/java/com/example/videobrowser/storage/SavedPageSearch.kt")
+            .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(repository.contains("val folder: String = \"\""))
+        assertTrue(repository.contains("fun updateBookmarkFolder(url: String, folder: String): Boolean"))
+        assertTrue(repository.contains("fun bookmarkFolders(): List<String>"))
+        assertTrue(repository.contains("VideoBrowserSavedPages\\t3"))
+        assertTrue(page.contains("private fun bookmarkGroups"))
+        assertTrue(page.contains("R.string.bookmark_folder_unfiled"))
+        assertTrue(page.contains("R.string.bookmark_folder_count"))
+        assertTrue(page.contains("R.string.bookmark_folder_summary"))
+        assertTrue(page.contains("R.string.action_move_bookmark_folder"))
+        assertTrue(page.contains("private fun showMoveBookmarkFolderDialog"))
+        assertTrue(page.contains("savedPageRepository.updateBookmarkFolder("))
+        assertTrue(search.contains("\${page.title}\\n\${page.url}\\n\${page.folder}"))
+        assertTrue(strings.contains("action_move_bookmark_folder"))
+        assertTrue(strings.contains("title_move_bookmark_folder"))
+        assertTrue(strings.contains("hint_bookmark_folder"))
+        assertTrue(strings.contains("toast_bookmark_folder_updated"))
+        assertTrue(readme.contains("收藏夹支持重命名标题、文件夹分组、导入和导出"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 }

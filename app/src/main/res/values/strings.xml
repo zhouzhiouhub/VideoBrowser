@@ -189,12 +189,14 @@
     <string name="action_rename_file_summary">修改文件名</string>
     <string name="action_delete_file">删除</string>
     <string name="action_delete_file_summary">从授权目录中删除这个文件</string>
+    <string name="action_move_bookmark_folder">移动到文件夹</string>
     <string name="action_create">创建</string>
     <string name="action_rename">重命名</string>
     <string name="title_new_folder">新建文件夹</string>
     <string name="title_new_text_file">新建文本文件</string>
     <string name="title_rename_file">重命名</string>
     <string name="title_rename_bookmark">重命名收藏</string>
+    <string name="title_move_bookmark_folder">移动到文件夹</string>
     <string name="title_delete_file">删除文件</string>
     <string name="default_new_folder_name">新建文件夹</string>
     <string name="default_new_text_file_name">新建文件.txt</string>
@@ -321,6 +323,7 @@
     <string name="hint_find_in_page">查找文字</string>
     <string name="hint_home_page_url">https://example.com/</string>
     <string name="hint_saved_page_title">标题</string>
+    <string name="hint_bookmark_folder">文件夹名称，留空为未分类</string>
     <string name="hint_saved_pages_search">标题或网址</string>
     <string name="hint_download_records_search">文件名或来源</string>
     <string name="hint_site_data_search">域名或来源</string>
@@ -352,6 +355,9 @@
     <string name="action_clear_site_data_summary">清空全部站点数据</string>
     <string name="history_record_count">共 %1$d 条记录</string>
     <string name="bookmark_record_count">共 %1$d 个收藏</string>
+    <string name="bookmark_folder_count">%1$d 个收藏</string>
+    <string name="bookmark_folder_summary">文件夹：%1$s</string>
+    <string name="bookmark_folder_unfiled">未分类</string>
     <string name="download_record_count">共 %1$d 条记录</string>
     <string name="site_data_usage_summary">已用 %1$s</string>
     <string name="permission_origin_unknown">当前网页</string>
@@ -364,6 +370,8 @@
     <string name="toast_no_page_url">当前没有可操作的网页地址</string>
     <string name="toast_bookmark_saved">已收藏到本地</string>
     <string name="toast_bookmark_removed">已取消收藏</string>
+    <string name="toast_bookmark_folder_updated">已移动收藏</string>
+    <string name="toast_bookmark_folder_invalid">文件夹名称无效</string>
     <string name="toast_bookmarks_empty">收藏夹为空</string>
     <string name="toast_bookmarks_exported">已导出收藏夹</string>
     <string name="toast_bookmarks_export_failed">无法导出收藏夹</string>

@@ -81,22 +81,55 @@ class SavedPagesPage(
             }
 
             host.addFunctionSection(
-                content,
-                activity.getString(R.string.function_center_section_records)
+                parent = content,
+                title = activity.getString(R.string.function_center_section_records)
             ) { section ->
                 if (pages.isEmpty()) {
                     host.addEmptyState(section, activity.getString(R.string.dialog_saved_pages_search_empty))
                     return@addFunctionSection
                 }
-                pages.forEach { page ->
-                    host.addActionRow(
-                        parent = section,
-                        title = page.title.ifBlank { page.url },
-                        summary = pageSummary(page)
-                    ) {
-                        showSavedPageActionsDialog(collection, page, title, emptyMessage)
-                    }
+                if (collection == SavedPageCollection.BOOKMARKS) {
+                    addBookmarkGroups(section, pages, title, emptyMessage)
+                } else {
+                    addSavedPageRows(section, collection, pages, title, emptyMessage)
                 }
+            }
+        }
+    }
+
+    private fun addBookmarkGroups(
+        section: android.widget.LinearLayout,
+        pages: List<SavedPage>,
+        title: String,
+        emptyMessage: String
+    ) {
+        bookmarkGroups(pages).forEachIndexed { index, group ->
+            if (index > 0) {
+                host.addDivider(section)
+            }
+            host.addInfoRow(
+                parent = section,
+                title = group.title,
+                summary = activity.getString(R.string.bookmark_folder_count, group.pages.size)
+            )
+            addSavedPageRows(section, SavedPageCollection.BOOKMARKS, group.pages, title, emptyMessage)
+        }
+    }
+
+    private fun addSavedPageRows(
+        section: android.widget.LinearLayout,
+        collection: SavedPageCollection,
+        pages: List<SavedPage>,
+        title: String,
+        emptyMessage: String
+    ) {
+        pages.forEach { page ->
+            host.addActionRow(
+                parent = section,
+                title = page.title.ifBlank { page.url },
+                summary = pageSummary(page)
+            ) {
+                showSavedPageActionsDialog(collection, page, title, emptyMessage)
             }
         }
     }
@@ -166,6 +199,13 @@ class SavedPagesPage(
             } else {
                 null
             },
+            if (collection == SavedPageCollection.BOOKMARKS) {
+                SavedPageAction(activity.getString(R.string.action_move_bookmark_folder)) {
+                    showMoveBookmarkFolderDialog(page, title, emptyMessage)
+                }
+            } else {
+                null
+            },
             SavedPageAction(activity.getString(R.string.action_copy_link)) {
                 copySavedPageUrl(page)
             },
@@ -214,6 +254,42 @@ class SavedPagesPage(
                     return@setOnClickListener
                 }
                 Toast.makeText(activity, R.string.toast_saved_page_renamed, Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                show(SavedPageCollection.BOOKMARKS, title, emptyMessage, replaceCurrent = true)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun showMoveBookmarkFolderDialog(
+        page: SavedPage,
+        title: String,
+        emptyMessage: String
+    ) {
+        val input = EditText(activity).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            setSingleLine(true)
+            hint = activity.getString(R.string.hint_bookmark_folder)
+            setText(page.folder)
+            setSelection(text?.length ?: 0)
+        }
+        val dialog = AlertDialog.Builder(activity)
+            .setTitle(R.string.title_move_bookmark_folder)
+            .setView(input)
+            .setPositiveButton(R.string.action_save, null)
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val updated = savedPageRepository.updateBookmarkFolder(
+                    url = page.url,
+                    folder = input.text?.toString().orEmpty()
+                )
+                if (!updated) {
+                    Toast.makeText(activity, R.string.toast_bookmark_folder_invalid, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                Toast.makeText(activity, R.string.toast_bookmark_folder_updated, Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
                 show(SavedPageCollection.BOOKMARKS, title, emptyMessage, replaceCurrent = true)
             }
@@ -279,6 +355,9 @@ class SavedPagesPage(
     private fun pageSummary(page: SavedPage): String {
         val timestamp = page.updatedAtMillis.takeIf { it > 0L }
         return listOfNotNull(
+            page.folder.takeIf { it.isNotBlank() }?.let { folder ->
+                activity.getString(R.string.bookmark_folder_summary, folder)
+            },
             UrlUtils.displayUrl(page.url),
             timestamp?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) }
         ).joinToString(" | ")
@@ -290,8 +369,30 @@ class SavedPagesPage(
             ?: activity.getString(R.string.action_search_saved_pages_summary)
     }
 
+    private fun bookmarkGroups(pages: List<SavedPage>): List<SavedPageGroup> {
+        val unfiled = pages.filter { page -> page.folder.isBlank() }
+        val folderGroups = pages
+            .filter { page -> page.folder.isNotBlank() }
+            .groupBy { page -> page.folder }
+            .toSortedMap()
+            .map { (folder, folderPages) ->
+                SavedPageGroup(title = folder, pages = folderPages)
+            }
+        return listOfNotNull(
+            SavedPageGroup(
+                title = activity.getString(R.string.bookmark_folder_unfiled),
+                pages = unfiled
+            ).takeIf { group -> group.pages.isNotEmpty() }
+        ) + folderGroups
+    }
+
     private data class SavedPageAction(
         val title: String,
         val perform: () -> Unit
+    )
+
+    private data class SavedPageGroup(
+        val title: String,
+        val pages: List<SavedPage>
     )
 }

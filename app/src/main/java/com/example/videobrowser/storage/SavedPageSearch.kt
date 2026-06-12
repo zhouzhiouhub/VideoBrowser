@@ -15,7 +15,7 @@ object SavedPageSearch {
         }
 
         return pages.filter { page ->
-            val haystack = "${page.title}\n${page.url}".lowercase(Locale.ROOT)
+            val haystack = "${page.title}\n${page.url}\n${page.folder}".lowercase(Locale.ROOT)
             terms.all { term -> haystack.contains(term) }
         }
     }

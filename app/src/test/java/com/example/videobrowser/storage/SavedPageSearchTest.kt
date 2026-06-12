@@ -25,10 +25,17 @@ class SavedPageSearchTest {
         assertEquals(listOf("https://docs.example.com/api"), results.map { it.url })
     }
 
+    @Test
+    fun filterMatchesBookmarkFolder() {
+        val results = SavedPageSearch.filter(samplePages(), "work")
+
+        assertEquals(listOf("https://docs.example.com/api"), results.map { it.url })
+    }
+
     private fun samplePages(): List<SavedPage> {
         return listOf(
             SavedPage(title = "Video Home", url = "https://video.example.com/watch"),
-            SavedPage(title = "Documentation", url = "https://docs.example.com/api"),
+            SavedPage(title = "Documentation", url = "https://docs.example.com/api", folder = "Work"),
             SavedPage(title = "News", url = "https://news.example.com")
         )
     }
