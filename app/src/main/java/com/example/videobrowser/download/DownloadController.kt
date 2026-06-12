@@ -103,33 +103,77 @@ class DownloadController(
         }
 
         val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
-        if (DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)) {
-            showRiskyDownloadConfirmation(
+        confirmDownloadIfNeeded(
+            url = url,
+            fileName = fileName,
+            mimeType = mimeType,
+            confirmed = {
+                enqueueConfirmed(
+                    url = url,
+                    userAgent = userAgent,
+                    mimeType = mimeType,
+                    fileName = fileName
+                )
+            }
+        )
+    }
+
+    private fun confirmDownloadIfNeeded(
+        url: String,
+        fileName: String,
+        mimeType: String?,
+        confirmed: () -> Unit
+    ) {
+        if (DownloadSafetyPolicy.requiresInsecureTransportConfirmation(browserManager().currentUrl(), url)) {
+            showInsecureDownloadConfirmation(
                 fileName = fileName,
                 confirmed = {
-                    enqueueConfirmed(
-                        url = url,
-                        userAgent = userAgent,
+                    confirmAppPackageDownloadIfNeeded(
+                        fileName = fileName,
                         mimeType = mimeType,
-                        fileName = fileName
+                        confirmed = confirmed
                     )
                 }
             )
             return
         }
 
-        enqueueConfirmed(
-            url = url,
-            userAgent = userAgent,
+        confirmAppPackageDownloadIfNeeded(
+            fileName = fileName,
             mimeType = mimeType,
-            fileName = fileName
+            confirmed = confirmed
         )
+    }
+
+    private fun confirmAppPackageDownloadIfNeeded(
+        fileName: String,
+        mimeType: String?,
+        confirmed: () -> Unit
+    ) {
+        if (DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)) {
+            showRiskyDownloadConfirmation(
+                fileName = fileName,
+                confirmed = confirmed
+            )
+            return
+        }
+
+        confirmed()
     }
 
     private fun showRiskyDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_confirm_app_download)
             .setMessage(activity.getString(R.string.dialog_confirm_app_download_message, fileName))
+            .setPositiveButton(R.string.action_download_anyway) { _, _ -> confirmed() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showInsecureDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.title_confirm_insecure_download)
+            .setMessage(activity.getString(R.string.dialog_confirm_insecure_download_message, fileName))
             .setPositiveButton(R.string.action_download_anyway) { _, _ -> confirmed() }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

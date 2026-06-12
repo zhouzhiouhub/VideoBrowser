@@ -48,4 +48,32 @@ class DownloadSafetyPolicyTest {
             )
         )
     }
+
+    @Test
+    fun requiresInsecureTransportConfirmationOnlyFromHttpsPagesToHttpDownloads() {
+        assertTrue(
+            DownloadSafetyPolicy.requiresInsecureTransportConfirmation(
+                pageUrl = "https://secure.example.com/page",
+                downloadUrl = "http://downloads.example.com/file.zip"
+            )
+        )
+        assertFalse(
+            DownloadSafetyPolicy.requiresInsecureTransportConfirmation(
+                pageUrl = "https://secure.example.com/page",
+                downloadUrl = "https://downloads.example.com/file.zip"
+            )
+        )
+        assertFalse(
+            DownloadSafetyPolicy.requiresInsecureTransportConfirmation(
+                pageUrl = "http://plain.example.com/page",
+                downloadUrl = "http://downloads.example.com/file.zip"
+            )
+        )
+        assertFalse(
+            DownloadSafetyPolicy.requiresInsecureTransportConfirmation(
+                pageUrl = null,
+                downloadUrl = "http://downloads.example.com/file.zip"
+            )
+        )
+    }
 }

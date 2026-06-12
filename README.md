@@ -282,6 +282,7 @@ WebView 视频路径保留网页播放器边界：
 - 如果下载 URL 可识别为可播放媒体，优先进入原生播放器。
 - 否则使用 Android `DownloadManager` 下载到公共下载目录。
 - 应用安装包类文件下载前会先确认，避免静默保存高风险文件。
+- HTTPS 页面触发 HTTP 明文下载前会先确认。
 - 下载请求会携带当前 User-Agent。
 - 如果 WebView 中存在该 URL 的 Cookie，会作为请求头传给 DownloadManager。
 - 下载记录保存到 `DownloadRecordRepository`。

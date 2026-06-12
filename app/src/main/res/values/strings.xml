@@ -234,6 +234,8 @@
     <string name="dialog_clear_download_records_message">确定清空下载记录并删除对应下载文件吗？此操作无法撤销。</string>
     <string name="title_confirm_app_download">下载应用安装包？</string>
     <string name="dialog_confirm_app_download_message">即将下载“%1$s”。应用安装包可能更改设备内容，请只下载你信任来源的文件。</string>
+    <string name="title_confirm_insecure_download">下载不安全文件？</string>
+    <string name="dialog_confirm_insecure_download_message">当前 HTTPS 页面请求通过不安全的 HTTP 连接下载“%1$s”。下载内容可能被篡改，请确认来源可信。</string>
     <string name="dialog_playback_history_empty">暂无播放历史。</string>
     <string name="dialog_clear_playback_history_message">确定清空原生播放器播放历史吗？此操作无法撤销。</string>
     <string name="local_file_type_folder">文件夹</string>
