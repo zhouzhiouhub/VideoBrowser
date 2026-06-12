@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.browser.BrowserTab
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.settings.SettingsManager
@@ -36,6 +37,11 @@ class FunctionCenterPages(
     private val isJsInjectionEnabled: () -> Boolean,
     private val isPageCleanupEnabled: () -> Boolean,
     private val isVideoEnhancementEnabled: () -> Boolean,
+    private val currentTabs: () -> List<BrowserTab>,
+    private val activeTabId: () -> Long,
+    private val openNewTab: () -> Unit,
+    private val switchTab: (Long) -> Unit,
+    private val closeTab: (Long) -> Unit,
     private val toggleCurrentBookmark: () -> Unit,
     private val copyCurrentUrl: () -> Unit,
     private val shareCurrentUrl: () -> Unit,
@@ -80,6 +86,15 @@ class FunctionCenterPages(
         host = host,
         downloadRecordRepository = downloadRecordRepository,
         retryDownload = retryDownload,
+        showRootPage = ::showRootPage
+    )
+    private val browserTabsPage = BrowserTabsPage(
+        host = host,
+        currentTabs = currentTabs,
+        activeTabId = activeTabId,
+        openNewTab = openNewTab,
+        switchTab = switchTab,
+        closeTab = closeTab,
         showRootPage = ::showRootPage
     )
     private val playbackHistoryPage = PlaybackHistoryPage(
@@ -286,6 +301,16 @@ class FunctionCenterPages(
         hasPage: Boolean
     ): FunctionCenterGridAction {
         return when (action) {
+            FunctionCenterRootAction.TABS -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_show_tabs),
+                    summary = activity.getString(R.string.action_show_tabs_summary),
+                    iconResId = R.drawable.ic_tabs_24
+                ) {
+                    browserTabsPage.show()
+                }
+            }
+
             FunctionCenterRootAction.SHARE_PAGE -> {
                 FunctionCenterGridAction(
                     title = activity.getString(R.string.action_share_page),

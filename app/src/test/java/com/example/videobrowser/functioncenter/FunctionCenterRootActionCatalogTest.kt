@@ -7,7 +7,7 @@ import org.junit.Test
 
 class FunctionCenterRootActionCatalogTest {
     @Test
-    fun rootPageActionsShowOnlyCurrentPageActionsWithinTwoRows() {
+    fun rootActionsIncludeTabsAndCurrentPageActionsWithinTwoRows() {
         val actions = FunctionCenterRootActionCatalog.actions(
             hasPage = true,
             hasSite = true,
@@ -17,6 +17,7 @@ class FunctionCenterRootActionCatalogTest {
 
         assertEquals(
             listOf(
+                "TABS",
                 "SHARE_PAGE",
                 "REFRESH",
                 "DESKTOP_MODE",
@@ -37,14 +38,14 @@ class FunctionCenterRootActionCatalogTest {
     }
 
     @Test
-    fun rootPageActionsHidePageActionsWithoutPage() {
+    fun rootActionsKeepTabsAndHidePageActionsWithoutPage() {
         val noPageActions = FunctionCenterRootActionCatalog.actions(
             hasPage = false,
             hasSite = true,
             isPrivateBrowsing = false
         ).map { it.name }
 
-        assertEquals(emptyList<String>(), noPageActions)
+        assertEquals(listOf("TABS"), noPageActions)
     }
 
     @Test

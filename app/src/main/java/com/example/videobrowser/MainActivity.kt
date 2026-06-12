@@ -53,6 +53,7 @@ import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
+import com.example.videobrowser.browser.BrowserTab
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.ChromeClient
@@ -447,6 +448,11 @@ class MainActivity : AppCompatActivity() {
             isJsInjectionEnabled = ::isJsInjectionEnabled,
             isPageCleanupEnabled = ::isPageCleanupEnabled,
             isVideoEnhancementEnabled = ::isVideoEnhancementEnabled,
+            currentTabs = ::currentTabs,
+            activeTabId = ::activeTabId,
+            openNewTab = ::openNewTab,
+            switchTab = ::switchTab,
+            closeTab = ::closeTab,
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
@@ -1096,6 +1102,44 @@ class MainActivity : AppCompatActivity() {
 
     private fun isPrivateBrowsingEnabled(): Boolean {
         return privateBrowsingActive
+    }
+
+    private fun currentTabStore(): BrowserTabStore {
+        return if (privateBrowsingActive) privateTabStore else standardTabStore
+    }
+
+    private fun currentTabs(): List<BrowserTab> {
+        return currentTabStore().tabs()
+    }
+
+    private fun activeTabId(): Long {
+        return currentTabStore().activeTabId
+    }
+
+    private fun openNewTab() {
+        closeFunctionCenter()
+        currentTabStore().openTab()
+        openHomePage()
+    }
+
+    private fun switchTab(tabId: Long) {
+        closeFunctionCenter()
+        val tabStore = currentTabStore()
+        if (!tabStore.switchTo(tabId)) {
+            return
+        }
+        val tab = tabStore.activeTab()
+        tab.url?.let(::loadUrl) ?: openHomePage()
+    }
+
+    private fun closeTab(tabId: Long) {
+        val tabStore = currentTabStore()
+        val closingActiveTab = tabStore.activeTabId == tabId
+        if (!tabStore.closeTab(tabId) || !closingActiveTab) {
+            return
+        }
+        val tab = tabStore.activeTab()
+        tab.url?.let(::loadUrl) ?: openHomePage()
     }
 
     private fun setPrivateBrowsingActive(enabled: Boolean) {

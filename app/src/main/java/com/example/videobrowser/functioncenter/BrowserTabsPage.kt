@@ -1,0 +1,81 @@
+package com.example.videobrowser.functioncenter
+
+import com.example.videobrowser.R
+import com.example.videobrowser.browser.BrowserTab
+import com.example.videobrowser.utils.UrlUtils
+
+class BrowserTabsPage(
+    private val host: FunctionCenterPageHost,
+    private val currentTabs: () -> List<BrowserTab>,
+    private val activeTabId: () -> Long,
+    private val openNewTab: () -> Unit,
+    private val switchTab: (Long) -> Unit,
+    private val closeTab: (Long) -> Unit,
+    private val showRootPage: () -> Unit
+) {
+    private val activity = host.activity
+
+    fun show(replaceCurrent: Boolean = false) {
+        val tabs = currentTabs()
+        host.showPage(
+            title = activity.getString(R.string.title_tabs),
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
+        ) { content ->
+            host.addFunctionSection(
+                content,
+                activity.getString(R.string.function_center_section_actions)
+            ) { section ->
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_new_tab),
+                    summary = activity.getString(R.string.action_show_tabs_summary)
+                ) {
+                    openNewTab()
+                    show(replaceCurrent = true)
+                }
+            }
+
+            host.addFunctionSection(
+                content,
+                activity.getString(R.string.title_tabs)
+            ) { section ->
+                tabs.forEach { tab ->
+                    val title = BrowserTabDisplayText.title(
+                        tab = tab,
+                        untitledText = activity.getString(R.string.tab_untitled)
+                    )
+                    val active = tab.id == activeTabId()
+                    host.addActionRow(
+                        parent = section,
+                        title = title,
+                        summary = tabSummary(tab, active),
+                        enabled = !active
+                    ) {
+                        switchTab(tab.id)
+                        host.close()
+                    }
+                    if (tabs.size > 1) {
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_close_tab),
+                            summary = title
+                        ) {
+                            closeTab(tab.id)
+                            show(replaceCurrent = true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun tabSummary(tab: BrowserTab, active: Boolean): String {
+        val activeText = activity.getString(R.string.tab_current).takeIf { active }
+        val urlText = tab.url?.let(UrlUtils::displayUrl)
+        return listOfNotNull(activeText, urlText)
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(" | ")
+            ?: activity.getString(R.string.tab_untitled)
+    }
+}

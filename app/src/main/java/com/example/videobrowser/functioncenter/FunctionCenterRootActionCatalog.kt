@@ -1,6 +1,7 @@
 package com.example.videobrowser.functioncenter
 
 enum class FunctionCenterRootAction {
+    TABS,
     SHARE_PAGE,
     BOOKMARKS,
     HISTORY,
@@ -21,6 +22,7 @@ object FunctionCenterRootActionCatalog {
         isPrivateBrowsing: Boolean
     ): List<FunctionCenterRootAction> {
         return listOfNotNull(
+            FunctionCenterRootAction.TABS,
             FunctionCenterRootAction.SHARE_PAGE.takeIf { hasPage },
             FunctionCenterRootAction.REFRESH.takeIf { hasPage },
             FunctionCenterRootAction.DESKTOP_MODE.takeIf { hasPage && !isPrivateBrowsing },
