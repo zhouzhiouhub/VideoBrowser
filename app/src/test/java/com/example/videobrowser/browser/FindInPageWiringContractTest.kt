@@ -17,6 +17,9 @@ class FindInPageWiringContractTest {
         assertTrue(browserManager.contains("webView.findNext(forward)"))
         assertTrue(browserManager.contains("fun clearFindMatches()"))
         assertTrue(browserManager.contains("webView.clearMatches()"))
+        assertTrue(browserManager.contains("fun setFindResultListener(listener: ((Int, Int, Boolean) -> Unit)?)"))
+        assertTrue(browserManager.contains("targetWebView.setFindListener("))
+        assertTrue(browserManager.contains("WebView.FindListener"))
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/FindInPageController.kt"
         ).readText()
@@ -48,13 +51,19 @@ class FindInPageWiringContractTest {
         assertTrue(mainActivity.contains("findInPageController.findNext"))
         assertTrue(mainActivity.contains("findInPageController.findPrevious"))
         assertTrue(mainActivity.contains("findInPageController.clear"))
+        assertTrue(mainActivity.contains("setFindResultListener { activeMatchOrdinal, numberOfMatches, isDoneCounting ->"))
+        assertTrue(mainActivity.contains("private fun findInPageStatusText("))
+        assertTrue(mainActivity.contains("R.string.find_in_page_status_matches"))
+        assertTrue(mainActivity.contains("currentBrowserManager().setFindResultListener(null)"))
         assertTrue(mainActivity.contains("dialog.getButton(AlertDialog.BUTTON_NEGATIVE)"))
         assertTrue(mainActivity.contains("dialog.setOnDismissListener"))
         assertTrue(mainActivity.contains("findInPage = ::showFindInPageDialog"))
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
         assertTrue(strings.contains("action_find_previous"))
-        assertTrue(readme.contains("上一处或下一处匹配"))
+        assertTrue(strings.contains("find_in_page_status_matches"))
+        assertTrue(strings.contains("find_in_page_status_no_matches"))
+        assertTrue(readme.contains("上一处或下一处匹配，并显示匹配数量"))
     }
 
     private fun projectFile(path: String): File {

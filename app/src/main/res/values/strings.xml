@@ -261,6 +261,10 @@
     <string name="action_find">查找</string>
     <string name="action_find_next">下一处</string>
     <string name="action_find_previous">上一处</string>
+    <string name="find_in_page_status_idle">输入关键词后查找</string>
+    <string name="find_in_page_status_counting">正在查找...</string>
+    <string name="find_in_page_status_matches">%1$d/%2$d</string>
+    <string name="find_in_page_status_no_matches">无匹配</string>
     <string name="site_security_secure">连接安全</string>
     <string name="site_security_not_secure">连接不安全</string>
     <string name="site_security_icon_description">%1$s，点按查看站点信息</string>

@@ -1383,18 +1383,32 @@ class MainActivity : AppCompatActivity() {
             hint = getString(R.string.hint_find_in_page)
             setSingleLine(true)
         }
+        val status = TextView(this).apply {
+            text = getString(R.string.find_in_page_status_idle)
+            setPadding(0, dp(8), 0, 0)
+        }
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), 0)
+            addView(input)
+            addView(status)
+        }
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.action_find_in_page)
-            .setView(input)
+            .setView(content)
             .setPositiveButton(R.string.action_find, null)
             .setNeutralButton(R.string.action_find_next, null)
             .setNegativeButton(R.string.action_find_previous, null)
             .create()
         dialog.setOnShowListener {
+            currentBrowserManager().setFindResultListener { activeMatchOrdinal, numberOfMatches, isDoneCounting ->
+                status.text = findInPageStatusText(activeMatchOrdinal, numberOfMatches, isDoneCounting)
+            }
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val started = findInPageController.search(input.text?.toString().orEmpty())
                 if (!started) {
                     Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
+                    status.text = getString(R.string.find_in_page_status_idle)
                 }
             }
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
@@ -1411,9 +1425,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
         dialog.setOnDismissListener {
+            currentBrowserManager().setFindResultListener(null)
             findInPageController.clear()
         }
         dialog.show()
+    }
+
+    private fun findInPageStatusText(
+        activeMatchOrdinal: Int,
+        numberOfMatches: Int,
+        isDoneCounting: Boolean
+    ): String {
+        return when {
+            !isDoneCounting -> getString(R.string.find_in_page_status_counting)
+            numberOfMatches <= 0 -> getString(R.string.find_in_page_status_no_matches)
+            else -> getString(
+                R.string.find_in_page_status_matches,
+                activeMatchOrdinal + 1,
+                numberOfMatches
+            )
+        }
     }
 
     private fun printCurrentPage() {

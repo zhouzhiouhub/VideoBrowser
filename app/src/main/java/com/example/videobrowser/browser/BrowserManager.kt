@@ -24,6 +24,7 @@ class BrowserManager(
     private var chromeClient: WebChromeClient? = null
     private var browserClient: WebViewClient? = null
     private var downloadListener: DownloadListener? = null
+    private var findResultListener: ((Int, Int, Boolean) -> Unit)? = null
     private var privateBrowsingEnabled = false
     private var thirdPartyCookiesEnabled = true
     private var textZoomPercent = 100
@@ -37,6 +38,7 @@ class BrowserManager(
         }
 
         applyCookiePolicy(webView)
+        applyFindResultListener(webView)
 
         webView.settings.apply {
             javaScriptEnabled = true
@@ -104,6 +106,11 @@ class BrowserManager(
     fun setDownloadListener(listener: DownloadListener?) {
         downloadListener = listener
         webView.setDownloadListener(listener)
+    }
+
+    fun setFindResultListener(listener: ((Int, Int, Boolean) -> Unit)?) {
+        findResultListener = listener
+        configuredWebViews.forEach(::applyFindResultListener)
     }
 
     fun addJavascriptInterface(interfaceObject: Any, name: String) {
@@ -278,6 +285,16 @@ class BrowserManager(
 
     private fun applyTextZoom(targetWebView: WebView) {
         targetWebView.settings.textZoom = textZoomPercent
+    }
+
+    private fun applyFindResultListener(targetWebView: WebView) {
+        targetWebView.setFindListener(
+            findResultListener?.let { listener ->
+                WebView.FindListener { activeMatchOrdinal, numberOfMatches, isDoneCounting ->
+                    listener(activeMatchOrdinal, numberOfMatches, isDoneCounting)
+                }
+            }
+        )
     }
 
     fun clearTransientBrowsingData() {
