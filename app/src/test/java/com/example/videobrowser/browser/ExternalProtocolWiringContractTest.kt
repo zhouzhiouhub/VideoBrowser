@@ -41,11 +41,30 @@ class ExternalProtocolWiringContractTest {
         assertTrue(navigator.contains("parsedIntent.setSelector(null)"))
     }
 
+    @Test
+    fun externalNavigatorOnlyOpensWebUrlsThroughGenericExternalAction() {
+        val navigator = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserExternalNavigator.kt"
+        ).readText()
+        val policy = projectFile(
+            "src/main/java/com/example/videobrowser/browser/ExternalProtocolPolicy.kt"
+        ).readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(navigator.contains("if (!ExternalProtocolPolicy.isWebUrl(url))"))
+        assertTrue(navigator.contains("Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply"))
+        assertTrue(navigator.contains("addCategory(Intent.CATEGORY_BROWSABLE)"))
+        assertTrue(policy.contains("URI(normalizedUrl)"))
+        assertTrue(policy.contains("uri.host.isNullOrBlank()"))
+        assertTrue(readme.contains("系统浏览器打开仅处理带主机名的 HTTP/HTTPS 页面 URL"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 }

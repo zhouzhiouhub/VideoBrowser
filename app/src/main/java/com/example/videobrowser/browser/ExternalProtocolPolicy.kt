@@ -1,6 +1,7 @@
 package com.example.videobrowser.browser
 
 import java.net.URLDecoder
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
@@ -27,12 +28,13 @@ object ExternalProtocolPolicy {
     }
 
     fun isWebUrl(url: String?): Boolean {
-        val scheme = url
-            ?.substringBefore(':', missingDelimiterValue = "")
-            ?.trim()
-            ?.lowercase(Locale.ROOT)
-            .orEmpty()
-        return scheme == "http" || scheme == "https"
+        val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return false
+        val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return false
+        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return false
+        if (scheme != "http" && scheme != "https") {
+            return false
+        }
+        return !uri.host.isNullOrBlank()
     }
 
     fun fallbackUrlFromIntentUri(intentUri: String): String? {

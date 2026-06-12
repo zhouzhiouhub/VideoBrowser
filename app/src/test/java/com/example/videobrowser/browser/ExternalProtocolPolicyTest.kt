@@ -27,6 +27,18 @@ class ExternalProtocolPolicyTest {
     }
 
     @Test
+    fun isWebUrl_requiresHttpOrHttpsUrlWithHost() {
+        assertTrue(ExternalProtocolPolicy.isWebUrl("https://example.com/page"))
+        assertTrue(ExternalProtocolPolicy.isWebUrl(" http://example.com/page "))
+
+        assertFalse(ExternalProtocolPolicy.isWebUrl("https:/missing-host"))
+        assertFalse(ExternalProtocolPolicy.isWebUrl("http:example.com"))
+        assertFalse(ExternalProtocolPolicy.isWebUrl("javascript:alert(1)"))
+        assertFalse(ExternalProtocolPolicy.isWebUrl("file:///sdcard/page.html"))
+        assertFalse(ExternalProtocolPolicy.isWebUrl(null))
+    }
+
+    @Test
     fun fallbackUrlFromIntentUri_extractsWebFallback() {
         val fallback = ExternalProtocolPolicy.fallbackUrlFromIntentUri(
             "intent://scan/#Intent;" +
@@ -42,6 +54,15 @@ class ExternalProtocolPolicyTest {
     fun fallbackUrlFromIntentUri_rejectsNonWebFallback() {
         val fallback = ExternalProtocolPolicy.fallbackUrlFromIntentUri(
             "intent://scan/#Intent;S.browser_fallback_url=javascript%3Aalert(1);end"
+        )
+
+        assertNull(fallback)
+    }
+
+    @Test
+    fun fallbackUrlFromIntentUri_rejectsWebFallbackWithoutHost() {
+        val fallback = ExternalProtocolPolicy.fallbackUrlFromIntentUri(
+            "intent://scan/#Intent;S.browser_fallback_url=https%3A%2Fmissing-host;end"
         )
 
         assertNull(fallback)

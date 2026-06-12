@@ -20,7 +20,13 @@ class BrowserExternalNavigator(
     private val isShareableUrl: (String) -> Boolean
 ) {
     fun openExternalUrl(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        if (!ExternalProtocolPolicy.isWebUrl(url)) {
+            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
         try {
             activity.startActivity(intent)
         } catch (_: ActivityNotFoundException) {
