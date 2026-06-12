@@ -8,6 +8,9 @@ import android.database.Cursor
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
+import com.example.videobrowser.download.DownloadCancellationPolicy
+import com.example.videobrowser.download.DownloadCancellationResult
+import com.example.videobrowser.download.DownloadCanceller
 import com.example.videobrowser.download.DownloadCategory
 import com.example.videobrowser.download.DownloadCategoryGroup
 import com.example.videobrowser.download.DownloadRecord
@@ -71,10 +74,11 @@ class DownloadsPage(
                 ) { section ->
                     group.records.forEach { record ->
                         val retryable = DownloadRetryPolicy.canRetry(record)
+                        val cancelable = DownloadCancellationPolicy.canCancel(record)
                         host.addActionRow(
                             parent = section,
                             title = record.title.ifBlank { record.fileName },
-                            summary = recordSummary(record, retryable)
+                            summary = recordSummary(record, retryable, cancelable)
                         ) {
                             if (retryable) {
                                 retryDownload(record)
@@ -84,6 +88,8 @@ class DownloadsPage(
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 show(replaceCurrent = true)
+                            } else if (cancelable) {
+                                confirmCancelDownload(record)
                             } else {
                                 openDownloadedFile(record)
                             }
@@ -99,6 +105,36 @@ class DownloadsPage(
             repository = downloadRecordRepository,
             querySnapshot = ::queryDownloadStatusSnapshot
         ).refresh()
+    }
+
+    private fun confirmCancelDownload(record: DownloadRecord) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_cancel_download)
+            .setMessage(
+                activity.getString(
+                    R.string.dialog_cancel_download_message,
+                    record.title.ifBlank { record.fileName }
+                )
+            )
+            .setPositiveButton(R.string.action_cancel_download) { _, _ ->
+                val result = cancelDownload(record)
+                val toastResId = if (result.canceled) {
+                    R.string.toast_download_canceled
+                } else {
+                    R.string.toast_download_cancel_failed
+                }
+                Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+                show(replaceCurrent = true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun cancelDownload(record: DownloadRecord): DownloadCancellationResult {
+        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        return DownloadCanceller(downloadRecordRepository) { downloadIds ->
+            downloadManager.remove(*downloadIds)
+        }.cancel(record)
     }
 
     private fun confirmClearRecords() {
@@ -147,7 +183,11 @@ class DownloadsPage(
         }
     }
 
-    private fun recordSummary(record: DownloadRecord, retryable: Boolean = false): String {
+    private fun recordSummary(
+        record: DownloadRecord,
+        retryable: Boolean = false,
+        cancelable: Boolean = false
+    ): String {
         val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
             .format(Date(record.createdAtMillis))
         val status = activity.getString(downloadStatusTitleResId(record.status))
@@ -162,8 +202,20 @@ class DownloadsPage(
         } else {
             null
         }
-        return listOfNotNull(status, progress, failureReason, retryAction, createdAt, UrlUtils.displayUrl(record.sourceUrl))
-            .joinToString(" | ")
+        val cancelAction = if (cancelable) {
+            activity.getString(R.string.action_cancel_download)
+        } else {
+            null
+        }
+        return listOfNotNull(
+            status,
+            progress,
+            failureReason,
+            retryAction,
+            cancelAction,
+            createdAt,
+            UrlUtils.displayUrl(record.sourceUrl)
+        ).joinToString(" | ")
     }
 
     private fun progressSummary(record: DownloadRecord): String? {
@@ -201,6 +253,7 @@ class DownloadsPage(
             DownloadStatus.IN_PROGRESS -> R.string.download_status_in_progress
             DownloadStatus.COMPLETED -> R.string.download_status_completed
             DownloadStatus.FAILED -> R.string.download_status_failed
+            DownloadStatus.CANCELED -> R.string.download_status_canceled
         }
     }
 

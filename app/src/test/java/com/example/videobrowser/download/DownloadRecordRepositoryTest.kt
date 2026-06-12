@@ -178,6 +178,22 @@ class DownloadRecordRepositoryTest {
     }
 
     @Test
+    fun recordsPersistCanceledStatus() {
+        val store = InMemoryPreferenceStore()
+        val repository = DownloadRecordRepository(store)
+        repository.add(
+            record(
+                id = 16L,
+                fileName = "canceled.zip",
+                createdAtMillis = 160L,
+                status = DownloadStatus.CANCELED
+            )
+        )
+
+        assertEquals(DownloadStatus.CANCELED, DownloadRecordRepository(store).records().single().status)
+    }
+
+    @Test
     fun updateStatusReturnsFalseWhenDownloadIdIsUnknown() {
         val repository = DownloadRecordRepository(InMemoryPreferenceStore())
 

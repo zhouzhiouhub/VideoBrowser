@@ -3,7 +3,8 @@ package com.example.videobrowser.download
 enum class DownloadStatus(val storageValue: String) {
     IN_PROGRESS("in_progress"),
     COMPLETED("completed"),
-    FAILED("failed");
+    FAILED("failed"),
+    CANCELED("canceled");
 
     companion object {
         fun fromStorage(value: String): DownloadStatus? {

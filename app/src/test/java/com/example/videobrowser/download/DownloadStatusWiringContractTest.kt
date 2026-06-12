@@ -51,6 +51,24 @@ class DownloadStatusWiringContractTest {
         assertTrue(strings.contains("download_failure_reason"))
     }
 
+    @Test
+    fun downloadsPageCanCancelInProgressRecords() {
+        val downloadsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(downloadsPage.contains("DownloadCancellationPolicy.canCancel(record)"))
+        assertTrue(downloadsPage.contains("confirmCancelDownload(record)"))
+        assertTrue(downloadsPage.contains("DownloadCanceller(downloadRecordRepository)"))
+        assertTrue(downloadsPage.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(downloadsPage.contains("R.string.action_cancel_download"))
+        assertTrue(strings.contains("action_cancel_download"))
+        assertTrue(strings.contains("download_status_canceled"))
+        assertTrue(strings.contains("dialog_cancel_download_message"))
+        assertTrue(strings.contains("toast_download_canceled"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

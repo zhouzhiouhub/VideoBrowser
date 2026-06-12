@@ -4,13 +4,13 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class DownloadRetryPolicyTest {
+class DownloadCancellationPolicyTest {
     @Test
-    fun failedAndCanceledDownloadsCanBeRetried() {
-        assertTrue(DownloadRetryPolicy.canRetry(record(DownloadStatus.FAILED)))
-        assertTrue(DownloadRetryPolicy.canRetry(record(DownloadStatus.CANCELED)))
-        assertFalse(DownloadRetryPolicy.canRetry(record(DownloadStatus.IN_PROGRESS)))
-        assertFalse(DownloadRetryPolicy.canRetry(record(DownloadStatus.COMPLETED)))
+    fun onlyInProgressDownloadsCanBeCanceled() {
+        assertTrue(DownloadCancellationPolicy.canCancel(record(DownloadStatus.IN_PROGRESS)))
+        assertFalse(DownloadCancellationPolicy.canCancel(record(DownloadStatus.COMPLETED)))
+        assertFalse(DownloadCancellationPolicy.canCancel(record(DownloadStatus.FAILED)))
+        assertFalse(DownloadCancellationPolicy.canCancel(record(DownloadStatus.CANCELED)))
     }
 
     private fun record(status: DownloadStatus): DownloadRecord {
