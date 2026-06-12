@@ -1514,7 +1514,12 @@ class MainActivity : AppCompatActivity() {
                     return true
                 }
 
-                MediaRouteAction.BLOCK -> return true
+                MediaRouteAction.BLOCK -> {
+                    if (openExternalProtocolNavigation(view, uri)) {
+                        return true
+                    }
+                    return true
+                }
                 else -> Unit
             }
         }
@@ -1526,6 +1531,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (!isWebUrl(uri.scheme)) {
+            if (openExternalProtocolNavigation(view, uri)) {
+                return true
+            }
             return true
         }
 
@@ -1543,6 +1551,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         return false
+    }
+
+    private fun openExternalProtocolNavigation(view: WebView?, uri: Uri): Boolean {
+        var fallbackLoaded = false
+        val handled = externalNavigator.openExternalProtocolUrl(uri.toString()) { fallbackUrl ->
+            fallbackLoaded = true
+            loadUrl(fallbackUrl)
+        }
+        if (handled && !fallbackLoaded) {
+            view?.stopLoading()
+        }
+        return handled
     }
 
     private fun isUnavailableUcDownloadUrl(uri: Uri): Boolean {

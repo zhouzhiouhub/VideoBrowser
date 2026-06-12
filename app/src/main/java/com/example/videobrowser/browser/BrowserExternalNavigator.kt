@@ -28,6 +28,27 @@ class BrowserExternalNavigator(
         }
     }
 
+    fun openExternalProtocolUrl(
+        url: String,
+        loadFallbackUrl: (String) -> Unit = {}
+    ): Boolean {
+        val uri = Uri.parse(url)
+        val scheme = uri.scheme
+        if (!ExternalProtocolPolicy.shouldOpenExternally(scheme)) {
+            return false
+        }
+
+        if (scheme.equals("intent", ignoreCase = true)) {
+            return openIntentUri(url, loadFallbackUrl)
+        }
+
+        return startExternalIntent(
+            Intent(Intent.ACTION_VIEW, uri).apply {
+                addCategory(Intent.CATEGORY_BROWSABLE)
+            }
+        )
+    }
+
     fun openNativePlayer(
         url: String,
         mimeType: String? = null,
@@ -66,5 +87,61 @@ class BrowserExternalNavigator(
             playbackQueue = playbackQueue
         )
         activity.startActivity(intent)
+    }
+
+    private fun openIntentUri(
+        url: String,
+        loadFallbackUrl: (String) -> Unit
+    ): Boolean {
+        val parsedIntent = runCatching {
+            Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+        }.getOrNull()
+
+        if (parsedIntent == null) {
+            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+            return true
+        }
+
+        val fallbackUrl = parsedIntent
+            .getStringExtra(ExternalProtocolPolicy.BROWSER_FALLBACK_URL)
+            ?.takeIf(ExternalProtocolPolicy::isWebUrl)
+            ?: ExternalProtocolPolicy.fallbackUrlFromIntentUri(url)
+
+        parsedIntent.removeExtra(ExternalProtocolPolicy.BROWSER_FALLBACK_URL)
+        parsedIntent.addCategory(Intent.CATEGORY_BROWSABLE)
+        parsedIntent.component = null
+        parsedIntent.setSelector(null)
+
+        if (startExternalIntent(parsedIntent, showFailureToast = false)) {
+            return true
+        }
+
+        if (fallbackUrl != null) {
+            loadFallbackUrl(fallbackUrl)
+            return true
+        }
+
+        Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+        return true
+    }
+
+    private fun startExternalIntent(
+        intent: Intent,
+        showFailureToast: Boolean = true
+    ): Boolean {
+        return try {
+            activity.startActivity(intent)
+            true
+        } catch (_: ActivityNotFoundException) {
+            if (showFailureToast) {
+                Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+            }
+            false
+        } catch (_: SecurityException) {
+            if (showFailureToast) {
+                Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+            }
+            false
+        }
     }
 }
