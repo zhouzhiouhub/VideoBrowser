@@ -7,6 +7,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
+import android.text.InputType
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
@@ -20,6 +22,7 @@ import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRemoveResult
 import com.example.videobrowser.download.DownloadRecordRemover
 import com.example.videobrowser.download.DownloadRecordRepository
+import com.example.videobrowser.download.DownloadRecordSearch
 import com.example.videobrowser.download.DownloadRetryPolicy
 import com.example.videobrowser.download.DownloadStatus
 import com.example.videobrowser.download.DownloadStatusSnapshot
@@ -36,25 +39,42 @@ class DownloadsPage(
 ) {
     private val activity = host.activity
 
-    fun show(replaceCurrent: Boolean = false) {
-        val records = refreshDownloadRecords()
+    fun show(replaceCurrent: Boolean = false, query: String? = null) {
+        val allRecords = refreshDownloadRecords()
+        val records = DownloadRecordSearch.filter(allRecords, query)
 
         host.showPage(
             title = activity.getString(R.string.title_downloads),
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
-            if (records.isNotEmpty()) {
+            if (allRecords.isNotEmpty()) {
                 host.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
                     host.addActionRow(
                         parent = section,
+                        title = activity.getString(R.string.action_search_download_records),
+                        summary = currentSearchSummary(query)
+                    ) {
+                        showSearchDialog(query)
+                    }
+                    if (!query.isNullOrBlank()) {
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_clear_search),
+                            summary = query
+                        ) {
+                            show(replaceCurrent = true)
+                        }
+                    }
+                    host.addActionRow(
+                        parent = section,
                         title = activity.getString(R.string.action_refresh),
                         summary = activity.getString(R.string.action_refresh_download_records_summary)
                     ) {
-                        show(replaceCurrent = true)
+                        show(replaceCurrent = true, query = query)
                     }
                     host.addActionRow(
                         parent = section,
@@ -66,8 +86,12 @@ class DownloadsPage(
                 }
             }
 
-            if (records.isEmpty()) {
+            if (allRecords.isEmpty()) {
                 host.addEmptyState(content, activity.getString(R.string.dialog_download_records_empty))
+                return@showPage
+            }
+            if (records.isEmpty()) {
+                host.addEmptyState(content, activity.getString(R.string.dialog_download_records_search_empty))
                 return@showPage
             }
 
@@ -90,6 +114,27 @@ class DownloadsPage(
                 }
             }
         }
+    }
+
+    private fun showSearchDialog(currentQuery: String?) {
+        val input = EditText(activity).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            setSingleLine(true)
+            hint = activity.getString(R.string.hint_download_records_search)
+            setText(currentQuery.orEmpty())
+            setSelection(text?.length ?: 0)
+        }
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_search_download_records)
+            .setView(input)
+            .setPositiveButton(R.string.action_search_download_records) { _, _ ->
+                show(
+                    replaceCurrent = true,
+                    query = input.text?.toString()?.trim().orEmpty()
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun refreshDownloadRecords(): List<DownloadRecord> {
@@ -345,6 +390,12 @@ class DownloadsPage(
             createdAt,
             UrlUtils.displayUrl(record.sourceUrl)
         ).joinToString(" | ")
+    }
+
+    private fun currentSearchSummary(query: String?): String {
+        return query
+            ?.takeIf { it.isNotBlank() }
+            ?: activity.getString(R.string.action_search_download_records_summary)
     }
 
     private fun progressSummary(record: DownloadRecord): String? {

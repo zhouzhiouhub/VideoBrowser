@@ -52,6 +52,29 @@ class DownloadStatusWiringContractTest {
     }
 
     @Test
+    fun downloadsPageSupportsSearchFiltering() {
+        val downloadsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
+        ).readText()
+        val search = projectFile(
+            "src/main/java/com/example/videobrowser/download/DownloadRecordSearch.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(downloadsPage.contains("DownloadRecordSearch.filter(allRecords, query)"))
+        assertTrue(downloadsPage.contains("R.string.action_search_download_records"))
+        assertTrue(downloadsPage.contains("private fun showSearchDialog"))
+        assertTrue(downloadsPage.contains("R.string.action_clear_search"))
+        assertTrue(downloadsPage.contains("R.string.dialog_download_records_search_empty"))
+        assertTrue(search.contains("record.fileName"))
+        assertTrue(search.contains("record.sourceUrl"))
+        assertTrue(strings.contains("action_search_download_records"))
+        assertTrue(strings.contains("action_search_download_records_summary"))
+        assertTrue(strings.contains("hint_download_records_search"))
+        assertTrue(strings.contains("dialog_download_records_search_empty"))
+    }
+
+    @Test
     fun downloadsPageCanCancelInProgressRecords() {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
