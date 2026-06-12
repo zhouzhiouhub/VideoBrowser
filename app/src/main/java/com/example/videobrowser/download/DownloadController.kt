@@ -252,6 +252,9 @@ class DownloadController(
         if (downloadId < 0L) {
             return
         }
+        if (!downloadRecordRepository.contains(downloadId)) {
+            return
+        }
         val status = queryDownloadStatus(downloadId) ?: return
         downloadRecordRepository.updateSnapshot(
             downloadId = downloadId,

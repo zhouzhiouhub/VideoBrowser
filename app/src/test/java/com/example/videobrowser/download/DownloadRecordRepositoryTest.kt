@@ -201,6 +201,15 @@ class DownloadRecordRepositoryTest {
     }
 
     @Test
+    fun containsReturnsWhetherDownloadIdExists() {
+        val repository = DownloadRecordRepository(InMemoryPreferenceStore())
+        repository.add(record(id = 7L, fileName = "known.zip", createdAtMillis = 70L))
+
+        assertEquals(true, repository.contains(7L))
+        assertEquals(false, repository.contains(404L))
+    }
+
+    @Test
     fun recordsKeepMostRecentEightyEntries() {
         val repository = DownloadRecordRepository(InMemoryPreferenceStore())
 

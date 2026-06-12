@@ -10,6 +10,7 @@ class DownloadStatusWiringContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadController.kt"
         ).readText()
+        val readme = projectFile("README.md").readText()
 
         assertTrue(controller.contains("DownloadStatus.IN_PROGRESS"))
         assertTrue(controller.contains("DownloadManager.ACTION_DOWNLOAD_COMPLETE"))
@@ -20,7 +21,10 @@ class DownloadStatusWiringContractTest {
         assertTrue(controller.contains("DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR"))
         assertTrue(controller.contains("DownloadManager.COLUMN_TOTAL_SIZE_BYTES"))
         assertTrue(controller.contains("statusReason"))
+        assertTrue(controller.contains("downloadRecordRepository.contains(downloadId)"))
         assertTrue(controller.contains("downloadRecordRepository.updateSnapshot"))
+        assertTrue(repository().contains("fun contains(downloadId: Long): Boolean"))
+        assertTrue(readme.contains("下载完成广播只处理本应用记录过的下载 ID"))
     }
 
     @Test
@@ -175,9 +179,15 @@ class DownloadStatusWiringContractTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
+    }
+
+    private fun repository(): String {
+        return projectFile("src/main/java/com/example/videobrowser/download/DownloadRecordRepository.kt")
+            .readText()
     }
 }

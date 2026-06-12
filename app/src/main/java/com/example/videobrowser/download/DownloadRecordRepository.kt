@@ -63,6 +63,10 @@ class DownloadRecordRepository(
             .toList()
     }
 
+    fun contains(downloadId: Long): Boolean {
+        return records().any { record -> record.downloadId == downloadId }
+    }
+
     fun remove(downloadId: Long): Boolean {
         val existingRecords = records()
         val updatedRecords = existingRecords.filterNot { record -> record.downloadId == downloadId }
