@@ -25,6 +25,8 @@
     <color name="browser_wenxin_end">#7861FF</color>
     <color name="privacy_background">#E8F5EF</color>
     <color name="privacy_text">#11734B</color>
+    <color name="site_security_secure">#1F8A5B</color>
+    <color name="site_security_insecure">#C2410C</color>
     <color name="bookmark_active">#F7B500</color>
     <color name="app_logo_background">#000000</color>
 </resources>

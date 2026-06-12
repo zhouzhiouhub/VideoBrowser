@@ -43,6 +43,27 @@ class MainActivityLayoutContractTest {
     }
 
     @Test
+    fun addressBarContainsSiteSecurityIndicator() {
+        val layout = activityMainLayout()
+        val securityIcon = layout.elementById("siteSecurityIcon")
+        val viewBinding = projectFile("src/main/java/com/example/videobrowser/MainActivityViews.kt")
+            .readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+
+        assertEquals("ImageView", securityIcon.tagName)
+        assertEquals("20dp", securityIcon.androidAttribute("layout_width"))
+        assertEquals("20dp", securityIcon.androidAttribute("layout_height"))
+        assertEquals("gone", securityIcon.androidAttribute("visibility"))
+        assertTrue(viewBinding.contains("val siteSecurityIcon: ImageView"))
+        assertTrue(viewBinding.contains("R.id.siteSecurityIcon"))
+        assertTrue(mainActivity.contains("private fun updateSiteSecurityStatus"))
+        assertTrue(mainActivity.contains("SiteSecurityStatus.fromUrl(url)"))
+        assertTrue(mainActivity.contains("R.drawable.ic_lock_24"))
+        assertTrue(mainActivity.contains("R.drawable.ic_warning_24"))
+    }
+
+    @Test
     fun addressBarHintDoesNotIncludeSelectedSearchProviderName() {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"

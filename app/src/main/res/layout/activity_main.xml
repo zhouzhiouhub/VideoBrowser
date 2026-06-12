@@ -43,11 +43,21 @@
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
+            <ImageView
+                android:id="@+id/siteSecurityIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:importantForAccessibility="yes"
+                android:padding="2dp"
+                android:scaleType="center"
+                android:visibility="gone" />
+
             <EditText
                 android:id="@+id/addressInput"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="6dp"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"

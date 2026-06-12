@@ -27,6 +27,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -62,6 +63,7 @@ import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.PageActionsController
+import com.example.videobrowser.browser.SiteSecurityStatus
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
 import com.example.videobrowser.browser.search.AddressSuggestionController
@@ -121,6 +123,7 @@ class MainActivity : AppCompatActivity() {
     private val refreshButton: ImageButton get() = views.refreshButton
     private val bookmarkButton: ImageButton get() = views.bookmarkButton
     private val loadButton: ImageButton get() = views.loadButton
+    private val siteSecurityIcon: ImageView get() = views.siteSecurityIcon
     private val fullscreenContainer: FrameLayout get() = views.fullscreenContainer
     private lateinit var preferenceStore: PreferenceStore
     private lateinit var settingsManager: SettingsManager
@@ -1148,6 +1151,9 @@ class MainActivity : AppCompatActivity() {
             setColor(colors.addressBackground)
             setStroke(dp(1), colors.addressStroke)
         }
+        if (areBrowserSessionsInitialized()) {
+            updateSiteSecurityStatus(currentSessionController().currentPageUrl)
+        }
         listOf(backButton, refreshButton, pageToolsButton, bookmarkButton, wenxinButton, profileButton).forEach { button ->
             button.setColorFilter(colors.icon)
         }
@@ -1479,6 +1485,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateAddressBar(url: String?) {
+        updateSiteSecurityStatus(url)
         if (url.isNullOrBlank()) {
             return
         }
@@ -1489,6 +1496,41 @@ class MainActivity : AppCompatActivity() {
         }
         addressInput.setText(displayUrl)
         addressInput.setSelection(addressInput.text?.length ?: 0)
+    }
+
+    private fun updateSiteSecurityStatus(url: String?) {
+        when (SiteSecurityStatus.fromUrl(url)) {
+            SiteSecurityStatus.SECURE -> showSiteSecurityStatus(
+                iconResId = R.drawable.ic_lock_24,
+                colorResId = R.color.site_security_secure,
+                descriptionResId = R.string.site_security_secure
+            )
+
+            SiteSecurityStatus.NOT_SECURE -> showSiteSecurityStatus(
+                iconResId = R.drawable.ic_warning_24,
+                colorResId = R.color.site_security_insecure,
+                descriptionResId = R.string.site_security_not_secure
+            )
+
+            SiteSecurityStatus.UNKNOWN -> {
+                siteSecurityIcon.visibility = View.GONE
+                siteSecurityIcon.contentDescription = null
+                ViewCompat.setTooltipText(siteSecurityIcon, null)
+            }
+        }
+    }
+
+    private fun showSiteSecurityStatus(
+        iconResId: Int,
+        colorResId: Int,
+        descriptionResId: Int
+    ) {
+        val description = getString(descriptionResId)
+        siteSecurityIcon.visibility = View.VISIBLE
+        siteSecurityIcon.setImageResource(iconResId)
+        siteSecurityIcon.setColorFilter(ContextCompat.getColor(this, colorResId))
+        siteSecurityIcon.contentDescription = description
+        ViewCompat.setTooltipText(siteSecurityIcon, description)
     }
 
     private fun addressBarDisplayText(url: String): String {
