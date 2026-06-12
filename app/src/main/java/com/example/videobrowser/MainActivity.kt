@@ -61,6 +61,7 @@ import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.ChromeClient
+import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.SiteSecurityStatus
@@ -1926,15 +1927,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openExternalProtocolNavigation(view: WebView?, uri: Uri): Boolean {
-        var fallbackLoaded = false
-        val handled = externalNavigator.openExternalProtocolUrl(uri.toString()) { fallbackUrl ->
-            fallbackLoaded = true
+        if (!ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)) {
+            return false
+        }
+        view?.stopLoading()
+        showExternalProtocolConfirmation(uri)
+        return true
+    }
+
+    private fun showExternalProtocolConfirmation(uri: Uri) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_external_protocol_request)
+            .setMessage(
+                getString(
+                    R.string.dialog_external_protocol_request_message,
+                    externalProtocolDisplay(uri)
+                )
+            )
+            .setPositiveButton(R.string.action_open_external_app) { _, _ ->
+                openConfirmedExternalProtocol(uri)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun openConfirmedExternalProtocol(uri: Uri) {
+        externalNavigator.openExternalProtocolUrl(uri.toString()) { fallbackUrl ->
             loadUrl(fallbackUrl)
         }
-        if (handled && !fallbackLoaded) {
-            view?.stopLoading()
-        }
-        return handled
+    }
+
+    private fun externalProtocolDisplay(uri: Uri): String {
+        return uri.scheme
+            ?.takeIf { scheme -> scheme.isNotBlank() }
+            ?.let { scheme -> "$scheme:" }
+            ?: uri.toString()
     }
 
     private fun isUnavailableUcDownloadUrl(uri: Uri): Boolean {
