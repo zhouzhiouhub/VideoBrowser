@@ -97,21 +97,27 @@ class MainActivityLayoutContractTest {
     }
 
     @Test
-    fun addressSuggestionControllerIsWiredToHistoryAndRemoteSuggestions() {
+    fun addressSuggestionControllerIsWiredToBookmarksHistoryAndRemoteSuggestions() {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/AddressSuggestionController.kt"
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
 
         assertTrue(controller.contains("addTextChangedListener"))
+        assertTrue(controller.contains("savedPageRepository.bookmarks()"))
         assertTrue(controller.contains("savedPageRepository.history()"))
         assertTrue(controller.contains("suggestionClient.fetch"))
         assertTrue(controller.contains("AddressSuggestionRanker.build"))
+        assertTrue(controller.contains("AddressSuggestion.Bookmark"))
         assertTrue(controller.contains("val includePrivateSources = !isPrivateBrowsingEnabled()"))
         assertTrue(mainActivity.contains("private lateinit var addressSuggestionController: AddressSuggestionController"))
         assertTrue(mainActivity.contains("addressSuggestionController.setup()"))
         assertTrue(mainActivity.contains("addressSuggestionController.hide()"))
+        assertTrue(strings.contains("address_suggestion_bookmark"))
+        assertTrue(readme.contains("收藏夹匹配"))
     }
 
     @Test
@@ -237,9 +243,10 @@ class MainActivityLayoutContractTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 

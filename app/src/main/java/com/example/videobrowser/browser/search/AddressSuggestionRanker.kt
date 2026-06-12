@@ -8,6 +8,7 @@ object AddressSuggestionRanker {
     fun build(
         input: String,
         history: List<SavedPage>,
+        bookmarks: List<SavedPage> = emptyList(),
         remoteKeywords: List<String>,
         includePrivateSources: Boolean,
         limit: Int = DEFAULT_LIMIT
@@ -23,30 +24,50 @@ object AddressSuggestionRanker {
         }
 
         val normalizedInput = normalize(keyword)
-        val historySuggestions = historySuggestions(history, normalizedInput)
+        val seenUrls = linkedSetOf<String>()
+        val bookmarkSuggestions = savedPageSuggestions(
+            pages = bookmarks,
+            normalizedInput = normalizedInput,
+            seenUrls = seenUrls
+        ) { page, displayUrl ->
+            AddressSuggestion.Bookmark(
+                title = page.title,
+                url = page.url,
+                displayUrl = displayUrl
+            )
+        }
+        val historySuggestions = savedPageSuggestions(
+            pages = history,
+            normalizedInput = normalizedInput,
+            seenUrls = seenUrls
+        ) { page, displayUrl ->
+            AddressSuggestion.History(
+                title = page.title,
+                url = page.url,
+                displayUrl = displayUrl
+            )
+        }
         val remoteSuggestions = remoteSuggestions(remoteKeywords, normalizedInput)
-        return (historySuggestions + remoteSuggestions)
+        return (bookmarkSuggestions + historySuggestions + remoteSuggestions)
             .take(limit - 1) + fallback
     }
 
-    private fun historySuggestions(
-        history: List<SavedPage>,
-        normalizedInput: String
-    ): List<AddressSuggestion.History> {
-        val seenUrls = linkedSetOf<String>()
-        return history.mapNotNull { page ->
+    private fun <T : AddressSuggestion> savedPageSuggestions(
+        pages: List<SavedPage>,
+        normalizedInput: String,
+        seenUrls: MutableSet<String>,
+        createSuggestion: (SavedPage, String) -> T
+    ): List<T> {
+        return pages.mapNotNull { page ->
             val displayUrl = UrlUtils.displayUrl(page.url)
             val matches = normalize(page.title).contains(normalizedInput) ||
-                normalize(displayUrl).contains(normalizedInput)
+                normalize(displayUrl).contains(normalizedInput) ||
+                normalize(page.folder).contains(normalizedInput)
             val normalizedUrl = page.url.lowercase(Locale.ROOT)
             if (!matches || !seenUrls.add(normalizedUrl)) {
                 null
             } else {
-                AddressSuggestion.History(
-                    title = page.title,
-                    url = page.url,
-                    displayUrl = displayUrl
-                )
+                createSuggestion(page, displayUrl)
             }
         }
     }

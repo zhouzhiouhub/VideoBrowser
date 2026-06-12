@@ -118,6 +118,7 @@ class AddressSuggestionController(
         val suggestions = AddressSuggestionRanker.build(
             input = query,
             history = if (includePrivateSources) savedPageRepository.history() else emptyList(),
+            bookmarks = if (includePrivateSources) savedPageRepository.bookmarks() else emptyList(),
             remoteKeywords = remoteKeywords,
             includePrivateSources = includePrivateSources
         )
@@ -149,6 +150,7 @@ class AddressSuggestionController(
                 }
             )
             minimumHeight = when (suggestion) {
+                is AddressSuggestion.Bookmark,
                 is AddressSuggestion.History -> dp(58)
                 is AddressSuggestion.Remote,
                 is AddressSuggestion.Fallback -> dp(48)
@@ -164,6 +166,7 @@ class AddressSuggestionController(
         return ImageView(activity).apply {
             setImageResource(
                 when (suggestion) {
+                    is AddressSuggestion.Bookmark -> R.drawable.ic_star_24
                     is AddressSuggestion.History -> R.drawable.ic_history_24
                     is AddressSuggestion.Remote,
                     is AddressSuggestion.Fallback -> R.drawable.ic_search_24
@@ -179,6 +182,10 @@ class AddressSuggestionController(
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
             when (suggestion) {
+                is AddressSuggestion.Bookmark -> {
+                    addView(createPrimaryText(suggestion.title))
+                    addView(createSecondaryText(suggestion.displayUrl))
+                }
                 is AddressSuggestion.History -> {
                     addView(createPrimaryText(suggestion.title))
                     addView(createSecondaryText(suggestion.displayUrl))
@@ -226,6 +233,7 @@ class AddressSuggestionController(
     private fun selectSuggestion(suggestion: AddressSuggestion) {
         runWithSuggestionsSuppressed {
             when (suggestion) {
+                is AddressSuggestion.Bookmark -> openUrl(suggestion.url)
                 is AddressSuggestion.History -> openUrl(suggestion.url)
                 is AddressSuggestion.Remote -> searchKeyword(suggestion.keyword)
                 is AddressSuggestion.Fallback -> searchKeyword(suggestion.keyword)
@@ -235,6 +243,9 @@ class AddressSuggestionController(
 
     private fun contentDescriptionFor(suggestion: AddressSuggestion): String {
         return when (suggestion) {
+            is AddressSuggestion.Bookmark -> {
+                activity.getString(R.string.address_suggestion_bookmark, suggestion.title)
+            }
             is AddressSuggestion.History -> {
                 activity.getString(R.string.address_suggestion_history, suggestion.title)
             }

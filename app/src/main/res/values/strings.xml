@@ -26,6 +26,7 @@
     <string name="action_pick_element">屏蔽元素</string>
     <string name="action_select_search_provider">使用 %1$s 搜索</string>
     <string name="address_suggestion_search">搜索：%1$s</string>
+    <string name="address_suggestion_bookmark">收藏：%1$s</string>
     <string name="address_suggestion_history">历史记录：%1$s</string>
     <string name="address_suggestion_keyword">搜索建议：%1$s</string>
     <string name="action_open_custom_shortcut">打开 %1$s</string>
