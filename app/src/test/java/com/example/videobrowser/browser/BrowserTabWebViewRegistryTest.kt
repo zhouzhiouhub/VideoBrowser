@@ -74,6 +74,21 @@ class BrowserTabWebViewRegistryTest {
     }
 
     @Test
+    fun resolvesTabIdForRegisteredViewByIdentity() {
+        val firstView = FakeView("first")
+        val secondView = FakeView("second")
+        val tabs = BrowserTabStore()
+        val firstTabId = tabs.activeTabId
+        val registry = BrowserTabWebViewRegistry(tabs, initialView = firstView)
+
+        val secondTab = registry.openTab(view = secondView).tab
+
+        assertEquals(firstTabId, registry.tabIdFor(firstView))
+        assertEquals(secondTab.id, registry.tabIdFor(secondView))
+        assertNull(registry.tabIdFor(FakeView("second")))
+    }
+
+    @Test
     fun closingActiveTabShowsFallbackViewAndDestroysClosedView() {
         val calls = RegistryCalls()
         val registry = registry(
@@ -304,4 +319,6 @@ class BrowserTabWebViewRegistryTest {
         val hidden = mutableListOf<String>()
         val destroyed = mutableListOf<String>()
     }
+
+    private data class FakeView(val name: String)
 }

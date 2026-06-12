@@ -774,7 +774,8 @@ class MainActivity : AppCompatActivity() {
             permissionRequestCanceled = ::handleWebPermissionRequestCanceled,
             geolocationPermissionRequested = ::handleGeolocationPermissionRequest,
             geolocationPermissionHidden = ::handleGeolocationPermissionHidden,
-            newWindowRequested = ::handleCreateWebWindow
+            newWindowRequested = ::handleCreateWebWindow,
+            windowClosed = ::handleCloseWebWindow
         )
     }
 
@@ -796,6 +797,14 @@ class MainActivity : AppCompatActivity() {
         transport.webView = tabWebView
         resultMsg?.sendToTarget()
         return true
+    }
+
+    private fun handleCloseWebWindow(window: WebView?) {
+        if (privateBrowsingActive || window == null) {
+            return
+        }
+        val tabId = standardTabWebViews.tabIdFor(window) ?: return
+        closeTab(tabId)
     }
 
     private fun setupBrowserClient() {

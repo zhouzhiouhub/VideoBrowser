@@ -112,6 +112,12 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         return webViewFor(tabId)
     }
 
+    fun tabIdFor(view: T): Long? {
+        return viewsByTabId.entries
+            .firstOrNull { (_, tabView) -> tabView === view }
+            ?.key
+    }
+
     fun activate(tabId: Long): T {
         val currentWebView = activeWebView()
         val nextWebView = viewsByTabId.getOrPut(tabId) {

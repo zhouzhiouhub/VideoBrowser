@@ -36,7 +36,8 @@ class ChromeClient(
         { _, _ -> },
     private val geolocationPermissionHidden: () -> Unit = {},
     private val newWindowRequested: (WebView?, Boolean, Boolean, Message?) -> Boolean =
-        { _, _, _, _ -> false }
+        { _, _, _, _ -> false },
+    private val windowClosed: (WebView?) -> Unit = {}
 ) : WebChromeClient() {
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
@@ -119,6 +120,10 @@ class ChromeClient(
         resultMsg: Message?
     ): Boolean {
         return newWindowRequested(view, isDialog, isUserGesture, resultMsg)
+    }
+
+    override fun onCloseWindow(window: WebView?) {
+        windowClosed(window)
     }
 
     override fun onJsAlert(
