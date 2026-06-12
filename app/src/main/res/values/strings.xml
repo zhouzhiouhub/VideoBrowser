@@ -106,6 +106,10 @@
     <string name="action_show_bookmarks">打开收藏夹</string>
     <string name="action_show_bookmarks_summary">查看并打开本地保存的网页</string>
     <string name="action_manage_bookmarks_summary">查看或清空收藏夹</string>
+    <string name="action_export_bookmarks">导出收藏夹</string>
+    <string name="action_export_bookmarks_summary">保存为可导入的本地文件</string>
+    <string name="action_import_bookmarks">导入收藏夹</string>
+    <string name="action_import_bookmarks_summary">从本地文件合并收藏</string>
     <string name="action_show_history">打开历史记录</string>
     <string name="action_show_history_summary">查看最近访问记录</string>
     <string name="action_manage_history_summary">查看或清空浏览历史记录</string>
@@ -361,6 +365,11 @@
     <string name="toast_bookmark_saved">已收藏到本地</string>
     <string name="toast_bookmark_removed">已取消收藏</string>
     <string name="toast_bookmarks_empty">收藏夹为空</string>
+    <string name="toast_bookmarks_exported">已导出收藏夹</string>
+    <string name="toast_bookmarks_export_failed">无法导出收藏夹</string>
+    <string name="toast_bookmarks_imported">已导入 %1$d 个收藏</string>
+    <string name="toast_bookmarks_import_empty">没有可导入的新收藏</string>
+    <string name="toast_bookmarks_import_failed">无法导入收藏夹文件</string>
     <string name="toast_history_empty">暂无历史记录</string>
     <string name="toast_saved_pages_cleared">已清空</string>
     <string name="toast_saved_page_removed">已删除记录</string>

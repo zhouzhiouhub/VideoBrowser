@@ -2,12 +2,18 @@ package com.example.videobrowser.storage
 
 import java.net.URLDecoder
 import java.net.URLEncoder
+import java.util.Locale
 
 data class SavedPage(
     val title: String,
     val url: String,
     val createdAtMillis: Long = 0L,
     val updatedAtMillis: Long = 0L
+)
+
+data class BookmarkImportResult(
+    val importedCount: Int,
+    val skippedCount: Int
 )
 
 class SavedPageRepository(
@@ -32,6 +38,32 @@ class SavedPageRepository(
 
     fun bookmarks(): List<SavedPage> {
         return loadSavedPages(KEY_BOOKMARKS)
+    }
+
+    fun exportBookmarks(): String {
+        return renderPages(bookmarks())
+    }
+
+    fun importBookmarks(rawValue: String): BookmarkImportResult {
+        val existingBookmarks = bookmarks()
+        val existingUrls = existingBookmarks
+            .map { page -> bookmarkUrlKey(page.url) }
+            .toSet()
+        val candidates = parseSavedPages(rawValue)
+            .mapNotNull(::normalizeImportedBookmark)
+            .distinctBy { page -> bookmarkUrlKey(page.url) }
+        val availableSlots = (BOOKMARK_LIMIT - existingBookmarks.size).coerceAtLeast(0)
+        val newBookmarks = candidates
+            .filterNot { page -> bookmarkUrlKey(page.url) in existingUrls }
+            .take(availableSlots)
+
+        if (newBookmarks.isNotEmpty()) {
+            saveSavedPages(KEY_BOOKMARKS, existingBookmarks + newBookmarks)
+        }
+        return BookmarkImportResult(
+            importedCount = newBookmarks.size,
+            skippedCount = candidates.size - newBookmarks.size
+        )
     }
 
     fun history(): List<SavedPage> {
@@ -116,6 +148,10 @@ class SavedPageRepository(
 
     private fun loadSavedPages(key: String): List<SavedPage> {
         val rawValue = preferenceStore.getString(key, null) ?: return emptyList()
+        return parseSavedPages(rawValue)
+    }
+
+    private fun parseSavedPages(rawValue: String): List<SavedPage> {
         return when {
             rawValue.startsWith(FORMAT_HEADER) -> loadVersionedPages(rawValue)
             rawValue.trimStart().startsWith("[") -> loadLegacyJsonPages(rawValue)
@@ -144,6 +180,21 @@ class SavedPageRepository(
             createdAtMillis = createdAt,
             updatedAtMillis = updatedAt
         )
+    }
+
+    private fun normalizeImportedBookmark(page: SavedPage): SavedPage? {
+        val url = page.url.trim().takeIf { it.isNotBlank() } ?: return null
+        val timestamp = currentTimeMillis()
+        return page.copy(
+            title = page.title.trim().ifBlank { url },
+            url = url,
+            createdAtMillis = page.createdAtMillis.takeIf { it > 0L } ?: timestamp,
+            updatedAtMillis = page.updatedAtMillis.takeIf { it > 0L } ?: timestamp
+        )
+    }
+
+    private fun bookmarkUrlKey(url: String): String {
+        return url.trim().lowercase(Locale.ROOT)
     }
 
     private fun renderPages(pages: List<SavedPage>): String {

@@ -120,6 +120,8 @@ class BrowserDataManagementPage(
     private val showBookmarkList: () -> Unit,
     private val showHistoryList: () -> Unit,
     private val showDownloadList: () -> Unit,
+    private val exportBookmarks: () -> Unit,
+    private val importBookmarks: () -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -147,6 +149,21 @@ class BrowserDataManagementPage(
                     enabled = bookmarkCount > 0
                 ) {
                     showBookmarkList()
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_export_bookmarks),
+                    summary = activity.getString(R.string.action_export_bookmarks_summary),
+                    enabled = bookmarkCount > 0
+                ) {
+                    exportBookmarks()
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_import_bookmarks),
+                    summary = activity.getString(R.string.action_import_bookmarks_summary)
+                ) {
+                    importBookmarks()
                 }
                 host.addActionRow(
                     parent = section,

@@ -94,6 +94,39 @@ class SavedPageRepositoryTest {
     }
 
     @Test
+    fun exportAndImportBookmarksUseSavedPageFormatAndSkipDuplicates() {
+        var now = 1_000L
+        val source = SavedPageRepository(InMemoryPreferenceStore(), currentTimeMillis = { now })
+        source.addBookmark(SavedPage(title = "First", url = "https://first.example.com"))
+        now = 2_000L
+        source.addBookmark(SavedPage(title = "Second", url = "https://second.example.com"))
+
+        val target = SavedPageRepository(InMemoryPreferenceStore(), currentTimeMillis = { 5_000L })
+        target.addBookmark(SavedPage(title = "Existing", url = "https://second.example.com"))
+
+        val result = target.importBookmarks(source.exportBookmarks())
+
+        assertEquals(1, result.importedCount)
+        assertEquals(1, result.skippedCount)
+        assertEquals(
+            listOf("https://second.example.com", "https://first.example.com"),
+            target.bookmarks().map { page -> page.url }
+        )
+        assertTrue(target.exportBookmarks().startsWith("VideoBrowserSavedPages\t2"))
+    }
+
+    @Test
+    fun importBookmarksRejectsUnknownFormat() {
+        val repository = SavedPageRepository(InMemoryPreferenceStore())
+
+        val result = repository.importBookmarks("not a bookmark file")
+
+        assertEquals(0, result.importedCount)
+        assertEquals(0, result.skippedCount)
+        assertTrue(repository.bookmarks().isEmpty())
+    }
+
+    @Test
     fun updateTitleChangesOnePageAndRefreshesUpdatedTime() {
         var now = 1_000L
         val repository = SavedPageRepository(InMemoryPreferenceStore()) { now }

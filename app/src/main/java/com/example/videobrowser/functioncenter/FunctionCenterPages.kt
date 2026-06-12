@@ -55,6 +55,8 @@ class FunctionCenterPages(
     private val openPlaybackHistoryItem: (PlaybackProgress) -> Unit,
     private val downloadCurrentUrl: () -> Unit,
     private val retryDownload: (DownloadRecord) -> Unit,
+    private val exportBookmarks: () -> Unit,
+    private val importBookmarks: () -> Unit,
     private val currentSearchProviderName: () -> String,
     private val selectSearchProvider: (String) -> Boolean,
     setPrivateBrowsingEnabled: (Boolean) -> Unit,
@@ -155,6 +157,8 @@ class FunctionCenterPages(
         showBookmarkList = ::showBookmarks,
         showHistoryList = ::showHistory,
         showDownloadList = { downloadsPage.show() },
+        exportBookmarks = exportBookmarks,
+        importBookmarks = importBookmarks,
         showRootPage = ::showRootPage
     )
     private val restoreDefaultSettingsPage = RestoreDefaultSettingsPage(

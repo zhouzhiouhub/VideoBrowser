@@ -198,6 +198,18 @@ class MainActivity : AppCompatActivity() {
             )
             pendingFileChooserCallback = null
         }
+    private val bookmarkExportLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+            if (uri != null) {
+                exportBookmarksToUri(uri)
+            }
+        }
+    private val bookmarkImportLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                importBookmarksFromUri(uri)
+            }
+        }
     private var pendingWebPermissionRequest: PermissionRequest? = null
     private var pendingWebPermissionPromptRequest: PermissionRequest? = null
     private var pendingWebPermissionDialog: AlertDialog? = null
@@ -491,6 +503,8 @@ class MainActivity : AppCompatActivity() {
             openPlaybackHistoryItem = ::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
             retryDownload = downloadController::retry,
+            exportBookmarks = ::exportBookmarks,
+            importBookmarks = ::importBookmarks,
             currentSearchProviderName = { searchProviderController.selectedProvider.name },
             selectSearchProvider = searchProviderController::selectDefaultSearchProvider,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
@@ -840,6 +854,49 @@ class MainActivity : AppCompatActivity() {
     private fun cancelPendingWebFileChooser() {
         pendingFileChooserCallback?.onReceiveValue(null)
         pendingFileChooserCallback = null
+    }
+
+    private fun exportBookmarks() {
+        bookmarkExportLauncher.launch(BOOKMARK_EXPORT_FILE_NAME)
+    }
+
+    private fun exportBookmarksToUri(uri: Uri) {
+        val exported = runCatching {
+            val payload = savedPageRepository.exportBookmarks().toByteArray(StandardCharsets.UTF_8)
+            contentResolver.openOutputStream(uri)?.use { output ->
+                output.write(payload)
+            } ?: error("Unable to open bookmark export target")
+        }.isSuccess
+
+        Toast.makeText(
+            this,
+            if (exported) R.string.toast_bookmarks_exported else R.string.toast_bookmarks_export_failed,
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun importBookmarks() {
+        bookmarkImportLauncher.launch(arrayOf("text/plain", "application/json", "*/*"))
+    }
+
+    private fun importBookmarksFromUri(uri: Uri) {
+        val result = runCatching {
+            val payload = contentResolver.openInputStream(uri)?.use { input ->
+                input.bufferedReader(StandardCharsets.UTF_8).readText()
+            } ?: error("Unable to open bookmark import source")
+            savedPageRepository.importBookmarks(payload)
+        }.getOrElse {
+            Toast.makeText(this, R.string.toast_bookmarks_import_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val toastText = if (result.importedCount > 0) {
+            getString(R.string.toast_bookmarks_imported, result.importedCount)
+        } else {
+            getString(R.string.toast_bookmarks_import_empty)
+        }
+        Toast.makeText(this, toastText, Toast.LENGTH_SHORT).show()
+        updateBookmarkButton()
     }
 
     private fun defaultWebFileChooserIntent(): Intent {
@@ -2002,6 +2059,7 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
+        private const val BOOKMARK_EXPORT_FILE_NAME = "videobrowser-bookmarks.txt"
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
