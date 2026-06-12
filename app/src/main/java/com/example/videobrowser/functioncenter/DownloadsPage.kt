@@ -2,6 +2,8 @@ package com.example.videobrowser.functioncenter
 
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
@@ -146,6 +148,11 @@ class DownloadsPage(
                 )
             }
             add(
+                DownloadRecordAction(activity.getString(R.string.action_copy_download_source)) {
+                    copyDownloadSourceUrl(record)
+                }
+            )
+            add(
                 DownloadRecordAction(activity.getString(R.string.action_remove_download_record)) {
                     confirmRemoveDownloadRecord(record)
                 }
@@ -197,6 +204,17 @@ class DownloadsPage(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun copyDownloadSourceUrl(record: DownloadRecord) {
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText(
+                activity.getString(R.string.clipboard_download_source_url),
+                record.sourceUrl
+            )
+        )
+        Toast.makeText(activity, R.string.toast_download_source_copied, Toast.LENGTH_SHORT).show()
     }
 
     private fun cancelDownload(record: DownloadRecord): DownloadCancellationResult {

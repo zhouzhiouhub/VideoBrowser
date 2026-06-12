@@ -89,6 +89,22 @@ class DownloadStatusWiringContractTest {
         assertTrue(strings.contains("toast_download_record_removed"))
     }
 
+    @Test
+    fun downloadsPageCanCopyRecordSourceUrls() {
+        val downloadsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(downloadsPage.contains("ClipData.newPlainText"))
+        assertTrue(downloadsPage.contains("Context.CLIPBOARD_SERVICE"))
+        assertTrue(downloadsPage.contains("copyDownloadSourceUrl(record)"))
+        assertTrue(downloadsPage.contains("record.sourceUrl"))
+        assertTrue(strings.contains("action_copy_download_source"))
+        assertTrue(strings.contains("clipboard_download_source_url"))
+        assertTrue(strings.contains("toast_download_source_copied"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(
