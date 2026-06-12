@@ -191,6 +191,31 @@ class BrowserSettingsPage(
             .show()
     }
 
+    private fun showTextZoomDialog() {
+        val options = SettingsManager.TEXT_ZOOM_OPTIONS
+        val selectedIndex = options
+            .indexOf(settingsManager.textZoomPercent())
+            .takeIf { index -> index >= 0 }
+            ?: options.indexOf(SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT).coerceAtLeast(0)
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.setting_text_zoom)
+            .setSingleChoiceItems(
+                options.map { percent ->
+                    activity.getString(R.string.text_zoom_percent, percent)
+                }.toTypedArray(),
+                selectedIndex
+            ) { dialog, index ->
+                val percent = options[index]
+                settingsManager.setTextZoomPercent(percent)
+                browserManager().setTextZoomPercent(percent)
+                Toast.makeText(activity, R.string.toast_text_zoom_updated, Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                show()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun addDataManagementActions(section: LinearLayout, includeSavedPages: Boolean) {
         FunctionCenterDataManagementActionCatalog.actions(isPrivateBrowsingEnabled())
             .filter { action ->
@@ -370,6 +395,17 @@ class BrowserSettingsPage(
                 settingsManager.setThirdPartyCookiesEnabled(enabled)
                 browserManager().setThirdPartyCookiesEnabled(enabled)
                 browserManager().reload()
+            }
+
+            host.addActionRow(
+                parent = section,
+                title = activity.getString(R.string.setting_text_zoom),
+                summary = activity.getString(
+                    R.string.setting_text_zoom_summary,
+                    settingsManager.textZoomPercent()
+                )
+            ) {
+                showTextZoomDialog()
             }
 
             host.addSwitchRow(

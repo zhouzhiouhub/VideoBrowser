@@ -89,6 +89,41 @@ class BrowserSettingsPageContractTest {
         assertTrue(strings.contains("setting_third_party_cookies_summary"))
     }
 
+    @Test
+    fun browserSettingsPageCanControlWebPageTextZoom() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
+        ).readText()
+        val browserManager = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val settings = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(settings.contains("fun textZoomPercent(): Int"))
+        assertTrue(settings.contains("fun setTextZoomPercent(percent: Int)"))
+        assertTrue(settings.contains("DEFAULT_TEXT_ZOOM_PERCENT = 100"))
+        assertTrue(settings.contains("TEXT_ZOOM_OPTIONS = listOf(75, 100, 125, 150, 200)"))
+        assertTrue(settings.contains("KEY_TEXT_ZOOM_PERCENT = \"text_zoom_percent\""))
+        assertTrue(page.contains("private fun showTextZoomDialog()"))
+        assertTrue(page.contains("R.string.setting_text_zoom"))
+        assertTrue(page.contains("settingsManager.textZoomPercent()"))
+        assertTrue(page.contains("settingsManager.setTextZoomPercent(percent)"))
+        assertTrue(page.contains("browserManager().setTextZoomPercent(percent)"))
+        assertTrue(browserManager.contains("fun setTextZoomPercent(percent: Int)"))
+        assertTrue(browserManager.contains("textZoom = textZoomPercent"))
+        assertTrue(mainActivity.contains("setTextZoomPercent(settingsManager.textZoomPercent())"))
+        assertTrue(strings.contains("setting_text_zoom"))
+        assertTrue(strings.contains("setting_text_zoom_summary"))
+        assertTrue(strings.contains("toast_text_zoom_updated"))
+        assertTrue(readme.contains("网页文字大小"))
+    }
+
     private fun selectDefaultSearchProviderBody(source: String): String {
         val signature = "fun selectDefaultSearchProvider(providerId: String): Boolean"
         val start = source.indexOf(signature)
@@ -112,9 +147,10 @@ class BrowserSettingsPageContractTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 }

@@ -21,6 +21,7 @@ class SettingsManagerTest {
         assertFalse(settings.alwaysStartVideosFromBeginning())
         assertTrue(settings.areThirdPartyCookiesEnabled())
         assertEquals(SettingsManager.DEFAULT_VIDEO_SPEED, settings.defaultVideoSpeed(), 0.001f)
+        assertEquals(SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT, settings.textZoomPercent())
         assertEquals("https://m.baidu.com/", settings.homeUrl())
         assertEquals("baidu", settings.searchEngineId())
     }
@@ -63,6 +64,7 @@ class SettingsManagerTest {
         settings.setAlwaysStartVideosFromBeginning(true)
         settings.setThirdPartyCookiesEnabled(false)
         settings.setDefaultVideoSpeed(1.5f)
+        settings.setTextZoomPercent(125)
         settings.setHomeUrl("https://m.sogou.com/")
         settings.setSearchEngineId("sogou")
 
@@ -78,6 +80,7 @@ class SettingsManagerTest {
         assertFalse(reloaded.areThirdPartyCookiesEnabled())
         assertFalse(store.contains("private_browsing"))
         assertEquals(1.5f, reloaded.defaultVideoSpeed(), 0.001f)
+        assertEquals(125, reloaded.textZoomPercent())
         assertEquals("https://m.sogou.com/", reloaded.homeUrl())
         assertEquals("sogou", reloaded.searchEngineId())
     }
@@ -87,10 +90,12 @@ class SettingsManagerTest {
         val settings = SettingsManager(InMemoryPreferenceStore())
 
         settings.setDefaultVideoSpeed(Float.NaN)
+        settings.setTextZoomPercent(999)
         settings.setHomeUrl("about:blank")
         settings.setSearchEngineId("   ")
 
         assertEquals(SettingsManager.DEFAULT_VIDEO_SPEED, settings.defaultVideoSpeed(), 0.001f)
+        assertEquals(SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT, settings.textZoomPercent())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
         assertEquals(SettingsManager.DEFAULT_SEARCH_ENGINE_ID, settings.searchEngineId())
     }
@@ -126,6 +131,7 @@ class SettingsManagerTest {
         settings.setPrivateBrowsingEnabled(true)
         settings.setAlwaysStartVideosFromBeginning(true)
         settings.setThirdPartyCookiesEnabled(false)
+        settings.setTextZoomPercent(150)
         settings.setHomeUrl("https://m.sogou.com/")
         settings.addCustomShortcut("Docs", "https://docs.example.com/")
         store.putString("bookmarks", "[]")
@@ -157,6 +163,7 @@ class SettingsManagerTest {
         assertFalse(settings.isPrivateBrowsingEnabled())
         assertFalse(settings.alwaysStartVideosFromBeginning())
         assertTrue(settings.areThirdPartyCookiesEnabled())
+        assertEquals(SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT, settings.textZoomPercent())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
         assertTrue(settings.customShortcuts().isEmpty())
         assertEquals("[]", store.getString("bookmarks", null))

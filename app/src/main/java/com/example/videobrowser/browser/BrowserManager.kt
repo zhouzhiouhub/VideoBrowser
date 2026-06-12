@@ -26,6 +26,7 @@ class BrowserManager(
     private var downloadListener: DownloadListener? = null
     private var privateBrowsingEnabled = false
     private var thirdPartyCookiesEnabled = true
+    private var textZoomPercent = 100
 
     val activeWebView: WebView
         get() = webView
@@ -47,6 +48,7 @@ class BrowserManager(
             useWideViewPort = false
             loadsImagesAutomatically = true
             blockNetworkImage = false
+            textZoom = textZoomPercent
             setSupportMultipleWindows(true)
             setGeolocationEnabled(true)
             allowFileAccess = false
@@ -198,6 +200,11 @@ class BrowserManager(
         configuredWebViews.forEach(::applyCookiePolicy)
     }
 
+    fun setTextZoomPercent(percent: Int) {
+        textZoomPercent = percent
+        configuredWebViews.forEach(::applyTextZoom)
+    }
+
     fun evaluateJavascript(script: String) {
         webView.evaluateJavascript(script, null)
     }
@@ -260,6 +267,10 @@ class BrowserManager(
                 !privateBrowsingEnabled && thirdPartyCookiesEnabled
             )
         }
+    }
+
+    private fun applyTextZoom(targetWebView: WebView) {
+        targetWebView.settings.textZoom = textZoomPercent
     }
 
     fun clearTransientBrowsingData() {

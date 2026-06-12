@@ -566,6 +566,7 @@ class MainActivity : AppCompatActivity() {
         setupBackNavigation()
         standardBrowserManager.setup()
         standardBrowserManager.setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())
+        standardBrowserManager.setTextZoomPercent(settingsManager.textZoomPercent())
         standardBrowserManager.setPrivateBrowsingEnabled(false)
         defaultUserAgent = standardBrowserManager.userAgentString()
         applyDesktopMode(reload = false)

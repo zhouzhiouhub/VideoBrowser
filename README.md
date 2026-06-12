@@ -43,6 +43,7 @@ VideoBrowser 的目标是提供一个偏视频场景的移动浏览器壳层：
 - 支持桌面模式：切换 User-Agent、开启 wide viewport，并重新加载页面。
 - 支持顶部和底部浏览器控件随页面滚动隐藏。
 - 支持在浏览器设置中允许或阻止第三方 Cookie。
+- 支持在浏览器设置中调整网页文字大小。
 - 网页请求相机、麦克风或定位时，除 Android 运行时权限外，还会按站点确认允许/阻止；当前站点设置中可改回每次询问。
 - Debug 包中启用 WebView 调试：`WebView.setWebContentsDebuggingEnabled(true)`。
 
@@ -739,6 +740,7 @@ browser_preferences
 - 页面净化开关。
 - 视频增强开关。
 - 默认视频倍速。
+- 网页文字大小。
 - 首页 URL。
 - 搜索引擎 ID。
 - 是否允许第三方 Cookie。
@@ -786,6 +788,7 @@ browser_preferences
 | 搜索引擎 | `baidu` |
 | 首页 | `https://m.baidu.com/` |
 | 默认视频倍速 | `1f` |
+| 网页文字大小 | `100%` |
 | 视频总是从头播放 | 关闭 |
 | 广告请求拦截 | 开启 |
 | 网页脚本增强 | 开启 |

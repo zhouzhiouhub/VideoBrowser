@@ -347,6 +347,22 @@ class SettingsManager(
         preferenceStore.putFloat(KEY_DEFAULT_VIDEO_SPEED, normalizeVideoSpeed(speed))
     }
 
+    fun textZoomPercent(): Int {
+        return normalizeTextZoomPercent(
+            preferenceStore.getFloat(
+                KEY_TEXT_ZOOM_PERCENT,
+                DEFAULT_TEXT_ZOOM_PERCENT.toFloat()
+            ).toInt()
+        )
+    }
+
+    fun setTextZoomPercent(percent: Int) {
+        preferenceStore.putFloat(
+            KEY_TEXT_ZOOM_PERCENT,
+            normalizeTextZoomPercent(percent).toFloat()
+        )
+    }
+
     fun homeUrl(): String {
         return normalizeHomeUrl(
             preferenceStore.getString(KEY_HOME_URL, null),
@@ -529,6 +545,11 @@ class SettingsManager(
         }
     }
 
+    private fun normalizeTextZoomPercent(percent: Int): Int {
+        return percent.takeIf { value -> value in TEXT_ZOOM_OPTIONS }
+            ?: DEFAULT_TEXT_ZOOM_PERCENT
+    }
+
     private fun normalizeHomeUrl(value: String?, defaultValue: String): String {
         return normalizeHomeUrlOrNull(value) ?: defaultValue
     }
@@ -588,6 +609,8 @@ class SettingsManager(
         const val DEFAULT_SEARCH_ENGINE_ID = "baidu"
         const val DEFAULT_HOME_URL = "https://m.baidu.com/"
         const val DEFAULT_VIDEO_SPEED = 1f
+        const val DEFAULT_TEXT_ZOOM_PERCENT = 100
+        val TEXT_ZOOM_OPTIONS = listOf(75, 100, 125, 150, 200)
 
         private const val DEFAULT_AD_BLOCK_ENABLED = true
         private const val DEFAULT_JS_INJECTION_ENABLED = true
@@ -629,6 +652,7 @@ class SettingsManager(
         private const val KEY_SMART_NO_IMAGE = "smart_no_image"
         private const val KEY_THIRD_PARTY_COOKIES = "third_party_cookies"
         private const val KEY_DEFAULT_VIDEO_SPEED = "default_video_speed"
+        private const val KEY_TEXT_ZOOM_PERCENT = "text_zoom_percent"
         private const val KEY_HOME_URL = "home_url"
         private const val KEY_SEARCH_ENGINE = "search_provider"
         private const val KEY_CUSTOM_SHORTCUTS = "custom_shortcuts"
@@ -662,6 +686,7 @@ class SettingsManager(
             KEY_SMART_NO_IMAGE,
             KEY_THIRD_PARTY_COOKIES,
             KEY_DEFAULT_VIDEO_SPEED,
+            KEY_TEXT_ZOOM_PERCENT,
             KEY_HOME_URL,
             KEY_SEARCH_ENGINE,
             KEY_CUSTOM_SHORTCUTS,

@@ -97,6 +97,9 @@
     <string name="setting_private_browsing_summary">不记录历史，并在切换或退出时清理 Cookie、缓存和站点数据</string>
     <string name="setting_third_party_cookies">允许第三方 Cookie</string>
     <string name="setting_third_party_cookies_summary">关闭后会阻止跨站 Cookie，可能影响登录或嵌入内容</string>
+    <string name="setting_text_zoom">网页文字大小</string>
+    <string name="setting_text_zoom_summary">当前 %1$d%%</string>
+    <string name="text_zoom_percent">%1$d%%</string>
     <string name="setting_desktop_mode">桌面模式</string>
     <string name="setting_desktop_mode_summary">使用桌面浏览器标识并横屏显示当前页面</string>
     <string name="setting_home_page">主页</string>
@@ -407,6 +410,7 @@
     <string name="toast_home_page_invalid">请输入 http/https 网址</string>
     <string name="toast_search_engine_updated">已更新默认搜索引擎</string>
     <string name="toast_search_engine_invalid">无法更新默认搜索引擎</string>
+    <string name="toast_text_zoom_updated">已更新网页文字大小</string>
     <string name="toast_feature_enabled">已开启%1$s</string>
     <string name="toast_feature_disabled">已关闭%1$s</string>
     <string name="toast_private_browsing_enabled">已开启无痕浏览</string>
