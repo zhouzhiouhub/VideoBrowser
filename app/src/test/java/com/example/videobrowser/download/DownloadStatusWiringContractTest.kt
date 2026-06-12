@@ -16,6 +16,8 @@ class DownloadStatusWiringContractTest {
         assertTrue(controller.contains("DownloadManager.Query().setFilterById(downloadId)"))
         assertTrue(controller.contains("DownloadManager.STATUS_SUCCESSFUL"))
         assertTrue(controller.contains("DownloadManager.STATUS_FAILED"))
+        assertTrue(controller.contains("DownloadManager.COLUMN_REASON"))
+        assertTrue(controller.contains("statusReason"))
         assertTrue(controller.contains("downloadRecordRepository.updateStatus"))
     }
 
@@ -35,9 +37,11 @@ class DownloadStatusWiringContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(downloadsPage.contains("downloadStatusTitleResId(record.status)"))
+        assertTrue(downloadsPage.contains("downloadFailureReasonText(record.statusReason)"))
         assertTrue(strings.contains("download_status_in_progress"))
         assertTrue(strings.contains("download_status_completed"))
         assertTrue(strings.contains("download_status_failed"))
+        assertTrue(strings.contains("download_failure_reason"))
     }
 
     private fun projectFile(path: String): File {

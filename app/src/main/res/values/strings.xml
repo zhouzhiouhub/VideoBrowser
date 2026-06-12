@@ -140,6 +140,7 @@
     <string name="download_status_in_progress">下载中</string>
     <string name="download_status_completed">已完成</string>
     <string name="download_status_failed">失败</string>
+    <string name="download_failure_reason">原因 %1$d</string>
     <string name="action_clear_playback_history_summary">清空原生播放器进度记录</string>
     <string name="action_new_folder">新建文件夹</string>
     <string name="action_new_folder_summary">在当前目录下创建文件夹</string>

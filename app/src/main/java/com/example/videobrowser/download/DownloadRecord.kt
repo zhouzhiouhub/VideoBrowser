@@ -7,5 +7,6 @@ data class DownloadRecord(
     val fileName: String,
     val mimeType: String?,
     val createdAtMillis: Long,
-    val status: DownloadStatus = DownloadStatus.COMPLETED
+    val status: DownloadStatus = DownloadStatus.COMPLETED,
+    val statusReason: Int? = null
 )

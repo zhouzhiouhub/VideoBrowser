@@ -157,15 +157,19 @@ class DownloadController(
             return
         }
         val status = queryDownloadStatus(downloadId) ?: return
-        downloadRecordRepository.updateStatus(downloadId, status)
+        downloadRecordRepository.updateStatus(
+            downloadId,
+            status.status,
+            statusReason = status.statusReason
+        )
     }
 
-    private fun queryDownloadStatus(downloadId: Long): DownloadStatus? {
+    private fun queryDownloadStatus(downloadId: Long): DownloadCompletionStatus? {
         val downloadManager =
             activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val cursor = runCatching {
             downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
-        }.getOrNull() ?: return DownloadStatus.FAILED
+        }.getOrNull() ?: return DownloadCompletionStatus(DownloadStatus.FAILED, statusReason = null)
 
         cursor.use {
             if (!it.moveToFirst()) {
@@ -175,11 +179,26 @@ class DownloadController(
             if (statusColumn < 0) {
                 return null
             }
+            val reasonColumn = it.getColumnIndex(DownloadManager.COLUMN_REASON)
+            val statusReason = reasonColumn
+                .takeIf { column -> column >= 0 }
+                ?.let { column -> it.getInt(column) }
             return when (it.getInt(statusColumn)) {
-                DownloadManager.STATUS_SUCCESSFUL -> DownloadStatus.COMPLETED
-                DownloadManager.STATUS_FAILED -> DownloadStatus.FAILED
+                DownloadManager.STATUS_SUCCESSFUL -> DownloadCompletionStatus(
+                    status = DownloadStatus.COMPLETED,
+                    statusReason = null
+                )
+                DownloadManager.STATUS_FAILED -> DownloadCompletionStatus(
+                    status = DownloadStatus.FAILED,
+                    statusReason = statusReason
+                )
                 else -> null
             }
         }
     }
+
+    private data class DownloadCompletionStatus(
+        val status: DownloadStatus,
+        val statusReason: Int?
+    )
 }

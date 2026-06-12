@@ -13,12 +13,16 @@ class DownloadRecordRepository(
         save(records.take(RECORD_LIMIT))
     }
 
-    fun updateStatus(downloadId: Long, status: DownloadStatus): Boolean {
+    fun updateStatus(
+        downloadId: Long,
+        status: DownloadStatus,
+        statusReason: Int? = null
+    ): Boolean {
         var updated = false
         val updatedRecords = records().map { record ->
             if (record.downloadId == downloadId) {
                 updated = true
-                record.copy(status = status)
+                record.copy(status = status, statusReason = statusReason)
             } else {
                 record
             }
@@ -56,17 +60,25 @@ class DownloadRecordRepository(
 
     private fun parseRecord(line: String): DownloadRecord? {
         val fields = splitEscaped(line)
-        if (fields.size != LEGACY_FIELD_COUNT && fields.size != FIELD_COUNT) {
+        if (fields.size != LEGACY_FIELD_COUNT &&
+            fields.size != STATUS_FIELD_COUNT &&
+            fields.size != FIELD_COUNT
+        ) {
             return null
         }
         val downloadId = fields[0].toLongOrNull() ?: return null
         val sourceUrl = fields[2].takeIf { it.isNotBlank() } ?: return null
         val fileName = fields[3].takeIf { it.isNotBlank() } ?: return null
         val createdAtMillis = fields[5].toLongOrNull() ?: return null
-        val status = if (fields.size == FIELD_COUNT) {
+        val status = if (fields.size >= STATUS_FIELD_COUNT) {
             DownloadStatus.fromStorage(fields[6]) ?: return null
         } else {
             DownloadStatus.COMPLETED
+        }
+        val statusReason = if (fields.size == FIELD_COUNT) {
+            fields[7].takeIf { it.isNotBlank() }?.toIntOrNull()
+        } else {
+            null
         }
         return DownloadRecord(
             downloadId = downloadId,
@@ -75,7 +87,8 @@ class DownloadRecordRepository(
             fileName = fileName,
             mimeType = fields[4].takeIf { it.isNotBlank() },
             createdAtMillis = createdAtMillis,
-            status = status
+            status = status,
+            statusReason = statusReason
         )
     }
 
@@ -87,7 +100,8 @@ class DownloadRecordRepository(
             record.fileName,
             record.mimeType.orEmpty(),
             record.createdAtMillis.toString(),
-            record.status.storageValue
+            record.status.storageValue,
+            record.statusReason?.toString().orEmpty()
         ).joinToString(separator = "\t", transform = ::escape)
     }
 
@@ -141,7 +155,8 @@ class DownloadRecordRepository(
     private companion object {
         private const val KEY_DOWNLOAD_RECORDS = "download_records"
         private const val LEGACY_FIELD_COUNT = 6
-        private const val FIELD_COUNT = 7
+        private const val STATUS_FIELD_COUNT = 7
+        private const val FIELD_COUNT = 8
         private const val RECORD_LIMIT = 80
     }
 }

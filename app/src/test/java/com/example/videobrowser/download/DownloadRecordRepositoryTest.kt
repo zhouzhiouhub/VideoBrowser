@@ -58,6 +58,26 @@ class DownloadRecordRepositoryTest {
     }
 
     @Test
+    fun recordsPersistStatusReasonAndAllowReasonUpdates() {
+        val store = InMemoryPreferenceStore()
+        val repository = DownloadRecordRepository(store)
+        repository.add(
+            record(
+                id = 12L,
+                fileName = "broken.zip",
+                createdAtMillis = 120L,
+                status = DownloadStatus.IN_PROGRESS
+            )
+        )
+
+        assertEquals(true, repository.updateStatus(12L, DownloadStatus.FAILED, statusReason = 1006))
+
+        val reloaded = DownloadRecordRepository(store).records().single()
+        assertEquals(DownloadStatus.FAILED, reloaded.status)
+        assertEquals(1006, reloaded.statusReason)
+    }
+
+    @Test
     fun legacyRecordsWithoutStatusAreReadAsCompleted() {
         val store = InMemoryPreferenceStore()
         store.putString(
@@ -68,6 +88,21 @@ class DownloadRecordRepositoryTest {
         val repository = DownloadRecordRepository(store)
 
         assertEquals(DownloadStatus.COMPLETED, repository.records().single().status)
+        assertEquals(null, repository.records().single().statusReason)
+    }
+
+    @Test
+    fun statusRecordsWithoutReasonRemainCompatible() {
+        val store = InMemoryPreferenceStore()
+        store.putString(
+            "download_records",
+            "11\told-status.zip\thttps://example.com/old-status.zip\told-status.zip\tapplication/zip\t110\tfailed"
+        )
+
+        val repository = DownloadRecordRepository(store)
+
+        assertEquals(DownloadStatus.FAILED, repository.records().single().status)
+        assertEquals(null, repository.records().single().statusReason)
     }
 
     @Test
@@ -125,7 +160,8 @@ class DownloadRecordRepositoryTest {
             fileName = fileName,
             mimeType = "application/octet-stream",
             createdAtMillis = createdAtMillis,
-            status = status
+            status = status,
+            statusReason = null
         )
     }
 

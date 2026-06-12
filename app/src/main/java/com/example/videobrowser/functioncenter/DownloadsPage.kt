@@ -121,7 +121,19 @@ class DownloadsPage(
         val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
             .format(Date(record.createdAtMillis))
         val status = activity.getString(downloadStatusTitleResId(record.status))
-        return "$status | $createdAt | ${UrlUtils.displayUrl(record.sourceUrl)}"
+        val failureReason = if (record.status == DownloadStatus.FAILED) {
+            downloadFailureReasonText(record.statusReason)
+        } else {
+            null
+        }
+        return listOfNotNull(status, failureReason, createdAt, UrlUtils.displayUrl(record.sourceUrl))
+            .joinToString(" | ")
+    }
+
+    private fun downloadFailureReasonText(statusReason: Int?): String? {
+        return statusReason?.let { reason ->
+            activity.getString(R.string.download_failure_reason, reason)
+        }
     }
 
     private fun downloadStatusTitleResId(status: DownloadStatus): Int {
