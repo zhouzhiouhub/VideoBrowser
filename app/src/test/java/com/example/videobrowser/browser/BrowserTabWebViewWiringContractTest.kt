@@ -16,6 +16,7 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(mainActivity.contains("standardTabWebViews.switchTo"))
         assertTrue(mainActivity.contains("standardTabWebViews.closeTab"))
         assertTrue(mainActivity.contains("standardTabWebViews.closeOtherTabs"))
+        assertTrue(mainActivity.contains("standardTabWebViews.openTab("))
         assertTrue(mainActivity.contains("createStandardTabWebView"))
     }
 
@@ -28,6 +29,20 @@ class BrowserTabWebViewWiringContractTest {
 
         assertFalse(switchTabBody.contains("loadUrl"))
         assertTrue(switchTabBody.contains("showActiveTab"))
+    }
+
+    @Test
+    fun duplicateTabCreatesIndependentStandardWebView() {
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val duplicateTabBody = mainActivity.substringAfter("private fun duplicateTab(tabId: Long)")
+            .substringBefore("private fun showActiveTab")
+
+        assertTrue(duplicateTabBody.contains("standardTabWebViews.openTab("))
+        assertTrue(duplicateTabBody.contains("view = createStandardTabWebView()"))
+        assertTrue(duplicateTabBody.contains("url = sourceTab.url"))
+        assertTrue(duplicateTabBody.contains("title = sourceTab.title"))
+        assertTrue(duplicateTabBody.contains("sourceTab.url?.let(::loadUrl) ?: openHomePage()"))
     }
 
     private fun projectFile(path: String): File {

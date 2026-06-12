@@ -57,6 +57,23 @@ class BrowserTabWebViewRegistryTest {
     }
 
     @Test
+    fun openTabStoresInitialUrlAndTitle() {
+        val tabs = BrowserTabStore()
+        val registry = BrowserTabWebViewRegistry(tabs, initialView = "webView-1")
+
+        val result = registry.openTab(
+            view = "webView-2",
+            url = "https://example.com/video",
+            title = "Video"
+        )
+
+        assertEquals("https://example.com/video", result.tab.url)
+        assertEquals("Video", result.tab.title)
+        assertEquals(result.tab.id, tabs.activeTabId)
+        assertEquals("webView-2", registry.activeWebView())
+    }
+
+    @Test
     fun closingActiveTabShowsFallbackViewAndDestroysClosedView() {
         val calls = RegistryCalls()
         val registry = registry(

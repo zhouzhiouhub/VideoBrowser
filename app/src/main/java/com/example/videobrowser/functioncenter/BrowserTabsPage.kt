@@ -17,6 +17,7 @@ class BrowserTabsPage(
     private val switchTab: (Long) -> Unit,
     private val closeTab: (Long) -> Unit,
     private val closeOtherTabs: (Long) -> Unit,
+    private val duplicateTab: (Long) -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -76,6 +77,14 @@ class BrowserTabsPage(
                         ) {
                             shareTabUrl(url)
                         }
+                    }
+                    host.addActionRow(
+                        parent = section,
+                        title = activity.getString(R.string.action_duplicate_tab),
+                        summary = title
+                    ) {
+                        duplicateTab(tab.id)
+                        show(replaceCurrent = true)
                     }
                     if (tabs.size > 1) {
                         host.addActionRow(

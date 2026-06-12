@@ -468,6 +468,7 @@ class MainActivity : AppCompatActivity() {
             switchTab = ::switchTab,
             closeTab = ::closeTab,
             closeOtherTabs = ::closeOtherTabs,
+            duplicateTab = ::duplicateTab,
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
@@ -1296,6 +1297,23 @@ class MainActivity : AppCompatActivity() {
             return
         }
         showActiveTab(tabStore.activeTab())
+    }
+
+    private fun duplicateTab(tabId: Long) {
+        val sourceTab = currentTabStore().tabs().firstOrNull { tab -> tab.id == tabId } ?: return
+        if (!privateBrowsingActive) {
+            val result = standardTabWebViews.openTab(
+                view = createStandardTabWebView(),
+                url = sourceTab.url,
+                title = sourceTab.title
+            )
+            hideStandardTabWebView(result.previousView)
+            showStandardTabWebView(result.activeView)
+            saveStandardTabSession()
+        } else {
+            currentTabStore().openTab(url = sourceTab.url, title = sourceTab.title)
+        }
+        sourceTab.url?.let(::loadUrl) ?: openHomePage()
     }
 
     private fun showActiveTab(tab: BrowserTab) {
