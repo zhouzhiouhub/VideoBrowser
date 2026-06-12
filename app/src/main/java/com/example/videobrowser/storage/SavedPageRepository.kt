@@ -1,5 +1,6 @@
 package com.example.videobrowser.storage
 
+import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
@@ -154,12 +155,14 @@ class SavedPageRepository(
     }
 
     private fun addSavedPage(key: String, page: SavedPage, limit: Int) {
+        val normalizedUrl = normalizeSavedWebUrl(page.url) ?: return
+        val pageToSave = page.copy(url = normalizedUrl)
         val existingPages = loadSavedPages(key)
-        val existingPage = existingPages.firstOrNull { it.url.equals(page.url, ignoreCase = true) }
+        val existingPage = existingPages.firstOrNull { it.url.equals(normalizedUrl, ignoreCase = true) }
         val pages = existingPages
-            .filterNot { it.url.equals(page.url, ignoreCase = true) }
+            .filterNot { it.url.equals(normalizedUrl, ignoreCase = true) }
             .toMutableList()
-        pages.add(0, normalizePageForSave(page, existingPage))
+        pages.add(0, normalizePageForSave(pageToSave, existingPage))
         saveSavedPages(key, pages.take(limit))
     }
 
@@ -215,7 +218,7 @@ class SavedPageRepository(
     }
 
     private fun normalizeImportedBookmark(page: SavedPage): SavedPage? {
-        val url = page.url.trim().takeIf { it.isNotBlank() } ?: return null
+        val url = normalizeSavedWebUrl(page.url) ?: return null
         val timestamp = currentTimeMillis()
         return page.copy(
             title = page.title.trim().ifBlank { url },
@@ -280,10 +283,11 @@ class SavedPageRepository(
         val updatedAt = parts[1].toLongOrNull() ?: createdAt
         val title = decode(parts[2]) ?: return null
         val url = decode(parts[3])?.takeIf { it.isNotBlank() } ?: return null
+        val normalizedUrl = normalizeSavedWebUrl(url) ?: return null
         val folder = parts.getOrNull(4)?.let(::decode)?.let(::normalizeBookmarkFolder).orEmpty()
         return SavedPage(
             title = title,
-            url = url,
+            url = normalizedUrl,
             createdAtMillis = createdAt,
             updatedAtMillis = updatedAt,
             folder = folder
@@ -295,7 +299,8 @@ class SavedPageRepository(
         return LEGACY_OBJECT_REGEX.findAll(rawValue)
             .mapNotNull { match ->
                 val objectText = match.value
-                val url = legacyJsonStringValue(objectText, JSON_URL)?.takeIf { it.isNotBlank() }
+                val url = legacyJsonStringValue(objectText, JSON_URL)
+                    ?.let(::normalizeSavedWebUrl)
                     ?: return@mapNotNull null
                 SavedPage(
                     title = legacyJsonStringValue(objectText, JSON_TITLE).orEmpty(),
@@ -352,6 +357,19 @@ class SavedPageRepository(
 
     private fun decode(value: String): String? {
         return runCatching { URLDecoder.decode(value, CHARSET_NAME) }.getOrNull()
+    }
+
+    private fun normalizeSavedWebUrl(url: String): String? {
+        val normalizedUrl = url.trim().takeIf { it.isNotBlank() } ?: return null
+        val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return null
+        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
+        if (scheme != "http" && scheme != "https") {
+            return null
+        }
+        if (uri.host.isNullOrBlank()) {
+            return null
+        }
+        return normalizedUrl
     }
 
     enum class SavedPageCollection(val key: String) {

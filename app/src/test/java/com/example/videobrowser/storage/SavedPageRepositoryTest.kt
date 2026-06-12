@@ -28,6 +28,23 @@ class SavedPageRepositoryTest {
     }
 
     @Test
+    fun addBookmarkAndHistoryRejectNonWebUrls() {
+        val repository = SavedPageRepository(InMemoryPreferenceStore())
+
+        repository.addBookmark(SavedPage(title = "Script", url = "javascript:alert(1)"))
+        repository.addBookmark(SavedPage(title = "File", url = "file:///sdcard/page.html"))
+        repository.addBookmark(SavedPage(title = "About", url = "about:blank"))
+        repository.addBookmark(SavedPage(title = "Broken", url = "https:/missing-host"))
+        repository.addHistory(SavedPage(title = "Script", url = "javascript:alert(1)"))
+        repository.addHistory(SavedPage(title = "File", url = "file:///sdcard/page.html"))
+        repository.addHistory(SavedPage(title = "About", url = "about:blank"))
+        repository.addHistory(SavedPage(title = "Broken", url = "https:/missing-host"))
+
+        assertTrue(repository.bookmarks().isEmpty())
+        assertTrue(repository.history().isEmpty())
+    }
+
+    @Test
     fun addHistoryMovesDuplicateUrlToFrontAndKeepsCreatedTime() {
         var now = 1_000L
         val repository = SavedPageRepository(InMemoryPreferenceStore()) { now }
@@ -50,7 +67,10 @@ class SavedPageRepositoryTest {
         val store = InMemoryPreferenceStore()
         store.putString(
             SavedPageRepository.SavedPageCollection.HISTORY.key,
-            """[{"title":"Old \"Title\"","url":"https:\/\/example.com\/old"}]"""
+            """[
+                {"title":"Old \"Title\"","url":"https:\/\/example.com\/old"},
+                {"title":"Script","url":"javascript:alert(1)"}
+            ]""".trimIndent()
         )
         val repository = SavedPageRepository(store, currentTimeMillis = { 5_000L })
 
@@ -120,6 +140,23 @@ class SavedPageRepositoryTest {
             target.bookmarks().map { page -> page.url }
         )
         assertTrue(target.exportBookmarks().startsWith("VideoBrowserSavedPages\t3"))
+    }
+
+    @Test
+    fun importBookmarksSkipsNonWebUrls() {
+        val repository = SavedPageRepository(InMemoryPreferenceStore(), currentTimeMillis = { 5_000L })
+        val payload = listOf(
+            "VideoBrowserSavedPages\t3",
+            "1000\t2000\tSafe\thttps%3A%2F%2Fsafe.example.com\t",
+            "1000\t2000\tScript\tjavascript%3Aalert%281%29\t",
+            "1000\t2000\tFile\tfile%3A%2F%2F%2Fsdcard%2Fpage.html\t",
+            "1000\t2000\tBroken\thttps%3A%2Fmissing-host\t"
+        ).joinToString(separator = "\n")
+
+        val result = repository.importBookmarks(payload)
+
+        assertEquals(1, result.importedCount)
+        assertEquals(listOf("https://safe.example.com"), repository.bookmarks().map { page -> page.url })
     }
 
     @Test

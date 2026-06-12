@@ -777,6 +777,7 @@ browser_preferences
 
 - 收藏最多 500 条。
 - 历史最多 1000 条。
+- 收藏和历史只保存带主机名的 HTTP/HTTPS 页面 URL。
 
 自定义快捷入口限制：
 
