@@ -40,6 +40,7 @@ class FunctionCenterPages(
     private val currentTabs: () -> List<BrowserTab>,
     private val activeTabId: () -> Long,
     private val openNewTab: () -> Unit,
+    private val openHomePage: () -> Unit,
     private val canReopenClosedTab: () -> Boolean,
     private val reopenClosedTab: () -> Unit,
     private val switchTab: (Long) -> Unit,
@@ -341,6 +342,17 @@ class FunctionCenterPages(
                     iconResId = R.drawable.ic_tabs_24
                 ) {
                     browserTabsPage.show()
+                }
+            }
+
+            FunctionCenterRootAction.HOME -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.setting_home_page),
+                    summary = activity.getString(R.string.action_open_home_page_summary),
+                    iconResId = R.drawable.ic_home_24,
+                    enabled = hasPage
+                ) {
+                    runPageAction(openHomePage)
                 }
             }
 

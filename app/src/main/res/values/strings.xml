@@ -101,6 +101,7 @@
     <string name="setting_desktop_mode_summary">使用桌面浏览器标识并横屏显示当前页面</string>
     <string name="setting_home_page">主页</string>
     <string name="setting_search_engine">默认搜索引擎</string>
+    <string name="action_open_home_page_summary">打开已配置的主页</string>
     <string name="action_open_native_player">原生播放器打开</string>
     <string name="action_open_native_player_summary">用 Media3 播放当前直链视频或流媒体地址</string>
     <string name="action_add_bookmark">收藏当前页</string>

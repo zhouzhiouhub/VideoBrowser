@@ -18,6 +18,7 @@ class FunctionCenterRootActionCatalogTest {
         assertEquals(
             listOf(
                 "TABS",
+                "HOME",
                 "SHARE_PAGE",
                 "PRINT_PAGE",
                 "REFRESH",

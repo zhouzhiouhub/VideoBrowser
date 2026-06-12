@@ -2,6 +2,7 @@ package com.example.videobrowser.functioncenter
 
 enum class FunctionCenterRootAction {
     TABS,
+    HOME,
     SHARE_PAGE,
     PRINT_PAGE,
     BOOKMARKS,
@@ -24,6 +25,7 @@ object FunctionCenterRootActionCatalog {
     ): List<FunctionCenterRootAction> {
         return listOfNotNull(
             FunctionCenterRootAction.TABS,
+            FunctionCenterRootAction.HOME.takeIf { hasPage },
             FunctionCenterRootAction.SHARE_PAGE.takeIf { hasPage },
             FunctionCenterRootAction.PRINT_PAGE.takeIf { hasPage },
             FunctionCenterRootAction.REFRESH.takeIf { hasPage },

@@ -490,6 +490,7 @@ class MainActivity : AppCompatActivity() {
             currentTabs = ::currentTabs,
             activeTabId = ::activeTabId,
             openNewTab = ::openNewTab,
+            openHomePage = ::openHomePage,
             canReopenClosedTab = ::canReopenClosedTab,
             reopenClosedTab = ::reopenClosedTab,
             switchTab = ::switchTab,
