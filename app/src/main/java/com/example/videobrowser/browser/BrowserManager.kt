@@ -60,6 +60,10 @@ class BrowserManager(
             setGeolocationEnabled(true)
             allowFileAccess = false
             allowContentAccess = true
+            @Suppress("DEPRECATION")
+            allowFileAccessFromFileURLs = false
+            @Suppress("DEPRECATION")
+            allowUniversalAccessFromFileURLs = false
             applyMixedContentMode(webView)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 safeBrowsingEnabled = true

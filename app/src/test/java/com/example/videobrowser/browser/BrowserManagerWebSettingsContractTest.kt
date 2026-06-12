@@ -46,6 +46,19 @@ class BrowserManagerWebSettingsContractTest {
         assertTrue(readme.contains("默认阻止 HTTPS 页面混合内容"))
     }
 
+    @Test
+    fun browserManagerDisablesFileUrlLocalAccessByDefault() {
+        val browserManager = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(browserManager.contains("allowFileAccess = false"))
+        assertTrue(browserManager.contains("allowFileAccessFromFileURLs = false"))
+        assertTrue(browserManager.contains("allowUniversalAccessFromFileURLs = false"))
+        assertTrue(readme.contains("默认禁止 `file://` 页面跨文件或跨来源访问本地资源"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(
