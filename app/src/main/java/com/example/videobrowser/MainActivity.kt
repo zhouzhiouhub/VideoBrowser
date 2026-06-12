@@ -1154,7 +1154,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleWebPermissionRequestAfterAndroidPermission(request: PermissionRequest) {
         when (webPermissionDecision(request)) {
-            SitePermissionDecision.ALLOW -> request.grant(request.resources)
+            SitePermissionDecision.ALLOW -> grantSupportedWebPermissionResources(request)
             SitePermissionDecision.BLOCK -> request.deny()
             SitePermissionDecision.ASK -> showWebPermissionPrompt(request)
         }
@@ -1215,7 +1215,7 @@ class MainActivity : AppCompatActivity() {
         pendingWebPermissionDialog = null
         if (allowed) {
             saveWebPermissionDecision(request, allowed = true)
-            request.grant(request.resources)
+            grantSupportedWebPermissionResources(request)
         } else {
             saveWebPermissionDecision(request, allowed = false)
             request.deny()
@@ -1281,6 +1281,34 @@ class MainActivity : AppCompatActivity() {
             PermissionRequest.RESOURCE_AUDIO_CAPTURE -> SitePermission.MICROPHONE
             else -> null
         }
+    }
+
+    private fun grantSupportedWebPermissionResources(request: PermissionRequest) {
+        val resources = supportedWebPermissionResources(request.resources)
+        if (resources == null) {
+            request.deny()
+            return
+        }
+
+        request.grant(resources)
+    }
+
+    private fun supportedWebPermissionResources(resources: Array<String>): Array<String>? {
+        val supportedResources = mutableListOf<String>()
+        resources.forEach { resource ->
+            when (resource) {
+                PermissionRequest.RESOURCE_VIDEO_CAPTURE,
+                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
+                    if (resource !in supportedResources) {
+                        supportedResources += resource
+                    }
+                }
+                else -> return null
+            }
+        }
+        return supportedResources
+            .takeIf { it.isNotEmpty() }
+            ?.toTypedArray()
     }
 
     private fun handleGeolocationPermissionRequest(
@@ -1413,7 +1441,7 @@ class MainActivity : AppCompatActivity() {
                 permissions += permission
             }
         }
-        return permissions
+        return permissions.takeIf { it.isNotEmpty() }
     }
 
     private fun hasAndroidPermission(permission: String): Boolean {

@@ -2,6 +2,7 @@ package com.example.videobrowser.browser
 
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.w3c.dom.Element
@@ -51,21 +52,30 @@ class WebPermissionRequestContractTest {
         assertTrue(mainActivity.contains("SitePermission.MICROPHONE"))
         assertTrue(mainActivity.contains("settingsManager.sitePermissionDecision(hostName, permission)"))
         assertTrue(mainActivity.contains("settingsManager.setSitePermissionDecision(hostName, permission, decision)"))
-        assertTrue(mainActivity.contains("SitePermissionDecision.ALLOW -> request.grant(request.resources)"))
+        assertTrue(mainActivity.contains("SitePermissionDecision.ALLOW -> grantSupportedWebPermissionResources(request)"))
         assertTrue(mainActivity.contains("SitePermissionDecision.BLOCK -> request.deny()"))
         assertTrue(mainActivity.contains("showWebPermissionPrompt(request)"))
+        assertTrue(mainActivity.contains("private fun grantSupportedWebPermissionResources(request: PermissionRequest)"))
+        assertTrue(mainActivity.contains("private fun supportedWebPermissionResources(resources: Array<String>): Array<String>?"))
+        assertTrue(mainActivity.contains("request.grant(resources)"))
         assertTrue(mainActivity.contains("R.string.title_web_permission_request"))
         assertTrue(mainActivity.contains("R.string.dialog_web_permission_request_message"))
         assertTrue(mainActivity.contains("R.string.action_allow"))
         assertTrue(mainActivity.contains("R.string.action_deny"))
-        assertTrue(mainActivity.contains("request.grant(request.resources)"))
+        assertFalse(mainActivity.contains("request.grant(request.resources)"))
         assertTrue(mainActivity.contains("request.deny()"))
         assertTrue(mainActivity.contains("permissionRequested = ::handleWebPermissionRequest"))
         assertTrue(mainActivity.contains("permissionRequestCanceled = ::handleWebPermissionRequestCanceled"))
+        assertTrue(mainActivity.contains("return permissions.takeIf { it.isNotEmpty() }"))
         assertTrue(strings.contains("title_web_permission_request"))
         assertTrue(strings.contains("dialog_web_permission_request_message"))
         assertTrue(strings.contains("web_permission_camera"))
         assertTrue(strings.contains("web_permission_microphone"))
+        assertTrue(readme().contains("只会授予相机和麦克风资源，未知网页权限会被拒绝"))
+    }
+
+    private fun readme(): String {
+        return projectFile("README.md").readText()
     }
 
     private fun manifest(): Element {
@@ -88,9 +98,10 @@ class WebPermissionRequestContractTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 
