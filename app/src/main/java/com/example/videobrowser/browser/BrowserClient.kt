@@ -1,9 +1,12 @@
 package com.example.videobrowser.browser
 
+import android.annotation.TargetApi
 import android.graphics.Bitmap
 import android.net.Uri
 import android.net.http.SslError
+import android.os.Build
 import android.webkit.HttpAuthHandler
+import android.webkit.SafeBrowsingResponse
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebResourceError
@@ -110,6 +113,26 @@ class BrowserClient(
         )
     }
 
+    @TargetApi(Build.VERSION_CODES.O_MR1)
+    override fun onSafeBrowsingHit(
+        view: WebView?,
+        request: WebResourceRequest?,
+        threatType: Int,
+        callback: SafeBrowsingResponse?
+    ) {
+        callback?.backToSafety(true)
+        if (request?.isForMainFrame != true) {
+            return
+        }
+        pageLoadFailed(
+            BrowserPageError.SafeBrowsing(
+                url = request.url?.toString(),
+                threatType = threatType,
+                description = safeBrowsingThreatDescription(threatType)
+            )
+        )
+    }
+
     override fun onReceivedHttpAuthRequest(
         view: WebView?,
         handler: HttpAuthHandler?,
@@ -117,5 +140,15 @@ class BrowserClient(
         realm: String?
     ) {
         httpAuthRequested(view, handler, host, realm)
+    }
+
+    private fun safeBrowsingThreatDescription(threatType: Int): String {
+        return when (threatType) {
+            SAFE_BROWSING_THREAT_MALWARE -> "Safe Browsing 已阻止恶意软件风险。"
+            SAFE_BROWSING_THREAT_PHISHING -> "Safe Browsing 已阻止钓鱼网站风险。"
+            SAFE_BROWSING_THREAT_UNWANTED_SOFTWARE -> "Safe Browsing 已阻止有害软件风险。"
+            SAFE_BROWSING_THREAT_BILLING -> "Safe Browsing 已阻止可疑扣费页面。"
+            else -> "Safe Browsing 已阻止此页面。"
+        }
     }
 }

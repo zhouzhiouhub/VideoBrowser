@@ -38,6 +38,23 @@ class BrowserErrorPageTest {
     }
 
     @Test
+    fun rendersSafeBrowsingErrorsAsBlockedConnectionsWithoutRetryLink() {
+        val html = BrowserErrorPage.render(
+            BrowserPageError.SafeBrowsing(
+                url = "https://malware.example",
+                threatType = 1,
+                description = "Safe Browsing 已阻止恶意软件风险。"
+            )
+        )
+
+        assertTrue(html.contains("连接已被阻止"))
+        assertTrue(html.contains("Safe Browsing 已阻止恶意软件风险。"))
+        assertTrue(html.contains("https://malware.example"))
+        assertFalse(html.contains("href="))
+        assertFalse(html.contains("重试"))
+    }
+
+    @Test
     fun omitsRetryLinkWhenUrlIsMissing() {
         val html = BrowserErrorPage.render(
             BrowserPageError.Network(

@@ -19,11 +19,18 @@ sealed class BrowserPageError(
         override val url: String?,
         val description: String
     ) : BrowserPageError(url)
+
+    data class SafeBrowsing(
+        override val url: String?,
+        val threatType: Int,
+        val description: String
+    ) : BrowserPageError(url)
 }
 
 object BrowserErrorPage {
     fun render(error: BrowserPageError): String {
         val title = when (error) {
+            is BrowserPageError.SafeBrowsing -> "连接已被阻止"
             is BrowserPageError.Ssl -> "连接已被阻止"
             else -> "网页无法打开"
         }
@@ -31,13 +38,18 @@ object BrowserErrorPage {
             is BrowserPageError.Network -> "${error.description} (${error.code})"
             is BrowserPageError.Http -> "HTTP ${error.statusCode} ${error.reasonPhrase}".trim()
             is BrowserPageError.Ssl -> error.description
+            is BrowserPageError.SafeBrowsing -> error.description
         }
         val url = error.url.orEmpty()
-        val retryAction = retryableUrl(error.url)
-            ?.let { retryUrl ->
-                """<a class="button" href="${retryUrl.escapeHtml()}">重试</a>"""
-            }
-            .orEmpty()
+        val retryAction = if (error is BrowserPageError.SafeBrowsing) {
+            ""
+        } else {
+            retryableUrl(error.url)
+                ?.let { retryUrl ->
+                    """<a class="button" href="${retryUrl.escapeHtml()}">重试</a>"""
+                }
+                .orEmpty()
+        }
         return """
             <!doctype html>
             <html>

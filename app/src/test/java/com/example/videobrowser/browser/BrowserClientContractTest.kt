@@ -31,6 +31,27 @@ class BrowserClientContractTest {
     }
 
     @Test
+    fun browserClientBacksToSafetyWhenSafeBrowsingReportsThreats() {
+        val browserClient = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"
+        ).readText()
+        val errorPage = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserErrorPage.kt"
+        ).readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(browserClient.contains("import android.webkit.SafeBrowsingResponse"))
+        assertTrue(browserClient.contains("override fun onSafeBrowsingHit"))
+        assertTrue(browserClient.contains("callback?.backToSafety(true)"))
+        assertTrue(browserClient.contains("request?.isForMainFrame != true"))
+        assertTrue(browserClient.contains("BrowserPageError.SafeBrowsing"))
+        assertTrue(browserClient.contains("safeBrowsingThreatDescription(threatType)"))
+        assertTrue(errorPage.contains("data class SafeBrowsing"))
+        assertTrue(errorPage.contains("error is BrowserPageError.SafeBrowsing"))
+        assertTrue(readme.contains("命中风险页面时退回安全页"))
+    }
+
+    @Test
     fun browserClientRoutesHttpAuthRequestsToActivityPrompt() {
         val browserClient = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"
