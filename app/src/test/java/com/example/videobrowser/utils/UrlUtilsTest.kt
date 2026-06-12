@@ -232,8 +232,16 @@ class UrlUtilsTest {
             UrlUtils.resolveAddressInput("about:blank", searchUrlPrefix)
         )
         assertEquals(
+            "about:blank",
+            UrlUtils.resolveAddressInput("ABOUT:blank", searchUrlPrefix)
+        )
+        assertEquals(
             "https://m.baidu.com/s?ie=utf-8&word=about%3A+blank",
             UrlUtils.resolveAddressInput("about: blank", searchUrlPrefix)
+        )
+        assertEquals(
+            "https://m.baidu.com/s?ie=utf-8&word=about%3Aversion",
+            UrlUtils.resolveAddressInput("about:version", searchUrlPrefix)
         )
     }
 

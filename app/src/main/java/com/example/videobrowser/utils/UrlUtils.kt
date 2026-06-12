@@ -54,7 +54,7 @@ object UrlUtils {
 
     private fun resolveLoadableUrl(value: String): String? {
         if (value.startsWith("about:", ignoreCase = true)) {
-            return value.takeUnless { it.hasUnsafeCharacter() }
+            return ABOUT_BLANK.takeIf { value.equals(it, ignoreCase = true) }
         }
 
         val schemeSeparator = value.indexOf("://")
@@ -441,6 +441,7 @@ object UrlUtils {
 
     private const val HTTP_SCHEME = "http"
     private const val HTTPS_SCHEME = "https"
+    private const val ABOUT_BLANK = "about:blank"
     private const val LOCALHOST = "localhost"
     private const val ANDROID_EMULATOR_HOST = "10.0.2.2"
     private const val MAX_DOMAIN_LABEL_LENGTH = 63
