@@ -626,7 +626,7 @@ class SettingsManager(
         private const val DEFAULT_VIDEO_ENHANCEMENT_ENABLED = true
         private const val DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING = false
         private const val DEFAULT_SMART_NO_IMAGE_ENABLED = false
-        private const val DEFAULT_THIRD_PARTY_COOKIES_ENABLED = true
+        private const val DEFAULT_THIRD_PARTY_COOKIES_ENABLED = false
         private const val DEFAULT_MIXED_CONTENT_BLOCKED = true
         private const val DEFAULT_DESKTOP_MODE_ENABLED = false
         private const val DEFAULT_PRIVATE_BROWSING_ENABLED = false
