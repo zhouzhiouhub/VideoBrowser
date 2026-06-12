@@ -110,6 +110,16 @@ class BrowserSessionController(
         renderCurrentState(forceProgressHidden = true)
     }
 
+    fun restorePageMetadata(url: String?, title: String) {
+        currentPageUrl = url
+        currentPageTitle = title.trim()
+        isHomePageVisible = url?.let(isProviderHomeUrl) ?: true
+        isPageLoading = false
+        pageProgress = if (url == null) 0 else 100
+        notifyPageMetadataChanged()
+        renderCurrentState(forceProgressHidden = true)
+    }
+
     private fun resetPageTitle() {
         currentPageTitle = ""
         updateActivityTitleIfActive()

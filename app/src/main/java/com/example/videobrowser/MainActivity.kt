@@ -12,6 +12,7 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Message
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -56,6 +57,7 @@ import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.BrowserTab
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
+import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.PageActionsController
@@ -150,6 +152,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var externalNavigator: BrowserExternalNavigator
     private val standardTabStore = BrowserTabStore()
     private val privateTabStore = BrowserTabStore()
+    private lateinit var standardTabWebViews: BrowserTabWebViewRegistry<WebView>
     private val standardTabSessionBinding = BrowserTabSessionBinding(standardTabStore)
     private val privateTabSessionBinding = BrowserTabSessionBinding(privateTabStore)
     private val findInPageController = FindInPageController(
@@ -568,7 +571,9 @@ class MainActivity : AppCompatActivity() {
         if (::browserSessionCoordinator.isInitialized) {
             browserSessionCoordinator.destroyPrivateSession()
         }
-        if (::standardBrowserManager.isInitialized) {
+        if (::standardTabWebViews.isInitialized) {
+            standardTabWebViews.destroyAll(::destroyStandardTabWebView)
+        } else if (::standardBrowserManager.isInitialized) {
             standardBrowserManager.destroy()
         }
         super.onDestroy()
@@ -577,6 +582,14 @@ class MainActivity : AppCompatActivity() {
     private fun setupBrowserWebViews() {
         standardWebView = views.webView
         standardBrowserManager = BrowserManager(standardWebView)
+        standardTabWebViews = BrowserTabWebViewRegistry(
+            tabs = standardTabStore,
+            initialView = standardWebView,
+            createWebView = ::createStandardTabWebView,
+            showWebView = ::showStandardTabWebView,
+            hideWebView = ::hideStandardTabWebView,
+            destroyWebView = ::destroyStandardTabWebView
+        )
         browserSessionCoordinator = BrowserSessionCoordinator(
             activity = this,
             webViewContainer = webViewContainer,
@@ -584,6 +597,42 @@ class MainActivity : AppCompatActivity() {
             browserManager = standardBrowserManager,
             onActiveWebViewChanged = ::handleActiveWebViewChanged
         )
+    }
+
+    private fun createStandardTabWebView(): WebView {
+        return WebView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            overScrollMode = standardWebView.overScrollMode
+            setBackgroundColor(0x00000000)
+            visibility = View.GONE
+        }
+    }
+
+    private fun showStandardTabWebView(tabWebView: WebView) {
+        if (tabWebView.parent == null) {
+            webViewContainer.addView(tabWebView)
+        }
+        tabWebView.visibility = View.VISIBLE
+        browserSessionCoordinator.setStandardWebView(tabWebView)
+        standardBrowserManager.switchWebView(
+            nextWebView = tabWebView,
+            privateBrowsingEnabled = false
+        )
+        handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)
+    }
+
+    private fun hideStandardTabWebView(tabWebView: WebView) {
+        tabWebView.visibility = View.GONE
+    }
+
+    private fun destroyStandardTabWebView(tabWebView: WebView) {
+        if (tabWebView.parent == webViewContainer) {
+            webViewContainer.removeView(tabWebView)
+        }
+        standardBrowserManager.destroyWebView(tabWebView, clearSharedStores = false)
     }
 
     private fun currentBrowserManager(): BrowserManager {
@@ -648,8 +697,28 @@ class MainActivity : AppCompatActivity() {
             permissionRequested = ::handleWebPermissionRequest,
             permissionRequestCanceled = ::handleWebPermissionRequestCanceled,
             geolocationPermissionRequested = ::handleGeolocationPermissionRequest,
-            geolocationPermissionHidden = ::handleGeolocationPermissionHidden
+            geolocationPermissionHidden = ::handleGeolocationPermissionHidden,
+            newWindowRequested = ::handleCreateWebWindow
         )
+    }
+
+    private fun handleCreateWebWindow(
+        view: WebView?,
+        isDialog: Boolean,
+        isUserGesture: Boolean,
+        resultMsg: Message?
+    ): Boolean {
+        if (privateBrowsingActive || !isUserGesture) {
+            return false
+        }
+        val transport = resultMsg?.obj as? WebView.WebViewTransport ?: return false
+        closeFunctionCenter()
+        val tab = standardTabStore.openTab()
+        val tabWebView = standardTabWebViews.activate(tab.id)
+        standardSessionController.restorePageMetadata(tab.url, tab.title)
+        transport.webView = tabWebView
+        resultMsg?.sendToTarget()
+        return true
     }
 
     private fun setupBrowserClient() {
@@ -1118,27 +1187,63 @@ class MainActivity : AppCompatActivity() {
 
     private fun openNewTab() {
         closeFunctionCenter()
-        currentTabStore().openTab()
+        if (!privateBrowsingActive) {
+            val result = standardTabWebViews.openTab(createStandardTabWebView())
+            hideStandardTabWebView(result.previousView)
+            showStandardTabWebView(result.activeView)
+        } else {
+            currentTabStore().openTab()
+        }
         openHomePage()
     }
 
     private fun switchTab(tabId: Long) {
         closeFunctionCenter()
-        val tabStore = currentTabStore()
-        if (!tabStore.switchTo(tabId)) {
-            return
+        if (!privateBrowsingActive) {
+            val result = standardTabWebViews.switchTo(tabId) ?: return
+            if (result.previousView !== result.activeView) {
+                hideStandardTabWebView(result.previousView)
+                showStandardTabWebView(result.activeView)
+            }
+            showActiveTab(result.activeTab)
+        } else {
+            val tabStore = currentTabStore()
+            if (!tabStore.switchTo(tabId)) {
+                return
+            }
+            showActiveTab(tabStore.activeTab())
         }
-        val tab = tabStore.activeTab()
-        tab.url?.let(::loadUrl) ?: openHomePage()
     }
 
     private fun closeTab(tabId: Long) {
+        if (!privateBrowsingActive) {
+            val closingActiveTab = standardTabStore.activeTabId == tabId
+            val result = standardTabWebViews.closeTab(tabId) ?: return
+            if (closingActiveTab && result.closedView !== result.activeView) {
+                showStandardTabWebView(result.activeView)
+            }
+            destroyStandardTabWebView(result.closedView)
+            if (closingActiveTab) {
+                showActiveTab(result.activeTab)
+            }
+            return
+        }
+
         val tabStore = currentTabStore()
         val closingActiveTab = tabStore.activeTabId == tabId
         if (!tabStore.closeTab(tabId) || !closingActiveTab) {
             return
         }
-        val tab = tabStore.activeTab()
+        showActiveTab(tabStore.activeTab())
+    }
+
+    private fun showActiveTab(tab: BrowserTab) {
+        if (!privateBrowsingActive) {
+            standardTabWebViews.viewFor(tab.id)?.let(::showStandardTabWebView)
+            standardSessionController.restorePageMetadata(tab.url, tab.title)
+            return
+        }
+
         tab.url?.let(::loadUrl) ?: openHomePage()
     }
 

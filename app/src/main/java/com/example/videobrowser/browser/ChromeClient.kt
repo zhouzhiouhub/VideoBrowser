@@ -3,6 +3,7 @@ package com.example.videobrowser.browser
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.os.Message
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.GeolocationPermissions
@@ -27,7 +28,9 @@ class ChromeClient(
     private val permissionRequestCanceled: (PermissionRequest?) -> Unit = {},
     private val geolocationPermissionRequested: (String?, GeolocationPermissions.Callback?) -> Unit =
         { _, _ -> },
-    private val geolocationPermissionHidden: () -> Unit = {}
+    private val geolocationPermissionHidden: () -> Unit = {},
+    private val newWindowRequested: (WebView?, Boolean, Boolean, Message?) -> Boolean =
+        { _, _, _, _ -> false }
 ) : WebChromeClient() {
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
@@ -101,6 +104,15 @@ class ChromeClient(
 
     override fun onGeolocationPermissionsHidePrompt() {
         geolocationPermissionHidden()
+    }
+
+    override fun onCreateWindow(
+        view: WebView?,
+        isDialog: Boolean,
+        isUserGesture: Boolean,
+        resultMsg: Message?
+    ): Boolean {
+        return newWindowRequested(view, isDialog, isUserGesture, resultMsg)
     }
 
     override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {

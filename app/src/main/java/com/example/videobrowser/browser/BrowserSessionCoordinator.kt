@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 class BrowserSessionCoordinator(
     private val activity: AppCompatActivity,
     private val webViewContainer: FrameLayout,
-    private val standardWebView: WebView,
+    private var standardWebView: WebView,
     private val browserManager: BrowserManager,
     private val onActiveWebViewChanged: (WebView, BrowserMode) -> Unit
 ) {
@@ -23,6 +23,10 @@ class BrowserSessionCoordinator(
 
     val isPrivate: Boolean
         get() = mode == BrowserMode.PRIVATE
+
+    fun setStandardWebView(webView: WebView) {
+        standardWebView = webView
+    }
 
     fun enterPrivate(): Boolean {
         if (isPrivate) {

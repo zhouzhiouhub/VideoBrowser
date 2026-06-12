@@ -41,7 +41,7 @@ class BrowserManager(
 
         webView.settings.apply {
             javaScriptEnabled = true
-            javaScriptCanOpenWindowsAutomatically = false
+            javaScriptCanOpenWindowsAutomatically = true
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
             cacheMode = WebSettings.LOAD_DEFAULT
@@ -49,7 +49,7 @@ class BrowserManager(
             useWideViewPort = false
             loadsImagesAutomatically = true
             blockNetworkImage = false
-            setSupportMultipleWindows(false)
+            setSupportMultipleWindows(true)
             setGeolocationEnabled(true)
             allowFileAccess = false
             allowContentAccess = true
