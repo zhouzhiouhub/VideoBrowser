@@ -28,6 +28,7 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(pages.contains("switchTab: (Long) -> Unit"))
         assertTrue(pages.contains("closeTab: (Long) -> Unit"))
         assertTrue(pages.contains("closeOtherTabs: (Long) -> Unit"))
+        assertTrue(pages.contains("closeAllTabs: () -> Unit"))
         assertTrue(pages.contains("duplicateTab: (Long) -> Unit"))
         assertTrue(pages.contains("FunctionCenterRootAction.TABS"))
         assertTrue(pages.contains("browserTabsPage.show()"))
@@ -46,12 +47,15 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(tabsPage.contains("action_duplicate_tab"))
         assertTrue(tabsPage.contains("action_close_tab"))
         assertTrue(tabsPage.contains("action_close_other_tabs"))
+        assertTrue(tabsPage.contains("action_close_all_tabs"))
+        assertTrue(tabsPage.contains("action_close_all_tabs_summary"))
         assertTrue(tabsPage.contains("enabled = canReopenClosedTab()"))
         assertTrue(tabsPage.contains("reopenClosedTab()"))
         assertTrue(tabsPage.contains("switchTab(tab.id)"))
         assertTrue(tabsPage.contains("duplicateTab(tab.id)"))
         assertTrue(tabsPage.contains("closeTab(tab.id)"))
         assertTrue(tabsPage.contains("closeOtherTabs(tab.id)"))
+        assertTrue(tabsPage.contains("closeAllTabs()"))
         assertTrue(strings.contains("title_tabs"))
         assertTrue(strings.contains("action_show_tabs"))
         assertTrue(strings.contains("action_new_tab"))
@@ -60,6 +64,7 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(strings.contains("action_duplicate_tab"))
         assertTrue(strings.contains("action_close_tab"))
         assertTrue(strings.contains("action_close_other_tabs"))
+        assertTrue(strings.contains("action_close_all_tabs"))
     }
 
     @Test
@@ -102,6 +107,8 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(mainActivity.contains("switchTab = ::switchTab"))
         assertTrue(mainActivity.contains("closeTab = ::closeTab"))
         assertTrue(mainActivity.contains("closeOtherTabs = ::closeOtherTabs"))
+        assertTrue(mainActivity.contains("closeAllTabs = ::closeAllTabs"))
+        assertTrue(mainActivity.contains("standardTabWebViews.closeAllTabs()"))
         assertTrue(mainActivity.contains("duplicateTab = ::duplicateTab"))
     }
 

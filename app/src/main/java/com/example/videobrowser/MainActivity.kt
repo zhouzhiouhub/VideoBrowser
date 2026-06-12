@@ -495,6 +495,7 @@ class MainActivity : AppCompatActivity() {
             switchTab = ::switchTab,
             closeTab = ::closeTab,
             closeOtherTabs = ::closeOtherTabs,
+            closeAllTabs = ::closeAllTabs,
             duplicateTab = ::duplicateTab,
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
@@ -1630,6 +1631,20 @@ class MainActivity : AppCompatActivity() {
             return
         }
         showActiveTab(tabStore.activeTab())
+    }
+
+    private fun closeAllTabs() {
+        if (!privateBrowsingActive) {
+            val result = standardTabWebViews.closeAllTabs()
+            showStandardTabWebView(result.activeView)
+            result.closedViews.forEach(::destroyStandardTabWebView)
+            saveStandardTabSession()
+            openHomePage()
+            return
+        }
+
+        currentTabStore().closeAllTabs()
+        openHomePage()
     }
 
     private fun duplicateTab(tabId: Long) {

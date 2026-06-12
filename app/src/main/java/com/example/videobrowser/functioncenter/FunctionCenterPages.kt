@@ -45,6 +45,7 @@ class FunctionCenterPages(
     private val switchTab: (Long) -> Unit,
     private val closeTab: (Long) -> Unit,
     private val closeOtherTabs: (Long) -> Unit,
+    private val closeAllTabs: () -> Unit,
     private val duplicateTab: (Long) -> Unit,
     private val toggleCurrentBookmark: () -> Unit,
     private val copyCurrentUrl: () -> Unit,
@@ -109,6 +110,7 @@ class FunctionCenterPages(
         switchTab = switchTab,
         closeTab = closeTab,
         closeOtherTabs = closeOtherTabs,
+        closeAllTabs = closeAllTabs,
         duplicateTab = duplicateTab,
         showRootPage = ::showRootPage
     )

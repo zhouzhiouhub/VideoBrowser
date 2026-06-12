@@ -128,6 +128,8 @@
     <string name="action_duplicate_tab">复制标签页</string>
     <string name="action_close_tab">关闭标签页</string>
     <string name="action_close_other_tabs">关闭其他标签页</string>
+    <string name="action_close_all_tabs">关闭全部标签页</string>
+    <string name="action_close_all_tabs_summary">关闭所有当前标签并打开一个新标签页</string>
     <string name="tab_current">当前标签</string>
     <string name="tab_untitled">新标签页</string>
     <string name="action_copy_link">复制链接</string>

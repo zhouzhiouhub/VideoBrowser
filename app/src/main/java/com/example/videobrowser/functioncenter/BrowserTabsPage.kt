@@ -19,6 +19,7 @@ class BrowserTabsPage(
     private val switchTab: (Long) -> Unit,
     private val closeTab: (Long) -> Unit,
     private val closeOtherTabs: (Long) -> Unit,
+    private val closeAllTabs: () -> Unit,
     private val duplicateTab: (Long) -> Unit,
     private val showRootPage: () -> Unit
 ) {
@@ -50,6 +51,14 @@ class BrowserTabsPage(
                     enabled = canReopenClosedTab()
                 ) {
                     reopenClosedTab()
+                    show(replaceCurrent = true)
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_close_all_tabs),
+                    summary = activity.getString(R.string.action_close_all_tabs_summary)
+                ) {
+                    closeAllTabs()
                     show(replaceCurrent = true)
                 }
             }

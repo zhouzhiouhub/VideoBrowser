@@ -66,6 +66,16 @@ class BrowserTabStore(
         return closedTabs
     }
 
+    fun closeAllTabs(): List<BrowserTab> {
+        val closedTabs = tabs.toList()
+        rememberClosedTabs(closedTabs)
+        val blankTab = BrowserTab(id = nextUniqueId())
+        tabs.clear()
+        tabs += blankTab
+        activeTabId = blankTab.id
+        return closedTabs
+    }
+
     fun canReopenClosedTab(): Boolean {
         return recentlyClosedTabs.isNotEmpty()
     }

@@ -136,6 +136,27 @@ class BrowserTabStoreTest {
     }
 
     @Test
+    fun closingAllTabsCreatesNewBlankActiveTabAndKeepsClosedTabsReopenable() {
+        val tabs = BrowserTabStore()
+        val firstTabId = tabs.activeTabId
+        tabs.updateActiveTab(url = "https://first.example.com", title = "First")
+        val secondTab = tabs.openTab(url = "https://second.example.com", title = "Second")
+
+        val closedTabs = tabs.closeAllTabs()
+
+        assertEquals(listOf(firstTabId, secondTab.id), closedTabs.map { tab -> tab.id })
+        assertEquals(1, tabs.tabs().size)
+        assertEquals(tabs.tabs().single().id, tabs.activeTabId)
+        assertEquals(null, tabs.activeTab().url)
+        assertEquals("", tabs.activeTab().title)
+        assertTrue(tabs.canReopenClosedTab())
+
+        val reopenedTab = requireNotNull(tabs.reopenClosedTab())
+        assertEquals("https://second.example.com", reopenedTab.url)
+        assertEquals("Second", reopenedTab.title)
+    }
+
+    @Test
     fun updatesActiveTabMetadata() {
         val tabs = BrowserTabStore()
 
