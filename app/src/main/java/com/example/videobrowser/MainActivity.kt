@@ -1784,11 +1784,65 @@ class MainActivity : AppCompatActivity() {
 
     private fun configureLinkContextMenu(targetWebView: WebView) {
         targetWebView.setOnLongClickListener { view ->
-            val linkUrl = linkHitTestUrl((view as? WebView)?.hitTestResult)
+            val hitTestResult = (view as? WebView)?.hitTestResult
                 ?: return@setOnLongClickListener false
-            showLinkContextMenu(linkUrl)
+            linkHitTestUrl(hitTestResult)?.let { linkUrl ->
+                showLinkContextMenu(linkUrl)
+                return@setOnLongClickListener true
+            }
+            val imageUrl = imageHitTestUrl(hitTestResult)
+                ?: return@setOnLongClickListener false
+            showImageContextMenu(imageUrl)
             true
         }
+    }
+
+    private fun imageHitTestUrl(hitTestResult: WebView.HitTestResult?): String? {
+        if (hitTestResult?.type != WebView.HitTestResult.IMAGE_TYPE) {
+            return null
+        }
+        return hitTestResult.extra
+            ?.trim()
+            ?.takeIf(::isShareableUrl)
+    }
+
+    private fun showImageContextMenu(url: String) {
+        val actions = arrayOf(
+            getString(R.string.action_open_image_new_tab),
+            getString(R.string.action_download_image),
+            getString(R.string.action_copy_image_link),
+            getString(R.string.action_share_image_link),
+            getString(R.string.action_open_external)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_image_context_menu)
+            .setItems(actions) { dialog, which ->
+                when (which) {
+                    0 -> openUrlInNewTab(url)
+                    1 -> downloadImageUrl(url)
+                    2 -> copyImageUrl(url)
+                    3 -> shareImageUrl(url)
+                    4 -> openExternalUrl(url)
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun downloadImageUrl(url: String) {
+        downloadLinkUrl(url)
+    }
+
+    private fun copyImageUrl(url: String) {
+        copyLinkUrl(url)
+    }
+
+    private fun shareImageUrl(url: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        startActivity(Intent.createChooser(intent, getString(R.string.action_share_image_link)))
     }
 
     private fun linkHitTestUrl(hitTestResult: WebView.HitTestResult?): String? {
