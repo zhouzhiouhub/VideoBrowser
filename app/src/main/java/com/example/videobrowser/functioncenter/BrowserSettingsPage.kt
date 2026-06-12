@@ -363,6 +363,17 @@ class BrowserSettingsPage(
 
             host.addSwitchRow(
                 parent = section,
+                title = activity.getString(R.string.setting_third_party_cookies),
+                summary = activity.getString(R.string.setting_third_party_cookies_summary),
+                checked = settingsManager.areThirdPartyCookiesEnabled()
+            ) { enabled ->
+                settingsManager.setThirdPartyCookiesEnabled(enabled)
+                browserManager().setThirdPartyCookiesEnabled(enabled)
+                browserManager().reload()
+            }
+
+            host.addSwitchRow(
+                parent = section,
                 title = activity.getString(R.string.setting_js_injection),
                 summary = activity.getString(R.string.setting_js_injection_summary),
                 checked = isJsInjectionEnabled()

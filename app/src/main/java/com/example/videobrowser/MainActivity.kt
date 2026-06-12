@@ -563,6 +563,7 @@ class MainActivity : AppCompatActivity() {
         setupWebViewScrollControls()
         setupBackNavigation()
         standardBrowserManager.setup()
+        standardBrowserManager.setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())
         standardBrowserManager.setPrivateBrowsingEnabled(false)
         defaultUserAgent = standardBrowserManager.userAgentString()
         applyDesktopMode(reload = false)

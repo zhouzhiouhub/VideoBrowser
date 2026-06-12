@@ -326,6 +326,17 @@ class SettingsManager(
         preferenceStore.putBoolean(KEY_SMART_NO_IMAGE, enabled)
     }
 
+    fun areThirdPartyCookiesEnabled(): Boolean {
+        return preferenceStore.getBoolean(
+            KEY_THIRD_PARTY_COOKIES,
+            DEFAULT_THIRD_PARTY_COOKIES_ENABLED
+        )
+    }
+
+    fun setThirdPartyCookiesEnabled(enabled: Boolean) {
+        preferenceStore.putBoolean(KEY_THIRD_PARTY_COOKIES, enabled)
+    }
+
     fun defaultVideoSpeed(): Float {
         return normalizeVideoSpeed(
             preferenceStore.getFloat(KEY_DEFAULT_VIDEO_SPEED, DEFAULT_VIDEO_SPEED)
@@ -584,6 +595,7 @@ class SettingsManager(
         private const val DEFAULT_VIDEO_ENHANCEMENT_ENABLED = true
         private const val DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING = false
         private const val DEFAULT_SMART_NO_IMAGE_ENABLED = false
+        private const val DEFAULT_THIRD_PARTY_COOKIES_ENABLED = true
         private const val DEFAULT_DESKTOP_MODE_ENABLED = false
         private const val DEFAULT_PRIVATE_BROWSING_ENABLED = false
 
@@ -615,6 +627,7 @@ class SettingsManager(
         private const val KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING =
             "always_start_videos_from_beginning"
         private const val KEY_SMART_NO_IMAGE = "smart_no_image"
+        private const val KEY_THIRD_PARTY_COOKIES = "third_party_cookies"
         private const val KEY_DEFAULT_VIDEO_SPEED = "default_video_speed"
         private const val KEY_HOME_URL = "home_url"
         private const val KEY_SEARCH_ENGINE = "search_provider"
@@ -647,6 +660,7 @@ class SettingsManager(
             KEY_VIDEO_ENHANCEMENT,
             KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING,
             KEY_SMART_NO_IMAGE,
+            KEY_THIRD_PARTY_COOKIES,
             KEY_DEFAULT_VIDEO_SPEED,
             KEY_HOME_URL,
             KEY_SEARCH_ENGINE,

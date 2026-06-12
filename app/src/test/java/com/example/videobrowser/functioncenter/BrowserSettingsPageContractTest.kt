@@ -60,6 +60,35 @@ class BrowserSettingsPageContractTest {
         assertTrue(strings.contains("toast_search_engine_updated"))
     }
 
+    @Test
+    fun browserSettingsPageCanControlThirdPartyCookies() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
+        ).readText()
+        val browserManager = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val settings = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(settings.contains("fun areThirdPartyCookiesEnabled(): Boolean"))
+        assertTrue(settings.contains("fun setThirdPartyCookiesEnabled(enabled: Boolean)"))
+        assertTrue(page.contains("R.string.setting_third_party_cookies"))
+        assertTrue(page.contains("settingsManager.areThirdPartyCookiesEnabled()"))
+        assertTrue(page.contains("settingsManager.setThirdPartyCookiesEnabled(enabled)"))
+        assertTrue(page.contains("browserManager().setThirdPartyCookiesEnabled(enabled)"))
+        assertTrue(browserManager.contains("fun setThirdPartyCookiesEnabled(enabled: Boolean)"))
+        assertTrue(browserManager.contains("setAcceptThirdPartyCookies("))
+        assertTrue(browserManager.contains("!privateBrowsingEnabled && thirdPartyCookiesEnabled"))
+        assertTrue(mainActivity.contains("setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())"))
+        assertTrue(strings.contains("setting_third_party_cookies"))
+        assertTrue(strings.contains("setting_third_party_cookies_summary"))
+    }
+
     private fun selectDefaultSearchProviderBody(source: String): String {
         val signature = "fun selectDefaultSearchProvider(providerId: String): Boolean"
         val start = source.indexOf(signature)

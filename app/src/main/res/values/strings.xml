@@ -95,6 +95,8 @@
     <string name="setting_disabled_in_browser_settings">浏览器设置中已关闭</string>
     <string name="setting_private_browsing">无痕浏览</string>
     <string name="setting_private_browsing_summary">不记录历史，并在切换或退出时清理 Cookie、缓存和站点数据</string>
+    <string name="setting_third_party_cookies">允许第三方 Cookie</string>
+    <string name="setting_third_party_cookies_summary">关闭后会阻止跨站 Cookie，可能影响登录或嵌入内容</string>
     <string name="setting_desktop_mode">桌面模式</string>
     <string name="setting_desktop_mode_summary">使用桌面浏览器标识并横屏显示当前页面</string>
     <string name="setting_home_page">主页</string>

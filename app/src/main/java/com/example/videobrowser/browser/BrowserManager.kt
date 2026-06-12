@@ -25,6 +25,7 @@ class BrowserManager(
     private var browserClient: WebViewClient? = null
     private var downloadListener: DownloadListener? = null
     private var privateBrowsingEnabled = false
+    private var thirdPartyCookiesEnabled = true
 
     val activeWebView: WebView
         get() = webView
@@ -34,10 +35,7 @@ class BrowserManager(
             return
         }
 
-        CookieManager.getInstance().apply {
-            setAcceptCookie(true)
-            setAcceptThirdPartyCookies(webView, true)
-        }
+        applyCookiePolicy(webView)
 
         webView.settings.apply {
             javaScriptEnabled = true
@@ -184,10 +182,7 @@ class BrowserManager(
 
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
         privateBrowsingEnabled = enabled
-        CookieManager.getInstance().apply {
-            setAcceptCookie(!enabled)
-            setAcceptThirdPartyCookies(webView, !enabled)
-        }
+        configuredWebViews.forEach(::applyCookiePolicy)
         webView.settings.domStorageEnabled = !enabled
         @Suppress("DEPRECATION")
         webView.settings.databaseEnabled = !enabled
@@ -196,6 +191,11 @@ class BrowserManager(
         } else {
             WebSettings.LOAD_DEFAULT
         }
+    }
+
+    fun setThirdPartyCookiesEnabled(enabled: Boolean) {
+        thirdPartyCookiesEnabled = enabled
+        configuredWebViews.forEach(::applyCookiePolicy)
     }
 
     fun evaluateJavascript(script: String) {
@@ -249,6 +249,16 @@ class BrowserManager(
                 removeAllCookies(null)
                 flush()
             }
+        }
+    }
+
+    private fun applyCookiePolicy(targetWebView: WebView) {
+        CookieManager.getInstance().apply {
+            setAcceptCookie(!privateBrowsingEnabled)
+            setAcceptThirdPartyCookies(
+                targetWebView,
+                !privateBrowsingEnabled && thirdPartyCookiesEnabled
+            )
         }
     }
 
