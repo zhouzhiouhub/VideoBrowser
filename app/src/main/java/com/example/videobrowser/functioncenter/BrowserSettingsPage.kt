@@ -31,6 +31,7 @@ class BrowserSettingsPage(
     private val showAdBlockLog: () -> Unit,
     private val showUserWhitelistManager: () -> Unit,
     private val showUserManualRulesManager: () -> Unit,
+    private val showSitePermissionsManager: () -> Unit,
     private val showRuleSubscriptionsManager: () -> Unit,
     private val showCookieManager: () -> Unit,
     private val showCacheManager: () -> Unit,
@@ -263,6 +264,16 @@ class BrowserSettingsPage(
                     summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
                 ) {
                     showUserManualRulesManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.SITE_PERMISSIONS -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_manage_site_permissions),
+                    summary = activity.getString(R.string.action_manage_site_permissions_summary)
+                ) {
+                    showSitePermissionsManager()
                 }
             }
 

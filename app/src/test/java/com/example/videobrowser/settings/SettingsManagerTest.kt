@@ -348,6 +348,88 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun sitePermissionRecords_listAndClearPersistedDecisions() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        settings.setSitePermissionDecision(
+            "Camera.Example.COM",
+            SitePermission.CAMERA,
+            SitePermissionDecision.ALLOW
+        )
+        settings.setSitePermissionDecision(
+            "Mic.Example.COM",
+            SitePermission.MICROPHONE,
+            SitePermissionDecision.BLOCK
+        )
+        settings.setSitePermissionDecision(
+            "Maps.Example.COM",
+            SitePermission.LOCATION,
+            SitePermissionDecision.ALLOW
+        )
+
+        assertEquals(
+            setOf(
+                SitePermissionRecord(
+                    host = "camera.example.com",
+                    permission = SitePermission.CAMERA,
+                    decision = SitePermissionDecision.ALLOW
+                ),
+                SitePermissionRecord(
+                    host = "mic.example.com",
+                    permission = SitePermission.MICROPHONE,
+                    decision = SitePermissionDecision.BLOCK
+                ),
+                SitePermissionRecord(
+                    host = "maps.example.com",
+                    permission = SitePermission.LOCATION,
+                    decision = SitePermissionDecision.ALLOW
+                )
+            ),
+            settings.sitePermissionRecords().toSet()
+        )
+
+        settings.clearSitePermissionDecisions()
+
+        assertTrue(settings.sitePermissionRecords().isEmpty())
+        assertEquals(
+            SitePermissionDecision.ASK,
+            settings.sitePermissionDecision("camera.example.com", SitePermission.CAMERA)
+        )
+        assertEquals(
+            SitePermissionDecision.ASK,
+            settings.sitePermissionDecision("mic.example.com", SitePermission.MICROPHONE)
+        )
+        assertEquals(
+            SitePermissionDecision.ASK,
+            settings.sitePermissionDecision("maps.example.com", SitePermission.LOCATION)
+        )
+    }
+
+    @Test
+    fun sitePermissionRecords_followEffectiveDecisionWhenStoredSetsConflict() {
+        val store = InMemoryPreferenceStore()
+        store.putString("site_permission_camera_allowed_hosts", "camera.example.com")
+        store.putString("site_permission_camera_blocked_hosts", "camera.example.com\nother.example.com")
+        val settings = SettingsManager(store)
+
+        assertEquals(
+            setOf(
+                SitePermissionRecord(
+                    host = "camera.example.com",
+                    permission = SitePermission.CAMERA,
+                    decision = SitePermissionDecision.ALLOW
+                ),
+                SitePermissionRecord(
+                    host = "other.example.com",
+                    permission = SitePermission.CAMERA,
+                    decision = SitePermissionDecision.BLOCK
+                )
+            ),
+            settings.sitePermissionRecords().toSet()
+        )
+    }
+
+    @Test
     fun userElementHideSelectors_areNormalizedAndPersistedByHost() {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)

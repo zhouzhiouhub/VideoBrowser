@@ -141,6 +141,11 @@ class FunctionCenterPages(
         browserManager = browserManager,
         showRootPage = ::showRootPage
     )
+    private val sitePermissionsPage = SitePermissionsPage(
+        host = host,
+        settingsManager = settingsManager,
+        showRootPage = ::showRootPage
+    )
     private val ruleSubscriptionPage = RuleSubscriptionPage(
         host = host,
         filesDir = filesDir,
@@ -190,6 +195,7 @@ class FunctionCenterPages(
         showAdBlockLog = { adBlockLogPage.show() },
         showUserWhitelistManager = { userWhitelistPage.show() },
         showUserManualRulesManager = { userManualRulesPage.show() },
+        showSitePermissionsManager = { sitePermissionsPage.show() },
         showRuleSubscriptionsManager = { ruleSubscriptionPage.show() },
         showCookieManager = { browserDataManagementPage.showCookies() },
         showCacheManager = { browserDataManagementPage.showCache() },

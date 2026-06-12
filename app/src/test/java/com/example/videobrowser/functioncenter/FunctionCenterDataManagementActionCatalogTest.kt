@@ -16,6 +16,7 @@ class FunctionCenterDataManagementActionCatalogTest {
                 "AD_BLOCK_LOG",
                 "USER_WHITELIST",
                 "USER_MANUAL_RULES",
+                "SITE_PERMISSIONS",
                 "RULE_SUBSCRIPTIONS",
                 "BOOKMARKS",
                 "HISTORY",

@@ -15,6 +15,12 @@ data class CustomShortcut(
     val url: String
 )
 
+data class SitePermissionRecord(
+    val host: String,
+    val permission: SitePermission,
+    val decision: SitePermissionDecision
+)
+
 enum class SitePermission {
     CAMERA,
     MICROPHONE,
@@ -225,6 +231,35 @@ class SettingsManager(
 
     fun blockedSitePermissionHosts(permission: SitePermission): Set<String> {
         return loadHostSet(sitePermissionBlockedKey(permission))
+    }
+
+    fun sitePermissionRecords(): List<SitePermissionRecord> {
+        return SitePermission.entries.flatMap { permission ->
+            val allowedHosts = allowedSitePermissionHosts(permission)
+            val blockedHosts = blockedSitePermissionHosts(permission)
+            allowedHosts.map { host ->
+                SitePermissionRecord(
+                    host = host,
+                    permission = permission,
+                    decision = SitePermissionDecision.ALLOW
+                )
+            } + blockedHosts
+                .filterNot { host -> host in allowedHosts }
+                .map { host ->
+                    SitePermissionRecord(
+                        host = host,
+                        permission = permission,
+                        decision = SitePermissionDecision.BLOCK
+                    )
+                }
+        }.distinct()
+    }
+
+    fun clearSitePermissionDecisions() {
+        SitePermission.entries.forEach { permission ->
+            preferenceStore.remove(sitePermissionAllowedKey(permission))
+            preferenceStore.remove(sitePermissionBlockedKey(permission))
+        }
     }
 
     fun userElementHideSelectorsForSite(host: String?): List<String> {
