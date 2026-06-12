@@ -32,6 +32,19 @@ class BrowserTabWebViewWiringContractTest {
     }
 
     @Test
+    fun reopenClosedTabCreatesStandardWebViewForRestoredTab() {
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val reopenClosedTabBody = mainActivity.substringAfter("private fun reopenClosedTab()")
+            .substringBefore("private fun switchTab")
+
+        assertTrue(reopenClosedTabBody.contains("standardTabStore.reopenClosedTab()"))
+        assertTrue(reopenClosedTabBody.contains("standardTabWebViews.activate(reopenedTab.id)"))
+        assertTrue(reopenClosedTabBody.contains("saveStandardTabSession()"))
+        assertTrue(reopenClosedTabBody.contains("reopenedTab.url?.let(::loadUrl) ?: openHomePage()"))
+    }
+
+    @Test
     fun duplicateTabCreatesIndependentStandardWebView() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()

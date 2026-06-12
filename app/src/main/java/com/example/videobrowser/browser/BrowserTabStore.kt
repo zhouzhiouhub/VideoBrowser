@@ -4,6 +4,7 @@ class BrowserTabStore(
     private val idGenerator: () -> Long = IdSequence()
 ) {
     private val tabs = mutableListOf(BrowserTab(id = idGenerator()))
+    private val recentlyClosedTabs = mutableListOf<BrowserTab>()
 
     var activeTabId: Long = tabs.first().id
         private set
@@ -43,7 +44,8 @@ class BrowserTabStore(
         if (index < 0) {
             return false
         }
-        tabs.removeAt(index)
+        val closedTab = tabs.removeAt(index)
+        rememberClosedTabs(listOf(closedTab))
         if (activeTabId == tabId) {
             activeTabId = tabs.getOrNull(index)?.id ?: tabs.last().id
         }
@@ -57,10 +59,23 @@ class BrowserTabStore(
             return emptyList()
         }
 
+        rememberClosedTabs(closedTabs)
         tabs.clear()
         tabs += targetTab
         activeTabId = tabId
         return closedTabs
+    }
+
+    fun canReopenClosedTab(): Boolean {
+        return recentlyClosedTabs.isNotEmpty()
+    }
+
+    fun reopenClosedTab(): BrowserTab? {
+        if (recentlyClosedTabs.isEmpty()) {
+            return null
+        }
+        val closedTab = recentlyClosedTabs.removeAt(recentlyClosedTabs.lastIndex)
+        return openTab(url = closedTab.url, title = closedTab.title)
     }
 
     fun updateActiveTab(url: String? = activeTab().url, title: String = activeTab().title) {
@@ -85,10 +100,18 @@ class BrowserTabStore(
 
         tabs.clear()
         tabs.addAll(normalizedTabs)
+        recentlyClosedTabs.clear()
         activeTabId = restoredActiveTabId
             ?.takeIf { tabId -> tabs.any { tab -> tab.id == tabId } }
             ?: tabs.first().id
         return true
+    }
+
+    private fun rememberClosedTabs(closedTabs: List<BrowserTab>) {
+        recentlyClosedTabs.addAll(closedTabs)
+        if (recentlyClosedTabs.size > MAX_RECENTLY_CLOSED_TABS) {
+            recentlyClosedTabs.subList(0, recentlyClosedTabs.size - MAX_RECENTLY_CLOSED_TABS).clear()
+        }
     }
 
     private fun nextUniqueId(): Long {
@@ -106,5 +129,9 @@ class BrowserTabStore(
         override fun invoke(): Long {
             return nextId++
         }
+    }
+
+    private companion object {
+        private const val MAX_RECENTLY_CLOSED_TABS = 20
     }
 }

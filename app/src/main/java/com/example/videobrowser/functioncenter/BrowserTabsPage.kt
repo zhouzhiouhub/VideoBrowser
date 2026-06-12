@@ -14,6 +14,8 @@ class BrowserTabsPage(
     private val currentTabs: () -> List<BrowserTab>,
     private val activeTabId: () -> Long,
     private val openNewTab: () -> Unit,
+    private val canReopenClosedTab: () -> Boolean,
+    private val reopenClosedTab: () -> Unit,
     private val switchTab: (Long) -> Unit,
     private val closeTab: (Long) -> Unit,
     private val closeOtherTabs: (Long) -> Unit,
@@ -39,6 +41,15 @@ class BrowserTabsPage(
                     summary = activity.getString(R.string.action_show_tabs_summary)
                 ) {
                     openNewTab()
+                    show(replaceCurrent = true)
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_reopen_closed_tab),
+                    summary = activity.getString(R.string.action_reopen_closed_tab_summary),
+                    enabled = canReopenClosedTab()
+                ) {
+                    reopenClosedTab()
                     show(replaceCurrent = true)
                 }
             }

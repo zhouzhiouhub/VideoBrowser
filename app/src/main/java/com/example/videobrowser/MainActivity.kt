@@ -465,6 +465,8 @@ class MainActivity : AppCompatActivity() {
             currentTabs = ::currentTabs,
             activeTabId = ::activeTabId,
             openNewTab = ::openNewTab,
+            canReopenClosedTab = ::canReopenClosedTab,
+            reopenClosedTab = ::reopenClosedTab,
             switchTab = ::switchTab,
             closeTab = ::closeTab,
             closeOtherTabs = ::closeOtherTabs,
@@ -1234,6 +1236,23 @@ class MainActivity : AppCompatActivity() {
         }
         saveStandardTabSession()
         openHomePage()
+    }
+
+    private fun canReopenClosedTab(): Boolean {
+        return currentTabStore().canReopenClosedTab()
+    }
+
+    private fun reopenClosedTab() {
+        if (!privateBrowsingActive) {
+            val reopenedTab = standardTabStore.reopenClosedTab() ?: return
+            standardTabWebViews.activate(reopenedTab.id)
+            saveStandardTabSession()
+            reopenedTab.url?.let(::loadUrl) ?: openHomePage()
+            return
+        }
+
+        val reopenedTab = currentTabStore().reopenClosedTab() ?: return
+        reopenedTab.url?.let(::loadUrl) ?: openHomePage()
     }
 
     private fun switchTab(tabId: Long) {
