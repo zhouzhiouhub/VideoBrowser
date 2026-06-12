@@ -44,7 +44,7 @@ class BrowserManager(
 
         webView.settings.apply {
             javaScriptEnabled = true
-            javaScriptCanOpenWindowsAutomatically = true
+            javaScriptCanOpenWindowsAutomatically = false
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
             cacheMode = WebSettings.LOAD_DEFAULT

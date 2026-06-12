@@ -6,12 +6,12 @@ import org.junit.Test
 
 class WebViewNewWindowContractTest {
     @Test
-    fun browserManagerEnablesWebViewPopupWindows() {
+    fun browserManagerAllowsUserGesturePopupWindowsOnly() {
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
         ).readText()
 
-        assertTrue(browserManager.contains("javaScriptCanOpenWindowsAutomatically = true"))
+        assertTrue(browserManager.contains("javaScriptCanOpenWindowsAutomatically = false"))
         assertTrue(browserManager.contains("setSupportMultipleWindows(true)"))
     }
 
@@ -50,6 +50,7 @@ class WebViewNewWindowContractTest {
         assertTrue(mainActivity.contains("standardTabWebViews.tabIdFor(window)"))
         assertTrue(mainActivity.contains("closeTab(tabId)"))
         assertTrue(readme.contains("网页弹窗标签可响应关闭请求"))
+        assertTrue(readme.contains("非用户手势触发的新窗口请求会被拒绝"))
     }
 
     private fun projectFile(path: String): File {
