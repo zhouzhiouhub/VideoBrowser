@@ -1,5 +1,8 @@
 package com.example.videobrowser.functioncenter
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
@@ -131,11 +134,30 @@ class SavedPagesPage(
         title: String,
         emptyMessage: String
     ) {
+        val actions = savedPageActions(collection, page, title, emptyMessage)
         AlertDialog.Builder(activity)
             .setTitle(page.title.ifBlank { page.url })
-            .setMessage(UrlUtils.displayUrl(page.url))
-            .setPositiveButton(R.string.action_open_page) { _, _ -> loadUrl(page.url) }
-            .setNeutralButton(R.string.action_remove) { _, _ ->
+            .setItems(actions.map { action -> action.title }.toTypedArray()) { _, index ->
+                actions.getOrNull(index)?.perform?.invoke()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun savedPageActions(
+        collection: SavedPageCollection,
+        page: SavedPage,
+        title: String,
+        emptyMessage: String
+    ): List<SavedPageAction> {
+        return listOf(
+            SavedPageAction(activity.getString(R.string.action_open_page)) {
+                loadUrl(page.url)
+            },
+            SavedPageAction(activity.getString(R.string.action_copy_link)) {
+                copySavedPageUrl(page)
+            },
+            SavedPageAction(activity.getString(R.string.action_remove)) {
                 savedPageRepository.remove(collection, page.url)
                 Toast.makeText(
                     activity,
@@ -144,8 +166,18 @@ class SavedPagesPage(
                 ).show()
                 show(collection, title, emptyMessage, replaceCurrent = true)
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        )
+    }
+
+    private fun copySavedPageUrl(page: SavedPage) {
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText(
+                activity.getString(R.string.clipboard_page_url),
+                page.url
+            )
+        )
+        Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
     }
 
     private fun showClearSavedPagesDialog(collection: SavedPageCollection) {
@@ -197,4 +229,9 @@ class SavedPagesPage(
             ?.takeIf { it.isNotBlank() }
             ?: activity.getString(R.string.action_search_saved_pages_summary)
     }
+
+    private data class SavedPageAction(
+        val title: String,
+        val perform: () -> Unit
+    )
 }

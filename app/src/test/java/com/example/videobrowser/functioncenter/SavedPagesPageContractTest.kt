@@ -18,6 +18,21 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("R.string.dialog_saved_pages_search_empty"))
     }
 
+    @Test
+    fun savedPagesPageCanCopyRecordLinks() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        ).readText()
+
+        assertTrue(page.contains("private fun savedPageActions"))
+        assertTrue(page.contains("R.string.action_copy_link"))
+        assertTrue(page.contains("copySavedPageUrl(page)"))
+        assertTrue(page.contains("ClipData.newPlainText"))
+        assertTrue(page.contains("Context.CLIPBOARD_SERVICE"))
+        assertTrue(page.contains("R.string.clipboard_page_url"))
+        assertTrue(page.contains("R.string.toast_link_copied"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(
