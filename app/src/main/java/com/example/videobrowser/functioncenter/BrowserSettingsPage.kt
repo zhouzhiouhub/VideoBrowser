@@ -24,6 +24,7 @@ class BrowserSettingsPage(
     private val injectPageFeatures: () -> Unit,
     private val showBookmarks: () -> Unit,
     private val showHistory: () -> Unit,
+    private val showHistoryManager: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
     private val showAdBlockLog: () -> Unit,
     private val showUserWhitelistManager: () -> Unit,
@@ -262,9 +263,9 @@ class BrowserSettingsPage(
                 host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.title_history),
-                    summary = activity.getString(R.string.action_show_history_summary)
+                    summary = activity.getString(R.string.action_manage_history_summary)
                 ) {
-                    showHistory()
+                    showHistoryManager()
                 }
             }
 

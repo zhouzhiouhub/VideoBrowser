@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
 import java.util.Locale
 
@@ -63,10 +64,52 @@ class BrowserDataManagementPage(
     private val host: FunctionCenterPageHost,
     private val browserManager: () -> BrowserManager,
     private val browserManagers: () -> List<BrowserManager>,
+    private val savedPageRepository: SavedPageRepository,
     private val currentActionableUrl: () -> String?,
+    private val showHistoryList: () -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+
+    fun showBrowsingHistoryData(replaceCurrent: Boolean = false) {
+        val historyCount = savedPageRepository.history().size
+        host.showPage(
+            title = activity.getString(R.string.title_history_data_management),
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
+        ) { content ->
+            host.addFunctionSection(
+                content,
+                activity.getString(R.string.function_center_section_actions)
+            ) { section ->
+                host.addInfoRow(
+                    parent = section,
+                    title = activity.getString(R.string.title_history),
+                    summary = activity.getString(R.string.history_record_count, historyCount)
+                )
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_show_history),
+                    summary = activity.getString(R.string.action_show_history_summary),
+                    enabled = historyCount > 0
+                ) {
+                    showHistoryList()
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_clear),
+                    summary = activity.getString(R.string.action_clear_history_summary),
+                    enabled = historyCount > 0
+                ) {
+                    showClearHistoryDialog()
+                }
+            }
+
+            if (historyCount == 0) {
+                host.addEmptyState(content, activity.getString(R.string.toast_history_empty))
+            }
+        }
+    }
 
     fun showCookies(replaceCurrent: Boolean = false) {
         val pageUrl = currentActionableUrl()
@@ -241,6 +284,19 @@ class BrowserDataManagementPage(
                 browserManagers().forEach { manager -> manager.clearCache() }
                 Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
                 showCache(replaceCurrent = true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showClearHistoryDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear)
+            .setMessage(R.string.dialog_clear_history_message)
+            .setPositiveButton(R.string.action_clear) { _, _ ->
+                savedPageRepository.clearHistory()
+                Toast.makeText(activity, R.string.toast_history_cleared, Toast.LENGTH_SHORT).show()
+                showBrowsingHistoryData(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

@@ -149,7 +149,9 @@ class FunctionCenterPages(
         host = host,
         browserManager = browserManager,
         browserManagers = browserManagers,
+        savedPageRepository = savedPageRepository,
         currentActionableUrl = currentActionableUrl,
+        showHistoryList = ::showHistory,
         showRootPage = ::showRootPage
     )
     private val restoreDefaultSettingsPage = RestoreDefaultSettingsPage(
@@ -170,6 +172,7 @@ class FunctionCenterPages(
         injectPageFeatures = injectPageFeatures,
         showBookmarks = ::showBookmarks,
         showHistory = ::showHistory,
+        showHistoryManager = { browserDataManagementPage.showBrowsingHistoryData() },
         showFileOperationsPage = showFileOperationsPage,
         showAdBlockLog = { adBlockLogPage.show() },
         showUserWhitelistManager = { userWhitelistPage.show() },
