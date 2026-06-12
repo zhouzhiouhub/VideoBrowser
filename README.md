@@ -597,7 +597,7 @@ Manifest 当前声明：
    - `filesDir/rules/removeparam_rules.txt`
    - `filesDir/rules/metadata.properties`
 
-`RuleEngineFactory` 会加载 assets 和缓存目录中的规则，并记录被跳过的规则。浏览器设置中的“规则订阅”页面支持从 URL 下载规则文本，或手动粘贴规则文本导入。导入时会按当前安全子集拆分为请求规则、CSS 规则、scriptlet 规则和 URL 参数清理规则，并写入本地缓存；更新失败时保留上一份可用缓存。
+`RuleEngineFactory` 会加载 assets 和缓存目录中的规则，并记录被跳过的规则。浏览器设置中的“规则订阅”页面支持从 URL 下载规则文本，或手动粘贴规则文本导入；规则订阅 URL 仅接受带主机名的 HTTP/HTTPS 地址，网络读取会按 2 MB 字节上限流式读取，超限时拒绝导入。导入时会按当前安全子集拆分为请求规则、CSS 规则、scriptlet 规则和 URL 参数清理规则，并写入本地缓存；更新失败时保留上一份可用缓存。
 
 ### 请求规则支持范围
 

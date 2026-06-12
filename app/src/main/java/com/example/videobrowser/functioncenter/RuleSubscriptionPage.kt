@@ -9,11 +9,10 @@ import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.rules.RuleFileLoader
+import com.example.videobrowser.rules.RuleSubscriptionFetcher
 import com.example.videobrowser.rules.RuleSubscriptionImportResult
 import com.example.videobrowser.rules.RuleSubscriptionImporter
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.Properties
 
 class RuleSubscriptionPage(
@@ -23,6 +22,7 @@ class RuleSubscriptionPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val ruleSubscriptionFetcher = RuleSubscriptionFetcher()
     private val cacheDirectory: File
         get() = RuleEngineFactory.ruleCacheDirectory(filesDir)
 
@@ -113,8 +113,8 @@ class RuleSubscriptionPage(
                 if (url.isNotEmpty()) {
                     runImport {
                         RuleSubscriptionImporter(cacheDirectory).update(
-                            subscriptionId = subscriptionIdForUrl(url),
-                            fetchText = { fetchText(url) }
+                            subscriptionId = RuleSubscriptionFetcher.subscriptionIdForUrl(url),
+                            fetchText = { ruleSubscriptionFetcher.fetchText(url) }
                         )
                     }
                 }
@@ -203,26 +203,6 @@ class RuleSubscriptionPage(
         }.start()
     }
 
-    private fun fetchText(url: String): String {
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = NETWORK_TIMEOUT_MS
-            readTimeout = NETWORK_TIMEOUT_MS
-            instanceFollowRedirects = true
-            requestMethod = "GET"
-        }
-        return try {
-            val statusCode = connection.responseCode
-            if (statusCode !in 200..299) {
-                error("HTTP $statusCode")
-            }
-            connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
-                reader.readText().take(MAX_SUBSCRIPTION_BYTES)
-            }
-        } finally {
-            connection.disconnect()
-        }
-    }
-
     private fun readMetadata(): Properties {
         val metadataFile = cacheDirectory.resolve(RuleFileLoader.RULE_CACHE_METADATA_FILE)
         if (!metadataFile.isFile) {
@@ -235,15 +215,4 @@ class RuleSubscriptionPage(
         }.getOrElse { Properties() }
     }
 
-    private fun subscriptionIdForUrl(url: String): String {
-        return runCatching { URL(url).host }
-            .getOrNull()
-            ?.takeIf { hostName -> hostName.isNotBlank() }
-            ?: "remote"
-    }
-
-    private companion object {
-        const val NETWORK_TIMEOUT_MS = 15_000
-        const val MAX_SUBSCRIPTION_BYTES = 2_000_000
-    }
 }
