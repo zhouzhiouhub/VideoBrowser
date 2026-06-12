@@ -22,8 +22,11 @@ class DownloadSafetyWiringContractTest {
         assertTrue(policy.contains("schemeOf(pageUrl) == \"https\" && schemeOf(downloadUrl) == \"http\""))
         assertTrue(policy.contains("fun isDownloadableNetworkUrl(url: String): Boolean"))
         assertTrue(policy.contains("(scheme == \"http\" || scheme == \"https\")"))
+        assertTrue(policy.contains("fun safeDownloadFileName(fileName: String): String"))
+        assertTrue(policy.contains("invalidDownloadFileNameChars"))
         assertTrue(controller.contains("DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)"))
         assertTrue(controller.contains("DownloadSafetyPolicy.isDownloadableNetworkUrl(url)"))
+        assertTrue(controller.contains("DownloadSafetyPolicy.safeDownloadFileName("))
         assertTrue(controller.contains("DownloadSafetyPolicy.requiresInsecureTransportConfirmation(browserManager().currentUrl(), url)"))
         assertTrue(controller.contains("private fun confirmDownloadIfNeeded("))
         assertTrue(controller.contains("private fun showRiskyDownloadConfirmation"))
@@ -43,6 +46,7 @@ class DownloadSafetyWiringContractTest {
         assertTrue(readme.contains("应用安装包类文件下载前会先确认"))
         assertTrue(readme.contains("HTTPS 页面触发 HTTP 明文下载前会先确认"))
         assertTrue(readme.contains("下载器只接受 HTTP/HTTPS 下载地址"))
+        assertTrue(readme.contains("下载文件名会移除路径分隔符、控制字符和常见非法字符"))
     }
 
     private fun projectFile(path: String): File {

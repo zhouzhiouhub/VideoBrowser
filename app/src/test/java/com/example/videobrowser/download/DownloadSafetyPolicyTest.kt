@@ -1,5 +1,6 @@
 package com.example.videobrowser.download
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -85,5 +86,25 @@ class DownloadSafetyPolicyTest {
         assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("file:///sdcard/Download/file.zip"))
         assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("javascript:alert(1)"))
         assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("https:/missing-host/file.zip"))
+    }
+
+    @Test
+    fun safeDownloadFileName_removesPathSeparatorsAndInvalidCharacters() {
+        assertEquals("movie.mp4", DownloadSafetyPolicy.safeDownloadFileName(" movie.mp4 "))
+        assertEquals("_evil.apk", DownloadSafetyPolicy.safeDownloadFileName("../evil.apk"))
+        assertEquals("folder_file_.zip", DownloadSafetyPolicy.safeDownloadFileName("folder\\file?.zip"))
+        assertEquals("report_final.pdf", DownloadSafetyPolicy.safeDownloadFileName("report\tfinal.pdf"))
+    }
+
+    @Test
+    fun safeDownloadFileName_fallsBackWhenNameIsBlankAfterSanitizing() {
+        assertEquals("download.bin", DownloadSafetyPolicy.safeDownloadFileName("...   "))
+    }
+
+    @Test
+    fun safeDownloadFileName_limitsLongNames() {
+        val name = "a".repeat(200)
+
+        assertEquals(120, DownloadSafetyPolicy.safeDownloadFileName(name).length)
     }
 }

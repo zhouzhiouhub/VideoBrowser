@@ -106,7 +106,9 @@ class DownloadController(
             return
         }
 
-        val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
+        val fileName = DownloadSafetyPolicy.safeDownloadFileName(
+            URLUtil.guessFileName(url, contentDisposition, mimeType)
+        )
         confirmDownloadIfNeeded(
             url = url,
             fileName = fileName,
