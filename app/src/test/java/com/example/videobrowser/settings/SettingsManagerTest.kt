@@ -552,6 +552,43 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun customShortcuts_canBeUpdatedInPlace() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+        assertTrue(settings.addCustomShortcut("Video", "https://video.example.com"))
+        assertTrue(settings.addCustomShortcut("Docs", "https://docs.example.com"))
+
+        assertTrue(
+            settings.updateCustomShortcut(
+                CustomShortcut(" Video ", " https://video.example.com "),
+                " Movies ",
+                " https://movies.example.com "
+            )
+        )
+        assertFalse(
+            settings.updateCustomShortcut(
+                CustomShortcut("Missing", "https://missing.example.com"),
+                "Missing 2",
+                "https://missing.example.com/2"
+            )
+        )
+        assertFalse(
+            settings.updateCustomShortcut(
+                CustomShortcut("Docs", "https://docs.example.com"),
+                "",
+                "https://docs.example.com"
+            )
+        )
+
+        assertEquals(
+            listOf(
+                CustomShortcut("Movies", "https://movies.example.com"),
+                CustomShortcut("Docs", "https://docs.example.com")
+            ),
+            settings.customShortcuts()
+        )
+    }
+
+    @Test
     fun customShortcuts_rejectInvalidInputAndFilterCorruptStorage() {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)

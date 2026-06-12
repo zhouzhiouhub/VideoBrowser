@@ -176,7 +176,7 @@ class SearchProviderController(
             setBoundedSelectableItemBackground()
             setOnClickListener { openCustomShortcut(shortcut.url) }
             setOnLongClickListener {
-                showRemoveCustomShortcutDialog(shortcut)
+                showCustomShortcutActionsDialog(shortcut)
                 true
             }
         }
@@ -336,15 +336,61 @@ class SearchProviderController(
     }
 
     private fun showAddShortcutDialog() {
+        showCustomShortcutEditorDialog(
+            titleResId = R.string.title_add_custom_shortcut,
+            initialName = "",
+            initialUrl = "",
+            positiveButtonResId = R.string.action_add,
+            successToastResId = R.string.toast_custom_shortcut_added
+        ) { name, url ->
+            settingsManager.addCustomShortcut(name, url)
+        }
+    }
+
+    private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut) {
+        val actions = listOf(
+            activity.getString(R.string.action_edit) to { showEditCustomShortcutDialog(shortcut) },
+            activity.getString(R.string.action_remove) to { showRemoveCustomShortcutDialog(shortcut) }
+        )
+        AlertDialog.Builder(activity)
+            .setTitle(shortcut.name)
+            .setItems(actions.map { action -> action.first }.toTypedArray()) { _, index ->
+                actions.getOrNull(index)?.second?.invoke()
+            }
+            .show()
+    }
+
+    private fun showEditCustomShortcutDialog(shortcut: CustomShortcut) {
+        showCustomShortcutEditorDialog(
+            titleResId = R.string.title_edit_custom_shortcut,
+            initialName = shortcut.name,
+            initialUrl = shortcut.url,
+            positiveButtonResId = R.string.action_save,
+            successToastResId = R.string.toast_custom_shortcut_updated
+        ) { name, url ->
+            settingsManager.updateCustomShortcut(shortcut, name, url)
+        }
+    }
+
+    private fun showCustomShortcutEditorDialog(
+        titleResId: Int,
+        initialName: String,
+        initialUrl: String,
+        positiveButtonResId: Int,
+        successToastResId: Int,
+        saveShortcut: (String, String) -> Boolean
+    ) {
         val nameInput = EditText(activity).apply {
             hint = activity.getString(R.string.hint_custom_shortcut_name)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
             isSingleLine = true
+            setText(initialName)
         }
         val urlInput = EditText(activity).apply {
             hint = activity.getString(R.string.hint_custom_shortcut_url)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             isSingleLine = true
+            setText(initialUrl)
         }
         val content = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -354,22 +400,22 @@ class SearchProviderController(
         }
 
         val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_add_custom_shortcut)
+            .setTitle(titleResId)
             .setView(content)
             .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.action_add, null)
+            .setPositiveButton(positiveButtonResId, null)
             .create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val added = settingsManager.addCustomShortcut(
+                val saved = saveShortcut(
                     nameInput.text?.toString().orEmpty(),
                     urlInput.text?.toString().orEmpty()
                 )
-                if (added) {
+                if (saved) {
                     setup()
                     Toast.makeText(
                         activity,
-                        R.string.toast_custom_shortcut_added,
+                        successToastResId,
                         Toast.LENGTH_SHORT
                     ).show()
                     dialog.dismiss()

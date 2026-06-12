@@ -475,6 +475,20 @@ class SettingsManager(
         return true
     }
 
+    fun updateCustomShortcut(shortcut: CustomShortcut, name: String, url: String): Boolean {
+        val normalizedShortcut = normalizeCustomShortcut(shortcut.name, shortcut.url) ?: return false
+        val updatedShortcut = normalizeCustomShortcut(name, url) ?: return false
+        val shortcuts = customShortcuts().toMutableList()
+        val index = shortcuts.indexOf(normalizedShortcut)
+        if (index < 0) {
+            return false
+        }
+
+        shortcuts[index] = updatedShortcut
+        saveCustomShortcuts(shortcuts.distinct())
+        return true
+    }
+
     fun isDesktopModeEnabled(): Boolean {
         return preferenceStore.getBoolean(KEY_DESKTOP_MODE, DEFAULT_DESKTOP_MODE_ENABLED)
     }
