@@ -151,6 +151,7 @@ class FunctionCenterPages(
         browserManagers = browserManagers,
         savedPageRepository = savedPageRepository,
         currentActionableUrl = currentActionableUrl,
+        showBookmarkList = ::showBookmarks,
         showHistoryList = ::showHistory,
         showRootPage = ::showRootPage
     )
@@ -171,6 +172,7 @@ class FunctionCenterPages(
         setPrivateBrowsingEnabled = setPrivateBrowsingEnabled,
         injectPageFeatures = injectPageFeatures,
         showBookmarks = ::showBookmarks,
+        showBookmarkManager = { browserDataManagementPage.showBookmarkData() },
         showHistory = ::showHistory,
         showHistoryManager = { browserDataManagementPage.showBrowsingHistoryData() },
         showFileOperationsPage = showFileOperationsPage,

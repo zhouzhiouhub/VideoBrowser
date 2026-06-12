@@ -102,6 +102,7 @@
     <string name="action_add_bookmark_summary">保存到本地收藏夹</string>
     <string name="action_show_bookmarks">打开收藏夹</string>
     <string name="action_show_bookmarks_summary">查看并打开本地保存的网页</string>
+    <string name="action_manage_bookmarks_summary">查看或清空收藏夹</string>
     <string name="action_show_history">打开历史记录</string>
     <string name="action_show_history_summary">查看最近访问记录</string>
     <string name="action_manage_history_summary">查看或清空浏览历史记录</string>
@@ -270,6 +271,7 @@
     <string name="title_cookie_management">Cookie 管理</string>
     <string name="title_cache_management">缓存管理</string>
     <string name="title_site_data_management">站点数据管理</string>
+    <string name="title_bookmark_data_management">收藏夹管理</string>
     <string name="title_history_data_management">浏览历史管理</string>
     <string name="title_remove_cookie">删除 Cookie</string>
     <string name="title_remove_site_data">删除站点数据</string>
@@ -306,6 +308,7 @@
     <string name="dialog_remove_cookie_message">删除 Cookie：%1$s？</string>
     <string name="dialog_clear_all_cookies_message">确定清空全部 Cookie 吗？此操作会影响所有站点登录状态。</string>
     <string name="dialog_clear_cache_message">确定清空 WebView 页面缓存吗？</string>
+    <string name="dialog_clear_bookmarks_message">确定清空全部收藏夹吗？此操作无法撤销。</string>
     <string name="dialog_clear_history_message">确定清空全部浏览历史记录吗？此操作无法撤销。</string>
     <string name="dialog_site_data_empty">暂无站点数据。</string>
     <string name="dialog_remove_site_data_message">删除 %1$s 的站点数据？</string>
@@ -313,9 +316,11 @@
     <string name="action_clear_user_manual_rules_summary">删除全部手动屏蔽规则</string>
     <string name="action_clear_all_cookies_summary">清空所有站点 Cookie</string>
     <string name="action_clear_cache_summary">清空全部缓存</string>
+    <string name="action_clear_bookmarks_summary">清空全部收藏夹</string>
     <string name="action_clear_history_summary">清空全部浏览历史记录</string>
     <string name="action_clear_site_data_summary">清空全部站点数据</string>
     <string name="history_record_count">共 %1$d 条记录</string>
+    <string name="bookmark_record_count">共 %1$d 个收藏</string>
     <string name="site_data_usage_summary">已用 %1$s</string>
     <string name="ad_block_log_action_blocked">拦截</string>
     <string name="ad_block_log_action_allowed">放行</string>
@@ -361,6 +366,7 @@
     <string name="toast_cookie_removed">已删除 Cookie</string>
     <string name="toast_cookies_cleared">已清空 Cookie</string>
     <string name="toast_cache_cleared">已清空缓存</string>
+    <string name="toast_bookmarks_cleared">已清空收藏夹</string>
     <string name="toast_history_cleared">已清空浏览历史</string>
     <string name="toast_site_data_removed">已删除站点数据</string>
     <string name="toast_site_data_cleared">已清空站点数据</string>

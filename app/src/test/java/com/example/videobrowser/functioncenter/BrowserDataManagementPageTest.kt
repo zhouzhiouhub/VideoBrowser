@@ -25,6 +25,35 @@ class BrowserDataManagementPageTest {
     }
 
     @Test
+    fun browserDataManagementPageCanClearBookmarks() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
+        ).readText()
+        val settings = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
+        ).readText()
+        val pages = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(page.contains("fun showBookmarkData"))
+        assertTrue(page.contains("savedPageRepository.bookmarks().size"))
+        assertTrue(page.contains("savedPageRepository.clear(SavedPageRepository.SavedPageCollection.BOOKMARKS)"))
+        assertTrue(page.contains("R.string.bookmark_record_count"))
+        assertTrue(page.contains("R.string.dialog_clear_bookmarks_message"))
+        assertTrue(settings.contains("showBookmarkManager: () -> Unit"))
+        assertTrue(settings.contains("showBookmarkManager()"))
+        assertTrue(settings.contains("R.string.action_manage_bookmarks_summary"))
+        assertTrue(pages.contains("showBookmarkManager = { browserDataManagementPage.showBookmarkData() }"))
+        assertTrue(strings.contains("title_bookmark_data_management"))
+        assertTrue(strings.contains("action_manage_bookmarks_summary"))
+        assertTrue(strings.contains("action_clear_bookmarks_summary"))
+        assertTrue(strings.contains("dialog_clear_bookmarks_message"))
+        assertTrue(strings.contains("toast_bookmarks_cleared"))
+    }
+
+    @Test
     fun browserDataManagementPageCanClearBrowsingHistory() {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"

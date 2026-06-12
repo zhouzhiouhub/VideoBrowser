@@ -66,10 +66,51 @@ class BrowserDataManagementPage(
     private val browserManagers: () -> List<BrowserManager>,
     private val savedPageRepository: SavedPageRepository,
     private val currentActionableUrl: () -> String?,
+    private val showBookmarkList: () -> Unit,
     private val showHistoryList: () -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+
+    fun showBookmarkData(replaceCurrent: Boolean = false) {
+        val bookmarkCount = savedPageRepository.bookmarks().size
+        host.showPage(
+            title = activity.getString(R.string.title_bookmark_data_management),
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
+        ) { content ->
+            host.addFunctionSection(
+                content,
+                activity.getString(R.string.function_center_section_actions)
+            ) { section ->
+                host.addInfoRow(
+                    parent = section,
+                    title = activity.getString(R.string.title_bookmarks),
+                    summary = activity.getString(R.string.bookmark_record_count, bookmarkCount)
+                )
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_show_bookmarks),
+                    summary = activity.getString(R.string.action_show_bookmarks_summary),
+                    enabled = bookmarkCount > 0
+                ) {
+                    showBookmarkList()
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_clear),
+                    summary = activity.getString(R.string.action_clear_bookmarks_summary),
+                    enabled = bookmarkCount > 0
+                ) {
+                    showClearBookmarksDialog()
+                }
+            }
+
+            if (bookmarkCount == 0) {
+                host.addEmptyState(content, activity.getString(R.string.toast_bookmarks_empty))
+            }
+        }
+    }
 
     fun showBrowsingHistoryData(replaceCurrent: Boolean = false) {
         val historyCount = savedPageRepository.history().size
@@ -284,6 +325,19 @@ class BrowserDataManagementPage(
                 browserManagers().forEach { manager -> manager.clearCache() }
                 Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
                 showCache(replaceCurrent = true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showClearBookmarksDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear)
+            .setMessage(R.string.dialog_clear_bookmarks_message)
+            .setPositiveButton(R.string.action_clear) { _, _ ->
+                savedPageRepository.clear(SavedPageRepository.SavedPageCollection.BOOKMARKS)
+                Toast.makeText(activity, R.string.toast_bookmarks_cleared, Toast.LENGTH_SHORT).show()
+                showBookmarkData(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

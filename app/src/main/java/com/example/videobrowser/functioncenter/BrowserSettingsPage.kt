@@ -23,6 +23,7 @@ class BrowserSettingsPage(
     private val setPrivateBrowsingEnabled: (Boolean) -> Unit,
     private val injectPageFeatures: () -> Unit,
     private val showBookmarks: () -> Unit,
+    private val showBookmarkManager: () -> Unit,
     private val showHistory: () -> Unit,
     private val showHistoryManager: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
@@ -253,9 +254,9 @@ class BrowserSettingsPage(
                 host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.title_bookmarks),
-                    summary = activity.getString(R.string.action_show_bookmarks_summary)
+                    summary = activity.getString(R.string.action_manage_bookmarks_summary)
                 ) {
-                    showBookmarks()
+                    showBookmarkManager()
                 }
             }
 
