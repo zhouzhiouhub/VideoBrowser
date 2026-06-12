@@ -236,6 +236,8 @@
     <string name="action_refresh_download_records_summary">刷新进行中的下载状态和进度</string>
     <string name="action_search_download_records">搜索下载记录</string>
     <string name="action_search_download_records_summary">按文件名或来源过滤当前列表</string>
+    <string name="action_search_site_data">搜索站点数据</string>
+    <string name="action_search_site_data_summary">按域名过滤当前列表</string>
     <string name="action_filter_download_status">筛选下载状态</string>
     <string name="action_filter_download_category">筛选下载类型</string>
     <string name="action_clear_download_filters">清除下载筛选</string>
@@ -300,6 +302,7 @@
     <string name="hint_saved_page_title">标题</string>
     <string name="hint_saved_pages_search">标题或网址</string>
     <string name="hint_download_records_search">文件名或来源</string>
+    <string name="hint_site_data_search">域名或来源</string>
     <string name="rule_subscription_empty">暂无导入的规则订阅缓存。</string>
     <string name="rule_subscription_source">来源</string>
     <string name="rule_subscription_counts">规则数量</string>
@@ -313,6 +316,7 @@
     <string name="dialog_clear_bookmarks_message">确定清空全部收藏夹吗？此操作无法撤销。</string>
     <string name="dialog_clear_history_message">确定清空全部浏览历史记录吗？此操作无法撤销。</string>
     <string name="dialog_site_data_empty">暂无站点数据。</string>
+    <string name="dialog_site_data_search_empty">没有匹配的站点数据。</string>
     <string name="dialog_remove_site_data_message">删除 %1$s 的站点数据？</string>
     <string name="dialog_clear_site_data_message">确定清空全部站点数据吗？此操作无法撤销。</string>
     <string name="action_clear_user_manual_rules_summary">删除全部手动屏蔽规则</string>

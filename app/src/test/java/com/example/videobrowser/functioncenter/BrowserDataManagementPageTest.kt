@@ -25,6 +25,46 @@ class BrowserDataManagementPageTest {
     }
 
     @Test
+    fun siteDataOriginSearchMatchesOriginAndHostCaseInsensitively() {
+        val origins = listOf(
+            "https://Video.Example.com",
+            "https://news.example.org",
+            "file://android_asset"
+        )
+
+        assertEquals(
+            listOf("https://Video.Example.com"),
+            BrowserSiteDataOriginSearch.filterOriginNames(origins, "video EXAMPLE")
+        )
+        assertEquals(origins, BrowserSiteDataOriginSearch.filterOriginNames(origins, " "))
+        assertTrue(BrowserSiteDataOriginSearch.filterOriginNames(origins, "missing").isEmpty())
+    }
+
+    @Test
+    fun siteDataManagementCanSearchOrigins() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(page.contains("object BrowserSiteDataOriginSearch"))
+        assertTrue(page.contains("fun showSiteData(replaceCurrent: Boolean = false, query: String? = null)"))
+        assertTrue(page.contains("BrowserSiteDataOriginSearch.matches(origin.origin, query)"))
+        assertTrue(page.contains("fun showSiteDataSearchDialog"))
+        assertTrue(page.contains("showRemoveSiteDataDialog(origin.origin, query)"))
+        assertTrue(page.contains("showSiteData(replaceCurrent = true, query = query)"))
+        assertTrue(page.contains("R.string.action_search_site_data"))
+        assertTrue(page.contains("R.string.action_clear_search"))
+        assertTrue(page.contains("R.string.dialog_site_data_search_empty"))
+        assertTrue(strings.contains("action_search_site_data"))
+        assertTrue(strings.contains("action_search_site_data_summary"))
+        assertTrue(strings.contains("hint_site_data_search"))
+        assertTrue(strings.contains("dialog_site_data_search_empty"))
+        assertTrue(readme.contains("站点数据管理（支持按域名搜索）"))
+    }
+
+    @Test
     fun browserDataManagementPageCanClearBookmarks() {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
@@ -118,9 +158,10 @@ class BrowserDataManagementPageTest {
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 }

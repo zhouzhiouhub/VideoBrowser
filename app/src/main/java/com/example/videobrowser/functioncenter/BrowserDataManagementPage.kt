@@ -2,8 +2,10 @@ package com.example.videobrowser.functioncenter
 
 import android.app.DownloadManager
 import android.content.Context
+import android.text.InputType
 import android.webkit.CookieManager
 import android.webkit.WebStorage
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
@@ -12,6 +14,7 @@ import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
+import java.net.URI
 import java.util.Locale
 
 data class BrowserCookieItem(
@@ -61,6 +64,38 @@ object BrowserDataDisplayFormatter {
             unitIndex += 1
         }
         return String.format(Locale.US, "%.1f %s", value, units[unitIndex])
+    }
+}
+
+object BrowserSiteDataOriginSearch {
+    fun filterOriginNames(origins: List<String>, query: String?): List<String> {
+        return origins.filter { origin -> matches(origin, query) }
+    }
+
+    fun matches(origin: String, query: String?): Boolean {
+        val terms = queryTerms(query)
+        if (terms.isEmpty()) {
+            return true
+        }
+        val searchableText = listOf(origin, originHost(origin))
+            .joinToString(" ")
+            .lowercase(Locale.ROOT)
+        return terms.all { term -> searchableText.contains(term) }
+    }
+
+    private fun queryTerms(query: String?): List<String> {
+        return query
+            ?.trim()
+            ?.lowercase(Locale.ROOT)
+            ?.split(Regex("\\s+"))
+            ?.filter { term -> term.isNotBlank() }
+            ?: emptyList()
+    }
+
+    private fun originHost(origin: String): String {
+        return runCatching { URI(origin).host }
+            .getOrNull()
+            .orEmpty()
     }
 }
 
@@ -274,7 +309,7 @@ class BrowserDataManagementPage(
         }
     }
 
-    fun showSiteData(replaceCurrent: Boolean = false) {
+    fun showSiteData(replaceCurrent: Boolean = false, query: String? = null) {
         WebStorage.getInstance().getOrigins { origins ->
             activity.runOnUiThread {
                 val siteDataOrigins = origins
@@ -282,12 +317,19 @@ class BrowserDataManagementPage(
                     ?.filterIsInstance<WebStorage.Origin>()
                     ?.sortedBy { origin -> origin.origin }
                     ?: emptyList()
-                showSiteDataOrigins(siteDataOrigins, replaceCurrent)
+                showSiteDataOrigins(siteDataOrigins, replaceCurrent, query)
             }
         }
     }
 
-    private fun showSiteDataOrigins(origins: List<WebStorage.Origin>, replaceCurrent: Boolean) {
+    private fun showSiteDataOrigins(
+        origins: List<WebStorage.Origin>,
+        replaceCurrent: Boolean,
+        query: String?
+    ) {
+        val filteredOrigins = origins.filter { origin ->
+            BrowserSiteDataOriginSearch.matches(origin.origin, query)
+        }
         host.showPage(
             title = activity.getString(R.string.title_site_data_management),
             onBack = showRootPage,
@@ -298,6 +340,22 @@ class BrowserDataManagementPage(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
+                    host.addActionRow(
+                        parent = section,
+                        title = activity.getString(R.string.action_search_site_data),
+                        summary = currentSiteDataSearchSummary(query)
+                    ) {
+                        showSiteDataSearchDialog(query)
+                    }
+                    if (!query.isNullOrBlank()) {
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_clear_search),
+                            summary = query
+                        ) {
+                            showSiteData(replaceCurrent = true)
+                        }
+                    }
                     host.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_clear),
@@ -315,7 +373,11 @@ class BrowserDataManagementPage(
                     content,
                     activity.getString(R.string.function_center_section_records)
                 ) { section ->
-                    origins.forEach { origin ->
+                    if (filteredOrigins.isEmpty()) {
+                        host.addEmptyState(section, activity.getString(R.string.dialog_site_data_search_empty))
+                        return@addFunctionSection
+                    }
+                    filteredOrigins.forEach { origin ->
                         host.addActionRow(
                             parent = section,
                             title = origin.origin,
@@ -324,12 +386,33 @@ class BrowserDataManagementPage(
                                 BrowserDataDisplayFormatter.siteDataUsageSummary(origin.usage)
                             )
                         ) {
-                            showRemoveSiteDataDialog(origin.origin)
+                            showRemoveSiteDataDialog(origin.origin, query)
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun showSiteDataSearchDialog(currentQuery: String?) {
+        val input = EditText(activity).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            setSingleLine(true)
+            hint = activity.getString(R.string.hint_site_data_search)
+            setText(currentQuery.orEmpty())
+            setSelection(text?.length ?: 0)
+        }
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_search_site_data)
+            .setView(input)
+            .setPositiveButton(R.string.action_search_site_data) { _, _ ->
+                showSiteData(
+                    replaceCurrent = true,
+                    query = input.text?.toString()?.trim().orEmpty()
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showRemoveCookieDialog(pageUrl: String, cookieName: String) {
@@ -422,14 +505,14 @@ class BrowserDataManagementPage(
             .show()
     }
 
-    private fun showRemoveSiteDataDialog(origin: String) {
+    private fun showRemoveSiteDataDialog(origin: String, query: String?) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_remove_site_data)
             .setMessage(activity.getString(R.string.dialog_remove_site_data_message, origin))
             .setPositiveButton(R.string.action_remove) { _, _ ->
                 WebStorage.getInstance().deleteOrigin(origin)
                 Toast.makeText(activity, R.string.toast_site_data_removed, Toast.LENGTH_SHORT).show()
-                showSiteData(replaceCurrent = true)
+                showSiteData(replaceCurrent = true, query = query)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -454,6 +537,12 @@ class BrowserDataManagementPage(
             setCookie(pageUrl, "$cookieName=; Max-Age=0; Path=/")
             flush()
         }
+    }
+
+    private fun currentSiteDataSearchSummary(query: String?): String {
+        return query
+            ?.takeIf { it.isNotBlank() }
+            ?: activity.getString(R.string.action_search_site_data_summary)
     }
 
 }
