@@ -7,6 +7,18 @@ enum class SiteSecurityStatus {
     NOT_SECURE,
     UNKNOWN;
 
+    fun protocolDisplayName(): String {
+        return when (this) {
+            SECURE -> "HTTPS"
+            NOT_SECURE -> "HTTP"
+            UNKNOWN -> "未知"
+        }
+    }
+
+    fun isEncryptedConnection(): Boolean {
+        return this == SECURE
+    }
+
     companion object {
         fun fromUrl(url: String?): SiteSecurityStatus {
             val scheme = url

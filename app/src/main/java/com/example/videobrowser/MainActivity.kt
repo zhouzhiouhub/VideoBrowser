@@ -2201,7 +2201,10 @@ class MainActivity : AppCompatActivity() {
             getString(statusTitleResId),
             getString(R.string.site_security_host, host),
             getString(R.string.site_security_url, displayUrl),
-            getString(messageResId)
+            getString(R.string.site_security_protocol, status.protocolDisplayName()),
+            getString(messageResId),
+            siteSecurityCertificateSummary(status),
+            siteSecurityMixedContentSummary(status)
         ).joinToString(separator = "\n\n")
 
         val builder = AlertDialog.Builder(this)
@@ -2214,6 +2217,27 @@ class MainActivity : AppCompatActivity() {
             }
         }
         builder.show()
+    }
+
+    private fun siteSecurityCertificateSummary(status: SiteSecurityStatus): String {
+        return when (status) {
+            SiteSecurityStatus.SECURE -> getString(R.string.site_security_certificate_validated)
+            SiteSecurityStatus.NOT_SECURE -> getString(R.string.site_security_certificate_not_used)
+            SiteSecurityStatus.UNKNOWN -> getString(R.string.site_security_unknown_message)
+        }
+    }
+
+    private fun siteSecurityMixedContentSummary(status: SiteSecurityStatus): String {
+        return when (status) {
+            SiteSecurityStatus.SECURE -> if (settingsManager.isMixedContentBlocked()) {
+                getString(R.string.site_security_mixed_content_blocked)
+            } else {
+                getString(R.string.site_security_mixed_content_compatibility)
+            }
+
+            SiteSecurityStatus.NOT_SECURE -> getString(R.string.site_security_mixed_content_not_applicable)
+            SiteSecurityStatus.UNKNOWN -> getString(R.string.site_security_unknown_message)
+        }
     }
 
     private fun showCurrentSiteSettingsPage() {

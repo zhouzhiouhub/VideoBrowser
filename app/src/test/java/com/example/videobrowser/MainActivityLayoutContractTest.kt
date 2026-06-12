@@ -72,11 +72,22 @@ class MainActivityLayoutContractTest {
         assertTrue(mainActivity.contains("R.string.title_site_security_info"))
         assertTrue(mainActivity.contains("R.string.site_security_secure_message"))
         assertTrue(mainActivity.contains("R.string.site_security_not_secure_message"))
+        assertTrue(mainActivity.contains("R.string.site_security_protocol"))
+        assertTrue(mainActivity.contains("status.protocolDisplayName()"))
+        assertTrue(mainActivity.contains("private fun siteSecurityCertificateSummary(status: SiteSecurityStatus): String"))
+        assertTrue(mainActivity.contains("R.string.site_security_certificate_validated"))
+        assertTrue(mainActivity.contains("R.string.site_security_certificate_not_used"))
+        assertTrue(mainActivity.contains("private fun siteSecurityMixedContentSummary(status: SiteSecurityStatus): String"))
+        assertTrue(mainActivity.contains("settingsManager.isMixedContentBlocked()"))
+        assertTrue(mainActivity.contains("R.string.site_security_mixed_content_blocked"))
+        assertTrue(mainActivity.contains("R.string.site_security_mixed_content_compatibility"))
         assertTrue(mainActivity.contains("functionCenterPages.showCurrentSiteSettingsPage()"))
         assertTrue(functionCenterPages.contains("fun showCurrentSiteSettingsPage()"))
         assertTrue(strings.contains("title_site_security_info"))
         assertTrue(strings.contains("site_security_icon_description"))
-        assertTrue(readme.contains("点击图标可查看站点连接信息"))
+        assertTrue(strings.contains("site_security_certificate_validated"))
+        assertTrue(strings.contains("site_security_mixed_content_blocked"))
+        assertTrue(readme.contains("证书验证边界和混合内容策略"))
     }
 
     @Test
