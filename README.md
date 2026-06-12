@@ -33,6 +33,7 @@ VideoBrowser 的目标是提供一个偏视频场景的移动浏览器壳层：
 - 支持前进、后退、刷新、页面进度、页面标题同步。
 - 支持系统浏览器打开、复制链接、分享页面、收藏当前页。
 - 主页面加载失败时显示本地错误页，并提供原地址重试入口。
+- 支持在浏览器设置中修改主页地址。
 - 支持桌面模式：切换 User-Agent、开启 wide viewport，并重新加载页面。
 - 支持顶部和底部浏览器控件随页面滚动隐藏。
 - Debug 包中启用 WebView 调试：`WebView.setWebContentsDebuggingEnabled(true)`。

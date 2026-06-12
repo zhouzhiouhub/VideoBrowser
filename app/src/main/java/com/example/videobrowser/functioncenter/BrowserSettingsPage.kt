@@ -1,6 +1,10 @@
 package com.example.videobrowser.functioncenter
 
+import android.text.InputType
 import android.widget.LinearLayout
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
@@ -37,6 +41,7 @@ class BrowserSettingsPage(
             title = activity.getString(R.string.title_browser_settings),
             onBack = showRootPage
         ) { content ->
+            addBrowserBasicsSection(content)
             addGlobalEnhancementSection(content)
             addToolboxSection(content)
         }
@@ -100,6 +105,51 @@ class BrowserSettingsPage(
 
     private fun addDataManagementRows(section: LinearLayout) {
         addDataManagementActions(section, includeSavedPages = false)
+    }
+
+    private fun addBrowserBasicsSection(parent: LinearLayout) {
+        host.addFunctionSection(
+            parent,
+            activity.getString(R.string.function_center_section_browser_basics)
+        ) { section ->
+            host.addActionRow(
+                parent = section,
+                title = activity.getString(R.string.setting_home_page),
+                summary = settingsManager.homeUrl()
+            ) {
+                showHomeUrlDialog()
+            }
+        }
+    }
+
+    private fun showHomeUrlDialog() {
+        val input = EditText(activity).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            setSingleLine(true)
+            hint = activity.getString(R.string.hint_home_page_url)
+            setText(settingsManager.homeUrl())
+            setSelection(text?.length ?: 0)
+        }
+        val dialog = AlertDialog.Builder(activity)
+            .setTitle(R.string.setting_home_page)
+            .setView(input)
+            .setPositiveButton(R.string.action_save, null)
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val homeUrl = input.text?.toString().orEmpty()
+                if (!settingsManager.isValidHomeUrl(homeUrl)) {
+                    Toast.makeText(activity, R.string.toast_home_page_invalid, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                settingsManager.setHomeUrl(homeUrl)
+                Toast.makeText(activity, R.string.toast_home_page_updated, Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                show()
+            }
+        }
+        dialog.show()
     }
 
     private fun addDataManagementActions(section: LinearLayout, includeSavedPages: Boolean) {

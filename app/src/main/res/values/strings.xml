@@ -53,6 +53,7 @@
     <string name="function_center_section_site_actions">当前站点</string>
     <string name="function_center_section_toolbox">浏览器</string>
     <string name="function_center_section_settings">浏览器增强</string>
+    <string name="function_center_section_browser_basics">基础设置</string>
     <string name="function_center_section_data">站点与数据</string>
     <string name="function_center_section_more">更多</string>
     <string name="function_center_section_about">软件信息</string>
@@ -92,6 +93,7 @@
     <string name="setting_private_browsing_summary">不记录历史，并在切换或退出时清理 Cookie、缓存和站点数据</string>
     <string name="setting_desktop_mode">桌面模式</string>
     <string name="setting_desktop_mode_summary">使用桌面浏览器标识并横屏显示当前页面</string>
+    <string name="setting_home_page">主页</string>
     <string name="action_open_native_player">原生播放器打开</string>
     <string name="action_open_native_player_summary">用 Media3 播放当前直链视频或流媒体地址</string>
     <string name="action_add_bookmark">收藏当前页</string>
@@ -209,6 +211,7 @@
     <string name="action_manage_site_data">站点数据</string>
     <string name="action_manage_site_data_summary">查看或删除网页本地存储数据</string>
     <string name="action_close">关闭</string>
+    <string name="action_save">保存</string>
     <string name="action_clear">清空</string>
     <string name="action_find">查找</string>
     <string name="action_find_next">下一处</string>
@@ -271,6 +274,7 @@
     <string name="hint_rule_subscription_url">https://example.com/filter.txt</string>
     <string name="hint_rule_subscription_text">粘贴 AdGuard / EasyList 风格规则文本</string>
     <string name="hint_find_in_page">查找文字</string>
+    <string name="hint_home_page_url">https://example.com/</string>
     <string name="hint_saved_pages_search">标题或网址</string>
     <string name="rule_subscription_empty">暂无导入的规则订阅缓存。</string>
     <string name="rule_subscription_source">来源</string>
@@ -302,6 +306,8 @@
     <string name="toast_saved_page_removed">已删除记录</string>
     <string name="toast_link_copied">链接已复制</string>
     <string name="toast_default_settings_restored">已恢复默认设置</string>
+    <string name="toast_home_page_updated">已更新主页</string>
+    <string name="toast_home_page_invalid">请输入 http/https 网址</string>
     <string name="toast_feature_enabled">已开启%1$s</string>
     <string name="toast_feature_disabled">已关闭%1$s</string>
     <string name="toast_private_browsing_enabled">已开启无痕浏览</string>

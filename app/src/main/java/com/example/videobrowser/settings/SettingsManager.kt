@@ -303,6 +303,10 @@ class SettingsManager(
         return preferenceStore.contains(KEY_HOME_URL)
     }
 
+    fun isValidHomeUrl(url: String): Boolean {
+        return normalizeHomeUrlOrNull(url) != null
+    }
+
     fun setHomeUrl(url: String) {
         preferenceStore.putString(KEY_HOME_URL, normalizeHomeUrl(url, DEFAULT_HOME_URL))
     }
@@ -448,13 +452,13 @@ class SettingsManager(
     }
 
     private fun normalizeHomeUrl(value: String?, defaultValue: String): String {
+        return normalizeHomeUrlOrNull(value) ?: defaultValue
+    }
+
+    private fun normalizeHomeUrlOrNull(value: String?): String? {
         return value
             ?.trim()
-            ?.takeIf {
-                it.startsWith("http://", ignoreCase = true) ||
-                    it.startsWith("https://", ignoreCase = true)
-            }
-            ?: defaultValue
+            ?.takeIf(::isHttpUrl)
     }
 
     private fun parseCustomShortcut(line: String): CustomShortcut? {
@@ -495,11 +499,7 @@ class SettingsManager(
     }
 
     private fun isHttpUrl(url: String): Boolean {
-        val uri = try {
-            URI(url)
-        } catch (_: IllegalArgumentException) {
-            return false
-        }
+        val uri = runCatching { URI(url) }.getOrNull() ?: return false
         val scheme = uri.scheme ?: return false
         return (scheme.equals("http", ignoreCase = true) ||
             scheme.equals("https", ignoreCase = true)) &&

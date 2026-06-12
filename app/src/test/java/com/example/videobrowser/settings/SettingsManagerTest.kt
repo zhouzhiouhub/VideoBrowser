@@ -93,6 +93,17 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun homeUrlValidationAcceptsOnlyHttpUrlsWithHosts() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        assertTrue(settings.isValidHomeUrl(" https://example.com/start "))
+        assertTrue(settings.isValidHomeUrl("http://localhost:8080"))
+        assertFalse(settings.isValidHomeUrl("about:blank"))
+        assertFalse(settings.isValidHomeUrl("javascript:alert(1)"))
+        assertFalse(settings.isValidHomeUrl("https://"))
+    }
+
+    @Test
     fun restoreDefaults_removesOnlySettingsKeys() {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)
