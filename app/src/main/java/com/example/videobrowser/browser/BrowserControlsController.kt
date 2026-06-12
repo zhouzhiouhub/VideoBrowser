@@ -127,6 +127,7 @@ class BrowserControlsController(
         backButton.alpha = if (canGoBack) 1f else 0.38f
         backButton.visibility = if (visibility.showBack) View.VISIBLE else View.GONE
         pageToolsButton.visibility = if (visibility.showPageTools) View.VISIBLE else View.GONE
+        refreshButton.visibility = if (visibility.showRefresh) View.VISIBLE else View.GONE
         wenxinButton.visibility = if (visibility.showWenxin) View.VISIBLE else View.GONE
         profileButton.visibility = if (visibility.showProfile) View.VISIBLE else View.GONE
         bookmarkButton.visibility = View.GONE
@@ -191,6 +192,7 @@ class BrowserControlsController(
                     chainIds = intArrayOf(
                         R.id.backButton,
                         R.id.pageToolsButton,
+                        R.id.refreshButton,
                         R.id.wenxinButton,
                         R.id.profileButton
                     ),

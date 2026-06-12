@@ -24,9 +24,15 @@ class BrowserControlsControllerContractTest {
         assertTrue(controller.contains("browserManager().stopLoading()"))
         assertTrue(controller.contains("browserManager().reload()"))
         assertTrue(controller.contains("this.isPageLoading = isPageLoading"))
+        assertTrue(controller.contains("refreshButton.visibility = if (visibility.showRefresh) View.VISIBLE else View.GONE"))
         assertTrue(controller.contains("private fun updateRefreshButton()"))
         assertTrue(controller.contains("R.string.action_stop_loading"))
         assertTrue(controller.contains("R.drawable.ic_stop_24"))
+        assertTrue(
+            controller
+                .substringAfter("BottomBarButtonArrangement.BrowsingEvenlySpaced")
+                .contains("R.id.refreshButton")
+        )
         assertTrue(strings.contains("action_stop_loading"))
         assertTrue(stopIcon.contains("M6,6H18V18H6Z"))
         assertTrue(readme.contains("加载中可停止加载"))

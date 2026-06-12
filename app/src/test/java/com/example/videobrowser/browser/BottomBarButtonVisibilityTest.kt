@@ -11,6 +11,7 @@ class BottomBarButtonVisibilityTest {
 
         assertFalse(visibility.showBack)
         assertFalse(visibility.showPageTools)
+        assertTrue(visibility.showRefresh)
         assertTrue(visibility.showWenxin)
         assertTrue(visibility.showProfile)
     }
@@ -21,6 +22,7 @@ class BottomBarButtonVisibilityTest {
 
         assertTrue(visibility.showBack)
         assertTrue(visibility.showPageTools)
+        assertTrue(visibility.showRefresh)
         assertTrue(visibility.showWenxin)
         assertTrue(visibility.showProfile)
     }
