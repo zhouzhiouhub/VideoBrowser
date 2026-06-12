@@ -43,6 +43,7 @@ class BrowserControlsController(
 ) {
     var areHidden = false
         private set
+    private var isPageLoading = false
 
     fun setup() {
         ViewCompat.setTooltipText(pageToolsButton, activity.getString(R.string.title_page_tools))
@@ -77,13 +78,20 @@ class BrowserControlsController(
             browserManager().goBack()
             updateNavigationButtons()
         }
-        refreshButton.setOnClickListener { browserManager().reload() }
+        refreshButton.setOnClickListener {
+            if (isPageLoading) {
+                browserManager().stopLoading()
+            } else {
+                browserManager().reload()
+            }
+        }
         wenxinButton.setOnClickListener { onOpenWenxin() }
         profileButton.setOnClickListener { onShowProfilePage() }
         bookmarkButton.setOnClickListener { onToggleBookmark() }
         pageToolsButton.setOnClickListener { onShowFunctionCenter() }
 
         updateNavigationButtons()
+        updateRefreshButton()
     }
 
     fun setHidden(hidden: Boolean) {
@@ -103,6 +111,8 @@ class BrowserControlsController(
     }
 
     fun updatePageProgressVisibility(isPageLoading: Boolean, forceHidden: Boolean = false) {
+        this.isPageLoading = isPageLoading
+        updateRefreshButton()
         pageProgress.visibility = when {
             forceHidden || isVideoFullscreenUiActive() || areHidden -> View.GONE
             isPageLoading && pageProgress.progress in 1..99 && !isHomePageVisible() -> View.VISIBLE
@@ -247,5 +257,16 @@ class BrowserControlsController(
             )
         )
         ViewCompat.setTooltipText(bookmarkButton, actionText)
+    }
+
+    private fun updateRefreshButton() {
+        val actionText = activity.getString(
+            if (isPageLoading) R.string.action_stop_loading else R.string.action_refresh
+        )
+        refreshButton.contentDescription = actionText
+        refreshButton.setImageResource(
+            if (isPageLoading) R.drawable.ic_stop_24 else R.drawable.ic_refresh_24
+        )
+        ViewCompat.setTooltipText(refreshButton, actionText)
     }
 }

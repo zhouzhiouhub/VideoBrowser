@@ -151,6 +151,10 @@ class BrowserManager(
         webView.reload()
     }
 
+    fun stopLoading() {
+        webView.stopLoading()
+    }
+
     fun canGoBack(): Boolean {
         return webView.canGoBack()
     }

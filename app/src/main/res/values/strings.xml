@@ -5,6 +5,7 @@
     <string name="action_back">后退</string>
     <string name="action_forward">前进</string>
     <string name="action_refresh">刷新</string>
+    <string name="action_stop_loading">停止加载</string>
     <string name="action_menu">菜单</string>
     <string name="action_wenxin">文心</string>
     <string name="action_profile">功能</string>
