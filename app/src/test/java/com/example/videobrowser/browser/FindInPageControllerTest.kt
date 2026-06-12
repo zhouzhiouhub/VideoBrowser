@@ -37,7 +37,7 @@ class FindInPageControllerTest {
     }
 
     @Test
-    fun findNextRequiresAnActiveQuery() {
+    fun findNextAndPreviousRequireAnActiveQuery() {
         val directions = mutableListOf<Boolean>()
         val controller = FindInPageController(
             findAll = {},
@@ -46,10 +46,11 @@ class FindInPageControllerTest {
         )
 
         assertFalse(controller.findNext())
+        assertFalse(controller.findPrevious())
         controller.search("clip")
 
         assertTrue(controller.findNext())
-        assertTrue(controller.findNext(forward = false))
+        assertTrue(controller.findPrevious())
         assertEquals(listOf(true, false), directions)
     }
 

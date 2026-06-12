@@ -1313,25 +1313,37 @@ class MainActivity : AppCompatActivity() {
             hint = getString(R.string.hint_find_in_page)
             setSingleLine(true)
         }
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.action_find_in_page)
             .setView(input)
-            .setPositiveButton(R.string.action_find) { _, _ ->
+            .setPositiveButton(R.string.action_find, null)
+            .setNeutralButton(R.string.action_find_next, null)
+            .setNegativeButton(R.string.action_find_previous, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val started = findInPageController.search(input.text?.toString().orEmpty())
                 if (!started) {
                     Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNeutralButton(R.string.action_find_next) { _, _ ->
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
                 val moved = findInPageController.findNext()
                 if (!moved) {
                     Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(R.string.action_clear) { _, _ ->
-                findInPageController.clear()
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+                val moved = findInPageController.findPrevious()
+                if (!moved) {
+                    Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
+                }
             }
-            .show()
+        }
+        dialog.setOnDismissListener {
+            findInPageController.clear()
+        }
+        dialog.show()
     }
 
     private fun printCurrentPage() {

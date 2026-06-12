@@ -30,6 +30,10 @@ class FindInPageController(
         return true
     }
 
+    fun findPrevious(): Boolean {
+        return findNext(forward = false)
+    }
+
     fun clear() {
         currentQuery = null
         clearMatches()

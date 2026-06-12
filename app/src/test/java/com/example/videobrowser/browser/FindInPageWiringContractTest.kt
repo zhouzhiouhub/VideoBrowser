@@ -17,6 +17,11 @@ class FindInPageWiringContractTest {
         assertTrue(browserManager.contains("webView.findNext(forward)"))
         assertTrue(browserManager.contains("fun clearFindMatches()"))
         assertTrue(browserManager.contains("webView.clearMatches()"))
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/browser/FindInPageController.kt"
+        ).readText()
+        assertTrue(controller.contains("fun findPrevious()"))
+        assertTrue(controller.contains("findNext(forward = false)"))
     }
 
     @Test
@@ -41,15 +46,23 @@ class FindInPageWiringContractTest {
         assertTrue(mainActivity.contains("FindInPageController"))
         assertTrue(mainActivity.contains("findInPageController.search"))
         assertTrue(mainActivity.contains("findInPageController.findNext"))
+        assertTrue(mainActivity.contains("findInPageController.findPrevious"))
         assertTrue(mainActivity.contains("findInPageController.clear"))
+        assertTrue(mainActivity.contains("dialog.getButton(AlertDialog.BUTTON_NEGATIVE)"))
+        assertTrue(mainActivity.contains("dialog.setOnDismissListener"))
         assertTrue(mainActivity.contains("findInPage = ::showFindInPageDialog"))
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+        assertTrue(strings.contains("action_find_previous"))
+        assertTrue(readme.contains("上一处或下一处匹配"))
     }
 
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 }

@@ -241,6 +241,7 @@
     <string name="action_clear">清空</string>
     <string name="action_find">查找</string>
     <string name="action_find_next">下一处</string>
+    <string name="action_find_previous">上一处</string>
     <string name="site_security_secure">连接安全</string>
     <string name="site_security_not_secure">连接不安全</string>
     <string name="action_open_page">打开页面</string>
