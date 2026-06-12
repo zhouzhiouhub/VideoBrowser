@@ -49,6 +49,9 @@ class BrowserManager(
             loadsImagesAutomatically = true
             blockNetworkImage = false
             textZoom = textZoomPercent
+            setSupportZoom(true)
+            builtInZoomControls = true
+            displayZoomControls = false
             setSupportMultipleWindows(true)
             setGeolocationEnabled(true)
             allowFileAccess = false
