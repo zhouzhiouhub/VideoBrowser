@@ -75,6 +75,36 @@ class DownloadStatusWiringContractTest {
     }
 
     @Test
+    fun downloadsPageSupportsStatusAndCategoryFilters() {
+        val downloadsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
+        ).readText()
+        val filter = projectFile(
+            "src/main/java/com/example/videobrowser/download/DownloadRecordFilter.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(downloadsPage.contains("DownloadRecordFilter.filter("))
+        assertTrue(downloadsPage.contains("statusFilter: DownloadStatus? = null"))
+        assertTrue(downloadsPage.contains("categoryFilter: DownloadCategory? = null"))
+        assertTrue(downloadsPage.contains("R.string.action_filter_download_status"))
+        assertTrue(downloadsPage.contains("R.string.action_filter_download_category"))
+        assertTrue(downloadsPage.contains("R.string.action_clear_download_filters"))
+        assertTrue(downloadsPage.contains("private fun showStatusFilterDialog"))
+        assertTrue(downloadsPage.contains("private fun showCategoryFilterDialog"))
+        assertTrue(downloadsPage.contains("setSingleChoiceItems(labels.toTypedArray(), checkedIndex)"))
+        assertTrue(downloadsPage.contains("DownloadStatus.entries"))
+        assertTrue(downloadsPage.contains("DownloadCategory.entries"))
+        assertTrue(filter.contains("DownloadCategory.from(record.mimeType, record.fileName)"))
+        assertTrue(filter.contains("record.status == status"))
+        assertTrue(strings.contains("action_filter_download_status"))
+        assertTrue(strings.contains("action_filter_download_category"))
+        assertTrue(strings.contains("action_clear_download_filters"))
+        assertTrue(strings.contains("download_filter_all_status"))
+        assertTrue(strings.contains("download_filter_all_categories"))
+    }
+
+    @Test
     fun downloadsPageCanCancelInProgressRecords() {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"

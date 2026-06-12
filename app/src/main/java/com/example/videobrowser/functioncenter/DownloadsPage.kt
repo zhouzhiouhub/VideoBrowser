@@ -19,6 +19,7 @@ import com.example.videobrowser.download.DownloadCategory
 import com.example.videobrowser.download.DownloadCategoryGroup
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordCleaner
+import com.example.videobrowser.download.DownloadRecordFilter
 import com.example.videobrowser.download.DownloadRecordRemoveResult
 import com.example.videobrowser.download.DownloadRecordRemover
 import com.example.videobrowser.download.DownloadRecordRepository
@@ -39,9 +40,19 @@ class DownloadsPage(
 ) {
     private val activity = host.activity
 
-    fun show(replaceCurrent: Boolean = false, query: String? = null) {
+    fun show(
+        replaceCurrent: Boolean = false,
+        query: String? = null,
+        statusFilter: DownloadStatus? = null,
+        categoryFilter: DownloadCategory? = null
+    ) {
         val allRecords = refreshDownloadRecords()
-        val records = DownloadRecordSearch.filter(allRecords, query)
+        val searchedRecords = DownloadRecordSearch.filter(allRecords, query)
+        val records = DownloadRecordFilter.filter(
+            records = searchedRecords,
+            status = statusFilter,
+            category = categoryFilter
+        )
 
         host.showPage(
             title = activity.getString(R.string.title_downloads),
@@ -58,7 +69,21 @@ class DownloadsPage(
                         title = activity.getString(R.string.action_search_download_records),
                         summary = currentSearchSummary(query)
                     ) {
-                        showSearchDialog(query)
+                        showSearchDialog(query, statusFilter, categoryFilter)
+                    }
+                    host.addActionRow(
+                        parent = section,
+                        title = activity.getString(R.string.action_filter_download_status),
+                        summary = statusFilterSummary(statusFilter)
+                    ) {
+                        showStatusFilterDialog(query, statusFilter, categoryFilter)
+                    }
+                    host.addActionRow(
+                        parent = section,
+                        title = activity.getString(R.string.action_filter_download_category),
+                        summary = categoryFilterSummary(categoryFilter)
+                    ) {
+                        showCategoryFilterDialog(query, statusFilter, categoryFilter)
                     }
                     if (!query.isNullOrBlank()) {
                         host.addActionRow(
@@ -66,7 +91,20 @@ class DownloadsPage(
                             title = activity.getString(R.string.action_clear_search),
                             summary = query
                         ) {
-                            show(replaceCurrent = true)
+                            show(
+                                replaceCurrent = true,
+                                statusFilter = statusFilter,
+                                categoryFilter = categoryFilter
+                            )
+                        }
+                    }
+                    if (statusFilter != null || categoryFilter != null) {
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_clear_download_filters),
+                            summary = currentFilterSummary(statusFilter, categoryFilter)
+                        ) {
+                            show(replaceCurrent = true, query = query)
                         }
                     }
                     host.addActionRow(
@@ -74,7 +112,12 @@ class DownloadsPage(
                         title = activity.getString(R.string.action_refresh),
                         summary = activity.getString(R.string.action_refresh_download_records_summary)
                     ) {
-                        show(replaceCurrent = true, query = query)
+                        show(
+                            replaceCurrent = true,
+                            query = query,
+                            statusFilter = statusFilter,
+                            categoryFilter = categoryFilter
+                        )
                     }
                     host.addActionRow(
                         parent = section,
@@ -116,7 +159,11 @@ class DownloadsPage(
         }
     }
 
-    private fun showSearchDialog(currentQuery: String?) {
+    private fun showSearchDialog(
+        currentQuery: String?,
+        statusFilter: DownloadStatus?,
+        categoryFilter: DownloadCategory?
+    ) {
         val input = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             setSingleLine(true)
@@ -130,7 +177,59 @@ class DownloadsPage(
             .setPositiveButton(R.string.action_search_download_records) { _, _ ->
                 show(
                     replaceCurrent = true,
-                    query = input.text?.toString()?.trim().orEmpty()
+                    query = input.text?.toString()?.trim().orEmpty(),
+                    statusFilter = statusFilter,
+                    categoryFilter = categoryFilter
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showStatusFilterDialog(
+        query: String?,
+        currentStatus: DownloadStatus?,
+        categoryFilter: DownloadCategory?
+    ) {
+        val statuses = DownloadStatus.entries
+        val labels = listOf(activity.getString(R.string.download_filter_all_status)) +
+            statuses.map { status -> activity.getString(downloadStatusTitleResId(status)) }
+        val checkedIndex = currentStatus?.let { status -> statuses.indexOf(status) + 1 } ?: 0
+
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_filter_download_status)
+            .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, index ->
+                dialog.dismiss()
+                show(
+                    replaceCurrent = true,
+                    query = query,
+                    statusFilter = statuses.getOrNull(index - 1),
+                    categoryFilter = categoryFilter
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showCategoryFilterDialog(
+        query: String?,
+        statusFilter: DownloadStatus?,
+        currentCategory: DownloadCategory?
+    ) {
+        val categories = DownloadCategory.entries
+        val labels = listOf(activity.getString(R.string.download_filter_all_categories)) +
+            categories.map { category -> activity.getString(categoryTitleResId(category)) }
+        val checkedIndex = currentCategory?.let { category -> categories.indexOf(category) + 1 } ?: 0
+
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_filter_download_category)
+            .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, index ->
+                dialog.dismiss()
+                show(
+                    replaceCurrent = true,
+                    query = query,
+                    statusFilter = statusFilter,
+                    categoryFilter = categories.getOrNull(index - 1)
                 )
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -396,6 +495,28 @@ class DownloadsPage(
         return query
             ?.takeIf { it.isNotBlank() }
             ?: activity.getString(R.string.action_search_download_records_summary)
+    }
+
+    private fun statusFilterSummary(statusFilter: DownloadStatus?): String {
+        return statusFilter
+            ?.let { status -> activity.getString(downloadStatusTitleResId(status)) }
+            ?: activity.getString(R.string.download_filter_all_status)
+    }
+
+    private fun categoryFilterSummary(categoryFilter: DownloadCategory?): String {
+        return categoryFilter
+            ?.let { category -> activity.getString(categoryTitleResId(category)) }
+            ?: activity.getString(R.string.download_filter_all_categories)
+    }
+
+    private fun currentFilterSummary(
+        statusFilter: DownloadStatus?,
+        categoryFilter: DownloadCategory?
+    ): String {
+        return listOfNotNull(
+            statusFilter?.let(::statusFilterSummary),
+            categoryFilter?.let(::categoryFilterSummary)
+        ).joinToString(" | ")
     }
 
     private fun progressSummary(record: DownloadRecord): String? {
