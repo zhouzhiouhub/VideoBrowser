@@ -51,6 +51,8 @@ class FunctionCenterPages(
     private val openPlaybackHistoryItem: (PlaybackProgress) -> Unit,
     private val downloadCurrentUrl: () -> Unit,
     private val retryDownload: (DownloadRecord) -> Unit,
+    private val currentSearchProviderName: () -> String,
+    private val selectSearchProvider: (String) -> Boolean,
     setPrivateBrowsingEnabled: (Boolean) -> Unit,
     restoreDefaultSettings: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
@@ -167,6 +169,8 @@ class FunctionCenterPages(
         showCacheManager = { browserDataManagementPage.showCache() },
         showSiteDataManager = { browserDataManagementPage.showSiteData() },
         showRestoreDefaultSettingsPage = restoreDefaultSettingsPage::show,
+        currentSearchProviderName = currentSearchProviderName,
+        selectSearchProvider = selectSearchProvider,
         showRootPage = ::showRootPage
     )
 

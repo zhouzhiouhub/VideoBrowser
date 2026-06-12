@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.browser.search.SearchProviders
 import com.example.videobrowser.settings.SettingsManager
 
 class BrowserSettingsPage(
@@ -32,6 +33,8 @@ class BrowserSettingsPage(
     private val showCacheManager: () -> Unit,
     private val showSiteDataManager: () -> Unit,
     private val showRestoreDefaultSettingsPage: () -> Unit,
+    private val currentSearchProviderName: () -> String,
+    private val selectSearchProvider: (String) -> Boolean,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -119,6 +122,13 @@ class BrowserSettingsPage(
             ) {
                 showHomeUrlDialog()
             }
+            host.addActionRow(
+                parent = section,
+                title = activity.getString(R.string.setting_search_engine),
+                summary = currentSearchProviderName()
+            ) {
+                showSearchEngineDialog()
+            }
         }
     }
 
@@ -150,6 +160,32 @@ class BrowserSettingsPage(
             }
         }
         dialog.show()
+    }
+
+    private fun showSearchEngineDialog() {
+        val providers = SearchProviders.defaults
+        val selectedIndex = providers
+            .indexOfFirst { provider -> provider.id == settingsManager.searchEngineId() }
+            .takeIf { index -> index >= 0 }
+            ?: 0
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.setting_search_engine)
+            .setSingleChoiceItems(
+                providers.map { provider -> provider.name }.toTypedArray(),
+                selectedIndex
+            ) { dialog, index ->
+                val provider = providers[index]
+                val toastResId = if (selectSearchProvider(provider.id)) {
+                    R.string.toast_search_engine_updated
+                } else {
+                    R.string.toast_search_engine_invalid
+                }
+                Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                show()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun addDataManagementActions(section: LinearLayout, includeSavedPages: Boolean) {

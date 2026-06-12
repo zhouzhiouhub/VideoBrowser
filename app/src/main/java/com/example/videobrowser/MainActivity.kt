@@ -476,6 +476,8 @@ class MainActivity : AppCompatActivity() {
             openPlaybackHistoryItem = ::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
             retryDownload = downloadController::retry,
+            currentSearchProviderName = { searchProviderController.selectedProvider.name },
+            selectSearchProvider = searchProviderController::selectDefaultSearchProvider,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
             showFileOperationsPage = ::showFileOperationsPage,

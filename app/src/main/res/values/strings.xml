@@ -94,6 +94,7 @@
     <string name="setting_desktop_mode">桌面模式</string>
     <string name="setting_desktop_mode_summary">使用桌面浏览器标识并横屏显示当前页面</string>
     <string name="setting_home_page">主页</string>
+    <string name="setting_search_engine">默认搜索引擎</string>
     <string name="action_open_native_player">原生播放器打开</string>
     <string name="action_open_native_player_summary">用 Media3 播放当前直链视频或流媒体地址</string>
     <string name="action_add_bookmark">收藏当前页</string>
@@ -308,6 +309,8 @@
     <string name="toast_default_settings_restored">已恢复默认设置</string>
     <string name="toast_home_page_updated">已更新主页</string>
     <string name="toast_home_page_invalid">请输入 http/https 网址</string>
+    <string name="toast_search_engine_updated">已更新默认搜索引擎</string>
+    <string name="toast_search_engine_invalid">无法更新默认搜索引擎</string>
     <string name="toast_feature_enabled">已开启%1$s</string>
     <string name="toast_feature_disabled">已关闭%1$s</string>
     <string name="toast_private_browsing_enabled">已开启无痕浏览</string>

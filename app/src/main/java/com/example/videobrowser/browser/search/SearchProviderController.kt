@@ -110,6 +110,14 @@ class SearchProviderController(
         }
     }
 
+    fun selectDefaultSearchProvider(providerId: String): Boolean {
+        val provider = providers.firstOrNull { it.id == providerId } ?: return false
+        selectedProvider = provider
+        settingsManager.setSearchEngineId(provider.id)
+        updateSelection()
+        return true
+    }
+
     private fun addProviderItem(provider: SearchProvider) {
         val item = createProviderItem(provider)
         val badge = createProviderBadge(provider)
