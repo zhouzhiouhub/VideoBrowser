@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.os.Message
 import android.print.PrintAttributes
 import android.print.PrintManager
+import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -804,7 +805,8 @@ class MainActivity : AppCompatActivity() {
                 pageFinished = { url -> currentSessionController().handlePageFinished(url) },
                 pageLoadFailed = ::showBrowserErrorPage,
                 requestIntercepted = ::interceptBrowserRequest,
-                urlLoadingRequested = ::shouldBlockUrl
+                urlLoadingRequested = ::shouldBlockUrl,
+                httpAuthRequested = ::handleHttpAuthRequest
             )
         )
     }
@@ -815,6 +817,63 @@ class MainActivity : AppCompatActivity() {
     private fun showBrowserErrorPage(error: BrowserPageError) {
         currentSessionController().handlePageFailed(error.url)
         currentBrowserManager().loadErrorPage(error)
+    }
+
+    private fun handleHttpAuthRequest(
+        view: WebView?,
+        handler: android.webkit.HttpAuthHandler?,
+        host: String?,
+        realm: String?
+    ) {
+        val authHandler = handler ?: return
+        val usernameInput = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
+            setSingleLine(true)
+            hint = getString(R.string.hint_http_auth_username)
+        }
+        val passwordInput = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setSingleLine(true)
+            hint = getString(R.string.hint_http_auth_password)
+        }
+        val form = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), 0)
+            addView(usernameInput)
+            addView(passwordInput)
+        }
+        val displayHost = host?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.permission_origin_unknown)
+        val displayRealm = realm?.takeIf { it.isNotBlank() }
+        var completed = false
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.title_http_auth_request)
+            .setMessage(
+                displayRealm?.let { value ->
+                    getString(R.string.dialog_http_auth_request_message_with_realm, displayHost, value)
+                } ?: getString(R.string.dialog_http_auth_request_message, displayHost)
+            )
+            .setView(form)
+            .setPositiveButton(R.string.action_http_auth_sign_in, null)
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                completed = true
+                authHandler.proceed(
+                    usernameInput.text?.toString().orEmpty(),
+                    passwordInput.text?.toString().orEmpty()
+                )
+                dialog.dismiss()
+            }
+        }
+        dialog.setOnDismissListener {
+            if (!completed) {
+                completed = true
+                authHandler.cancel()
+            }
+        }
+        dialog.show()
     }
 
     private fun setupFullscreenGestureOverlay() {

@@ -30,11 +30,41 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("BrowserPageError.Ssl"))
     }
 
+    @Test
+    fun browserClientRoutesHttpAuthRequestsToActivityPrompt() {
+        val browserClient = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(browserClient.contains("import android.webkit.HttpAuthHandler"))
+        assertTrue(browserClient.contains("httpAuthRequested: (WebView?, HttpAuthHandler?, String?, String?) -> Unit"))
+        assertTrue(browserClient.contains("handler?.cancel()"))
+        assertTrue(browserClient.contains("override fun onReceivedHttpAuthRequest"))
+        assertTrue(browserClient.contains("httpAuthRequested(view, handler, host, realm)"))
+        assertTrue(mainActivity.contains("httpAuthRequested = ::handleHttpAuthRequest"))
+        assertTrue(mainActivity.contains("private fun handleHttpAuthRequest("))
+        assertTrue(mainActivity.contains("R.string.title_http_auth_request"))
+        assertTrue(mainActivity.contains("R.string.hint_http_auth_username"))
+        assertTrue(mainActivity.contains("R.string.hint_http_auth_password"))
+        assertTrue(mainActivity.contains("authHandler.proceed("))
+        assertTrue(mainActivity.contains("authHandler.cancel()"))
+        assertTrue(strings.contains("title_http_auth_request"))
+        assertTrue(strings.contains("dialog_http_auth_request_message"))
+        assertTrue(strings.contains("hint_http_auth_username"))
+        assertTrue(strings.contains("hint_http_auth_password"))
+        assertTrue(readme.contains("HTTP Basic Auth"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
-        return listOf(
+        return listOfNotNull(
             File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
         ).first { it.exists() }
     }
 }

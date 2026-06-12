@@ -3,6 +3,7 @@ package com.example.videobrowser.browser
 import android.graphics.Bitmap
 import android.net.Uri
 import android.net.http.SslError
+import android.webkit.HttpAuthHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebResourceError
@@ -18,7 +19,9 @@ class BrowserClient(
     private val pageFinished: (String?) -> Unit = {},
     private val pageLoadFailed: (BrowserPageError) -> Unit = {},
     private val requestIntercepted: (BrowserRequest) -> WebResourceResponse? = { null },
-    private val urlLoadingRequested: (WebView?, Uri, Boolean) -> Boolean = { _, _, _ -> false }
+    private val urlLoadingRequested: (WebView?, Uri, Boolean) -> Boolean = { _, _, _ -> false },
+    private val httpAuthRequested: (WebView?, HttpAuthHandler?, String?, String?) -> Unit =
+        { _, handler, _, _ -> handler?.cancel() }
 ) : WebViewClient() {
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         pageStarted(url)
@@ -105,5 +108,14 @@ class BrowserClient(
                 description = error?.toString().orEmpty().ifBlank { "SSL 证书错误" }
             )
         )
+    }
+
+    override fun onReceivedHttpAuthRequest(
+        view: WebView?,
+        handler: HttpAuthHandler?,
+        host: String?,
+        realm: String?
+    ) {
+        httpAuthRequested(view, handler, host, realm)
     }
 }
