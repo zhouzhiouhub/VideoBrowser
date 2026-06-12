@@ -13,6 +13,8 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Message
+import android.print.PrintAttributes
+import android.print.PrintManager
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -497,6 +499,7 @@ class MainActivity : AppCompatActivity() {
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
+            printCurrentPage = ::printCurrentPage,
             openCurrentUrlExternally = pageActionsController::openCurrentUrlExternally,
             findInPage = ::showFindInPageDialog,
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
@@ -1331,6 +1334,32 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun printCurrentPage() {
+        val pageUrl = currentActionableUrl()
+        if (pageUrl == null) {
+            Toast.makeText(this, R.string.toast_print_page_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val jobName = currentPrintJobName(pageUrl)
+        runCatching {
+            val printManager = getSystemService(Context.PRINT_SERVICE) as PrintManager
+            val printAdapter = currentBrowserManager().activeWebView.createPrintDocumentAdapter(jobName)
+            printManager.print(jobName, printAdapter, PrintAttributes.Builder().build())
+        }.onFailure {
+            Toast.makeText(this, R.string.toast_print_page_unavailable, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun currentPrintJobName(pageUrl: String): String {
+        val title = currentSessionController().currentPageTitle
+            .replace(WHITESPACE_SEQUENCE, " ")
+            .trim()
+            .ifBlank { Uri.parse(pageUrl).host.orEmpty() }
+            .ifBlank { getString(R.string.app_name) }
+            .take(MAX_PRINT_JOB_TITLE_LENGTH)
+        return getString(R.string.print_job_name, title)
+    }
+
     private fun showProfilePage() {
         hideKeyboard()
         functionCenterPages.showProfilePage()
@@ -2060,6 +2089,7 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
         private const val BOOKMARK_EXPORT_FILE_NAME = "videobrowser-bookmarks.txt"
+        private const val MAX_PRINT_JOB_TITLE_LENGTH = 80
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +

@@ -3,6 +3,7 @@ package com.example.videobrowser.functioncenter
 enum class FunctionCenterRootAction {
     TABS,
     SHARE_PAGE,
+    PRINT_PAGE,
     BOOKMARKS,
     HISTORY,
     PLAYBACK_HISTORY,
@@ -24,6 +25,7 @@ object FunctionCenterRootActionCatalog {
         return listOfNotNull(
             FunctionCenterRootAction.TABS,
             FunctionCenterRootAction.SHARE_PAGE.takeIf { hasPage },
+            FunctionCenterRootAction.PRINT_PAGE.takeIf { hasPage },
             FunctionCenterRootAction.REFRESH.takeIf { hasPage },
             FunctionCenterRootAction.DESKTOP_MODE.takeIf { hasPage && !isPrivateBrowsing },
             FunctionCenterRootAction.ADD_BOOKMARK.takeIf { hasPage },

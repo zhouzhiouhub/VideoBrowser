@@ -19,6 +19,7 @@ class FunctionCenterRootActionCatalogTest {
             listOf(
                 "TABS",
                 "SHARE_PAGE",
+                "PRINT_PAGE",
                 "REFRESH",
                 "DESKTOP_MODE",
                 "ADD_BOOKMARK",

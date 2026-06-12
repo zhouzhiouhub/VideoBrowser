@@ -133,6 +133,8 @@
     <string name="action_find_in_page_summary">在当前网页中搜索文字</string>
     <string name="action_share_page">分享页面</string>
     <string name="action_share_page_summary">用系统分享面板发送当前页面</string>
+    <string name="action_print_page">打印页面</string>
+    <string name="action_print_page_summary">使用系统打印服务，或另存为 PDF</string>
     <string name="action_open_external">系统浏览器打开</string>
     <string name="action_open_external_summary">把当前页面交给其他浏览器或应用</string>
     <string name="action_file_operations">文件操作</string>
@@ -367,6 +369,7 @@
     <string name="ad_block_log_action_allowed">放行</string>
     <string name="clipboard_page_url">页面链接</string>
     <string name="clipboard_download_source_url">下载来源链接</string>
+    <string name="print_job_name">VideoBrowser - %1$s</string>
     <string name="toast_no_page_url">当前没有可操作的网页地址</string>
     <string name="toast_bookmark_saved">已收藏到本地</string>
     <string name="toast_bookmark_removed">已取消收藏</string>
@@ -384,6 +387,7 @@
     <string name="toast_saved_page_renamed">已重命名收藏</string>
     <string name="toast_saved_page_title_invalid">标题不能为空</string>
     <string name="toast_link_copied">链接已复制</string>
+    <string name="toast_print_page_unavailable">无法打开打印服务</string>
     <string name="toast_default_settings_restored">已恢复默认设置</string>
     <string name="toast_home_page_updated">已更新主页</string>
     <string name="toast_home_page_invalid">请输入 http/https 网址</string>

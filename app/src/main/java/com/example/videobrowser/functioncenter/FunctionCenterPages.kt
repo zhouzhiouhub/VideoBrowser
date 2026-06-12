@@ -49,6 +49,7 @@ class FunctionCenterPages(
     private val toggleCurrentBookmark: () -> Unit,
     private val copyCurrentUrl: () -> Unit,
     private val shareCurrentUrl: () -> Unit,
+    private val printCurrentPage: () -> Unit,
     private val openCurrentUrlExternally: () -> Unit,
     private val findInPage: () -> Unit,
     private val openCurrentUrlInNativePlayer: () -> Unit,
@@ -348,6 +349,17 @@ class FunctionCenterPages(
                 }
             }
 
+            FunctionCenterRootAction.PRINT_PAGE -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_print_page),
+                    summary = activity.getString(R.string.action_print_page_summary),
+                    iconResId = R.drawable.ic_print_24,
+                    enabled = hasPage
+                ) {
+                    runPageAction(printCurrentPage)
+                }
+            }
+
             FunctionCenterRootAction.BOOKMARKS -> {
                 FunctionCenterGridAction(
                     title = activity.getString(R.string.title_bookmarks),
@@ -608,6 +620,14 @@ class FunctionCenterPages(
                         enabled = hasPage
                     ) {
                         runPageAction(shareCurrentUrl)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_print_page),
+                        summary = activity.getString(R.string.action_print_page_summary),
+                        iconResId = R.drawable.ic_print_24,
+                        enabled = hasPage
+                    ) {
+                        runPageAction(printCurrentPage)
                     },
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_open_external),
