@@ -299,6 +299,8 @@
     <string name="action_import">导入</string>
     <string name="action_allow">允许</string>
     <string name="action_deny">拒绝</string>
+    <string name="action_leave_page">离开</string>
+    <string name="action_stay_on_page">留在此页</string>
     <string name="action_open_external_app">打开外部应用</string>
     <string name="action_add_current_site">添加当前站点</string>
     <string name="action_remove_current_site">移除当前站点</string>
@@ -334,6 +336,10 @@
     <string name="title_web_permission_request">网站权限请求</string>
     <string name="title_geolocation_permission_request">位置权限请求</string>
     <string name="title_external_protocol_request">打开外部应用？</string>
+    <string name="title_javascript_dialog">网页消息</string>
+    <string name="title_javascript_confirm">网页确认</string>
+    <string name="title_javascript_prompt">网页输入</string>
+    <string name="title_javascript_before_unload">离开此页？</string>
     <string name="title_remove_cookie">删除 Cookie</string>
     <string name="title_remove_site_data">删除站点数据</string>
     <string name="title_add_user_whitelist">添加白名单</string>
@@ -376,6 +382,8 @@
     <string name="dialog_clear_history_range_message">确定清空%1$s的浏览历史记录吗？此操作无法撤销。</string>
     <string name="dialog_web_permission_request_message">%1$s 请求使用：%2$s</string>
     <string name="dialog_geolocation_permission_request_message">%1$s 请求访问位置。</string>
+    <string name="dialog_javascript_message_empty">网页没有提供消息内容。</string>
+    <string name="dialog_javascript_before_unload_message">此页面要求确认离开。</string>
     <string name="title_http_auth_request">需要登录</string>
     <string name="dialog_http_auth_request_message">%1$s 请求用户名和密码。</string>
     <string name="dialog_http_auth_request_message_with_realm">%1$s 请求用户名和密码。领域：%2$s</string>
