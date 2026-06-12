@@ -4,6 +4,7 @@
     <string name="action_load_url">打开</string>
     <string name="action_back">后退</string>
     <string name="action_forward">前进</string>
+    <string name="action_forward_summary">前往下一条浏览记录</string>
     <string name="action_refresh">刷新</string>
     <string name="action_stop_loading">停止加载</string>
     <string name="action_menu">菜单</string>

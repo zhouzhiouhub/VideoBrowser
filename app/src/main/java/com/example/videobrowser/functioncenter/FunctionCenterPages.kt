@@ -616,6 +616,14 @@ class FunctionCenterPages(
             actions.addAll(
                 listOf(
                     FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_forward),
+                        summary = activity.getString(R.string.action_forward_summary),
+                        iconResId = R.drawable.ic_arrow_forward_24,
+                        enabled = hasPage && browserManager().canGoForward()
+                    ) {
+                        runPageAction { browserManager().goForward() }
+                    },
+                    FunctionCenterGridAction(
                         title = activity.getString(R.string.action_find_in_page),
                         summary = activity.getString(R.string.action_find_in_page_summary),
                         iconResId = R.drawable.ic_search_24,
