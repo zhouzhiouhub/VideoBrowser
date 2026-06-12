@@ -33,6 +33,11 @@ object BrowserErrorPage {
             is BrowserPageError.Ssl -> error.description
         }
         val url = error.url.orEmpty()
+        val retryAction = retryableUrl(error.url)
+            ?.let { retryUrl ->
+                """<a class="button" href="${retryUrl.escapeHtml()}">重试</a>"""
+            }
+            .orEmpty()
         return """
             <!doctype html>
             <html>
@@ -71,6 +76,19 @@ object BrowserErrorPage {
                   background: #eef1f6;
                   color: #1f2937;
                 }
+                .actions {
+                  margin-top: 22px;
+                }
+                .button {
+                  display: inline-block;
+                  padding: 10px 18px;
+                  border-radius: 8px;
+                  background: #1769e0;
+                  color: white;
+                  font-size: 15px;
+                  font-weight: 700;
+                  text-decoration: none;
+                }
               </style>
             </head>
             <body>
@@ -78,10 +96,19 @@ object BrowserErrorPage {
                 <h1>${title.escapeHtml()}</h1>
                 <p>${detail.escapeHtml()}</p>
                 <p class="url">${url.escapeHtml()}</p>
+                <div class="actions">$retryAction</div>
               </main>
             </body>
             </html>
         """.trimIndent()
+    }
+
+    private fun retryableUrl(url: String?): String? {
+        val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return null
+        return normalizedUrl.takeIf {
+            it.startsWith("http://", ignoreCase = true) ||
+                it.startsWith("https://", ignoreCase = true)
+        }
     }
 
     private fun String.escapeHtml(): String {

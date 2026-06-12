@@ -17,6 +17,8 @@ class BrowserErrorPageTest {
 
         assertTrue(html.contains("网页无法打开"))
         assertTrue(html.contains("https://example.com/?q=&lt;script&gt;"))
+        assertTrue(html.contains("href=\"https://example.com/?q=&lt;script&gt;\""))
+        assertTrue(html.contains("重试"))
         assertTrue(html.contains("Host &lt;not found&gt;"))
         assertFalse(html.contains("<script>"))
     }
@@ -33,5 +35,32 @@ class BrowserErrorPageTest {
         assertTrue(html.contains("连接已被阻止"))
         assertTrue(html.contains("SSL 证书错误"))
         assertTrue(html.contains("https://expired.example"))
+    }
+
+    @Test
+    fun omitsRetryLinkWhenUrlIsMissing() {
+        val html = BrowserErrorPage.render(
+            BrowserPageError.Network(
+                url = null,
+                code = -6,
+                description = "连接失败"
+            )
+        )
+
+        assertFalse(html.contains("href="))
+    }
+
+    @Test
+    fun omitsRetryLinkForNonWebUrls() {
+        val html = BrowserErrorPage.render(
+            BrowserPageError.Network(
+                url = "javascript:alert(1)",
+                code = -10,
+                description = "不支持的地址"
+            )
+        )
+
+        assertTrue(html.contains("javascript:alert(1)"))
+        assertFalse(html.contains("href="))
     }
 }
