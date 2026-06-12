@@ -55,6 +55,7 @@ import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.BrowserTab
+import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserTabWebViewRegistry
@@ -135,6 +136,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserControlsScrollController: BrowserControlsScrollController
     private lateinit var standardSessionController: BrowserSessionController
     private lateinit var privateSessionController: BrowserSessionController
+    private lateinit var browserTabSessionRepository: BrowserTabSessionRepository
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var localFilesController: LocalFilesController
@@ -236,11 +238,14 @@ class MainActivity : AppCompatActivity() {
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         savedPageRepository = SavedPageRepository(preferenceStore)
+        browserTabSessionRepository = BrowserTabSessionRepository(preferenceStore)
+        restoreStandardTabSession()
         downloadRecordRepository = DownloadRecordRepository(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
         browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
+            browserTabSessionRepository = browserTabSessionRepository,
             filesDir = filesDir
         )
         localFilesController = LocalFilesController(
@@ -402,7 +407,10 @@ class MainActivity : AppCompatActivity() {
             updateNavigationButtons = ::updateNavigationButtons,
             addHistoryEntry = pageActionsController::addHistoryEntry,
             injectPageFeatures = ::injectPageFeatures,
-            onPageMetadataChanged = standardTabSessionBinding::handlePageMetadataChanged
+            onPageMetadataChanged = { url, title ->
+                standardTabSessionBinding.handlePageMetadataChanged(url, title)
+                saveStandardTabSession()
+            }
         )
         privateSessionController = BrowserSessionController(
             activity = this,
@@ -527,7 +535,7 @@ class MainActivity : AppCompatActivity() {
         setupBrowserClient()
 
         if (!handleLaunchIntent(intent)) {
-            openHomePage()
+            openInitialStandardPage()
         }
     }
 
@@ -538,6 +546,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
+        saveStandardTabSession()
         currentBrowserManager().onPause()
         super.onPause()
     }
@@ -568,6 +577,7 @@ class MainActivity : AppCompatActivity() {
         if (areChromeClientsInitialized()) {
             currentChromeClient().hideCustomView()
         }
+        saveStandardTabSession()
         if (::browserSessionCoordinator.isInitialized) {
             browserSessionCoordinator.destroyPrivateSession()
         }
@@ -596,6 +606,22 @@ class MainActivity : AppCompatActivity() {
             standardWebView = standardWebView,
             browserManager = standardBrowserManager,
             onActiveWebViewChanged = ::handleActiveWebViewChanged
+        )
+    }
+
+    private fun restoreStandardTabSession() {
+        browserTabSessionRepository.restore()?.let { session ->
+            standardTabStore.restore(session.tabs, session.activeTabId)
+        }
+    }
+
+    private fun saveStandardTabSession() {
+        if (!::browserTabSessionRepository.isInitialized) {
+            return
+        }
+        browserTabSessionRepository.save(
+            tabs = standardTabStore.tabs(),
+            activeTabId = standardTabStore.activeTabId
         )
     }
 
@@ -716,6 +742,7 @@ class MainActivity : AppCompatActivity() {
         val tab = standardTabStore.openTab()
         val tabWebView = standardTabWebViews.activate(tab.id)
         standardSessionController.restorePageMetadata(tab.url, tab.title)
+        saveStandardTabSession()
         transport.webView = tabWebView
         resultMsg?.sendToTarget()
         return true
@@ -1194,6 +1221,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             currentTabStore().openTab()
         }
+        saveStandardTabSession()
         openHomePage()
     }
 
@@ -1206,6 +1234,7 @@ class MainActivity : AppCompatActivity() {
                 showStandardTabWebView(result.activeView)
             }
             showActiveTab(result.activeTab)
+            saveStandardTabSession()
         } else {
             val tabStore = currentTabStore()
             if (!tabStore.switchTo(tabId)) {
@@ -1222,10 +1251,11 @@ class MainActivity : AppCompatActivity() {
             if (closingActiveTab && result.closedView !== result.activeView) {
                 showStandardTabWebView(result.activeView)
             }
-            destroyStandardTabWebView(result.closedView)
+            result.closedView?.let(::destroyStandardTabWebView)
             if (closingActiveTab) {
                 showActiveTab(result.activeTab)
             }
+            saveStandardTabSession()
             return
         }
 
@@ -1384,6 +1414,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun openHomePage() {
         loadUrl(settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl))
+    }
+
+    private fun openInitialStandardPage() {
+        val restoredUrl = standardTabStore.activeTab().url
+        if (restoredUrl.isNullOrBlank()) {
+            openHomePage()
+        } else {
+            loadUrl(restoredUrl)
+        }
     }
 
     private fun openWenxinPage() {

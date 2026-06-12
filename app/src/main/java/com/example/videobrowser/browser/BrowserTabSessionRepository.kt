@@ -1,0 +1,110 @@
+package com.example.videobrowser.browser
+
+import com.example.videobrowser.storage.PreferenceStore
+import java.net.URLDecoder
+import java.net.URLEncoder
+
+data class BrowserTabSession(
+    val tabs: List<BrowserTab>,
+    val activeTabId: Long
+)
+
+class BrowserTabSessionRepository(
+    private val preferenceStore: PreferenceStore
+) {
+    fun save(tabs: List<BrowserTab>, activeTabId: Long) {
+        val sessionTabs = normalizeTabs(tabs)
+        if (sessionTabs.isEmpty()) {
+            clear()
+            return
+        }
+
+        val activeId = activeTabId
+            .takeIf { tabId -> sessionTabs.any { tab -> tab.id == tabId } }
+            ?: sessionTabs.first().id
+        preferenceStore.putString(KEY_STANDARD_TAB_SESSION, renderSession(activeId, sessionTabs))
+    }
+
+    fun restore(): BrowserTabSession? {
+        val rawValue = preferenceStore.getString(KEY_STANDARD_TAB_SESSION, null) ?: return null
+        return runCatching {
+            val lines = rawValue.lineSequence().filter { line -> line.isNotBlank() }.toList()
+            val activeIdFromStorage = lines.firstOrNull()?.toLongOrNull() ?: return null
+            val tabs = normalizeTabs(lines.drop(1).mapNotNull(::parseTabLine))
+            if (tabs.isEmpty()) {
+                return null
+            }
+            val activeId = activeIdFromStorage
+                .takeIf { tabId -> tabs.any { tab -> tab.id == tabId } }
+                ?: tabs.first().id
+            BrowserTabSession(tabs = tabs, activeTabId = activeId)
+        }.getOrNull()
+    }
+
+    fun clear() {
+        preferenceStore.remove(KEY_STANDARD_TAB_SESSION)
+    }
+
+    private fun normalizeTabs(tabs: List<BrowserTab>): List<BrowserTab> {
+        return tabs
+            .filter { tab -> tab.id > 0L && !tab.url.isNullOrBlank() }
+            .distinctBy { tab -> tab.id }
+            .take(MAX_SESSION_TABS)
+            .map { tab ->
+                tab.copy(
+                    url = tab.url?.trim(),
+                    title = tab.title.trim().take(MAX_TITLE_LENGTH)
+                )
+            }
+    }
+
+    private fun renderSession(activeTabId: Long, tabs: List<BrowserTab>): String {
+        return buildString {
+            append(activeTabId).append('\n')
+            tabs.forEach { tab ->
+                append(tab.id)
+                    .append('\t')
+                    .append(tab.createdAtMillis)
+                    .append('\t')
+                    .append(encode(tab.url.orEmpty()))
+                    .append('\t')
+                    .append(encode(tab.title))
+                    .append('\n')
+            }
+        }
+    }
+
+    private fun parseTabLine(line: String): BrowserTab? {
+        val parts = line.split('\t')
+        if (parts.size != 4) {
+            return null
+        }
+        val id = parts[0].toLongOrNull()?.takeIf { it > 0L } ?: return null
+        val createdAtMillis = parts[1].toLongOrNull() ?: System.currentTimeMillis()
+        val url = decode(parts[2])?.trim()?.takeIf { it.isNotBlank() } ?: return null
+        val title = decode(parts[3])?.trim().orEmpty()
+        return BrowserTab(
+            id = id,
+            url = url,
+            title = title.take(MAX_TITLE_LENGTH),
+            createdAtMillis = createdAtMillis
+        )
+    }
+
+    private fun encode(value: String): String {
+        return URLEncoder.encode(value, CHARSET_NAME)
+    }
+
+    private fun decode(value: String): String? {
+        return runCatching {
+            URLDecoder.decode(value, CHARSET_NAME)
+        }.getOrNull()
+    }
+
+    companion object {
+        const val KEY_STANDARD_TAB_SESSION = "standard_tab_session"
+        private const val CHARSET_NAME = "UTF-8"
+        private const val MAX_SESSION_TABS = 50
+        private const val MAX_TITLE_LENGTH = 200
+    }
+}

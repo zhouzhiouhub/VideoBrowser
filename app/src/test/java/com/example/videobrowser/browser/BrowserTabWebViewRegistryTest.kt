@@ -97,6 +97,64 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(listOf("webView-1"), calls.destroyed)
     }
 
+    @Test
+    fun switchToRestoredTabCreatesMissingViewLazily() {
+        val calls = RegistryCalls()
+        val tabs = BrowserTabStore()
+        tabs.restore(
+            restoredTabs = listOf(
+                BrowserTab(id = 1L, url = "https://a.example.com"),
+                BrowserTab(id = 2L, url = "https://b.example.com")
+            ),
+            restoredActiveTabId = 1L
+        )
+        val registry = BrowserTabWebViewRegistry(
+            tabs = tabs,
+            initialView = "webView-1",
+            createWebView = {
+                val webView = "webView-${calls.created.size + 2}"
+                calls.created += webView
+                webView
+            },
+            showWebView = { calls.shown += it },
+            hideWebView = { calls.hidden += it },
+            destroyWebView = { calls.destroyed += it }
+        )
+
+        val result = registry.switchTo(2L)
+
+        assertEquals("webView-2", result?.activeView)
+        assertEquals("webView-2", registry.activeWebView())
+        assertEquals(listOf("webView-2"), calls.created)
+    }
+
+    @Test
+    fun closeRestoredInactiveTabWithoutViewKeepsActiveView() {
+        val tabs = BrowserTabStore()
+        tabs.restore(
+            restoredTabs = listOf(
+                BrowserTab(id = 1L, url = "https://a.example.com"),
+                BrowserTab(id = 2L, url = "https://b.example.com")
+            ),
+            restoredActiveTabId = 1L
+        )
+        val registry = BrowserTabWebViewRegistry(
+            tabs = tabs,
+            initialView = "webView-1",
+            createWebView = { "webView-new" },
+            showWebView = {},
+            hideWebView = {},
+            destroyWebView = {}
+        )
+
+        val result = registry.closeTab(2L)
+
+        assertNull(result?.closedView)
+        assertEquals("webView-1", result?.activeView)
+        assertEquals(1L, registry.activeTabId)
+        assertEquals(1, tabs.tabs().size)
+    }
+
     private fun registry(
         initialTabId: Long,
         initialWebView: String,

@@ -1,5 +1,6 @@
 package com.example.videobrowser.settings
 
+import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.rules.RuleFileLoader
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
@@ -19,6 +20,7 @@ class BrowserDefaultSettingsResetterTest {
         val store = InMemoryPreferenceStore()
         val settingsManager = SettingsManager(store)
         val savedPageRepository = SavedPageRepository(store)
+        val browserTabSessionRepository = BrowserTabSessionRepository(store)
         val filesDir = temporaryFolder.newFolder()
         val rulesDirectory = filesDir.resolve("rules").apply { mkdirs() }
         rulesDirectory.resolve(RuleFileLoader.REQUEST_RULES_CACHE_FILE).writeText("/blocked-url/")
@@ -28,10 +30,12 @@ class BrowserDefaultSettingsResetterTest {
         settingsManager.addCustomShortcut("Docs", "https://docs.example.com/")
         store.putString(SavedPageCollection.BOOKMARKS.key, "bookmarks")
         store.putString(SavedPageCollection.HISTORY.key, "history")
+        store.putString(BrowserTabSessionRepository.KEY_STANDARD_TAB_SESSION, "tabs")
 
         val resetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
+            browserTabSessionRepository = browserTabSessionRepository,
             filesDir = filesDir
         )
 
@@ -42,6 +46,7 @@ class BrowserDefaultSettingsResetterTest {
         assertTrue(settingsManager.customShortcuts().isEmpty())
         assertFalse(store.contains(SavedPageCollection.BOOKMARKS.key))
         assertFalse(store.contains(SavedPageCollection.HISTORY.key))
+        assertFalse(store.contains(BrowserTabSessionRepository.KEY_STANDARD_TAB_SESSION))
         assertFalse(rulesDirectory.exists())
     }
 

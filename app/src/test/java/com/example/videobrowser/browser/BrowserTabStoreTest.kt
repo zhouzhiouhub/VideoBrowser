@@ -71,4 +71,34 @@ class BrowserTabStoreTest {
         assertEquals("https://example.com/video", tabs.activeTab().url)
         assertEquals("Video", tabs.activeTab().title)
     }
+
+    @Test
+    fun restoresTabsAndActiveTab() {
+        val tabs = BrowserTabStore()
+
+        assertTrue(
+            tabs.restore(
+                restoredTabs = listOf(
+                    BrowserTab(id = 4L, url = "https://a.example.com", title = "A"),
+                    BrowserTab(id = 8L, url = "https://b.example.com", title = "B")
+                ),
+                restoredActiveTabId = 8L
+            )
+        )
+
+        assertEquals(2, tabs.tabs().size)
+        assertEquals(8L, tabs.activeTabId)
+        assertEquals("https://b.example.com", tabs.activeTab().url)
+    }
+
+    @Test
+    fun restoreRejectsEmptyInput() {
+        val tabs = BrowserTabStore()
+        val initialActiveTabId = tabs.activeTabId
+
+        assertFalse(tabs.restore(emptyList(), restoredActiveTabId = null))
+
+        assertEquals(initialActiveTabId, tabs.activeTabId)
+        assertEquals(1, tabs.tabs().size)
+    }
 }

@@ -22,7 +22,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
     )
 
     data class CloseResult<T : Any>(
-        val closedView: T,
+        val closedView: T?,
         val activeView: T,
         val activeTab: BrowserTab
     )
@@ -149,23 +149,31 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         if (!tabStore.switchTo(tabId)) {
             return null
         }
+        val nextView = viewsByTabId.getOrPut(tabId) {
+            requireCreateWebView().invoke()
+        }
         activeViewTabId = tabId
         return SwitchResult(
             previousView = previousView,
-            activeView = activeWebView(),
+            activeView = nextView,
             activeTab = tabStore.activeTab()
         )
     }
 
     fun closeTab(tabId: Long): CloseResult<T>? {
-        val closedView = viewsByTabId[tabId] ?: return null
+        val closedView = viewsByTabId[tabId]
         val tabStore = requireTabs()
         if (!tabStore.closeTab(tabId)) {
             return null
         }
-        viewsByTabId.remove(tabId)
+        if (closedView != null) {
+            viewsByTabId.remove(tabId)
+        }
         if (activeViewTabId == tabId) {
             activeViewTabId = tabStore.activeTabId
+            viewsByTabId.getOrPut(activeViewTabId) {
+                requireCreateWebView().invoke()
+            }
         }
         return CloseResult(
             closedView = closedView,

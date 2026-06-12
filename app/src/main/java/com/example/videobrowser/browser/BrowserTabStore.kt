@@ -63,6 +63,21 @@ class BrowserTabStore(
         return true
     }
 
+    fun restore(restoredTabs: List<BrowserTab>, restoredActiveTabId: Long?): Boolean {
+        val normalizedTabs = restoredTabs
+            .filter { tab -> tab.id > 0L }
+            .distinctBy { tab -> tab.id }
+            .takeIf { it.isNotEmpty() }
+            ?: return false
+
+        tabs.clear()
+        tabs.addAll(normalizedTabs)
+        activeTabId = restoredActiveTabId
+            ?.takeIf { tabId -> tabs.any { tab -> tab.id == tabId } }
+            ?: tabs.first().id
+        return true
+    }
+
     private fun nextUniqueId(): Long {
         while (true) {
             val candidate = idGenerator()
