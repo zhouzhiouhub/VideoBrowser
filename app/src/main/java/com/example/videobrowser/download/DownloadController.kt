@@ -10,6 +10,7 @@ import android.os.Environment
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
@@ -102,6 +103,44 @@ class DownloadController(
         }
 
         val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
+        if (DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)) {
+            showRiskyDownloadConfirmation(
+                fileName = fileName,
+                confirmed = {
+                    enqueueConfirmed(
+                        url = url,
+                        userAgent = userAgent,
+                        mimeType = mimeType,
+                        fileName = fileName
+                    )
+                }
+            )
+            return
+        }
+
+        enqueueConfirmed(
+            url = url,
+            userAgent = userAgent,
+            mimeType = mimeType,
+            fileName = fileName
+        )
+    }
+
+    private fun showRiskyDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.title_confirm_app_download)
+            .setMessage(activity.getString(R.string.dialog_confirm_app_download_message, fileName))
+            .setPositiveButton(R.string.action_download_anyway) { _, _ -> confirmed() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun enqueueConfirmed(
+        url: String,
+        userAgent: String?,
+        mimeType: String?,
+        fileName: String
+    ) {
         runCatching {
             val resolvedUserAgent = userAgent?.takeIf { it.isNotBlank() }
                 ?: browserManager().userAgentString()?.takeIf { it.isNotBlank() }
