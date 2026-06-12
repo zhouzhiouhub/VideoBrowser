@@ -7,6 +7,8 @@ import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.utils.UrlUtils
+import java.text.DateFormat
+import java.util.Date
 
 class SavedPagesPage(
     private val host: FunctionCenterPageHost,
@@ -55,7 +57,7 @@ class SavedPagesPage(
                     host.addActionRow(
                         parent = section,
                         title = page.title.ifBlank { page.url },
-                        summary = UrlUtils.displayUrl(page.url)
+                        summary = pageSummary(page)
                     ) {
                         showSavedPageActionsDialog(collection, page, title, emptyMessage)
                     }
@@ -121,5 +123,13 @@ class SavedPagesPage(
             SavedPageCollection.BOOKMARKS -> activity.getString(R.string.toast_bookmarks_empty)
             SavedPageCollection.HISTORY -> activity.getString(R.string.toast_history_empty)
         }
+    }
+
+    private fun pageSummary(page: SavedPage): String {
+        val timestamp = page.updatedAtMillis.takeIf { it > 0L }
+        return listOfNotNull(
+            UrlUtils.displayUrl(page.url),
+            timestamp?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) }
+        ).joinToString(" | ")
     }
 }
