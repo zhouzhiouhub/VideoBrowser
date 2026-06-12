@@ -3,6 +3,7 @@ package com.example.videobrowser.functioncenter
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserTab
@@ -68,6 +69,13 @@ class BrowserTabsPage(
                         ) {
                             copyTabUrl(url)
                         }
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_share_page),
+                            summary = UrlUtils.displayUrl(url)
+                        ) {
+                            shareTabUrl(url)
+                        }
                     }
                     if (tabs.size > 1) {
                         host.addActionRow(
@@ -98,6 +106,14 @@ class BrowserTabsPage(
             ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)
         )
         Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shareTabUrl(url: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
     }
 
     private fun tabSummary(tab: BrowserTab, active: Boolean): String {

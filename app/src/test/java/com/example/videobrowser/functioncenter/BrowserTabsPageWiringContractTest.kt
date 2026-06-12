@@ -65,6 +65,19 @@ class BrowserTabsPageWiringContractTest {
     }
 
     @Test
+    fun browserTabsPageCanShareTabUrls() {
+        val tabsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserTabsPage.kt"
+        ).readText()
+
+        assertTrue(tabsPage.contains("R.string.action_share_page"))
+        assertTrue(tabsPage.contains("private fun shareTabUrl(url: String)"))
+        assertTrue(tabsPage.contains("Intent(Intent.ACTION_SEND)"))
+        assertTrue(tabsPage.contains("putExtra(Intent.EXTRA_TEXT, url)"))
+        assertTrue(tabsPage.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
+    }
+
+    @Test
     fun mainActivityPassesTabActionsIntoFunctionCenter() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
