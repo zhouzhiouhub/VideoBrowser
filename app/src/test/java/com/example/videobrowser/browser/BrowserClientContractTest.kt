@@ -66,8 +66,15 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("handler?.cancel()"))
         assertTrue(browserClient.contains("override fun onReceivedHttpAuthRequest"))
         assertTrue(browserClient.contains("httpAuthRequested(view, handler, host, realm)"))
+        assertTrue(mainActivity.contains("import android.webkit.HttpAuthHandler"))
+        assertTrue(mainActivity.contains("private var pendingHttpAuthHandler: HttpAuthHandler?"))
+        assertTrue(mainActivity.contains("private var pendingHttpAuthDialog: AlertDialog?"))
         assertTrue(mainActivity.contains("httpAuthRequested = ::handleHttpAuthRequest"))
         assertTrue(mainActivity.contains("private fun handleHttpAuthRequest("))
+        assertTrue(mainActivity.contains("cancelPendingHttpAuthRequest()"))
+        assertTrue(mainActivity.contains("private fun cancelPendingHttpAuthRequest()"))
+        assertTrue(mainActivity.contains("pendingHttpAuthDialog = dialog"))
+        assertTrue(mainActivity.contains("dialog?.setOnDismissListener(null)"))
         assertTrue(mainActivity.contains("R.string.title_http_auth_request"))
         assertTrue(mainActivity.contains("R.string.hint_http_auth_username"))
         assertTrue(mainActivity.contains("R.string.hint_http_auth_password"))
@@ -78,6 +85,7 @@ class BrowserClientContractTest {
         assertTrue(strings.contains("hint_http_auth_username"))
         assertTrue(strings.contains("hint_http_auth_password"))
         assertTrue(readme.contains("HTTP Basic Auth"))
+        assertTrue(readme.contains("HTTP Basic Auth 只保留一个待处理认证弹窗"))
     }
 
     @Test

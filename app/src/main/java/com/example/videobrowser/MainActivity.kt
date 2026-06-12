@@ -26,6 +26,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.webkit.ClientCertRequest
 import android.webkit.GeolocationPermissions
+import android.webkit.HttpAuthHandler
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebView
@@ -253,6 +254,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     private var pendingClientCertRequest: ClientCertRequest? = null
+    private var pendingHttpAuthHandler: HttpAuthHandler? = null
+    private var pendingHttpAuthDialog: AlertDialog? = null
 
     private var privateBrowsingActive = false
     private val isHomePageVisible: Boolean
@@ -618,6 +621,7 @@ class MainActivity : AppCompatActivity() {
         cancelPendingWebFileChooser()
         cancelPendingWebPermissionRequest()
         cancelPendingGeolocationPermissionPrompt()
+        cancelPendingHttpAuthRequest()
         cancelPendingClientCertRequest()
         if (::downloadController.isInitialized) {
             downloadController.dispose()
@@ -968,11 +972,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleHttpAuthRequest(
         view: WebView?,
-        handler: android.webkit.HttpAuthHandler?,
+        handler: HttpAuthHandler?,
         host: String?,
         realm: String?
     ) {
         val authHandler = handler ?: return
+        cancelPendingHttpAuthRequest()
+        pendingHttpAuthHandler = authHandler
         val usernameInput = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
             setSingleLine(true)
@@ -1007,6 +1013,8 @@ class MainActivity : AppCompatActivity() {
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 completed = true
+                pendingHttpAuthHandler = null
+                pendingHttpAuthDialog = null
                 authHandler.proceed(
                     usernameInput.text?.toString().orEmpty(),
                     passwordInput.text?.toString().orEmpty()
@@ -1017,10 +1025,27 @@ class MainActivity : AppCompatActivity() {
         dialog.setOnDismissListener {
             if (!completed) {
                 completed = true
+                if (pendingHttpAuthHandler == authHandler) {
+                    pendingHttpAuthHandler = null
+                }
+                if (pendingHttpAuthDialog == dialog) {
+                    pendingHttpAuthDialog = null
+                }
                 authHandler.cancel()
             }
         }
+        pendingHttpAuthDialog = dialog
         dialog.show()
+    }
+
+    private fun cancelPendingHttpAuthRequest() {
+        val dialog = pendingHttpAuthDialog
+        val handler = pendingHttpAuthHandler
+        pendingHttpAuthDialog = null
+        pendingHttpAuthHandler = null
+        dialog?.setOnDismissListener(null)
+        dialog?.dismiss()
+        handler?.cancel()
     }
 
     private fun setupFullscreenGestureOverlay() {
