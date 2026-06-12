@@ -105,6 +105,21 @@ class DownloadStatusWiringContractTest {
         assertTrue(strings.contains("toast_download_source_copied"))
     }
 
+    @Test
+    fun downloadsPageCanShareCompletedFiles() {
+        val downloadsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
+        ).readText()
+
+        assertTrue(downloadsPage.contains("record.status == DownloadStatus.COMPLETED"))
+        assertTrue(downloadsPage.contains("shareDownloadedFile(record)"))
+        assertTrue(downloadsPage.contains("Intent(Intent.ACTION_SEND)"))
+        assertTrue(downloadsPage.contains("putExtra(Intent.EXTRA_STREAM, uri)"))
+        assertTrue(downloadsPage.contains("ClipData.newUri(activity.contentResolver, record.fileName, uri)"))
+        assertTrue(downloadsPage.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_file))"))
+        assertTrue(downloadsPage.contains("Intent.FLAG_GRANT_READ_URI_PERMISSION"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

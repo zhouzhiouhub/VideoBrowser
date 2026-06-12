@@ -127,6 +127,13 @@ class DownloadsPage(
                     }
                 )
             }
+            if (record.status == DownloadStatus.COMPLETED) {
+                add(
+                    DownloadRecordAction(activity.getString(R.string.action_share_file)) {
+                        shareDownloadedFile(record)
+                    }
+                )
+            }
             if (retryable) {
                 add(
                     DownloadRecordAction(activity.getString(R.string.action_retry_download)) {
@@ -249,6 +256,34 @@ class DownloadsPage(
         DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
             downloadManager.remove(*downloadIds)
         }.clearRecordsAndFiles()
+    }
+
+    private fun shareDownloadedFile(record: DownloadRecord) {
+        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val uri = runCatching {
+            downloadManager.getUriForDownloadedFile(record.downloadId)
+        }.getOrNull()
+
+        if (uri == null) {
+            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = record.mimeType ?: "*/*"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            clipData = ClipData.newUri(activity.contentResolver, record.fileName, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            activity.startActivity(
+                Intent.createChooser(intent, activity.getString(R.string.action_share_file))
+            )
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+        } catch (_: SecurityException) {
+            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun openDownloadedFile(record: DownloadRecord) {
