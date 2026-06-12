@@ -235,6 +235,27 @@ class DownloadRecordRepositoryTest {
         assertTrue(repository.records().isEmpty())
     }
 
+    @Test
+    fun removeDeletesOneRecordByDownloadId() {
+        val repository = DownloadRecordRepository(InMemoryPreferenceStore())
+        repository.add(record(id = 1L, fileName = "first.mp4", createdAtMillis = 10L))
+        repository.add(record(id = 2L, fileName = "second.zip", createdAtMillis = 20L))
+
+        assertEquals(true, repository.remove(1L))
+
+        assertEquals(listOf(record(id = 2L, fileName = "second.zip", createdAtMillis = 20L)), repository.records())
+    }
+
+    @Test
+    fun removeReturnsFalseWhenDownloadIdIsUnknown() {
+        val repository = DownloadRecordRepository(InMemoryPreferenceStore())
+        repository.add(record(id = 1L, fileName = "first.mp4", createdAtMillis = 10L))
+
+        assertEquals(false, repository.remove(404L))
+
+        assertEquals(1, repository.records().size)
+    }
+
     private fun record(
         id: Long,
         fileName: String,

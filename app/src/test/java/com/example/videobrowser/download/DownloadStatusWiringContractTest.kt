@@ -69,6 +69,26 @@ class DownloadStatusWiringContractTest {
         assertTrue(strings.contains("toast_download_canceled"))
     }
 
+    @Test
+    fun downloadsPageCanRemoveSingleRecords() {
+        val downloadsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
+        ).readText()
+        val repository = projectFile(
+            "src/main/java/com/example/videobrowser/download/DownloadRecordRepository.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(repository.contains("fun remove(downloadId: Long): Boolean"))
+        assertTrue(downloadsPage.contains("showDownloadActionsDialog(record, retryable, cancelable)"))
+        assertTrue(downloadsPage.contains("DownloadRecordRemover(downloadRecordRepository)"))
+        assertTrue(downloadsPage.contains("confirmRemoveDownloadRecord(record)"))
+        assertTrue(downloadsPage.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(strings.contains("action_remove_download_record"))
+        assertTrue(strings.contains("dialog_remove_download_record_message"))
+        assertTrue(strings.contains("toast_download_record_removed"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

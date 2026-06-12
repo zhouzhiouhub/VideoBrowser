@@ -15,6 +15,8 @@ import com.example.videobrowser.download.DownloadCategory
 import com.example.videobrowser.download.DownloadCategoryGroup
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordCleaner
+import com.example.videobrowser.download.DownloadRecordRemoveResult
+import com.example.videobrowser.download.DownloadRecordRemover
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.download.DownloadRetryPolicy
 import com.example.videobrowser.download.DownloadStatus
@@ -80,19 +82,7 @@ class DownloadsPage(
                             title = record.title.ifBlank { record.fileName },
                             summary = recordSummary(record, retryable, cancelable)
                         ) {
-                            if (retryable) {
-                                retryDownload(record)
-                                Toast.makeText(
-                                    activity,
-                                    R.string.toast_download_retry_started,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                show(replaceCurrent = true)
-                            } else if (cancelable) {
-                                confirmCancelDownload(record)
-                            } else {
-                                openDownloadedFile(record)
-                            }
+                            showDownloadActionsDialog(record, retryable, cancelable)
                         }
                     }
                 }
@@ -105,6 +95,62 @@ class DownloadsPage(
             repository = downloadRecordRepository,
             querySnapshot = ::queryDownloadStatusSnapshot
         ).refresh()
+    }
+
+    private fun showDownloadActionsDialog(
+        record: DownloadRecord,
+        retryable: Boolean,
+        cancelable: Boolean
+    ) {
+        val actions = downloadRecordActions(record, retryable, cancelable)
+        AlertDialog.Builder(activity)
+            .setTitle(record.title.ifBlank { record.fileName })
+            .setItems(actions.map { action -> action.title }.toTypedArray()) { _, index ->
+                actions.getOrNull(index)?.perform?.invoke()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun downloadRecordActions(
+        record: DownloadRecord,
+        retryable: Boolean,
+        cancelable: Boolean
+    ): List<DownloadRecordAction> {
+        return buildList {
+            if (!retryable && !cancelable) {
+                add(
+                    DownloadRecordAction(activity.getString(R.string.action_open_file)) {
+                        openDownloadedFile(record)
+                    }
+                )
+            }
+            if (retryable) {
+                add(
+                    DownloadRecordAction(activity.getString(R.string.action_retry_download)) {
+                        retryDownload(record)
+                        Toast.makeText(
+                            activity,
+                            R.string.toast_download_retry_started,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        show(replaceCurrent = true)
+                    }
+                )
+            }
+            if (cancelable) {
+                add(
+                    DownloadRecordAction(activity.getString(R.string.action_cancel_download)) {
+                        confirmCancelDownload(record)
+                    }
+                )
+            }
+            add(
+                DownloadRecordAction(activity.getString(R.string.action_remove_download_record)) {
+                    confirmRemoveDownloadRecord(record)
+                }
+            )
+        }
     }
 
     private fun confirmCancelDownload(record: DownloadRecord) {
@@ -130,11 +176,41 @@ class DownloadsPage(
             .show()
     }
 
+    private fun confirmRemoveDownloadRecord(record: DownloadRecord) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_remove_download_record)
+            .setMessage(
+                activity.getString(
+                    R.string.dialog_remove_download_record_message,
+                    record.title.ifBlank { record.fileName }
+                )
+            )
+            .setPositiveButton(R.string.action_remove) { _, _ ->
+                val result = removeDownloadRecord(record)
+                val toastResId = if (result.recordRemoved) {
+                    R.string.toast_download_record_removed
+                } else {
+                    R.string.toast_download_record_remove_failed
+                }
+                Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+                show(replaceCurrent = true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun cancelDownload(record: DownloadRecord): DownloadCancellationResult {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         return DownloadCanceller(downloadRecordRepository) { downloadIds ->
             downloadManager.remove(*downloadIds)
         }.cancel(record)
+    }
+
+    private fun removeDownloadRecord(record: DownloadRecord): DownloadRecordRemoveResult {
+        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        return DownloadRecordRemover(downloadRecordRepository) { downloadIds ->
+            downloadManager.remove(*downloadIds)
+        }.remove(record)
     }
 
     private fun confirmClearRecords() {
@@ -322,4 +398,9 @@ class DownloadsPage(
             else -> null
         }
     }
+
+    private data class DownloadRecordAction(
+        val title: String,
+        val perform: () -> Unit
+    )
 }

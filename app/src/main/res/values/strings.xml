@@ -138,6 +138,7 @@
     <string name="action_download_current_url_summary">用系统下载器保存当前网页或直链资源</string>
     <string name="action_retry_download">重试下载</string>
     <string name="action_cancel_download">取消下载</string>
+    <string name="action_remove_download_record">删除记录</string>
     <string name="action_clear_download_records_summary">清空下载记录并删除对应下载文件</string>
     <string name="download_category_video">视频</string>
     <string name="download_category_image">图片</string>
@@ -179,6 +180,7 @@
     <string name="dialog_local_folder_empty">当前目录为空。</string>
     <string name="dialog_download_records_empty">暂无下载记录。</string>
     <string name="dialog_cancel_download_message">取消下载“%1$s”吗？</string>
+    <string name="dialog_remove_download_record_message">删除下载记录“%1$s”并删除对应文件吗？</string>
     <string name="dialog_clear_download_records_message">确定清空下载记录并删除对应下载文件吗？此操作无法撤销。</string>
     <string name="dialog_playback_history_empty">暂无播放历史。</string>
     <string name="dialog_clear_playback_history_message">确定清空原生播放器播放历史吗？此操作无法撤销。</string>
@@ -337,6 +339,8 @@
     <string name="toast_download_retry_started">已重新开始下载</string>
     <string name="toast_download_canceled">已取消下载</string>
     <string name="toast_download_cancel_failed">无法取消下载</string>
+    <string name="toast_download_record_removed">已删除下载记录</string>
+    <string name="toast_download_record_remove_failed">无法删除下载记录</string>
     <string name="toast_download_failed">下载失败</string>
     <string name="toast_download_records_cleared">已清空下载记录并删除对应下载文件</string>
     <string name="toast_playback_history_cleared">已清空播放历史</string>

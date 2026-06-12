@@ -63,6 +63,16 @@ class DownloadRecordRepository(
             .toList()
     }
 
+    fun remove(downloadId: Long): Boolean {
+        val existingRecords = records()
+        val updatedRecords = existingRecords.filterNot { record -> record.downloadId == downloadId }
+        if (updatedRecords.size == existingRecords.size) {
+            return false
+        }
+        save(updatedRecords)
+        return true
+    }
+
     fun clear() {
         preferenceStore.remove(KEY_DOWNLOAD_RECORDS)
     }
