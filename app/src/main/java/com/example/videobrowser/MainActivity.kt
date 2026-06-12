@@ -1806,6 +1806,7 @@ class MainActivity : AppCompatActivity() {
     private fun showLinkContextMenu(url: String) {
         val actions = arrayOf(
             getString(R.string.action_open_link_new_tab),
+            getString(R.string.action_download_link),
             getString(R.string.action_copy_link),
             getString(R.string.action_share_link),
             getString(R.string.action_open_external)
@@ -1815,13 +1816,23 @@ class MainActivity : AppCompatActivity() {
             .setItems(actions) { dialog, which ->
                 when (which) {
                     0 -> openUrlInNewTab(url)
-                    1 -> copyLinkUrl(url)
-                    2 -> shareLinkUrl(url)
-                    3 -> openExternalUrl(url)
+                    1 -> downloadLinkUrl(url)
+                    2 -> copyLinkUrl(url)
+                    3 -> shareLinkUrl(url)
+                    4 -> openExternalUrl(url)
                 }
                 dialog.dismiss()
             }
             .show()
+    }
+
+    private fun downloadLinkUrl(url: String) {
+        downloadController.enqueue(
+            url = url,
+            userAgent = currentBrowserManager().userAgentString(),
+            contentDisposition = null,
+            mimeType = null
+        )
     }
 
     private fun copyLinkUrl(url: String) {

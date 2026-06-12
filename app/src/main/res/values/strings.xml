@@ -138,6 +138,7 @@
     <string name="tab_untitled">新标签页</string>
     <string name="title_link_context_menu">链接操作</string>
     <string name="action_open_link_new_tab">新标签页打开</string>
+    <string name="action_download_link">下载链接</string>
     <string name="action_copy_link">复制链接</string>
     <string name="action_copy_link_summary">复制当前页面地址</string>
     <string name="action_share_link">分享链接</string>
