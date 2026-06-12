@@ -41,6 +41,16 @@ class BrowserDataManagementPageTest {
     }
 
     @Test
+    fun browserHistoryClearRangeCalculatesCutoffs() {
+        val now = 10L * 24L * 60L * 60L * 1000L
+
+        assertEquals(now - 60L * 60L * 1000L, BrowserHistoryClearRange.LAST_HOUR.cutoffMillis(now))
+        assertEquals(now - 24L * 60L * 60L * 1000L, BrowserHistoryClearRange.LAST_24_HOURS.cutoffMillis(now))
+        assertEquals(now - 7L * 24L * 60L * 60L * 1000L, BrowserHistoryClearRange.LAST_7_DAYS.cutoffMillis(now))
+        assertTrue(BrowserHistoryClearRange.ALL.cutoffMillis(now) == null)
+    }
+
+    @Test
     fun siteDataManagementCanSearchOrigins() {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
@@ -143,8 +153,12 @@ class BrowserDataManagementPageTest {
         assertTrue(page.contains("fun showBrowsingHistoryData"))
         assertTrue(page.contains("savedPageRepository.history().size"))
         assertTrue(page.contains("savedPageRepository.clearHistory()"))
+        assertTrue(page.contains("BrowserHistoryClearRange.entries"))
+        assertTrue(page.contains("savedPageRepository.clearHistoryUpdatedSince(cutoffMillis)"))
+        assertTrue(page.contains("R.string.action_clear_history_range_summary"))
+        assertTrue(page.contains("R.string.dialog_clear_history_range_message"))
+        assertTrue(page.contains("R.string.toast_history_range_cleared"))
         assertTrue(page.contains("R.string.history_record_count"))
-        assertTrue(page.contains("R.string.dialog_clear_history_message"))
         assertTrue(settings.contains("showHistoryManager: () -> Unit"))
         assertTrue(settings.contains("showHistoryManager()"))
         assertTrue(settings.contains("R.string.action_manage_history_summary"))
@@ -152,6 +166,13 @@ class BrowserDataManagementPageTest {
         assertTrue(strings.contains("title_history_data_management"))
         assertTrue(strings.contains("action_manage_history_summary"))
         assertTrue(strings.contains("action_clear_history_summary"))
+        assertTrue(strings.contains("action_clear_history_range_summary"))
+        assertTrue(strings.contains("history_clear_range_last_hour"))
+        assertTrue(strings.contains("history_clear_range_last_24_hours"))
+        assertTrue(strings.contains("history_clear_range_last_7_days"))
+        assertTrue(strings.contains("history_clear_range_all"))
+        assertTrue(strings.contains("dialog_clear_history_range_message"))
+        assertTrue(strings.contains("toast_history_range_cleared"))
         assertTrue(strings.contains("dialog_clear_history_message"))
         assertTrue(strings.contains("toast_history_cleared"))
     }

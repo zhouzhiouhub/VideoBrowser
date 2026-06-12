@@ -109,6 +109,7 @@
     <string name="action_show_history">打开历史记录</string>
     <string name="action_show_history_summary">查看最近访问记录</string>
     <string name="action_manage_history_summary">查看或清空浏览历史记录</string>
+    <string name="action_clear_history_range_summary">选择时间范围后清空历史记录</string>
     <string name="action_show_playback_history_summary">继续播放原生播放器记录</string>
     <string name="action_show_downloads_summary">查看浏览器下载记录</string>
     <string name="action_manage_download_records_summary">查看、筛选或清空下载记录</string>
@@ -272,6 +273,10 @@
     <string name="site_permission_ask">每次询问</string>
     <string name="site_permission_allowed">已允许</string>
     <string name="site_permission_blocked">已阻止</string>
+    <string name="history_clear_range_last_hour">最近一小时</string>
+    <string name="history_clear_range_last_24_hours">最近 24 小时</string>
+    <string name="history_clear_range_last_7_days">最近 7 天</string>
+    <string name="history_clear_range_all">全部时间</string>
     <string name="dialog_restore_default_settings_message">将恢复默认设置，并清除用户添加的手动屏蔽规则、白名单、站点例外、快捷入口、收藏、历史记录、缓存、Cookie 和站点数据。此操作无法撤销。</string>
     <string name="title_confirm_element_block">屏蔽此元素？</string>
     <string name="dialog_confirm_element_block_message">将在 %1$s 自动隐藏匹配元素。\n\n%2$s</string>
@@ -327,6 +332,7 @@
     <string name="dialog_clear_cache_message">确定清空 WebView 页面缓存吗？</string>
     <string name="dialog_clear_bookmarks_message">确定清空全部收藏夹吗？此操作无法撤销。</string>
     <string name="dialog_clear_history_message">确定清空全部浏览历史记录吗？此操作无法撤销。</string>
+    <string name="dialog_clear_history_range_message">确定清空%1$s的浏览历史记录吗？此操作无法撤销。</string>
     <string name="dialog_web_permission_request_message">%1$s 请求使用：%2$s</string>
     <string name="dialog_geolocation_permission_request_message">%1$s 请求访问位置。</string>
     <string name="dialog_external_protocol_request_message">网页请求通过 %1$s 打开外部应用。</string>
@@ -394,6 +400,7 @@
     <string name="toast_cache_cleared">已清空缓存</string>
     <string name="toast_bookmarks_cleared">已清空收藏夹</string>
     <string name="toast_history_cleared">已清空浏览历史</string>
+    <string name="toast_history_range_cleared">已清空%1$s浏览历史（%2$d 条）</string>
     <string name="toast_site_data_removed">已删除站点数据</string>
     <string name="toast_site_data_cleared">已清空站点数据</string>
     <string name="toast_element_picker_started">点击页面中要屏蔽的元素</string>

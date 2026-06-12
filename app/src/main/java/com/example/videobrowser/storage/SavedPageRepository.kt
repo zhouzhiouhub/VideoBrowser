@@ -42,6 +42,15 @@ class SavedPageRepository(
         preferenceStore.remove(KEY_HISTORY)
     }
 
+    fun clearHistoryUpdatedSince(cutoffMillis: Long): Int {
+        val history = history()
+        val remainingHistory = history.filterNot { page ->
+            page.updatedAtMillis >= cutoffMillis
+        }
+        saveSavedPages(KEY_HISTORY, remainingHistory)
+        return history.size - remainingHistory.size
+    }
+
     fun clear(collection: SavedPageCollection) {
         preferenceStore.remove(collection.key)
     }

@@ -71,6 +71,29 @@ class SavedPageRepositoryTest {
     }
 
     @Test
+    fun clearHistoryUpdatedSinceRemovesOnlyMatchingHistory() {
+        val store = InMemoryPreferenceStore()
+        var now = 1_000L
+        val repository = SavedPageRepository(store, currentTimeMillis = { now })
+
+        repository.addHistory(SavedPage(title = "Old", url = "https://old.example.com"))
+        now = 5_000L
+        repository.addHistory(SavedPage(title = "Cutoff", url = "https://cutoff.example.com"))
+        now = 9_000L
+        repository.addHistory(SavedPage(title = "Recent", url = "https://recent.example.com"))
+
+        assertEquals(2, repository.clearHistoryUpdatedSince(5_000L))
+
+        val remainingHistory = repository.history()
+        assertEquals(listOf("https://old.example.com"), remainingHistory.map { page -> page.url })
+        assertTrue(store.contains(SavedPageRepository.SavedPageCollection.HISTORY.key))
+
+        assertEquals(1, repository.clearHistoryUpdatedSince(0L))
+        assertTrue(repository.history().isEmpty())
+        assertFalse(store.contains(SavedPageRepository.SavedPageCollection.HISTORY.key))
+    }
+
+    @Test
     fun updateTitleChangesOnePageAndRefreshesUpdatedTime() {
         var now = 1_000L
         val repository = SavedPageRepository(InMemoryPreferenceStore()) { now }

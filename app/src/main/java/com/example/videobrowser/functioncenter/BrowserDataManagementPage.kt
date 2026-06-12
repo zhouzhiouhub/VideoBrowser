@@ -99,6 +99,17 @@ object BrowserSiteDataOriginSearch {
     }
 }
 
+enum class BrowserHistoryClearRange(private val durationMillis: Long?) {
+    LAST_HOUR(MILLIS_PER_HOUR),
+    LAST_24_HOURS(MILLIS_PER_DAY),
+    LAST_7_DAYS(MILLIS_PER_DAY * 7),
+    ALL(null);
+
+    fun cutoffMillis(nowMillis: Long): Long? {
+        return durationMillis?.let { duration -> nowMillis - duration }
+    }
+}
+
 class BrowserDataManagementPage(
     private val host: FunctionCenterPageHost,
     private val browserManager: () -> BrowserManager,
@@ -220,10 +231,10 @@ class BrowserDataManagementPage(
                 host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
-                    summary = activity.getString(R.string.action_clear_history_summary),
+                    summary = activity.getString(R.string.action_clear_history_range_summary),
                     enabled = historyCount > 0
                 ) {
-                    showClearHistoryDialog()
+                    showClearHistoryRangeDialog()
                 }
             }
 
@@ -492,17 +503,59 @@ class BrowserDataManagementPage(
         }.clearRecordsAndFiles()
     }
 
-    private fun showClearHistoryDialog() {
+    private fun showClearHistoryRangeDialog() {
+        val ranges = BrowserHistoryClearRange.entries
+        val labels = ranges
+            .map { range -> historyClearRangeLabel(range) }
+            .toTypedArray()
+
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_history_message)
+            .setItems(labels) { _, index ->
+                ranges.getOrNull(index)?.let(::showClearHistoryDialog)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showClearHistoryDialog(range: BrowserHistoryClearRange) {
+        val rangeLabel = historyClearRangeLabel(range)
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear)
+            .setMessage(activity.getString(R.string.dialog_clear_history_range_message, rangeLabel))
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                savedPageRepository.clearHistory()
-                Toast.makeText(activity, R.string.toast_history_cleared, Toast.LENGTH_SHORT).show()
+                val removedCount = clearHistory(range)
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.toast_history_range_cleared, rangeLabel, removedCount),
+                    Toast.LENGTH_SHORT
+                ).show()
                 showBrowsingHistoryData(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun clearHistory(range: BrowserHistoryClearRange): Int {
+        val historyCount = savedPageRepository.history().size
+        val cutoffMillis = range.cutoffMillis(System.currentTimeMillis())
+        return if (cutoffMillis == null) {
+            savedPageRepository.clearHistory()
+            historyCount
+        } else {
+            savedPageRepository.clearHistoryUpdatedSince(cutoffMillis)
+        }
+    }
+
+    private fun historyClearRangeLabel(range: BrowserHistoryClearRange): String {
+        return activity.getString(
+            when (range) {
+                BrowserHistoryClearRange.LAST_HOUR -> R.string.history_clear_range_last_hour
+                BrowserHistoryClearRange.LAST_24_HOURS -> R.string.history_clear_range_last_24_hours
+                BrowserHistoryClearRange.LAST_7_DAYS -> R.string.history_clear_range_last_7_days
+                BrowserHistoryClearRange.ALL -> R.string.history_clear_range_all
+            }
+        )
     }
 
     private fun showRemoveSiteDataDialog(origin: String, query: String?) {
@@ -546,3 +599,6 @@ class BrowserDataManagementPage(
     }
 
 }
+
+private const val MILLIS_PER_HOUR = 60L * 60L * 1000L
+private const val MILLIS_PER_DAY = 24L * MILLIS_PER_HOUR
