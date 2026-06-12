@@ -129,6 +129,7 @@
     <string name="action_choose_local_folder_summary">授权一个目录用于浏览、创建、重命名和删除</string>
     <string name="action_download_current_url">下载当前地址</string>
     <string name="action_download_current_url_summary">用系统下载器保存当前网页或直链资源</string>
+    <string name="action_retry_download">重试下载</string>
     <string name="action_clear_download_records_summary">清空下载记录并删除对应下载文件</string>
     <string name="download_category_video">视频</string>
     <string name="download_category_image">图片</string>
@@ -313,6 +314,7 @@
     <string name="toast_element_picker_cancelled">已取消元素屏蔽</string>
     <string name="toast_element_picker_js_disabled">请先开启网页脚本增强</string>
     <string name="toast_download_started">已开始下载</string>
+    <string name="toast_download_retry_started">已重新开始下载</string>
     <string name="toast_download_failed">下载失败</string>
     <string name="toast_download_records_cleared">已清空下载记录并删除对应下载文件</string>
     <string name="toast_playback_history_cleared">已清空播放历史</string>

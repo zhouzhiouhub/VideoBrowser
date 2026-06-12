@@ -135,6 +135,15 @@ class DownloadController(
         }
     }
 
+    fun retry(record: DownloadRecord) {
+        enqueue(
+            url = record.sourceUrl,
+            userAgent = null,
+            contentDisposition = null,
+            mimeType = record.mimeType
+        )
+    }
+
     private fun registerDownloadCompletionReceiver() {
         if (receiverRegistered) {
             return

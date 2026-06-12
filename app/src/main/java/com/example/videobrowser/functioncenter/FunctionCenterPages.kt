@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
@@ -43,6 +44,7 @@ class FunctionCenterPages(
     private val openCurrentUrlInNativePlayer: () -> Unit,
     private val openPlaybackHistoryItem: (PlaybackProgress) -> Unit,
     private val downloadCurrentUrl: () -> Unit,
+    private val retryDownload: (DownloadRecord) -> Unit,
     setPrivateBrowsingEnabled: (Boolean) -> Unit,
     restoreDefaultSettings: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
@@ -77,6 +79,7 @@ class FunctionCenterPages(
     private val downloadsPage = DownloadsPage(
         host = host,
         downloadRecordRepository = downloadRecordRepository,
+        retryDownload = retryDownload,
         showRootPage = ::showRootPage
     )
     private val playbackHistoryPage = PlaybackHistoryPage(

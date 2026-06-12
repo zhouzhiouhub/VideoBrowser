@@ -455,6 +455,7 @@ class MainActivity : AppCompatActivity() {
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
             openPlaybackHistoryItem = ::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
+            retryDownload = downloadController::retry,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
             showFileOperationsPage = ::showFileOperationsPage,

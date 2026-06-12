@@ -12,6 +12,7 @@ import com.example.videobrowser.download.DownloadCategoryGroup
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
+import com.example.videobrowser.download.DownloadRetryPolicy
 import com.example.videobrowser.download.DownloadStatus
 import com.example.videobrowser.utils.UrlUtils
 import java.text.DateFormat
@@ -20,6 +21,7 @@ import java.util.Date
 class DownloadsPage(
     private val host: FunctionCenterPageHost,
     private val downloadRecordRepository: DownloadRecordRepository,
+    private val retryDownload: (DownloadRecord) -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -58,12 +60,23 @@ class DownloadsPage(
                     activity.getString(categoryTitleResId(group.category))
                 ) { section ->
                     group.records.forEach { record ->
+                        val retryable = DownloadRetryPolicy.canRetry(record)
                         host.addActionRow(
                             parent = section,
                             title = record.title.ifBlank { record.fileName },
-                            summary = recordSummary(record)
+                            summary = recordSummary(record, retryable)
                         ) {
-                            openDownloadedFile(record)
+                            if (retryable) {
+                                retryDownload(record)
+                                Toast.makeText(
+                                    activity,
+                                    R.string.toast_download_retry_started,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                show(replaceCurrent = true)
+                            } else {
+                                openDownloadedFile(record)
+                            }
                         }
                     }
                 }
@@ -117,7 +130,7 @@ class DownloadsPage(
         }
     }
 
-    private fun recordSummary(record: DownloadRecord): String {
+    private fun recordSummary(record: DownloadRecord, retryable: Boolean = false): String {
         val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
             .format(Date(record.createdAtMillis))
         val status = activity.getString(downloadStatusTitleResId(record.status))
@@ -126,7 +139,12 @@ class DownloadsPage(
         } else {
             null
         }
-        return listOfNotNull(status, failureReason, createdAt, UrlUtils.displayUrl(record.sourceUrl))
+        val retryAction = if (retryable) {
+            activity.getString(R.string.action_retry_download)
+        } else {
+            null
+        }
+        return listOfNotNull(status, failureReason, retryAction, createdAt, UrlUtils.displayUrl(record.sourceUrl))
             .joinToString(" | ")
     }
 
