@@ -150,9 +150,11 @@ class FunctionCenterPages(
         browserManager = browserManager,
         browserManagers = browserManagers,
         savedPageRepository = savedPageRepository,
+        downloadRecordRepository = downloadRecordRepository,
         currentActionableUrl = currentActionableUrl,
         showBookmarkList = ::showBookmarks,
         showHistoryList = ::showHistory,
+        showDownloadList = { downloadsPage.show() },
         showRootPage = ::showRootPage
     )
     private val restoreDefaultSettingsPage = RestoreDefaultSettingsPage(
@@ -175,6 +177,7 @@ class FunctionCenterPages(
         showBookmarkManager = { browserDataManagementPage.showBookmarkData() },
         showHistory = ::showHistory,
         showHistoryManager = { browserDataManagementPage.showBrowsingHistoryData() },
+        showDownloadManager = { browserDataManagementPage.showDownloadData() },
         showFileOperationsPage = showFileOperationsPage,
         showAdBlockLog = { adBlockLogPage.show() },
         showUserWhitelistManager = { userWhitelistPage.show() },

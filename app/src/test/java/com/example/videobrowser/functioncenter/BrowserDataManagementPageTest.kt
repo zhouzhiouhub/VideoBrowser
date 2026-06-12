@@ -54,6 +54,39 @@ class BrowserDataManagementPageTest {
     }
 
     @Test
+    fun browserDataManagementPageCanClearDownloadRecords() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
+        ).readText()
+        val settings = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
+        ).readText()
+        val pages = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
+        ).readText()
+        val catalog = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterDataManagementActionCatalog.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(page.contains("downloadRecordRepository: DownloadRecordRepository"))
+        assertTrue(page.contains("fun showDownloadData"))
+        assertTrue(page.contains("downloadRecordRepository.records().size"))
+        assertTrue(page.contains("DownloadRecordCleaner(downloadRecordRepository)"))
+        assertTrue(page.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(page.contains("R.string.download_record_count"))
+        assertTrue(settings.contains("showDownloadManager: () -> Unit"))
+        assertTrue(settings.contains("showDownloadManager()"))
+        assertTrue(settings.contains("R.string.action_manage_download_records_summary"))
+        assertTrue(pages.contains("showDownloadManager = { browserDataManagementPage.showDownloadData() }"))
+        assertTrue(pages.contains("showDownloadList = { downloadsPage.show() }"))
+        assertTrue(catalog.contains("FunctionCenterDataManagementAction.DOWNLOADS"))
+        assertTrue(strings.contains("title_download_data_management"))
+        assertTrue(strings.contains("action_manage_download_records_summary"))
+        assertTrue(strings.contains("download_record_count"))
+    }
+
+    @Test
     fun browserDataManagementPageCanClearBrowsingHistory() {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"

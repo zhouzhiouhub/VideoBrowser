@@ -26,6 +26,7 @@ class BrowserSettingsPage(
     private val showBookmarkManager: () -> Unit,
     private val showHistory: () -> Unit,
     private val showHistoryManager: () -> Unit,
+    private val showDownloadManager: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
     private val showAdBlockLog: () -> Unit,
     private val showUserWhitelistManager: () -> Unit,
@@ -267,6 +268,16 @@ class BrowserSettingsPage(
                     summary = activity.getString(R.string.action_manage_history_summary)
                 ) {
                     showHistoryManager()
+                }
+            }
+
+            FunctionCenterDataManagementAction.DOWNLOADS -> {
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.title_downloads),
+                    summary = activity.getString(R.string.action_manage_download_records_summary)
+                ) {
+                    showDownloadManager()
                 }
             }
 

@@ -1,11 +1,15 @@
 package com.example.videobrowser.functioncenter
 
+import android.app.DownloadManager
+import android.content.Context
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.download.DownloadRecordCleaner
+import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
 import java.util.Locale
@@ -65,9 +69,11 @@ class BrowserDataManagementPage(
     private val browserManager: () -> BrowserManager,
     private val browserManagers: () -> List<BrowserManager>,
     private val savedPageRepository: SavedPageRepository,
+    private val downloadRecordRepository: DownloadRecordRepository,
     private val currentActionableUrl: () -> String?,
     private val showBookmarkList: () -> Unit,
     private val showHistoryList: () -> Unit,
+    private val showDownloadList: () -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -108,6 +114,46 @@ class BrowserDataManagementPage(
 
             if (bookmarkCount == 0) {
                 host.addEmptyState(content, activity.getString(R.string.toast_bookmarks_empty))
+            }
+        }
+    }
+
+    fun showDownloadData(replaceCurrent: Boolean = false) {
+        val downloadCount = downloadRecordRepository.records().size
+        host.showPage(
+            title = activity.getString(R.string.title_download_data_management),
+            onBack = showRootPage,
+            replaceCurrent = replaceCurrent
+        ) { content ->
+            host.addFunctionSection(
+                content,
+                activity.getString(R.string.function_center_section_actions)
+            ) { section ->
+                host.addInfoRow(
+                    parent = section,
+                    title = activity.getString(R.string.title_downloads),
+                    summary = activity.getString(R.string.download_record_count, downloadCount)
+                )
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.title_downloads),
+                    summary = activity.getString(R.string.action_show_downloads_summary),
+                    enabled = downloadCount > 0
+                ) {
+                    showDownloadList()
+                }
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_clear),
+                    summary = activity.getString(R.string.action_clear_download_records_summary),
+                    enabled = downloadCount > 0
+                ) {
+                    showClearDownloadDataDialog()
+                }
+            }
+
+            if (downloadCount == 0) {
+                host.addEmptyState(content, activity.getString(R.string.dialog_download_records_empty))
             }
         }
     }
@@ -341,6 +387,26 @@ class BrowserDataManagementPage(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun showClearDownloadDataDialog() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_clear)
+            .setMessage(R.string.dialog_clear_download_records_message)
+            .setPositiveButton(R.string.action_clear) { _, _ ->
+                clearDownloadRecordsAndFiles()
+                Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
+                showDownloadData(replaceCurrent = true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun clearDownloadRecordsAndFiles() {
+        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
+            downloadManager.remove(*downloadIds)
+        }.clearRecordsAndFiles()
     }
 
     private fun showClearHistoryDialog() {

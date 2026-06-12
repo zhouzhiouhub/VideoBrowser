@@ -108,6 +108,7 @@
     <string name="action_manage_history_summary">查看或清空浏览历史记录</string>
     <string name="action_show_playback_history_summary">继续播放原生播放器记录</string>
     <string name="action_show_downloads_summary">查看浏览器下载记录</string>
+    <string name="action_manage_download_records_summary">查看、筛选或清空下载记录</string>
     <string name="action_show_tabs">标签页</string>
     <string name="action_show_tabs_summary">查看、切换或关闭当前标签</string>
     <string name="action_new_tab">新建标签页</string>
@@ -273,6 +274,7 @@
     <string name="title_site_data_management">站点数据管理</string>
     <string name="title_bookmark_data_management">收藏夹管理</string>
     <string name="title_history_data_management">浏览历史管理</string>
+    <string name="title_download_data_management">下载记录管理</string>
     <string name="title_remove_cookie">删除 Cookie</string>
     <string name="title_remove_site_data">删除站点数据</string>
     <string name="title_add_user_whitelist">添加白名单</string>
@@ -321,6 +323,7 @@
     <string name="action_clear_site_data_summary">清空全部站点数据</string>
     <string name="history_record_count">共 %1$d 条记录</string>
     <string name="bookmark_record_count">共 %1$d 个收藏</string>
+    <string name="download_record_count">共 %1$d 条记录</string>
     <string name="site_data_usage_summary">已用 %1$s</string>
     <string name="ad_block_log_action_blocked">拦截</string>
     <string name="ad_block_log_action_allowed">放行</string>

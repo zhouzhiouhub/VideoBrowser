@@ -19,6 +19,7 @@ class FunctionCenterDataManagementActionCatalogTest {
                 "RULE_SUBSCRIPTIONS",
                 "BOOKMARKS",
                 "HISTORY",
+                "DOWNLOADS",
                 "COOKIES",
                 "CACHE",
                 "SITE_DATA",
