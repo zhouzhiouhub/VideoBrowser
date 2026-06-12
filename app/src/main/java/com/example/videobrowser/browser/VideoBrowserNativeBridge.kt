@@ -26,17 +26,28 @@ class VideoBrowserNativeBridge(
 
     @JavascriptInterface
     fun updatePlaybackTimeline(positionMs: Double, durationMs: Double) {
-        postToUi { updatePlaybackTimeline.invoke(positionMs, durationMs) }
+        if (!positionMs.isFinite() || !durationMs.isFinite()) {
+            return
+        }
+        if (positionMs < 0.0 || durationMs < 0.0) {
+            return
+        }
+        val sanitizedPositionMs = positionMs.coerceAtMost(MAX_PLAYBACK_TIMELINE_MS)
+        val sanitizedDurationMs = durationMs.coerceAtMost(MAX_PLAYBACK_TIMELINE_MS)
+        postToUi { updatePlaybackTimeline.invoke(sanitizedPositionMs, sanitizedDurationMs) }
     }
 
     @JavascriptInterface
     fun requestElementBlock(selector: String, description: String) {
-        postToUi { requestElementBlock.invoke(selector, description) }
+        val sanitizedSelector = sanitizeSelector(selector) ?: return
+        val sanitizedDescription = sanitizeBridgeText(description, MAX_ELEMENT_DESCRIPTION_LENGTH)
+        postToUi { requestElementBlock.invoke(sanitizedSelector, sanitizedDescription) }
     }
 
     @JavascriptInterface
     fun blockSelectedElement(selector: String) {
-        postToUi { blockSelectedElement.invoke(selector) }
+        val sanitizedSelector = sanitizeSelector(selector) ?: return
+        postToUi { blockSelectedElement.invoke(sanitizedSelector) }
     }
 
     @JavascriptInterface
@@ -46,17 +57,33 @@ class VideoBrowserNativeBridge(
 
     @JavascriptInterface
     fun logVideoEvent(message: String) {
-        val sanitizedMessage = message
-            .replace(Regex("\\s+"), " ")
-            .trim()
-            .take(MAX_VIDEO_LOG_LENGTH)
+        val sanitizedMessage = sanitizeBridgeText(message, MAX_VIDEO_LOG_LENGTH)
         if (sanitizedMessage.isBlank()) {
             return
         }
         postToUi { videoEventLogger.invoke(sanitizedMessage) }
     }
 
+    private fun sanitizeSelector(selector: String): String? {
+        return selector
+            .trim()
+            .filterNot { char -> char.isISOControl() }
+            .take(MAX_ELEMENT_SELECTOR_LENGTH)
+            .trim()
+            .takeIf { sanitized -> sanitized.isNotBlank() }
+    }
+
+    private fun sanitizeBridgeText(text: String, maxLength: Int): String {
+        return text
+            .replace(Regex("\\s+"), " ")
+            .trim()
+            .take(maxLength)
+    }
+
     private companion object {
+        private const val MAX_PLAYBACK_TIMELINE_MS = 86_400_000.0
+        private const val MAX_ELEMENT_SELECTOR_LENGTH = 500
+        private const val MAX_ELEMENT_DESCRIPTION_LENGTH = 500
         private const val MAX_VIDEO_LOG_LENGTH = 600
     }
 }

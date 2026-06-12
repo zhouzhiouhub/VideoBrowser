@@ -162,6 +162,7 @@ Activity 销毁时会关闭远程建议线程。
 - 处理网页 video 元素和全屏增强。
 - 消费白名单 scriptlet 映射配置，但不执行规则原文 JavaScript。
 - 支持元素选择器回调到 Android 侧保存用户规则。
+- Native bridge 会忽略非法播放时间，并限制元素选择器 selector、描述和日志负载长度。
 
 用户可通过“屏蔽元素”在当前页面选择元素，保存为当前 host 的用户隐藏规则。用户手动规则保存在 `SettingsManager` 中，并可在功能中心管理。
 
