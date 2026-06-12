@@ -209,9 +209,13 @@
     <string name="site_security_not_secure">连接不安全</string>
     <string name="action_open_page">打开页面</string>
     <string name="action_clear_saved_pages_summary">清空当前列表</string>
+    <string name="action_search_saved_pages">搜索</string>
+    <string name="action_search_saved_pages_summary">按标题或网址过滤当前列表</string>
+    <string name="action_clear_search">清除搜索</string>
     <string name="action_clear_ad_block_log_summary">清空最近拦截记录</string>
     <string name="action_clear_user_whitelist_summary">删除全部用户白名单</string>
     <string name="dialog_clear_saved_pages_message">确定清空当前列表吗？此操作无法撤销。</string>
+    <string name="dialog_saved_pages_search_empty">没有匹配内容</string>
     <string name="dialog_clear_ad_block_log_message">确定清空最近拦截日志吗？</string>
     <string name="action_restore">恢复</string>
     <string name="action_add">添加</string>
@@ -259,6 +263,7 @@
     <string name="hint_rule_subscription_url">https://example.com/filter.txt</string>
     <string name="hint_rule_subscription_text">粘贴 AdGuard / EasyList 风格规则文本</string>
     <string name="hint_find_in_page">查找文字</string>
+    <string name="hint_saved_pages_search">标题或网址</string>
     <string name="rule_subscription_empty">暂无导入的规则订阅缓存。</string>
     <string name="rule_subscription_source">来源</string>
     <string name="rule_subscription_counts">规则数量</string>

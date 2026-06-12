@@ -1,11 +1,14 @@
 package com.example.videobrowser.functioncenter
 
+import android.text.InputType
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
+import com.example.videobrowser.storage.SavedPageSearch
 import com.example.videobrowser.utils.UrlUtils
 import java.text.DateFormat
 import java.util.Date
@@ -22,16 +25,18 @@ class SavedPagesPage(
         collection: SavedPageCollection,
         title: String,
         emptyMessage: String,
-        replaceCurrent: Boolean = false
+        replaceCurrent: Boolean = false,
+        query: String? = null
     ) {
-        val pages = savedPageRepository.pages(collection)
+        val allPages = savedPageRepository.pages(collection)
+        val pages = SavedPageSearch.filter(allPages, query)
 
         host.showPage(
             title = title,
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
-            if (pages.isEmpty()) {
+            if (allPages.isEmpty()) {
                 host.addEmptyState(content, emptyMessage)
                 return@showPage
             }
@@ -40,6 +45,27 @@ class SavedPagesPage(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
+                host.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_search_saved_pages),
+                    summary = currentSearchSummary(query)
+                ) {
+                    showSearchDialog(collection, title, emptyMessage, query)
+                }
+                if (!query.isNullOrBlank()) {
+                    host.addActionRow(
+                        parent = section,
+                        title = activity.getString(R.string.action_clear_search),
+                        summary = query
+                    ) {
+                        show(
+                            collection = collection,
+                            title = title,
+                            emptyMessage = emptyMessage,
+                            replaceCurrent = true
+                        )
+                    }
+                }
                 host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
@@ -53,6 +79,10 @@ class SavedPagesPage(
                 content,
                 activity.getString(R.string.function_center_section_records)
             ) { section ->
+                if (pages.isEmpty()) {
+                    host.addEmptyState(section, activity.getString(R.string.dialog_saved_pages_search_empty))
+                    return@addFunctionSection
+                }
                 pages.forEach { page ->
                     host.addActionRow(
                         parent = section,
@@ -64,6 +94,35 @@ class SavedPagesPage(
                 }
             }
         }
+    }
+
+    private fun showSearchDialog(
+        collection: SavedPageCollection,
+        title: String,
+        emptyMessage: String,
+        currentQuery: String?
+    ) {
+        val input = EditText(activity).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            setSingleLine(true)
+            hint = activity.getString(R.string.hint_saved_pages_search)
+            setText(currentQuery.orEmpty())
+            setSelection(text?.length ?: 0)
+        }
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.action_search_saved_pages)
+            .setView(input)
+            .setPositiveButton(R.string.action_search_saved_pages) { _, _ ->
+                show(
+                    collection = collection,
+                    title = title,
+                    emptyMessage = emptyMessage,
+                    replaceCurrent = true,
+                    query = input.text?.toString()?.trim().orEmpty()
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showSavedPageActionsDialog(
@@ -131,5 +190,11 @@ class SavedPagesPage(
             UrlUtils.displayUrl(page.url),
             timestamp?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) }
         ).joinToString(" | ")
+    }
+
+    private fun currentSearchSummary(query: String?): String {
+        return query
+            ?.takeIf { it.isNotBlank() }
+            ?: activity.getString(R.string.action_search_saved_pages_summary)
     }
 }
