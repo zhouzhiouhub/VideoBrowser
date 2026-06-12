@@ -71,6 +71,7 @@ import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
+import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.SiteSecurityStatus
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
@@ -2282,6 +2283,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUrl(url: String) {
+        loadUrlInternal(url, allowInsecureNavigation = false)
+    }
+
+    private fun loadUrlAfterInsecureNavigationConfirmation(url: String) {
+        loadUrlInternal(url, allowInsecureNavigation = true)
+    }
+
+    private fun loadUrlInternal(url: String, allowInsecureNavigation: Boolean) {
         val cleanedUrl = if (::ruleEngine.isInitialized) {
             ruleEngine.cleanNavigationUrl(url, currentSessionController().currentPageUrl)
         } else {
@@ -2305,6 +2314,16 @@ class MainActivity : AppCompatActivity() {
 
             MediaRouteAction.BLOCK -> return
             else -> Unit
+        }
+
+        if (!allowInsecureNavigation &&
+            HttpNavigationSafetyPolicy.requiresInsecureNavigationConfirmation(
+                currentSessionController().currentPageUrl,
+                cleanedUrl
+            )
+        ) {
+            showInsecureNavigationConfirmation(cleanedUrl)
+            return
         }
 
         currentSessionController().currentPageUrl = cleanedUrl
@@ -2523,6 +2542,17 @@ class MainActivity : AppCompatActivity() {
             return true
         }
 
+        if (openMedia &&
+            HttpNavigationSafetyPolicy.requiresInsecureNavigationConfirmation(
+                currentSessionController().currentPageUrl,
+                uri.toString()
+            )
+        ) {
+            view?.stopLoading()
+            showInsecureNavigationConfirmation(uri.toString())
+            return true
+        }
+
         if (openMedia && ::ruleEngine.isInitialized) {
             val originalUrl = uri.toString()
             val cleanedUrl = ruleEngine.cleanNavigationUrl(
@@ -2537,6 +2567,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         return false
+    }
+
+    private fun showInsecureNavigationConfirmation(url: String) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_confirm_insecure_navigation)
+            .setMessage(
+                getString(
+                    R.string.dialog_confirm_insecure_navigation_message,
+                    UrlUtils.displayUrl(url)
+                )
+            )
+            .setPositiveButton(R.string.action_open_page) { _, _ ->
+                loadUrlAfterInsecureNavigationConfirmation(url)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun openExternalProtocolNavigation(view: WebView?, uri: Uri): Boolean {
