@@ -45,6 +45,19 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(duplicateTabBody.contains("sourceTab.url?.let(::loadUrl) ?: openHomePage()"))
     }
 
+    @Test
+    fun openUrlInNewTabCreatesIndependentStandardWebView() {
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val openUrlInNewTabBody = mainActivity.substringAfter("private fun openUrlInNewTab(url: String)")
+            .substringBefore("private fun showActiveTab")
+
+        assertTrue(openUrlInNewTabBody.contains("standardTabWebViews.openTab("))
+        assertTrue(openUrlInNewTabBody.contains("view = createStandardTabWebView()"))
+        assertTrue(openUrlInNewTabBody.contains("url = url"))
+        assertTrue(openUrlInNewTabBody.contains("loadUrl(url)"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

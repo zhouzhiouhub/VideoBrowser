@@ -20,6 +20,7 @@ import java.util.Date
 class SavedPagesPage(
     private val host: FunctionCenterPageHost,
     private val savedPageRepository: SavedPageRepository,
+    private val openUrlInNewTab: (String) -> Unit,
     private val loadUrl: (String) -> Unit,
     private val showRootPage: () -> Unit
 ) {
@@ -154,6 +155,9 @@ class SavedPagesPage(
         return listOf(
             SavedPageAction(activity.getString(R.string.action_open_page)) {
                 loadUrl(page.url)
+            },
+            SavedPageAction(activity.getString(R.string.action_open_in_new_tab)) {
+                openUrlInNewTab(page.url)
             },
             if (collection == SavedPageCollection.BOOKMARKS) {
                 SavedPageAction(activity.getString(R.string.action_rename)) {

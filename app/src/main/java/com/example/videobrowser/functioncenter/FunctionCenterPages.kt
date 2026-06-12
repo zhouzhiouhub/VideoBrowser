@@ -61,6 +61,7 @@ class FunctionCenterPages(
     private val startElementPicker: () -> Unit,
     private val applyDesktopMode: (Boolean) -> Unit,
     private val injectPageFeatures: () -> Unit,
+    private val openUrlInNewTab: (String) -> Unit,
     private val loadUrl: (String) -> Unit,
     private val recreateActivity: () -> Unit
 ) {
@@ -83,6 +84,7 @@ class FunctionCenterPages(
     private val savedPagesPage = SavedPagesPage(
         host = host,
         savedPageRepository = savedPageRepository,
+        openUrlInNewTab = openUrlInNewTab,
         loadUrl = loadUrl,
         showRootPage = ::showRootPage
     )

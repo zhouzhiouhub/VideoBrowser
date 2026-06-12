@@ -486,6 +486,7 @@ class MainActivity : AppCompatActivity() {
             startElementPicker = ::startElementPicker,
             applyDesktopMode = ::applyDesktopMode,
             injectPageFeatures = ::injectPageFeatures,
+            openUrlInNewTab = ::openUrlInNewTab,
             loadUrl = ::loadUrl,
             recreateActivity = { recreate() }
         )
@@ -1314,6 +1315,21 @@ class MainActivity : AppCompatActivity() {
             currentTabStore().openTab(url = sourceTab.url, title = sourceTab.title)
         }
         sourceTab.url?.let(::loadUrl) ?: openHomePage()
+    }
+
+    private fun openUrlInNewTab(url: String) {
+        if (!privateBrowsingActive) {
+            val result = standardTabWebViews.openTab(
+                view = createStandardTabWebView(),
+                url = url
+            )
+            hideStandardTabWebView(result.previousView)
+            showStandardTabWebView(result.activeView)
+            saveStandardTabSession()
+        } else {
+            currentTabStore().openTab(url = url)
+        }
+        loadUrl(url)
     }
 
     private fun showActiveTab(tab: BrowserTab) {

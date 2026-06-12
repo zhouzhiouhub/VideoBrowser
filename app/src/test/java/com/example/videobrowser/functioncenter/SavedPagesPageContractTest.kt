@@ -48,6 +48,26 @@ class SavedPagesPageContractTest {
     }
 
     @Test
+    fun savedPagesPageCanOpenRecordsInNewTabs() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        ).readText()
+        val pages = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(page.contains("openUrlInNewTab: (String) -> Unit"))
+        assertTrue(page.contains("R.string.action_open_in_new_tab"))
+        assertTrue(page.contains("openUrlInNewTab(page.url)"))
+        assertTrue(pages.contains("openUrlInNewTab = openUrlInNewTab"))
+        assertTrue(mainActivity.contains("openUrlInNewTab = ::openUrlInNewTab"))
+        assertTrue(strings.contains("action_open_in_new_tab"))
+    }
+
+    @Test
     fun savedPagesPageCanRenameBookmarks() {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"

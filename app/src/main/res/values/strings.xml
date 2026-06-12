@@ -223,6 +223,7 @@
     <string name="site_security_secure">连接安全</string>
     <string name="site_security_not_secure">连接不安全</string>
     <string name="action_open_page">打开页面</string>
+    <string name="action_open_in_new_tab">在新标签页打开</string>
     <string name="action_clear_saved_pages_summary">清空当前列表</string>
     <string name="action_refresh_download_records_summary">刷新进行中的下载状态和进度</string>
     <string name="action_search_saved_pages">搜索</string>
