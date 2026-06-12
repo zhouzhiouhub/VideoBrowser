@@ -743,6 +743,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupBrowserControls() {
         browserControlsController.setup()
+        siteSecurityIcon.setOnClickListener {
+            showSiteSecurityInfoDialog()
+        }
     }
 
     private fun setupChromeClient() {
@@ -1922,6 +1925,7 @@ class MainActivity : AppCompatActivity() {
                 siteSecurityIcon.visibility = View.GONE
                 siteSecurityIcon.contentDescription = null
                 ViewCompat.setTooltipText(siteSecurityIcon, null)
+                siteSecurityIcon.isEnabled = false
             }
         }
     }
@@ -1932,11 +1936,60 @@ class MainActivity : AppCompatActivity() {
         descriptionResId: Int
     ) {
         val description = getString(descriptionResId)
+        val actionDescription = getString(R.string.site_security_icon_description, description)
         siteSecurityIcon.visibility = View.VISIBLE
+        siteSecurityIcon.isEnabled = true
         siteSecurityIcon.setImageResource(iconResId)
         siteSecurityIcon.setColorFilter(ContextCompat.getColor(this, colorResId))
-        siteSecurityIcon.contentDescription = description
-        ViewCompat.setTooltipText(siteSecurityIcon, description)
+        siteSecurityIcon.contentDescription = actionDescription
+        ViewCompat.setTooltipText(siteSecurityIcon, actionDescription)
+    }
+
+    private fun showSiteSecurityInfoDialog() {
+        val pageUrl = listOf(
+            currentSessionController().currentPageUrl,
+            currentBrowserManager().currentUrl()
+        ).firstOrNull { url -> !url.isNullOrBlank() } ?: return
+        val status = SiteSecurityStatus.fromUrl(pageUrl)
+        if (status == SiteSecurityStatus.UNKNOWN) {
+            return
+        }
+
+        val statusTitleResId = when (status) {
+            SiteSecurityStatus.SECURE -> R.string.site_security_secure
+            SiteSecurityStatus.NOT_SECURE -> R.string.site_security_not_secure
+            SiteSecurityStatus.UNKNOWN -> R.string.title_site_security_info
+        }
+        val messageResId = when (status) {
+            SiteSecurityStatus.SECURE -> R.string.site_security_secure_message
+            SiteSecurityStatus.NOT_SECURE -> R.string.site_security_not_secure_message
+            SiteSecurityStatus.UNKNOWN -> R.string.site_security_unknown_message
+        }
+        val displayUrl = UrlUtils.displayUrl(pageUrl)
+        val host = SiteHost.fromUrl(pageUrl)
+            ?: Uri.parse(pageUrl).host.orEmpty().ifBlank { displayUrl }
+        val message = listOf(
+            getString(statusTitleResId),
+            getString(R.string.site_security_host, host),
+            getString(R.string.site_security_url, displayUrl),
+            getString(messageResId)
+        ).joinToString(separator = "\n\n")
+
+        val builder = AlertDialog.Builder(this)
+            .setTitle(R.string.title_site_security_info)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+        if (!isPrivateBrowsingEnabled() && currentSiteHost() != null) {
+            builder.setNeutralButton(R.string.action_site_settings) { _, _ ->
+                showCurrentSiteSettingsPage()
+            }
+        }
+        builder.show()
+    }
+
+    private fun showCurrentSiteSettingsPage() {
+        hideKeyboard()
+        functionCenterPages.showCurrentSiteSettingsPage()
     }
 
     private fun addressBarDisplayText(url: String): String {

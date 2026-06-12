@@ -248,6 +248,13 @@
     <string name="action_find_previous">上一处</string>
     <string name="site_security_secure">连接安全</string>
     <string name="site_security_not_secure">连接不安全</string>
+    <string name="site_security_icon_description">%1$s，点按查看站点信息</string>
+    <string name="title_site_security_info">站点信息</string>
+    <string name="site_security_host">站点：%1$s</string>
+    <string name="site_security_url">地址：%1$s</string>
+    <string name="site_security_secure_message">此页面通过 HTTPS 加载，连接已加密。</string>
+    <string name="site_security_not_secure_message">此页面使用 HTTP 加载，连接未加密。</string>
+    <string name="site_security_unknown_message">无法判断当前页面的连接安全状态。</string>
     <string name="action_open_page">打开页面</string>
     <string name="action_open_in_new_tab">在新标签页打开</string>
     <string name="action_clear_saved_pages_summary">清空当前列表</string>

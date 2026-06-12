@@ -50,6 +50,11 @@ class MainActivityLayoutContractTest {
             .readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val functionCenterPages = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
 
         assertEquals("ImageView", securityIcon.tagName)
         assertEquals("20dp", securityIcon.androidAttribute("layout_width"))
@@ -61,6 +66,17 @@ class MainActivityLayoutContractTest {
         assertTrue(mainActivity.contains("SiteSecurityStatus.fromUrl(url)"))
         assertTrue(mainActivity.contains("R.drawable.ic_lock_24"))
         assertTrue(mainActivity.contains("R.drawable.ic_warning_24"))
+        assertTrue(mainActivity.contains("siteSecurityIcon.setOnClickListener"))
+        assertTrue(mainActivity.contains("private fun showSiteSecurityInfoDialog()"))
+        assertTrue(mainActivity.contains("R.string.site_security_icon_description"))
+        assertTrue(mainActivity.contains("R.string.title_site_security_info"))
+        assertTrue(mainActivity.contains("R.string.site_security_secure_message"))
+        assertTrue(mainActivity.contains("R.string.site_security_not_secure_message"))
+        assertTrue(mainActivity.contains("functionCenterPages.showCurrentSiteSettingsPage()"))
+        assertTrue(functionCenterPages.contains("fun showCurrentSiteSettingsPage()"))
+        assertTrue(strings.contains("title_site_security_info"))
+        assertTrue(strings.contains("site_security_icon_description"))
+        assertTrue(readme.contains("点击图标可查看站点连接信息"))
     }
 
     @Test

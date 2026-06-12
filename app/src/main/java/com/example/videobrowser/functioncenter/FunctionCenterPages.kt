@@ -264,6 +264,10 @@ class FunctionCenterPages(
         }
     }
 
+    fun showCurrentSiteSettingsPage() {
+        currentSiteSettingsPage.show()
+    }
+
     fun handleBack(): Boolean {
         return host.handleBack()
     }
