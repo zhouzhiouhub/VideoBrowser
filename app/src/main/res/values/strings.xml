@@ -253,6 +253,8 @@
     <string name="action_add">添加</string>
     <string name="action_update">更新</string>
     <string name="action_import">导入</string>
+    <string name="action_allow">允许</string>
+    <string name="action_deny">拒绝</string>
     <string name="action_add_current_site">添加当前站点</string>
     <string name="action_remove_current_site">移除当前站点</string>
     <string name="action_remove">移除</string>
@@ -277,6 +279,8 @@
     <string name="title_bookmark_data_management">收藏夹管理</string>
     <string name="title_history_data_management">浏览历史管理</string>
     <string name="title_download_data_management">下载记录管理</string>
+    <string name="title_web_permission_request">网站权限请求</string>
+    <string name="title_geolocation_permission_request">位置权限请求</string>
     <string name="title_remove_cookie">删除 Cookie</string>
     <string name="title_remove_site_data">删除站点数据</string>
     <string name="title_add_user_whitelist">添加白名单</string>
@@ -315,6 +319,8 @@
     <string name="dialog_clear_cache_message">确定清空 WebView 页面缓存吗？</string>
     <string name="dialog_clear_bookmarks_message">确定清空全部收藏夹吗？此操作无法撤销。</string>
     <string name="dialog_clear_history_message">确定清空全部浏览历史记录吗？此操作无法撤销。</string>
+    <string name="dialog_web_permission_request_message">%1$s 请求使用：%2$s</string>
+    <string name="dialog_geolocation_permission_request_message">%1$s 请求访问位置。</string>
     <string name="dialog_site_data_empty">暂无站点数据。</string>
     <string name="dialog_site_data_search_empty">没有匹配的站点数据。</string>
     <string name="dialog_remove_site_data_message">删除 %1$s 的站点数据？</string>
@@ -329,6 +335,9 @@
     <string name="bookmark_record_count">共 %1$d 个收藏</string>
     <string name="download_record_count">共 %1$d 条记录</string>
     <string name="site_data_usage_summary">已用 %1$s</string>
+    <string name="permission_origin_unknown">当前网页</string>
+    <string name="web_permission_camera">摄像头</string>
+    <string name="web_permission_microphone">麦克风</string>
     <string name="ad_block_log_action_blocked">拦截</string>
     <string name="ad_block_log_action_allowed">放行</string>
     <string name="clipboard_page_url">页面链接</string>

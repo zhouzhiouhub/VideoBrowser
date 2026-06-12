@@ -39,6 +39,7 @@ VideoBrowser 的目标是提供一个偏视频场景的移动浏览器壳层：
 - 标签页管理支持新建、恢复最近关闭、复制、切换、关闭、关闭其他标签、复制标签链接和分享标签链接。
 - 支持桌面模式：切换 User-Agent、开启 wide viewport，并重新加载页面。
 - 支持顶部和底部浏览器控件随页面滚动隐藏。
+- 网页请求相机、麦克风或定位时，除 Android 运行时权限外，还会进行一次网站级允许/拒绝确认。
 - Debug 包中启用 WebView 调试：`WebView.setWebContentsDebuggingEnabled(true)`。
 
 关键代码：

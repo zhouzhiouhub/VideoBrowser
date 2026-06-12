@@ -196,6 +196,8 @@ class MainActivity : AppCompatActivity() {
             pendingFileChooserCallback = null
         }
     private var pendingWebPermissionRequest: PermissionRequest? = null
+    private var pendingWebPermissionPromptRequest: PermissionRequest? = null
+    private var pendingWebPermissionDialog: AlertDialog? = null
     private val webPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
             val request = pendingWebPermissionRequest ?: return@registerForActivityResult
@@ -205,12 +207,14 @@ class MainActivity : AppCompatActivity() {
                     grants[permission] == true || hasAndroidPermission(permission)
                 }
             ) {
-                request.grant(request.resources)
+                showWebPermissionPrompt(request)
             } else {
                 request.deny()
             }
         }
     private var pendingGeolocationPermissionPrompt: GeolocationPermissionPrompt? = null
+    private var pendingGeolocationSitePrompt: GeolocationPermissionPrompt? = null
+    private var pendingGeolocationDialog: AlertDialog? = null
     private val geolocationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
             val prompt = pendingGeolocationPermissionPrompt ?: return@registerForActivityResult
@@ -218,7 +222,11 @@ class MainActivity : AppCompatActivity() {
             val allowed = geolocationAndroidPermissions().any { permission ->
                 grants[permission] == true || hasAndroidPermission(permission)
             }
-            prompt.callback.invoke(prompt.origin, allowed, false)
+            if (allowed) {
+                showGeolocationPermissionPrompt(prompt)
+            } else {
+                denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
+            }
         }
 
     private var privateBrowsingActive = false
@@ -850,24 +858,104 @@ class MainActivity : AppCompatActivity() {
             .filterNot(::hasAndroidPermission)
             .toTypedArray()
         if (missingPermissions.isEmpty()) {
-            request.grant(request.resources)
+            showWebPermissionPrompt(request)
             return
         }
 
         pendingWebPermissionRequest?.deny()
+        cancelPendingWebPermissionPrompt()
         pendingWebPermissionRequest = request
         webPermissionLauncher.launch(missingPermissions)
     }
 
     private fun handleWebPermissionRequestCanceled(request: PermissionRequest?) {
-        if (request == null || request == pendingWebPermissionRequest) {
+        if (request == null) {
+            pendingWebPermissionRequest?.deny()
             pendingWebPermissionRequest = null
+            cancelPendingWebPermissionPrompt()
+            return
+        }
+        if (request == pendingWebPermissionRequest) {
+            pendingWebPermissionRequest = null
+        }
+        if (request == pendingWebPermissionPromptRequest) {
+            cancelPendingWebPermissionPrompt()
         }
     }
 
     private fun cancelPendingWebPermissionRequest() {
         pendingWebPermissionRequest?.deny()
         pendingWebPermissionRequest = null
+        cancelPendingWebPermissionPrompt()
+    }
+
+    private fun showWebPermissionPrompt(request: PermissionRequest) {
+        cancelPendingWebPermissionPrompt()
+        pendingWebPermissionPromptRequest = request
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.title_web_permission_request)
+            .setMessage(
+                getString(
+                    R.string.dialog_web_permission_request_message,
+                    webPermissionOrigin(request),
+                    webPermissionResourceSummary(request.resources)
+                )
+            )
+            .setPositiveButton(R.string.action_allow) { _, _ ->
+                answerWebPermissionPrompt(request, allowed = true)
+            }
+            .setNegativeButton(R.string.action_deny) { _, _ ->
+                answerWebPermissionPrompt(request, allowed = false)
+            }
+            .create()
+        dialog.setOnCancelListener {
+            answerWebPermissionPrompt(request, allowed = false)
+        }
+        pendingWebPermissionDialog = dialog
+        dialog.show()
+    }
+
+    private fun answerWebPermissionPrompt(request: PermissionRequest, allowed: Boolean) {
+        if (pendingWebPermissionPromptRequest != request) {
+            return
+        }
+        pendingWebPermissionPromptRequest = null
+        pendingWebPermissionDialog = null
+        if (allowed) {
+            request.grant(request.resources)
+        } else {
+            request.deny()
+        }
+    }
+
+    private fun cancelPendingWebPermissionPrompt() {
+        val request = pendingWebPermissionPromptRequest
+        pendingWebPermissionPromptRequest = null
+        pendingWebPermissionDialog?.dismiss()
+        pendingWebPermissionDialog = null
+        request?.deny()
+    }
+
+    private fun webPermissionOrigin(request: PermissionRequest): String {
+        return request.origin
+            ?.toString()
+            ?.takeIf { origin -> origin.isNotBlank() }
+            ?: getString(R.string.permission_origin_unknown)
+    }
+
+    private fun webPermissionResourceSummary(resources: Array<String>): String {
+        return resources
+            .mapNotNull { resource -> webPermissionResourceLabel(resource) }
+            .distinct()
+            .joinToString(", ")
+    }
+
+    private fun webPermissionResourceLabel(resource: String): String? {
+        return when (resource) {
+            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> getString(R.string.web_permission_camera)
+            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> getString(R.string.web_permission_microphone)
+            else -> null
+        }
     }
 
     private fun handleGeolocationPermissionRequest(
@@ -877,7 +965,7 @@ class MainActivity : AppCompatActivity() {
         callback ?: return
         val permissions = geolocationAndroidPermissions()
         if (permissions.any(::hasAndroidPermission)) {
-            callback.invoke(origin, true, false)
+            showGeolocationPermissionPrompt(GeolocationPermissionPrompt(origin, callback))
             return
         }
 
@@ -891,9 +979,57 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun cancelPendingGeolocationPermissionPrompt() {
-        val prompt = pendingGeolocationPermissionPrompt ?: return
+        val prompt = pendingGeolocationPermissionPrompt
         pendingGeolocationPermissionPrompt = null
-        denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
+        prompt?.let { pendingPrompt ->
+            denyGeolocationPermissionPrompt(pendingPrompt.origin, pendingPrompt.callback)
+        }
+
+        val sitePrompt = pendingGeolocationSitePrompt
+        pendingGeolocationSitePrompt = null
+        pendingGeolocationDialog?.dismiss()
+        pendingGeolocationDialog = null
+        sitePrompt?.let { pendingPrompt ->
+            denyGeolocationPermissionPrompt(pendingPrompt.origin, pendingPrompt.callback)
+        }
+    }
+
+    private fun showGeolocationPermissionPrompt(prompt: GeolocationPermissionPrompt) {
+        cancelPendingGeolocationPermissionPrompt()
+        pendingGeolocationSitePrompt = prompt
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.title_geolocation_permission_request)
+            .setMessage(
+                getString(
+                    R.string.dialog_geolocation_permission_request_message,
+                    prompt.origin?.takeIf { origin -> origin.isNotBlank() }
+                        ?: getString(R.string.permission_origin_unknown)
+                )
+            )
+            .setPositiveButton(R.string.action_allow) { _, _ ->
+                answerGeolocationPermissionPrompt(prompt, allowed = true)
+            }
+            .setNegativeButton(R.string.action_deny) { _, _ ->
+                answerGeolocationPermissionPrompt(prompt, allowed = false)
+            }
+            .create()
+        dialog.setOnCancelListener {
+            answerGeolocationPermissionPrompt(prompt, allowed = false)
+        }
+        pendingGeolocationDialog = dialog
+        dialog.show()
+    }
+
+    private fun answerGeolocationPermissionPrompt(
+        prompt: GeolocationPermissionPrompt,
+        allowed: Boolean
+    ) {
+        if (pendingGeolocationSitePrompt != prompt) {
+            return
+        }
+        pendingGeolocationSitePrompt = null
+        pendingGeolocationDialog = null
+        prompt.callback.invoke(prompt.origin, allowed, false)
     }
 
     private fun denyGeolocationPermissionPrompt(

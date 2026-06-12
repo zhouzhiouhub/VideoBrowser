@@ -38,17 +38,28 @@ class WebPermissionRequestContractTest {
     fun mainActivityMapsWebCaptureRequestsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(mainActivity.contains("ActivityResultContracts.RequestMultiplePermissions()"))
         assertTrue(mainActivity.contains("pendingWebPermissionRequest: PermissionRequest?"))
+        assertTrue(mainActivity.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))
         assertTrue(mainActivity.contains("PermissionRequest.RESOURCE_VIDEO_CAPTURE"))
         assertTrue(mainActivity.contains("Manifest.permission.CAMERA"))
         assertTrue(mainActivity.contains("PermissionRequest.RESOURCE_AUDIO_CAPTURE"))
         assertTrue(mainActivity.contains("Manifest.permission.RECORD_AUDIO"))
+        assertTrue(mainActivity.contains("showWebPermissionPrompt(request)"))
+        assertTrue(mainActivity.contains("R.string.title_web_permission_request"))
+        assertTrue(mainActivity.contains("R.string.dialog_web_permission_request_message"))
+        assertTrue(mainActivity.contains("R.string.action_allow"))
+        assertTrue(mainActivity.contains("R.string.action_deny"))
         assertTrue(mainActivity.contains("request.grant(request.resources)"))
         assertTrue(mainActivity.contains("request.deny()"))
         assertTrue(mainActivity.contains("permissionRequested = ::handleWebPermissionRequest"))
         assertTrue(mainActivity.contains("permissionRequestCanceled = ::handleWebPermissionRequestCanceled"))
+        assertTrue(strings.contains("title_web_permission_request"))
+        assertTrue(strings.contains("dialog_web_permission_request_message"))
+        assertTrue(strings.contains("web_permission_camera"))
+        assertTrue(strings.contains("web_permission_microphone"))
     }
 
     private fun manifest(): Element {

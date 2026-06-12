@@ -50,15 +50,25 @@ class WebGeolocationPermissionContractTest {
     fun mainActivityMapsWebGeolocationPromptsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(mainActivity.contains("pendingGeolocationPermissionPrompt"))
+        assertTrue(mainActivity.contains("pendingGeolocationSitePrompt"))
         assertTrue(mainActivity.contains("Manifest.permission.ACCESS_FINE_LOCATION"))
         assertTrue(mainActivity.contains("Manifest.permission.ACCESS_COARSE_LOCATION"))
         assertTrue(mainActivity.contains("geolocationPermissionRequested = ::handleGeolocationPermissionRequest"))
         assertTrue(mainActivity.contains("geolocationPermissionHidden = ::handleGeolocationPermissionHidden"))
-        assertTrue(mainActivity.contains("callback.invoke(origin, true, false)"))
+        assertTrue(mainActivity.contains("showGeolocationPermissionPrompt"))
+        assertTrue(mainActivity.contains("R.string.title_geolocation_permission_request"))
+        assertTrue(mainActivity.contains("R.string.dialog_geolocation_permission_request_message"))
+        assertTrue(mainActivity.contains("R.string.action_allow"))
+        assertTrue(mainActivity.contains("R.string.action_deny"))
+        assertTrue(mainActivity.contains("prompt.callback.invoke(prompt.origin, allowed, false)"))
         assertTrue(mainActivity.contains("callback.invoke(origin, false, false)"))
         assertTrue(mainActivity.contains("cancelPendingGeolocationPermissionPrompt()"))
+        assertTrue(strings.contains("title_geolocation_permission_request"))
+        assertTrue(strings.contains("dialog_geolocation_permission_request_message"))
+        assertTrue(strings.contains("permission_origin_unknown"))
     }
 
     private fun manifest(): Element {
