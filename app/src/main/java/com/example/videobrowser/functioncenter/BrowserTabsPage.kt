@@ -1,5 +1,9 @@
 package com.example.videobrowser.functioncenter
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserTab
 import com.example.videobrowser.utils.UrlUtils
@@ -55,6 +59,15 @@ class BrowserTabsPage(
                         switchTab(tab.id)
                         host.close()
                     }
+                    tab.url?.let { url ->
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_copy_link),
+                            summary = UrlUtils.displayUrl(url)
+                        ) {
+                            copyTabUrl(url)
+                        }
+                    }
                     if (tabs.size > 1) {
                         host.addActionRow(
                             parent = section,
@@ -68,6 +81,14 @@ class BrowserTabsPage(
                 }
             }
         }
+    }
+
+    private fun copyTabUrl(url: String) {
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)
+        )
+        Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
     }
 
     private fun tabSummary(tab: BrowserTab, active: Boolean): String {

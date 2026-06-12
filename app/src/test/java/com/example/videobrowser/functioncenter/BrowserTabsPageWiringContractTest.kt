@@ -47,6 +47,20 @@ class BrowserTabsPageWiringContractTest {
     }
 
     @Test
+    fun browserTabsPageCanCopyTabUrls() {
+        val tabsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserTabsPage.kt"
+        ).readText()
+
+        assertTrue(tabsPage.contains("tab.url?.let { url ->"))
+        assertTrue(tabsPage.contains("R.string.action_copy_link"))
+        assertTrue(tabsPage.contains("private fun copyTabUrl(url: String)"))
+        assertTrue(tabsPage.contains("Context.CLIPBOARD_SERVICE"))
+        assertTrue(tabsPage.contains("ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)"))
+        assertTrue(tabsPage.contains("R.string.toast_link_copied"))
+    }
+
+    @Test
     fun mainActivityPassesTabActionsIntoFunctionCenter() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
