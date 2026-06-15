@@ -35,6 +35,29 @@ class BrowserControlsControllerContractTest {
         assertTrue(readme.contains("加载中可停止加载"))
     }
 
+    @Test
+    fun backButtonUsesUnifiedActivityBackNavigation() {
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserControlsController.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(controller.contains("private val onBack: () -> Unit"))
+        assertTrue(controller.contains("backButton.setOnClickListener { onBack() }"))
+        assertTrue(controller.contains("backButton.isEnabled = visibility.showBack"))
+        assertTrue(mainActivity.contains("onBack = ::handleBrowserBack"))
+        assertTrue(mainActivity.contains("override fun handleOnBackPressed()"))
+        assertTrue(mainActivity.contains("private fun handleBrowserBack()"))
+        assertTrue(mainActivity.contains("currentBrowserManager().goBack()"))
+        assertTrue(mainActivity.contains("private fun confirmExitOnSecondBack()"))
+        assertTrue(mainActivity.contains("BACK_EXIT_CONFIRM_WINDOW_MS"))
+        assertTrue(mainActivity.contains("SystemClock.elapsedRealtime()"))
+        assertTrue(mainActivity.contains("R.string.toast_press_back_again_to_exit"))
+        assertTrue(strings.contains("toast_press_back_again_to_exit"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

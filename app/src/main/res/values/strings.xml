@@ -528,6 +528,7 @@
     <string name="toast_download_file_unavailable">无法打开下载文件</string>
     <string name="toast_file_chooser_unavailable">没有可用的文件选择器</string>
     <string name="toast_find_query_empty">请输入要查找的文字</string>
+    <string name="toast_press_back_again_to_exit">再按一次退出浏览器</string>
     <string name="toast_local_folder_unavailable">无法访问该目录，请重新选择文件夹</string>
     <string name="toast_local_file_operation_failed">文件操作失败</string>
     <string name="toast_local_file_created">已创建</string>

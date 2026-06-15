@@ -15,6 +15,7 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Message
+import android.os.SystemClock
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.security.KeyChain
@@ -273,6 +274,7 @@ class MainActivity : AppCompatActivity() {
     private var pendingHttpAuthDialog: AlertDialog? = null
 
     private var privateBrowsingActive = false
+    private var lastBackExitPromptElapsedRealtime = 0L
     private val isHomePageVisible: Boolean
         get() = currentSessionController().isHomePageVisible
     private val isVideoFullscreenUiActive: Boolean
@@ -426,6 +428,7 @@ class MainActivity : AppCompatActivity() {
             isHomePageVisible = { isHomePageVisible },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             onLoadAddress = ::loadAddressInput,
+            onBack = ::handleBrowserBack,
             onOpenWenxin = ::openWenxinPage,
             onShowFunctionCenter = ::showFunctionCenter,
             onShowProfilePage = ::showProfilePage,
@@ -846,7 +849,10 @@ class MainActivity : AppCompatActivity() {
     private fun setupBrowserClient() {
         currentBrowserManager().setBrowserClient(
             BrowserClient(
-                pageStarted = { url -> currentSessionController().handlePageStarted(url) },
+                pageStarted = { url ->
+                    resetBackExitConfirmation()
+                    currentSessionController().handlePageStarted(url)
+                },
                 pageFinished = { url -> currentSessionController().handlePageFinished(url) },
                 pageLoadFailed = ::showBrowserErrorPage,
                 requestIntercepted = ::interceptBrowserRequest,
@@ -1598,26 +1604,60 @@ class MainActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (handleFunctionCenterBack()) {
-                        return
-                    } else if (elementPickerController.isActive) {
-                        elementPickerController.cancel()
-                    } else if (areChromeClientsInitialized() && currentChromeClient().isShowingCustomView()) {
-                        currentChromeClient().hideCustomView()
-                    } else if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
-                        currentBrowserManager().evaluateJavascript(
-                            WebViewVideoCommand.ExitFullscreen.toJavascript()
-                        )
-                        currentChromeClient().exitPageFullscreen()
-                    } else if (currentBrowserManager().goBack()) {
-                        updateNavigationButtons()
-                    } else {
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
-                    }
+                    handleBrowserBack()
                 }
             }
         )
+    }
+
+    private fun handleBrowserBack() {
+        if (handleFunctionCenterBack()) {
+            resetBackExitConfirmation()
+            return
+        }
+        if (elementPickerController.isActive) {
+            elementPickerController.cancel()
+            resetBackExitConfirmation()
+            return
+        }
+        if (areChromeClientsInitialized() && currentChromeClient().isShowingCustomView()) {
+            currentChromeClient().hideCustomView()
+            resetBackExitConfirmation()
+            return
+        }
+        if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
+            currentBrowserManager().evaluateJavascript(
+                WebViewVideoCommand.ExitFullscreen.toJavascript()
+            )
+            currentChromeClient().exitPageFullscreen()
+            resetBackExitConfirmation()
+            return
+        }
+        if (currentBrowserManager().goBack()) {
+            updateNavigationButtons()
+            resetBackExitConfirmation()
+            return
+        }
+
+        confirmExitOnSecondBack()
+    }
+
+    private fun confirmExitOnSecondBack() {
+        val now = SystemClock.elapsedRealtime()
+        if (lastBackExitPromptElapsedRealtime != 0L &&
+            now - lastBackExitPromptElapsedRealtime <= BACK_EXIT_CONFIRM_WINDOW_MS
+        ) {
+            resetBackExitConfirmation()
+            finish()
+            return
+        }
+
+        lastBackExitPromptElapsedRealtime = now
+        Toast.makeText(this, R.string.toast_press_back_again_to_exit, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun resetBackExitConfirmation() {
+        lastBackExitPromptElapsedRealtime = 0L
     }
 
     private fun createNativeBridge(): VideoBrowserNativeBridge {
@@ -2787,6 +2827,7 @@ class MainActivity : AppCompatActivity() {
         private const val PAGE_ARCHIVE_TEMP_DIR_NAME = "page-archives"
         private const val PAGE_ARCHIVE_TEMP_FILE_NAME = "current-page.mhtml"
         private const val MAX_PRINT_JOB_TITLE_LENGTH = 80
+        private const val BACK_EXIT_CONFIRM_WINDOW_MS = 2000L
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +

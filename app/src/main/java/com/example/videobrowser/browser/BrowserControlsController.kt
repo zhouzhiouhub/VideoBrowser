@@ -33,6 +33,7 @@ class BrowserControlsController(
     private val isHomePageVisible: () -> Boolean,
     private val isVideoFullscreenUiActive: () -> Boolean,
     private val onLoadAddress: () -> Unit,
+    private val onBack: () -> Unit,
     private val onOpenWenxin: () -> Unit,
     private val onShowFunctionCenter: () -> Unit,
     private val onShowProfilePage: () -> Unit,
@@ -74,10 +75,7 @@ class BrowserControlsController(
         }
 
         loadButton.setOnClickListener { onLoadAddress() }
-        backButton.setOnClickListener {
-            browserManager().goBack()
-            updateNavigationButtons()
-        }
+        backButton.setOnClickListener { onBack() }
         refreshButton.setOnClickListener {
             if (isPageLoading) {
                 browserManager().stopLoading()
@@ -121,10 +119,9 @@ class BrowserControlsController(
     }
 
     fun updateNavigationButtons() {
-        val canGoBack = browserManager().canGoBack()
         val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible())
-        backButton.isEnabled = canGoBack
-        backButton.alpha = if (canGoBack) 1f else 0.38f
+        backButton.isEnabled = visibility.showBack
+        backButton.alpha = if (visibility.showBack) 1f else 0.38f
         backButton.visibility = if (visibility.showBack) View.VISIBLE else View.GONE
         pageToolsButton.visibility = if (visibility.showPageTools) View.VISIBLE else View.GONE
         refreshButton.visibility = if (visibility.showRefresh) View.VISIBLE else View.GONE
