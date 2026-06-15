@@ -20,6 +20,7 @@ class FunctionCenterRootActionCatalogTest {
                 "TABS",
                 "HOME",
                 "SHARE_PAGE",
+                "SAVE_PAGE_ARCHIVE",
                 "PRINT_PAGE",
                 "REFRESH",
                 "DESKTOP_MODE",

@@ -164,6 +164,8 @@
     <string name="action_find_in_page_summary">在当前网页中搜索文字</string>
     <string name="action_share_page">分享页面</string>
     <string name="action_share_page_summary">用系统分享面板发送当前页面</string>
+    <string name="action_save_page_archive">保存网页</string>
+    <string name="action_save_page_archive_summary">保存为可离线查看的 MHTML 文件</string>
     <string name="action_print_page">打印页面</string>
     <string name="action_print_page_summary">使用系统打印服务，或另存为 PDF</string>
     <string name="action_open_external">系统浏览器打开</string>
@@ -468,6 +470,9 @@
     <string name="toast_saved_page_title_invalid">标题不能为空</string>
     <string name="toast_link_copied">链接已复制</string>
     <string name="toast_print_page_unavailable">无法打开打印服务</string>
+    <string name="toast_page_archive_saved">已保存网页归档</string>
+    <string name="toast_page_archive_failed">无法保存网页归档</string>
+    <string name="toast_page_archive_unavailable">当前没有可保存的网页</string>
     <string name="toast_default_settings_restored">已恢复默认设置</string>
     <string name="toast_home_page_updated">已更新主页</string>
     <string name="toast_home_page_invalid">请输入 http/https 网址</string>

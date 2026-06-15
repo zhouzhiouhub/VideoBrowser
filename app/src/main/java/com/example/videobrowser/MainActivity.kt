@@ -73,6 +73,7 @@ import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.PageActionsController
+import com.example.videobrowser.browser.PageArchiveFileName
 import com.example.videobrowser.browser.SiteSecurityStatus
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
@@ -112,6 +113,7 @@ import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebViewVideoCommand
+import java.io.File
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.PrivateKey
@@ -221,6 +223,16 @@ class MainActivity : AppCompatActivity() {
             if (uri != null) {
                 importBookmarksFromUri(uri)
             }
+        }
+    private var pendingPageArchiveFile: File? = null
+    private val pageArchiveExportLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument(PAGE_ARCHIVE_MIME_TYPE)) { uri ->
+            val archiveFile = pendingPageArchiveFile
+            pendingPageArchiveFile = null
+            if (uri != null && archiveFile != null) {
+                exportPageArchiveToUri(archiveFile, uri)
+            }
+            archiveFile?.delete()
         }
     private var pendingWebPermissionRequest: PermissionRequest? = null
     private var pendingWebPermissionPromptRequest: PermissionRequest? = null
@@ -516,6 +528,7 @@ class MainActivity : AppCompatActivity() {
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
+            saveCurrentPageArchive = ::saveCurrentPageArchive,
             printCurrentPage = ::printCurrentPage,
             openCurrentUrlExternally = pageActionsController::openCurrentUrlExternally,
             findInPage = ::showFindInPageDialog,
@@ -627,6 +640,7 @@ class MainActivity : AppCompatActivity() {
         cancelPendingGeolocationPermissionPrompt()
         cancelPendingHttpAuthRequest()
         cancelPendingClientCertRequest()
+        clearPendingPageArchive()
         if (::addressSuggestionController.isInitialized) {
             addressSuggestionController.dispose()
         }
@@ -1715,6 +1729,70 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveCurrentPageArchive() {
+        val pageUrl = currentActionableUrl()
+        if (pageUrl == null) {
+            Toast.makeText(this, R.string.toast_page_archive_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val archiveDirectory = File(cacheDir, PAGE_ARCHIVE_TEMP_DIR_NAME).apply {
+            mkdirs()
+        }
+        val archiveFile = File(archiveDirectory, PAGE_ARCHIVE_TEMP_FILE_NAME)
+        clearPendingPageArchive()
+        archiveFile.delete()
+
+        currentBrowserManager().activeWebView.saveWebArchive(
+            archiveFile.absolutePath,
+            false
+        ) { savedPath ->
+            val savedFile = savedPath
+                ?.let(::File)
+                ?.takeIf { file -> file.isFile }
+            if (savedFile == null) {
+                archiveFile.delete()
+                Toast.makeText(this, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
+                return@saveWebArchive
+            }
+
+            pendingPageArchiveFile = savedFile
+            runCatching {
+                pageArchiveExportLauncher.launch(currentPageArchiveFileName(pageUrl))
+            }.onFailure {
+                clearPendingPageArchive()
+                Toast.makeText(this, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun currentPageArchiveFileName(pageUrl: String): String {
+        return PageArchiveFileName.create(
+            pageTitle = currentSessionController().currentPageTitle,
+            pageUrl = pageUrl,
+            fallbackName = getString(R.string.app_name)
+        )
+    }
+
+    private fun exportPageArchiveToUri(archiveFile: File, uri: Uri) {
+        runCatching {
+            contentResolver.openOutputStream(uri)?.use { output ->
+                archiveFile.inputStream().use { input ->
+                    input.copyTo(output)
+                }
+            } ?: error("Unable to open page archive export target")
+        }.onSuccess {
+            Toast.makeText(this, R.string.toast_page_archive_saved, Toast.LENGTH_SHORT).show()
+        }.onFailure {
+            Toast.makeText(this, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun clearPendingPageArchive() {
+        pendingPageArchiveFile?.delete()
+        pendingPageArchiveFile = null
+    }
+
     private fun printCurrentPage() {
         val pageUrl = currentActionableUrl()
         if (pageUrl == null) {
@@ -2732,6 +2810,9 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
         private const val BOOKMARK_EXPORT_FILE_NAME = "videobrowser-bookmarks.txt"
+        private const val PAGE_ARCHIVE_MIME_TYPE = "multipart/related"
+        private const val PAGE_ARCHIVE_TEMP_DIR_NAME = "page-archives"
+        private const val PAGE_ARCHIVE_TEMP_FILE_NAME = "current-page.mhtml"
         private const val MAX_PRINT_JOB_TITLE_LENGTH = 80
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private const val DESKTOP_USER_AGENT =

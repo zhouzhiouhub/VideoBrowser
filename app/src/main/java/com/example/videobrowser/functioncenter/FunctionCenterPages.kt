@@ -51,6 +51,7 @@ class FunctionCenterPages(
     private val toggleCurrentBookmark: () -> Unit,
     private val copyCurrentUrl: () -> Unit,
     private val shareCurrentUrl: () -> Unit,
+    private val saveCurrentPageArchive: () -> Unit,
     private val printCurrentPage: () -> Unit,
     private val openCurrentUrlExternally: () -> Unit,
     private val findInPage: () -> Unit,
@@ -373,6 +374,17 @@ class FunctionCenterPages(
                 }
             }
 
+            FunctionCenterRootAction.SAVE_PAGE_ARCHIVE -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_save_page_archive),
+                    summary = activity.getString(R.string.action_save_page_archive_summary),
+                    iconResId = R.drawable.ic_file_24,
+                    enabled = hasPage
+                ) {
+                    runPageAction(saveCurrentPageArchive)
+                }
+            }
+
             FunctionCenterRootAction.PRINT_PAGE -> {
                 FunctionCenterGridAction(
                     title = activity.getString(R.string.action_print_page),
@@ -652,6 +664,14 @@ class FunctionCenterPages(
                         enabled = hasPage
                     ) {
                         runPageAction(shareCurrentUrl)
+                    },
+                    FunctionCenterGridAction(
+                        title = activity.getString(R.string.action_save_page_archive),
+                        summary = activity.getString(R.string.action_save_page_archive_summary),
+                        iconResId = R.drawable.ic_file_24,
+                        enabled = hasPage
+                    ) {
+                        runPageAction(saveCurrentPageArchive)
                     },
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_print_page),
