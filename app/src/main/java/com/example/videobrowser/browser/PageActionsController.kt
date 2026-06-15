@@ -43,6 +43,7 @@ class PageActionsController(
         subtitleCandidates: List<ExternalSubtitleCandidate>,
         playbackQueue: PlaybackQueue?
     ) -> Unit,
+    private val openLocalArchiveInBrowser: (String) -> Unit,
     private val openExternalUrl: (String) -> Unit,
     private val isPrivateBrowsingEnabled: () -> Boolean,
     private val switchPrivateBrowsing: (Boolean) -> Unit,
@@ -61,6 +62,10 @@ class PageActionsController(
     ) {
         val resolvedMimeType = mimeType ?: activity.contentResolver.getType(uri)
         val title = displayName ?: localDisplayName(uri)
+        if (LocalWebArchivePolicy.isWebArchive(title, resolvedMimeType)) {
+            openLocalArchiveInBrowser(uri.toString())
+            return
+        }
         val mediaDecision = MediaRoutingController.route(
             MediaRouteRequest(
                 source = MediaRouteSource.LOCAL_DOCUMENT,

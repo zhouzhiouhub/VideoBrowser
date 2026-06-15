@@ -399,6 +399,7 @@ class MainActivity : AppCompatActivity() {
                     playbackQueue = playbackQueue
                 )
             },
+            openLocalArchiveInBrowser = ::loadLocalDocumentUrlInBrowser,
             openExternalUrl = ::openExternalUrl,
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
             switchPrivateBrowsing = ::setPrivateBrowsingActive,
@@ -1854,6 +1855,15 @@ class MainActivity : AppCompatActivity() {
             subtitleCandidates,
             playbackQueue
         )
+    }
+
+    private fun loadLocalDocumentUrlInBrowser(url: String) {
+        closeFunctionCenter()
+        currentSessionController().currentPageUrl = url
+        updateAddressBar(url)
+        hideKeyboard()
+        showHomeContent(false)
+        currentBrowserManager().load(url)
     }
 
     private fun openPlaybackHistoryItem(progress: PlaybackProgress) {
