@@ -32,6 +32,7 @@
     <string name="address_suggestion_history">历史记录：%1$s</string>
     <string name="address_suggestion_keyword">搜索建议：%1$s</string>
     <string name="action_open_custom_shortcut">打开 %1$s</string>
+    <string name="action_open_recent_site">打开最近访问：%1$s</string>
     <string name="action_add_custom_shortcut">添加快捷入口</string>
     <string name="title_add_custom_shortcut">添加快捷入口</string>
     <string name="title_edit_custom_shortcut">编辑快捷入口</string>

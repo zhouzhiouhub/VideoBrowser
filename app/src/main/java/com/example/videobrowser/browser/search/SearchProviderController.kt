@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
 
 class SearchProviderController(
@@ -31,6 +32,7 @@ class SearchProviderController(
     private val addressInput: EditText,
     private val addressProviderBadge: TextView,
     private val settingsManager: SettingsManager,
+    private val savedPageRepository: SavedPageRepository,
     private val dp: (Int) -> Int,
     private val isHomePageVisible: () -> Boolean,
     private val isPrivateBrowsingEnabled: () -> Boolean,
@@ -60,8 +62,17 @@ class SearchProviderController(
         providers.forEach { provider ->
             addProviderItem(provider)
         }
-        settingsManager.customShortcuts().forEach { shortcut ->
+        val customShortcuts = settingsManager.customShortcuts()
+        customShortcuts.forEach { shortcut ->
             addCustomShortcutItem(shortcut)
+        }
+        if (!isPrivateBrowsingEnabled()) {
+            HomeQuickLinkBuilder.fromHistory(
+                history = savedPageRepository.history(),
+                excludedUrls = homeQuickLinkExcludedUrls(customShortcuts)
+            ).forEach { quickLink ->
+                addRecentHistoryItem(quickLink)
+            }
         }
         addAddShortcutItem()
 
@@ -139,6 +150,13 @@ class SearchProviderController(
         providerList.addView(item, providerItemLayoutParams())
     }
 
+    private fun addRecentHistoryItem(quickLink: HomeQuickLink) {
+        val item = createRecentHistoryItem(quickLink)
+        item.addView(createRecentHistoryBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
+        item.addView(createCustomShortcutLabel(quickLink.title))
+        providerList.addView(item, providerItemLayoutParams())
+    }
+
     private fun addAddShortcutItem() {
         val item = createAddShortcutItem()
         item.addView(createAddShortcutBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
@@ -182,6 +200,22 @@ class SearchProviderController(
         }
     }
 
+    private fun createRecentHistoryItem(quickLink: HomeQuickLink): LinearLayout {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            contentDescription = activity.getString(
+                R.string.action_open_recent_site,
+                quickLink.title
+            )
+            setPadding(dp(4), 0, dp(4), 0)
+            setBoundedSelectableItemBackground()
+            setOnClickListener { openCustomShortcut(quickLink.url) }
+        }
+    }
+
     private fun createAddShortcutItem(): LinearLayout {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -192,6 +226,17 @@ class SearchProviderController(
             setPadding(dp(4), 0, dp(4), 0)
             setBoundedSelectableItemBackground()
             setOnClickListener { showAddShortcutDialog() }
+        }
+    }
+
+    private fun createRecentHistoryBadge(): ImageView {
+        return ImageView(activity).apply {
+            setImageResource(R.drawable.ic_history_24)
+            setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
+            background = createCircleBackground(
+                ContextCompat.getColor(activity, R.color.browser_provider_circle)
+            )
+            setPadding(dp(12), dp(12), dp(12), dp(12))
         }
     }
 
@@ -460,6 +505,12 @@ class SearchProviderController(
 
     private fun shortcutBadgeText(name: String): String {
         return name.trim().take(2).ifBlank { "+" }
+    }
+
+    private fun homeQuickLinkExcludedUrls(customShortcuts: List<CustomShortcut>): List<String> {
+        return customShortcuts.map { shortcut -> shortcut.url } +
+            providers.map { provider -> provider.homeUrl } +
+            settingsManager.homeUrlOr(selectedProvider.homeUrl)
     }
 
     private fun View.setBoundedSelectableItemBackground() {

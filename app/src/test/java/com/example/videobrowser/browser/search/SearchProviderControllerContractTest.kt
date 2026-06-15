@@ -43,6 +43,35 @@ class SearchProviderControllerContractTest {
         assertTrue(readme.contains("首页快捷入口可长按编辑或移除"))
     }
 
+    @Test
+    fun startPageShowsRecentHistoryQuickLinksOutsidePrivateMode() {
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
+        ).readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val quickLinkBuilder = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/HomeQuickLinkBuilder.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+        val readme = projectFile("README.md").readText()
+
+        assertTrue(controller.contains("savedPageRepository: SavedPageRepository"))
+        assertTrue(controller.contains("if (!isPrivateBrowsingEnabled())"))
+        assertTrue(controller.contains("HomeQuickLinkBuilder.fromHistory("))
+        assertTrue(controller.contains("history = savedPageRepository.history()"))
+        assertTrue(controller.contains("excludedUrls = homeQuickLinkExcludedUrls(customShortcuts)"))
+        assertTrue(controller.contains("private fun addRecentHistoryItem(quickLink: HomeQuickLink)"))
+        assertTrue(controller.contains("private fun createRecentHistoryItem(quickLink: HomeQuickLink)"))
+        assertTrue(controller.contains("R.string.action_open_recent_site"))
+        assertTrue(controller.contains("R.drawable.ic_history_24"))
+        assertTrue(mainActivity.contains("savedPageRepository = savedPageRepository"))
+        assertTrue(quickLinkBuilder.contains("object HomeQuickLinkBuilder"))
+        assertTrue(quickLinkBuilder.contains("excludedUrls: Collection<String>"))
+        assertTrue(strings.contains("action_open_recent_site"))
+        assertTrue(readme.contains("首页会从浏览历史生成最近访问入口"))
+    }
+
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

@@ -305,6 +305,7 @@ class MainActivity : AppCompatActivity() {
             addressInput = addressInput,
             addressProviderBadge = views.addressProviderBadge,
             settingsManager = settingsManager,
+            savedPageRepository = savedPageRepository,
             dp = ::dp,
             isHomePageVisible = { isHomePageVisible },
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
