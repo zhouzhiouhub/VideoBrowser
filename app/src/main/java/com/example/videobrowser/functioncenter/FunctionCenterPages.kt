@@ -49,6 +49,7 @@ class FunctionCenterPages(
     private val closeAllTabs: () -> Unit,
     private val duplicateTab: (Long) -> Unit,
     private val toggleCurrentBookmark: () -> Unit,
+    private val setCurrentPageAsHomePage: () -> Unit,
     private val copyCurrentUrl: () -> Unit,
     private val shareCurrentUrl: () -> Unit,
     private val saveCurrentPageArchive: () -> Unit,
@@ -609,14 +610,22 @@ class FunctionCenterPages(
             activity.getString(R.string.function_center_section_page_actions)
         ) { section ->
             val actions = mutableListOf(
-                    FunctionCenterGridAction(
-                        title = bookmarkTitle,
-                        summary = pageSummary,
-                        iconResId = R.drawable.ic_star_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(toggleCurrentBookmark)
-                    },
+                FunctionCenterGridAction(
+                    title = bookmarkTitle,
+                    summary = pageSummary,
+                    iconResId = R.drawable.ic_star_24,
+                    enabled = hasPage
+                ) {
+                    runPageAction(toggleCurrentBookmark)
+                },
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_set_current_page_as_home),
+                    summary = activity.getString(R.string.action_set_current_page_as_home_summary),
+                    iconResId = R.drawable.ic_home_24,
+                    enabled = hasPage
+                ) {
+                    runPageAction(setCurrentPageAsHomePage)
+                },
             )
             if (!isPrivateBrowsingEnabled()) {
                 actions.add(

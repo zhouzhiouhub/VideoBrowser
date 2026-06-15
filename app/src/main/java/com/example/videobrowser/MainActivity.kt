@@ -527,6 +527,7 @@ class MainActivity : AppCompatActivity() {
             closeAllTabs = ::closeAllTabs,
             duplicateTab = ::duplicateTab,
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
+            setCurrentPageAsHomePage = pageActionsController::setCurrentPageAsHomePage,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
             saveCurrentPageArchive = ::saveCurrentPageArchive,

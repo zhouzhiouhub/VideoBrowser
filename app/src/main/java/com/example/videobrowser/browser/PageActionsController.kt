@@ -151,6 +151,19 @@ class PageActionsController(
         openExternalUrl(url)
     }
 
+    fun setCurrentPageAsHomePage() {
+        val url = currentShareableUrl() ?: run {
+            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!settingsManager.isValidHomeUrl(url)) {
+            Toast.makeText(activity, R.string.toast_home_page_invalid, Toast.LENGTH_SHORT).show()
+            return
+        }
+        settingsManager.setHomeUrl(url)
+        Toast.makeText(activity, R.string.toast_home_page_updated, Toast.LENGTH_SHORT).show()
+    }
+
     fun openCurrentUrlInNativePlayer() {
         val url = currentShareableUrl() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
