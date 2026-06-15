@@ -37,12 +37,15 @@
     <string name="title_add_custom_shortcut">添加快捷入口</string>
     <string name="title_edit_custom_shortcut">编辑快捷入口</string>
     <string name="title_remove_custom_shortcut">移除快捷入口</string>
+    <string name="title_remove_recent_site">移除最近访问</string>
     <string name="hint_custom_shortcut_name">名称</string>
     <string name="hint_custom_shortcut_url">https://example.com</string>
     <string name="dialog_remove_custom_shortcut_message">移除快捷入口“%1$s”？</string>
+    <string name="dialog_remove_recent_site_message">从最近访问移除“%1$s”？</string>
     <string name="toast_custom_shortcut_added">已添加快捷入口</string>
     <string name="toast_custom_shortcut_updated">已更新快捷入口</string>
     <string name="toast_custom_shortcut_removed">已移除快捷入口</string>
+    <string name="toast_recent_site_removed">已移除最近访问</string>
     <string name="toast_custom_shortcut_invalid">请输入名称和 http/https 网址</string>
     <string name="toast_uc_download_unavailable">UC 浏览器下载链接已失效，请使用搜索结果中的最新地址</string>
     <string name="title_function_center">功能</string>

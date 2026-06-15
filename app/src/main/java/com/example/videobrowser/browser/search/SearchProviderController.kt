@@ -213,6 +213,10 @@ class SearchProviderController(
             setPadding(dp(4), 0, dp(4), 0)
             setBoundedSelectableItemBackground()
             setOnClickListener { openCustomShortcut(quickLink.url) }
+            setOnLongClickListener {
+                showRemoveRecentHistoryDialog(quickLink)
+                true
+            }
         }
     }
 
@@ -491,6 +495,33 @@ class SearchProviderController(
                     Toast.makeText(
                         activity,
                         R.string.toast_custom_shortcut_removed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.title_remove_recent_site)
+            .setMessage(
+                activity.getString(
+                    R.string.dialog_remove_recent_site_message,
+                    quickLink.title
+                )
+            )
+            .setPositiveButton(R.string.action_remove) { _, _ ->
+                val removed = savedPageRepository.remove(
+                    SavedPageRepository.SavedPageCollection.HISTORY,
+                    quickLink.url
+                )
+                if (removed) {
+                    setup()
+                    Toast.makeText(
+                        activity,
+                        R.string.toast_recent_site_removed,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
