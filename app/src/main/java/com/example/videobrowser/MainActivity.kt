@@ -2744,37 +2744,10 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         view?.stopLoading()
-        showExternalProtocolConfirmation(uri)
-        return true
-    }
-
-    private fun showExternalProtocolConfirmation(uri: Uri) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_external_protocol_request)
-            .setMessage(
-                getString(
-                    R.string.dialog_external_protocol_request_message,
-                    externalProtocolDisplay(uri)
-                )
-            )
-            .setPositiveButton(R.string.action_open_external_app) { _, _ ->
-                openConfirmedExternalProtocol(uri)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun openConfirmedExternalProtocol(uri: Uri) {
         externalNavigator.openExternalProtocolUrl(uri.toString()) { fallbackUrl ->
             loadUrl(fallbackUrl)
         }
-    }
-
-    private fun externalProtocolDisplay(uri: Uri): String {
-        return uri.scheme
-            ?.takeIf { scheme -> scheme.isNotBlank() }
-            ?.let { scheme -> "$scheme:" }
-            ?: uri.toString()
+        return true
     }
 
     private fun isUnavailableUcDownloadUrl(uri: Uri): Boolean {

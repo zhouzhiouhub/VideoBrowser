@@ -1,29 +1,28 @@
 package com.example.videobrowser.browser
 
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ExternalProtocolWiringContractTest {
     @Test
-    fun mainActivityRoutesBlockedExternalSchemesToExternalNavigator() {
+    fun mainActivityRoutesExternalSchemesDirectlyToExternalNavigator() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(mainActivity.contains("private fun openExternalProtocolNavigation"))
         assertTrue(mainActivity.contains("ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)"))
-        assertTrue(mainActivity.contains("showExternalProtocolConfirmation(uri)"))
-        assertTrue(mainActivity.contains("private fun openConfirmedExternalProtocol"))
+        assertTrue(mainActivity.contains("view?.stopLoading()"))
         assertTrue(mainActivity.contains("externalNavigator.openExternalProtocolUrl(uri.toString())"))
-        assertTrue(mainActivity.contains("R.string.title_external_protocol_request"))
-        assertTrue(mainActivity.contains("R.string.dialog_external_protocol_request_message"))
-        assertTrue(mainActivity.contains("R.string.action_open_external_app"))
         assertTrue(mainActivity.contains("MediaRouteAction.BLOCK ->"))
         assertTrue(mainActivity.contains("openExternalProtocolNavigation(view, uri)"))
-        assertTrue(strings.contains("title_external_protocol_request"))
-        assertTrue(strings.contains("dialog_external_protocol_request_message"))
-        assertTrue(strings.contains("action_open_external_app"))
+        assertFalse(mainActivity.contains("showExternalProtocolConfirmation"))
+        assertFalse(mainActivity.contains("openConfirmedExternalProtocol"))
+        assertFalse(strings.contains("title_external_protocol_request"))
+        assertFalse(strings.contains("dialog_external_protocol_request_message"))
+        assertFalse(strings.contains("action_open_external_app"))
     }
 
     @Test

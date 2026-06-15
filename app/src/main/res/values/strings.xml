@@ -334,7 +334,6 @@
     <string name="action_deny">拒绝</string>
     <string name="action_leave_page">离开</string>
     <string name="action_stay_on_page">留在此页</string>
-    <string name="action_open_external_app">打开外部应用</string>
     <string name="action_add_current_site">添加当前站点</string>
     <string name="action_remove_current_site">移除当前站点</string>
     <string name="action_remove">移除</string>
@@ -370,7 +369,6 @@
     <string name="title_download_data_management">下载记录管理</string>
     <string name="title_web_permission_request">网站权限请求</string>
     <string name="title_geolocation_permission_request">位置权限请求</string>
-    <string name="title_external_protocol_request">打开外部应用？</string>
     <string name="title_javascript_dialog">网页消息</string>
     <string name="title_javascript_confirm">网页确认</string>
     <string name="title_javascript_prompt">网页输入</string>
@@ -428,7 +426,6 @@
     <string name="hint_http_auth_username">用户名</string>
     <string name="hint_http_auth_password">密码</string>
     <string name="action_http_auth_sign_in">登录</string>
-    <string name="dialog_external_protocol_request_message">网页请求通过 %1$s 打开外部应用。</string>
     <string name="dialog_site_data_empty">暂无站点数据。</string>
     <string name="dialog_site_data_search_empty">没有匹配的站点数据。</string>
     <string name="dialog_remove_site_data_message">删除 %1$s 的站点数据？</string>
