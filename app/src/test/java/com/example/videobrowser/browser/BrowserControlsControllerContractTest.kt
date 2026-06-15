@@ -28,11 +28,8 @@ class BrowserControlsControllerContractTest {
         assertTrue(controller.contains("private fun updateRefreshButton()"))
         assertTrue(controller.contains("R.string.action_stop_loading"))
         assertTrue(controller.contains("R.drawable.ic_stop_24"))
-        assertTrue(
-            controller
-                .substringAfter("BottomBarButtonArrangement.BrowsingEvenlySpaced")
-                .contains("R.id.refreshButton")
-        )
+        assertTrue(controller.contains("R.id.refreshButton"))
+        assertTrue(controller.contains("bottomBar.findViewById<View>(id).visibility == View.VISIBLE"))
         assertTrue(strings.contains("action_stop_loading"))
         assertTrue(stopIcon.contains("M6,6H18V18H6Z"))
         assertTrue(readme.contains("加载中可停止加载"))

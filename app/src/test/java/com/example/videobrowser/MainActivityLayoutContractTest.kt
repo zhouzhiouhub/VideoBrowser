@@ -224,18 +224,24 @@ class MainActivityLayoutContractTest {
     }
 
     @Test
-    fun homeBottomBarActionsCenterInSeparateHalves() {
+    fun bottomBarActionsUseOneFullWidthSpreadChain() {
         val layout = activityMainLayout()
         val bottomBar = layout.elementById("bottomBar")
-        val centerGuide = layout.elementById("bottomBarCenterGuide")
+        val backAction = layout.elementById("backButton")
+        val pageToolsAction = layout.elementById("pageToolsButton")
+        val refreshAction = layout.elementById("refreshButton")
         val wenxinAction = layout.elementById("wenxinButton")
         val profileAction = layout.elementById("profileButton")
 
         assertEquals("androidx.constraintlayout.widget.ConstraintLayout", bottomBar.tagName)
-        assertEquals("vertical", centerGuide.androidAttribute("orientation"))
-        assertEquals("0.5", centerGuide.appAttribute("layout_constraintGuide_percent"))
-        assertEquals("@id/bottomBarCenterGuide", wenxinAction.appAttribute("layout_constraintEnd_toStartOf"))
-        assertEquals("@id/bottomBarCenterGuide", profileAction.appAttribute("layout_constraintStart_toEndOf"))
+        assertFalse(layout.hasElementById("bottomBarCenterGuide"))
+        assertEquals("parent", backAction.appAttribute("layout_constraintStart_toStartOf"))
+        assertEquals("@id/pageToolsButton", backAction.appAttribute("layout_constraintEnd_toStartOf"))
+        assertEquals("spread", backAction.appAttribute("layout_constraintHorizontal_chainStyle"))
+        assertEquals("@id/refreshButton", pageToolsAction.appAttribute("layout_constraintEnd_toStartOf"))
+        assertEquals("@id/wenxinButton", refreshAction.appAttribute("layout_constraintEnd_toStartOf"))
+        assertEquals("@id/profileButton", wenxinAction.appAttribute("layout_constraintEnd_toStartOf"))
+        assertEquals("@id/wenxinButton", profileAction.appAttribute("layout_constraintStart_toEndOf"))
         assertEquals("parent", profileAction.appAttribute("layout_constraintEnd_toEndOf"))
     }
 
@@ -246,6 +252,14 @@ class MainActivityLayoutContractTest {
     }
 
     private fun Document.elementById(id: String): Element {
+        return findElementById(id) ?: error("Missing view with id $id")
+    }
+
+    private fun Document.hasElementById(id: String): Boolean {
+        return findElementById(id) != null
+    }
+
+    private fun Document.findElementById(id: String): Element? {
         val nodes = getElementsByTagName("*")
         for (index in 0 until nodes.length) {
             val element = nodes.item(index) as? Element ?: continue
@@ -255,7 +269,7 @@ class MainActivityLayoutContractTest {
             }
         }
 
-        error("Missing view with id $id")
+        return null
     }
 
     private fun Element.hasAndroidAttribute(name: String): Boolean {

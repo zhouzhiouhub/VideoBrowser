@@ -198,13 +198,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/bottomBarCenterGuide"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.5" />
-
         <ImageButton
             android:id="@+id/backButton"
             android:layout_width="48dp"
@@ -220,7 +213,7 @@
             android:tint="@color/bottom_nav_icon"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/pageToolsButton"
-            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_chainStyle="spread"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -254,7 +247,7 @@
             android:src="@drawable/ic_wenxin_wave_24"
             android:tint="@color/bottom_nav_icon"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/bottomBarCenterGuide"
+            app:layout_constraintEnd_toStartOf="@id/profileButton"
             app:layout_constraintStart_toEndOf="@id/refreshButton"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -272,7 +265,7 @@
             android:tint="@color/bottom_nav_icon"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/bottomBarCenterGuide"
+            app:layout_constraintStart_toEndOf="@id/wenxinButton"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton

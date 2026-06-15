@@ -154,48 +154,22 @@ class BrowserControlsController(
             constraints.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
         }
 
-        when (arrangement) {
-            BottomBarButtonArrangement.HomeSplit -> {
-                constraints.connectHorizontalChain(
-                    startId = ConstraintSet.PARENT_ID,
-                    startSide = ConstraintSet.START,
-                    endId = R.id.bottomBarCenterGuide,
-                    endSide = ConstraintSet.START,
-                    chainIds = intArrayOf(
-                        R.id.backButton,
-                        R.id.pageToolsButton,
-                        R.id.refreshButton,
-                        R.id.wenxinButton
-                    ),
-                    chainStyle = ConstraintSet.CHAIN_PACKED
-                )
-                constraints.connect(
-                    R.id.profileButton,
-                    ConstraintSet.START,
-                    R.id.bottomBarCenterGuide,
-                    ConstraintSet.END
-                )
-                constraints.connect(
-                    R.id.profileButton,
-                    ConstraintSet.END,
-                    ConstraintSet.PARENT_ID,
-                    ConstraintSet.END
-                )
-            }
+        val visibleActionIds = actionIds
+            .filter { id -> bottomBar.findViewById<View>(id).visibility == View.VISIBLE }
+            .toIntArray()
 
-            BottomBarButtonArrangement.BrowsingEvenlySpaced -> {
+        when (arrangement) {
+            BottomBarButtonArrangement.VisibleActionsEvenlySpaced -> {
+                if (visibleActionIds.isEmpty()) {
+                    constraints.applyTo(bottomBar)
+                    return
+                }
                 constraints.connectHorizontalChain(
                     startId = ConstraintSet.PARENT_ID,
                     startSide = ConstraintSet.START,
                     endId = ConstraintSet.PARENT_ID,
                     endSide = ConstraintSet.END,
-                    chainIds = intArrayOf(
-                        R.id.backButton,
-                        R.id.pageToolsButton,
-                        R.id.refreshButton,
-                        R.id.wenxinButton,
-                        R.id.profileButton
-                    ),
+                    chainIds = visibleActionIds,
                     chainStyle = ConstraintSet.CHAIN_SPREAD
                 )
             }
