@@ -223,10 +223,6 @@ class FullscreenVideoGestureOverlay(
             return false
         }
 
-        if (event.isWakeControlsAction()) {
-            notifyUserInteraction()
-        }
-
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             touchStartedOnControl = isControlPoint(event.x, event.y)
             touchStartedInBottomPassthrough =
@@ -246,6 +242,10 @@ class FullscreenVideoGestureOverlay(
                 touchStartedInBottomPassthrough = false
             }
             return false
+        }
+
+        if (event.isWakeControlsAction()) {
+            notifyUserInteraction()
         }
 
         if (locked) {

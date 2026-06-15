@@ -34,6 +34,25 @@ class VideoDiagnosticsContractTest {
     }
 
     @Test
+    fun fullscreenGestureOverlayLetsBottomProgressTouchesPassThroughBeforeWakingControls() {
+        val source = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
+        ).readText()
+        val dispatchBody = functionBody(
+            source,
+            "override fun dispatchTouchEvent(event: MotionEvent): Boolean"
+        )
+
+        val bottomPassthroughIndex = dispatchBody.indexOf("if (touchStartedInBottomPassthrough)")
+        val wakeControlsIndex = dispatchBody.indexOf("if (event.isWakeControlsAction())")
+
+        assertTrue(bottomPassthroughIndex >= 0)
+        assertTrue(wakeControlsIndex >= 0)
+        assertTrue(bottomPassthroughIndex < wakeControlsIndex)
+        assertTrue(dispatchBody.substring(bottomPassthroughIndex, wakeControlsIndex).contains("return false"))
+    }
+
+    @Test
     fun nativePlayerAppliesDefaultEnhancementBeforePreparingAndCanRetryWithoutEffects() {
         val source = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
@@ -84,5 +103,26 @@ class VideoDiagnosticsContractTest {
             File(workingDirectory, "app/$path"),
             File(workingDirectory.parentFile, path)
         ).firstOrNull { it.exists() }
+    }
+
+    private fun functionBody(source: String, signature: String): String {
+        val start = source.indexOf(signature)
+        assertTrue("Missing $signature", start >= 0)
+        val braceStart = source.indexOf('{', start)
+        assertTrue("Missing body for $signature", braceStart >= 0)
+
+        var depth = 0
+        for (index in braceStart until source.length) {
+            when (source[index]) {
+                '{' -> depth += 1
+                '}' -> {
+                    depth -= 1
+                    if (depth == 0) {
+                        return source.substring(braceStart + 1, index)
+                    }
+                }
+            }
+        }
+        error("Unterminated function body for $signature")
     }
 }
