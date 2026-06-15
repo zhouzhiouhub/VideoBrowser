@@ -170,8 +170,6 @@
     <string name="action_save_page_archive_summary">保存为可离线查看的 MHTML 文件</string>
     <string name="action_print_page">打印页面</string>
     <string name="action_print_page_summary">使用系统打印服务，或另存为 PDF</string>
-    <string name="action_open_external">系统浏览器打开</string>
-    <string name="action_open_external_summary">把当前页面交给其他浏览器或应用</string>
     <string name="action_file_operations">文件操作</string>
     <string name="action_file_operations_summary">打开本地文件，管理已授权目录中的文件</string>
     <string name="action_site_settings">站点设置</string>
@@ -537,6 +535,7 @@
     <string name="toast_local_file_deleted">已删除</string>
     <string name="toast_local_file_name_invalid">文件名不能为空</string>
     <string name="toast_no_external_browser">没有可用的外部应用</string>
+    <string name="toast_external_app_blocked">已阻止打开其他应用</string>
     <string name="toast_client_certificate_unavailable">无法读取所选客户端证书</string>
     <string name="toast_media_url_invalid">视频地址无效</string>
     <string name="toast_media_url_unsupported">当前地址不是可识别的视频直链</string>

@@ -35,27 +35,23 @@ class ExternalProtocolWiringContractTest {
         assertTrue(navigator.contains("Intent.parseUri(url, Intent.URI_INTENT_SCHEME)"))
         assertTrue(navigator.contains("ExternalProtocolPolicy.BROWSER_FALLBACK_URL"))
         assertTrue(navigator.contains("loadFallbackUrl(fallbackUrl)"))
-        assertTrue(navigator.contains("Intent.CATEGORY_BROWSABLE"))
-        assertTrue(navigator.contains("parsedIntent.component = null"))
-        assertTrue(navigator.contains("parsedIntent.setSelector(null)"))
+        assertTrue(navigator.contains("R.string.toast_external_app_blocked"))
+        assertFalse(navigator.contains("Intent.CATEGORY_BROWSABLE"))
+        assertFalse(navigator.contains("startExternalIntent"))
+        assertFalse(navigator.contains("Intent(Intent.ACTION_VIEW"))
     }
 
     @Test
-    fun externalNavigatorOnlyOpensWebUrlsThroughGenericExternalAction() {
+    fun externalNavigatorDoesNotProvideGenericExternalBrowserLaunch() {
         val navigator = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserExternalNavigator.kt"
         ).readText()
-        val policy = projectFile(
-            "src/main/java/com/example/videobrowser/browser/ExternalProtocolPolicy.kt"
-        ).readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(navigator.contains("if (!ExternalProtocolPolicy.isWebUrl(url))"))
-        assertTrue(navigator.contains("Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply"))
-        assertTrue(navigator.contains("addCategory(Intent.CATEGORY_BROWSABLE)"))
-        assertTrue(policy.contains("URI(normalizedUrl)"))
-        assertTrue(policy.contains("uri.host.isNullOrBlank()"))
-        assertTrue(readme.contains("系统浏览器打开仅处理带主机名的 HTTP/HTTPS 页面 URL"))
+        assertFalse(navigator.contains("fun openExternalUrl"))
+        assertFalse(navigator.contains("Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply"))
+        assertFalse(navigator.contains("addCategory(Intent.CATEGORY_BROWSABLE)"))
+        assertTrue(readme.contains("不启动其他应用"))
     }
 
     private fun projectFile(path: String): File {

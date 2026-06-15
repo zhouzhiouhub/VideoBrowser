@@ -1,6 +1,7 @@
 package com.example.videobrowser.browser
 
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -24,7 +25,8 @@ class LinkContextMenuContractTest {
         assertTrue(mainActivity.contains("downloadLinkUrl(url)"))
         assertTrue(mainActivity.contains("copyLinkUrl(url)"))
         assertTrue(mainActivity.contains("shareLinkUrl(url)"))
-        assertTrue(mainActivity.contains("openExternalUrl(url)"))
+        assertFalse(mainActivity.contains("openExternalUrl(url)"))
+        assertFalse(mainActivity.contains("R.string.action_open_external"))
         assertTrue(mainActivity.contains("private fun downloadLinkUrl(url: String)"))
         assertTrue(mainActivity.contains("downloadController.enqueue("))
         assertTrue(mainActivity.contains("userAgent = currentBrowserManager().userAgentString()"))

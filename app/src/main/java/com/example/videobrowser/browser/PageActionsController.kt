@@ -44,7 +44,6 @@ class PageActionsController(
         playbackQueue: PlaybackQueue?
     ) -> Unit,
     private val openLocalArchiveInBrowser: (String) -> Unit,
-    private val openExternalUrl: (String) -> Unit,
     private val isPrivateBrowsingEnabled: () -> Boolean,
     private val switchPrivateBrowsing: (Boolean) -> Unit,
     private val updateBookmarkButton: () -> Unit,
@@ -141,14 +140,6 @@ class PageActionsController(
             putExtra(Intent.EXTRA_TEXT, url)
         }
         activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
-    }
-
-    fun openCurrentUrlExternally() {
-        val url = currentShareableUrl() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
-        openExternalUrl(url)
     }
 
     fun setCurrentPageAsHomePage() {

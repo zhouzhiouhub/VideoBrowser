@@ -54,7 +54,6 @@ class FunctionCenterPages(
     private val shareCurrentUrl: () -> Unit,
     private val saveCurrentPageArchive: () -> Unit,
     private val printCurrentPage: () -> Unit,
-    private val openCurrentUrlExternally: () -> Unit,
     private val findInPage: () -> Unit,
     private val openCurrentUrlInNativePlayer: () -> Unit,
     private val openPlaybackHistoryItem: (PlaybackProgress) -> Unit,
@@ -689,14 +688,6 @@ class FunctionCenterPages(
                         enabled = hasPage
                     ) {
                         runPageAction(printCurrentPage)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_open_external),
-                        summary = activity.getString(R.string.action_open_external_summary),
-                        iconResId = R.drawable.ic_tabs_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(openCurrentUrlExternally)
                     },
                     FunctionCenterGridAction(
                         title = activity.getString(R.string.action_download_current_url),

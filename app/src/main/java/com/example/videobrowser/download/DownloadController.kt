@@ -29,8 +29,7 @@ class DownloadController(
         mimeType: String?,
         userAgentOverride: String?,
         titleOverride: String?
-    ) -> Unit,
-    private val openExternalUrl: (String) -> Unit
+    ) -> Unit
 ) {
     private val downloadCompleteReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -220,7 +219,7 @@ class DownloadController(
         }.onSuccess {
             Toast.makeText(activity, R.string.toast_download_started, Toast.LENGTH_SHORT).show()
         }.onFailure {
-            openExternalUrl(url)
+            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

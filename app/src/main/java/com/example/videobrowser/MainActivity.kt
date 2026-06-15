@@ -368,8 +368,7 @@ class MainActivity : AppCompatActivity() {
             downloadRecordRepository = downloadRecordRepository,
             openNativePlayer = { url, mimeType, userAgentOverride, titleOverride ->
                 openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
-            },
-            openExternalUrl = ::openExternalUrl
+            }
         )
         pageActionsController = PageActionsController(
             activity = this,
@@ -400,7 +399,6 @@ class MainActivity : AppCompatActivity() {
                 )
             },
             openLocalArchiveInBrowser = ::loadLocalDocumentUrlInBrowser,
-            openExternalUrl = ::openExternalUrl,
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
             switchPrivateBrowsing = ::setPrivateBrowsingActive,
             updateBookmarkButton = ::updateBookmarkButton,
@@ -532,7 +530,6 @@ class MainActivity : AppCompatActivity() {
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
             saveCurrentPageArchive = ::saveCurrentPageArchive,
             printCurrentPage = ::printCurrentPage,
-            openCurrentUrlExternally = pageActionsController::openCurrentUrlExternally,
             findInPage = ::showFindInPageDialog,
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
             openPlaybackHistoryItem = ::openPlaybackHistoryItem,
@@ -2226,10 +2223,6 @@ class MainActivity : AppCompatActivity() {
             scheme.equals("https", ignoreCase = true)
     }
 
-    private fun openExternalUrl(url: String) {
-        externalNavigator.openExternalUrl(url)
-    }
-
     private fun configureLinkContextMenu(targetWebView: WebView) {
         targetWebView.setOnLongClickListener { view ->
             val hitTestResult = (view as? WebView)?.hitTestResult
@@ -2259,8 +2252,7 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.action_open_image_new_tab),
             getString(R.string.action_download_image),
             getString(R.string.action_copy_image_link),
-            getString(R.string.action_share_image_link),
-            getString(R.string.action_open_external)
+            getString(R.string.action_share_image_link)
         )
         AlertDialog.Builder(this)
             .setTitle(R.string.title_image_context_menu)
@@ -2270,7 +2262,6 @@ class MainActivity : AppCompatActivity() {
                     1 -> downloadImageUrl(url)
                     2 -> copyImageUrl(url)
                     3 -> shareImageUrl(url)
-                    4 -> openExternalUrl(url)
                 }
                 dialog.dismiss()
             }
@@ -2310,8 +2301,7 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.action_open_link_new_tab),
             getString(R.string.action_download_link),
             getString(R.string.action_copy_link),
-            getString(R.string.action_share_link),
-            getString(R.string.action_open_external)
+            getString(R.string.action_share_link)
         )
         AlertDialog.Builder(this)
             .setTitle(R.string.title_link_context_menu)
@@ -2321,7 +2311,6 @@ class MainActivity : AppCompatActivity() {
                     1 -> downloadLinkUrl(url)
                     2 -> copyLinkUrl(url)
                     3 -> shareLinkUrl(url)
-                    4 -> openExternalUrl(url)
                 }
                 dialog.dismiss()
             }

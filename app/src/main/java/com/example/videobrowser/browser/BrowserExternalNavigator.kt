@@ -1,6 +1,5 @@
 package com.example.videobrowser.browser
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.webkit.CookieManager
@@ -19,21 +18,6 @@ class BrowserExternalNavigator(
     private val currentShareableUrl: () -> String?,
     private val isShareableUrl: (String) -> Boolean
 ) {
-    fun openExternalUrl(url: String) {
-        if (!ExternalProtocolPolicy.isWebUrl(url)) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-            addCategory(Intent.CATEGORY_BROWSABLE)
-        }
-        try {
-            activity.startActivity(intent)
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     fun openExternalProtocolUrl(
         url: String,
         loadFallbackUrl: (String) -> Unit = {}
@@ -48,11 +32,8 @@ class BrowserExternalNavigator(
             return openIntentUri(url, loadFallbackUrl)
         }
 
-        return startExternalIntent(
-            Intent(Intent.ACTION_VIEW, uri).apply {
-                addCategory(Intent.CATEGORY_BROWSABLE)
-            }
-        )
+        Toast.makeText(activity, R.string.toast_external_app_blocked, Toast.LENGTH_SHORT).show()
+        return true
     }
 
     fun openNativePlayer(
@@ -99,55 +80,23 @@ class BrowserExternalNavigator(
         url: String,
         loadFallbackUrl: (String) -> Unit
     ): Boolean {
-        val parsedIntent = runCatching {
-            Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-        }.getOrNull()
-
-        if (parsedIntent == null) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-            return true
-        }
-
-        val fallbackUrl = parsedIntent
-            .getStringExtra(ExternalProtocolPolicy.BROWSER_FALLBACK_URL)
-            ?.takeIf(ExternalProtocolPolicy::isWebUrl)
-            ?: ExternalProtocolPolicy.fallbackUrlFromIntentUri(url)
-
-        parsedIntent.removeExtra(ExternalProtocolPolicy.BROWSER_FALLBACK_URL)
-        parsedIntent.addCategory(Intent.CATEGORY_BROWSABLE)
-        parsedIntent.component = null
-        parsedIntent.setSelector(null)
-
-        if (startExternalIntent(parsedIntent, showFailureToast = false)) {
-            return true
-        }
-
+        val fallbackUrl = browserFallbackUrlFromIntentUri(url)
         if (fallbackUrl != null) {
             loadFallbackUrl(fallbackUrl)
             return true
         }
 
-        Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
+        Toast.makeText(activity, R.string.toast_external_app_blocked, Toast.LENGTH_SHORT).show()
         return true
     }
 
-    private fun startExternalIntent(
-        intent: Intent,
-        showFailureToast: Boolean = true
-    ): Boolean {
-        return try {
-            activity.startActivity(intent)
-            true
-        } catch (_: ActivityNotFoundException) {
-            if (showFailureToast) {
-                Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-            }
-            false
-        } catch (_: SecurityException) {
-            if (showFailureToast) {
-                Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-            }
-            false
-        }
+    private fun browserFallbackUrlFromIntentUri(url: String): String? {
+        val parsedFallbackUrl = runCatching {
+            Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+        }.getOrNull()
+            ?.getStringExtra(ExternalProtocolPolicy.BROWSER_FALLBACK_URL)
+            ?.takeIf(ExternalProtocolPolicy::isWebUrl)
+
+        return parsedFallbackUrl ?: ExternalProtocolPolicy.fallbackUrlFromIntentUri(url)
     }
 }
