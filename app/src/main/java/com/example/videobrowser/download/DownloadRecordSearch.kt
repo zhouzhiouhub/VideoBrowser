@@ -10,6 +10,14 @@ package com.example.videobrowser.download
 import java.util.Locale
 
 object DownloadRecordSearch {
+    /**
+     * 函数 `filter`：封装 `filter` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param records 参数类型为 `List<DownloadRecord>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun filter(records: List<DownloadRecord>, query: String?): List<DownloadRecord> {
         val terms = query
             ?.trim()

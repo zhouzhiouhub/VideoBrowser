@@ -22,6 +22,12 @@ class UserWhitelistPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(replaceCurrent: Boolean = false) {
         val hosts = settingsManager.userWhitelistedSiteHosts().sorted()
         val currentHost = currentSiteHost()
@@ -90,6 +96,12 @@ class UserWhitelistPage(
         }
     }
 
+    /**
+     * 函数 `showRemoveUserWhitelistHostPage`：控制 `show Remove User Whitelist Host Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hostName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun showRemoveUserWhitelistHostPage(hostName: String) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_remove_user_whitelist)
@@ -108,6 +120,11 @@ class UserWhitelistPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearUserWhitelistDialog`：控制 `show Clear User Whitelist Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearUserWhitelistDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)

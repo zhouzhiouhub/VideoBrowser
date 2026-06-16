@@ -8,6 +8,13 @@ package com.example.videobrowser.version
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 object AppVersionFormatter {
+    /**
+     * 函数 `formatCommitCount`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param commitCount 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun formatCommitCount(commitCount: Int): String {
         val count = commitCount.coerceAtLeast(0)
         val major = count / 1000

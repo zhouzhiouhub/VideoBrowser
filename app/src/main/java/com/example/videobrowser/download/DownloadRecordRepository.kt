@@ -18,6 +18,12 @@ import com.example.videobrowser.storage.PreferenceStore
 class DownloadRecordRepository(
     private val preferenceStore: PreferenceStore
 ) {
+    /**
+     * 函数 `add`：封装 `add` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     fun add(record: DownloadRecord) {
         val records = records()
             .filterNot { item -> item.downloadId == record.downloadId }
@@ -26,6 +32,15 @@ class DownloadRecordRepository(
         save(records.take(RECORD_LIMIT))
     }
 
+    /**
+     * 函数 `updateStatus`：根据最新状态刷新 `update Status` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param downloadId 参数类型为 `Long`，表示函数执行 `downloadId` 相关逻辑时需要读取或处理的输入。
+     * @param status 参数类型为 `DownloadStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
+     * @param statusReason 参数类型为 `Int?`，表示函数执行 `statusReason` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun updateStatus(
         downloadId: Long,
         status: DownloadStatus,
@@ -40,6 +55,17 @@ class DownloadRecordRepository(
         )
     }
 
+    /**
+     * 函数 `updateSnapshot`：根据最新状态刷新 `update Snapshot` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param downloadId 参数类型为 `Long`，表示函数执行 `downloadId` 相关逻辑时需要读取或处理的输入。
+     * @param status 参数类型为 `DownloadStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
+     * @param statusReason 参数类型为 `Int?`，表示函数执行 `statusReason` 相关逻辑时需要读取或处理的输入。
+     * @param bytesDownloaded 参数类型为 `Long?`，表示函数执行 `bytesDownloaded` 相关逻辑时需要读取或处理的输入。
+     * @param totalBytes 参数类型为 `Long?`，表示函数执行 `totalBytes` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun updateSnapshot(
         downloadId: Long,
         status: DownloadStatus,
@@ -68,6 +94,12 @@ class DownloadRecordRepository(
         return true
     }
 
+    /**
+     * 函数 `records`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun records(): List<DownloadRecord> {
         val rawValue = preferenceStore.getString(KEY_DOWNLOAD_RECORDS, null) ?: return emptyList()
         return rawValue
@@ -76,10 +108,24 @@ class DownloadRecordRepository(
             .toList()
     }
 
+    /**
+     * 函数 `contains`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param downloadId 参数类型为 `Long`，表示函数执行 `downloadId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun contains(downloadId: Long): Boolean {
         return records().any { record -> record.downloadId == downloadId }
     }
 
+    /**
+     * 函数 `remove`：封装 `remove` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param downloadId 参数类型为 `Long`，表示函数执行 `downloadId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun remove(downloadId: Long): Boolean {
         val existingRecords = records()
         val updatedRecords = existingRecords.filterNot { record -> record.downloadId == downloadId }
@@ -90,10 +136,21 @@ class DownloadRecordRepository(
         return true
     }
 
+    /**
+     * 函数 `clear`：封装 `clear` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clear() {
         preferenceStore.remove(KEY_DOWNLOAD_RECORDS)
     }
 
+    /**
+     * 函数 `save`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param records 参数类型为 `List<DownloadRecord>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     */
     private fun save(records: List<DownloadRecord>) {
         if (records.isEmpty()) {
             preferenceStore.remove(KEY_DOWNLOAD_RECORDS)
@@ -106,6 +163,13 @@ class DownloadRecordRepository(
         )
     }
 
+    /**
+     * 函数 `parseRecord`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseRecord(line: String): DownloadRecord? {
         // 字段数量判断用于兼容旧版本记录：旧记录没有状态、原因或进度字段时仍能读取。
         val fields = splitEscaped(line)
@@ -154,6 +218,13 @@ class DownloadRecordRepository(
         )
     }
 
+    /**
+     * 函数 `encodeRecord`：封装 `encode Record` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun encodeRecord(record: DownloadRecord): String {
         return listOf(
             record.downloadId.toString(),
@@ -169,6 +240,13 @@ class DownloadRecordRepository(
         ).joinToString(separator = "\t", transform = ::escape)
     }
 
+    /**
+     * 函数 `splitEscaped`：封装 `split Escaped` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun splitEscaped(line: String): List<String> {
         val fields = mutableListOf<String>()
         val current = StringBuilder()
@@ -202,6 +280,13 @@ class DownloadRecordRepository(
         return fields
     }
 
+    /**
+     * 函数 `escape`：封装 `escape` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun escape(value: String): String {
         return buildString {
             value.forEach { char ->

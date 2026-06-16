@@ -23,6 +23,13 @@ enum class FunctionCenterDataManagementAction {
 }
 
 object FunctionCenterDataManagementActionCatalog {
+    /**
+     * 函数 `actions`：封装 `actions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param isPrivateBrowsing 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun actions(isPrivateBrowsing: Boolean): List<FunctionCenterDataManagementAction> {
         return listOfNotNull(
             FunctionCenterDataManagementAction.AD_BLOCK_LOG.takeIf { !isPrivateBrowsing },
@@ -40,6 +47,12 @@ object FunctionCenterDataManagementActionCatalog {
         )
     }
 
+    /**
+     * 函数 `profileActions`：封装 `profile Actions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun profileActions(): List<FunctionCenterDataManagementAction> {
         return listOf(FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS)
     }

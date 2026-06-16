@@ -8,6 +8,13 @@ package com.example.videobrowser.download
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 object DownloadRetryPolicy {
+    /**
+     * 函数 `canRetry`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun canRetry(record: DownloadRecord): Boolean {
         return record.status == DownloadStatus.FAILED || record.status == DownloadStatus.CANCELED
     }

@@ -60,10 +60,20 @@ class LocalFilesController(
         onDirectoryUnavailable = ::showLocalFolderUnavailableToast
     )
 
+    /**
+     * 函数 `setupLaunchers`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun setupLaunchers() {
         fileLaunchers.setup()
     }
 
+    /**
+     * 函数 `showFileOperationsPage`：控制 `show File Operations Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun showFileOperationsPage() {
         functionCenter.showPage(
             title = activity.getString(R.string.title_file_operations),
@@ -105,10 +115,21 @@ class LocalFilesController(
         }
     }
 
+    /**
+     * 函数 `showLocalFolderUnavailableToast`：控制 `show Local Folder Unavailable Toast` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showLocalFolderUnavailableToast() {
         Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `showLocalDirectoryPage`：控制 `show Local Directory Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun showLocalDirectoryPage(treeUri: Uri) {
         val rootDocumentId = documentRepository.rootDocumentId(treeUri)
 
@@ -131,6 +152,13 @@ class LocalFilesController(
         )
     }
 
+    /**
+     * 函数 `showLocalDirectoryPage`：控制 `show Local Directory Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showLocalDirectoryPage(treeUri: Uri, path: List<LocalDirectoryPathItem>) {
         // path 保存从根目录到当前目录的面包屑；进入子目录时追加，返回时 dropLast。
         val current = path.lastOrNull() ?: return showLocalDirectoryPage(treeUri)
@@ -229,6 +257,15 @@ class LocalFilesController(
         }
     }
 
+    /**
+     * 函数 `showLocalDocumentActionsPage`：控制 `show Local Document Actions Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param document 参数类型为 `LocalDocument`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
+     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @param siblingDocuments 参数类型为 `List<LocalDocument>`，表示函数执行 `siblingDocuments` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showLocalDocumentActionsPage(
         document: LocalDocument,
         treeUri: Uri,
@@ -317,6 +354,16 @@ class LocalFilesController(
         }
     }
 
+    /**
+     * 函数 `promptCreateLocalDocument`：封装 `prompt Create Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @param mimeType 参数类型为 `String`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param defaultName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param dialogTitle 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun promptCreateLocalDocument(
         treeUri: Uri,
         path: List<LocalDirectoryPathItem>,
@@ -347,6 +394,14 @@ class LocalFilesController(
         }
     }
 
+    /**
+     * 函数 `promptRenameLocalDocument`：封装 `prompt Rename Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param document 参数类型为 `LocalDocument`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
+     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     */
     private fun promptRenameLocalDocument(
         document: LocalDocument,
         treeUri: Uri,
@@ -369,6 +424,14 @@ class LocalFilesController(
         }
     }
 
+    /**
+     * 函数 `confirmDeleteLocalDocument`：封装 `confirm Delete Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param document 参数类型为 `LocalDocument`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
+     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     */
     private fun confirmDeleteLocalDocument(
         document: LocalDocument,
         treeUri: Uri,
@@ -396,6 +459,15 @@ class LocalFilesController(
             .show()
     }
 
+    /**
+     * 函数 `showNameInputDialog`：控制 `show Name Input Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param initialValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param positiveButtonText 参数类型为 `String`，表示函数执行 `positiveButtonText` 相关逻辑时需要读取或处理的输入。
+     * @param onConfirm 参数类型为 `(String) -> Unit`，表示函数执行 `onConfirm` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showNameInputDialog(
         title: String,
         initialValue: String,
@@ -425,6 +497,12 @@ class LocalFilesController(
             .show()
     }
 
+    /**
+     * 函数 `shareLocalDocument`：封装 `share Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param document 参数类型为 `LocalDocument`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
+     */
     private fun shareLocalDocument(document: LocalDocument) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = document.mimeType?.takeUnless { document.isDirectory } ?: "*/*"

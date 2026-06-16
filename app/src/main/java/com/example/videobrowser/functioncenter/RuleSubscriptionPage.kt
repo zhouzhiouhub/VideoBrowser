@@ -33,6 +33,12 @@ class RuleSubscriptionPage(
     private val cacheDirectory: File
         get() = RuleEngineFactory.ruleCacheDirectory(filesDir)
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(replaceCurrent: Boolean = false) {
         host.showPage(
             title = activity.getString(R.string.title_rule_subscriptions),
@@ -44,6 +50,12 @@ class RuleSubscriptionPage(
         }
     }
 
+    /**
+     * 函数 `addStatusSection`：封装 `add Status Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addStatusSection(parent: LinearLayout) {
         host.addFunctionSection(
             parent,
@@ -74,6 +86,12 @@ class RuleSubscriptionPage(
         }
     }
 
+    /**
+     * 函数 `addActionSection`：封装 `add Action Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addActionSection(parent: LinearLayout) {
         host.addFunctionSection(
             parent,
@@ -105,6 +123,11 @@ class RuleSubscriptionPage(
         }
     }
 
+    /**
+     * 函数 `showUpdateUrlDialog`：控制 `show Update Url Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showUpdateUrlDialog() {
         val input = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
@@ -130,6 +153,11 @@ class RuleSubscriptionPage(
             .show()
     }
 
+    /**
+     * 函数 `showImportTextDialog`：控制 `show Import Text Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showImportTextDialog() {
         val input = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_TEXT or
@@ -157,6 +185,11 @@ class RuleSubscriptionPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearCacheDialog`：控制 `show Clear Cache Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearCacheDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear_rule_subscription_cache)
@@ -171,6 +204,12 @@ class RuleSubscriptionPage(
             .show()
     }
 
+    /**
+     * 函数 `runImport`：封装 `run Import` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param importAction 参数类型为 `() -> RuleSubscriptionImportResult`，表示函数执行 `importAction` 相关逻辑时需要读取或处理的输入。
+     */
     private fun runImport(importAction: () -> RuleSubscriptionImportResult) {
         Thread {
             val result = runCatching { importAction() }.getOrElse { error ->
@@ -210,6 +249,12 @@ class RuleSubscriptionPage(
         }.start()
     }
 
+    /**
+     * 函数 `readMetadata`：封装 `read Metadata` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun readMetadata(): Properties {
         val metadataFile = cacheDirectory.resolve(RuleFileLoader.RULE_CACHE_METADATA_FILE)
         if (!metadataFile.isFile) {

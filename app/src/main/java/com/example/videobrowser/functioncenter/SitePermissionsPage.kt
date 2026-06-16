@@ -22,6 +22,12 @@ class SitePermissionsPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(replaceCurrent: Boolean = false) {
         val records = settingsManager.sitePermissionRecords()
             .sortedWith(
@@ -70,6 +76,12 @@ class SitePermissionsPage(
         }
     }
 
+    /**
+     * 函数 `showRemoveSitePermissionDialog`：控制 `show Remove Site Permission Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `SitePermissionRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showRemoveSitePermissionDialog(record: SitePermissionRecord) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_remove_site_permission)
@@ -98,6 +110,11 @@ class SitePermissionsPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearSitePermissionsDialog`：控制 `show Clear Site Permissions Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearSitePermissionsDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -115,6 +132,13 @@ class SitePermissionsPage(
             .show()
     }
 
+    /**
+     * 函数 `sitePermissionRecordSummary`：封装 `site Permission Record Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `SitePermissionRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sitePermissionRecordSummary(record: SitePermissionRecord): String {
         return listOf(
             sitePermissionTitle(record.permission),
@@ -122,6 +146,13 @@ class SitePermissionsPage(
         ).joinToString(separator = " | ")
     }
 
+    /**
+     * 函数 `sitePermissionTitle`：封装 `site Permission Title` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sitePermissionTitle(permission: SitePermission): String {
         return activity.getString(
             when (permission) {
@@ -132,6 +163,13 @@ class SitePermissionsPage(
         )
     }
 
+    /**
+     * 函数 `sitePermissionDecisionText`：封装 `site Permission Decision Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param decision 参数类型为 `SitePermissionDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sitePermissionDecisionText(decision: SitePermissionDecision): String {
         return activity.getString(
             when (decision) {

@@ -16,6 +16,11 @@ class AboutPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun show() {
         host.showPage(
             title = activity.getString(R.string.title_about),

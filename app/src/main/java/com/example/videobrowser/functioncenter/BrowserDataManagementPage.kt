@@ -29,6 +29,13 @@ data class BrowserCookieItem(
 )
 
 object BrowserCookieParser {
+    /**
+     * 函数 `parse`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawCookieHeader 参数类型为 `String?`，表示函数执行 `rawCookieHeader` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun parse(rawCookieHeader: String?): List<BrowserCookieItem> {
         return rawCookieHeader
             ?.split(';')
@@ -37,6 +44,13 @@ object BrowserCookieParser {
             ?: emptyList()
     }
 
+    /**
+     * 函数 `parseCookiePart`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param part 参数类型为 `String`，表示函数执行 `part` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseCookiePart(part: String): BrowserCookieItem? {
         val trimmed = part.trim()
         if (trimmed.isEmpty()) {
@@ -55,10 +69,24 @@ object BrowserCookieParser {
 }
 
 object BrowserDataDisplayFormatter {
+    /**
+     * 函数 `siteDataUsageSummary`：封装 `site Data Usage Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param usageBytes 参数类型为 `Long`，表示函数执行 `usageBytes` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun siteDataUsageSummary(usageBytes: Long): String {
         return formatBytes(usageBytes)
     }
 
+    /**
+     * 函数 `formatBytes`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param bytes 参数类型为 `Long`，表示函数执行 `bytes` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun formatBytes(bytes: Long): String {
         if (bytes <= 0L) {
             return "0 B"
@@ -75,10 +103,26 @@ object BrowserDataDisplayFormatter {
 }
 
 object BrowserSiteDataOriginSearch {
+    /**
+     * 函数 `filterOriginNames`：封装 `filter Origin Names` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origins 参数类型为 `List<String>`，表示函数执行 `origins` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun filterOriginNames(origins: List<String>, query: String?): List<String> {
         return origins.filter { origin -> matches(origin, query) }
     }
 
+    /**
+     * 函数 `matches`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matches(origin: String, query: String?): Boolean {
         val terms = queryTerms(query)
         if (terms.isEmpty()) {
@@ -90,6 +134,13 @@ object BrowserSiteDataOriginSearch {
         return terms.all { term -> searchableText.contains(term) }
     }
 
+    /**
+     * 函数 `queryTerms`：封装 `query Terms` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun queryTerms(query: String?): List<String> {
         return query
             ?.trim()
@@ -99,6 +150,13 @@ object BrowserSiteDataOriginSearch {
             ?: emptyList()
     }
 
+    /**
+     * 函数 `originHost`：封装 `origin Host` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun originHost(origin: String): String {
         return runCatching { URI(origin).host }
             .getOrNull()
@@ -112,6 +170,13 @@ enum class BrowserHistoryClearRange(private val durationMillis: Long?) {
     LAST_7_DAYS(MILLIS_PER_DAY * 7),
     ALL(null);
 
+    /**
+     * 函数 `cutoffMillis`：封装 `cutoff Millis` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param nowMillis 参数类型为 `Long`，表示函数执行 `nowMillis` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun cutoffMillis(nowMillis: Long): Long? {
         return durationMillis?.let { duration -> nowMillis - duration }
     }
@@ -133,6 +198,12 @@ class BrowserDataManagementPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `showBookmarkData`：控制 `show Bookmark Data` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun showBookmarkData(replaceCurrent: Boolean = false) {
         val bookmarkCount = savedPageRepository.bookmarks().size
         host.showPage(
@@ -188,6 +259,12 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `showDownloadData`：控制 `show Download Data` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun showDownloadData(replaceCurrent: Boolean = false) {
         val downloadCount = downloadRecordRepository.records().size
         host.showPage(
@@ -228,6 +305,12 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `showBrowsingHistoryData`：控制 `show Browsing History Data` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun showBrowsingHistoryData(replaceCurrent: Boolean = false) {
         val historyCount = savedPageRepository.history().size
         host.showPage(
@@ -268,6 +351,12 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `showCookies`：控制 `show Cookies` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun showCookies(replaceCurrent: Boolean = false) {
         val pageUrl = currentActionableUrl()
         val cookies = BrowserCookieParser.parse(
@@ -323,6 +412,12 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `showCache`：控制 `show Cache` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun showCache(replaceCurrent: Boolean = false) {
         host.showPage(
             title = activity.getString(R.string.title_cache_management),
@@ -344,6 +439,13 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `showSiteData`：控制 `show Site Data` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     */
     fun showSiteData(replaceCurrent: Boolean = false, query: String? = null) {
         WebStorage.getInstance().getOrigins { origins ->
             activity.runOnUiThread {
@@ -357,6 +459,14 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `showSiteDataOrigins`：控制 `show Site Data Origins` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origins 参数类型为 `List<WebStorage.Origin>`，表示函数执行 `origins` 相关逻辑时需要读取或处理的输入。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showSiteDataOrigins(
         origins: List<WebStorage.Origin>,
         replaceCurrent: Boolean,
@@ -429,6 +539,12 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `showSiteDataSearchDialog`：控制 `show Site Data Search Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param currentQuery 参数类型为 `String?`，表示函数执行 `currentQuery` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showSiteDataSearchDialog(currentQuery: String?) {
         val input = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
@@ -450,6 +566,13 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `showRemoveCookieDialog`：控制 `show Remove Cookie Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param cookieName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun showRemoveCookieDialog(pageUrl: String, cookieName: String) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_remove_cookie)
@@ -464,6 +587,11 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearAllCookiesDialog`：控制 `show Clear All Cookies Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearAllCookiesDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -481,6 +609,11 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearCacheDialog`：控制 `show Clear Cache Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearCacheDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -494,6 +627,11 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearBookmarksDialog`：控制 `show Clear Bookmarks Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearBookmarksDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -507,6 +645,11 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearDownloadDataDialog`：控制 `show Clear Download Data Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearDownloadDataDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -520,6 +663,11 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `clearDownloadRecordsAndFiles`：封装 `clear Download Records And Files` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun clearDownloadRecordsAndFiles() {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
@@ -527,6 +675,11 @@ class BrowserDataManagementPage(
         }.clearRecordsAndFiles()
     }
 
+    /**
+     * 函数 `showClearHistoryRangeDialog`：控制 `show Clear History Range Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearHistoryRangeDialog() {
         val ranges = BrowserHistoryClearRange.entries
         val labels = ranges
@@ -542,6 +695,12 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearHistoryDialog`：控制 `show Clear History Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param range 参数类型为 `BrowserHistoryClearRange`，表示函数执行 `range` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showClearHistoryDialog(range: BrowserHistoryClearRange) {
         val rangeLabel = historyClearRangeLabel(range)
         AlertDialog.Builder(activity)
@@ -560,6 +719,13 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `clearHistory`：封装 `clear History` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param range 参数类型为 `BrowserHistoryClearRange`，表示函数执行 `range` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun clearHistory(range: BrowserHistoryClearRange): Int {
         val historyCount = savedPageRepository.history().size
         val cutoffMillis = range.cutoffMillis(System.currentTimeMillis())
@@ -571,6 +737,13 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `historyClearRangeLabel`：封装 `history Clear Range Label` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param range 参数类型为 `BrowserHistoryClearRange`，表示函数执行 `range` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun historyClearRangeLabel(range: BrowserHistoryClearRange): String {
         return activity.getString(
             when (range) {
@@ -582,6 +755,13 @@ class BrowserDataManagementPage(
         )
     }
 
+    /**
+     * 函数 `showRemoveSiteDataDialog`：控制 `show Remove Site Data Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showRemoveSiteDataDialog(origin: String, query: String?) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_remove_site_data)
@@ -595,6 +775,11 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `showClearSiteDataDialog`：控制 `show Clear Site Data Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearSiteDataDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -608,6 +793,13 @@ class BrowserDataManagementPage(
             .show()
     }
 
+    /**
+     * 函数 `removeCookie`：封装 `remove Cookie` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param cookieName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun removeCookie(pageUrl: String, cookieName: String) {
         CookieManager.getInstance().apply {
             setCookie(pageUrl, "$cookieName=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT")
@@ -616,6 +808,13 @@ class BrowserDataManagementPage(
         }
     }
 
+    /**
+     * 函数 `currentSiteDataSearchSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSiteDataSearchSummary(query: String?): String {
         return query
             ?.takeIf { it.isNotBlank() }

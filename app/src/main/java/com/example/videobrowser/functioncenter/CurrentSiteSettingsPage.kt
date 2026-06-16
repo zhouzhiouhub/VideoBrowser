@@ -33,6 +33,12 @@ class CurrentSiteSettingsPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(replaceCurrent: Boolean = false) {
         val siteHost = currentSiteHost()
         host.showBottomSheetPage(
@@ -56,6 +62,13 @@ class CurrentSiteSettingsPage(
         }
     }
 
+    /**
+     * 函数 `addCurrentSiteActionSection`：封装 `add Current Site Action Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addCurrentSiteActionSection(parent: LinearLayout, siteHost: String?) {
         if (isPrivateBrowsingEnabled()) {
             host.addEmptyState(
@@ -201,6 +214,14 @@ class CurrentSiteSettingsPage(
         }
     }
 
+    /**
+     * 函数 `currentSiteFeatureSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
+     * @param globalEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSiteFeatureSummary(siteHost: String?, globalEnabled: Boolean): String {
         return when {
             siteHost == null -> activity.getString(R.string.function_center_site_action_unavailable)
@@ -209,6 +230,14 @@ class CurrentSiteSettingsPage(
         }
     }
 
+    /**
+     * 函数 `showCurrentSiteFeatureToast`：控制 `show Current Site Feature Toast` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @param featureName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param hostName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun showCurrentSiteFeatureToast(
         enabled: Boolean,
         featureName: String,
@@ -229,6 +258,11 @@ class CurrentSiteSettingsPage(
         ).show()
     }
 
+    /**
+     * 函数 `showCurrentSiteConfigPage`：控制 `show Current Site Config Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showCurrentSiteConfigPage() {
         val siteHost = currentSiteHost()
         host.showBottomSheetPage(
@@ -329,6 +363,15 @@ class CurrentSiteSettingsPage(
         }
     }
 
+    /**
+     * 函数 `addSitePermissionRow`：封装 `add Site Permission Row` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
+     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
+     * @param hasSite 参数类型为 `Boolean`，表示函数执行 `hasSite` 相关逻辑时需要读取或处理的输入。
+     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addSitePermissionRow(
         section: LinearLayout,
         siteHost: String?,
@@ -345,6 +388,12 @@ class CurrentSiteSettingsPage(
         }
     }
 
+    /**
+     * 函数 `showSitePermissionDialog`：控制 `show Site Permission Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showSitePermissionDialog(permission: SitePermission) {
         val hostName = currentSiteHost() ?: return
         val decisions = SitePermissionDecision.entries
@@ -374,6 +423,14 @@ class CurrentSiteSettingsPage(
             .show()
     }
 
+    /**
+     * 函数 `currentSitePermissionSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
+     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSitePermissionSummary(siteHost: String?, permission: SitePermission): String {
         return siteHost
             ?.let { hostName -> settingsManager.sitePermissionDecision(hostName, permission) }
@@ -381,6 +438,13 @@ class CurrentSiteSettingsPage(
             ?: activity.getString(R.string.function_center_site_action_unavailable)
     }
 
+    /**
+     * 函数 `sitePermissionTitle`：封装 `site Permission Title` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sitePermissionTitle(permission: SitePermission): String {
         return activity.getString(
             when (permission) {
@@ -391,6 +455,13 @@ class CurrentSiteSettingsPage(
         )
     }
 
+    /**
+     * 函数 `sitePermissionDecisionText`：封装 `site Permission Decision Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param decision 参数类型为 `SitePermissionDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sitePermissionDecisionText(decision: SitePermissionDecision): String {
         return activity.getString(
             when (decision) {
@@ -401,6 +472,14 @@ class CurrentSiteSettingsPage(
         )
     }
 
+    /**
+     * 函数 `currentSiteFeatureStatus`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param globalEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @param siteDisabled 参数类型为 `Boolean`，表示函数执行 `siteDisabled` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSiteFeatureStatus(globalEnabled: Boolean, siteDisabled: Boolean): String {
         return when {
             !globalEnabled -> activity.getString(R.string.site_config_disabled_by_global)
@@ -409,6 +488,11 @@ class CurrentSiteSettingsPage(
         }
     }
 
+    /**
+     * 函数 `toggleCurrentSiteWhitelist`：封装 `toggle Current Site Whitelist` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun toggleCurrentSiteWhitelist() {
         val hostName = currentSiteHost() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()

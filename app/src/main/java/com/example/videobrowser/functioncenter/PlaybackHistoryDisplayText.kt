@@ -18,12 +18,27 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 object PlaybackHistoryDisplayText {
+    /**
+     * 函数 `title`：封装 `title` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `PlaybackProgress`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun title(record: PlaybackProgress): String {
         return decodedLastPathSegment(record.mediaIdentity)
             ?: UrlUtils.displayUrl(record.mediaIdentity).takeIf { it.isNotBlank() }
             ?: record.mediaIdentity
     }
 
+    /**
+     * 函数 `summary`：封装 `summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `PlaybackProgress`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @param updatedAtFormatter 参数类型为 `(Long) -> String`，表示函数执行 `updatedAtFormatter` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun summary(
         record: PlaybackProgress,
         updatedAtFormatter: (Long) -> String = ::formatUpdatedAt
@@ -36,6 +51,13 @@ object PlaybackHistoryDisplayText {
         return "${updatedAtFormatter(record.updatedAtMillis)} | $progress | ${formatSpeed(record.speed)}"
     }
 
+    /**
+     * 函数 `decodedLastPathSegment`：封装 `decoded Last Path Segment` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun decodedLastPathSegment(value: String): String? {
         val rawPath = runCatching { URI(value.trim()).rawPath }.getOrNull() ?: return null
         val rawSegment = rawPath.substringAfterLast('/').takeIf { it.isNotBlank() } ?: return null
@@ -46,11 +68,25 @@ object PlaybackHistoryDisplayText {
         }.takeIf { it.isNotBlank() }
     }
 
+    /**
+     * 函数 `formatUpdatedAt`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param updatedAtMillis 参数类型为 `Long`，表示函数执行 `updatedAtMillis` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun formatUpdatedAt(updatedAtMillis: Long): String {
         return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
             .format(Date(updatedAtMillis))
     }
 
+    /**
+     * 函数 `formatDuration`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param durationMs 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun formatDuration(durationMs: Long): String {
         val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(durationMs.coerceAtLeast(0L))
         val hours = totalSeconds / SECONDS_PER_HOUR
@@ -64,6 +100,13 @@ object PlaybackHistoryDisplayText {
         }
     }
 
+    /**
+     * 函数 `formatSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun formatSpeed(speed: Float): String {
         val normalized = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) speed else 1f
         val numeric = if (normalized % 1f == 0f) {

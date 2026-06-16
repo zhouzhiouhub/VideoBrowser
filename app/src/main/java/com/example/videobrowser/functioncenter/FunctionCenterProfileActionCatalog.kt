@@ -18,6 +18,13 @@ enum class FunctionCenterProfileAction {
 }
 
 object FunctionCenterProfileActionCatalog {
+    /**
+     * 函数 `shortcuts`：封装 `shortcuts` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param isPrivateBrowsing 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun shortcuts(isPrivateBrowsing: Boolean): List<FunctionCenterProfileAction> {
         return listOfNotNull(
             FunctionCenterProfileAction.HISTORY,

@@ -23,6 +23,14 @@ import java.util.Locale
  * 地址栏、搜索建议、站点安全和历史展示都会复用这些规则。
  */
 object UrlUtils {
+    /**
+     * 函数 `resolveAddressInput`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param input 参数类型为 `String`，表示函数执行 `input` 相关逻辑时需要读取或处理的输入。
+     * @param searchUrlPrefix 参数类型为 `String`，表示函数执行 `searchUrlPrefix` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun resolveAddressInput(
         input: String,
         searchUrlPrefix: String
@@ -37,6 +45,14 @@ object UrlUtils {
             ?: "$searchUrlPrefix${encodeSearchQuery(value)}"
     }
 
+    /**
+     * 函数 `searchQueryFromUrl`：封装 `search Query From Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param searchUrlPrefix 参数类型为 `String`，表示函数执行 `searchUrlPrefix` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun searchQueryFromUrl(url: String, searchUrlPrefix: String): String? {
         val prefixUri = parseUri(searchUrlPrefix) ?: return null
         val currentUri = parseUri(url) ?: return null
@@ -52,6 +68,13 @@ object UrlUtils {
             ?.takeIf { it.isNotEmpty() }
     }
 
+    /**
+     * 函数 `displayUrl`：封装 `display Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun displayUrl(url: String): String {
         val parsedUri = parseUri(url) ?: return decodePercentEncoded(url)
         val scheme = parsedUri.scheme?.let { "$it://" }.orEmpty()
@@ -66,6 +89,13 @@ object UrlUtils {
         return "$scheme$authority$path$query$fragment"
     }
 
+    /**
+     * 函数 `resolveLoadableUrl`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun resolveLoadableUrl(value: String): String? {
         if (value.startsWith("about:", ignoreCase = true)) {
             return ABOUT_BLANK.takeIf { value.equals(it, ignoreCase = true) }
@@ -95,6 +125,15 @@ object UrlUtils {
         )
     }
 
+    /**
+     * 函数 `normalizeNetworkUrl`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param defaultScheme 参数类型为 `String`，表示函数执行 `defaultScheme` 相关逻辑时需要读取或处理的输入。
+     * @param hasExplicitScheme 参数类型为 `Boolean`，表示函数执行 `hasExplicitScheme` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeNetworkUrl(
         value: String,
         defaultScheme: String,
@@ -127,6 +166,14 @@ object UrlUtils {
         return "$scheme://${parsedAuthority.render()}${encodeUrlTail(tail)}"
     }
 
+    /**
+     * 函数 `parseAuthority`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param authority 参数类型为 `String`，表示函数执行 `authority` 相关逻辑时需要读取或处理的输入。
+     * @param allowUserInfo 参数类型为 `Boolean`，表示函数执行 `allowUserInfo` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseAuthority(authority: String, allowUserInfo: Boolean): ParsedAuthority? {
         if (authority.isBlank() || authority.hasUnsafeCharacter()) {
             return null
@@ -153,6 +200,14 @@ object UrlUtils {
         }
     }
 
+    /**
+     * 函数 `parseBracketedIpv6Authority`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param userInfo 参数类型为 `String`，表示函数执行 `userInfo` 相关逻辑时需要读取或处理的输入。
+     * @param hostAndPort 参数类型为 `String`，表示函数执行 `hostAndPort` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseBracketedIpv6Authority(
         userInfo: String,
         hostAndPort: String
@@ -176,6 +231,14 @@ object UrlUtils {
         )
     }
 
+    /**
+     * 函数 `parseNamedOrIpv4Authority`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param userInfo 参数类型为 `String`，表示函数执行 `userInfo` 相关逻辑时需要读取或处理的输入。
+     * @param hostAndPort 参数类型为 `String`，表示函数执行 `hostAndPort` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseNamedOrIpv4Authority(
         userInfo: String,
         hostAndPort: String
@@ -203,6 +266,14 @@ object UrlUtils {
         )
     }
 
+    /**
+     * 函数 `parseNakedIpv6Authority`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param userInfo 参数类型为 `String`，表示函数执行 `userInfo` 相关逻辑时需要读取或处理的输入。
+     * @param hostAndPort 参数类型为 `String`，表示函数执行 `hostAndPort` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseNakedIpv6Authority(
         userInfo: String,
         hostAndPort: String
@@ -219,6 +290,13 @@ object UrlUtils {
         )
     }
 
+    /**
+     * 函数 `parsePortSuffix`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param suffix 参数类型为 `String`，表示函数执行 `suffix` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parsePortSuffix(suffix: String): Int? {
         if (suffix.isEmpty()) {
             return NO_PORT
@@ -230,6 +308,13 @@ object UrlUtils {
         return port.takeUnless { it == INVALID_PORT }
     }
 
+    /**
+     * 函数 `parsePort`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parsePort(value: String): Int {
         if (value.isEmpty() || value.any { !it.isDigit() }) {
             return INVALID_PORT
@@ -237,6 +322,13 @@ object UrlUtils {
         return value.toIntOrNull()?.takeIf { it in 0..65535 } ?: INVALID_PORT
     }
 
+    /**
+     * 函数 `normalizeHost`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawHost 参数类型为 `String`，表示函数执行 `rawHost` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeHost(rawHost: String): String? {
         val trimmedHost = rawHost.trimEnd('.')
         if (trimmedHost.isEmpty() || trimmedHost.hasUnsafeCharacter()) {
@@ -250,6 +342,13 @@ object UrlUtils {
         }.getOrNull()?.takeIf { it.isNotEmpty() }
     }
 
+    /**
+     * 函数 `isLoadableHost`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isLoadableHost(host: String): Boolean {
         return isLocalhost(host) ||
             isIpv4Address(host) ||
@@ -257,6 +356,13 @@ object UrlUtils {
             isDomainName(host)
     }
 
+    /**
+     * 函数 `looksLikeLocalOrIpAuthority`：封装 `looks Like Local Or Ip Authority` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun looksLikeLocalOrIpAuthority(value: String): Boolean {
         val authorityEnd = value.indexOfFirst { it == '/' || it == '?' || it == '#' }
             .takeIf { it >= 0 }
@@ -268,10 +374,24 @@ object UrlUtils {
             isIpv6Address(parsedAuthority.host)
     }
 
+    /**
+     * 函数 `isLocalhost`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isLocalhost(host: String): Boolean {
         return host == LOCALHOST || host == ANDROID_EMULATOR_HOST
     }
 
+    /**
+     * 函数 `isIpv4Address`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isIpv4Address(host: String): Boolean {
         val parts = host.split(".")
         return parts.size == 4 && parts.all { part ->
@@ -281,6 +401,13 @@ object UrlUtils {
         }
     }
 
+    /**
+     * 函数 `isIpv6Address`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isIpv6Address(host: String): Boolean {
         if (!host.contains(":")) {
             return false
@@ -289,6 +416,13 @@ object UrlUtils {
             .getOrNull() is Inet6Address
     }
 
+    /**
+     * 函数 `isDomainName`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isDomainName(host: String): Boolean {
         if (!host.contains(".") || !host.any { it.isLetter() }) {
             return false
@@ -303,6 +437,13 @@ object UrlUtils {
         }
     }
 
+    /**
+     * 函数 `normalizeScheme`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param scheme 参数类型为 `String`，表示函数执行 `scheme` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeScheme(scheme: String): String? {
         return scheme
             .takeIf { it.first().isLetter() }
@@ -312,25 +453,61 @@ object UrlUtils {
             ?.lowercase(Locale.ROOT)
     }
 
+    /**
+     * 函数 `encodeSearchQuery`：封装 `encode Search Query` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun encodeSearchQuery(value: String): String {
         val query = value.replace(WHITESPACE_SEQUENCE, " ").trim()
         return URLEncoder.encode(query, StandardCharsets.UTF_8.name())
     }
 
+    /**
+     * 函数 `parseUri`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseUri(value: String): URI? {
         return runCatching { URI(value.trim()) }.getOrNull()
     }
 
+    /**
+     * 函数 `isSameSearchEndpoint`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param currentUri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param prefixUri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isSameSearchEndpoint(currentUri: URI, prefixUri: URI): Boolean {
         return currentUri.scheme.equals(prefixUri.scheme, ignoreCase = true) &&
             currentUri.host.equals(prefixUri.host, ignoreCase = true) &&
             normalizedUriPath(currentUri) == normalizedUriPath(prefixUri)
     }
 
+    /**
+     * 函数 `normalizedUriPath`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizedUriPath(uri: URI): String {
         return uri.rawPath.orEmpty().ifEmpty { "/" }.trimEnd('/')
     }
 
+    /**
+     * 函数 `searchQueryParameterName`：封装 `search Query Parameter Name` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param prefixUri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun searchQueryParameterName(prefixUri: URI): String? {
         val rawQuery = prefixUri.rawQuery ?: return null
         return rawQuery
@@ -341,6 +518,14 @@ object UrlUtils {
             ?.let { decodeFormComponent(it) }
     }
 
+    /**
+     * 函数 `rawQueryParameter`：封装 `raw Query Parameter` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawQuery 参数类型为 `String?`，表示函数执行 `rawQuery` 相关逻辑时需要读取或处理的输入。
+     * @param queryParameterName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun rawQueryParameter(rawQuery: String?, queryParameterName: String): String? {
         return rawQuery
             ?.split("&")
@@ -355,12 +540,26 @@ object UrlUtils {
             }
     }
 
+    /**
+     * 函数 `decodeFormComponent`：封装 `decode Form Component` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun decodeFormComponent(value: String): String? {
         return runCatching {
             URLDecoder.decode(value, StandardCharsets.UTF_8.name())
         }.getOrNull()
     }
 
+    /**
+     * 函数 `decodePercentEncoded`：封装 `decode Percent Encoded` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun decodePercentEncoded(value: String): String {
         if (!value.contains('%')) {
             return value
@@ -385,12 +584,27 @@ object UrlUtils {
         return decoded.toString()
     }
 
+    /**
+     * 函数 `hasHexByteAt`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun hasHexByteAt(value: String, index: Int): Boolean {
         return index + 2 < value.length &&
             hexValue(value[index + 1]) >= 0 &&
             hexValue(value[index + 2]) >= 0
     }
 
+    /**
+     * 函数 `hexValue`：封装 `hex Value` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param char 参数类型为 `Char`，表示函数执行 `char` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun hexValue(char: Char): Int {
         return when (char) {
             in '0'..'9' -> char - '0'
@@ -400,6 +614,13 @@ object UrlUtils {
         }
     }
 
+    /**
+     * 函数 `encodeUrlTail`：封装 `encode Url Tail` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun encodeUrlTail(value: String): String {
         if (value.isEmpty()) {
             return value
@@ -417,6 +638,12 @@ object UrlUtils {
         }
     }
 
+    /**
+     * 函数 `appendUtf8PercentEncoded`：封装 `append Utf8 Percent Encoded` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param char 参数类型为 `Char`，表示函数执行 `char` 相关逻辑时需要读取或处理的输入。
+     */
     private fun StringBuilder.appendUtf8PercentEncoded(char: Char) {
         char.toString().toByteArray(StandardCharsets.UTF_8).forEach { byte ->
             append('%')
@@ -425,6 +652,12 @@ object UrlUtils {
         }
     }
 
+    /**
+     * 函数 `isUnsafeUrlTailCharacter`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Char.isUnsafeUrlTailCharacter(): Boolean {
         return this == '"' ||
             this == '<' ||
@@ -437,6 +670,12 @@ object UrlUtils {
             this == '}'
     }
 
+    /**
+     * 函数 `hasUnsafeCharacter`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun String.hasUnsafeCharacter(): Boolean {
         return any { it.isWhitespace() || it.isISOControl() }
     }
@@ -447,6 +686,12 @@ object UrlUtils {
         val port: Int,
         val bracketIpv6: Boolean
     ) {
+        /**
+         * 函数 `render`：封装 `render` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun render(): String {
             val renderedHost = if (bracketIpv6) "[$host]" else host
             val renderedPort = port.takeUnless { it == NO_PORT }?.let { ":$it" }.orEmpty()

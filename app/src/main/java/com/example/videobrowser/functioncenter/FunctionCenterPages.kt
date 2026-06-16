@@ -222,6 +222,11 @@ class FunctionCenterPages(
 
     private val activity = host.activity
 
+    /**
+     * 函数 `showRootPage`：控制 `show Root Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun showRootPage() {
         // 根页面是底部弹出的第一页，包含常用浏览器动作和当前页面相关工具。
         host.showBottomSheetPage(
@@ -262,6 +267,11 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `showProfilePage`：控制 `show Profile Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun showProfilePage() {
         host.showPage(
             title = activity.getString(R.string.title_profile_page),
@@ -286,18 +296,42 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `showCurrentSiteSettingsPage`：控制 `show Current Site Settings Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun showCurrentSiteSettingsPage() {
         currentSiteSettingsPage.show()
     }
 
+    /**
+     * 函数 `handleBack`：处理 `handle Back` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun handleBack(): Boolean {
         return host.handleBack()
     }
 
+    /**
+     * 函数 `close`：控制 `close` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun close(): Boolean {
         return host.close()
     }
 
+    /**
+     * 函数 `addFunctionNavigationSection`：封装 `add Function Navigation Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addFunctionNavigationSection(parent: LinearLayout, siteHost: String?) {
         host.addFunctionSection(
             parent,
@@ -323,6 +357,14 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `addBaiduBrowserActionGrid`：封装 `add Baidu Browser Action Grid` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addBaiduBrowserActionGrid(
         parent: LinearLayout,
         pageUrl: String?,
@@ -349,6 +391,16 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `createRootGridAction`：创建 `create Root Grid Action` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `FunctionCenterRootAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @param pageSummary 参数类型为 `String`，表示函数执行 `pageSummary` 相关逻辑时需要读取或处理的输入。
+     * @param siteSummary 参数类型为 `String`，表示函数执行 `siteSummary` 相关逻辑时需要读取或处理的输入。
+     * @param hasPage 参数类型为 `Boolean`，表示函数执行 `hasPage` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createRootGridAction(
         action: FunctionCenterRootAction,
         pageSummary: String,
@@ -522,6 +574,12 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `addProfileShortcutSection`：封装 `add Profile Shortcut Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addProfileShortcutSection(parent: LinearLayout) {
         host.addFunctionSection(
             parent,
@@ -536,6 +594,13 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `createProfileGridAction`：创建 `create Profile Grid Action` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `FunctionCenterProfileAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createProfileGridAction(action: FunctionCenterProfileAction): FunctionCenterGridAction {
         return when (action) {
             FunctionCenterProfileAction.HISTORY -> {
@@ -596,11 +661,25 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `addProfileFeatureSection`：封装 `add Profile Feature Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addProfileFeatureSection(parent: LinearLayout) {
         browserSettingsPage.addExpandedBrowserSettings(parent)
         browserSettingsPage.addProfileDataManagement(parent)
     }
 
+    /**
+     * 函数 `addCurrentPageActionSection`：封装 `add Current Page Action Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addCurrentPageActionSection(
         parent: LinearLayout,
         pageUrl: String?,
@@ -772,11 +851,24 @@ class FunctionCenterPages(
         }
     }
 
+    /**
+     * 函数 `runPageAction`：封装 `run Page Action` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `() -> Unit`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     */
     private fun runPageAction(action: () -> Unit) {
         action()
         close()
     }
 
+    /**
+     * 函数 `showFeatureToggleToast`：控制 `show Feature Toggle Toast` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param featureName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     private fun showFeatureToggleToast(featureName: String, enabled: Boolean) {
         Toast.makeText(
             activity,
@@ -788,6 +880,11 @@ class FunctionCenterPages(
         ).show()
     }
 
+    /**
+     * 函数 `showBookmarks`：控制 `show Bookmarks` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showBookmarks() {
         savedPagesPage.show(
             collection = SavedPageCollection.BOOKMARKS,
@@ -796,6 +893,11 @@ class FunctionCenterPages(
         )
     }
 
+    /**
+     * 函数 `showHistory`：控制 `show History` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showHistory() {
         savedPagesPage.show(
             collection = SavedPageCollection.HISTORY,

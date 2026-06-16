@@ -10,6 +10,13 @@ package com.example.videobrowser.functioncenter
 object FunctionCenterActionGridLayout {
     private const val COLUMN_COUNT = 5
 
+    /**
+     * 函数 `rows`：封装 `rows` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param actionCount 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun rows(actionCount: Int): List<List<Int?>> {
         if (actionCount <= 0) {
             return emptyList()

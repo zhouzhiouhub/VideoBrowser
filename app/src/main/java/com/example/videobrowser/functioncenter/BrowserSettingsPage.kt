@@ -50,6 +50,11 @@ class BrowserSettingsPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun show() {
         host.showPage(
             title = activity.getString(R.string.title_browser_settings),
@@ -61,10 +66,22 @@ class BrowserSettingsPage(
         }
     }
 
+    /**
+     * 函数 `addExpandedBrowserSettings`：封装 `add Expanded Browser Settings` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     fun addExpandedBrowserSettings(parent: LinearLayout) {
         addGlobalEnhancementSection(parent)
     }
 
+    /**
+     * 函数 `addExpandedDataManagement`：封装 `add Expanded Data Management` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     fun addExpandedDataManagement(parent: LinearLayout) {
         host.addFunctionSection(
             parent,
@@ -74,6 +91,12 @@ class BrowserSettingsPage(
         }
     }
 
+    /**
+     * 函数 `addProfileDataManagement`：封装 `add Profile Data Management` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     fun addProfileDataManagement(parent: LinearLayout) {
         host.addFunctionSection(
             parent,
@@ -84,6 +107,12 @@ class BrowserSettingsPage(
         }
     }
 
+    /**
+     * 函数 `addToolboxSection`：封装 `add Toolbox Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addToolboxSection(parent: LinearLayout) {
         host.addFunctionSection(
             parent,
@@ -117,10 +146,22 @@ class BrowserSettingsPage(
         }
     }
 
+    /**
+     * 函数 `addDataManagementRows`：封装 `add Data Management Rows` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addDataManagementRows(section: LinearLayout) {
         addDataManagementActions(section, includeSavedPages = false)
     }
 
+    /**
+     * 函数 `addBrowserBasicsSection`：封装 `add Browser Basics Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addBrowserBasicsSection(parent: LinearLayout) {
         host.addFunctionSection(
             parent,
@@ -143,6 +184,11 @@ class BrowserSettingsPage(
         }
     }
 
+    /**
+     * 函数 `showHomeUrlDialog`：控制 `show Home Url Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showHomeUrlDialog() {
         val input = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
@@ -173,6 +219,11 @@ class BrowserSettingsPage(
         dialog.show()
     }
 
+    /**
+     * 函数 `showSearchEngineDialog`：控制 `show Search Engine Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showSearchEngineDialog() {
         val providers = SearchProviders.defaults
         val selectedIndex = providers
@@ -199,6 +250,11 @@ class BrowserSettingsPage(
             .show()
     }
 
+    /**
+     * 函数 `showTextZoomDialog`：控制 `show Text Zoom Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showTextZoomDialog() {
         val options = SettingsManager.TEXT_ZOOM_OPTIONS
         val selectedIndex = options
@@ -224,6 +280,13 @@ class BrowserSettingsPage(
             .show()
     }
 
+    /**
+     * 函数 `addDataManagementActions`：封装 `add Data Management Actions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
+     * @param includeSavedPages 参数类型为 `Boolean`，表示函数执行 `includeSavedPages` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addDataManagementActions(section: LinearLayout, includeSavedPages: Boolean) {
         FunctionCenterDataManagementActionCatalog.actions(isPrivateBrowsingEnabled())
             .filter { action ->
@@ -239,6 +302,13 @@ class BrowserSettingsPage(
             }
     }
 
+    /**
+     * 函数 `addDataManagementActionRow`：封装 `add Data Management Action Row` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
+     * @param action 参数类型为 `FunctionCenterDataManagementAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addDataManagementActionRow(
         section: LinearLayout,
         action: FunctionCenterDataManagementAction
@@ -366,6 +436,12 @@ class BrowserSettingsPage(
         }
     }
 
+    /**
+     * 函数 `addGlobalEnhancementSection`：封装 `add Global Enhancement Section` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addGlobalEnhancementSection(parent: LinearLayout) {
         host.addFunctionSection(
             parent,

@@ -17,6 +17,14 @@ enum class DownloadCategory {
     OTHER;
 
     companion object {
+        /**
+         * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+         * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun from(mimeType: String?, fileName: String): DownloadCategory {
             val normalizedMimeType = mimeType
                 ?.substringBefore(';')
@@ -125,6 +133,13 @@ data class DownloadCategoryGroup(
     val records: List<DownloadRecord>
 ) {
     companion object {
+        /**
+         * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param records 参数类型为 `List<DownloadRecord>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun from(records: List<DownloadRecord>): List<DownloadCategoryGroup> {
             val recordsByCategory = records.groupBy { record ->
                 DownloadCategory.from(record.mimeType, record.fileName)

@@ -18,20 +18,44 @@ class LocalDirectoryPermissionManager(
     private val preferenceStore: PreferenceStore,
     private val logTag: String
 ) {
+    /**
+     * 函数 `savedDirectoryUri`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun savedDirectoryUri(): Uri? {
         return preferenceStore.getString(KEY_LOCAL_DIRECTORY_URI, null)
             ?.takeIf { it.isNotBlank() }
             ?.let(Uri::parse)
     }
 
+    /**
+     * 函数 `saveDirectoryUri`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun saveDirectoryUri(uri: Uri) {
         preferenceStore.putString(KEY_LOCAL_DIRECTORY_URI, uri.toString())
     }
 
+    /**
+     * 函数 `clearSavedDirectoryUri`：封装 `clear Saved Directory Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clearSavedDirectoryUri() {
         preferenceStore.remove(KEY_LOCAL_DIRECTORY_URI)
     }
 
+    /**
+     * 函数 `persistReadWritePermission`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun persistReadWritePermission(uri: Uri): Boolean {
         return runCatching {
             context.contentResolver.takePersistableUriPermission(uri, DIRECTORY_PERMISSION_FLAGS)
@@ -44,6 +68,12 @@ class LocalDirectoryPermissionManager(
         )
     }
 
+    /**
+     * 函数 `releaseReadWritePermission`：封装 `release Read Write Permission` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun releaseReadWritePermission(uri: Uri) {
         runCatching {
             context.contentResolver.releasePersistableUriPermission(uri, DIRECTORY_PERMISSION_FLAGS)

@@ -32,6 +32,12 @@ class BrowserTabsPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(replaceCurrent: Boolean = false) {
         val tabs = currentTabs()
         host.showPage(
@@ -136,6 +142,12 @@ class BrowserTabsPage(
         }
     }
 
+    /**
+     * 函数 `copyTabUrl`：封装 `copy Tab Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun copyTabUrl(url: String) {
         val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(
@@ -144,6 +156,12 @@ class BrowserTabsPage(
         Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `shareTabUrl`：封装 `share Tab Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun shareTabUrl(url: String) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
@@ -152,6 +170,14 @@ class BrowserTabsPage(
         activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
     }
 
+    /**
+     * 函数 `tabSummary`：封装 `tab Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tab 参数类型为 `BrowserTab`，表示函数执行 `tab` 相关逻辑时需要读取或处理的输入。
+     * @param active 参数类型为 `Boolean`，表示函数执行 `active` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun tabSummary(tab: BrowserTab, active: Boolean): String {
         val activeText = activity.getString(R.string.tab_current).takeIf { active }
         val urlText = tab.url?.let(UrlUtils::displayUrl)

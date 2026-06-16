@@ -21,6 +21,12 @@ class PlaybackHistoryPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(replaceCurrent: Boolean = false) {
         val records = playbackHistoryRepository.records()
 
@@ -67,6 +73,11 @@ class PlaybackHistoryPage(
         }
     }
 
+    /**
+     * 函数 `confirmClearRecords`：封装 `confirm Clear Records` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun confirmClearRecords() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)

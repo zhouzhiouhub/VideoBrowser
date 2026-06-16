@@ -31,6 +31,12 @@ class AdBlockLogPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(replaceCurrent: Boolean = false) {
         val entries = adBlockLogger.entries()
 
@@ -93,11 +99,25 @@ class AdBlockLogPage(
         }
     }
 
+    /**
+     * 函数 `adBlockLogTime`：封装 `ad Block Log Time` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param entry 参数类型为 `AdBlockLogEntry`，表示函数执行 `entry` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun adBlockLogTime(entry: AdBlockLogEntry): String {
         return SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             .format(Date(entry.timestampMillis))
     }
 
+    /**
+     * 函数 `adBlockLogActionLabel`：封装 `ad Block Log Action Label` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param entry 参数类型为 `AdBlockLogEntry`，表示函数执行 `entry` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun adBlockLogActionLabel(entry: AdBlockLogEntry): String {
         return when (entry.action) {
             AdBlockLogAction.BLOCK -> activity.getString(R.string.ad_block_log_action_blocked)
@@ -105,10 +125,22 @@ class AdBlockLogPage(
         }
     }
 
+    /**
+     * 函数 `adBlockLogHost`：封装 `ad Block Log Host` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param entry 参数类型为 `AdBlockLogEntry`，表示函数执行 `entry` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun adBlockLogHost(entry: AdBlockLogEntry): String {
         return entry.host ?: Uri.parse(entry.url).host ?: entry.url
     }
 
+    /**
+     * 函数 `showClearAdBlockLogDialog`：控制 `show Clear Ad Block Log Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showClearAdBlockLogDialog() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -126,6 +158,12 @@ class AdBlockLogPage(
             .show()
     }
 
+    /**
+     * 函数 `showAddWhitelistFromLogDialog`：控制 `show Add Whitelist From Log Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hostName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun showAddWhitelistFromLogDialog(hostName: String) {
         if (settingsManager.isUserWhitelistedSite(hostName)) {
             Toast.makeText(
@@ -153,6 +191,12 @@ class AdBlockLogPage(
             .show()
     }
 
+    /**
+     * 函数 `showRestoreSiteAdBlockFromLogDialog`：控制 `show Restore Site Ad Block From Log Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hostName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun showRestoreSiteAdBlockFromLogDialog(hostName: String) {
         if (!settingsManager.isAdBlockDisabledForSite(hostName)) {
             Toast.makeText(

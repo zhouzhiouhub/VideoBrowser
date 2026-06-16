@@ -34,30 +34,73 @@ class SavedPageRepository(
     private val preferenceStore: PreferenceStore,
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() }
 ) {
+    /**
+     * 函数 `addBookmark`：封装 `add Bookmark` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     */
     fun addBookmark(page: SavedPage) {
         addSavedPage(KEY_BOOKMARKS, page, BOOKMARK_LIMIT)
     }
 
+    /**
+     * 函数 `removeBookmark`：封装 `remove Bookmark` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun removeBookmark(url: String) {
         removeSavedPage(KEY_BOOKMARKS, url)
     }
 
+    /**
+     * 函数 `isBookmarked`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun isBookmarked(url: String): Boolean {
         return isSavedPage(KEY_BOOKMARKS, url)
     }
 
+    /**
+     * 函数 `addHistory`：封装 `add History` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     */
     fun addHistory(page: SavedPage) {
         addSavedPage(KEY_HISTORY, page, HISTORY_LIMIT)
     }
 
+    /**
+     * 函数 `bookmarks`：封装 `bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun bookmarks(): List<SavedPage> {
         return loadSavedPages(KEY_BOOKMARKS)
     }
 
+    /**
+     * 函数 `exportBookmarks`：封装 `export Bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun exportBookmarks(): String {
         return renderPages(bookmarks())
     }
 
+    /**
+     * 函数 `bookmarkFolders`：封装 `bookmark Folders` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun bookmarkFolders(): List<String> {
         return bookmarks()
             .mapNotNull { page -> normalizeBookmarkFolder(page.folder) }
@@ -65,6 +108,13 @@ class SavedPageRepository(
             .sorted()
     }
 
+    /**
+     * 函数 `importBookmarks`：封装 `import Bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun importBookmarks(rawValue: String): BookmarkImportResult {
         // 导入时会过滤无效 URL、跳过已存在链接，并尊重收藏数量上限。
         val existingBookmarks = bookmarks()
@@ -88,14 +138,32 @@ class SavedPageRepository(
         )
     }
 
+    /**
+     * 函数 `history`：封装 `history` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun history(): List<SavedPage> {
         return loadSavedPages(KEY_HISTORY)
     }
 
+    /**
+     * 函数 `clearHistory`：封装 `clear History` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clearHistory() {
         preferenceStore.remove(KEY_HISTORY)
     }
 
+    /**
+     * 函数 `clearHistoryUpdatedSince`：封装 `clear History Updated Since` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param cutoffMillis 参数类型为 `Long`，表示函数执行 `cutoffMillis` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun clearHistoryUpdatedSince(cutoffMillis: Long): Int {
         val history = history()
         val remainingHistory = history.filterNot { page ->
@@ -105,14 +173,37 @@ class SavedPageRepository(
         return history.size - remainingHistory.size
     }
 
+    /**
+     * 函数 `clear`：封装 `clear` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     */
     fun clear(collection: SavedPageCollection) {
         preferenceStore.remove(collection.key)
     }
 
+    /**
+     * 函数 `remove`：封装 `remove` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun remove(collection: SavedPageCollection, url: String): Boolean {
         return removeSavedPage(collection.key, url)
     }
 
+    /**
+     * 函数 `updateTitle`：根据最新状态刷新 `update Title` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun updateTitle(collection: SavedPageCollection, url: String, title: String): Boolean {
         val normalizedTitle = title.trim()
         if (normalizedTitle.isEmpty()) {
@@ -134,6 +225,14 @@ class SavedPageRepository(
         return true
     }
 
+    /**
+     * 函数 `updateBookmarkFolder`：根据最新状态刷新 `update Bookmark Folder` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param folder 参数类型为 `String`，表示函数执行 `folder` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun updateBookmarkFolder(url: String, folder: String): Boolean {
         val collapsedFolder = folder.trim().replace(Regex("\\s+"), " ")
         val normalizedFolder = if (collapsedFolder.isEmpty()) {
@@ -157,16 +256,36 @@ class SavedPageRepository(
         return true
     }
 
+    /**
+     * 函数 `clearAll`：封装 `clear All` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clearAll() {
         SavedPageCollection.values().forEach { collection ->
             preferenceStore.remove(collection.key)
         }
     }
 
+    /**
+     * 函数 `pages`：封装 `pages` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun pages(collection: SavedPageCollection): List<SavedPage> {
         return loadSavedPages(collection.key)
     }
 
+    /**
+     * 函数 `addSavedPage`：封装 `add Saved Page` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @param limit 参数类型为 `Int`，表示函数执行 `limit` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addSavedPage(key: String, page: SavedPage, limit: Int) {
         val normalizedUrl = normalizeSavedWebUrl(page.url) ?: return
         val pageToSave = page.copy(url = normalizedUrl)
@@ -179,6 +298,14 @@ class SavedPageRepository(
         saveSavedPages(key, pages.take(limit))
     }
 
+    /**
+     * 函数 `removeSavedPage`：封装 `remove Saved Page` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun removeSavedPage(key: String, url: String): Boolean {
         val pages = loadSavedPages(key)
             .filterNot { it.url.equals(url, ignoreCase = true) }
@@ -189,15 +316,37 @@ class SavedPageRepository(
         return true
     }
 
+    /**
+     * 函数 `isSavedPage`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isSavedPage(key: String, url: String): Boolean {
         return loadSavedPages(key).any { it.url.equals(url, ignoreCase = true) }
     }
 
+    /**
+     * 函数 `loadSavedPages`：启动或加载 `load Saved Pages` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun loadSavedPages(key: String): List<SavedPage> {
         val rawValue = preferenceStore.getString(key, null) ?: return emptyList()
         return parseSavedPages(rawValue)
     }
 
+    /**
+     * 函数 `parseSavedPages`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseSavedPages(rawValue: String): List<SavedPage> {
         // 新格式是带版本头的行文本；旧版本曾用 JSON，这里保留读取兼容。
         return when {
@@ -207,6 +356,13 @@ class SavedPageRepository(
         }
     }
 
+    /**
+     * 函数 `saveSavedPages`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
+     */
     private fun saveSavedPages(key: String, pages: List<SavedPage>) {
         if (pages.isEmpty()) {
             preferenceStore.remove(key)
@@ -215,6 +371,14 @@ class SavedPageRepository(
         preferenceStore.putString(key, renderPages(pages))
     }
 
+    /**
+     * 函数 `normalizePageForSave`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @param existingPage 参数类型为 `SavedPage?`，表示函数执行 `existingPage` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizePageForSave(page: SavedPage, existingPage: SavedPage?): SavedPage {
         val timestamp = currentTimeMillis()
         val createdAt = existingPage?.createdAtMillis
@@ -231,6 +395,13 @@ class SavedPageRepository(
         )
     }
 
+    /**
+     * 函数 `normalizeImportedBookmark`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeImportedBookmark(page: SavedPage): SavedPage? {
         val url = normalizeSavedWebUrl(page.url) ?: return null
         val timestamp = currentTimeMillis()
@@ -243,10 +414,24 @@ class SavedPageRepository(
         )
     }
 
+    /**
+     * 函数 `bookmarkUrlKey`：封装 `bookmark Url Key` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun bookmarkUrlKey(url: String): String {
         return url.trim().lowercase(Locale.ROOT)
     }
 
+    /**
+     * 函数 `normalizeBookmarkFolder`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param folder 参数类型为 `String`，表示函数执行 `folder` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeBookmarkFolder(folder: String): String? {
         val normalized = folder.trim().replace(Regex("\\s+"), " ")
         if (normalized.isEmpty()) {
@@ -261,6 +446,13 @@ class SavedPageRepository(
         return normalized
     }
 
+    /**
+     * 函数 `renderPages`：封装 `render Pages` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun renderPages(pages: List<SavedPage>): String {
         return buildString {
             append(FORMAT_HEADER).append('\n')
@@ -279,6 +471,13 @@ class SavedPageRepository(
         }
     }
 
+    /**
+     * 函数 `loadVersionedPages`：启动或加载 `load Versioned Pages` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun loadVersionedPages(rawValue: String): List<SavedPage> {
         return rawValue
             .lineSequence()
@@ -288,6 +487,13 @@ class SavedPageRepository(
             .toList()
     }
 
+    /**
+     * 函数 `parseVersionedPageLine`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseVersionedPageLine(line: String): SavedPage? {
         val parts = line.split('\t')
         if (parts.size != 4 && parts.size != 5) {
@@ -308,6 +514,13 @@ class SavedPageRepository(
         )
     }
 
+    /**
+     * 函数 `loadLegacyJsonPages`：启动或加载 `load Legacy Json Pages` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun loadLegacyJsonPages(rawValue: String): List<SavedPage> {
         val timestamp = currentTimeMillis()
         return LEGACY_OBJECT_REGEX.findAll(rawValue)
@@ -326,6 +539,14 @@ class SavedPageRepository(
             .toList()
     }
 
+    /**
+     * 函数 `legacyJsonStringValue`：封装 `legacy Json String Value` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param objectText 参数类型为 `String`，表示函数执行 `objectText` 相关逻辑时需要读取或处理的输入。
+     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun legacyJsonStringValue(objectText: String, key: String): String? {
         val match = Regex("\"${Regex.escape(key)}\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\"")
             .find(objectText)
@@ -333,6 +554,13 @@ class SavedPageRepository(
         return unescapeJsonString(match.groupValues[1])
     }
 
+    /**
+     * 函数 `unescapeJsonString`：封装 `unescape Json String` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun unescapeJsonString(value: String): String {
         val builder = StringBuilder()
         var index = 0
@@ -365,14 +593,35 @@ class SavedPageRepository(
         return builder.toString()
     }
 
+    /**
+     * 函数 `encode`：封装 `encode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun encode(value: String): String {
         return URLEncoder.encode(value, CHARSET_NAME)
     }
 
+    /**
+     * 函数 `decode`：封装 `decode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun decode(value: String): String? {
         return runCatching { URLDecoder.decode(value, CHARSET_NAME) }.getOrNull()
     }
 
+    /**
+     * 函数 `normalizeSavedWebUrl`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeSavedWebUrl(url: String): String? {
         val normalizedUrl = url.trim().takeIf { it.isNotBlank() } ?: return null
         val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return null

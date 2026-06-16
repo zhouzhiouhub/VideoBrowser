@@ -47,6 +47,15 @@ class DownloadsPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @param statusFilter 参数类型为 `DownloadStatus?`，表示函数执行 `statusFilter` 相关逻辑时需要读取或处理的输入。
+     * @param categoryFilter 参数类型为 `DownloadCategory?`，表示函数执行 `categoryFilter` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(
         replaceCurrent: Boolean = false,
         query: String? = null,
@@ -166,6 +175,14 @@ class DownloadsPage(
         }
     }
 
+    /**
+     * 函数 `showSearchDialog`：控制 `show Search Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param currentQuery 参数类型为 `String?`，表示函数执行 `currentQuery` 相关逻辑时需要读取或处理的输入。
+     * @param statusFilter 参数类型为 `DownloadStatus?`，表示函数执行 `statusFilter` 相关逻辑时需要读取或处理的输入。
+     * @param categoryFilter 参数类型为 `DownloadCategory?`，表示函数执行 `categoryFilter` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showSearchDialog(
         currentQuery: String?,
         statusFilter: DownloadStatus?,
@@ -193,6 +210,14 @@ class DownloadsPage(
             .show()
     }
 
+    /**
+     * 函数 `showStatusFilterDialog`：控制 `show Status Filter Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @param currentStatus 参数类型为 `DownloadStatus?`，表示函数执行 `currentStatus` 相关逻辑时需要读取或处理的输入。
+     * @param categoryFilter 参数类型为 `DownloadCategory?`，表示函数执行 `categoryFilter` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showStatusFilterDialog(
         query: String?,
         currentStatus: DownloadStatus?,
@@ -218,6 +243,14 @@ class DownloadsPage(
             .show()
     }
 
+    /**
+     * 函数 `showCategoryFilterDialog`：控制 `show Category Filter Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @param statusFilter 参数类型为 `DownloadStatus?`，表示函数执行 `statusFilter` 相关逻辑时需要读取或处理的输入。
+     * @param currentCategory 参数类型为 `DownloadCategory?`，表示函数执行 `currentCategory` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showCategoryFilterDialog(
         query: String?,
         statusFilter: DownloadStatus?,
@@ -243,6 +276,12 @@ class DownloadsPage(
             .show()
     }
 
+    /**
+     * 函数 `refreshDownloadRecords`：根据最新状态刷新 `refresh Download Records` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun refreshDownloadRecords(): List<DownloadRecord> {
         return DownloadStatusSynchronizer(
             repository = downloadRecordRepository,
@@ -250,6 +289,14 @@ class DownloadsPage(
         ).refresh()
     }
 
+    /**
+     * 函数 `showDownloadActionsDialog`：控制 `show Download Actions Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @param retryable 参数类型为 `Boolean`，表示函数执行 `retryable` 相关逻辑时需要读取或处理的输入。
+     * @param cancelable 参数类型为 `Boolean`，表示函数执行 `cancelable` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showDownloadActionsDialog(
         record: DownloadRecord,
         retryable: Boolean,
@@ -265,6 +312,15 @@ class DownloadsPage(
             .show()
     }
 
+    /**
+     * 函数 `downloadRecordActions`：封装 `download Record Actions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @param retryable 参数类型为 `Boolean`，表示函数执行 `retryable` 相关逻辑时需要读取或处理的输入。
+     * @param cancelable 参数类型为 `Boolean`，表示函数执行 `cancelable` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun downloadRecordActions(
         record: DownloadRecord,
         retryable: Boolean,
@@ -318,6 +374,12 @@ class DownloadsPage(
         }
     }
 
+    /**
+     * 函数 `confirmCancelDownload`：封装 `confirm Cancel Download` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     private fun confirmCancelDownload(record: DownloadRecord) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_cancel_download)
@@ -341,6 +403,12 @@ class DownloadsPage(
             .show()
     }
 
+    /**
+     * 函数 `confirmRemoveDownloadRecord`：封装 `confirm Remove Download Record` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     private fun confirmRemoveDownloadRecord(record: DownloadRecord) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_remove_download_record)
@@ -364,6 +432,12 @@ class DownloadsPage(
             .show()
     }
 
+    /**
+     * 函数 `copyDownloadSourceUrl`：封装 `copy Download Source Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     private fun copyDownloadSourceUrl(record: DownloadRecord) {
         val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(
@@ -375,6 +449,13 @@ class DownloadsPage(
         Toast.makeText(activity, R.string.toast_download_source_copied, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `cancelDownload`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun cancelDownload(record: DownloadRecord): DownloadCancellationResult {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         return DownloadCanceller(downloadRecordRepository) { downloadIds ->
@@ -382,6 +463,13 @@ class DownloadsPage(
         }.cancel(record)
     }
 
+    /**
+     * 函数 `removeDownloadRecord`：封装 `remove Download Record` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun removeDownloadRecord(record: DownloadRecord): DownloadRecordRemoveResult {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         return DownloadRecordRemover(downloadRecordRepository) { downloadIds ->
@@ -389,6 +477,11 @@ class DownloadsPage(
         }.remove(record)
     }
 
+    /**
+     * 函数 `confirmClearRecords`：封装 `confirm Clear Records` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun confirmClearRecords() {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -402,6 +495,11 @@ class DownloadsPage(
             .show()
     }
 
+    /**
+     * 函数 `clearRecordsAndFiles`：封装 `clear Records And Files` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun clearRecordsAndFiles() {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
@@ -409,6 +507,12 @@ class DownloadsPage(
         }.clearRecordsAndFiles()
     }
 
+    /**
+     * 函数 `shareDownloadedFile`：封装 `share Downloaded File` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     private fun shareDownloadedFile(record: DownloadRecord) {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val uri = runCatching {
@@ -437,6 +541,12 @@ class DownloadsPage(
         }
     }
 
+    /**
+     * 函数 `openDownloadedFile`：启动或加载 `open Downloaded File` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     private fun openDownloadedFile(record: DownloadRecord) {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val uri = runCatching {
@@ -463,6 +573,15 @@ class DownloadsPage(
         }
     }
 
+    /**
+     * 函数 `recordSummary`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @param retryable 参数类型为 `Boolean`，表示函数执行 `retryable` 相关逻辑时需要读取或处理的输入。
+     * @param cancelable 参数类型为 `Boolean`，表示函数执行 `cancelable` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun recordSummary(
         record: DownloadRecord,
         retryable: Boolean = false,
@@ -498,24 +617,53 @@ class DownloadsPage(
         ).joinToString(" | ")
     }
 
+    /**
+     * 函数 `currentSearchSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSearchSummary(query: String?): String {
         return query
             ?.takeIf { it.isNotBlank() }
             ?: activity.getString(R.string.action_search_download_records_summary)
     }
 
+    /**
+     * 函数 `statusFilterSummary`：封装 `status Filter Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param statusFilter 参数类型为 `DownloadStatus?`，表示函数执行 `statusFilter` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun statusFilterSummary(statusFilter: DownloadStatus?): String {
         return statusFilter
             ?.let { status -> activity.getString(downloadStatusTitleResId(status)) }
             ?: activity.getString(R.string.download_filter_all_status)
     }
 
+    /**
+     * 函数 `categoryFilterSummary`：封装 `category Filter Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param categoryFilter 参数类型为 `DownloadCategory?`，表示函数执行 `categoryFilter` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun categoryFilterSummary(categoryFilter: DownloadCategory?): String {
         return categoryFilter
             ?.let { category -> activity.getString(categoryTitleResId(category)) }
             ?: activity.getString(R.string.download_filter_all_categories)
     }
 
+    /**
+     * 函数 `currentFilterSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param statusFilter 参数类型为 `DownloadStatus?`，表示函数执行 `statusFilter` 相关逻辑时需要读取或处理的输入。
+     * @param categoryFilter 参数类型为 `DownloadCategory?`，表示函数执行 `categoryFilter` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentFilterSummary(
         statusFilter: DownloadStatus?,
         categoryFilter: DownloadCategory?
@@ -526,6 +674,13 @@ class DownloadsPage(
         ).joinToString(" | ")
     }
 
+    /**
+     * 函数 `progressSummary`：封装 `progress Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun progressSummary(record: DownloadRecord): String? {
         val progress = record.progress
         val downloaded = record.bytesDownloaded
@@ -550,12 +705,26 @@ class DownloadsPage(
         }
     }
 
+    /**
+     * 函数 `downloadFailureReasonText`：封装 `download Failure Reason Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param statusReason 参数类型为 `Int?`，表示函数执行 `statusReason` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun downloadFailureReasonText(statusReason: Int?): String? {
         return statusReason?.let { reason ->
             activity.getString(R.string.download_failure_reason, reason)
         }
     }
 
+    /**
+     * 函数 `downloadStatusTitleResId`：封装 `download Status Title Res Id` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param status 参数类型为 `DownloadStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun downloadStatusTitleResId(status: DownloadStatus): Int {
         return when (status) {
             DownloadStatus.IN_PROGRESS -> R.string.download_status_in_progress
@@ -565,6 +734,13 @@ class DownloadsPage(
         }
     }
 
+    /**
+     * 函数 `categoryTitleResId`：封装 `category Title Res Id` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param category 参数类型为 `DownloadCategory`，表示函数执行 `category` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun categoryTitleResId(category: DownloadCategory): Int {
         return when (category) {
             DownloadCategory.VIDEO -> R.string.download_category_video
@@ -577,6 +753,13 @@ class DownloadsPage(
         }
     }
 
+    /**
+     * 函数 `queryDownloadStatusSnapshot`：封装 `query Download Status Snapshot` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param downloadId 参数类型为 `Long`，表示函数执行 `downloadId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun queryDownloadStatusSnapshot(downloadId: Long): DownloadStatusSnapshot? {
         val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val cursor = runCatching {
@@ -585,6 +768,13 @@ class DownloadsPage(
         return cursor.use(::snapshotFromCursor)
     }
 
+    /**
+     * 函数 `snapshotFromCursor`：封装 `snapshot From Cursor` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param cursor 参数类型为 `Cursor`，表示函数执行 `cursor` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun snapshotFromCursor(cursor: Cursor): DownloadStatusSnapshot? {
         if (!cursor.moveToFirst()) {
             return null

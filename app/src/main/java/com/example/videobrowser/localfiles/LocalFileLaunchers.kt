@@ -33,6 +33,11 @@ class LocalFileLaunchers(
     private lateinit var openLocalFileLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var openLocalDirectoryLauncher: ActivityResultLauncher<Uri?>
 
+    /**
+     * 函数 `setup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun setup() {
         openLocalFileLauncher =
             activity.registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -49,14 +54,31 @@ class LocalFileLaunchers(
             }
     }
 
+    /**
+     * 函数 `openFile`：启动或加载 `open File` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun openFile() {
         openLocalFileLauncher.launch(arrayOf("*/*"))
     }
 
+    /**
+     * 函数 `openDirectory`：启动或加载 `open Directory` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param initialUri 参数类型为 `Uri?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun openDirectory(initialUri: Uri?) {
         openLocalDirectoryLauncher.launch(initialUri)
     }
 
+    /**
+     * 函数 `handleSelectedDirectory`：处理 `handle Selected Directory` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun handleSelectedDirectory(uri: Uri) {
         val previousUri = directoryPermissions.savedDirectoryUri()
         if (!directoryPermissions.persistReadWritePermission(uri)) {

@@ -45,6 +45,13 @@ class DownloadController(
     ) -> Unit
 ) {
     private val downloadCompleteReceiver = object : BroadcastReceiver() {
+        /**
+         * 函数 `onReceive`：处理 `on Receive` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param context 参数类型为 `Context?`，表示 Android 上下文，用来读取资源、启动系统服务或访问应用环境。
+         * @param intent 参数类型为 `Intent?`，表示函数执行 `intent` 相关逻辑时需要读取或处理的输入。
+         */
         override fun onReceive(context: Context?, intent: Intent?) {
             handleDownloadComplete(intent)
         }
@@ -55,6 +62,12 @@ class DownloadController(
         registerDownloadCompletionReceiver()
     }
 
+    /**
+     * 函数 `attachTo`：封装 `attach To` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param browserManager 参数类型为 `BrowserManager`，表示函数执行 `browserManager` 相关逻辑时需要读取或处理的输入。
+     */
     fun attachTo(browserManager: BrowserManager) {
         browserManager.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             val mediaDecision = url
@@ -89,10 +102,21 @@ class DownloadController(
         }
     }
 
+    /**
+     * 函数 `attachTo`：封装 `attach To` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param browserManagers 参数类型为 `Iterable<BrowserManager>`，表示函数执行 `browserManagers` 相关逻辑时需要读取或处理的输入。
+     */
     fun attachTo(browserManagers: Iterable<BrowserManager>) {
         browserManagers.forEach(::attachTo)
     }
 
+    /**
+     * 函数 `dispose`：封装 `dispose` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun dispose() {
         if (!receiverRegistered) {
             return
@@ -103,6 +127,15 @@ class DownloadController(
         receiverRegistered = false
     }
 
+    /**
+     * 函数 `enqueue`：封装 `enqueue` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param userAgent 参数类型为 `String?`，表示函数执行 `userAgent` 相关逻辑时需要读取或处理的输入。
+     * @param contentDisposition 参数类型为 `String?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     */
     fun enqueue(
         url: String?,
         userAgent: String?,
@@ -137,6 +170,15 @@ class DownloadController(
         )
     }
 
+    /**
+     * 函数 `confirmDownloadIfNeeded`：封装 `confirm Download If Needed` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
+     */
     private fun confirmDownloadIfNeeded(
         url: String,
         fileName: String,
@@ -164,6 +206,14 @@ class DownloadController(
         )
     }
 
+    /**
+     * 函数 `confirmAppPackageDownloadIfNeeded`：封装 `confirm App Package Download If Needed` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
+     */
     private fun confirmAppPackageDownloadIfNeeded(
         fileName: String,
         mimeType: String?,
@@ -180,6 +230,13 @@ class DownloadController(
         confirmed()
     }
 
+    /**
+     * 函数 `showRiskyDownloadConfirmation`：控制 `show Risky Download Confirmation` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showRiskyDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_confirm_app_download)
@@ -189,6 +246,13 @@ class DownloadController(
             .show()
     }
 
+    /**
+     * 函数 `showInsecureDownloadConfirmation`：控制 `show Insecure Download Confirmation` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showInsecureDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_confirm_insecure_download)
@@ -198,6 +262,15 @@ class DownloadController(
             .show()
     }
 
+    /**
+     * 函数 `enqueueConfirmed`：封装 `enqueue Confirmed` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param userAgent 参数类型为 `String?`，表示函数执行 `userAgent` 相关逻辑时需要读取或处理的输入。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun enqueueConfirmed(
         url: String,
         userAgent: String?,
@@ -238,6 +311,12 @@ class DownloadController(
         }
     }
 
+    /**
+     * 函数 `retry`：封装 `retry` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
+     */
     fun retry(record: DownloadRecord) {
         enqueue(
             url = record.sourceUrl,
@@ -247,6 +326,11 @@ class DownloadController(
         )
     }
 
+    /**
+     * 函数 `registerDownloadCompletionReceiver`：封装 `register Download Completion Receiver` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun registerDownloadCompletionReceiver() {
         if (receiverRegistered) {
             return
@@ -260,6 +344,12 @@ class DownloadController(
         receiverRegistered = true
     }
 
+    /**
+     * 函数 `handleDownloadComplete`：处理 `handle Download Complete` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param intent 参数类型为 `Intent?`，表示函数执行 `intent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleDownloadComplete(intent: Intent?) {
         if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
             return
@@ -281,6 +371,13 @@ class DownloadController(
         )
     }
 
+    /**
+     * 函数 `queryDownloadStatus`：封装 `query Download Status` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param downloadId 参数类型为 `Long`，表示函数执行 `downloadId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun queryDownloadStatus(downloadId: Long): DownloadCompletionStatus? {
         val downloadManager =
             activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager

@@ -33,6 +33,16 @@ class SavedPagesPage(
 ) {
     private val activity = host.activity
 
+    /**
+     * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     */
     fun show(
         collection: SavedPageCollection,
         title: String,
@@ -104,6 +114,15 @@ class SavedPagesPage(
         }
     }
 
+    /**
+     * 函数 `addBookmarkGroups`：封装 `add Bookmark Groups` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param section 参数类型为 `android.widget.LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
+     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addBookmarkGroups(
         section: android.widget.LinearLayout,
         pages: List<SavedPage>,
@@ -123,6 +142,16 @@ class SavedPagesPage(
         }
     }
 
+    /**
+     * 函数 `addSavedPageRows`：封装 `add Saved Page Rows` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param section 参数类型为 `android.widget.LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addSavedPageRows(
         section: android.widget.LinearLayout,
         collection: SavedPageCollection,
@@ -141,6 +170,15 @@ class SavedPagesPage(
         }
     }
 
+    /**
+     * 函数 `showSearchDialog`：控制 `show Search Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     * @param currentQuery 参数类型为 `String?`，表示函数执行 `currentQuery` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showSearchDialog(
         collection: SavedPageCollection,
         title: String,
@@ -170,6 +208,15 @@ class SavedPagesPage(
             .show()
     }
 
+    /**
+     * 函数 `showSavedPageActionsDialog`：控制 `show Saved Page Actions Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showSavedPageActionsDialog(
         collection: SavedPageCollection,
         page: SavedPage,
@@ -186,6 +233,16 @@ class SavedPagesPage(
             .show()
     }
 
+    /**
+     * 函数 `savedPageActions`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun savedPageActions(
         collection: SavedPageCollection,
         page: SavedPage,
@@ -231,6 +288,14 @@ class SavedPagesPage(
         ).filterNotNull()
     }
 
+    /**
+     * 函数 `showRenameBookmarkDialog`：控制 `show Rename Bookmark Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showRenameBookmarkDialog(
         page: SavedPage,
         title: String,
@@ -268,6 +333,14 @@ class SavedPagesPage(
         dialog.show()
     }
 
+    /**
+     * 函数 `showMoveBookmarkFolderDialog`：控制 `show Move Bookmark Folder Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showMoveBookmarkFolderDialog(
         page: SavedPage,
         title: String,
@@ -304,6 +377,12 @@ class SavedPagesPage(
         dialog.show()
     }
 
+    /**
+     * 函数 `copySavedPageUrl`：封装 `copy Saved Page Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     */
     private fun copySavedPageUrl(page: SavedPage) {
         val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(
@@ -315,6 +394,12 @@ class SavedPagesPage(
         Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `shareSavedPageUrl`：封装 `share Saved Page Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     */
     private fun shareSavedPageUrl(page: SavedPage) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
@@ -323,6 +408,12 @@ class SavedPagesPage(
         activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
     }
 
+    /**
+     * 函数 `showClearSavedPagesDialog`：控制 `show Clear Saved Pages Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showClearSavedPagesDialog(collection: SavedPageCollection) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.action_clear)
@@ -345,6 +436,13 @@ class SavedPagesPage(
             .show()
     }
 
+    /**
+     * 函数 `collectionTitle`：封装 `collection Title` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun collectionTitle(collection: SavedPageCollection): String {
         return when (collection) {
             SavedPageCollection.BOOKMARKS -> activity.getString(R.string.title_bookmarks)
@@ -352,6 +450,13 @@ class SavedPagesPage(
         }
     }
 
+    /**
+     * 函数 `collectionEmptyMessage`：封装 `collection Empty Message` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun collectionEmptyMessage(collection: SavedPageCollection): String {
         return when (collection) {
             SavedPageCollection.BOOKMARKS -> activity.getString(R.string.toast_bookmarks_empty)
@@ -359,6 +464,13 @@ class SavedPagesPage(
         }
     }
 
+    /**
+     * 函数 `pageSummary`：封装 `page Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun pageSummary(page: SavedPage): String {
         val timestamp = page.updatedAtMillis.takeIf { it > 0L }
         return listOfNotNull(
@@ -370,12 +482,26 @@ class SavedPagesPage(
         ).joinToString(" | ")
     }
 
+    /**
+     * 函数 `currentSearchSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSearchSummary(query: String?): String {
         return query
             ?.takeIf { it.isNotBlank() }
             ?: activity.getString(R.string.action_search_saved_pages_summary)
     }
 
+    /**
+     * 函数 `bookmarkGroups`：封装 `bookmark Groups` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun bookmarkGroups(pages: List<SavedPage>): List<SavedPageGroup> {
         val unfiled = pages.filter { page -> page.folder.isBlank() }
         val folderGroups = pages
