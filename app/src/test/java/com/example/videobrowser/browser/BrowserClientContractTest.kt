@@ -169,6 +169,9 @@ class BrowserClientContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val renderProcessRecoveryController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/RenderProcessRecoveryController.kt"
+        ).readText()
         val sessionCoordinator = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSessionCoordinator.kt"
         ).readText()
@@ -187,10 +190,13 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("return renderProcessGone(view, detail?.didCrash() == true)"))
         assertTrue(mainActivity.contains("renderProcessGone = ::handleRenderProcessGone"))
         assertTrue(mainActivity.contains("private fun handleRenderProcessGone(view: WebView?, didCrash: Boolean): Boolean"))
-        assertTrue(mainActivity.contains("BrowserPageError.RenderProcessGone"))
-        assertTrue(mainActivity.contains("standardTabWebViews.replaceView(tabId, replacementWebView)"))
-        assertTrue(mainActivity.contains("browserSessionCoordinator.replacePrivateWebView()"))
-        assertTrue(mainActivity.contains("private fun disposeGoneWebView(goneWebView: WebView)"))
+        assertTrue(mainActivity.contains("private lateinit var renderProcessRecoveryController: RenderProcessRecoveryController"))
+        assertTrue(mainActivity.contains("renderProcessRecoveryController.handleRenderProcessGone(view, didCrash)"))
+        assertTrue(renderProcessRecoveryController.contains("BrowserPageError.RenderProcessGone"))
+        assertTrue(renderProcessRecoveryController.contains("standardTabWebViews.replaceView(tabId, replacementWebView)"))
+        assertTrue(renderProcessRecoveryController.contains("sessionCoordinator.replacePrivateWebView()"))
+        assertTrue(renderProcessRecoveryController.contains("private fun disposeGoneWebView(goneWebView: WebView)"))
+        assertTrue(renderProcessRecoveryController.contains("goneWebView.webViewClient = WebViewClient()"))
         assertTrue(sessionCoordinator.contains("fun replacePrivateWebView(): WebView?"))
         assertTrue(sessionCoordinator.contains("detachCurrent = false"))
         assertTrue(tabRegistry.contains("data class ReplaceResult"))

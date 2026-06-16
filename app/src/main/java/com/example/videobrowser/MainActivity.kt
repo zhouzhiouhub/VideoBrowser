@@ -86,6 +86,7 @@ import com.example.videobrowser.browser.LinkContextMenuController
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveController
 import com.example.videobrowser.browser.PagePrintController
+import com.example.videobrowser.browser.RenderProcessRecoveryController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
@@ -192,6 +193,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageActionsController: PageActionsController
     private lateinit var httpAuthController: HttpAuthController
     private lateinit var clientCertificateController: ClientCertificateController
+    private lateinit var renderProcessRecoveryController: RenderProcessRecoveryController
     private lateinit var linkContextMenuController: LinkContextMenuController
     private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
@@ -597,6 +599,19 @@ class MainActivity : AppCompatActivity() {
             addHistoryEntry = {},
             injectPageFeatures = ::injectPageFeatures,
             onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
+        )
+        renderProcessRecoveryController = RenderProcessRecoveryController(
+            webViewContainer = webViewContainer,
+            sessionCoordinator = browserSessionCoordinator,
+            standardTabWebViews = standardTabWebViews,
+            currentPageUrl = { currentSessionController().currentPageUrl },
+            isPrivateBrowsingActive = { privateBrowsingActive },
+            createStandardTabWebView = ::createStandardTabWebView,
+            showStandardTabWebView = { tabWebView, detachCurrent ->
+                showStandardTabWebView(tabWebView, detachCurrent)
+            },
+            saveStandardTabSession = ::saveStandardTabSession,
+            showBrowserErrorPage = ::showBrowserErrorPage
         )
 
         // 网页全屏视频控制器处理 WebChromeClient 自定义视图和网页视频手势协议。
@@ -1163,63 +1178,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun handleRenderProcessGone(view: WebView?, didCrash: Boolean): Boolean {
-        val goneWebView = view ?: return true
-        val pageUrl = currentSessionController().currentPageUrl
-            ?: goneWebView.url
-
-        if (privateBrowsingActive && browserSessionCoordinator.activeWebView === goneWebView) {
-            val previousWebView = browserSessionCoordinator.replacePrivateWebView()
-            if (previousWebView != null) {
-                disposeGoneWebView(previousWebView)
-                showBrowserErrorPage(
-                    BrowserPageError.RenderProcessGone(
-                        url = pageUrl,
-                        didCrash = didCrash
-                    )
-                )
-            }
-            return true
-        }
-
-        val tabId = standardTabWebViews.tabIdFor(goneWebView)
-        if (tabId != null) {
-            val replacementWebView = createStandardTabWebView()
-            val result = standardTabWebViews.replaceView(tabId, replacementWebView)
-            if (result != null && result.replacedActiveView && !privateBrowsingActive) {
-                showStandardTabWebView(replacementWebView, detachCurrent = false)
-                showBrowserErrorPage(
-                    BrowserPageError.RenderProcessGone(
-                        url = pageUrl,
-                        didCrash = didCrash
-                    )
-                )
-            }
-            disposeGoneWebView(goneWebView)
-            saveStandardTabSession()
-            return true
-        }
-
-        disposeGoneWebView(goneWebView)
-        return true
-    }
-
-    /**
-     * 函数 `disposeGoneWebView`：封装 `dispose Gone Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param goneWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun disposeGoneWebView(goneWebView: WebView) {
-        if (goneWebView.parent == webViewContainer) {
-            webViewContainer.removeView(goneWebView)
-        } else {
-            (goneWebView.parent as? ViewGroup)?.removeView(goneWebView)
-        }
-        goneWebView.webChromeClient = null
-        goneWebView.webViewClient = android.webkit.WebViewClient()
-        goneWebView.setDownloadListener(null)
-        goneWebView.removeAllViews()
-        goneWebView.destroy()
+        return renderProcessRecoveryController.handleRenderProcessGone(view, didCrash)
     }
 
     /**
