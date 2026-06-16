@@ -10,6 +10,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class FunctionCenterDataManagementActionCatalogTest {
+    /**
+     * 测试函数 `dataManagementKeepsSingleResetEntryInsteadOfSeparateClearBrowsingData`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `data Management Keeps Single Reset Entry Instead Of Separate Clear Browsing Data` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun dataManagementKeepsSingleResetEntryInsteadOfSeparateClearBrowsingData() {
         val actions = FunctionCenterDataManagementActionCatalog.actions(
@@ -36,6 +41,11 @@ class FunctionCenterDataManagementActionCatalogTest {
         assertFalse(actions.contains("CLEAR_BROWSER_DATA"))
     }
 
+    /**
+     * 测试函数 `privateBrowsingOnlyShowsCacheAndRestoreDefaultSettings`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `private Browsing Only Shows Cache And Restore Default Settings` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun privateBrowsingOnlyShowsCacheAndRestoreDefaultSettings() {
         val actions = FunctionCenterDataManagementActionCatalog.actions(
@@ -45,6 +55,11 @@ class FunctionCenterDataManagementActionCatalogTest {
         assertEquals(listOf("CACHE", "RESTORE_DEFAULT_SETTINGS"), actions)
     }
 
+    /**
+     * 测试函数 `profileDataManagementOnlyShowsRestoreDefaultSettings`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `profile Data Management Only Shows Restore Default Settings` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun profileDataManagementOnlyShowsRestoreDefaultSettings() {
         val actions = FunctionCenterDataManagementActionCatalog.profileActions()

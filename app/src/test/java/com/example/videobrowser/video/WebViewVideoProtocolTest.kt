@@ -12,6 +12,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WebViewVideoProtocolTest {
+    /**
+     * 测试函数 `timelineNormalizesBridgeNumbers`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `timeline Normalizes Bridge Numbers` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun timelineNormalizesBridgeNumbers() {
         val timeline = WebViewVideoTimeline.fromBridge(
@@ -29,6 +34,11 @@ class WebViewVideoProtocolTest {
         assertNull(invalidTimeline.durationMs)
     }
 
+    /**
+     * 测试函数 `seekCommandsRenderSafeEnhancerCallsInSeconds`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `seek Commands Render Safe Enhancer Calls In Seconds` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun seekCommandsRenderSafeEnhancerCallsInSeconds() {
         val seekBy = WebViewVideoCommand.SeekBy(offsetMs = 1_500L).toJavascript()
@@ -41,6 +51,11 @@ class WebViewVideoProtocolTest {
         assertTrue(seekTo.contains("enhancer.seekTo(65.250);"))
     }
 
+    /**
+     * 测试函数 `playbackCommandsKeepFallbackGuardsAndNormalizeArguments`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `playback Commands Keep Fallback Guards And Normalize Arguments` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playbackCommandsKeepFallbackGuardsAndNormalizeArguments() {
         val speed = WebViewVideoCommand.SetPlaybackSpeed(speed = 1.5f).toJavascript()
@@ -54,6 +69,11 @@ class WebViewVideoProtocolTest {
         assertFalse(startReverse.contains("-7"))
     }
 
+    /**
+     * 测试函数 `togglePlayPauseAlsoWakesControlsWhenAvailable`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `toggle Play Pause Also Wakes Controls When Available` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun togglePlayPauseAlsoWakesControlsWhenAvailable() {
         val script = WebViewVideoCommand.TogglePlayPause.toJavascript()

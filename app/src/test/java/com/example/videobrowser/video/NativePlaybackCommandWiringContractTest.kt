@@ -10,6 +10,11 @@ import org.junit.Test
 import java.io.File
 
 class NativePlaybackCommandWiringContractTest {
+    /**
+     * 测试函数 `playerActivityRoutesOverlayCallbacksThroughPlaybackCommands`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `player Activity Routes Overlay Callbacks Through Playback Commands` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playerActivityRoutesOverlayCallbacksThroughPlaybackCommands() {
         val source = File("src/main/java/com/example/videobrowser/video/PlayerActivity.kt").readText()
@@ -29,6 +34,11 @@ class NativePlaybackCommandWiringContractTest {
         assertTrue(source.contains("PlaybackCommand.SelectTrack(PlaybackTrackType.SUBTITLE)"))
     }
 
+    /**
+     * 测试函数 `playerActivitySnapshotsNativePlaybackSessionState`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `player Activity Snapshots Native Playback Session State` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playerActivitySnapshotsNativePlaybackSessionState() {
         val source = File("src/main/java/com/example/videobrowser/video/PlayerActivity.kt").readText()

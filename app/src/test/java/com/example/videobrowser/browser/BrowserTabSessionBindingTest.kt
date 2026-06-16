@@ -9,6 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class BrowserTabSessionBindingTest {
+    /**
+     * 测试函数 `syncsPageMetadataToActiveTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `syncs Page Metadata To Active Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun syncsPageMetadataToActiveTab() {
         val tabs = BrowserTabStore()
@@ -23,6 +28,11 @@ class BrowserTabSessionBindingTest {
         assertEquals("Watch", tabs.activeTab().title)
     }
 
+    /**
+     * 测试函数 `keepsExistingTitleWhenOnlyUrlChanges`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `keeps Existing Title When Only Url Changes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun keepsExistingTitleWhenOnlyUrlChanges() {
         val tabs = BrowserTabStore()

@@ -29,6 +29,11 @@ class JsInjectorInstrumentedTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private lateinit var webView: WebView
 
+    /**
+     * 测试函数 `setUp`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `set Up` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Before
     fun setUp() {
         instrumentation.runOnMainSync {
@@ -43,6 +48,11 @@ class JsInjectorInstrumentedTest {
         }
     }
 
+    /**
+     * 测试函数 `tearDown`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `tear Down` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @After
     fun tearDown() {
         instrumentation.runOnMainSync {
@@ -50,6 +60,11 @@ class JsInjectorInstrumentedTest {
         }
     }
 
+    /**
+     * 测试函数 `inject_appliesCleanupSkipAndVideoSpeedFeatures`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject applies Cleanup Skip And Video Speed Features` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_appliesCleanupSkipAndVideoSpeedFeatures() {
         loadHtml(TEST_HTML)
@@ -78,6 +93,11 @@ class JsInjectorInstrumentedTest {
         assertEquals(1.5, result.getDouble(3), 0.01)
     }
 
+    /**
+     * 测试函数 `scriptletWindowOpenAndFetchKeywordsWorkWhenCleanupDisabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `scriptlet Window Open And Fetch Keywords Work When Cleanup Disabled` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun scriptletWindowOpenAndFetchKeywordsWorkWhenCleanupDisabled() {
         loadHtml(SCRIPTLET_HOOK_HTML)
@@ -128,6 +148,11 @@ class JsInjectorInstrumentedTest {
         assertEquals(0, fetchResult.getInt(2))
     }
 
+    /**
+     * 测试函数 `scriptletSkipButtonsCanRunWhenVideoEnhancementDisabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `scriptlet Skip Buttons Can Run When Video Enhancement Disabled` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun scriptletSkipButtonsCanRunWhenVideoEnhancementDisabled() {
         loadHtml(TEST_HTML)
@@ -144,6 +169,11 @@ class JsInjectorInstrumentedTest {
         assertTrue(result.toString(), result.getBoolean(0))
     }
 
+    /**
+     * 测试函数 `scriptletVideoControlsCanRunWhenVideoEnhancementDisabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `scriptlet Video Controls Can Run When Video Enhancement Disabled` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun scriptletVideoControlsCanRunWhenVideoEnhancementDisabled() {
         loadHtml(TEST_HTML)
@@ -171,6 +201,11 @@ class JsInjectorInstrumentedTest {
         assertTrue(result.toString(), result.getBoolean(1))
     }
 
+    /**
+     * 测试函数 `videoControlsStayDisabledWithoutVideoEnhancementOrScriptletHook`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `video Controls Stay Disabled Without Video Enhancement Or Scriptlet Hook` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun videoControlsStayDisabledWithoutVideoEnhancementOrScriptletHook() {
         loadHtml(TEST_HTML)
@@ -197,6 +232,11 @@ class JsInjectorInstrumentedTest {
         assertFalse(result.toString(), result.getBoolean(1))
     }
 
+    /**
+     * 测试函数 `setPlaybackSpeed_appliesToActiveVideoWhenAndroidCustomViewFullscreenHasNoDocumentFullscreen`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `set Playback Speed applies To Active Video When Android Custom View Fullscreen Has No Document Fullscreen` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun setPlaybackSpeed_appliesToActiveVideoWhenAndroidCustomViewFullscreenHasNoDocumentFullscreen() {
         loadHtml(TEST_HTML)
@@ -219,6 +259,11 @@ class JsInjectorInstrumentedTest {
         assertEquals(1.5, result.getDouble(1), 0.01)
     }
 
+    /**
+     * 测试函数 `setPlaybackSpeed_survivesDocumentFullscreenSyncWhileAndroidCustomViewFullscreenIsActive`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `set Playback Speed survives Document Fullscreen Sync While Android Custom View Fullscreen Is Active` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun setPlaybackSpeed_survivesDocumentFullscreenSyncWhileAndroidCustomViewFullscreenIsActive() {
         loadHtml(TEST_HTML)
@@ -261,6 +306,11 @@ class JsInjectorInstrumentedTest {
         assertEquals(1.5, result.getDouble(1), 0.01)
     }
 
+    /**
+     * 测试函数 `setPlaybackSpeed_survivesFeatureReapplyWhileAndroidCustomViewFullscreenIsActive`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `set Playback Speed survives Feature Reapply While Android Custom View Fullscreen Is Active` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun setPlaybackSpeed_survivesFeatureReapplyWhileAndroidCustomViewFullscreenIsActive() {
         loadHtml(TEST_HTML)
@@ -304,6 +354,11 @@ class JsInjectorInstrumentedTest {
         assertTrue(reapplied.toString(), reapplied.getBoolean(2))
     }
 
+    /**
+     * 测试函数 `inject_loadsOnlyMatchingSiteAdapterInWebView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject loads Only Matching Site Adapter In Web View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_loadsOnlyMatchingSiteAdapterInWebView() {
         loadHtml(TEST_HTML)
@@ -345,6 +400,11 @@ class JsInjectorInstrumentedTest {
         assertTrue(result.getBoolean(3))
     }
 
+    /**
+     * 测试函数 `inject_removesGenericImageInterstitialOverlay`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject removes Generic Image Interstitial Overlay` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_removesGenericImageInterstitialOverlay() {
         loadHtml(IMAGE_INTERSTITIAL_HTML)
@@ -382,6 +442,11 @@ class JsInjectorInstrumentedTest {
         assertEquals("", result.getString(8))
     }
 
+    /**
+     * 测试函数 `inject_removesGenericFloatingImageAdsAndDownloadBar`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject removes Generic Floating Image Ads And Download Bar` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_removesGenericFloatingImageAdsAndDownloadBar() {
         loadHtml(FLOATING_AD_HTML)
@@ -426,6 +491,11 @@ class JsInjectorInstrumentedTest {
         assertFalse("none" == result.getString(10))
     }
 
+    /**
+     * 测试函数 `inject_removesGeneratedSlicedImageAdsWithoutDomainOrClassRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject removes Generated Sliced Image Ads Without Domain Or Class Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_removesGeneratedSlicedImageAdsWithoutDomainOrClassRules() {
         loadHtml(GENERATED_SLICED_AD_HTML)
@@ -480,6 +550,11 @@ class JsInjectorInstrumentedTest {
         assertTrue(result.isNull(11))
     }
 
+    /**
+     * 测试函数 `inject_removesRegeneratedSlicedImageAdsBeforeGenericCleanupInterval`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject removes Regenerated Sliced Image Ads Before Generic Cleanup Interval` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_removesRegeneratedSlicedImageAdsBeforeGenericCleanupInterval() {
         loadHtml(GENERATED_SLICED_AD_HTML)
@@ -540,10 +615,24 @@ class JsInjectorInstrumentedTest {
         )
     }
 
+    /**
+     * 测试函数 `loadHtml`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Html` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param html 参数类型为 `String`，表示函数执行 `html` 相关逻辑时需要读取或处理的输入。
+     * @param baseUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun loadHtml(html: String, baseUrl: String? = null) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
             webView.webViewClient = object : WebViewClient() {
+                /**
+                 * 测试函数 `onPageFinished`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `on Page Finished` 这条行为是否成立。
+                 *
+                 * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                 * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+                 * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+                 */
                 override fun onPageFinished(view: WebView?, url: String?) {
                     latch.countDown()
                 }
@@ -559,6 +648,14 @@ class JsInjectorInstrumentedTest {
         assertTrue("Timed out waiting for test page to load.", latch.await(5, TimeUnit.SECONDS))
     }
 
+    /**
+     * 测试函数 `injectPageFeatures`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param config 参数类型为 `PageFeatureConfig`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param siteAdapterRegistry 参数类型为 `SiteAdapterRegistry`，表示函数执行 `siteAdapterRegistry` 相关逻辑时需要读取或处理的输入。
+     */
     private fun injectPageFeatures(
         config: PageFeatureConfig = PageFeatureConfig(
             cleanupEnabled = true,
@@ -585,6 +682,13 @@ class JsInjectorInstrumentedTest {
         assertTrue("Timed out waiting for script injection.", latch.await(5, TimeUnit.SECONDS))
     }
 
+    /**
+     * 测试函数 `evaluateJsonArray`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate Json Array` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param script 参数类型为 `String`，表示函数执行 `script` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun evaluateJsonArray(script: String): JSONArray {
         val latch = CountDownLatch(1)
         var rawResult: String? = null
@@ -598,6 +702,15 @@ class JsInjectorInstrumentedTest {
         return JSONArray(requireNotNull(rawResult))
     }
 
+    /**
+     * 测试函数 `testSiteAdapter`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `test Site Adapter` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @param scriptAssetPath 参数类型为 `String`，表示函数执行 `scriptAssetPath` 相关逻辑时需要读取或处理的输入。
+     * @param matchesPage 参数类型为 `Boolean`，表示函数执行 `matchesPage` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun testSiteAdapter(
         id: String,
         scriptAssetPath: String,
@@ -611,6 +724,13 @@ class JsInjectorInstrumentedTest {
                 scriptAssetPaths = listOf(scriptAssetPath)
             )
 
+            /**
+             * 测试函数 `matches`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `matches` 这条行为是否成立。
+             *
+             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+             * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+             */
             override fun matches(url: String): Boolean {
                 return matchesPage && url == MATCHING_TEST_PAGE
             }

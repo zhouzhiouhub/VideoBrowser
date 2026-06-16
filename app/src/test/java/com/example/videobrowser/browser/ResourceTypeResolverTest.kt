@@ -9,6 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ResourceTypeResolverTest {
+    /**
+     * 测试函数 `resolve_returnsDocumentForMainFrameRequests`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve returns Document For Main Frame Requests` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_returnsDocumentForMainFrameRequests() {
         val type = ResourceTypeResolver.resolve(
@@ -19,6 +24,11 @@ class ResourceTypeResolverTest {
         assertEquals(ResourceType.DOCUMENT, type)
     }
 
+    /**
+     * 测试函数 `resolve_infersScriptAndImageFromHeaders`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve infers Script And Image From Headers` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_infersScriptAndImageFromHeaders() {
         assertEquals(
@@ -39,6 +49,11 @@ class ResourceTypeResolverTest {
         )
     }
 
+    /**
+     * 测试函数 `resolve_infersMediaFromUrlSuffix`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve infers Media From Url Suffix` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_infersMediaFromUrlSuffix() {
         val type = ResourceTypeResolver.resolve(
@@ -49,6 +64,11 @@ class ResourceTypeResolverTest {
         assertEquals(ResourceType.MEDIA, type)
     }
 
+    /**
+     * 测试函数 `resolve_returnsUnknownWhenRequestIsAmbiguous`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve returns Unknown When Request Is Ambiguous` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_returnsUnknownWhenRequestIsAmbiguous() {
         val type = ResourceTypeResolver.resolve(

@@ -13,6 +13,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserTabStoreTest {
+    /**
+     * 测试函数 `startsWithOneActiveTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `starts With One Active Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun startsWithOneActiveTab() {
         val tabs = BrowserTabStore()
@@ -22,6 +27,11 @@ class BrowserTabStoreTest {
         assertTrue(tabs.activeTab().url == null)
     }
 
+    /**
+     * 测试函数 `opensNewTabsAndActivatesTheNewTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `opens New Tabs And Activates The New Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun opensNewTabsAndActivatesTheNewTab() {
         val tabs = BrowserTabStore()
@@ -36,6 +46,11 @@ class BrowserTabStoreTest {
         assertEquals(2, tabs.tabs().size)
     }
 
+    /**
+     * 测试函数 `switchesActiveTabById`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `switches Active Tab By Id` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun switchesActiveTabById() {
         val tabs = BrowserTabStore()
@@ -47,6 +62,11 @@ class BrowserTabStoreTest {
         assertEquals(firstTabId, tabs.activeTabId)
     }
 
+    /**
+     * 测试函数 `closingActiveTabActivatesNeighbor`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `closing Active Tab Activates Neighbor` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closingActiveTabActivatesNeighbor() {
         val tabs = BrowserTabStore()
@@ -59,6 +79,11 @@ class BrowserTabStoreTest {
         assertEquals(1, tabs.tabs().size)
     }
 
+    /**
+     * 测试函数 `keepsLastTabOpen`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `keeps Last Tab Open` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun keepsLastTabOpen() {
         val tabs = BrowserTabStore()
@@ -69,6 +94,11 @@ class BrowserTabStoreTest {
         assertEquals(1, tabs.tabs().size)
     }
 
+    /**
+     * 测试函数 `reopensRecentlyClosedTabWithNewId`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `reopens Recently Closed Tab With New Id` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun reopensRecentlyClosedTabWithNewId() {
         val tabs = BrowserTabStore()
@@ -85,6 +115,11 @@ class BrowserTabStoreTest {
         assertFalse(tabs.canReopenClosedTab())
     }
 
+    /**
+     * 测试函数 `reopenClosedTabReturnsNullWhenNothingWasClosed`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `reopen Closed Tab Returns Null When Nothing Was Closed` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun reopenClosedTabReturnsNullWhenNothingWasClosed() {
         val tabs = BrowserTabStore()
@@ -92,6 +127,11 @@ class BrowserTabStoreTest {
         assertNull(tabs.reopenClosedTab())
     }
 
+    /**
+     * 测试函数 `closingOtherTabsKeepsTargetTabAndActivatesIt`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `closing Other Tabs Keeps Target Tab And Activates It` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closingOtherTabsKeepsTargetTabAndActivatesIt() {
         val tabs = BrowserTabStore()
@@ -107,6 +147,11 @@ class BrowserTabStoreTest {
         assertEquals("https://example.com/second", tabs.activeTab().url)
     }
 
+    /**
+     * 测试函数 `closingOtherTabsAddsClosedTabsToReopenStack`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `closing Other Tabs Adds Closed Tabs To Reopen Stack` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closingOtherTabsAddsClosedTabsToReopenStack() {
         val tabs = BrowserTabStore()
@@ -128,6 +173,11 @@ class BrowserTabStoreTest {
         assertEquals("https://example.com/second", nextReopenedTab.url)
     }
 
+    /**
+     * 测试函数 `closingOtherTabsRejectsUnknownTarget`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `closing Other Tabs Rejects Unknown Target` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closingOtherTabsRejectsUnknownTarget() {
         val tabs = BrowserTabStore()
@@ -140,6 +190,11 @@ class BrowserTabStoreTest {
         assertEquals(secondTab.id, tabs.activeTabId)
     }
 
+    /**
+     * 测试函数 `closingAllTabsCreatesNewBlankActiveTabAndKeepsClosedTabsReopenable`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `closing All Tabs Creates New Blank Active Tab And Keeps Closed Tabs Reopenable` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closingAllTabsCreatesNewBlankActiveTabAndKeepsClosedTabsReopenable() {
         val tabs = BrowserTabStore()
@@ -161,6 +216,11 @@ class BrowserTabStoreTest {
         assertEquals("Second", reopenedTab.title)
     }
 
+    /**
+     * 测试函数 `updatesActiveTabMetadata`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `updates Active Tab Metadata` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun updatesActiveTabMetadata() {
         val tabs = BrowserTabStore()
@@ -171,6 +231,11 @@ class BrowserTabStoreTest {
         assertEquals("Video", tabs.activeTab().title)
     }
 
+    /**
+     * 测试函数 `restoresTabsAndActiveTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `restores Tabs And Active Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun restoresTabsAndActiveTab() {
         val tabs = BrowserTabStore()
@@ -190,6 +255,11 @@ class BrowserTabStoreTest {
         assertEquals("https://b.example.com", tabs.activeTab().url)
     }
 
+    /**
+     * 测试函数 `restoringTabsClearsRecentlyClosedTabs`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `restoring Tabs Clears Recently Closed Tabs` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun restoringTabsClearsRecentlyClosedTabs() {
         val tabs = BrowserTabStore()
@@ -208,6 +278,11 @@ class BrowserTabStoreTest {
         assertFalse(tabs.canReopenClosedTab())
     }
 
+    /**
+     * 测试函数 `restoreRejectsEmptyInput`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `restore Rejects Empty Input` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun restoreRejectsEmptyInput() {
         val tabs = BrowserTabStore()

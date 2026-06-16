@@ -9,6 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class FunctionCenterActionGridLayoutTest {
+    /**
+     * 测试函数 `sevenActionsUseFiveEqualSlotsPerRowWithTrailingEmptySlots`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `seven Actions Use Five Equal Slots Per Row With Trailing Empty Slots` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun sevenActionsUseFiveEqualSlotsPerRowWithTrailingEmptySlots() {
         val slots = FunctionCenterActionGridLayout.rows(actionCount = 7)
@@ -22,6 +27,11 @@ class FunctionCenterActionGridLayoutTest {
         )
     }
 
+    /**
+     * 测试函数 `oneActionKeepsTheActionInTheFirstSlot`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `one Action Keeps The Action In The First Slot` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun oneActionKeepsTheActionInTheFirstSlot() {
         val slots = FunctionCenterActionGridLayout.rows(actionCount = 1)

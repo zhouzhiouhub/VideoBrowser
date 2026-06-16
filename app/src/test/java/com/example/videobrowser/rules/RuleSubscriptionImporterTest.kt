@@ -18,6 +18,11 @@ class RuleSubscriptionImporterTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
+    /**
+     * 测试函数 `importText_writesSupportedRuleBucketsAndSourceMetadata`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `import Text writes Supported Rule Buckets And Source Metadata` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun importText_writesSupportedRuleBucketsAndSourceMetadata() {
         val cacheDirectory = temporaryFolder.newFolder()
@@ -65,6 +70,11 @@ class RuleSubscriptionImporterTest {
         )
     }
 
+    /**
+     * 测试函数 `update_preservesExistingCacheWhenFetchFails`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `update preserves Existing Cache When Fetch Fails` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun update_preservesExistingCacheWhenFetchFails() {
         val cacheDirectory = temporaryFolder.newFolder()

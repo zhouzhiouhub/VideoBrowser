@@ -10,6 +10,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class LocalPlaybackQueueBuilderTest {
+    /**
+     * 测试函数 `builds`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `builds` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `builds a sibling video queue with per-item subtitle candidates`() {
         val queue = LocalPlaybackQueueBuilder.fromDocuments(
@@ -52,6 +57,11 @@ class LocalPlaybackQueueBuilderTest {
         )
     }
 
+    /**
+     * 测试函数 `falls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `falls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `falls back to the current media item when siblings do not include it`() {
         val queue = LocalPlaybackQueueBuilder.fromDocuments(
@@ -68,6 +78,15 @@ class LocalPlaybackQueueBuilderTest {
         assertEquals("Clip.mp4", queue.currentItem()?.title)
     }
 
+    /**
+     * 测试函数 `document`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `document` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun document(
         uri: String,
         name: String,

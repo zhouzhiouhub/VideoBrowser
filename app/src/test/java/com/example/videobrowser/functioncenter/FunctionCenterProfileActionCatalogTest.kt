@@ -10,6 +10,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class FunctionCenterProfileActionCatalogTest {
+    /**
+     * 测试函数 `profileShortcutsShowManualRulesAsTopGridAction`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `profile Shortcuts Show Manual Rules As Top Grid Action` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun profileShortcutsShowManualRulesAsTopGridAction() {
         val actions = FunctionCenterProfileActionCatalog.shortcuts(
@@ -32,6 +37,11 @@ class FunctionCenterProfileActionCatalogTest {
         assertFalse(actions.contains("BROWSER_SETTINGS"))
     }
 
+    /**
+     * 测试函数 `profileShortcutsHideManualRulesInPrivateBrowsing`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `profile Shortcuts Hide Manual Rules In Private Browsing` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun profileShortcutsHideManualRulesInPrivateBrowsing() {
         val actions = FunctionCenterProfileActionCatalog.shortcuts(

@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LocalSubtitleMatcherTest {
+    /**
+     * 测试函数 `matches`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `matches` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `matches same-name subtitle files and common language suffixes`() {
         val candidates = LocalSubtitleMatcher.findSubtitleCandidates(
@@ -74,6 +79,11 @@ class LocalSubtitleMatcherTest {
         )
     }
 
+    /**
+     * 测试函数 `ignores`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `ignores` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `ignores subtitle-looking files when media name is missing`() {
         val candidates = LocalSubtitleMatcher.findSubtitleCandidates(

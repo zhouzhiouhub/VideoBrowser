@@ -12,6 +12,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ExternalProtocolPolicyTest {
+    /**
+     * 测试函数 `shouldOpenExternally_allowsAppLinkSchemes`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Open Externally allows App Link Schemes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldOpenExternally_allowsAppLinkSchemes() {
         assertTrue(ExternalProtocolPolicy.shouldOpenExternally("mailto"))
@@ -20,6 +25,11 @@ class ExternalProtocolPolicyTest {
         assertTrue(ExternalProtocolPolicy.shouldOpenExternally("custom-app"))
     }
 
+    /**
+     * 测试函数 `shouldOpenExternally_blocksWebAndBrowserInternalSchemes`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Open Externally blocks Web And Browser Internal Schemes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldOpenExternally_blocksWebAndBrowserInternalSchemes() {
         assertFalse(ExternalProtocolPolicy.shouldOpenExternally("http"))
@@ -31,6 +41,11 @@ class ExternalProtocolPolicyTest {
         assertFalse(ExternalProtocolPolicy.shouldOpenExternally(null))
     }
 
+    /**
+     * 测试函数 `isWebUrl_requiresHttpOrHttpsUrlWithHost`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `is Web Url requires Http Or Https Url With Host` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun isWebUrl_requiresHttpOrHttpsUrlWithHost() {
         assertTrue(ExternalProtocolPolicy.isWebUrl("https://example.com/page"))
@@ -43,6 +58,11 @@ class ExternalProtocolPolicyTest {
         assertFalse(ExternalProtocolPolicy.isWebUrl(null))
     }
 
+    /**
+     * 测试函数 `fallbackUrlFromIntentUri_extractsWebFallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fallback Url From Intent Uri extracts Web Fallback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fallbackUrlFromIntentUri_extractsWebFallback() {
         val fallback = ExternalProtocolPolicy.fallbackUrlFromIntentUri(
@@ -55,6 +75,11 @@ class ExternalProtocolPolicyTest {
         assertEquals("https://example.com/install?from=scan", fallback)
     }
 
+    /**
+     * 测试函数 `fallbackUrlFromIntentUri_rejectsNonWebFallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fallback Url From Intent Uri rejects Non Web Fallback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fallbackUrlFromIntentUri_rejectsNonWebFallback() {
         val fallback = ExternalProtocolPolicy.fallbackUrlFromIntentUri(
@@ -64,6 +89,11 @@ class ExternalProtocolPolicyTest {
         assertNull(fallback)
     }
 
+    /**
+     * 测试函数 `fallbackUrlFromIntentUri_rejectsWebFallbackWithoutHost`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fallback Url From Intent Uri rejects Web Fallback Without Host` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fallbackUrlFromIntentUri_rejectsWebFallbackWithoutHost() {
         val fallback = ExternalProtocolPolicy.fallbackUrlFromIntentUri(

@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RuleCompilerTest {
+    /**
+     * 测试函数 `compile_categorizesSupportedRuleCapabilities`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `compile categorizes Supported Rule Capabilities` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun compile_categorizesSupportedRuleCapabilities() {
         val requestRule = Rule.blockUrlContains("/pagead/")
@@ -55,6 +60,11 @@ class RuleCompilerTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `compile_preservesOriginalRuleObjectsForDiagnostics`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `compile preserves Original Rule Objects For Diagnostics` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun compile_preservesOriginalRuleObjectsForDiagnostics() {
         val requestRule = Rule.blockDomainContains("doubleclick.net", source = "test-source")
@@ -76,6 +86,11 @@ class RuleCompilerTest {
         assertEquals("test-source", result.cssHideCapabilities.single().source)
     }
 
+    /**
+     * 测试函数 `compile_createsNoopResponseCapabilityForRedirectRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `compile creates Noop Response Capability For Redirect Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun compile_createsNoopResponseCapabilityForRedirectRules() {
         val redirectRule = requireNotNull(
@@ -99,6 +114,11 @@ class RuleCompilerTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `compile_createsSafeHookCapabilitiesForScriptletRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `compile creates Safe Hook Capabilities For Scriptlet Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun compile_createsSafeHookCapabilitiesForScriptletRules() {
         val scriptletRule = ScriptletRule(
@@ -125,6 +145,11 @@ class RuleCompilerTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `compile_skipsInvalidScriptletRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `compile skips Invalid Scriptlet Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun compile_skipsInvalidScriptletRules() {
         val scriptletRule = ScriptletRule(
@@ -148,6 +173,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `capabilityKinds_distinguishRequestPageHookAndNoopCapabilities`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `capability Kinds distinguish Request Page Hook And Noop Capabilities` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun capabilityKinds_distinguishRequestPageHookAndNoopCapabilities() {
         val requestCapability = RuleCapability.Request(Rule.blockUrlContains("/ad/"))
@@ -199,6 +229,11 @@ class RuleCompilerTest {
         assertEquals(ElementHideEffect.HIDE, hideCapability.effect)
     }
 
+    /**
+     * 测试函数 `requestRuleIndex_returnsDomainSuffixCandidatesAndFallbackInOriginalOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `request Rule Index returns Domain Suffix Candidates And Fallback In Original Order` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requestRuleIndex_returnsDomainSuffixCandidatesAndFallbackInOriginalOrder() {
         val firstFallbackRule = Rule.blockUrlContains("/pagead/")
@@ -227,6 +262,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `requestRuleIndex_separatesAllowAndBlockDomainCandidates`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `request Rule Index separates Allow And Block Domain Candidates` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requestRuleIndex_separatesAllowAndBlockDomainCandidates() {
         val allowRule = Rule.allowDomainContains("doubleclick.net")
@@ -253,6 +293,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `requestRuleIndex_returnsUrlContainsKeywordCandidatesAndFallbackInOriginalOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `request Rule Index returns Url Contains Keyword Candidates And Fallback In Original Order` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requestRuleIndex_returnsUrlContainsKeywordCandidatesAndFallbackInOriginalOrder() {
         val shortFallbackRule = Rule.blockUrlContains("ad")
@@ -282,6 +327,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `requestRuleIndex_findsUrlKeywordInsideLongerUrlToken`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `request Rule Index finds Url Keyword Inside Longer Url Token` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requestRuleIndex_findsUrlKeywordInsideLongerUrlToken() {
         val rule = Rule.blockUrlContains("foo")
@@ -301,6 +351,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `requestRuleIndex_keepsFallbackCandidatesWhenHostOrUrlIsMissing`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `request Rule Index keeps Fallback Candidates When Host Or Url Is Missing` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requestRuleIndex_keepsFallbackCandidatesWhenHostOrUrlIsMissing() {
         val shortFallbackRule = Rule.blockUrlContains("ad")
@@ -346,6 +401,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `requestRuleIndex_separatesAllowAndBlockUrlKeywordCandidates`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `request Rule Index separates Allow And Block Url Keyword Candidates` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requestRuleIndex_separatesAllowAndBlockUrlKeywordCandidates() {
         val allowRule = Rule.allowUrlContains("/pagead/allowed.js")
@@ -374,6 +434,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `elementRuleIndex_returnsPageHostCandidatesAndFallbackInOriginalOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `element Rule Index returns Page Host Candidates And Fallback In Original Order` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun elementRuleIndex_returnsPageHostCandidatesAndFallbackInOriginalOrder() {
         val globalHideRule = ElementRule(
@@ -451,6 +516,11 @@ class RuleCompilerTest {
         )
     }
 
+    /**
+     * 测试函数 `elementRuleIndex_keepsGlobalAndExcludedFallbackWithMixedDomainRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `element Rule Index keeps Global And Excluded Fallback With Mixed Domain Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun elementRuleIndex_keepsGlobalAndExcludedFallbackWithMixedDomainRules() {
         val globalHideRule = ElementRule(

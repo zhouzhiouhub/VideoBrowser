@@ -11,6 +11,11 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class AdBlockLogEntryFormatterTest {
+    /**
+     * 测试函数 `summary_includesSourceOverrideReasonAndCandidateRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `summary includes Source Override Reason And Candidate Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun summary_includesSourceOverrideReasonAndCandidateRules() {
         val entry = AdBlockLogEntry(
@@ -47,6 +52,11 @@ class AdBlockLogEntryFormatterTest {
         )
     }
 
+    /**
+     * 测试函数 `recoveryActionFor_blockedRequestAddsRequestHostToWhitelist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `recovery Action For blocked Request Adds Request Host To Whitelist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun recoveryActionFor_blockedRequestAddsRequestHostToWhitelist() {
         val entry = blockedEntry(host = "ads.example.com")
@@ -66,6 +76,11 @@ class AdBlockLogEntryFormatterTest {
         )
     }
 
+    /**
+     * 测试函数 `recoveryActionFor_siteDisabledAllowRestoresPageHostAdBlock`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `recovery Action For site Disabled Allow Restores Page Host Ad Block` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun recoveryActionFor_siteDisabledAllowRestoresPageHostAdBlock() {
         val entry = AdBlockLogEntry(
@@ -96,6 +111,11 @@ class AdBlockLogEntryFormatterTest {
         )
     }
 
+    /**
+     * 测试函数 `recoveryActionFor_skipsAlreadyRecoveredEntries`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `recovery Action For skips Already Recovered Entries` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun recoveryActionFor_skipsAlreadyRecoveredEntries() {
         assertNull(
@@ -107,6 +127,13 @@ class AdBlockLogEntryFormatterTest {
         )
     }
 
+    /**
+     * 测试函数 `blockedEntry`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `blocked Entry` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun blockedEntry(host: String): AdBlockLogEntry {
         return AdBlockLogEntry(
             timestampMillis = 1L,

@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SavedPageRepositoryTest {
+    /**
+     * 测试函数 `addBookmarkPersistsCreatedAndUpdatedTime`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `add Bookmark Persists Created And Updated Time` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addBookmarkPersistsCreatedAndUpdatedTime() {
         val store = InMemoryPreferenceStore()
@@ -32,6 +37,11 @@ class SavedPageRepositoryTest {
         assertEquals("视频", bookmark.folder)
     }
 
+    /**
+     * 测试函数 `addBookmarkAndHistoryRejectNonWebUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `add Bookmark And History Reject Non Web Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addBookmarkAndHistoryRejectNonWebUrls() {
         val repository = SavedPageRepository(InMemoryPreferenceStore())
@@ -49,6 +59,11 @@ class SavedPageRepositoryTest {
         assertTrue(repository.history().isEmpty())
     }
 
+    /**
+     * 测试函数 `addHistoryMovesDuplicateUrlToFrontAndKeepsCreatedTime`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `add History Moves Duplicate Url To Front And Keeps Created Time` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addHistoryMovesDuplicateUrlToFrontAndKeepsCreatedTime() {
         var now = 1_000L
@@ -67,6 +82,11 @@ class SavedPageRepositoryTest {
         assertEquals(3_000L, history.first().updatedAtMillis)
     }
 
+    /**
+     * 测试函数 `loadLegacyJsonPagesKeepsExistingDataReadable`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Legacy Json Pages Keeps Existing Data Readable` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadLegacyJsonPagesKeepsExistingDataReadable() {
         val store = InMemoryPreferenceStore()
@@ -87,6 +107,11 @@ class SavedPageRepositoryTest {
         assertEquals(5_000L, page.updatedAtMillis)
     }
 
+    /**
+     * 测试函数 `clearAllRemovesBookmarksAndHistory`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `clear All Removes Bookmarks And History` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun clearAllRemovesBookmarksAndHistory() {
         val store = InMemoryPreferenceStore()
@@ -102,6 +127,11 @@ class SavedPageRepositoryTest {
         assertFalse(store.contains(SavedPageRepository.SavedPageCollection.HISTORY.key))
     }
 
+    /**
+     * 测试函数 `clearHistoryUpdatedSinceRemovesOnlyMatchingHistory`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `clear History Updated Since Removes Only Matching History` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun clearHistoryUpdatedSinceRemovesOnlyMatchingHistory() {
         val store = InMemoryPreferenceStore()
@@ -125,6 +155,11 @@ class SavedPageRepositoryTest {
         assertFalse(store.contains(SavedPageRepository.SavedPageCollection.HISTORY.key))
     }
 
+    /**
+     * 测试函数 `exportAndImportBookmarksUseSavedPageFormatAndSkipDuplicates`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `export And Import Bookmarks Use Saved Page Format And Skip Duplicates` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun exportAndImportBookmarksUseSavedPageFormatAndSkipDuplicates() {
         var now = 1_000L
@@ -147,6 +182,11 @@ class SavedPageRepositoryTest {
         assertTrue(target.exportBookmarks().startsWith("VideoBrowserSavedPages\t3"))
     }
 
+    /**
+     * 测试函数 `importBookmarksSkipsNonWebUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `import Bookmarks Skips Non Web Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun importBookmarksSkipsNonWebUrls() {
         val repository = SavedPageRepository(InMemoryPreferenceStore(), currentTimeMillis = { 5_000L })
@@ -164,6 +204,11 @@ class SavedPageRepositoryTest {
         assertEquals(listOf("https://safe.example.com"), repository.bookmarks().map { page -> page.url })
     }
 
+    /**
+     * 测试函数 `importBookmarksRejectsUnknownFormat`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `import Bookmarks Rejects Unknown Format` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun importBookmarksRejectsUnknownFormat() {
         val repository = SavedPageRepository(InMemoryPreferenceStore())
@@ -175,6 +220,11 @@ class SavedPageRepositoryTest {
         assertTrue(repository.bookmarks().isEmpty())
     }
 
+    /**
+     * 测试函数 `bookmarkFoldersCanBeUpdatedAndListed`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `bookmark Folders Can Be Updated And Listed` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun bookmarkFoldersCanBeUpdatedAndListed() {
         var now = 1_000L
@@ -196,6 +246,11 @@ class SavedPageRepositoryTest {
         assertFalse(repository.updateBookmarkFolder("https://docs.example.com", "x".repeat(61)))
     }
 
+    /**
+     * 测试函数 `versionedBookmarkImportKeepsFoldersAndReadsOlderRows`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `versioned Bookmark Import Keeps Folders And Reads Older Rows` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun versionedBookmarkImportKeepsFoldersAndReadsOlderRows() {
         val repository = SavedPageRepository(InMemoryPreferenceStore(), currentTimeMillis = { 5_000L })
@@ -214,6 +269,11 @@ class SavedPageRepositoryTest {
         )
     }
 
+    /**
+     * 测试函数 `updateTitleChangesOnePageAndRefreshesUpdatedTime`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `update Title Changes One Page And Refreshes Updated Time` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun updateTitleChangesOnePageAndRefreshesUpdatedTime() {
         var now = 1_000L
@@ -235,6 +295,11 @@ class SavedPageRepositoryTest {
         assertEquals(2_000L, bookmark.updatedAtMillis)
     }
 
+    /**
+     * 测试函数 `updateTitleRejectsBlankOrMissingPages`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `update Title Rejects Blank Or Missing Pages` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun updateTitleRejectsBlankOrMissingPages() {
         val repository = SavedPageRepository(InMemoryPreferenceStore())
@@ -257,6 +322,11 @@ class SavedPageRepositoryTest {
         assertEquals("Old", repository.bookmarks().single().title)
     }
 
+    /**
+     * 测试函数 `historyKeepsMostRecentThousandEntries`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `history Keeps Most Recent Thousand Entries` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun historyKeepsMostRecentThousandEntries() {
         var now = 0L
@@ -280,38 +350,104 @@ class SavedPageRepositoryTest {
     private class InMemoryPreferenceStore : PreferenceStore {
         private val values = mutableMapOf<String, Any>()
 
+        /**
+         * 测试函数 `contains`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `contains` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun contains(key: String): Boolean {
             return values.containsKey(key)
         }
 
+        /**
+         * 测试函数 `getBoolean`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get Boolean` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
             return values[key] as? Boolean ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putBoolean`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put Boolean` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putBoolean(key: String, value: Boolean) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `getFloat`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get Float` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `Float`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getFloat(key: String, defaultValue: Float): Float {
             return values[key] as? Float ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putFloat`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put Float` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `Float`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putFloat(key: String, value: Float) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `getString`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get String` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `String?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getString(key: String, defaultValue: String?): String? {
             return values[key] as? String ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putString`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put String` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putString(key: String, value: String) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `remove`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `remove` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         */
         override fun remove(key: String) {
             values.remove(key)
         }
 
+        /**
+         * 测试函数 `remove`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `remove` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param keys 参数类型为 `Iterable<String>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param commit 参数类型为 `Boolean`，表示函数执行 `commit` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun remove(keys: Iterable<String>, commit: Boolean): Boolean {
             keys.forEach { key -> values.remove(key) }
             return true

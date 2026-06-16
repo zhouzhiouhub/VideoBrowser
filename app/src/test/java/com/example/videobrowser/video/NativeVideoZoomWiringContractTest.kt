@@ -10,6 +10,11 @@ import org.junit.Test
 import java.io.File
 
 class NativeVideoZoomWiringContractTest {
+    /**
+     * 测试函数 `playerActivityAppliesAndPersistsVideoZoomMode`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `player Activity Applies And Persists Video Zoom Mode` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playerActivityAppliesAndPersistsVideoZoomMode() {
         val source = File(
@@ -25,6 +30,11 @@ class NativeVideoZoomWiringContractTest {
         assertTrue(source.contains("gestureOverlay.setVideoZoomMode(videoZoomMode)"))
     }
 
+    /**
+     * 测试函数 `overlayExposesVideoZoomButton`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `overlay Exposes Video Zoom Button` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun overlayExposesVideoZoomButton() {
         val source = File(
@@ -40,6 +50,11 @@ class NativeVideoZoomWiringContractTest {
         assertTrue(source.contains("onVideoZoomRequested?.invoke()"))
     }
 
+    /**
+     * 测试函数 `videoZoomStringsExist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `video Zoom Strings Exist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun videoZoomStringsExist() {
         val strings = File("src/main/res/values/strings.xml").readText()

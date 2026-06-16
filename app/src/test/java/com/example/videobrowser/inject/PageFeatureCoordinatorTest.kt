@@ -19,6 +19,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PageFeatureCoordinatorTest {
+    /**
+     * 测试函数 `injectPageFeatures_skipsJavascriptWhenCurrentSiteDisablesInjection`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features skips Javascript When Current Site Disables Injection` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun injectPageFeatures_skipsJavascriptWhenCurrentSiteDisablesInjection() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -36,6 +41,11 @@ class PageFeatureCoordinatorTest {
         assertTrue(evaluatedScripts.isEmpty())
     }
 
+    /**
+     * 测试函数 `currentSiteSwitches_disableAdBlockCleanupVideoAndWhitelistSeparately`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `current Site Switches disable Ad Block Cleanup Video And Whitelist Separately` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun currentSiteSwitches_disableAdBlockCleanupVideoAndWhitelistSeparately() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -74,6 +84,11 @@ class PageFeatureCoordinatorTest {
         assertEquals(AdBlockDecisionReason.USER_WHITELISTED, decision.reason)
     }
 
+    /**
+     * 测试函数 `injectPageFeatures_passesCurrentSiteUserSelectorsIntoFeatureConfig`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features passes Current Site User Selectors Into Feature Config` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun injectPageFeatures_passesCurrentSiteUserSelectorsIntoFeatureConfig() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -95,6 +110,11 @@ class PageFeatureCoordinatorTest {
         assertTrue(script.contains("\"videoEnabled\":true"))
     }
 
+    /**
+     * 测试函数 `injectPageFeatures_appliesCurrentSiteCleanupAndVideoSwitches`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features applies Current Site Cleanup And Video Switches` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun injectPageFeatures_appliesCurrentSiteCleanupAndVideoSwitches() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -118,6 +138,11 @@ class PageFeatureCoordinatorTest {
         assertTrue(script.contains("\"userCssSelectors\":[\".picked-ad\"]"))
     }
 
+    /**
+     * 测试函数 `injectPageFeatures_doesNotRequestBrowserManagerWhenCurrentPageUrlIsSupplied`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features does Not Request Browser Manager When Current Page Url Is Supplied` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun injectPageFeatures_doesNotRequestBrowserManagerWhenCurrentPageUrlIsSupplied() {
         val evaluatedScripts = mutableListOf<String>()
@@ -139,6 +164,16 @@ class PageFeatureCoordinatorTest {
         assertTrue(evaluatedScripts.isNotEmpty())
     }
 
+    /**
+     * 测试函数 `coordinatorFor`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `coordinator For` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param settings 参数类型为 `SettingsManager`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
+     * @param evaluatedScripts 参数类型为 `MutableList<String>`，表示函数执行 `evaluatedScripts` 相关逻辑时需要读取或处理的输入。
+     * @param currentSiteHost 参数类型为 `String?`，表示函数执行 `currentSiteHost` 相关逻辑时需要读取或处理的输入。
+     * @param currentPageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun coordinatorFor(
         settings: SettingsManager,
         evaluatedScripts: MutableList<String>,
@@ -154,6 +189,13 @@ class PageFeatureCoordinatorTest {
         )
     }
 
+    /**
+     * 测试函数 `jsInjectorFor`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `js Injector For` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param evaluatedScripts 参数类型为 `MutableList<String>`，表示函数执行 `evaluatedScripts` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun jsInjectorFor(evaluatedScripts: MutableList<String>): JsInjector {
         return JsInjector(
             scriptLoader = ScriptLoader {
@@ -163,6 +205,12 @@ class PageFeatureCoordinatorTest {
         )
     }
 
+    /**
+     * 测试函数 `unusedBrowserManager`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `unused Browser Manager` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun unusedBrowserManager(): BrowserManager {
         error("Current page URL should be supplied by the test.")
     }
@@ -170,38 +218,104 @@ class PageFeatureCoordinatorTest {
     private class InMemoryPreferenceStore : PreferenceStore {
         private val values = mutableMapOf<String, Any>()
 
+        /**
+         * 测试函数 `contains`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `contains` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun contains(key: String): Boolean {
             return values.containsKey(key)
         }
 
+        /**
+         * 测试函数 `getBoolean`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get Boolean` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
             return values[key] as? Boolean ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putBoolean`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put Boolean` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putBoolean(key: String, value: Boolean) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `getFloat`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get Float` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `Float`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getFloat(key: String, defaultValue: Float): Float {
             return values[key] as? Float ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putFloat`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put Float` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `Float`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putFloat(key: String, value: Float) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `getString`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get String` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `String?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getString(key: String, defaultValue: String?): String? {
             return values[key] as? String ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putString`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put String` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putString(key: String, value: String) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `remove`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `remove` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         */
         override fun remove(key: String) {
             values.remove(key)
         }
 
+        /**
+         * 测试函数 `remove`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `remove` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param keys 参数类型为 `Iterable<String>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param commit 参数类型为 `Boolean`，表示函数执行 `commit` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun remove(keys: Iterable<String>, commit: Boolean): Boolean {
             keys.forEach { key -> values.remove(key) }
             return true

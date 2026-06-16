@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserTabSessionWiringContractTest {
+    /**
+     * 测试函数 `mainActivityOwnsBrowserTabsAndSessionBinding`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `main Activity Owns Browser Tabs And Session Binding` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun mainActivityOwnsBrowserTabsAndSessionBinding() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -25,6 +30,11 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(mainActivity.contains("standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
     }
 
+    /**
+     * 测试函数 `tabSessionRepositoryRestoresOnlyWebUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `tab Session Repository Restores Only Web Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun tabSessionRepositoryRestoresOnlyWebUrls() {
         val repository = projectFile(
@@ -38,6 +48,11 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(readme.contains("标准标签页会话只恢复带主机名的 HTTP/HTTPS 页面 URL"))
     }
 
+    /**
+     * 测试函数 `sessionControllerExposesPageMetadataCallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `session Controller Exposes Page Metadata Callback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun sessionControllerExposesPageMetadataCallback() {
         val sessionController = projectFile(
@@ -48,6 +63,13 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(sessionController.contains("onPageMetadataChanged(currentPageUrl, currentPageTitle)"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

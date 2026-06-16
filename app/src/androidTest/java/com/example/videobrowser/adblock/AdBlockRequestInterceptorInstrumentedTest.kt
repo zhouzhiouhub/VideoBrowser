@@ -15,6 +15,11 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class AdBlockRequestInterceptorInstrumentedTest {
+    /**
+     * 测试函数 `intercept_returnsEmptyResponseForMatchingAdUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `intercept returns Empty Response For Matching Ad Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun intercept_returnsEmptyResponseForMatchingAdUrl() {
         val interceptor = AdBlockRequestInterceptor(AdBlockManager())
@@ -34,6 +39,11 @@ class AdBlockRequestInterceptorInstrumentedTest {
         assertEquals(-1, response.data.read())
     }
 
+    /**
+     * 测试函数 `intercept_returnsNoopJsResponseForSupportedRedirectRule`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `intercept returns Noop Js Response For Supported Redirect Rule` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun intercept_returnsNoopJsResponseForSupportedRedirectRule() {
         val ruleEngine = RuleEngine(
@@ -59,6 +69,11 @@ class AdBlockRequestInterceptorInstrumentedTest {
         assertEquals("/* noop */\n", body)
     }
 
+    /**
+     * 测试函数 `intercept_doesNotRedirectMainFrameRequests`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `intercept does Not Redirect Main Frame Requests` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun intercept_doesNotRedirectMainFrameRequests() {
         val ruleEngine = RuleEngine(

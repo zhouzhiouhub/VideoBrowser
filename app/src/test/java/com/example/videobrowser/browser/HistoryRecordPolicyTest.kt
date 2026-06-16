@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HistoryRecordPolicyTest {
+    /**
+     * 测试函数 `shouldRecord_rejectsProviderHomeUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Record rejects Provider Home Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldRecord_rejectsProviderHomeUrls() {
         val policy = HistoryRecordPolicy(
@@ -27,6 +32,11 @@ class HistoryRecordPolicyTest {
         assertFalse(policy.shouldRecord("https://m.so.com"))
     }
 
+    /**
+     * 测试函数 `shouldRecord_rejectsCustomHomeUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Record rejects Custom Home Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldRecord_rejectsCustomHomeUrl() {
         val policy = HistoryRecordPolicy(
@@ -36,6 +46,11 @@ class HistoryRecordPolicyTest {
         assertFalse(policy.shouldRecord("https://portal.example.com/start?source=browser"))
     }
 
+    /**
+     * 测试函数 `shouldRecord_acceptsSearchResultsAndContentPages`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Record accepts Search Results And Content Pages` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldRecord_acceptsSearchResultsAndContentPages() {
         val policy = HistoryRecordPolicy(

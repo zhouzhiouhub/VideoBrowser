@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserControlsControllerContractTest {
+    /**
+     * 测试函数 `refreshButtonStopsLoadingWhilePageIsLoading`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `refresh Button Stops Loading While Page Is Loading` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun refreshButtonStopsLoadingWhilePageIsLoading() {
         val controller = projectFile(
@@ -40,6 +45,11 @@ class BrowserControlsControllerContractTest {
         assertTrue(readme.contains("加载中可停止加载"))
     }
 
+    /**
+     * 测试函数 `backButtonUsesUnifiedActivityBackNavigation`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `back Button Uses Unified Activity Back Navigation` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun backButtonUsesUnifiedActivityBackNavigation() {
         val controller = projectFile(
@@ -63,6 +73,13 @@ class BrowserControlsControllerContractTest {
         assertTrue(strings.contains("toast_press_back_again_to_exit"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

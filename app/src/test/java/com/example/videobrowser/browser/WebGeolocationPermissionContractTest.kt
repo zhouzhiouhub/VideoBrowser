@@ -12,6 +12,11 @@ import org.junit.Test
 import org.w3c.dom.Element
 
 class WebGeolocationPermissionContractTest {
+    /**
+     * 测试函数 `manifestDeclaresRuntimePermissionsForWebGeolocation`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `manifest Declares Runtime Permissions For Web Geolocation` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun manifestDeclaresRuntimePermissionsForWebGeolocation() {
         val permissionNames = manifest()
@@ -29,6 +34,11 @@ class WebGeolocationPermissionContractTest {
         )
     }
 
+    /**
+     * 测试函数 `browserManagerEnablesWebViewGeolocation`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Manager Enables Web View Geolocation` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserManagerEnablesWebViewGeolocation() {
         val browserManager = projectFile(
@@ -38,6 +48,11 @@ class WebGeolocationPermissionContractTest {
         assertTrue(browserManager.contains("setGeolocationEnabled(true)"))
     }
 
+    /**
+     * 测试函数 `chromeClientForwardsWebGeolocationPermissionPrompts`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `chrome Client Forwards Web Geolocation Permission Prompts` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun chromeClientForwardsWebGeolocationPermissionPrompts() {
         val chromeClient = projectFile(
@@ -51,6 +66,11 @@ class WebGeolocationPermissionContractTest {
         assertTrue(chromeClient.contains("override fun onGeolocationPermissionsHidePrompt"))
     }
 
+    /**
+     * 测试函数 `mainActivityMapsWebGeolocationPromptsThroughRuntimePermissions`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `main Activity Maps Web Geolocation Prompts Through Runtime Permissions` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun mainActivityMapsWebGeolocationPromptsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -92,10 +112,22 @@ class WebGeolocationPermissionContractTest {
         assertTrue(readme().contains("不会写入持久记录"))
     }
 
+    /**
+     * 测试函数 `readme`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `readme` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun readme(): String {
         return projectFile("README.md").readText()
     }
 
+    /**
+     * 测试函数 `manifest`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `manifest` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun manifest(): Element {
         return DocumentBuilderFactory.newInstance().apply {
             isNamespaceAware = true
@@ -104,16 +136,37 @@ class WebGeolocationPermissionContractTest {
             .documentElement
     }
 
+    /**
+     * 测试函数 `elements`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `elements` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tagName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Element.elements(tagName: String): List<Element> {
         val nodes = getElementsByTagName(tagName)
         return List(nodes.length) { index -> nodes.item(index) }
             .filterIsInstance<Element>()
     }
 
+    /**
+     * 测试函数 `androidAttribute`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `android Attribute` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Element.androidAttribute(name: String): String {
         return getAttributeNS(ANDROID_NAMESPACE, name)
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserSettingsPageContractTest {
+    /**
+     * 测试函数 `browserSettingsPageCanEditHomePageUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Settings Page Can Edit Home Page Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserSettingsPageCanEditHomePageUrl() {
         val page = projectFile(
@@ -28,6 +33,11 @@ class BrowserSettingsPageContractTest {
         assertTrue(strings.contains("toast_home_page_invalid"))
     }
 
+    /**
+     * 测试函数 `browserSettingsPageCanEditDefaultSearchEngine`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Settings Page Can Edit Default Search Engine` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserSettingsPageCanEditDefaultSearchEngine() {
         val page = projectFile(
@@ -65,6 +75,11 @@ class BrowserSettingsPageContractTest {
         assertTrue(strings.contains("toast_search_engine_updated"))
     }
 
+    /**
+     * 测试函数 `browserSettingsPageCanControlThirdPartyCookies`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Settings Page Can Control Third Party Cookies` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserSettingsPageCanControlThirdPartyCookies() {
         val page = projectFile(
@@ -94,6 +109,11 @@ class BrowserSettingsPageContractTest {
         assertTrue(strings.contains("setting_third_party_cookies_summary"))
     }
 
+    /**
+     * 测试函数 `browserSettingsPageCanControlMixedContentBlocking`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Settings Page Can Control Mixed Content Blocking` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserSettingsPageCanControlMixedContentBlocking() {
         val page = projectFile(
@@ -127,6 +147,11 @@ class BrowserSettingsPageContractTest {
         assertTrue(readme.contains("混合内容"))
     }
 
+    /**
+     * 测试函数 `browserSettingsPageCanControlWebPageTextZoom`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Settings Page Can Control Web Page Text Zoom` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserSettingsPageCanControlWebPageTextZoom() {
         val page = projectFile(
@@ -162,6 +187,13 @@ class BrowserSettingsPageContractTest {
         assertTrue(readme.contains("网页文字大小"))
     }
 
+    /**
+     * 测试函数 `selectDefaultSearchProviderBody`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `select Default Search Provider Body` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun selectDefaultSearchProviderBody(source: String): String {
         val signature = "fun selectDefaultSearchProvider(providerId: String): Boolean"
         val start = source.indexOf(signature)
@@ -183,6 +215,13 @@ class BrowserSettingsPageContractTest {
         error("Unclosed selectDefaultSearchProvider body")
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

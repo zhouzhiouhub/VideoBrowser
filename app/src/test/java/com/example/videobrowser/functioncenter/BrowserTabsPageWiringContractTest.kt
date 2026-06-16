@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserTabsPageWiringContractTest {
+    /**
+     * 测试函数 `rootActionCatalogExposesTabsEntry`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `root Action Catalog Exposes Tabs Entry` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun rootActionCatalogExposesTabsEntry() {
         val catalog = projectFile(
@@ -20,6 +25,11 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(catalog.contains("FunctionCenterRootAction.TABS"))
     }
 
+    /**
+     * 测试函数 `functionCenterPagesOwnsBrowserTabsPageAndRootAction`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `function Center Pages Owns Browser Tabs Page And Root Action` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun functionCenterPagesOwnsBrowserTabsPageAndRootAction() {
         val pages = projectFile(
@@ -39,6 +49,11 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(pages.contains("browserTabsPage.show()"))
     }
 
+    /**
+     * 测试函数 `browserTabsPageListsSwitchCloseAndNewTabActions`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Tabs Page Lists Switch Close And New Tab Actions` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserTabsPageListsSwitchCloseAndNewTabActions() {
         val tabsPage = projectFile(
@@ -72,6 +87,11 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(strings.contains("action_close_all_tabs"))
     }
 
+    /**
+     * 测试函数 `browserTabsPageCanCopyTabUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Tabs Page Can Copy Tab Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserTabsPageCanCopyTabUrls() {
         val tabsPage = projectFile(
@@ -86,6 +106,11 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(tabsPage.contains("R.string.toast_link_copied"))
     }
 
+    /**
+     * 测试函数 `browserTabsPageCanShareTabUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Tabs Page Can Share Tab Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserTabsPageCanShareTabUrls() {
         val tabsPage = projectFile(
@@ -99,6 +124,11 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(tabsPage.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
     }
 
+    /**
+     * 测试函数 `mainActivityPassesTabActionsIntoFunctionCenter`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `main Activity Passes Tab Actions Into Function Center` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun mainActivityPassesTabActionsIntoFunctionCenter() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -117,6 +147,13 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(mainActivity.contains("duplicateTab = ::duplicateTab"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AddressSuggestionRankerTest {
+    /**
+     * 测试函数 `build_historyMatchesTitleAndUrlBeforeRemoteSuggestionsAndFallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `build history Matches Title And Url Before Remote Suggestions And Fallback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun build_historyMatchesTitleAndUrlBeforeRemoteSuggestionsAndFallback() {
         val suggestions = AddressSuggestionRanker.build(
@@ -43,6 +48,11 @@ class AddressSuggestionRankerTest {
         assertEquals("同", (suggestions[4] as AddressSuggestion.Fallback).keyword)
     }
 
+    /**
+     * 测试函数 `build_bookmarksMatchTitleUrlAndFolderBeforeHistoryAndDeduplicateUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `build bookmarks Match Title Url And Folder Before History And Deduplicate Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun build_bookmarksMatchTitleUrlAndFolderBeforeHistoryAndDeduplicateUrls() {
         val suggestions = AddressSuggestionRanker.build(
@@ -83,6 +93,11 @@ class AddressSuggestionRankerTest {
         assertEquals("https://news.example.com/video", (suggestions[2] as AddressSuggestion.History).url)
     }
 
+    /**
+     * 测试函数 `build_privateModeOnlyShowsFallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `build private Mode Only Shows Fallback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun build_privateModeOnlyShowsFallback() {
         val suggestions = AddressSuggestionRanker.build(
@@ -96,6 +111,11 @@ class AddressSuggestionRankerTest {
         assertEquals(listOf(AddressSuggestion.Fallback("同")), suggestions)
     }
 
+    /**
+     * 测试函数 `build_removesDuplicateRemoteKeywords`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `build removes Duplicate Remote Keywords` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun build_removesDuplicateRemoteKeywords() {
         val suggestions = AddressSuggestionRanker.build(

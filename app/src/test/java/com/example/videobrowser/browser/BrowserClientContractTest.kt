@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserClientContractTest {
+    /**
+     * 测试函数 `browserClientRoutesMainFrameLoadFailuresToErrorCallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Client Routes Main Frame Load Failures To Error Callback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserClientRoutesMainFrameLoadFailuresToErrorCallback() {
         val browserClient = projectFile(
@@ -24,6 +29,11 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("BrowserPageError.Http"))
     }
 
+    /**
+     * 测试函数 `browserClientCancelsSslErrorsBeforeShowingErrorPage`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Client Cancels Ssl Errors Before Showing Error Page` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserClientCancelsSslErrorsBeforeShowingErrorPage() {
         val browserClient = projectFile(
@@ -35,6 +45,11 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("BrowserPageError.Ssl"))
     }
 
+    /**
+     * 测试函数 `browserClientBacksToSafetyWhenSafeBrowsingReportsThreats`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Client Backs To Safety When Safe Browsing Reports Threats` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserClientBacksToSafetyWhenSafeBrowsingReportsThreats() {
         val browserClient = projectFile(
@@ -56,6 +71,11 @@ class BrowserClientContractTest {
         assertTrue(readme.contains("命中风险页面时退回安全页"))
     }
 
+    /**
+     * 测试函数 `browserClientRoutesHttpAuthRequestsToActivityPrompt`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Client Routes Http Auth Requests To Activity Prompt` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserClientRoutesHttpAuthRequestsToActivityPrompt() {
         val browserClient = projectFile(
@@ -93,6 +113,11 @@ class BrowserClientContractTest {
         assertTrue(readme.contains("HTTP Basic Auth 只保留一个待处理认证弹窗"))
     }
 
+    /**
+     * 测试函数 `browserClientRoutesClientCertificateRequestsToSystemSelector`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Client Routes Client Certificate Requests To System Selector` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserClientRoutesClientCertificateRequestsToSystemSelector() {
         val browserClient = projectFile(
@@ -122,6 +147,11 @@ class BrowserClientContractTest {
         assertTrue(readme.contains("Android 系统证书选择器"))
     }
 
+    /**
+     * 测试函数 `browserClientRoutesRenderProcessGoneToActivityRecovery`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Client Routes Render Process Gone To Activity Recovery` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserClientRoutesRenderProcessGoneToActivityRecovery() {
         val browserClient = projectFile(
@@ -159,6 +189,13 @@ class BrowserClientContractTest {
         assertTrue(readme.contains("网页渲染进程退出时自动恢复"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

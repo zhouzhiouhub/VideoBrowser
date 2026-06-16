@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VideoDiagnosticsContractTest {
+    /**
+     * 测试函数 `nativeVideoControllersUseSharedDiagnosticLogTag`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `native Video Controllers Use Shared Diagnostic Log Tag` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun nativeVideoControllersUseSharedDiagnosticLogTag() {
         val fullscreenController = projectFile(
@@ -26,6 +31,11 @@ class VideoDiagnosticsContractTest {
         }
     }
 
+    /**
+     * 测试函数 `fullscreenGestureOverlayDoesNotRenderSecondProgressBar`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fullscreen Gesture Overlay Does Not Render Second Progress Bar` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fullscreenGestureOverlayDoesNotRenderSecondProgressBar() {
         val source = projectFile(
@@ -38,6 +48,11 @@ class VideoDiagnosticsContractTest {
         assertFalse(source.contains("updateSeekProgress("))
     }
 
+    /**
+     * 测试函数 `fullscreenGestureOverlayLetsBottomProgressTouchesPassThroughBeforeWakingControls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fullscreen Gesture Overlay Lets Bottom Progress Touches Pass Through Before Waking Controls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fullscreenGestureOverlayLetsBottomProgressTouchesPassThroughBeforeWakingControls() {
         val source = projectFile(
@@ -57,6 +72,11 @@ class VideoDiagnosticsContractTest {
         assertTrue(dispatchBody.substring(bottomPassthroughIndex, wakeControlsIndex).contains("return false"))
     }
 
+    /**
+     * 测试函数 `nativePlayerAppliesDefaultEnhancementBeforePreparingAndCanRetryWithoutEffects`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `native Player Applies Default Enhancement Before Preparing And Can Retry Without Effects` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun nativePlayerAppliesDefaultEnhancementBeforePreparingAndCanRetryWithoutEffects() {
         val source = projectFile(
@@ -72,6 +92,11 @@ class VideoDiagnosticsContractTest {
         )
     }
 
+    /**
+     * 测试函数 `nativeVideoEnhancementUsesMedia3EffectModuleAndConservativeEffect`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `native Video Enhancement Uses Media3 Effect Module And Conservative Effect` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun nativeVideoEnhancementUsesMedia3EffectModuleAndConservativeEffect() {
         val versionCatalog = projectFile("gradle/libs.versions.toml").readText()
@@ -92,6 +117,13 @@ class VideoDiagnosticsContractTest {
         assertFalse(enhancementSource.contains("RealCUGAN"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(
@@ -101,6 +133,13 @@ class VideoDiagnosticsContractTest {
         ).first { it.exists() }
     }
 
+    /**
+     * 测试函数 `projectFileOrNull`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File Or Null` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFileOrNull(path: String): File? {
         val workingDirectory = File("").absoluteFile
         return listOf(
@@ -110,6 +149,14 @@ class VideoDiagnosticsContractTest {
         ).firstOrNull { it.exists() }
     }
 
+    /**
+     * 测试函数 `functionBody`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `function Body` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param signature 参数类型为 `String`，表示函数执行 `signature` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun functionBody(source: String, signature: String): String {
         val start = source.indexOf(signature)
         assertTrue("Missing $signature", start >= 0)

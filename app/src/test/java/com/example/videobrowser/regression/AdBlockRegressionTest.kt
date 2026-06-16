@@ -16,6 +16,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AdBlockRegressionTest {
+    /**
+     * 测试函数 `requestDecisionRegression_keepsWhitelistSiteDisableAllowAndNoopBoundaries`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `request Decision Regression keeps Whitelist Site Disable Allow And Noop Boundaries` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requestDecisionRegression_keepsWhitelistSiteDisableAllowAndNoopBoundaries() {
         val blockRule = Rule.blockUrlContains("/pagead/")
@@ -78,6 +83,18 @@ class AdBlockRegressionTest {
         assertTrue(whitelistedDecision.candidateRules.contains(redirectRule))
     }
 
+    /**
+     * 测试函数 `evaluate`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param ruleEngine 参数类型为 `RuleEngine`，表示函数执行 `ruleEngine` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param isForMainFrame 参数类型为 `Boolean`，表示函数执行 `isForMainFrame` 相关逻辑时需要读取或处理的输入。
+     * @param siteAdBlockDisabled 参数类型为 `Boolean`，表示函数执行 `siteAdBlockDisabled` 相关逻辑时需要读取或处理的输入。
+     * @param userWhitelisted 参数类型为 `Boolean`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun evaluate(
         ruleEngine: RuleEngine,
         url: String,

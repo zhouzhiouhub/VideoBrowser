@@ -12,6 +12,11 @@ import org.junit.Test
 class UrlUtilsTest {
     private val searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word="
 
+    /**
+     * 测试函数 `resolveAddressInput_keepsHttpAndHttpsUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input keeps Http And Https Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_keepsHttpAndHttpsUrls() {
         assertEquals(
@@ -24,6 +29,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_normalizesUrlHosts`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input normalizes Url Hosts` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_normalizesUrlHosts() {
         assertEquals(
@@ -36,6 +46,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_convertsDomainToHttpsUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input converts Domain To Https Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_convertsDomainToHttpsUrl() {
         assertEquals(
@@ -59,6 +74,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_convertsSchemeRelativeDomainToHttpsUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input converts Scheme Relative Domain To Https Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_convertsSchemeRelativeDomainToHttpsUrl() {
         assertEquals(
@@ -67,6 +87,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_convertsLocalAndIpAddressesToHttpUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input converts Local And Ip Addresses To Http Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_convertsLocalAndIpAddressesToHttpUrl() {
         assertEquals(
@@ -83,6 +108,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_handlesIpv6Urls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input handles Ipv6 Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_handlesIpv6Urls() {
         assertEquals(
@@ -99,6 +129,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_convertsTextToSearchUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input converts Text To Search Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_convertsTextToSearchUrl() {
         assertEquals(
@@ -127,6 +162,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_encodesChineseSearchTextAsUtf8`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input encodes Chinese Search Text As Utf8` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_encodesChineseSearchTextAsUtf8() {
         assertEquals(
@@ -142,6 +182,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `searchQueryFromUrl_decodesChineseSearchText`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `search Query From Url decodes Chinese Search Text` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun searchQueryFromUrl_decodesChineseSearchText() {
         assertEquals(
@@ -163,6 +208,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `searchQueryFromUrl_decodesSearchTextWithSpacesAndExtraParameters`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `search Query From Url decodes Search Text With Spaces And Extra Parameters` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun searchQueryFromUrl_decodesSearchTextWithSpacesAndExtraParameters() {
         assertEquals(
@@ -174,6 +224,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `searchQueryFromUrl_returnsNullForOtherUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `search Query From Url returns Null For Other Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun searchQueryFromUrl_returnsNullForOtherUrls() {
         assertNull(
@@ -190,6 +245,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `displayUrl_decodesPercentEncodedUrlForReadability`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `display Url decodes Percent Encoded Url For Readability` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun displayUrl_decodesPercentEncodedUrlForReadability() {
         assertEquals(
@@ -200,6 +260,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `displayUrl_decodesBaiduLandingContextWithoutChangingLoadUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `display Url decodes Baidu Landing Context Without Changing Load Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun displayUrl_decodesBaiduLandingContextWithoutChangingLoadUrl() {
         assertEquals(
@@ -211,6 +276,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_reEncodesDecodedUrlTailUnsafeCharacters`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input re Encodes Decoded Url Tail Unsafe Characters` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_reEncodesDecodedUrlTailUnsafeCharacters() {
         assertEquals(
@@ -222,6 +292,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `displayUrl_keepsInvalidPercentEscapes`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `display Url keeps Invalid Percent Escapes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun displayUrl_keepsInvalidPercentEscapes() {
         assertEquals(
@@ -230,6 +305,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_keepsSafeAboutUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input keeps Safe About Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_keepsSafeAboutUrls() {
         assertEquals(
@@ -250,6 +330,11 @@ class UrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `resolveAddressInput_returnsNullForBlankInput`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input returns Null For Blank Input` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolveAddressInput_returnsNullForBlankInput() {
         assertNull(UrlUtils.resolveAddressInput("", searchUrlPrefix))

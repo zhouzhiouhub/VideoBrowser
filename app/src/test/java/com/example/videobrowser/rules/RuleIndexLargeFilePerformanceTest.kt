@@ -13,6 +13,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RuleIndexLargeFilePerformanceTest {
+    /**
+     * 测试函数 `largeRuleFile_requestIndexKeepsCandidatesSmallAndMatchesLinearSemantics`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `large Rule File request Index Keeps Candidates Small And Matches Linear Semantics` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun largeRuleFile_requestIndexKeepsCandidatesSmallAndMatchesLinearSemantics() {
         val domainTargetKey = ruleKey(777)
@@ -156,6 +161,11 @@ class RuleIndexLargeFilePerformanceTest {
         )
     }
 
+    /**
+     * 测试函数 `largeRuleFile_elementIndexKeepsCandidatesSmallAndMatchesLinearSemantics`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `large Rule File element Index Keeps Candidates Small And Matches Linear Semantics` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun largeRuleFile_elementIndexKeepsCandidatesSmallAndMatchesLinearSemantics() {
         val targetKey = ruleKey(1_234)
@@ -273,6 +283,17 @@ class RuleIndexLargeFilePerformanceTest {
         )
     }
 
+    /**
+     * 测试函数 `assertIndexedRequestMatchesLinear`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `assert Indexed Request Matches Linear` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param requestRules 参数类型为 `List<Rule>`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @param engine 参数类型为 `RuleEngine`，表示函数执行 `engine` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param pageHost 参数类型为 `String`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
+     */
     private fun assertIndexedRequestMatchesLinear(
         requestRules: List<Rule>,
         engine: RuleEngine,
@@ -311,6 +332,18 @@ class RuleIndexLargeFilePerformanceTest {
         }
     }
 
+    /**
+     * 测试函数 `firstLinearMatch`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `first Linear Match` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param requestRules 参数类型为 `List<Rule>`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param pageHost 参数类型为 `String`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun firstLinearMatch(
         requestRules: List<Rule>,
         action: RuleAction,
@@ -332,6 +365,14 @@ class RuleIndexLargeFilePerformanceTest {
         }
     }
 
+    /**
+     * 测试函数 `expectedCssSelectors`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `expected Css Selectors` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param elementRules 参数类型为 `List<ElementRule>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun expectedCssSelectors(
         elementRules: List<ElementRule>,
         pageUrl: String
@@ -349,6 +390,14 @@ class RuleIndexLargeFilePerformanceTest {
             .distinct()
     }
 
+    /**
+     * 测试函数 `expectedDomSelectors`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `expected Dom Selectors` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param elementRules 参数类型为 `List<ElementRule>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun expectedDomSelectors(
         elementRules: List<ElementRule>,
         pageUrl: String
@@ -360,6 +409,14 @@ class RuleIndexLargeFilePerformanceTest {
             .distinct()
     }
 
+    /**
+     * 测试函数 `assertTrimmedCandidates`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `assert Trimmed Candidates` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param label 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param candidateCount 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param fullRuleCount 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun assertTrimmedCandidates(
         label: String,
         candidateCount: Int,
@@ -372,6 +429,13 @@ class RuleIndexLargeFilePerformanceTest {
         )
     }
 
+    /**
+     * 测试函数 `timed`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `timed` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param block 参数类型为 `() -> T`，表示函数执行 `block` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private inline fun <T> timed(block: () -> T): TimedResult<T> {
         val startedAt = System.nanoTime()
         val value = block()
@@ -379,10 +443,24 @@ class RuleIndexLargeFilePerformanceTest {
         return TimedResult(value, elapsedMillis)
     }
 
+    /**
+     * 测试函数 `ruleKey`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `rule Key` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun ruleKey(index: Int): String {
         return index.toString(36).padStart(3, '0')
     }
 
+    /**
+     * 测试函数 `fallbackPattern`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fallback Pattern` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun fallbackPattern(index: Int): String {
         return "q${index.toString(36)}"
     }

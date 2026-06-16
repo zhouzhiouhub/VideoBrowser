@@ -10,6 +10,11 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class BrowserTabWebViewRegistryTest {
+    /**
+     * 测试函数 `startsWithInitialViewForInitialActiveTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `starts With Initial View For Initial Active Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun startsWithInitialViewForInitialActiveTab() {
         val registry = registry(initialTabId = 1L, initialWebView = "webView-1")
@@ -19,6 +24,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals("webView-1", registry.webViewFor(1L))
     }
 
+    /**
+     * 测试函数 `activatesExistingTabViewWithoutCreatingAnotherView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `activates Existing Tab View Without Creating Another View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun activatesExistingTabViewWithoutCreatingAnotherView() {
         val calls = RegistryCalls()
@@ -41,6 +51,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(listOf("webView-1"), calls.shown)
     }
 
+    /**
+     * 测试函数 `createsIndependentViewForNewTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `creates Independent View For New Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun createsIndependentViewForNewTab() {
         val calls = RegistryCalls()
@@ -61,6 +76,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(listOf("webView-2"), calls.shown)
     }
 
+    /**
+     * 测试函数 `openTabStoresInitialUrlAndTitle`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `open Tab Stores Initial Url And Title` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun openTabStoresInitialUrlAndTitle() {
         val tabs = BrowserTabStore()
@@ -78,6 +98,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals("webView-2", registry.activeWebView())
     }
 
+    /**
+     * 测试函数 `resolvesTabIdForRegisteredViewByIdentity`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolves Tab Id For Registered View By Identity` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolvesTabIdForRegisteredViewByIdentity() {
         val firstView = FakeView("first")
@@ -93,6 +118,11 @@ class BrowserTabWebViewRegistryTest {
         assertNull(registry.tabIdFor(FakeView("second")))
     }
 
+    /**
+     * 测试函数 `replaceViewSwapsTabViewWithoutChangingActiveTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `replace View Swaps Tab View Without Changing Active Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun replaceViewSwapsTabViewWithoutChangingActiveTab() {
         val tabs = BrowserTabStore()
@@ -120,6 +150,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals("webView-2b", registry.webViewFor(secondTab.id))
     }
 
+    /**
+     * 测试函数 `closingActiveTabShowsFallbackViewAndDestroysClosedView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `closing Active Tab Shows Fallback View And Destroys Closed View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closingActiveTabShowsFallbackViewAndDestroysClosedView() {
         val calls = RegistryCalls()
@@ -141,6 +176,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(listOf("webView-2"), calls.destroyed)
     }
 
+    /**
+     * 测试函数 `closingInactiveTabDestroysOnlyThatView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `closing Inactive Tab Destroys Only That View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closingInactiveTabDestroysOnlyThatView() {
         val calls = RegistryCalls()
@@ -161,6 +201,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(listOf("webView-1"), calls.destroyed)
     }
 
+    /**
+     * 测试函数 `switchToRestoredTabCreatesMissingViewLazily`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `switch To Restored Tab Creates Missing View Lazily` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun switchToRestoredTabCreatesMissingViewLazily() {
         val calls = RegistryCalls()
@@ -192,6 +237,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(listOf("webView-2"), calls.created)
     }
 
+    /**
+     * 测试函数 `closeRestoredInactiveTabWithoutViewKeepsActiveView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `close Restored Inactive Tab Without View Keeps Active View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closeRestoredInactiveTabWithoutViewKeepsActiveView() {
         val tabs = BrowserTabStore()
@@ -219,6 +269,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(1, tabs.tabs().size)
     }
 
+    /**
+     * 测试函数 `closeOtherTabsReturnsClosedViewsAndKeepsTargetViewActive`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `close Other Tabs Returns Closed Views And Keeps Target View Active` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closeOtherTabsReturnsClosedViewsAndKeepsTargetViewActive() {
         val calls = RegistryCalls()
@@ -258,6 +313,11 @@ class BrowserTabWebViewRegistryTest {
         assertNull(registry.webViewFor(3L))
     }
 
+    /**
+     * 测试函数 `closeOtherTabsCreatesMissingTargetViewForRestoredTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `close Other Tabs Creates Missing Target View For Restored Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closeOtherTabsCreatesMissingTargetViewForRestoredTab() {
         val calls = RegistryCalls()
@@ -291,6 +351,11 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(listOf(2L), tabs.tabs().map { tab -> tab.id })
     }
 
+    /**
+     * 测试函数 `closeAllTabsReturnsClosedViewsAndCreatesNewActiveView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `close All Tabs Returns Closed Views And Creates New Active View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun closeAllTabsReturnsClosedViewsAndCreatesNewActiveView() {
         val calls = RegistryCalls()
@@ -326,6 +391,15 @@ class BrowserTabWebViewRegistryTest {
         assertEquals("webView-3", registry.activeWebView())
     }
 
+    /**
+     * 测试函数 `registry`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `registry` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param initialTabId 参数类型为 `Long`，表示函数执行 `initialTabId` 相关逻辑时需要读取或处理的输入。
+     * @param initialWebView 参数类型为 `String`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param calls 参数类型为 `RegistryCalls`，表示函数执行 `calls` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun registry(
         initialTabId: Long,
         initialWebView: String,

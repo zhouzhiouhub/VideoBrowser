@@ -11,6 +11,11 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class RemoveParamRuleTest {
+    /**
+     * 测试函数 `fromAdGuardRuleText_parsesSafeExactParameterRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `from Ad Guard Rule Text parses Safe Exact Parameter Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fromAdGuardRuleText_parsesSafeExactParameterRules() {
         val rule = requireNotNull(
@@ -29,6 +34,11 @@ class RemoveParamRuleTest {
         assertEquals(setOf("safe.video.example.com"), rule.domainScope.normalizedExcludedDomains)
     }
 
+    /**
+     * 测试函数 `fromAdGuardRuleText_rejectsUnsafeOrUnsupportedRemoveParamRules`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `from Ad Guard Rule Text rejects Unsafe Or Unsupported Remove Param Rules` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fromAdGuardRuleText_rejectsUnsafeOrUnsupportedRemoveParamRules() {
         assertNull(RemoveParamRule.fromAdGuardRuleText("@@||example.com^${'$'}removeparam=utm_source"))
@@ -38,6 +48,11 @@ class RemoveParamRuleTest {
         assertNull(RemoveParamRule.fromAdGuardRuleText("||example.com^${'$'}removeparam=utm_source,bad-option"))
     }
 
+    /**
+     * 测试函数 `cleanNavigationUrl_removesMatchingParametersOnlyForNavigationUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `clean Navigation Url removes Matching Parameters Only For Navigation Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun cleanNavigationUrl_removesMatchingParametersOnlyForNavigationUrls() {
         val engine = RuleEngine(

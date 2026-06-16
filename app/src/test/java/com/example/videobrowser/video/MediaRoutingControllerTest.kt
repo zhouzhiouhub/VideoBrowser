@@ -10,6 +10,11 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class MediaRoutingControllerTest {
+    /**
+     * 测试函数 `routeAddressBarUrl_opensPlayableMediaInNativePlayer`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `route Address Bar Url opens Playable Media In Native Player` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun routeAddressBarUrl_opensPlayableMediaInNativePlayer() {
         val decision = MediaRoutingController.route(
@@ -30,6 +35,11 @@ class MediaRoutingControllerTest {
         assertEquals(PlayableMediaSource.REMOTE_URL, decision.mediaItem?.source)
     }
 
+    /**
+     * 测试函数 `routeAddressBarUrl_keepsRegularWebPagesInWebView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `route Address Bar Url keeps Regular Web Pages In Web View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun routeAddressBarUrl_keepsRegularWebPagesInWebView() {
         val decision = MediaRoutingController.route(
@@ -44,6 +54,11 @@ class MediaRoutingControllerTest {
         assertNull(decision.mediaItem)
     }
 
+    /**
+     * 测试函数 `routeDownload_opensPlayableMediaAndDownloadsNonMedia`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `route Download opens Playable Media And Downloads Non Media` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun routeDownload_opensPlayableMediaAndDownloadsNonMedia() {
         val mediaDecision = MediaRoutingController.route(
@@ -71,6 +86,11 @@ class MediaRoutingControllerTest {
         assertNull(documentDecision.mediaItem)
     }
 
+    /**
+     * 测试函数 `routeLocalDocument_opensPlayableContentUriAndExternalizesNonMedia`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `route Local Document opens Playable Content Uri And Externalizes Non Media` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun routeLocalDocument_opensPlayableContentUriAndExternalizesNonMedia() {
         val mediaDecision = MediaRoutingController.route(
@@ -100,6 +120,11 @@ class MediaRoutingControllerTest {
         assertNull(documentDecision.mediaItem)
     }
 
+    /**
+     * 测试函数 `routeWebViewOverride_blocksUnsupportedExternalSchemes`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `route Web View Override blocks Unsupported External Schemes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun routeWebViewOverride_blocksUnsupportedExternalSchemes() {
         val decision = MediaRoutingController.route(

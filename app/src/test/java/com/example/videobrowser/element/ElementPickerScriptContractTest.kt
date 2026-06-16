@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ElementPickerScriptContractTest {
+    /**
+     * 测试函数 `elementPickerKeepsPageClickSuppressionUntilNativeConfirmFinishes`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `element Picker Keeps Page Click Suppression Until Native Confirm Finishes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun elementPickerKeepsPageClickSuppressionUntilNativeConfirmFinishes() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -25,6 +30,11 @@ class ElementPickerScriptContractTest {
         assertTrue(stopBody.contains("detachElementPickerListeners(picker);"))
     }
 
+    /**
+     * 测试函数 `elementPickerSuppressesPageEventsWhileWaitingForNativeConfirm`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `element Picker Suppresses Page Events While Waiting For Native Confirm` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun elementPickerSuppressesPageEventsWhileWaitingForNativeConfirm() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -37,6 +47,14 @@ class ElementPickerScriptContractTest {
         assertTrue(selectionBody.contains("preventElementPickerEvent(event);"))
     }
 
+    /**
+     * 测试函数 `functionBody`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `function Body` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param script 参数类型为 `String`，表示函数执行 `script` 相关逻辑时需要读取或处理的输入。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun functionBody(script: String, name: String): String {
         val functionStart = script.indexOf("function $name(")
         assertTrue("Missing function $name", functionStart >= 0)
@@ -58,6 +76,13 @@ class ElementPickerScriptContractTest {
         error("Unclosed body for function $name")
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

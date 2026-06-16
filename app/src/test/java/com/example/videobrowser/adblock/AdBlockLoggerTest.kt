@@ -12,6 +12,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class AdBlockLoggerTest {
+    /**
+     * 测试函数 `log_keepsNewestEntriesWithinLimit`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `log keeps Newest Entries Within Limit` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun log_keepsNewestEntriesWithinLimit() {
         var now = 1000L
@@ -41,6 +46,11 @@ class AdBlockLoggerTest {
         assertEquals("test-source", entries[0].ruleSource)
     }
 
+    /**
+     * 测试函数 `clear_removesEntries`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `clear removes Entries` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun clear_removesEntries() {
         val logger = AdBlockLogger()
@@ -62,6 +72,11 @@ class AdBlockLoggerTest {
         assertEquals(emptyList<AdBlockLogEntry>(), logger.entries())
     }
 
+    /**
+     * 测试函数 `log_recordsCandidateRulesAndOverrideReason`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `log records Candidate Rules And Override Reason` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun log_recordsCandidateRulesAndOverrideReason() {
         val logger = AdBlockLogger(clock = { 2000L })

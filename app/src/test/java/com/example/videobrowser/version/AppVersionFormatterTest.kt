@@ -9,6 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class AppVersionFormatterTest {
+    /**
+     * 测试函数 `formatsCommitCountAsFourPartDecimalVersion`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `formats Commit Count As Four Part Decimal Version` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun formatsCommitCountAsFourPartDecimalVersion() {
         assertEquals("0.0.0.0", AppVersionFormatter.formatCommitCount(0))
@@ -20,6 +25,11 @@ class AppVersionFormatterTest {
         assertEquals("1.2.3.4", AppVersionFormatter.formatCommitCount(1234))
     }
 
+    /**
+     * 测试函数 `negativeCommitCountsFormatAsZeroVersion`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `negative Commit Counts Format As Zero Version` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun negativeCommitCountsFormatAsZeroVersion() {
         assertEquals("0.0.0.0", AppVersionFormatter.formatCommitCount(-1))

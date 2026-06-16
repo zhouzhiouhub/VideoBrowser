@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WebViewNewWindowContractTest {
+    /**
+     * 测试函数 `browserManagerAllowsUserGesturePopupWindowsOnly`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Manager Allows User Gesture Popup Windows Only` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserManagerAllowsUserGesturePopupWindowsOnly() {
         val browserManager = projectFile(
@@ -20,6 +25,11 @@ class WebViewNewWindowContractTest {
         assertTrue(browserManager.contains("setSupportMultipleWindows(true)"))
     }
 
+    /**
+     * 测试函数 `chromeClientForwardsCreateWindowRequests`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `chrome Client Forwards Create Window Requests` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun chromeClientForwardsCreateWindowRequests() {
         val chromeClient = projectFile(
@@ -35,6 +45,11 @@ class WebViewNewWindowContractTest {
         assertTrue(chromeClient.contains("windowClosed(window)"))
     }
 
+    /**
+     * 测试函数 `mainActivityRoutesNewWindowsIntoStandardTabsAndClosesRequestedPopupTabs`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `main Activity Routes New Windows Into Standard Tabs And Closes Requested Popup Tabs` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun mainActivityRoutesNewWindowsIntoStandardTabsAndClosesRequestedPopupTabs() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -58,6 +73,13 @@ class WebViewNewWindowContractTest {
         assertTrue(readme.contains("非用户手势触发的新窗口请求会被拒绝"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

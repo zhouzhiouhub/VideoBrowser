@@ -10,6 +10,11 @@ import org.junit.Test
 import java.io.File
 
 class NativePlaybackShuffleWiringContractTest {
+    /**
+     * 测试函数 `playerActivityWiresShuffleThroughPlaybackQueueMenu`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `player Activity Wires Shuffle Through Playback Queue Menu` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playerActivityWiresShuffleThroughPlaybackQueueMenu() {
         val source = File(
@@ -26,6 +31,11 @@ class NativePlaybackShuffleWiringContractTest {
         assertTrue(source.contains("savedInstanceState.getString(STATE_PLAYBACK_QUEUE)"))
     }
 
+    /**
+     * 测试函数 `playbackQueueJsonPersistsOriginalOrderForShuffleRestore`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `playback Queue Json Persists Original Order For Shuffle Restore` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playbackQueueJsonPersistsOriginalOrderForShuffleRestore() {
         val source = File(
@@ -36,6 +46,11 @@ class NativePlaybackShuffleWiringContractTest {
         assertTrue(source.contains("originalItems = originalItems"))
     }
 
+    /**
+     * 测试函数 `shuffleStringsExist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `shuffle Strings Exist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shuffleStringsExist() {
         val strings = File("src/main/res/values/strings.xml").readText()

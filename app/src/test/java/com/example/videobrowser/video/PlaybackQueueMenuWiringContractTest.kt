@@ -10,6 +10,11 @@ import org.junit.Test
 import java.io.File
 
 class PlaybackQueueMenuWiringContractTest {
+    /**
+     * 测试函数 `playerActivityWiresPlaybackQueueMenuActions`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `player Activity Wires Playback Queue Menu Actions` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playerActivityWiresPlaybackQueueMenuActions() {
         val source = File(
@@ -26,6 +31,11 @@ class PlaybackQueueMenuWiringContractTest {
         assertTrue(source.contains("showPlaybackQueueMenu()"))
     }
 
+    /**
+     * 测试函数 `overlayExposesPlaybackQueueButton`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `overlay Exposes Playback Queue Button` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun overlayExposesPlaybackQueueButton() {
         val source = File(
@@ -39,6 +49,11 @@ class PlaybackQueueMenuWiringContractTest {
         assertTrue(source.contains("queueButton.visibility = visibility"))
     }
 
+    /**
+     * 测试函数 `queueStringsExist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `queue Strings Exist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun queueStringsExist() {
         val strings = File("src/main/res/values/strings.xml").readText()

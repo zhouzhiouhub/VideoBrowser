@@ -12,6 +12,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SettingsManagerTest {
+    /**
+     * 测试函数 `defaults_useMvpSettingsWhenPreferencesAreEmpty`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `defaults use Mvp Settings When Preferences Are Empty` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun defaults_useMvpSettingsWhenPreferencesAreEmpty() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -32,6 +37,11 @@ class SettingsManagerTest {
         assertEquals("baidu", settings.searchEngineId())
     }
 
+    /**
+     * 测试函数 `privateBrowsingPreference_isIgnoredOnStartup`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `private Browsing Preference is Ignored On Startup` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun privateBrowsingPreference_isIgnoredOnStartup() {
         val store = InMemoryPreferenceStore()
@@ -43,6 +53,11 @@ class SettingsManagerTest {
         assertFalse(store.contains("private_browsing"))
     }
 
+    /**
+     * 测试函数 `setPrivateBrowsingEnabled_doesNotPersistPrivateMode`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `set Private Browsing Enabled does Not Persist Private Mode` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun setPrivateBrowsingEnabled_doesNotPersistPrivateMode() {
         val store = InMemoryPreferenceStore()
@@ -55,6 +70,11 @@ class SettingsManagerTest {
         assertFalse(store.contains("private_browsing"))
     }
 
+    /**
+     * 测试函数 `settings_arePersistedThroughPreferenceStore`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `settings are Persisted Through Preference Store` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun settings_arePersistedThroughPreferenceStore() {
         val store = InMemoryPreferenceStore()
@@ -93,6 +113,11 @@ class SettingsManagerTest {
         assertEquals("sogou", reloaded.searchEngineId())
     }
 
+    /**
+     * 测试函数 `invalidValues_fallBackToCodeDefaults`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `invalid Values fall Back To Code Defaults` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun invalidValues_fallBackToCodeDefaults() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -108,6 +133,11 @@ class SettingsManagerTest {
         assertEquals(SettingsManager.DEFAULT_SEARCH_ENGINE_ID, settings.searchEngineId())
     }
 
+    /**
+     * 测试函数 `homeUrlValidationAcceptsOnlyHttpUrlsWithHosts`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `home Url Validation Accepts Only Http Urls With Hosts` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun homeUrlValidationAcceptsOnlyHttpUrlsWithHosts() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -119,6 +149,11 @@ class SettingsManagerTest {
         assertFalse(settings.isValidHomeUrl("https://"))
     }
 
+    /**
+     * 测试函数 `restoreDefaults_removesOnlySettingsKeys`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `restore Defaults removes Only Settings Keys` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun restoreDefaults_removesOnlySettingsKeys() {
         val store = InMemoryPreferenceStore()
@@ -179,6 +214,11 @@ class SettingsManagerTest {
         assertEquals("[]", store.getString("bookmarks", null))
     }
 
+    /**
+     * 测试函数 `siteAdBlockDisabledHosts_areNormalizedAndPersisted`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Ad Block Disabled Hosts are Normalized And Persisted` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteAdBlockDisabledHosts_areNormalizedAndPersisted() {
         val store = InMemoryPreferenceStore()
@@ -194,6 +234,11 @@ class SettingsManagerTest {
         assertFalse(reloaded.isAdBlockDisabledForSite("video.example.com"))
     }
 
+    /**
+     * 测试函数 `siteJsInjectionDisabledHosts_areNormalizedAndPersisted`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Js Injection Disabled Hosts are Normalized And Persisted` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteJsInjectionDisabledHosts_areNormalizedAndPersisted() {
         val store = InMemoryPreferenceStore()
@@ -209,6 +254,11 @@ class SettingsManagerTest {
         assertFalse(reloaded.isJsInjectionDisabledForSite("video.example.com"))
     }
 
+    /**
+     * 测试函数 `siteDomAdBlockDisabledHosts_areNormalizedAndPersisted`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Dom Ad Block Disabled Hosts are Normalized And Persisted` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteDomAdBlockDisabledHosts_areNormalizedAndPersisted() {
         val store = InMemoryPreferenceStore()
@@ -224,6 +274,11 @@ class SettingsManagerTest {
         assertFalse(reloaded.isDomAdBlockDisabledForSite("video.example.com"))
     }
 
+    /**
+     * 测试函数 `siteVideoEnhancementDisabledHosts_areNormalizedAndPersisted`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Video Enhancement Disabled Hosts are Normalized And Persisted` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteVideoEnhancementDisabledHosts_areNormalizedAndPersisted() {
         val store = InMemoryPreferenceStore()
@@ -239,6 +294,11 @@ class SettingsManagerTest {
         assertFalse(reloaded.isVideoEnhancementDisabledForSite("video.example.com"))
     }
 
+    /**
+     * 测试函数 `siteSmartNoImageDisabledHosts_areNormalizedAndPersisted`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Smart No Image Disabled Hosts are Normalized And Persisted` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteSmartNoImageDisabledHosts_areNormalizedAndPersisted() {
         val store = InMemoryPreferenceStore()
@@ -254,6 +314,11 @@ class SettingsManagerTest {
         assertFalse(reloaded.isSmartNoImageDisabledForSite("video.example.com"))
     }
 
+    /**
+     * 测试函数 `userWhitelistedSiteHosts_areNormalizedAndPersisted`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `user Whitelisted Site Hosts are Normalized And Persisted` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun userWhitelistedSiteHosts_areNormalizedAndPersisted() {
         val store = InMemoryPreferenceStore()
@@ -269,6 +334,11 @@ class SettingsManagerTest {
         assertFalse(reloaded.isUserWhitelistedSite("ads.example.com"))
     }
 
+    /**
+     * 测试函数 `userWhitelistedSiteHosts_canBeCleared`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `user Whitelisted Site Hosts can Be Cleared` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun userWhitelistedSiteHosts_canBeCleared() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -281,6 +351,11 @@ class SettingsManagerTest {
         assertTrue(settings.userWhitelistedSiteHosts().isEmpty())
     }
 
+    /**
+     * 测试函数 `sitePermissionDecisions_areNormalizedPersistedAndMutuallyExclusive`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Permission Decisions are Normalized Persisted And Mutually Exclusive` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun sitePermissionDecisions_areNormalizedPersistedAndMutuallyExclusive() {
         val store = InMemoryPreferenceStore()
@@ -352,6 +427,11 @@ class SettingsManagerTest {
         assertTrue(reloaded.blockedSitePermissionHosts(SitePermission.CAMERA).isEmpty())
     }
 
+    /**
+     * 测试函数 `sitePermissionRecords_listAndClearPersistedDecisions`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Permission Records list And Clear Persisted Decisions` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun sitePermissionRecords_listAndClearPersistedDecisions() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -410,6 +490,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `sitePermissionRecords_followEffectiveDecisionWhenStoredSetsConflict`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Permission Records follow Effective Decision When Stored Sets Conflict` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun sitePermissionRecords_followEffectiveDecisionWhenStoredSetsConflict() {
         val store = InMemoryPreferenceStore()
@@ -434,6 +519,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `userElementHideSelectors_areNormalizedAndPersistedByHost`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `user Element Hide Selectors are Normalized And Persisted By Host` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun userElementHideSelectors_areNormalizedAndPersistedByHost() {
         val store = InMemoryPreferenceStore()
@@ -448,6 +538,11 @@ class SettingsManagerTest {
         assertTrue(reloaded.userElementHideSelectorsForSite("other.example.com").isEmpty())
     }
 
+    /**
+     * 测试函数 `userElementHideSelectors_dropPositionalPickerSegmentsWhenStableTokensExist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `user Element Hide Selectors drop Positional Picker Segments When Stable Tokens Exist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun userElementHideSelectors_dropPositionalPickerSegmentsWhenStableTokensExist() {
         val store = InMemoryPreferenceStore()
@@ -467,6 +562,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `userElementHideSelectors_keepPositionalPickerSegmentsWithoutStableTokens`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `user Element Hide Selectors keep Positional Picker Segments Without Stable Tokens` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun userElementHideSelectors_keepPositionalPickerSegmentsWithoutStableTokens() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -479,6 +579,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `userElementHideSelectors_rejectUnsafeValues`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `user Element Hide Selectors reject Unsafe Values` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun userElementHideSelectors_rejectUnsafeValues() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -490,6 +595,11 @@ class SettingsManagerTest {
         assertTrue(settings.userElementHideRules().isEmpty())
     }
 
+    /**
+     * 测试函数 `userElementHideRules_canBeRemovedIndividuallyAndCleared`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `user Element Hide Rules can Be Removed Individually And Cleared` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun userElementHideRules_canBeRemovedIndividuallyAndCleared() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -509,6 +619,11 @@ class SettingsManagerTest {
         assertTrue(settings.userElementHideRules().isEmpty())
     }
 
+    /**
+     * 测试函数 `customShortcuts_arePersistedInInsertionOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `custom Shortcuts are Persisted In Insertion Order` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun customShortcuts_arePersistedInInsertionOrder() {
         val store = InMemoryPreferenceStore()
@@ -527,6 +642,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `customShortcuts_keepMostRecentTenEntries`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `custom Shortcuts keep Most Recent Ten Entries` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun customShortcuts_keepMostRecentTenEntries() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -541,6 +661,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `customShortcuts_canBeRemoved`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `custom Shortcuts can Be Removed` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun customShortcuts_canBeRemoved() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -556,6 +681,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `customShortcuts_canBeUpdatedInPlace`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `custom Shortcuts can Be Updated In Place` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun customShortcuts_canBeUpdatedInPlace() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -593,6 +723,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `customShortcuts_rejectInvalidInputAndFilterCorruptStorage`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `custom Shortcuts reject Invalid Input And Filter Corrupt Storage` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun customShortcuts_rejectInvalidInputAndFilterCorruptStorage() {
         val store = InMemoryPreferenceStore()
@@ -618,6 +753,11 @@ class SettingsManagerTest {
         )
     }
 
+    /**
+     * 测试函数 `customShortcuts_doNotChangeSearchProviderOrHomeUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `custom Shortcuts do Not Change Search Provider Or Home Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun customShortcuts_doNotChangeSearchProviderOrHomeUrl() {
         val settings = SettingsManager(InMemoryPreferenceStore())
@@ -633,38 +773,104 @@ class SettingsManagerTest {
     private class InMemoryPreferenceStore : PreferenceStore {
         private val values = mutableMapOf<String, Any>()
 
+        /**
+         * 测试函数 `contains`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `contains` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun contains(key: String): Boolean {
             return values.containsKey(key)
         }
 
+        /**
+         * 测试函数 `getBoolean`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get Boolean` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
             return values[key] as? Boolean ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putBoolean`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put Boolean` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putBoolean(key: String, value: Boolean) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `getFloat`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get Float` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `Float`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getFloat(key: String, defaultValue: Float): Float {
             return values[key] as? Float ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putFloat`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put Float` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `Float`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putFloat(key: String, value: Float) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `getString`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `get String` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param defaultValue 参数类型为 `String?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun getString(key: String, defaultValue: String?): String? {
             return values[key] as? String ?: defaultValue
         }
 
+        /**
+         * 测试函数 `putString`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `put String` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         */
         override fun putString(key: String, value: String) {
             values[key] = value
         }
 
+        /**
+         * 测试函数 `remove`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `remove` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         */
         override fun remove(key: String) {
             values.remove(key)
         }
 
+        /**
+         * 测试函数 `remove`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `remove` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param keys 参数类型为 `Iterable<String>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param commit 参数类型为 `Boolean`，表示函数执行 `commit` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun remove(keys: Iterable<String>, commit: Boolean): Boolean {
             keys.forEach { key -> values.remove(key) }
             return true

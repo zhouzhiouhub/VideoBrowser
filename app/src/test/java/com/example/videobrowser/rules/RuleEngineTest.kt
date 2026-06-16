@@ -14,6 +14,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RuleEngineTest {
+    /**
+     * 测试函数 `scriptletHooksFor_filtersByPageDomainAndMapsSupportedHooks`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `scriptlet Hooks For filters By Page Domain And Maps Supported Hooks` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun scriptletHooksFor_filtersByPageDomainAndMapsSupportedHooks() {
         val engine = RuleEngine(
@@ -59,6 +64,11 @@ class RuleEngineTest {
         assertTrue(engine.isScriptletSkipButtonsEnabledFor("https://other.com/watch"))
     }
 
+    /**
+     * 测试函数 `matchRequest_blocksUrlContainsRule`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request blocks Url Contains Rule` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_blocksUrlContainsRule() {
         val rule = Rule.blockUrlContains("/pagead/")
@@ -75,6 +85,11 @@ class RuleEngineTest {
         assertSame(rule, result.rule)
     }
 
+    /**
+     * 测试函数 `matchRequest_blocksDomainRuleWithSubdomains`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request blocks Domain Rule With Subdomains` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_blocksDomainRuleWithSubdomains() {
         val rule = Rule.blockDomainContains("doubleclick.net")
@@ -89,6 +104,11 @@ class RuleEngineTest {
         assertSame(rule, result.rule)
     }
 
+    /**
+     * 测试函数 `matchRequest_doesNotTreatHostSubstringAsDomainMatch`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request does Not Treat Host Substring As Domain Match` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_doesNotTreatHostSubstringAsDomainMatch() {
         val engine = RuleEngine(
@@ -104,6 +124,11 @@ class RuleEngineTest {
         assertFalse(result.shouldBlock)
     }
 
+    /**
+     * 测试函数 `matchRequest_allowsWhenNoRuleMatches`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request allows When No Rule Matches` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_allowsWhenNoRuleMatches() {
         val engine = RuleEngine(
@@ -123,6 +148,11 @@ class RuleEngineTest {
         assertNull(result.rule)
     }
 
+    /**
+     * 测试函数 `matchRequest_prefersWhitelistRuleOverBlockRule`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request prefers Whitelist Rule Over Block Rule` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_prefersWhitelistRuleOverBlockRule() {
         val allowRule = Rule.allowUrlContains("/pagead/allowed.js")
@@ -146,6 +176,11 @@ class RuleEngineTest {
         assertSame(allowRule, result.rule)
     }
 
+    /**
+     * 测试函数 `matchRequestCandidates_returnsAllMatchedRulesInOriginalRuleOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request Candidates returns All Matched Rules In Original Rule Order` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequestCandidates_returnsAllMatchedRulesInOriginalRuleOrder() {
         val blockRule = Rule.blockDomainContains("doubleclick.net")
@@ -169,6 +204,11 @@ class RuleEngineTest {
         assertSame(allowRule, results[1].rule)
     }
 
+    /**
+     * 测试函数 `matchRequest_domainIndexUsesUrlHostWhenHostIsMissing`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request domain Index Uses Url Host When Host Is Missing` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_domainIndexUsesUrlHostWhenHostIsMissing() {
         val allowRule = Rule.allowDomainContains("doubleclick.net")
@@ -188,6 +228,11 @@ class RuleEngineTest {
         assertSame(allowRule, result.rule)
     }
 
+    /**
+     * 测试函数 `matchRequest_domainIndexKeepsFallbackAndDomainRulesInOriginalOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request domain Index Keeps Fallback And Domain Rules In Original Order` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_domainIndexKeepsFallbackAndDomainRulesInOriginalOrder() {
         val urlRule = Rule.blockUrlContains("/pagead/")
@@ -208,6 +253,11 @@ class RuleEngineTest {
         assertSame(urlRule, result.rule)
     }
 
+    /**
+     * 测试函数 `fromRequestRuleText_parsesP6SafeSubset`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `from Request Rule Text parses P6 Safe Subset` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fromRequestRuleText_parsesP6SafeSubset() {
         val domainRule = requireNotNull(Rule.fromRequestRuleText("||doubleclick.net^"))
@@ -241,6 +291,11 @@ class RuleEngineTest {
         assertEquals(setOf("safe.video.example.com"), domainScopedRule.domainScope.normalizedExcludedDomains)
     }
 
+    /**
+     * 测试函数 `fromRequestRuleText_rejectsUnsupportedSyntaxForP6`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `from Request Rule Text rejects Unsupported Syntax For P6` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fromRequestRuleText_rejectsUnsupportedSyntaxForP6() {
         assertNull(Rule.fromRequestRuleText("example.com##.ad"))
@@ -250,6 +305,11 @@ class RuleEngineTest {
         assertNull(Rule.fromRequestRuleText("! comment"))
     }
 
+    /**
+     * 测试函数 `matchRequest_supportsWildcardSeparatorAndDomainOptions`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request supports Wildcard Separator And Domain Options` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_supportsWildcardSeparatorAndDomainOptions() {
         val engine = RuleEngine(
@@ -285,6 +345,11 @@ class RuleEngineTest {
         )
     }
 
+    /**
+     * 测试函数 `matchRequest_supportsThirdPartyOption`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request supports Third Party Option` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_supportsThirdPartyOption() {
         val engine = RuleEngine(
@@ -307,6 +372,11 @@ class RuleEngineTest {
         )
     }
 
+    /**
+     * 测试函数 `matchRequest_usesResourceTypeOptionsConservatively`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `match Request uses Resource Type Options Conservatively` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun matchRequest_usesResourceTypeOptionsConservatively() {
         val engine = RuleEngine(
@@ -336,6 +406,11 @@ class RuleEngineTest {
         )
     }
 
+    /**
+     * 测试函数 `elementSelectorsFor_filtersByTypeAndPageDomain`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `element Selectors For filters By Type And Page Domain` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun elementSelectorsFor_filtersByTypeAndPageDomain() {
         val engine = RuleEngine(
@@ -390,6 +465,11 @@ class RuleEngineTest {
         )
     }
 
+    /**
+     * 测试函数 `elementSelectorsFor_preservesFallbackAndMixedDomainSemantics`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `element Selectors For preserves Fallback And Mixed Domain Semantics` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun elementSelectorsFor_preservesFallbackAndMixedDomainSemantics() {
         val engine = RuleEngine(

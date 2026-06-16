@@ -16,6 +16,11 @@ import org.junit.Test
 class AdBlockRequestPolicyTest {
     private val ruleEngine = RuleEngine(BuiltInAdBlockRules.requestRules())
 
+    /**
+     * 测试函数 `shouldBlock_allowsMainFrameEvenWhenUrlMatchesBlacklist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block allows Main Frame Even When Url Matches Blacklist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_allowsMainFrameEvenWhenUrlMatchesBlacklist() {
         assertFalse(
@@ -30,6 +35,11 @@ class AdBlockRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `shouldBlock_blocksMatchingSubresourceRequests`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block blocks Matching Subresource Requests` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_blocksMatchingSubresourceRequests() {
         assertTrue(
@@ -44,6 +54,11 @@ class AdBlockRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `shouldBlock_allowsRequestsWhenAdBlockDisabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block allows Requests When Ad Block Disabled` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_allowsRequestsWhenAdBlockDisabled() {
         assertFalse(
@@ -58,6 +73,11 @@ class AdBlockRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `shouldBlock_allowsRequestsWhenCurrentSiteAdBlockDisabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block allows Requests When Current Site Ad Block Disabled` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_allowsRequestsWhenCurrentSiteAdBlockDisabled() {
         assertFalse(
@@ -73,6 +93,11 @@ class AdBlockRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `evaluate_allowsRequestsWhenUserWhitelistMatches`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate allows Requests When User Whitelist Matches` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun evaluate_allowsRequestsWhenUserWhitelistMatches() {
         val decision = AdBlockRequestPolicy.evaluate(
@@ -89,6 +114,11 @@ class AdBlockRequestPolicyTest {
         assertEquals(AdBlockDecisionReason.USER_WHITELISTED, decision.reason)
     }
 
+    /**
+     * 测试函数 `evaluate_keepsMatchedRuleForBlockedRequests`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate keeps Matched Rule For Blocked Requests` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun evaluate_keepsMatchedRuleForBlockedRequests() {
         val decision = AdBlockRequestPolicy.evaluate(
@@ -105,6 +135,11 @@ class AdBlockRequestPolicyTest {
         assertTrue(decision.ruleMatchResult.matched)
     }
 
+    /**
+     * 测试函数 `evaluate_allowsExplicitRuleAndKeepsBlockedCandidateForDiagnostics`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate allows Explicit Rule And Keeps Blocked Candidate For Diagnostics` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun evaluate_allowsExplicitRuleAndKeepsBlockedCandidateForDiagnostics() {
         val blockRule = Rule.blockUrlContains("/pagead/", id = "test:block-pagead")
@@ -125,6 +160,11 @@ class AdBlockRequestPolicyTest {
         assertEquals(listOf(blockRule, allowRule), decision.candidateRules)
     }
 
+    /**
+     * 测试函数 `evaluate_appliesThirdPartyScriptRulesWithoutBlockingFirstPartyScripts`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate applies Third Party Script Rules Without Blocking First Party Scripts` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun evaluate_appliesThirdPartyScriptRulesWithoutBlockingFirstPartyScripts() {
         val rule = requireNotNull(
@@ -154,6 +194,11 @@ class AdBlockRequestPolicyTest {
         assertEquals(AdBlockDecisionReason.NO_MATCH, firstPartyDecision.reason)
     }
 
+    /**
+     * 测试函数 `evaluate_userWhitelistOverridesSiteDisabledAndRuleMatch`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate user Whitelist Overrides Site Disabled And Rule Match` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun evaluate_userWhitelistOverridesSiteDisabledAndRuleMatch() {
         val blockRule = Rule.blockDomainContains("doubleclick.net", id = "test:block-doubleclick")
@@ -174,6 +219,11 @@ class AdBlockRequestPolicyTest {
         assertEquals(listOf(blockRule), decision.candidateRules)
     }
 
+    /**
+     * 测试函数 `evaluate_currentSiteDisabledOverridesRuleMatchWhenUserWhitelistDoesNotApply`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate current Site Disabled Overrides Rule Match When User Whitelist Does Not Apply` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun evaluate_currentSiteDisabledOverridesRuleMatchWhenUserWhitelistDoesNotApply() {
         val blockRule = Rule.blockDomainContains("doubleclick.net", id = "test:block-doubleclick")
@@ -194,6 +244,11 @@ class AdBlockRequestPolicyTest {
         assertEquals(listOf(blockRule), decision.candidateRules)
     }
 
+    /**
+     * 测试函数 `shouldBlock_allowsNonHttpRequests`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block allows Non Http Requests` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_allowsNonHttpRequests() {
         assertFalse(
@@ -208,6 +263,14 @@ class AdBlockRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `scriptRequest`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `script Request` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param requestUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun scriptRequest(requestUrl: String, pageUrl: String): RequestContext {
         return RequestContext(
             requestUrl = requestUrl,

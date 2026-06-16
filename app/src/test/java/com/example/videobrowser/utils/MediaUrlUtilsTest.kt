@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MediaUrlUtilsTest {
+    /**
+     * 测试函数 `isPlayableMediaUri_acceptsHttpVideoExtensionsBeforeQueryAndFragment`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `is Playable Media Uri accepts Http Video Extensions Before Query And Fragment` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun isPlayableMediaUri_acceptsHttpVideoExtensionsBeforeQueryAndFragment() {
         assertTrue(
@@ -19,6 +24,11 @@ class MediaUrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `isPlayableMediaUri_acceptsStreamingManifestsAndRtspSchemes`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `is Playable Media Uri accepts Streaming Manifests And Rtsp Schemes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun isPlayableMediaUri_acceptsStreamingManifestsAndRtspSchemes() {
         assertTrue(
@@ -38,6 +48,11 @@ class MediaUrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `isPlayableMediaUri_acceptsPlayableMimeTypesWithoutExtension`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `is Playable Media Uri accepts Playable Mime Types Without Extension` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun isPlayableMediaUri_acceptsPlayableMimeTypesWithoutExtension() {
         assertTrue(
@@ -54,6 +69,11 @@ class MediaUrlUtilsTest {
         )
     }
 
+    /**
+     * 测试函数 `isPlayableMediaUri_rejectsUnsupportedSchemesAndDocuments`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `is Playable Media Uri rejects Unsupported Schemes And Documents` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun isPlayableMediaUri_rejectsUnsupportedSchemesAndDocuments() {
         assertFalse(

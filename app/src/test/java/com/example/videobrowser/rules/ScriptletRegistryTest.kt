@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ScriptletRegistryTest {
+    /**
+     * 测试函数 `parseSupportedUboScriptlet_keepsNameArgumentsAndDomainScope`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `parse Supported Ubo Scriptlet keeps Name Arguments And Domain Scope` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun parseSupportedUboScriptlet_keepsNameArgumentsAndDomainScope() {
         val parsed = ScriptletRegistry.parse(
@@ -29,6 +34,11 @@ class ScriptletRegistryTest {
         assertFalse(rule.matchesPage("https://other.example/watch"))
     }
 
+    /**
+     * 测试函数 `parseSupportedScriptletSyntax_stripsQuotedArguments`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `parse Supported Scriptlet Syntax strips Quoted Arguments` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun parseSupportedScriptletSyntax_stripsQuotedArguments() {
         val parsed = ScriptletRegistry.parse(
@@ -44,6 +54,11 @@ class ScriptletRegistryTest {
         assertTrue(rule.matchesPage("https://example.com/"))
     }
 
+    /**
+     * 测试函数 `parseNoArgumentScriptlets_acceptsLocalToggleHooks`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `parse No Argument Scriptlets accepts Local Toggle Hooks` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun parseNoArgumentScriptlets_acceptsLocalToggleHooks() {
         val skip = ScriptletRegistry.parse(
@@ -63,6 +78,11 @@ class ScriptletRegistryTest {
         assertEquals(emptyList<String>(), controls.value.arguments)
     }
 
+    /**
+     * 测试函数 `parseUnknownScriptlet_returnsSkippedReason`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `parse Unknown Scriptlet returns Skipped Reason` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun parseUnknownScriptlet_returnsSkippedReason() {
         val parsed = ScriptletRegistry.parse(
@@ -78,6 +98,11 @@ class ScriptletRegistryTest {
         )
     }
 
+    /**
+     * 测试函数 `parseUnsafeArguments_returnsSkippedReason`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `parse Unsafe Arguments returns Skipped Reason` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun parseUnsafeArguments_returnsSkippedReason() {
         val parsed = ScriptletRegistry.parse(
@@ -93,6 +118,11 @@ class ScriptletRegistryTest {
         )
     }
 
+    /**
+     * 测试函数 `parseRawScriptletJavaScript_returnsSkippedReasonWithoutKeepingCode`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `parse Raw Scriptlet Java Script returns Skipped Reason Without Keeping Code` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun parseRawScriptletJavaScript_returnsSkippedReasonWithoutKeepingCode() {
         val parsed = ScriptletRegistry.parse(

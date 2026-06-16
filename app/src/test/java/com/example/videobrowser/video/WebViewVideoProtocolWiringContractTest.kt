@@ -11,6 +11,11 @@ import org.junit.Test
 import java.io.File
 
 class WebViewVideoProtocolWiringContractTest {
+    /**
+     * 测试函数 `fullscreenControllerUsesTypedWebViewVideoProtocol`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fullscreen Controller Uses Typed Web View Video Protocol` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fullscreenControllerUsesTypedWebViewVideoProtocol() {
         val source = File(
@@ -30,6 +35,11 @@ class WebViewVideoProtocolWiringContractTest {
         assertFalse(source.contains("typeof window.VideoBrowserEnhancer.setPlaybackSpeed"))
     }
 
+    /**
+     * 测试函数 `mainActivityUsesTypedProtocolForBackPressedFullscreenExit`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `main Activity Uses Typed Protocol For Back Pressed Fullscreen Exit` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun mainActivityUsesTypedProtocolForBackPressedFullscreenExit() {
         val source = File("src/main/java/com/example/videobrowser/MainActivity.kt").readText()

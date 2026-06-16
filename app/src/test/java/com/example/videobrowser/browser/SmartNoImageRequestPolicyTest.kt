@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SmartNoImageRequestPolicyTest {
+    /**
+     * 测试函数 `shouldBlock_blocksHttpImageSubresourcesWhenEnabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block blocks Http Image Subresources When Enabled` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_blocksHttpImageSubresourcesWhenEnabled() {
         assertTrue(
@@ -24,6 +29,11 @@ class SmartNoImageRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `shouldBlock_allowsMainFrameImagesSoDirectImagePagesStillOpen`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block allows Main Frame Images So Direct Image Pages Still Open` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_allowsMainFrameImagesSoDirectImagePagesStillOpen() {
         assertFalse(
@@ -37,6 +47,11 @@ class SmartNoImageRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `shouldBlock_allowsNonImageAndNonHttpResources`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block allows Non Image And Non Http Resources` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_allowsNonImageAndNonHttpResources() {
         assertFalse(
@@ -59,6 +74,11 @@ class SmartNoImageRequestPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `shouldBlock_respectsGlobalAndCurrentSiteSwitches`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `should Block respects Global And Current Site Switches` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun shouldBlock_respectsGlobalAndCurrentSiteSwitches() {
         val context = RequestContext(

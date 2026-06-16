@@ -18,6 +18,11 @@ import org.junit.Test
 class RuleDecisionResolverTest {
     private val resolver = RuleDecisionResolver()
 
+    /**
+     * 测试函数 `resolve_userWhitelistOverridesRuleCandidatesAndKeepsOverrideContext`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve user Whitelist Overrides Rule Candidates And Keeps Override Context` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_userWhitelistOverridesRuleCandidatesAndKeepsOverrideContext() {
         val blockResult = RuleMatchResult.block(
@@ -44,6 +49,11 @@ class RuleDecisionResolverTest {
         assertSame(blockResult.rule, decision.ruleMatchResult.rule)
     }
 
+    /**
+     * 测试函数 `resolve_currentSiteDisabledOverridesRuleCandidatesAfterUserWhitelist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve current Site Disabled Overrides Rule Candidates After User Whitelist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_currentSiteDisabledOverridesRuleCandidatesAfterUserWhitelist() {
         val blockResult = RuleMatchResult.block(
@@ -69,6 +79,11 @@ class RuleDecisionResolverTest {
         assertEquals(listOf(blockResult), decision.ruleCandidates)
     }
 
+    /**
+     * 测试函数 `resolve_explicitAllowOverridesForceAndNormalBlockCandidates`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve explicit Allow Overrides Force And Normal Block Candidates` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_explicitAllowOverridesForceAndNormalBlockCandidates() {
         val allowResult = RuleMatchResult.allow(
@@ -111,6 +126,11 @@ class RuleDecisionResolverTest {
         assertSame(allowResult.rule, decision.ruleMatchResult.rule)
     }
 
+    /**
+     * 测试函数 `resolve_forceBlockOverridesNormalBlockCandidate`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve force Block Overrides Normal Block Candidate` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_forceBlockOverridesNormalBlockCandidate() {
         val forceBlockResult = RuleMatchResult.block(
@@ -146,6 +166,11 @@ class RuleDecisionResolverTest {
         assertSame(forceBlockResult.rule, decision.ruleMatchResult.rule)
     }
 
+    /**
+     * 测试函数 `resolve_allowsWhenNoRuleMatches`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve allows When No Rule Matches` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun resolve_allowsWhenNoRuleMatches() {
         val decision = resolver.resolve(
@@ -163,6 +188,13 @@ class RuleDecisionResolverTest {
         assertEquals(emptyList<RuleMatchResult>(), decision.ruleCandidates)
     }
 
+    /**
+     * 测试函数 `subresourceContext`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `subresource Context` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun subresourceContext(url: String): RequestContext {
         return RequestContext(
             requestUrl = url,

@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SavedPagesPageContractTest {
+    /**
+     * 测试函数 `savedPagesPageSupportsSearchFiltering`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Supports Search Filtering` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun savedPagesPageSupportsSearchFiltering() {
         val page = projectFile(
@@ -23,6 +28,11 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("R.string.dialog_saved_pages_search_empty"))
     }
 
+    /**
+     * 测试函数 `savedPagesPageCanCopyRecordLinks`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Can Copy Record Links` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun savedPagesPageCanCopyRecordLinks() {
         val page = projectFile(
@@ -38,6 +48,11 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("R.string.toast_link_copied"))
     }
 
+    /**
+     * 测试函数 `savedPagesPageCanShareRecordLinks`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Can Share Record Links` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun savedPagesPageCanShareRecordLinks() {
         val page = projectFile(
@@ -52,6 +67,11 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
     }
 
+    /**
+     * 测试函数 `savedPagesPageCanOpenRecordsInNewTabs`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Can Open Records In New Tabs` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun savedPagesPageCanOpenRecordsInNewTabs() {
         val page = projectFile(
@@ -72,6 +92,11 @@ class SavedPagesPageContractTest {
         assertTrue(strings.contains("action_open_in_new_tab"))
     }
 
+    /**
+     * 测试函数 `savedPagesPageCanRenameBookmarks`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Can Rename Bookmarks` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun savedPagesPageCanRenameBookmarks() {
         val page = projectFile(
@@ -93,6 +118,11 @@ class SavedPagesPageContractTest {
         assertTrue(strings.contains("toast_saved_page_title_invalid"))
     }
 
+    /**
+     * 测试函数 `savedPagesPageCanGroupAndMoveBookmarksByFolder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Can Group And Move Bookmarks By Folder` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun savedPagesPageCanGroupAndMoveBookmarksByFolder() {
         val page = projectFile(
@@ -125,6 +155,13 @@ class SavedPagesPageContractTest {
         assertTrue(readme.contains("收藏夹支持重命名标题、文件夹分组、导入和导出"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

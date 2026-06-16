@@ -18,6 +18,11 @@ class RuleFileLoaderTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
+    /**
+     * 测试函数 `loadRequestRules_readsAssetsAndCacheFiles`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Request Rules reads Assets And Cache Files` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadRequestRules_readsAssetsAndCacheFiles() {
         val cacheDirectory = temporaryFolder.newFolder()
@@ -38,6 +43,11 @@ class RuleFileLoaderTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `loadRequestRules_usesCacheWhenAssetOpenFails`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Request Rules uses Cache When Asset Open Fails` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadRequestRules_usesCacheWhenAssetOpenFails() {
         val cacheDirectory = temporaryFolder.newFolder()
@@ -56,6 +66,11 @@ class RuleFileLoaderTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `loadRequestRules_usesCacheRulesAndRecordsSkippedAssetWhenAssetReadFails`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Request Rules uses Cache Rules And Records Skipped Asset When Asset Read Fails` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadRequestRules_usesCacheRulesAndRecordsSkippedAssetWhenAssetReadFails() {
         val cacheDirectory = temporaryFolder.newFolder()
@@ -83,6 +98,11 @@ class RuleFileLoaderTest {
         assertEquals("asset failure", result.skippedRules.single().reason)
     }
 
+    /**
+     * 测试函数 `loadRequestRules_skipsUnknownRedirectResources`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Request Rules skips Unknown Redirect Resources` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadRequestRules_skipsUnknownRedirectResources() {
         val loader = loaderFor(
@@ -105,6 +125,11 @@ class RuleFileLoaderTest {
         })
     }
 
+    /**
+     * 测试函数 `loadScriptletRules_readsAssetsAndCacheFilesAndSkipsUnknownScriptlets`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Scriptlet Rules reads Assets And Cache Files And Skips Unknown Scriptlets` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadScriptletRules_readsAssetsAndCacheFilesAndSkipsUnknownScriptlets() {
         val cacheDirectory = temporaryFolder.newFolder()
@@ -138,6 +163,11 @@ class RuleFileLoaderTest {
         )
     }
 
+    /**
+     * 测试函数 `loadCssRules_parsesGlobalAndDomainScopedSelectors`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Css Rules parses Global And Domain Scoped Selectors` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadCssRules_parsesGlobalAndDomainScopedSelectors() {
         val loader = loaderFor(
@@ -163,6 +193,11 @@ class RuleFileLoaderTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `loadCssRules_doesNotTreatScriptletRulesAsSelectors`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Css Rules does Not Treat Scriptlet Rules As Selectors` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadCssRules_doesNotTreatScriptletRulesAsSelectors() {
         val loader = loaderFor(
@@ -182,6 +217,11 @@ class RuleFileLoaderTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `loadDomRules_parsesRemoveSelectorsAndSkipsUnsupportedLines`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Dom Rules parses Remove Selectors And Skips Unsupported Lines` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadDomRules_parsesRemoveSelectorsAndSkipsUnsupportedLines() {
         val loader = loaderFor(
@@ -201,6 +241,11 @@ class RuleFileLoaderTest {
         assertEquals(2, result.skippedRules.size)
     }
 
+    /**
+     * 测试函数 `loadRemoveParamRules_readsAssetsAndCacheFiles`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Remove Param Rules reads Assets And Cache Files` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun loadRemoveParamRules_readsAssetsAndCacheFiles() {
         val cacheDirectory = temporaryFolder.newFolder()
@@ -224,6 +269,14 @@ class RuleFileLoaderTest {
         assertTrue(result.skippedRules.isEmpty())
     }
 
+    /**
+     * 测试函数 `loaderFor`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `loader For` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param cacheDirectory 参数类型为 `java.io.File?`，表示函数执行 `cacheDirectory` 相关逻辑时需要读取或处理的输入。
+     * @param assets 参数类型为 `Map<String, String>`，表示函数执行 `assets` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun loaderFor(
         cacheDirectory: java.io.File? = null,
         assets: Map<String, String>
@@ -241,6 +294,12 @@ class RuleFileLoaderTest {
     private class FailingInputStream(
         private val message: String
     ) : InputStream() {
+        /**
+         * 测试函数 `read`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `read` 这条行为是否成立。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         override fun read(): Int {
             throw IOException(message)
         }

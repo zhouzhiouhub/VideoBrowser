@@ -12,6 +12,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserDataManagementPageTest {
+    /**
+     * 测试函数 `cookieParserOnlyExposesCookieNames`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `cookie Parser Only Exposes Cookie Names` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun cookieParserOnlyExposesCookieNames() {
         val cookies = BrowserCookieParser.parse("session=secret-token; theme=dark")
@@ -24,11 +29,21 @@ class BrowserDataManagementPageTest {
         )
     }
 
+    /**
+     * 测试函数 `siteDataSummaryOnlyShowsUsedStorage`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Data Summary Only Shows Used Storage` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteDataSummaryOnlyShowsUsedStorage() {
         assertEquals("1.5 KB", BrowserDataDisplayFormatter.siteDataUsageSummary(1536L))
     }
 
+    /**
+     * 测试函数 `siteDataOriginSearchMatchesOriginAndHostCaseInsensitively`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Data Origin Search Matches Origin And Host Case Insensitively` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteDataOriginSearchMatchesOriginAndHostCaseInsensitively() {
         val origins = listOf(
@@ -45,6 +60,11 @@ class BrowserDataManagementPageTest {
         assertTrue(BrowserSiteDataOriginSearch.filterOriginNames(origins, "missing").isEmpty())
     }
 
+    /**
+     * 测试函数 `browserHistoryClearRangeCalculatesCutoffs`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser History Clear Range Calculates Cutoffs` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserHistoryClearRangeCalculatesCutoffs() {
         val now = 10L * 24L * 60L * 60L * 1000L
@@ -55,6 +75,11 @@ class BrowserDataManagementPageTest {
         assertTrue(BrowserHistoryClearRange.ALL.cutoffMillis(now) == null)
     }
 
+    /**
+     * 测试函数 `siteDataManagementCanSearchOrigins`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `site Data Management Can Search Origins` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun siteDataManagementCanSearchOrigins() {
         val page = projectFile(
@@ -79,6 +104,11 @@ class BrowserDataManagementPageTest {
         assertTrue(readme.contains("站点数据管理（支持按域名搜索）"))
     }
 
+    /**
+     * 测试函数 `browserDataManagementPageCanClearBookmarks`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Data Management Page Can Clear Bookmarks` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserDataManagementPageCanClearBookmarks() {
         val page = projectFile(
@@ -116,6 +146,11 @@ class BrowserDataManagementPageTest {
         assertTrue(strings.contains("toast_bookmarks_cleared"))
     }
 
+    /**
+     * 测试函数 `browserDataManagementPageCanClearDownloadRecords`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Data Management Page Can Clear Download Records` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserDataManagementPageCanClearDownloadRecords() {
         val page = projectFile(
@@ -149,6 +184,11 @@ class BrowserDataManagementPageTest {
         assertTrue(strings.contains("download_record_count"))
     }
 
+    /**
+     * 测试函数 `browserDataManagementPageCanClearBrowsingHistory`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Data Management Page Can Clear Browsing History` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun browserDataManagementPageCanClearBrowsingHistory() {
         val page = projectFile(
@@ -190,6 +230,13 @@ class BrowserDataManagementPageTest {
         assertTrue(strings.contains("toast_history_cleared"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

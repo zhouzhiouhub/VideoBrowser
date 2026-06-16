@@ -18,6 +18,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class JsInjectorTest {
+    /**
+     * 测试函数 `inject_evaluatesCommonScriptWithFeatureConfig`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject evaluates Common Script With Feature Config` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_evaluatesCommonScriptWithFeatureConfig() {
         val evaluatedScripts = mutableListOf<String>()
@@ -49,6 +54,11 @@ class JsInjectorTest {
         assertTrue(script.contains("window.VideoBrowserEnhancer.apply(config);"))
     }
 
+    /**
+     * 测试函数 `inject_reusesLoadedCommonScriptAcrossRepeatedCalls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject reuses Loaded Common Script Across Repeated Calls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_reusesLoadedCommonScriptAcrossRepeatedCalls() {
         var loadCount = 0
@@ -77,6 +87,11 @@ class JsInjectorTest {
         )
     }
 
+    /**
+     * 测试函数 `inject_skipsCommonScriptWhenJsInjectionDisabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject skips Common Script When Js Injection Disabled` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_skipsCommonScriptWhenJsInjectionDisabled() {
         var loadCount = 0
@@ -101,6 +116,11 @@ class JsInjectorTest {
         assertTrue(evaluatedScripts.isEmpty())
     }
 
+    /**
+     * 测试函数 `inject_loadsOnlyMatchingSiteScriptForPageUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject loads Only Matching Site Script For Page Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_loadsOnlyMatchingSiteScriptForPageUrl() {
         val requestedPaths = mutableListOf<String>()
@@ -130,6 +150,11 @@ class JsInjectorTest {
         assertFalse(script.contains("__siteBilibiliLoaded"))
     }
 
+    /**
+     * 测试函数 `inject_skipsSiteScriptsForUnmatchedPageUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject skips Site Scripts For Unmatched Page Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_skipsSiteScriptsForUnmatchedPageUrl() {
         val requestedPaths = mutableListOf<String>()
@@ -154,6 +179,11 @@ class JsInjectorTest {
         assertFalse(script.contains("__siteYoutubeLoaded"))
     }
 
+    /**
+     * 测试函数 `inject_wrapsSiteScriptsWithRepeatGuard`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject wraps Site Scripts With Repeat Guard` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_wrapsSiteScriptsWithRepeatGuard() {
         val evaluatedScripts = mutableListOf<String>()
@@ -174,6 +204,11 @@ class JsInjectorTest {
         assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"bilibili\"].apply(config);"))
     }
 
+    /**
+     * 测试函数 `inject_registersSiteAdaptersBeforeCommonEnhancerAppliesConfig`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject registers Site Adapters Before Common Enhancer Applies Config` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_registersSiteAdaptersBeforeCommonEnhancerAppliesConfig() {
         val evaluatedScripts = mutableListOf<String>()
@@ -197,6 +232,11 @@ class JsInjectorTest {
         assertTrue(siteApplyIndex < commonApplyIndex)
     }
 
+    /**
+     * 测试函数 `inject_addsElementRuleSelectorsToFeatureConfig`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject adds Element Rule Selectors To Feature Config` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_addsElementRuleSelectorsToFeatureConfig() {
         val evaluatedScripts = mutableListOf<String>()
@@ -232,6 +272,11 @@ class JsInjectorTest {
         assertTrue(script.contains("\"blockedUrlKeywords\":[\"/pagead/\"]"))
     }
 
+    /**
+     * 测试函数 `inject_addsScriptletHookConfigWithoutRemovingSiteScripts`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject adds Scriptlet Hook Config Without Removing Site Scripts` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_addsScriptletHookConfigWithoutRemovingSiteScripts() {
         val evaluatedScripts = mutableListOf<String>()
@@ -277,6 +322,11 @@ class JsInjectorTest {
         assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"youtube\"].apply(config);"))
     }
 
+    /**
+     * 测试函数 `inject_addsUserCssSelectorsToFeatureConfig`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject adds User Css Selectors To Feature Config` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun inject_addsUserCssSelectorsToFeatureConfig() {
         val evaluatedScripts = mutableListOf<String>()
@@ -297,18 +347,38 @@ class JsInjectorTest {
         assertTrue(script.contains("\"userCssSelectors\":[\".picked-ad\"]"))
     }
 
+    /**
+     * 测试函数 `scriptLoaderFor`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `script Loader For` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param script 参数类型为 `String`，表示函数执行 `script` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun scriptLoaderFor(script: String): ScriptLoader {
         return ScriptLoader {
             ByteArrayInputStream(script.toByteArray(Charsets.UTF_8))
         }
     }
 
+    /**
+     * 测试函数 `scriptLoaderForSiteScripts`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `script Loader For Site Scripts` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun scriptLoaderForSiteScripts(): ScriptLoader {
         return ScriptLoader { path ->
             ByteArrayInputStream(scriptContentFor(path).toByteArray(Charsets.UTF_8))
         }
     }
 
+    /**
+     * 测试函数 `scriptContentFor`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `script Content For` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun scriptContentFor(path: String): String {
         return when (path) {
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT

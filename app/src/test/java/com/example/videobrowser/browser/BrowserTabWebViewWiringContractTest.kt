@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserTabWebViewWiringContractTest {
+    /**
+     * 测试函数 `mainActivityUsesTabWebViewRegistryForStandardTabs`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `main Activity Uses Tab Web View Registry For Standard Tabs` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun mainActivityUsesTabWebViewRegistryForStandardTabs() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -25,6 +30,11 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(mainActivity.contains("createStandardTabWebView"))
     }
 
+    /**
+     * 测试函数 `switchTabDoesNotReloadExistingTabUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `switch Tab Does Not Reload Existing Tab Url` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun switchTabDoesNotReloadExistingTabUrl() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -36,6 +46,11 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(switchTabBody.contains("showActiveTab"))
     }
 
+    /**
+     * 测试函数 `reopenClosedTabCreatesStandardWebViewForRestoredTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `reopen Closed Tab Creates Standard Web View For Restored Tab` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun reopenClosedTabCreatesStandardWebViewForRestoredTab() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -49,6 +64,11 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(reopenClosedTabBody.contains("reopenedTab.url?.let(::loadUrl) ?: openHomePage()"))
     }
 
+    /**
+     * 测试函数 `duplicateTabCreatesIndependentStandardWebView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `duplicate Tab Creates Independent Standard Web View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun duplicateTabCreatesIndependentStandardWebView() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -63,6 +83,11 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(duplicateTabBody.contains("sourceTab.url?.let(::loadUrl) ?: openHomePage()"))
     }
 
+    /**
+     * 测试函数 `openUrlInNewTabCreatesIndependentStandardWebView`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `open Url In New Tab Creates Independent Standard Web View` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun openUrlInNewTabCreatesIndependentStandardWebView() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
@@ -76,6 +101,13 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(openUrlInNewTabBody.contains("loadUrl(url)"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

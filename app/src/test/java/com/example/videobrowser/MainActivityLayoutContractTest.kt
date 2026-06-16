@@ -15,6 +15,11 @@ import org.w3c.dom.Element
 import javax.xml.parsers.DocumentBuilderFactory
 
 class MainActivityLayoutContractTest {
+    /**
+     * 测试函数 `addressBarUsesSelectedProviderBadgeStyle`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `address Bar Uses Selected Provider Badge Style` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addressBarUsesSelectedProviderBadgeStyle() {
         val layout = activityMainLayout()
@@ -30,6 +35,11 @@ class MainActivityLayoutContractTest {
         assertEquals("@string/hint_address_bar", addressInput.androidAttribute("hint"))
     }
 
+    /**
+     * 测试函数 `addressBarProviderBadgeFollowsSelectedSearchProvider`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `address Bar Provider Badge Follows Selected Search Provider` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addressBarProviderBadgeFollowsSelectedSearchProvider() {
         val controller = projectFile(
@@ -47,6 +57,11 @@ class MainActivityLayoutContractTest {
         assertTrue(controller.contains("addressProviderBadge.setTextColor(Color.WHITE)"))
     }
 
+    /**
+     * 测试函数 `addressBarContainsSiteSecurityIndicator`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `address Bar Contains Site Security Indicator` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addressBarContainsSiteSecurityIndicator() {
         val layout = activityMainLayout()
@@ -95,6 +110,11 @@ class MainActivityLayoutContractTest {
         assertTrue(readme.contains("证书验证边界和混合内容策略"))
     }
 
+    /**
+     * 测试函数 `addressBarHintDoesNotIncludeSelectedSearchProviderName`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `address Bar Hint Does Not Include Selected Search Provider Name` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addressBarHintDoesNotIncludeSelectedSearchProviderName() {
         val controller = projectFile(
@@ -105,6 +125,11 @@ class MainActivityLayoutContractTest {
         assertTrue(controller.contains("R.string.hint_address_bar"))
     }
 
+    /**
+     * 测试函数 `addressBarDoesNotExposeUnimplementedVoiceOrCameraEntries`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `address Bar Does Not Expose Unimplemented Voice Or Camera Entries` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addressBarDoesNotExposeUnimplementedVoiceOrCameraEntries() {
         val idNames = R.id::class.java.declaredFields.map { it.name }
@@ -114,6 +139,11 @@ class MainActivityLayoutContractTest {
         assertFalse(layout.contains("@drawable/ic_camera_24"))
     }
 
+    /**
+     * 测试函数 `addressSuggestionPanelSitsBetweenProgressAndSearchProviders`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `address Suggestion Panel Sits Between Progress And Search Providers` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addressSuggestionPanelSitsBetweenProgressAndSearchProviders() {
         val layout = activityMainLayout()
@@ -128,6 +158,11 @@ class MainActivityLayoutContractTest {
         assertEquals("@id/searchProviderScroll", webViewContainer.appAttribute("layout_constraintTop_toBottomOf"))
     }
 
+    /**
+     * 测试函数 `addressSuggestionControllerIsWiredToBookmarksHistoryAndRemoteSuggestions`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `address Suggestion Controller Is Wired To Bookmarks History And Remote Suggestions` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun addressSuggestionControllerIsWiredToBookmarksHistoryAndRemoteSuggestions() {
         val controller = projectFile(
@@ -158,6 +193,11 @@ class MainActivityLayoutContractTest {
         assertTrue(readme.contains("Activity 销毁时会关闭远程建议线程"))
     }
 
+    /**
+     * 测试函数 `historyRecordingSkipsProviderAndConfiguredHomeUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `history Recording Skips Provider And Configured Home Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun historyRecordingSkipsProviderAndConfiguredHomeUrls() {
         val pageActions = projectFile(
@@ -174,6 +214,11 @@ class MainActivityLayoutContractTest {
         assertTrue(mainActivity.contains("settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)"))
     }
 
+    /**
+     * 测试函数 `bottomBarActionsUseIntrinsicWidthsInsteadOfFillingAvailableSpace`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `bottom Bar Actions Use Intrinsic Widths Instead Of Filling Available Space` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun bottomBarActionsUseIntrinsicWidthsInsteadOfFillingAvailableSpace() {
         val layout = activityMainLayout()
@@ -192,6 +237,11 @@ class MainActivityLayoutContractTest {
         }
     }
 
+    /**
+     * 测试函数 `bottomBarActionsKeepCompactVisualScale`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `bottom Bar Actions Keep Compact Visual Scale` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun bottomBarActionsKeepCompactVisualScale() {
         val layout = activityMainLayout()
@@ -213,6 +263,11 @@ class MainActivityLayoutContractTest {
         )
     }
 
+    /**
+     * 测试函数 `wenxinActionUsesSameIconButtonStyleAsBottomBarActions`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `wenxin Action Uses Same Icon Button Style As Bottom Bar Actions` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun wenxinActionUsesSameIconButtonStyleAsBottomBarActions() {
         val layout = activityMainLayout()
@@ -228,6 +283,11 @@ class MainActivityLayoutContractTest {
         assertFalse(wenxinAction.hasAndroidAttribute("text"))
     }
 
+    /**
+     * 测试函数 `bottomBarActionsUseOneFullWidthSpreadChain`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `bottom Bar Actions Use One Full Width Spread Chain` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun bottomBarActionsUseOneFullWidthSpreadChain() {
         val layout = activityMainLayout()
@@ -250,20 +310,47 @@ class MainActivityLayoutContractTest {
         assertEquals("parent", profileAction.appAttribute("layout_constraintEnd_toEndOf"))
     }
 
+    /**
+     * 测试函数 `activityMainLayout`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `activity Main Layout` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun activityMainLayout(): Document {
         return DocumentBuilderFactory.newInstance().apply {
             isNamespaceAware = true
         }.newDocumentBuilder().parse(projectFile("src/main/res/layout/activity_main.xml"))
     }
 
+    /**
+     * 测试函数 `elementById`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `element By Id` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Document.elementById(id: String): Element {
         return findElementById(id) ?: error("Missing view with id $id")
     }
 
+    /**
+     * 测试函数 `hasElementById`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `has Element By Id` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Document.hasElementById(id: String): Boolean {
         return findElementById(id) != null
     }
 
+    /**
+     * 测试函数 `findElementById`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `find Element By Id` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Document.findElementById(id: String): Element? {
         val nodes = getElementsByTagName("*")
         for (index in 0 until nodes.length) {
@@ -277,22 +364,57 @@ class MainActivityLayoutContractTest {
         return null
     }
 
+    /**
+     * 测试函数 `hasAndroidAttribute`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `has Android Attribute` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Element.hasAndroidAttribute(name: String): Boolean {
         return hasAttributeNS(ANDROID_NAMESPACE, name)
     }
 
+    /**
+     * 测试函数 `androidAttribute`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `android Attribute` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Element.androidAttribute(name: String): String {
         return getAttributeNS(ANDROID_NAMESPACE, name)
     }
 
+    /**
+     * 测试函数 `appAttribute`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `app Attribute` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Element.appAttribute(name: String): String {
         return getAttributeNS(APP_NAMESPACE, name)
     }
 
+    /**
+     * 测试函数 `dpAndroidAttribute`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `dp Android Attribute` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Element.dpAndroidAttribute(name: String): Float {
         return androidAttribute(name).removeSuffix("dp").toFloat()
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOfNotNull(

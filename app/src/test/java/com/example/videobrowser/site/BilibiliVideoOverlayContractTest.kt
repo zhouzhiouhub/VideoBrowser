@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BilibiliVideoOverlayContractTest {
+    /**
+     * 测试函数 `bilibiliAdapterHidesOwnCenterPlaybackOverlayAfterEnablingNativeControls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `bilibili Adapter Hides Own Center Playback Overlay After Enabling Native Controls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun bilibiliAdapterHidesOwnCenterPlaybackOverlayAfterEnablingNativeControls() {
         val script = projectFile("src/main/assets/scripts/bilibili.js").readText()
@@ -24,6 +29,13 @@ class BilibiliVideoOverlayContractTest {
         assertTrue(script.contains("bilibili-video-play-overlay"))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

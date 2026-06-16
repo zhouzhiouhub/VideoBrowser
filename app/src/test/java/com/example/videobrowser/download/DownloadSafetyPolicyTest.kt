@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DownloadSafetyPolicyTest {
+    /**
+     * 测试函数 `requiresConfirmationForAndroidAppPackages`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `requires Confirmation For Android App Packages` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requiresConfirmationForAndroidAppPackages() {
         assertTrue(
@@ -33,6 +38,11 @@ class DownloadSafetyPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `skipsConfirmationForOrdinaryDownloads`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `skips Confirmation For Ordinary Downloads` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun skipsConfirmationForOrdinaryDownloads() {
         assertFalse(
@@ -55,6 +65,11 @@ class DownloadSafetyPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `requiresInsecureTransportConfirmationOnlyFromHttpsPagesToHttpDownloads`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `requires Insecure Transport Confirmation Only From Https Pages To Http Downloads` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun requiresInsecureTransportConfirmationOnlyFromHttpsPagesToHttpDownloads() {
         assertTrue(
@@ -83,6 +98,11 @@ class DownloadSafetyPolicyTest {
         )
     }
 
+    /**
+     * 测试函数 `isDownloadableNetworkUrlOnlyAllowsHttpAndHttpsWithHosts`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `is Downloadable Network Url Only Allows Http And Https With Hosts` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun isDownloadableNetworkUrlOnlyAllowsHttpAndHttpsWithHosts() {
         assertTrue(DownloadSafetyPolicy.isDownloadableNetworkUrl("https://example.com/file.zip"))
@@ -93,6 +113,11 @@ class DownloadSafetyPolicyTest {
         assertFalse(DownloadSafetyPolicy.isDownloadableNetworkUrl("https:/missing-host/file.zip"))
     }
 
+    /**
+     * 测试函数 `safeDownloadFileName_removesPathSeparatorsAndInvalidCharacters`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `safe Download File Name removes Path Separators And Invalid Characters` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun safeDownloadFileName_removesPathSeparatorsAndInvalidCharacters() {
         assertEquals("movie.mp4", DownloadSafetyPolicy.safeDownloadFileName(" movie.mp4 "))
@@ -101,11 +126,21 @@ class DownloadSafetyPolicyTest {
         assertEquals("report_final.pdf", DownloadSafetyPolicy.safeDownloadFileName("report\tfinal.pdf"))
     }
 
+    /**
+     * 测试函数 `safeDownloadFileName_fallsBackWhenNameIsBlankAfterSanitizing`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `safe Download File Name falls Back When Name Is Blank After Sanitizing` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun safeDownloadFileName_fallsBackWhenNameIsBlankAfterSanitizing() {
         assertEquals("download.bin", DownloadSafetyPolicy.safeDownloadFileName("...   "))
     }
 
+    /**
+     * 测试函数 `safeDownloadFileName_limitsLongNames`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `safe Download File Name limits Long Names` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun safeDownloadFileName_limitsLongNames() {
         val name = "a".repeat(200)

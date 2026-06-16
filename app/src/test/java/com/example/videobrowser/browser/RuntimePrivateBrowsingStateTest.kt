@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RuntimePrivateBrowsingStateTest {
+    /**
+     * 测试函数 `startsInStandardMode`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `starts In Standard Mode` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun startsInStandardMode() {
         val state = RuntimePrivateBrowsingState()
@@ -19,6 +24,11 @@ class RuntimePrivateBrowsingStateTest {
         assertFalse(state.isPrivate)
     }
 
+    /**
+     * 测试函数 `enterAndExitPrivateMode_areRuntimeOnly`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `enter And Exit Private Mode are Runtime Only` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun enterAndExitPrivateMode_areRuntimeOnly() {
         var cleanupCalls = 0
@@ -34,6 +44,11 @@ class RuntimePrivateBrowsingStateTest {
         assertEquals(1, cleanupCalls)
     }
 
+    /**
+     * 测试函数 `repeatedTransitions_doNotRepeatCleanup`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `repeated Transitions do Not Repeat Cleanup` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun repeatedTransitions_doNotRepeatCleanup() {
         var cleanupCalls = 0

@@ -9,6 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DownloadCategoryTest {
+    /**
+     * 测试函数 `classifiesByMimeTypeBeforeFileExtension`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `classifies By Mime Type Before File Extension` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun classifiesByMimeTypeBeforeFileExtension() {
         assertEquals(
@@ -28,6 +33,11 @@ class DownloadCategoryTest {
         )
     }
 
+    /**
+     * 测试函数 `classifiesByCommonFileExtensionsWhenMimeTypeIsMissingOrGeneric`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `classifies By Common File Extensions When Mime Type Is Missing Or Generic` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun classifiesByCommonFileExtensionsWhenMimeTypeIsMissingOrGeneric() {
         assertEquals(DownloadCategory.IMAGE, DownloadCategory.from(null, "poster.webp"))
@@ -38,6 +48,11 @@ class DownloadCategoryTest {
         assertEquals(DownloadCategory.ARCHIVE, DownloadCategory.from(null, "bundle.7z"))
     }
 
+    /**
+     * 测试函数 `groupsRecordsInStableCategoryOrderAndKeepsRecordOrderInsideEachCategory`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `groups Records In Stable Category Order And Keeps Record Order Inside Each Category` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun groupsRecordsInStableCategoryOrderAndKeepsRecordOrderInsideEachCategory() {
         val records = listOf(
@@ -63,6 +78,14 @@ class DownloadCategoryTest {
         assertEquals(listOf(2L, 5L), groups[1].records.map { it.downloadId })
     }
 
+    /**
+     * 测试函数 `record`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `record` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param id 参数类型为 `Long`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun record(id: Long, fileName: String): DownloadRecord {
         return DownloadRecord(
             downloadId = id,

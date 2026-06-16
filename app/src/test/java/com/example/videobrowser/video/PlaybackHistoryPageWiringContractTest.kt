@@ -10,6 +10,11 @@ import org.junit.Test
 import java.io.File
 
 class PlaybackHistoryPageWiringContractTest {
+    /**
+     * 测试函数 `functionCenterPagesExposeNativePlaybackHistoryPage`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `function Center Pages Expose Native Playback History Page` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun functionCenterPagesExposeNativePlaybackHistoryPage() {
         val source = File(
@@ -23,6 +28,11 @@ class PlaybackHistoryPageWiringContractTest {
         assertTrue(source.contains("FunctionCenterProfileAction.PLAYBACK_HISTORY"))
     }
 
+    /**
+     * 测试函数 `playbackHistoryPageListsClearsAndOpensNativeRecords`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `playback History Page Lists Clears And Opens Native Records` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playbackHistoryPageListsClearsAndOpensNativeRecords() {
         val source = File(
@@ -36,6 +46,11 @@ class PlaybackHistoryPageWiringContractTest {
         assertTrue(source.contains("R.string.dialog_playback_history_empty"))
     }
 
+    /**
+     * 测试函数 `mainActivityPassesPlaybackHistoryRepositoryAndNativeOpenCallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `main Activity Passes Playback History Repository And Native Open Callback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun mainActivityPassesPlaybackHistoryRepositoryAndNativeOpenCallback() {
         val source = File("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
@@ -48,6 +63,11 @@ class PlaybackHistoryPageWiringContractTest {
         assertTrue(source.contains("url = progress.mediaIdentity"))
     }
 
+    /**
+     * 测试函数 `playbackHistoryStringsExist`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `playback History Strings Exist` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playbackHistoryStringsExist() {
         val strings = File("src/main/res/values/strings.xml").readText()

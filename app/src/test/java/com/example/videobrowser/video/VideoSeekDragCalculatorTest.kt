@@ -9,17 +9,32 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class VideoSeekDragCalculatorTest {
+    /**
+     * 测试函数 `unknown`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `unknown` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `unknown duration uses a one minute seek span`() {
         assertEquals(60_000L, VideoSeekDragCalculator.seekSpanForDuration(null))
         assertEquals(60_000L, VideoSeekDragCalculator.seekSpanForDuration(0L))
     }
 
+    /**
+     * 测试函数 `known`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `known` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `known short duration uses the media duration as seek span`() {
         assertEquals(30_000L, VideoSeekDragCalculator.seekSpanForDuration(30_000L))
     }
 
+    /**
+     * 测试函数 `known`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `known` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `known long duration caps the seek span to ten minutes`() {
         val twoHoursMs = 2L * 60L * 60L * 1000L
@@ -27,6 +42,11 @@ class VideoSeekDragCalculatorTest {
         assertEquals(600_000L, VideoSeekDragCalculator.seekSpanForDuration(twoHoursMs))
     }
 
+    /**
+     * 测试函数 `drag`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `drag` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `drag target is based on the capped seek span and clamps to duration`() {
         val twoHoursMs = 2L * 60L * 60L * 1000L
@@ -55,6 +75,11 @@ class VideoSeekDragCalculatorTest {
         assertEquals(0L, beforeStartTarget)
     }
 
+    /**
+     * 测试函数 `drag`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `drag` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun `drag target ignores invalid width`() {
         assertEquals(

@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VideoCapabilityDelegationContractTest {
+    /**
+     * 测试函数 `commonScriptDelegatesVideoActionsToSiteCapabilitiesBeforeGenericVideoFallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Script Delegates Video Actions To Site Capabilities Before Generic Video Fallback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonScriptDelegatesVideoActionsToSiteCapabilitiesBeforeGenericVideoFallback() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -27,6 +32,11 @@ class VideoCapabilityDelegationContractTest {
         assertFalse(script.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
     }
 
+    /**
+     * 测试函数 `commonVideoEnhancementRoutesControlsThroughSiteCapabilities`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Video Enhancement Routes Controls Through Site Capabilities` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonVideoEnhancementRoutesControlsThroughSiteCapabilities() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -36,6 +46,11 @@ class VideoCapabilityDelegationContractTest {
         assertFalse(enhanceVideosBody.contains("enableNativeVideoControls(video);"))
     }
 
+    /**
+     * 测试函数 `commonVideoEnhancementRequestsBestQualityThroughSiteCapabilitiesWithoutCustomUi`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Video Enhancement Requests Best Quality Through Site Capabilities Without Custom Ui` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonVideoEnhancementRequestsBestQualityThroughSiteCapabilitiesWithoutCustomUi() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -48,6 +63,11 @@ class VideoCapabilityDelegationContractTest {
         assertFalse(script.contains("清晰度选择"))
     }
 
+    /**
+     * 测试函数 `commonWakeControlsRoutesControlVisibilityThroughSiteCapabilities`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Wake Controls Routes Control Visibility Through Site Capabilities` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonWakeControlsRoutesControlVisibilityThroughSiteCapabilities() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -57,6 +77,11 @@ class VideoCapabilityDelegationContractTest {
         assertFalse(wakeControlsBody.contains("enableNativeVideoControls(target);"))
     }
 
+    /**
+     * 测试函数 `commonScriptReportsVideoControlDiagnosticsToNativeLog`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Script Reports Video Control Diagnostics To Native Log` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonScriptReportsVideoControlDiagnosticsToNativeLog() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -68,6 +93,11 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-native'"))
     }
 
+    /**
+     * 测试函数 `commonScriptKeepsSelectedFullscreenSpeedWhenPageFeaturesReapply`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Script Keeps Selected Fullscreen Speed When Page Features Reapply` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonScriptKeepsSelectedFullscreenSpeedWhenPageFeaturesReapply() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -76,6 +106,11 @@ class VideoCapabilityDelegationContractTest {
         assertFalse(applyBody.contains("state.fullscreenPlaybackSpeed = 1;"))
     }
 
+    /**
+     * 测试函数 `commonScriptReappliesSitePlaybackSpeedBeforeGenericFallback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Script Reapplies Site Playback Speed Before Generic Fallback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonScriptReappliesSitePlaybackSpeedBeforeGenericFallback() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -89,6 +124,11 @@ class VideoCapabilityDelegationContractTest {
         )
     }
 
+    /**
+     * 测试函数 `commonScriptAvoidsNativeControlsWhenUnknownSiteAlreadyHasCustomPlayerControls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `common Script Avoids Native Controls When Unknown Site Already Has Custom Player Controls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun commonScriptAvoidsNativeControlsWhenUnknownSiteAlreadyHasCustomPlayerControls() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
@@ -110,6 +150,11 @@ class VideoCapabilityDelegationContractTest {
             enableVideoControlsBody.indexOf("enableNativeVideoControls(video)"))
     }
 
+    /**
+     * 测试函数 `bilibiliAdapterExposesPlatformVideoCapabilitiesForCommonBroker`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `bilibili Adapter Exposes Platform Video Capabilities For Common Broker` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun bilibiliAdapterExposesPlatformVideoCapabilitiesForCommonBroker() {
         val script = projectFile("src/main/assets/scripts/bilibili.js").readText()
@@ -127,6 +172,11 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("'seek'"))
     }
 
+    /**
+     * 测试函数 `unsupportedSiteAdaptersDoNotFakeBestQualityCapability`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `unsupported Site Adapters Do Not Fake Best Quality Capability` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun unsupportedSiteAdaptersDoNotFakeBestQualityCapability() {
         listOf(
@@ -141,6 +191,11 @@ class VideoCapabilityDelegationContractTest {
         }
     }
 
+    /**
+     * 测试函数 `platformSiteAdaptersHandleControlEnablementWithoutForcingNativeControls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `platform Site Adapters Handle Control Enablement Without Forcing Native Controls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun platformSiteAdaptersHandleControlEnablementWithoutForcingNativeControls() {
         listOf(
@@ -164,6 +219,14 @@ class VideoCapabilityDelegationContractTest {
         }
     }
 
+    /**
+     * 测试函数 `functionBody`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `function Body` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param script 参数类型为 `String`，表示函数执行 `script` 相关逻辑时需要读取或处理的输入。
+     * @param signature 参数类型为 `String`，表示函数执行 `signature` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun functionBody(script: String, signature: String): String {
         val start = script.indexOf(signature)
         assertTrue("Missing $signature", start >= 0)
@@ -185,6 +248,13 @@ class VideoCapabilityDelegationContractTest {
         error("Unterminated function body for $signature")
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(

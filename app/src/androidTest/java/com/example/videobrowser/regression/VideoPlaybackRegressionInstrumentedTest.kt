@@ -28,6 +28,11 @@ class VideoPlaybackRegressionInstrumentedTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private lateinit var webView: WebView
 
+    /**
+     * 测试函数 `setUp`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `set Up` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Before
     fun setUp() {
         instrumentation.runOnMainSync {
@@ -42,6 +47,11 @@ class VideoPlaybackRegressionInstrumentedTest {
         }
     }
 
+    /**
+     * 测试函数 `tearDown`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `tear Down` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @After
     fun tearDown() {
         instrumentation.runOnMainSync {
@@ -49,6 +59,11 @@ class VideoPlaybackRegressionInstrumentedTest {
         }
     }
 
+    /**
+     * 测试函数 `videoRegression_keepsControlsSpeedAndFullscreenStateWorking`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `video Regression keeps Controls Speed And Fullscreen State Working` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun videoRegression_keepsControlsSpeedAndFullscreenStateWorking() {
         loadHtml(VIDEO_HTML)
@@ -99,10 +114,23 @@ class VideoPlaybackRegressionInstrumentedTest {
         assertEquals(1.0, exitResult.getDouble(1), 0.01)
     }
 
+    /**
+     * 测试函数 `loadHtml`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `load Html` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param html 参数类型为 `String`，表示函数执行 `html` 相关逻辑时需要读取或处理的输入。
+     */
     private fun loadHtml(html: String) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
             webView.webViewClient = object : WebViewClient() {
+                /**
+                 * 测试函数 `onPageFinished`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `on Page Finished` 这条行为是否成立。
+                 *
+                 * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                 * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+                 * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+                 */
                 override fun onPageFinished(view: WebView?, url: String?) {
                     latch.countDown()
                 }
@@ -112,6 +140,12 @@ class VideoPlaybackRegressionInstrumentedTest {
         assertTrue("Timed out waiting for test page to load.", latch.await(5, TimeUnit.SECONDS))
     }
 
+    /**
+     * 测试函数 `injectPageFeatures`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param config 参数类型为 `PageFeatureConfig`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
+     */
     private fun injectPageFeatures(config: PageFeatureConfig) {
         val latch = CountDownLatch(1)
         instrumentation.runOnMainSync {
@@ -127,6 +161,13 @@ class VideoPlaybackRegressionInstrumentedTest {
         assertTrue("Timed out waiting for script injection.", latch.await(5, TimeUnit.SECONDS))
     }
 
+    /**
+     * 测试函数 `evaluateJsonArray`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `evaluate Json Array` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param script 参数类型为 `String`，表示函数执行 `script` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun evaluateJsonArray(script: String): JSONArray {
         val latch = CountDownLatch(1)
         var rawResult: String? = null

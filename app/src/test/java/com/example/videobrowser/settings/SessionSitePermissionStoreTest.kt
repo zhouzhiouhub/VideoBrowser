@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SessionSitePermissionStoreTest {
+    /**
+     * 测试函数 `allow_normalizesHostForCurrentSessionOnly`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `allow normalizes Host For Current Session Only` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun allow_normalizesHostForCurrentSessionOnly() {
         val store = SessionSitePermissionStore()
@@ -21,6 +26,11 @@ class SessionSitePermissionStoreTest {
         assertFalse(store.isAllowed("other.example.com", SitePermission.CAMERA))
     }
 
+    /**
+     * 测试函数 `clear_removesSessionGrants`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `clear removes Session Grants` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun clear_removesSessionGrants() {
         val store = SessionSitePermissionStore()
@@ -31,6 +41,11 @@ class SessionSitePermissionStoreTest {
         assertFalse(store.isAllowed("maps.example.com", SitePermission.LOCATION))
     }
 
+    /**
+     * 测试函数 `allow_rejectsMissingHost`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `allow rejects Missing Host` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun allow_rejectsMissingHost() {
         val store = SessionSitePermissionStore()

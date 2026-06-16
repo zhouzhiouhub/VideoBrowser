@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserErrorPageTest {
+    /**
+     * 测试函数 `rendersEscapedNetworkErrorDetails`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `renders Escaped Network Error Details` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun rendersEscapedNetworkErrorDetails() {
         val html = BrowserErrorPage.render(
@@ -28,6 +33,11 @@ class BrowserErrorPageTest {
         assertFalse(html.contains("<script>"))
     }
 
+    /**
+     * 测试函数 `rendersSslErrorsAsBlockedConnections`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `renders Ssl Errors As Blocked Connections` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun rendersSslErrorsAsBlockedConnections() {
         val html = BrowserErrorPage.render(
@@ -42,6 +52,11 @@ class BrowserErrorPageTest {
         assertTrue(html.contains("https://expired.example"))
     }
 
+    /**
+     * 测试函数 `rendersSafeBrowsingErrorsAsBlockedConnectionsWithoutRetryLink`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `renders Safe Browsing Errors As Blocked Connections Without Retry Link` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun rendersSafeBrowsingErrorsAsBlockedConnectionsWithoutRetryLink() {
         val html = BrowserErrorPage.render(
@@ -59,6 +74,11 @@ class BrowserErrorPageTest {
         assertFalse(html.contains("重试"))
     }
 
+    /**
+     * 测试函数 `rendersRendererCrashesAsRetryablePageCrashes`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `renders Renderer Crashes As Retryable Page Crashes` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun rendersRendererCrashesAsRetryablePageCrashes() {
         val html = BrowserErrorPage.render(
@@ -74,6 +94,11 @@ class BrowserErrorPageTest {
         assertTrue(html.contains("重试"))
     }
 
+    /**
+     * 测试函数 `omitsRetryLinkWhenUrlIsMissing`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `omits Retry Link When Url Is Missing` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun omitsRetryLinkWhenUrlIsMissing() {
         val html = BrowserErrorPage.render(
@@ -87,6 +112,11 @@ class BrowserErrorPageTest {
         assertFalse(html.contains("href="))
     }
 
+    /**
+     * 测试函数 `omitsRetryLinkForNonWebUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `omits Retry Link For Non Web Urls` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun omitsRetryLinkForNonWebUrls() {
         val html = BrowserErrorPage.render(

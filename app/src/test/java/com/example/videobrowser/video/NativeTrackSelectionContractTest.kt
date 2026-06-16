@@ -10,6 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NativeTrackSelectionContractTest {
+    /**
+     * 测试函数 `fullscreenOverlayProvidesTrackSelectionButton`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `fullscreen Overlay Provides Track Selection Button` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun fullscreenOverlayProvidesTrackSelectionButton() {
         val source = projectFile(
@@ -23,6 +28,11 @@ class NativeTrackSelectionContractTest {
         assertTrue(source.contains("R.string.video_control_tracks"))
     }
 
+    /**
+     * 测试函数 `playerActivityShowsMedia3TrackSelectionDialogsForAudioAndSubtitles`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `player Activity Shows Media3 Track Selection Dialogs For Audio And Subtitles` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun playerActivityShowsMedia3TrackSelectionDialogsForAudioAndSubtitles() {
         val source = projectFile(
@@ -38,6 +48,11 @@ class NativeTrackSelectionContractTest {
         assertTrue(source.contains("PlaybackCommand.ShowTrackSelection"))
     }
 
+    /**
+     * 测试函数 `trackSelectionStringsAreDefined`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `track Selection Strings Are Defined` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @Test
     fun trackSelectionStringsAreDefined() {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
@@ -48,6 +63,13 @@ class NativeTrackSelectionContractTest {
         assertTrue(strings.contains("name=\"toast_video_tracks_unavailable\""))
     }
 
+    /**
+     * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun projectFile(path: String): File {
         val workingDirectory = File("").absoluteFile
         return listOf(
