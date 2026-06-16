@@ -16,10 +16,8 @@ package com.example.videobrowser
  */
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Message
@@ -43,7 +41,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,7 +49,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
@@ -76,6 +72,7 @@ import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserTabWebViewRegistry
+import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.ClientCertificateController
 import com.example.videobrowser.browser.FindInPageController
@@ -149,7 +146,6 @@ class MainActivity : AppCompatActivity() {
     private val searchProviderScroll: HorizontalScrollView get() = views.searchProviderScroll
     private val searchProviderList: LinearLayout get() = views.searchProviderList
     private val webViewContainer: FrameLayout get() = views.webViewContainer
-    private val privateBrowsingBadge: TextView get() = views.privateBrowsingBadge
     private val pageToolsButton: ImageButton get() = views.pageToolsButton
     private val wenxinButton: ImageButton get() = views.wenxinButton
     private val profileButton: ImageButton get() = views.profileButton
@@ -202,6 +198,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pagePrintController: PagePrintController
     private lateinit var browserNavigationController: BrowserNavigationController
     private lateinit var browserDisplayModeController: BrowserDisplayModeController
+    private lateinit var browsingModeThemeController: BrowsingModeThemeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
@@ -316,6 +313,24 @@ class MainActivity : AppCompatActivity() {
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
+        browsingModeThemeController = BrowsingModeThemeController(
+            activity = this,
+            views = views,
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            currentPageUrl = {
+                if (areBrowserSessionsInitialized()) {
+                    currentSessionController().currentPageUrl
+                } else {
+                    null
+                }
+            },
+            updateSiteSecurityStatus = { url ->
+                if (::siteSecurityController.isInitialized) {
+                    siteSecurityController.updateStatus(url)
+                }
+            },
+            dp = ::dp
+        )
 
         // 本地持久化层：设置、收藏/历史、标签会话、下载记录和播放历史都放在 SharedPreferences。
         preferenceStore = PreferenceStore.from(this)
@@ -1845,11 +1860,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun updatePrivateBrowsingUi() {
-        if (!::views.isInitialized || !::settingsManager.isInitialized) {
-            return
+        if (::browsingModeThemeController.isInitialized) {
+            browsingModeThemeController.updatePrivateBrowsingUi()
         }
-        privateBrowsingBadge.visibility = View.GONE
-        applyBrowsingModeTheme()
     }
 
     /**
@@ -1858,37 +1871,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun applyBrowsingModeTheme() {
-        if (!::views.isInitialized) {
-            return
+        if (::browsingModeThemeController.isInitialized) {
+            browsingModeThemeController.applyBrowsingModeTheme()
         }
-
-        val colors = MainActivityBrowsingModeTheme.colors(
-            context = this,
-            privateBrowsing = isPrivateBrowsingEnabled()
-        )
-
-        rootView.setBackgroundColor(colors.background)
-        topBar.setBackgroundColor(colors.surface)
-        bottomBar.setBackgroundColor(colors.surface)
-        searchProviderScroll.setBackgroundColor(colors.background)
-        addressSuggestionPanel.setBackgroundColor(colors.surface)
-        webViewContainer.setBackgroundColor(colors.webViewBackground)
-        addressInput.setTextColor(colors.text)
-        addressInput.setHintTextColor(colors.hint)
-        views.addressBar.background = GradientDrawable().apply {
-            cornerRadius = dp(22).toFloat()
-            setColor(colors.addressBackground)
-            setStroke(dp(1), colors.addressStroke)
-        }
-        if (areBrowserSessionsInitialized()) {
-            siteSecurityController.updateStatus(currentSessionController().currentPageUrl)
-        }
-        listOf(backButton, refreshButton, pageToolsButton, bookmarkButton, wenxinButton, profileButton).forEach { button ->
-            button.setColorFilter(colors.icon)
-        }
-        pageProgress.progressTintList = ColorStateList.valueOf(colors.progress)
-        WindowInsetsControllerCompat(window, rootView).isAppearanceLightStatusBars =
-            !isPrivateBrowsingEnabled()
     }
 
     /**
