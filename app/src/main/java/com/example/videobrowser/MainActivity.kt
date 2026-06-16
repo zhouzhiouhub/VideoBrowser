@@ -64,6 +64,7 @@ import com.example.videobrowser.browser.BrowserPageError
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserRequest
@@ -114,7 +115,6 @@ import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.storage.BookmarkImportExportController
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
-import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.FullscreenVideoController
 import com.example.videobrowser.video.MediaRouteDecision
@@ -124,8 +124,6 @@ import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebViewVideoCommand
 import com.example.videobrowser.video.WebPlaybackHistoryRecorder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 /**
  * VideoBrowser 的主 Activity。
@@ -195,6 +193,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
     private lateinit var addressSuggestionController: AddressSuggestionController
+    private lateinit var browserLaunchController: BrowserLaunchController
     private lateinit var downloadController: DownloadController
     private lateinit var siteSecurityController: SiteSecurityController
     private lateinit var pageArchiveController: PageArchiveController
@@ -436,6 +435,17 @@ class MainActivity : AppCompatActivity() {
             updateAddressBar = ::updateAddressBar,
             hideKeyboard = ::hideKeyboard,
             showHomeContent = ::showHomeContent
+        )
+        browserLaunchController = BrowserLaunchController(
+            addressText = { addressInput.text?.toString().orEmpty() },
+            runWithSuggestionsSuppressed = addressSuggestionController::runWithSuggestionsSuppressed,
+            searchUrlPrefix = { searchProviderController.selectedProvider.searchUrlPrefix },
+            homeUrl = {
+                settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)
+            },
+            activeStandardTabUrl = { standardTabStore.activeTab().url },
+            loadUrl = ::loadUrl,
+            isShareableUrl = ::isShareableUrl
         )
 
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
@@ -2407,14 +2417,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun loadAddressInput() {
-        val input = addressInput.text?.toString()?.trim().orEmpty()
-        addressSuggestionController.runWithSuggestionsSuppressed {
-            UrlUtils.resolveAddressInput(
-                input,
-                searchProviderController.selectedProvider.searchUrlPrefix
-            )
-                ?.let { loadUrl(it) }
-        }
+        browserLaunchController.loadAddressInput()
     }
 
     /**
@@ -2424,12 +2427,7 @@ class MainActivity : AppCompatActivity() {
      * @param keyword 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
      */
     private fun searchAddressKeyword(keyword: String) {
-        val query = keyword.replace(WHITESPACE_SEQUENCE, " ").trim()
-        if (query.isEmpty()) {
-            return
-        }
-        val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.name())
-        loadUrl("${searchProviderController.selectedProvider.searchUrlPrefix}$encodedQuery")
+        browserLaunchController.searchAddressKeyword(keyword)
     }
 
     /**
@@ -2438,7 +2436,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun openHomePage() {
-        loadUrl(settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl))
+        browserLaunchController.openHomePage()
     }
 
     /**
@@ -2447,12 +2445,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun openInitialStandardPage() {
-        val restoredUrl = standardTabStore.activeTab().url
-        if (restoredUrl.isNullOrBlank()) {
-            openHomePage()
-        } else {
-            loadUrl(restoredUrl)
-        }
+        browserLaunchController.openInitialStandardPage()
     }
 
     /**
@@ -2461,7 +2454,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun openWenxinPage() {
-        loadUrl(BAIDU_WENXIN_URL)
+        browserLaunchController.openWenxinPage()
     }
 
     /**
@@ -2472,25 +2465,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun handleLaunchIntent(intent: Intent?): Boolean {
-        val launchUrl = externalWebUrlFromIntent(intent) ?: return false
-        loadUrl(launchUrl)
-        return true
-    }
-
-    /**
-     * 函数 `externalWebUrlFromIntent`：封装 `external Web Url From Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param intent 参数类型为 `Intent?`，表示函数执行 `intent` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun externalWebUrlFromIntent(intent: Intent?): String? {
-        if (intent?.action != Intent.ACTION_VIEW) {
-            return null
-        }
-        return intent.dataString
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() && isShareableUrl(it) }
+        return browserLaunchController.handleLaunchIntent(intent)
     }
 
     /**
@@ -2653,9 +2628,7 @@ class MainActivity : AppCompatActivity() {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
-        private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
         private const val BACK_EXIT_CONFIRM_WINDOW_MS = 2000L
-        private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private const val DESKTOP_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
