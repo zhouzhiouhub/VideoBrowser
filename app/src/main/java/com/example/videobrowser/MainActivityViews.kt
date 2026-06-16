@@ -1,5 +1,13 @@
 package com.example.videobrowser
 
+/**
+ * MainActivity 的视图绑定清单。
+ *
+ * 初学者可以把这个类理解为“activity_main.xml 里常用控件的索引表”：
+ * - 左边的属性名是 Kotlin 代码里要使用的变量。
+ * - 右边的 findViewById 会按 XML 里的 id 找到真实控件。
+ * - MainActivity 只保留一个 views 对象，避免在主类里散落大量 findViewById。
+ */
 import android.view.View
 import android.webkit.WebView
 import android.widget.EditText
@@ -38,6 +46,12 @@ data class MainActivityViews(
     val fullscreenContainer: FrameLayout
 ) {
     companion object {
+        /**
+         * 从 Activity 当前加载的布局中找到所有主界面控件。
+         *
+         * 这里要求调用方已经执行过 setContentView(R.layout.activity_main)，
+         * 否则 findViewById 找不到对应控件，应用会在启动阶段暴露布局问题。
+         */
         fun bind(activity: AppCompatActivity): MainActivityViews {
             return MainActivityViews(
                 rootView = activity.findViewById(R.id.rootView),

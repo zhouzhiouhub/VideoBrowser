@@ -1,5 +1,19 @@
 package com.example.videobrowser
 
+/**
+ * 应用主界面入口。
+ *
+ * 这个文件负责把“浏览器 App 的各个模块”接到 Android Activity 生命周期上：
+ * - 视图层：地址栏、底部按钮、首页区域、全屏容器。
+ * - 浏览器层：WebView 创建、页面加载、标签页、网页权限、错误页。
+ * - 内容增强：广告拦截、规则清理、JavaScript 注入、元素选择器。
+ * - 业务入口：功能中心、下载、本地文件、收藏/历史、原生播放器。
+ *
+ * 阅读建议：
+ * 1. 先看 onCreate()，它展示所有模块如何被创建和连接。
+ * 2. 再按下面的“region”分区阅读，例如标签页、权限、导航、站点安全。
+ * 3. 遇到具体业务时跳到对应包，例如 browser、video、download、functioncenter。
+ */
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
@@ -120,8 +134,18 @@ import java.nio.charset.StandardCharsets
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
 
+/**
+ * VideoBrowser 的主 Activity。
+ *
+ * Activity 是 Android 应用里的“屏幕控制器”。MainActivity 不直接实现所有业务细节，
+ * 而是把 WebView、设置、功能中心、下载、播放等控制器组合起来，并处理必须留在
+ * Activity 层的系统回调，例如权限申请、文件选择、页面生命周期和返回键。
+ */
 class MainActivity : AppCompatActivity() {
 
+    // region 视图引用
+    // views 来自 MainActivityViews.bind(this)，集中保存 activity_main.xml 中的控件。
+    // 下面这些只读属性是为了让主流程代码更短，例如直接写 addressInput 而不是 views.addressInput。
     private lateinit var views: MainActivityViews
     private val rootView: View get() = views.rootView
     private val topBar: View get() = views.topBar
@@ -143,6 +167,11 @@ class MainActivity : AppCompatActivity() {
     private val loadButton: ImageButton get() = views.loadButton
     private val siteSecurityIcon: ImageView get() = views.siteSecurityIcon
     private val fullscreenContainer: FrameLayout get() = views.fullscreenContainer
+    // endregion
+
+    // region 应用级控制器和仓库
+    // Repository 负责读写本机数据；Controller 负责连接 UI、WebView 和业务动作。
+    // 这些 lateinit 属性会在 onCreate() 里按依赖顺序初始化。
     private lateinit var preferenceStore: PreferenceStore
     private lateinit var settingsManager: SettingsManager
     private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
@@ -173,6 +202,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var standardChromeClient: ChromeClient
     private lateinit var privateChromeClient: ChromeClient
     private lateinit var externalNavigator: BrowserExternalNavigator
+    // endregion
+
+    // region 标签页与会话状态
+    // 标准模式和无痕模式各有自己的标签页列表，避免无痕页面写入普通会话。
     private val standardTabStore = BrowserTabStore()
     private val privateTabStore = BrowserTabStore()
     private lateinit var standardTabWebViews: BrowserTabWebViewRegistry<WebView>
@@ -183,6 +216,10 @@ class MainActivity : AppCompatActivity() {
         findNext = { forward -> currentBrowserManager().findNext(forward) },
         clearMatches = { currentBrowserManager().clearFindMatches() }
     )
+    // endregion
+
+    // region 网页内容增强和拦截
+    // 广告拦截、无图模式和 JS 注入都依赖当前站点、用户设置和规则引擎。
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
@@ -205,6 +242,10 @@ class MainActivity : AppCompatActivity() {
             currentPageUrl = { currentSessionController().currentPageUrl }
         )
     }
+    // endregion
+
+    // region Android 系统交互状态
+    // 这些字段保存系统弹窗或系统 Activity 返回前的临时状态，例如文件选择、权限申请、证书选择。
     private var pendingFileChooserCallback: ValueCallback<Array<Uri>>? = null
     private val webFileChooserLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -272,7 +313,9 @@ class MainActivity : AppCompatActivity() {
     private var pendingClientCertRequest: ClientCertRequest? = null
     private var pendingHttpAuthHandler: HttpAuthHandler? = null
     private var pendingHttpAuthDialog: AlertDialog? = null
+    // endregion
 
+    // region 当前页面运行状态
     private var privateBrowsingActive = false
     private var lastBackExitPromptElapsedRealtime = 0L
     private val isHomePageVisible: Boolean
@@ -281,16 +324,28 @@ class MainActivity : AppCompatActivity() {
         get() = ::fullscreenVideoController.isInitialized &&
             fullscreenVideoController.isFullscreenUiActive
     private var defaultUserAgent: String? = null
+    // endregion
 
+    // region 生命周期
+    /**
+     * Android 创建主界面时调用。
+     *
+     * 这个函数很长，但可以按“创建依赖 -> 连接控制器 -> 配置 WebView -> 打开初始页面”理解。
+     * 后续如果要排查启动问题，通常从这里的初始化顺序开始看。
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Debug 包开启 WebView 远程调试，方便在 Chrome DevTools 里查看网页和注入脚本。
         if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
         setContentView(R.layout.activity_main)
 
+        // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
+
+        // 本地持久化层：设置、收藏/历史、标签会话、下载记录和播放历史都放在 SharedPreferences。
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         savedPageRepository = SavedPageRepository(preferenceStore)
@@ -304,6 +359,8 @@ class MainActivity : AppCompatActivity() {
             browserTabSessionRepository = browserTabSessionRepository,
             filesDir = filesDir
         )
+
+        // 本地文件模块负责选择目录、读取文件列表，并把可播放文件交给浏览器或原生播放器。
         localFilesController = LocalFilesController(
             activity = this,
             preferenceStore = preferenceStore,
@@ -312,6 +369,8 @@ class MainActivity : AppCompatActivity() {
             showMainFunctionCenterPage = ::showFunctionCenterRootPage,
             onOpenDocumentUri = ::openLocalDocumentUri
         )
+
+        // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
         searchProviderController = SearchProviderController(
             activity = this,
             providerScroll = searchProviderScroll,
@@ -348,8 +407,12 @@ class MainActivity : AppCompatActivity() {
             searchKeyword = ::searchAddressKeyword,
             dp = ::dp
         )
+
+        // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
         setupBrowserWebViews()
         setupFileOperationLaunchers()
+
+        // 规则引擎读取 assets/rules 和用户订阅缓存，供广告拦截、URL 清理、脚本注入使用。
         ruleEngine = RuleEngineFactory.create(assets, filesDir)
         externalNavigator = BrowserExternalNavigator(
             activity = this,
@@ -364,6 +427,8 @@ class MainActivity : AppCompatActivity() {
             currentShareableUrl = ::currentShareableUrl,
             isShareableUrl = ::isShareableUrl
         )
+
+        // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
         downloadController = DownloadController(
             activity = this,
             browserManager = ::currentBrowserManager,
@@ -372,6 +437,8 @@ class MainActivity : AppCompatActivity() {
                 openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
             }
         )
+
+        // 页面动作控制器收拢收藏、分享、保存归档、打开原生播放器等“当前页面动作”。
         pageActionsController = PageActionsController(
             activity = this,
             browserManager = ::currentBrowserManager,
@@ -409,6 +476,8 @@ class MainActivity : AppCompatActivity() {
             recreateActivity = { recreate() },
             restoreBrowserDefaults = browserDefaultSettingsResetter::restoreDefaults
         )
+
+        // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
         browserControlsController = BrowserControlsController(
             activity = this,
             browserManager = ::currentBrowserManager,
@@ -437,6 +506,8 @@ class MainActivity : AppCompatActivity() {
             onAddressFocusChanged = ::handleAddressFocusChanged,
             onVisibilityChanged = ::syncSearchProviderVisibility
         )
+
+        // 页面滚动时自动收起/显示顶部与底部工具栏。
         browserControlsScrollController = BrowserControlsScrollController(
             webView = standardWebView,
             addressInput = addressInput,
@@ -447,6 +518,8 @@ class MainActivity : AppCompatActivity() {
             applyControlsHidden = browserControlsController::setHidden,
             updatePageProgressVisibility = ::updatePageProgressVisibility
         )
+
+        // 标准会话会写历史；无痕会话不写历史，并使用独立 WebView。
         standardSessionController = BrowserSessionController(
             activity = this,
             isActive = { !privateBrowsingActive },
@@ -488,6 +561,8 @@ class MainActivity : AppCompatActivity() {
             injectPageFeatures = ::injectPageFeatures,
             onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
         )
+
+        // 网页全屏视频控制器处理 WebChromeClient 自定义视图和网页视频手势协议。
         fullscreenVideoController = FullscreenVideoController(
             activity = this,
             rootView = rootView as ViewGroup,
@@ -496,6 +571,8 @@ class MainActivity : AppCompatActivity() {
             chromeClient = { if (areChromeClientsInitialized()) currentChromeClient() else null },
             dp = ::dp
         )
+
+        // 功能中心是底部弹出的工具面板。这里把 MainActivity 能提供的动作注入进去。
         functionCenterPages = FunctionCenterPages(
             activity = this,
             functionCenter = functionCenterController,
@@ -552,6 +629,8 @@ class MainActivity : AppCompatActivity() {
             loadUrl = ::loadUrl,
             recreateActivity = { recreate() }
         )
+
+        // JS 注入链路：ScriptLoader 读 assets/scripts，JsInjector 组合脚本，PageFeatureCoordinator 判断是否启用。
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
             evaluateJavascript = { script -> currentBrowserManager().evaluateJavascript(script) },
@@ -574,6 +653,7 @@ class MainActivity : AppCompatActivity() {
             injectPageFeatures = ::injectPageFeatures
         )
 
+        // 系统栏/刘海安全区变化时，主界面留出边距；视频全屏时则交给全屏容器占满屏幕。
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
             val safeArea = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or
@@ -607,6 +687,7 @@ class MainActivity : AppCompatActivity() {
         standardBrowserManager.addJavascriptInterface(createNativeBridge(), NATIVE_BRIDGE_NAME)
         setupBrowserClient()
 
+        // 如果外部 Intent 带了 URL 就打开外部 URL，否则恢复标签页或打开主页。
         if (!handleLaunchIntent(intent)) {
             openInitialStandardPage()
         }
@@ -668,6 +749,11 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    // endregion
+
+    // region WebView、ChromeClient 和 BrowserClient 组装
+    // 这一组函数负责创建 WebView、绑定 WebChromeClient/WebViewClient，
+    // 并处理网页弹窗、新窗口、渲染进程退出、证书和 HTTP 认证等浏览器外壳能力。
     private fun setupBrowserWebViews() {
         standardWebView = views.webView
         configureLinkContextMenu(standardWebView)
@@ -996,6 +1082,11 @@ class MainActivity : AppCompatActivity() {
         currentBrowserManager().loadErrorPage(error)
     }
 
+    // endregion
+
+    // region 网页权限、文件选择、书签导入导出和系统认证
+    // WebView 的相机、麦克风、定位、文件上传等能力都要经过 Android 系统授权。
+    // 书签导入导出也依赖系统文件选择器，所以放在同一组系统交互逻辑里。
     private fun handleHttpAuthRequest(
         view: WebView?,
         handler: HttpAuthHandler?,
@@ -1560,6 +1651,10 @@ class MainActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
     }
 
+    // endregion
+
+    // region 地址栏、顶部/底部工具栏和返回键
+    // 这一组函数只处理用户正在看的浏览器外壳：进度条、搜索入口、滚动隐藏工具栏和返回键行为。
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
         browserControlsController.updatePageProgressVisibility(
             currentSessionController().isPageLoading,
@@ -1660,6 +1755,10 @@ class MainActivity : AppCompatActivity() {
         lastBackExitPromptElapsedRealtime = 0L
     }
 
+    // endregion
+
+    // region 原生桥、功能中心、本地文件和页面工具
+    // 原生桥把网页里的 JavaScript 调用转成 Kotlin 回调；功能中心和本地文件入口复用这些动作。
     private fun createNativeBridge(): VideoBrowserNativeBridge {
         return VideoBrowserNativeBridge(
             postToUi = { action -> runOnUiThread { action() } },
@@ -1911,6 +2010,10 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    // endregion
+
+    // region 浏览模式、站点功能开关和标签页管理
+    // 普通模式和无痕模式共享大部分 UI，但使用不同的标签页存储和 WebView 会话。
     private fun updatePrivateBrowsingUi() {
         if (!::views.isInitialized || !::settingsManager.isInitialized) {
             return
@@ -2211,6 +2314,10 @@ class MainActivity : AppCompatActivity() {
         updateNavigationButtons()
     }
 
+    // endregion
+
+    // region 下载、桌面模式、链接菜单和原生播放器入口
+    // 这一组函数处理“当前页面之外”的动作：下载资源、切换桌面 UA、长按链接菜单和跳到原生播放器。
     private fun setupDownloadHandling() {
         downloadController.attachTo(browserManagers())
     }
@@ -2413,6 +2520,10 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    // endregion
+
+    // region 地址解析、页面加载和站点安全提示
+    // 地址栏输入先被解析为 URL 或搜索词；真正加载前还会经过媒体路由、HTTP 降级确认和规则清理。
     private fun loadAddressInput() {
         val input = addressInput.text?.toString()?.trim().orEmpty()
         addressSuggestionController.runWithSuggestionsSuppressed {
@@ -2640,6 +2751,10 @@ class MainActivity : AppCompatActivity() {
         functionCenterPages.showCurrentSiteSettingsPage()
     }
 
+    // endregion
+
+    // region 小工具函数和 WebView 跳转拦截
+    // 这里放跨多个小流程复用的辅助函数，例如 dp 转换、键盘隐藏、URL 类型判断和 shouldOverrideUrlLoading 判断。
     private fun addressBarDisplayText(url: String): String {
         return searchProviderController.addressBarDisplayText(url)
     }
@@ -2792,6 +2907,14 @@ class MainActivity : AppCompatActivity() {
         return searchProviderController.isProviderHomeUrl(url)
     }
 
+    // endregion
+
+    /**
+     * 主界面在普通/无痕模式下使用的一组颜色。
+     *
+     * 单独建成 data class 是为了让 applyBrowsingModeTheme() 先“决定颜色”，再“应用颜色”，
+     * 初学者阅读时可以把两步分开理解。
+     */
     private data class BrowserUiColors(
         val background: Int,
         val surface: Int,
@@ -2805,17 +2928,29 @@ class MainActivity : AppCompatActivity() {
         val progress: Int
     )
 
+    /**
+     * 定位权限请求的临时数据。
+     *
+     * Android 定位权限弹窗和 WebView 定位回调不是同一个 API，
+     * 所以这里把网页 origin 和 WebView callback 暂存起来，等用户选择后再回复网页。
+     */
     private data class GeolocationPermissionPrompt(
         val origin: String?,
         val callback: GeolocationPermissions.Callback
     )
 
+    /**
+     * Android 客户端证书选择器返回的私钥和证书链。
+     *
+     * WebView 需要这两个值一起传回证书请求，所以用一个小对象临时打包。
+     */
     private data class ClientCertificateCredential(
         val privateKey: PrivateKey,
         val certificateChain: Array<X509Certificate>
     )
 
     companion object {
+        // 所有只在 MainActivity 内使用的常量集中放在 companion object，避免魔法数字散落在函数里。
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val RULE_LOG_TAG = "VideoBrowserRules"
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
