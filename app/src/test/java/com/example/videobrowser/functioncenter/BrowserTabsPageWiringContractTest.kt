@@ -133,6 +133,9 @@ class BrowserTabsPageWiringContractTest {
     fun mainActivityPassesTabActionsIntoFunctionCenter() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        ).readText()
 
         assertTrue(mainActivity.contains("currentTabs = ::currentTabs"))
         assertTrue(mainActivity.contains("activeTabId = ::activeTabId"))
@@ -143,7 +146,7 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(mainActivity.contains("closeTab = ::closeTab"))
         assertTrue(mainActivity.contains("closeOtherTabs = ::closeOtherTabs"))
         assertTrue(mainActivity.contains("closeAllTabs = ::closeAllTabs"))
-        assertTrue(mainActivity.contains("standardTabWebViews.closeAllTabs()"))
+        assertTrue(tabActionsController.contains("standardTabWebViews.closeAllTabs()"))
         assertTrue(mainActivity.contains("duplicateTab = ::duplicateTab"))
     }
 

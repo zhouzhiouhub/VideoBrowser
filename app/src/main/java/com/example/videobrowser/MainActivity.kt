@@ -71,6 +71,7 @@ import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.BrowserTab
+import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
@@ -194,6 +195,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var searchProviderController: SearchProviderController
     private lateinit var addressSuggestionController: AddressSuggestionController
     private lateinit var browserLaunchController: BrowserLaunchController
+    private lateinit var browserTabActionsController: BrowserTabActionsController
     private lateinit var downloadController: DownloadController
     private lateinit var siteSecurityController: SiteSecurityController
     private lateinit var pageArchiveController: PageArchiveController
@@ -637,6 +639,21 @@ class MainActivity : AppCompatActivity() {
             addHistoryEntry = {},
             injectPageFeatures = ::injectPageFeatures,
             onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
+        )
+        browserTabActionsController = BrowserTabActionsController(
+            standardTabStore = standardTabStore,
+            privateTabStore = privateTabStore,
+            standardTabWebViews = standardTabWebViews,
+            standardSessionController = standardSessionController,
+            isPrivateBrowsingActive = { privateBrowsingActive },
+            createStandardTabWebView = ::createStandardTabWebView,
+            showStandardTabWebView = ::showStandardTabWebView,
+            hideStandardTabWebView = ::hideStandardTabWebView,
+            destroyStandardTabWebView = ::destroyStandardTabWebView,
+            closeFunctionCenter = ::closeFunctionCenter,
+            saveStandardTabSession = ::saveStandardTabSession,
+            loadUrl = ::loadUrl,
+            openHomePage = ::openHomePage
         )
         renderProcessRecoveryController = RenderProcessRecoveryController(
             webViewContainer = webViewContainer,
@@ -1985,23 +2002,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `currentTabStore`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentTabStore(): BrowserTabStore {
-        return if (privateBrowsingActive) privateTabStore else standardTabStore
-    }
-
-    /**
      * 函数 `currentTabs`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun currentTabs(): List<BrowserTab> {
-        return currentTabStore().tabs()
+        return browserTabActionsController.currentTabs()
     }
 
     /**
@@ -2011,7 +2018,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun activeTabId(): Long {
-        return currentTabStore().activeTabId
+        return browserTabActionsController.activeTabId()
     }
 
     /**
@@ -2020,16 +2027,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun openNewTab() {
-        closeFunctionCenter()
-        if (!privateBrowsingActive) {
-            val result = standardTabWebViews.openTab(createStandardTabWebView())
-            hideStandardTabWebView(result.previousView)
-            showStandardTabWebView(result.activeView)
-        } else {
-            currentTabStore().openTab()
-        }
-        saveStandardTabSession()
-        openHomePage()
+        browserTabActionsController.openNewTab()
     }
 
     /**
@@ -2039,7 +2037,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun canReopenClosedTab(): Boolean {
-        return currentTabStore().canReopenClosedTab()
+        return browserTabActionsController.canReopenClosedTab()
     }
 
     /**
@@ -2048,16 +2046,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun reopenClosedTab() {
-        if (!privateBrowsingActive) {
-            val reopenedTab = standardTabStore.reopenClosedTab() ?: return
-            standardTabWebViews.activate(reopenedTab.id)
-            saveStandardTabSession()
-            reopenedTab.url?.let(::loadUrl) ?: openHomePage()
-            return
-        }
-
-        val reopenedTab = currentTabStore().reopenClosedTab() ?: return
-        reopenedTab.url?.let(::loadUrl) ?: openHomePage()
+        browserTabActionsController.reopenClosedTab()
     }
 
     /**
@@ -2067,22 +2056,7 @@ class MainActivity : AppCompatActivity() {
      * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
      */
     private fun switchTab(tabId: Long) {
-        closeFunctionCenter()
-        if (!privateBrowsingActive) {
-            val result = standardTabWebViews.switchTo(tabId) ?: return
-            if (result.previousView !== result.activeView) {
-                hideStandardTabWebView(result.previousView)
-                showStandardTabWebView(result.activeView)
-            }
-            showActiveTab(result.activeTab)
-            saveStandardTabSession()
-        } else {
-            val tabStore = currentTabStore()
-            if (!tabStore.switchTo(tabId)) {
-                return
-            }
-            showActiveTab(tabStore.activeTab())
-        }
+        browserTabActionsController.switchTab(tabId)
     }
 
     /**
@@ -2092,26 +2066,7 @@ class MainActivity : AppCompatActivity() {
      * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
      */
     private fun closeTab(tabId: Long) {
-        if (!privateBrowsingActive) {
-            val closingActiveTab = standardTabStore.activeTabId == tabId
-            val result = standardTabWebViews.closeTab(tabId) ?: return
-            if (closingActiveTab && result.closedView !== result.activeView) {
-                showStandardTabWebView(result.activeView)
-            }
-            result.closedView?.let(::destroyStandardTabWebView)
-            if (closingActiveTab) {
-                showActiveTab(result.activeTab)
-            }
-            saveStandardTabSession()
-            return
-        }
-
-        val tabStore = currentTabStore()
-        val closingActiveTab = tabStore.activeTabId == tabId
-        if (!tabStore.closeTab(tabId) || !closingActiveTab) {
-            return
-        }
-        showActiveTab(tabStore.activeTab())
+        browserTabActionsController.closeTab(tabId)
     }
 
     /**
@@ -2121,25 +2076,7 @@ class MainActivity : AppCompatActivity() {
      * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
      */
     private fun closeOtherTabs(tabId: Long) {
-        if (!privateBrowsingActive) {
-            val previousView = standardTabWebViews.activeWebView()
-            val result = standardTabWebViews.closeOtherTabs(tabId) ?: return
-            if (previousView !== result.activeView) {
-                hideStandardTabWebView(previousView)
-                showStandardTabWebView(result.activeView)
-            }
-            result.closedViews.forEach(::destroyStandardTabWebView)
-            showActiveTab(result.activeTab)
-            saveStandardTabSession()
-            return
-        }
-
-        val tabStore = currentTabStore()
-        val closedTabs = tabStore.closeOtherTabs(tabId)
-        if (closedTabs.isEmpty()) {
-            return
-        }
-        showActiveTab(tabStore.activeTab())
+        browserTabActionsController.closeOtherTabs(tabId)
     }
 
     /**
@@ -2148,17 +2085,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun closeAllTabs() {
-        if (!privateBrowsingActive) {
-            val result = standardTabWebViews.closeAllTabs()
-            showStandardTabWebView(result.activeView)
-            result.closedViews.forEach(::destroyStandardTabWebView)
-            saveStandardTabSession()
-            openHomePage()
-            return
-        }
-
-        currentTabStore().closeAllTabs()
-        openHomePage()
+        browserTabActionsController.closeAllTabs()
     }
 
     /**
@@ -2168,20 +2095,7 @@ class MainActivity : AppCompatActivity() {
      * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
      */
     private fun duplicateTab(tabId: Long) {
-        val sourceTab = currentTabStore().tabs().firstOrNull { tab -> tab.id == tabId } ?: return
-        if (!privateBrowsingActive) {
-            val result = standardTabWebViews.openTab(
-                view = createStandardTabWebView(),
-                url = sourceTab.url,
-                title = sourceTab.title
-            )
-            hideStandardTabWebView(result.previousView)
-            showStandardTabWebView(result.activeView)
-            saveStandardTabSession()
-        } else {
-            currentTabStore().openTab(url = sourceTab.url, title = sourceTab.title)
-        }
-        sourceTab.url?.let(::loadUrl) ?: openHomePage()
+        browserTabActionsController.duplicateTab(tabId)
     }
 
     /**
@@ -2191,34 +2105,7 @@ class MainActivity : AppCompatActivity() {
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     private fun openUrlInNewTab(url: String) {
-        if (!privateBrowsingActive) {
-            val result = standardTabWebViews.openTab(
-                view = createStandardTabWebView(),
-                url = url
-            )
-            hideStandardTabWebView(result.previousView)
-            showStandardTabWebView(result.activeView)
-            saveStandardTabSession()
-        } else {
-            currentTabStore().openTab(url = url)
-        }
-        loadUrl(url)
-    }
-
-    /**
-     * 函数 `showActiveTab`：控制 `show Active Tab` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tab 参数类型为 `BrowserTab`，表示函数执行 `tab` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showActiveTab(tab: BrowserTab) {
-        if (!privateBrowsingActive) {
-            standardTabWebViews.viewFor(tab.id)?.let(::showStandardTabWebView)
-            standardSessionController.restorePageMetadata(tab.url, tab.title)
-            return
-        }
-
-        tab.url?.let(::loadUrl) ?: openHomePage()
+        browserTabActionsController.openUrlInNewTab(url)
     }
 
     /**

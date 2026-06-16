@@ -20,13 +20,17 @@ class BrowserTabWebViewWiringContractTest {
     fun mainActivityUsesTabWebViewRegistryForStandardTabs() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        ).readText()
 
         assertTrue(mainActivity.contains("BrowserTabWebViewRegistry<WebView>"))
-        assertTrue(mainActivity.contains("standardTabWebViews.openTab"))
-        assertTrue(mainActivity.contains("standardTabWebViews.switchTo"))
-        assertTrue(mainActivity.contains("standardTabWebViews.closeTab"))
-        assertTrue(mainActivity.contains("standardTabWebViews.closeOtherTabs"))
-        assertTrue(mainActivity.contains("standardTabWebViews.openTab("))
+        assertTrue(mainActivity.contains("private lateinit var browserTabActionsController: BrowserTabActionsController"))
+        assertTrue(tabActionsController.contains("standardTabWebViews.openTab"))
+        assertTrue(tabActionsController.contains("standardTabWebViews.switchTo"))
+        assertTrue(tabActionsController.contains("standardTabWebViews.closeTab"))
+        assertTrue(tabActionsController.contains("standardTabWebViews.closeOtherTabs"))
+        assertTrue(tabActionsController.contains("standardTabWebViews.openTab("))
         assertTrue(mainActivity.contains("createStandardTabWebView"))
     }
 
@@ -37,10 +41,12 @@ class BrowserTabWebViewWiringContractTest {
      */
     @Test
     fun switchTabDoesNotReloadExistingTabUrl() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        )
             .readText()
-        val switchTabBody = mainActivity.substringAfter("private fun switchTab(tabId: Long)")
-            .substringBefore("private fun closeTab")
+        val switchTabBody = tabActionsController.substringAfter("fun switchTab(tabId: Long)")
+            .substringBefore("fun closeTab")
 
         assertFalse(switchTabBody.contains("loadUrl"))
         assertTrue(switchTabBody.contains("showActiveTab"))
@@ -53,15 +59,17 @@ class BrowserTabWebViewWiringContractTest {
      */
     @Test
     fun reopenClosedTabCreatesStandardWebViewForRestoredTab() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        )
             .readText()
-        val reopenClosedTabBody = mainActivity.substringAfter("private fun reopenClosedTab()")
-            .substringBefore("private fun switchTab")
+        val reopenClosedTabBody = tabActionsController.substringAfter("fun reopenClosedTab()")
+            .substringBefore("fun switchTab")
 
         assertTrue(reopenClosedTabBody.contains("standardTabStore.reopenClosedTab()"))
         assertTrue(reopenClosedTabBody.contains("standardTabWebViews.activate(reopenedTab.id)"))
         assertTrue(reopenClosedTabBody.contains("saveStandardTabSession()"))
-        assertTrue(reopenClosedTabBody.contains("reopenedTab.url?.let(::loadUrl) ?: openHomePage()"))
+        assertTrue(reopenClosedTabBody.contains("reopenedTab.url?.let(loadUrl) ?: openHomePage()"))
     }
 
     /**
@@ -71,16 +79,18 @@ class BrowserTabWebViewWiringContractTest {
      */
     @Test
     fun duplicateTabCreatesIndependentStandardWebView() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        )
             .readText()
-        val duplicateTabBody = mainActivity.substringAfter("private fun duplicateTab(tabId: Long)")
-            .substringBefore("private fun showActiveTab")
+        val duplicateTabBody = tabActionsController.substringAfter("fun duplicateTab(tabId: Long)")
+            .substringBefore("fun openUrlInNewTab")
 
         assertTrue(duplicateTabBody.contains("standardTabWebViews.openTab("))
         assertTrue(duplicateTabBody.contains("view = createStandardTabWebView()"))
         assertTrue(duplicateTabBody.contains("url = sourceTab.url"))
         assertTrue(duplicateTabBody.contains("title = sourceTab.title"))
-        assertTrue(duplicateTabBody.contains("sourceTab.url?.let(::loadUrl) ?: openHomePage()"))
+        assertTrue(duplicateTabBody.contains("sourceTab.url?.let(loadUrl) ?: openHomePage()"))
     }
 
     /**
@@ -90,9 +100,11 @@ class BrowserTabWebViewWiringContractTest {
      */
     @Test
     fun openUrlInNewTabCreatesIndependentStandardWebView() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        )
             .readText()
-        val openUrlInNewTabBody = mainActivity.substringAfter("private fun openUrlInNewTab(url: String)")
+        val openUrlInNewTabBody = tabActionsController.substringAfter("fun openUrlInNewTab(url: String)")
             .substringBefore("private fun showActiveTab")
 
         assertTrue(openUrlInNewTabBody.contains("standardTabWebViews.openTab("))
