@@ -88,7 +88,7 @@ import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveFileName
-import com.example.videobrowser.browser.SiteSecurityStatus
+import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
 import com.example.videobrowser.browser.search.AddressSuggestionController
@@ -197,6 +197,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var searchProviderController: SearchProviderController
     private lateinit var addressSuggestionController: AddressSuggestionController
     private lateinit var downloadController: DownloadController
+    private lateinit var siteSecurityController: SiteSecurityController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
@@ -632,6 +633,18 @@ class MainActivity : AppCompatActivity() {
             recreateActivity = { recreate() }
         )
 
+        // 站点安全控制器负责地址栏锁/警告图标与详情弹窗，MainActivity 只在 URL 或主题变化时通知它刷新。
+        siteSecurityController = SiteSecurityController(
+            activity = this,
+            siteSecurityIcon = siteSecurityIcon,
+            settingsManager = settingsManager,
+            currentPageUrl = { currentSessionController().currentPageUrl },
+            currentWebViewUrl = { currentBrowserManager().currentUrl() },
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            currentSiteHost = ::currentSiteHost,
+            showCurrentSiteSettingsPage = ::showCurrentSiteSettingsPage
+        )
+
         // JS 注入链路：ScriptLoader 读 assets/scripts，JsInjector 组合脚本，PageFeatureCoordinator 判断是否启用。
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
@@ -999,9 +1012,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupBrowserControls() {
         browserControlsController.setup()
-        siteSecurityIcon.setOnClickListener {
-            showSiteSecurityInfoDialog()
-        }
+        siteSecurityController.setup()
     }
 
     /**
@@ -2736,7 +2747,7 @@ class MainActivity : AppCompatActivity() {
             setStroke(dp(1), colors.addressStroke)
         }
         if (areBrowserSessionsInitialized()) {
-            updateSiteSecurityStatus(currentSessionController().currentPageUrl)
+            siteSecurityController.updateStatus(currentSessionController().currentPageUrl)
         }
         listOf(backButton, refreshButton, pageToolsButton, bookmarkButton, wenxinButton, profileButton).forEach { button ->
             button.setColorFilter(colors.icon)
@@ -3640,7 +3651,7 @@ class MainActivity : AppCompatActivity() {
      * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     private fun updateAddressBar(url: String?) {
-        updateSiteSecurityStatus(url)
+        siteSecurityController.updateStatus(url)
         if (url.isNullOrBlank()) {
             return
         }
@@ -3651,143 +3662,6 @@ class MainActivity : AppCompatActivity() {
         }
         addressInput.setText(displayUrl)
         addressInput.setSelection(addressInput.text?.length ?: 0)
-    }
-
-    /**
-     * 函数 `updateSiteSecurityStatus`：根据最新状态刷新 `update Site Security Status` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun updateSiteSecurityStatus(url: String?) {
-        when (SiteSecurityStatus.fromUrl(url)) {
-            SiteSecurityStatus.SECURE -> showSiteSecurityStatus(
-                iconResId = R.drawable.ic_lock_24,
-                colorResId = R.color.site_security_secure,
-                descriptionResId = R.string.site_security_secure
-            )
-
-            SiteSecurityStatus.NOT_SECURE -> showSiteSecurityStatus(
-                iconResId = R.drawable.ic_warning_24,
-                colorResId = R.color.site_security_insecure,
-                descriptionResId = R.string.site_security_not_secure
-            )
-
-            SiteSecurityStatus.UNKNOWN -> {
-                siteSecurityIcon.visibility = View.GONE
-                siteSecurityIcon.contentDescription = null
-                ViewCompat.setTooltipText(siteSecurityIcon, null)
-                siteSecurityIcon.isEnabled = false
-            }
-        }
-    }
-
-    /**
-     * 函数 `showSiteSecurityStatus`：控制 `show Site Security Status` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param iconResId 参数类型为 `Int`，表示函数执行 `iconResId` 相关逻辑时需要读取或处理的输入。
-     * @param colorResId 参数类型为 `Int`，表示函数执行 `colorResId` 相关逻辑时需要读取或处理的输入。
-     * @param descriptionResId 参数类型为 `Int`，表示函数执行 `descriptionResId` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showSiteSecurityStatus(
-        iconResId: Int,
-        colorResId: Int,
-        descriptionResId: Int
-    ) {
-        val description = getString(descriptionResId)
-        val actionDescription = getString(R.string.site_security_icon_description, description)
-        siteSecurityIcon.visibility = View.VISIBLE
-        siteSecurityIcon.isEnabled = true
-        siteSecurityIcon.setImageResource(iconResId)
-        siteSecurityIcon.setColorFilter(ContextCompat.getColor(this, colorResId))
-        siteSecurityIcon.contentDescription = actionDescription
-        ViewCompat.setTooltipText(siteSecurityIcon, actionDescription)
-    }
-
-    /**
-     * 函数 `showSiteSecurityInfoDialog`：控制 `show Site Security Info Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showSiteSecurityInfoDialog() {
-        val pageUrl = listOf(
-            currentSessionController().currentPageUrl,
-            currentBrowserManager().currentUrl()
-        ).firstOrNull { url -> !url.isNullOrBlank() } ?: return
-        val status = SiteSecurityStatus.fromUrl(pageUrl)
-        if (status == SiteSecurityStatus.UNKNOWN) {
-            return
-        }
-
-        val statusTitleResId = when (status) {
-            SiteSecurityStatus.SECURE -> R.string.site_security_secure
-            SiteSecurityStatus.NOT_SECURE -> R.string.site_security_not_secure
-            SiteSecurityStatus.UNKNOWN -> R.string.title_site_security_info
-        }
-        val messageResId = when (status) {
-            SiteSecurityStatus.SECURE -> R.string.site_security_secure_message
-            SiteSecurityStatus.NOT_SECURE -> R.string.site_security_not_secure_message
-            SiteSecurityStatus.UNKNOWN -> R.string.site_security_unknown_message
-        }
-        val displayUrl = UrlUtils.displayUrl(pageUrl)
-        val host = SiteHost.fromUrl(pageUrl)
-            ?: Uri.parse(pageUrl).host.orEmpty().ifBlank { displayUrl }
-        val message = listOf(
-            getString(statusTitleResId),
-            getString(R.string.site_security_host, host),
-            getString(R.string.site_security_url, displayUrl),
-            getString(R.string.site_security_protocol, status.protocolDisplayName()),
-            getString(messageResId),
-            siteSecurityCertificateSummary(status),
-            siteSecurityMixedContentSummary(status)
-        ).joinToString(separator = "\n\n")
-
-        val builder = AlertDialog.Builder(this)
-            .setTitle(R.string.title_site_security_info)
-            .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
-        if (!isPrivateBrowsingEnabled() && currentSiteHost() != null) {
-            builder.setNeutralButton(R.string.action_site_settings) { _, _ ->
-                showCurrentSiteSettingsPage()
-            }
-        }
-        builder.show()
-    }
-
-    /**
-     * 函数 `siteSecurityCertificateSummary`：封装 `site Security Certificate Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param status 参数类型为 `SiteSecurityStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun siteSecurityCertificateSummary(status: SiteSecurityStatus): String {
-        return when (status) {
-            SiteSecurityStatus.SECURE -> getString(R.string.site_security_certificate_validated)
-            SiteSecurityStatus.NOT_SECURE -> getString(R.string.site_security_certificate_not_used)
-            SiteSecurityStatus.UNKNOWN -> getString(R.string.site_security_unknown_message)
-        }
-    }
-
-    /**
-     * 函数 `siteSecurityMixedContentSummary`：封装 `site Security Mixed Content Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param status 参数类型为 `SiteSecurityStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun siteSecurityMixedContentSummary(status: SiteSecurityStatus): String {
-        return when (status) {
-            SiteSecurityStatus.SECURE -> if (settingsManager.isMixedContentBlocked()) {
-                getString(R.string.site_security_mixed_content_blocked)
-            } else {
-                getString(R.string.site_security_mixed_content_compatibility)
-            }
-
-            SiteSecurityStatus.NOT_SECURE -> getString(R.string.site_security_mixed_content_not_applicable)
-            SiteSecurityStatus.UNKNOWN -> getString(R.string.site_security_unknown_message)
-        }
     }
 
     /**
