@@ -90,6 +90,7 @@ import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
 import com.example.videobrowser.browser.WebFileChooserController
+import com.example.videobrowser.browser.WebPermissionRequestController
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.SearchSuggestionClient
 import com.example.videobrowser.browser.search.SearchProviderController
@@ -204,6 +205,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pagePrintController: PagePrintController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var webFileChooserController: WebFileChooserController
+    private lateinit var webPermissionRequestController: WebPermissionRequestController
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
@@ -274,22 +276,9 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.CreateDocument(PageArchiveController.MIME_TYPE)) { uri ->
             pageArchiveController.handleExportResult(uri)
         }
-    private var pendingWebPermissionRequest: PermissionRequest? = null
-    private var pendingWebPermissionPromptRequest: PermissionRequest? = null
-    private var pendingWebPermissionDialog: AlertDialog? = null
     private val webPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-            val request = pendingWebPermissionRequest ?: return@registerForActivityResult
-            pendingWebPermissionRequest = null
-            val requiredPermissions = androidPermissionsForWebResources(request.resources)
-            if (requiredPermissions != null && requiredPermissions.all { permission ->
-                    grants[permission] == true || hasAndroidPermission(permission)
-                }
-            ) {
-                handleWebPermissionRequestAfterAndroidPermission(request)
-            } else {
-                request.deny()
-            }
+            webPermissionRequestController.handleAndroidPermissionResult(grants)
         }
     private var pendingGeolocationPermissionPrompt: GeolocationPermissionPrompt? = null
     private var pendingGeolocationSitePrompt: GeolocationPermissionPrompt? = null
@@ -516,6 +505,14 @@ class MainActivity : AppCompatActivity() {
         webFileChooserController = WebFileChooserController(
             activity = this,
             launchChooser = webFileChooserLauncher::launch
+        )
+        webPermissionRequestController = WebPermissionRequestController(
+            activity = this,
+            settingsManager = settingsManager,
+            sessionSitePermissionStore = sessionSitePermissionStore,
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            hasAndroidPermission = ::hasAndroidPermission,
+            requestAndroidPermissions = webPermissionLauncher::launch
         )
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
@@ -1523,42 +1520,7 @@ class MainActivity : AppCompatActivity() {
      * @param request 参数类型为 `PermissionRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
      */
     private fun handleWebPermissionRequest(request: PermissionRequest?) {
-        request ?: return
-        val requiredPermissions = androidPermissionsForWebResources(request.resources)
-        if (requiredPermissions == null) {
-            request.deny()
-            return
-        }
-        if (webPermissionDecision(request) == SitePermissionDecision.BLOCK) {
-            request.deny()
-            return
-        }
-        val missingPermissions = requiredPermissions
-            .filterNot(::hasAndroidPermission)
-            .toTypedArray()
-        if (missingPermissions.isEmpty()) {
-            handleWebPermissionRequestAfterAndroidPermission(request)
-            return
-        }
-
-        pendingWebPermissionRequest?.deny()
-        cancelPendingWebPermissionPrompt()
-        pendingWebPermissionRequest = request
-        webPermissionLauncher.launch(missingPermissions)
-    }
-
-    /**
-     * 函数 `handleWebPermissionRequestAfterAndroidPermission`：处理 `handle Web Permission Request After Android Permission` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     */
-    private fun handleWebPermissionRequestAfterAndroidPermission(request: PermissionRequest) {
-        when (webPermissionDecision(request)) {
-            SitePermissionDecision.ALLOW -> grantSupportedWebPermissionResources(request)
-            SitePermissionDecision.BLOCK -> request.deny()
-            SitePermissionDecision.ASK -> showWebPermissionPrompt(request)
-        }
+        webPermissionRequestController.handlePermissionRequest(request)
     }
 
     /**
@@ -1568,18 +1530,7 @@ class MainActivity : AppCompatActivity() {
      * @param request 参数类型为 `PermissionRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
      */
     private fun handleWebPermissionRequestCanceled(request: PermissionRequest?) {
-        if (request == null) {
-            pendingWebPermissionRequest?.deny()
-            pendingWebPermissionRequest = null
-            cancelPendingWebPermissionPrompt()
-            return
-        }
-        if (request == pendingWebPermissionRequest) {
-            pendingWebPermissionRequest = null
-        }
-        if (request == pendingWebPermissionPromptRequest) {
-            cancelPendingWebPermissionPrompt()
-        }
+        webPermissionRequestController.handlePermissionRequestCanceled(request)
     }
 
     /**
@@ -1588,251 +1539,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun cancelPendingWebPermissionRequest() {
-        pendingWebPermissionRequest?.deny()
-        pendingWebPermissionRequest = null
-        cancelPendingWebPermissionPrompt()
-    }
-
-    /**
-     * 函数 `showWebPermissionPrompt`：控制 `show Web Permission Prompt` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     */
-    private fun showWebPermissionPrompt(request: PermissionRequest) {
-        cancelPendingWebPermissionPrompt()
-        pendingWebPermissionPromptRequest = request
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.title_web_permission_request)
-            .setMessage(
-                getString(
-                    R.string.dialog_web_permission_request_message,
-                    webPermissionOrigin(request),
-                    webPermissionResourceSummary(request.resources)
-                )
-            )
-            .setPositiveButton(R.string.action_allow) { _, _ ->
-                answerWebPermissionPrompt(request, allowed = true)
-            }
-            .setNeutralButton(R.string.action_allow_once) { _, _ ->
-                answerWebPermissionPrompt(request, allowed = true, rememberDecision = false)
-            }
-            .setNegativeButton(R.string.action_deny) { _, _ ->
-                answerWebPermissionPrompt(request, allowed = false)
-            }
-            .create()
-        dialog.setOnCancelListener {
-            answerWebPermissionPrompt(request, allowed = false)
+        if (::webPermissionRequestController.isInitialized) {
+            webPermissionRequestController.cancelPendingRequest()
         }
-        pendingWebPermissionDialog = dialog
-        dialog.show()
-    }
-
-    /**
-     * 函数 `answerWebPermissionPrompt`：处理 `answer Web Permission Prompt` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     * @param rememberDecision 参数类型为 `Boolean`，表示函数执行 `rememberDecision` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun answerWebPermissionPrompt(
-        request: PermissionRequest,
-        allowed: Boolean,
-        rememberDecision: Boolean = true
-    ) {
-        if (pendingWebPermissionPromptRequest != request) {
-            return
-        }
-        pendingWebPermissionPromptRequest = null
-        pendingWebPermissionDialog = null
-        if (allowed) {
-            if (rememberDecision) {
-                saveWebPermissionDecision(request, allowed = true)
-            } else {
-                allowWebPermissionForSession(request)
-            }
-            grantSupportedWebPermissionResources(request)
-        } else {
-            if (rememberDecision) {
-                saveWebPermissionDecision(request, allowed = false)
-            }
-            request.deny()
-        }
-    }
-
-    /**
-     * 函数 `cancelPendingWebPermissionPrompt`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun cancelPendingWebPermissionPrompt() {
-        val request = pendingWebPermissionPromptRequest
-        pendingWebPermissionPromptRequest = null
-        pendingWebPermissionDialog?.dismiss()
-        pendingWebPermissionDialog = null
-        request?.deny()
-    }
-
-    /**
-     * 函数 `webPermissionOrigin`：封装 `web Permission Origin` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun webPermissionOrigin(request: PermissionRequest): String {
-        return request.origin
-            ?.toString()
-            ?.takeIf { origin -> origin.isNotBlank() }
-            ?: getString(R.string.permission_origin_unknown)
-    }
-
-    /**
-     * 函数 `webPermissionResourceSummary`：封装 `web Permission Resource Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param resources 参数类型为 `Array<String>`，表示函数执行 `resources` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun webPermissionResourceSummary(resources: Array<String>): String {
-        return resources
-            .mapNotNull { resource -> webPermissionResourceLabel(resource) }
-            .distinct()
-            .joinToString(", ")
-    }
-
-    /**
-     * 函数 `webPermissionResourceLabel`：封装 `web Permission Resource Label` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param resource 参数类型为 `String`，表示函数执行 `resource` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun webPermissionResourceLabel(resource: String): String? {
-        return when (resource) {
-            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> getString(R.string.web_permission_camera)
-            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> getString(R.string.web_permission_microphone)
-            else -> null
-        }
-    }
-
-    /**
-     * 函数 `webPermissionDecision`：封装 `web Permission Decision` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun webPermissionDecision(request: PermissionRequest): SitePermissionDecision {
-        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return SitePermissionDecision.ASK
-        val permissions = request.resources
-            .mapNotNull(::sitePermissionForWebResource)
-        val decisions = permissions
-            .map { permission -> settingsManager.sitePermissionDecision(hostName, permission) }
-        return when {
-            decisions.any { decision -> decision == SitePermissionDecision.BLOCK } -> SitePermissionDecision.BLOCK
-            permissions.isNotEmpty() &&
-                permissions.all { permission ->
-                    settingsManager.sitePermissionDecision(hostName, permission) == SitePermissionDecision.ALLOW ||
-                        sessionSitePermissionStore.isAllowed(hostName, permission)
-                } -> SitePermissionDecision.ALLOW
-            else -> SitePermissionDecision.ASK
-        }
-    }
-
-    /**
-     * 函数 `saveWebPermissionDecision`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     */
-    private fun saveWebPermissionDecision(request: PermissionRequest, allowed: Boolean) {
-        if (isPrivateBrowsingEnabled()) {
-            if (allowed) {
-                allowWebPermissionForSession(request)
-            }
-            return
-        }
-        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
-        val decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
-        request.resources
-            .mapNotNull(::sitePermissionForWebResource)
-            .forEach { permission ->
-                settingsManager.setSitePermissionDecision(hostName, permission, decision)
-            }
-    }
-
-    /**
-     * 函数 `allowWebPermissionForSession`：封装 `allow Web Permission For Session` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     */
-    private fun allowWebPermissionForSession(request: PermissionRequest) {
-        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
-        request.resources
-            .mapNotNull(::sitePermissionForWebResource)
-            .forEach { permission ->
-                sessionSitePermissionStore.allow(hostName, permission)
-            }
-    }
-
-    /**
-     * 函数 `sitePermissionForWebResource`：封装 `site Permission For Web Resource` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param resource 参数类型为 `String`，表示函数执行 `resource` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionForWebResource(resource: String): SitePermission? {
-        return when (resource) {
-            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> SitePermission.CAMERA
-            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> SitePermission.MICROPHONE
-            else -> null
-        }
-    }
-
-    /**
-     * 函数 `grantSupportedWebPermissionResources`：处理 `grant Supported Web Permission Resources` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     */
-    private fun grantSupportedWebPermissionResources(request: PermissionRequest) {
-        val resources = supportedWebPermissionResources(request.resources)
-        if (resources == null) {
-            request.deny()
-            return
-        }
-
-        request.grant(resources)
-    }
-
-    /**
-     * 函数 `supportedWebPermissionResources`：封装 `supported Web Permission Resources` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param resources 参数类型为 `Array<String>`，表示函数执行 `resources` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun supportedWebPermissionResources(resources: Array<String>): Array<String>? {
-        val supportedResources = mutableListOf<String>()
-        resources.forEach { resource ->
-            when (resource) {
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE,
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
-                    if (resource !in supportedResources) {
-                        supportedResources += resource
-                    }
-                }
-                else -> return null
-            }
-        }
-        return supportedResources
-            .takeIf { it.isNotEmpty() }
-            ?.toTypedArray()
     }
 
     /**
@@ -2050,28 +1759,6 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
-    }
-
-    /**
-     * 函数 `androidPermissionsForWebResources`：封装 `android Permissions For Web Resources` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param resources 参数类型为 `Array<String>`，表示函数执行 `resources` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun androidPermissionsForWebResources(resources: Array<String>): List<String>? {
-        val permissions = mutableListOf<String>()
-        resources.forEach { resource ->
-            val permission = when (resource) {
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE -> Manifest.permission.CAMERA
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> Manifest.permission.RECORD_AUDIO
-                else -> return null
-            }
-            if (permission !in permissions) {
-                permissions += permission
-            }
-        }
-        return permissions.takeIf { it.isNotEmpty() }
     }
 
     /**
