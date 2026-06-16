@@ -113,6 +113,7 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.settings.SitePermission
 import com.example.videobrowser.settings.SitePermissionDecision
+import com.example.videobrowser.storage.BookmarkImportExportController
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
@@ -176,6 +177,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
     private lateinit var savedPageRepository: SavedPageRepository
+    private lateinit var bookmarkImportExportController: BookmarkImportExportController
     private lateinit var downloadRecordRepository: DownloadRecordRepository
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private var lastWebPlaybackHistoryIdentity: String? = null
@@ -260,13 +262,13 @@ class MainActivity : AppCompatActivity() {
     private val bookmarkExportLauncher =
         registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
             if (uri != null) {
-                exportBookmarksToUri(uri)
+                bookmarkImportExportController.exportToUri(uri)
             }
         }
     private val bookmarkImportLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
-                importBookmarksFromUri(uri)
+                bookmarkImportExportController.importFromUri(uri)
             }
         }
     private var pendingPageArchiveFile: File? = null
@@ -352,6 +354,11 @@ class MainActivity : AppCompatActivity() {
         preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         savedPageRepository = SavedPageRepository(preferenceStore)
+        bookmarkImportExportController = BookmarkImportExportController(
+            activity = this,
+            savedPageRepository = savedPageRepository,
+            updateBookmarkButton = ::updateBookmarkButton
+        )
         browserTabSessionRepository = BrowserTabSessionRepository(preferenceStore)
         restoreStandardTabSession()
         downloadRecordRepository = DownloadRecordRepository(preferenceStore)
@@ -1481,28 +1488,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun exportBookmarks() {
-        bookmarkExportLauncher.launch(BOOKMARK_EXPORT_FILE_NAME)
-    }
-
-    /**
-     * 函数 `exportBookmarksToUri`：封装 `export Bookmarks To Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun exportBookmarksToUri(uri: Uri) {
-        val exported = runCatching {
-            val payload = savedPageRepository.exportBookmarks().toByteArray(StandardCharsets.UTF_8)
-            contentResolver.openOutputStream(uri)?.use { output ->
-                output.write(payload)
-            } ?: error("Unable to open bookmark export target")
-        }.isSuccess
-
-        Toast.makeText(
-            this,
-            if (exported) R.string.toast_bookmarks_exported else R.string.toast_bookmarks_export_failed,
-            Toast.LENGTH_SHORT
-        ).show()
+        bookmarkExportLauncher.launch(BookmarkImportExportController.EXPORT_FILE_NAME)
     }
 
     /**
@@ -1511,33 +1497,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun importBookmarks() {
-        bookmarkImportLauncher.launch(arrayOf("text/plain", "application/json", "*/*"))
-    }
-
-    /**
-     * 函数 `importBookmarksFromUri`：封装 `import Bookmarks From Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun importBookmarksFromUri(uri: Uri) {
-        val result = runCatching {
-            val payload = contentResolver.openInputStream(uri)?.use { input ->
-                input.bufferedReader(StandardCharsets.UTF_8).readText()
-            } ?: error("Unable to open bookmark import source")
-            savedPageRepository.importBookmarks(payload)
-        }.getOrElse {
-            Toast.makeText(this, R.string.toast_bookmarks_import_failed, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val toastText = if (result.importedCount > 0) {
-            getString(R.string.toast_bookmarks_imported, result.importedCount)
-        } else {
-            getString(R.string.toast_bookmarks_import_empty)
-        }
-        Toast.makeText(this, toastText, Toast.LENGTH_SHORT).show()
-        updateBookmarkButton()
+        bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)
     }
 
     /**
@@ -3941,7 +3901,6 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS = 5_000L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
-        private const val BOOKMARK_EXPORT_FILE_NAME = "videobrowser-bookmarks.txt"
         private const val PAGE_ARCHIVE_MIME_TYPE = "multipart/related"
         private const val PAGE_ARCHIVE_TEMP_DIR_NAME = "page-archives"
         private const val PAGE_ARCHIVE_TEMP_FILE_NAME = "current-page.mhtml"

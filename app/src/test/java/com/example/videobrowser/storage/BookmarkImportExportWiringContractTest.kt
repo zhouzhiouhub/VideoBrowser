@@ -18,6 +18,9 @@ class BookmarkImportExportWiringContractTest {
     @Test
     fun mainActivityWiresBookmarkImportExportThroughSaf() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/storage/BookmarkImportExportController.kt"
+        ).readText()
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
@@ -26,12 +29,17 @@ class BookmarkImportExportWiringContractTest {
 
         assertTrue(mainActivity.contains("ActivityResultContracts.CreateDocument(\"text/plain\")"))
         assertTrue(mainActivity.contains("ActivityResultContracts.OpenDocument()"))
-        assertTrue(mainActivity.contains("bookmarkExportLauncher.launch(BOOKMARK_EXPORT_FILE_NAME)"))
-        assertTrue(mainActivity.contains("savedPageRepository.exportBookmarks()"))
-        assertTrue(mainActivity.contains("contentResolver.openOutputStream(uri)"))
-        assertTrue(mainActivity.contains("bookmarkImportLauncher.launch(arrayOf(\"text/plain\", \"application/json\", \"*/*\"))"))
-        assertTrue(mainActivity.contains("contentResolver.openInputStream(uri)"))
-        assertTrue(mainActivity.contains("savedPageRepository.importBookmarks(payload)"))
+        assertTrue(mainActivity.contains("bookmarkImportExportController.exportToUri(uri)"))
+        assertTrue(mainActivity.contains("bookmarkImportExportController.importFromUri(uri)"))
+        assertTrue(mainActivity.contains("bookmarkExportLauncher.launch(BookmarkImportExportController.EXPORT_FILE_NAME)"))
+        assertTrue(mainActivity.contains("bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)"))
+        assertTrue(controller.contains("const val EXPORT_FILE_NAME = \"videobrowser-bookmarks.txt\""))
+        assertTrue(controller.contains("val IMPORT_MIME_TYPES = arrayOf(\"text/plain\", \"application/json\", \"*/*\")"))
+        assertTrue(controller.contains("savedPageRepository.exportBookmarks()"))
+        assertTrue(controller.contains("contentResolver.openOutputStream(uri)"))
+        assertTrue(controller.contains("contentResolver.openInputStream(uri)"))
+        assertTrue(controller.contains("savedPageRepository.importBookmarks(payload)"))
+        assertTrue(controller.contains("updateBookmarkButton()"))
         assertTrue(mainActivity.contains("exportBookmarks = ::exportBookmarks"))
         assertTrue(mainActivity.contains("importBookmarks = ::importBookmarks"))
         assertTrue(pages.contains("exportBookmarks: () -> Unit"))
