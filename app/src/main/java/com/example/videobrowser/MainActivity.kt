@@ -14,7 +14,6 @@ package com.example.videobrowser
  * 2. 再按下面的“region”分区阅读，例如标签页、权限、导航、站点安全。
  * 3. 遇到具体业务时跳到对应包，例如 browser、video、download、functioncenter。
  */
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -81,6 +80,7 @@ import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.FindInPageDialogController
+import com.example.videobrowser.browser.GeolocationPermissionController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.LinkContextMenuController
 import com.example.videobrowser.browser.PageActionsController
@@ -111,8 +111,6 @@ import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SessionSitePermissionStore
-import com.example.videobrowser.settings.SitePermission
-import com.example.videobrowser.settings.SitePermissionDecision
 import com.example.videobrowser.storage.BookmarkImportExportController
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
@@ -206,6 +204,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
+    private lateinit var geolocationPermissionController: GeolocationPermissionController
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
@@ -280,22 +279,10 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
             webPermissionRequestController.handleAndroidPermissionResult(grants)
         }
-    private var pendingGeolocationPermissionPrompt: GeolocationPermissionPrompt? = null
-    private var pendingGeolocationSitePrompt: GeolocationPermissionPrompt? = null
-    private var pendingGeolocationDialog: AlertDialog? = null
     private val sessionSitePermissionStore = SessionSitePermissionStore()
     private val geolocationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-            val prompt = pendingGeolocationPermissionPrompt ?: return@registerForActivityResult
-            pendingGeolocationPermissionPrompt = null
-            val allowed = geolocationAndroidPermissions().any { permission ->
-                grants[permission] == true || hasAndroidPermission(permission)
-            }
-            if (allowed) {
-                handleGeolocationPermissionAfterAndroidPermission(prompt)
-            } else {
-                denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
-            }
+            geolocationPermissionController.handleAndroidPermissionResult(grants)
         }
     private var pendingClientCertRequest: ClientCertRequest? = null
     private var pendingHttpAuthHandler: HttpAuthHandler? = null
@@ -513,6 +500,14 @@ class MainActivity : AppCompatActivity() {
             isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
             hasAndroidPermission = ::hasAndroidPermission,
             requestAndroidPermissions = webPermissionLauncher::launch
+        )
+        geolocationPermissionController = GeolocationPermissionController(
+            activity = this,
+            settingsManager = settingsManager,
+            sessionSitePermissionStore = sessionSitePermissionStore,
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            hasAndroidPermission = ::hasAndroidPermission,
+            requestAndroidPermissions = geolocationPermissionLauncher::launch
         )
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
@@ -1555,37 +1550,7 @@ class MainActivity : AppCompatActivity() {
         origin: String?,
         callback: GeolocationPermissions.Callback?
     ) {
-        callback ?: return
-        val siteDecision = geolocationPermissionDecision(origin)
-        if (siteDecision == SitePermissionDecision.BLOCK) {
-            denyGeolocationPermissionPrompt(origin, callback)
-            return
-        }
-        val permissions = geolocationAndroidPermissions()
-        if (permissions.any(::hasAndroidPermission)) {
-            handleGeolocationPermissionAfterAndroidPermission(
-                GeolocationPermissionPrompt(origin, callback)
-            )
-            return
-        }
-
-        cancelPendingGeolocationPermissionPrompt()
-        pendingGeolocationPermissionPrompt = GeolocationPermissionPrompt(origin, callback)
-        geolocationPermissionLauncher.launch(permissions)
-    }
-
-    /**
-     * 函数 `handleGeolocationPermissionAfterAndroidPermission`：处理 `handle Geolocation Permission After Android Permission` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param prompt 参数类型为 `GeolocationPermissionPrompt`，表示函数执行 `prompt` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleGeolocationPermissionAfterAndroidPermission(prompt: GeolocationPermissionPrompt) {
-        when (geolocationPermissionDecision(prompt.origin)) {
-            SitePermissionDecision.ALLOW -> prompt.callback.invoke(prompt.origin, true, false)
-            SitePermissionDecision.BLOCK -> denyGeolocationPermissionPrompt(prompt.origin, prompt.callback)
-            SitePermissionDecision.ASK -> showGeolocationPermissionPrompt(prompt)
-        }
+        geolocationPermissionController.handlePermissionRequest(origin, callback)
     }
 
     /**
@@ -1594,7 +1559,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun handleGeolocationPermissionHidden() {
-        cancelPendingGeolocationPermissionPrompt()
+        geolocationPermissionController.handlePermissionHidden()
     }
 
     /**
@@ -1603,162 +1568,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun cancelPendingGeolocationPermissionPrompt() {
-        val prompt = pendingGeolocationPermissionPrompt
-        pendingGeolocationPermissionPrompt = null
-        prompt?.let { pendingPrompt ->
-            denyGeolocationPermissionPrompt(pendingPrompt.origin, pendingPrompt.callback)
+        if (::geolocationPermissionController.isInitialized) {
+            geolocationPermissionController.cancelPending()
         }
-
-        val sitePrompt = pendingGeolocationSitePrompt
-        pendingGeolocationSitePrompt = null
-        pendingGeolocationDialog?.dismiss()
-        pendingGeolocationDialog = null
-        sitePrompt?.let { pendingPrompt ->
-            denyGeolocationPermissionPrompt(pendingPrompt.origin, pendingPrompt.callback)
-        }
-    }
-
-    /**
-     * 函数 `showGeolocationPermissionPrompt`：控制 `show Geolocation Permission Prompt` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param prompt 参数类型为 `GeolocationPermissionPrompt`，表示函数执行 `prompt` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showGeolocationPermissionPrompt(prompt: GeolocationPermissionPrompt) {
-        cancelPendingGeolocationPermissionPrompt()
-        pendingGeolocationSitePrompt = prompt
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.title_geolocation_permission_request)
-            .setMessage(
-                getString(
-                    R.string.dialog_geolocation_permission_request_message,
-                    prompt.origin?.takeIf { origin -> origin.isNotBlank() }
-                        ?: getString(R.string.permission_origin_unknown)
-                )
-            )
-            .setPositiveButton(R.string.action_allow) { _, _ ->
-                answerGeolocationPermissionPrompt(prompt, allowed = true)
-            }
-            .setNeutralButton(R.string.action_allow_once) { _, _ ->
-                answerGeolocationPermissionPrompt(prompt, allowed = true, rememberDecision = false)
-            }
-            .setNegativeButton(R.string.action_deny) { _, _ ->
-                answerGeolocationPermissionPrompt(prompt, allowed = false)
-            }
-            .create()
-        dialog.setOnCancelListener {
-            answerGeolocationPermissionPrompt(prompt, allowed = false)
-        }
-        pendingGeolocationDialog = dialog
-        dialog.show()
-    }
-
-    /**
-     * 函数 `answerGeolocationPermissionPrompt`：处理 `answer Geolocation Permission Prompt` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param prompt 参数类型为 `GeolocationPermissionPrompt`，表示函数执行 `prompt` 相关逻辑时需要读取或处理的输入。
-     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     * @param rememberDecision 参数类型为 `Boolean`，表示函数执行 `rememberDecision` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun answerGeolocationPermissionPrompt(
-        prompt: GeolocationPermissionPrompt,
-        allowed: Boolean,
-        rememberDecision: Boolean = true
-    ) {
-        if (pendingGeolocationSitePrompt != prompt) {
-            return
-        }
-        pendingGeolocationSitePrompt = null
-        pendingGeolocationDialog = null
-        if (allowed) {
-            if (rememberDecision) {
-                saveGeolocationPermissionDecision(prompt.origin, allowed = true)
-            } else {
-                allowGeolocationPermissionForSession(prompt.origin)
-            }
-        } else if (rememberDecision) {
-            saveGeolocationPermissionDecision(prompt.origin, allowed = false)
-        }
-        prompt.callback.invoke(prompt.origin, allowed, false)
-    }
-
-    /**
-     * 函数 `geolocationPermissionDecision`：封装 `geolocation Permission Decision` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun geolocationPermissionDecision(origin: String?): SitePermissionDecision {
-        val hostName = SiteHost.fromUrl(origin) ?: return SitePermissionDecision.ASK
-        val decision = settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)
-        return when {
-            decision == SitePermissionDecision.BLOCK -> SitePermissionDecision.BLOCK
-            decision == SitePermissionDecision.ALLOW ||
-                sessionSitePermissionStore.isAllowed(hostName, SitePermission.LOCATION) -> SitePermissionDecision.ALLOW
-            else -> SitePermissionDecision.ASK
-        }
-    }
-
-    /**
-     * 函数 `saveGeolocationPermissionDecision`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
-     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     */
-    private fun saveGeolocationPermissionDecision(origin: String?, allowed: Boolean) {
-        if (isPrivateBrowsingEnabled()) {
-            if (allowed) {
-                allowGeolocationPermissionForSession(origin)
-            }
-            return
-        }
-        val hostName = SiteHost.fromUrl(origin) ?: return
-        settingsManager.setSitePermissionDecision(
-            host = hostName,
-            permission = SitePermission.LOCATION,
-            decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
-        )
-    }
-
-    /**
-     * 函数 `allowGeolocationPermissionForSession`：封装 `allow Geolocation Permission For Session` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun allowGeolocationPermissionForSession(origin: String?) {
-        val hostName = SiteHost.fromUrl(origin) ?: return
-        sessionSitePermissionStore.allow(hostName, SitePermission.LOCATION)
-    }
-
-    /**
-     * 函数 `denyGeolocationPermissionPrompt`：处理 `deny Geolocation Permission Prompt` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
-     * @param callback 参数类型为 `GeolocationPermissions.Callback`，表示回调对象，异步操作完成后用它把结果通知回调用方。
-     */
-    private fun denyGeolocationPermissionPrompt(
-        origin: String?,
-        callback: GeolocationPermissions.Callback
-    ) {
-        callback.invoke(origin, false, false)
-    }
-
-    /**
-     * 函数 `geolocationAndroidPermissions`：封装 `geolocation Android Permissions` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun geolocationAndroidPermissions(): Array<String> {
-        return arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
     }
 
     /**
@@ -3199,17 +3011,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     // endregion
-
-    /**
-     * 定位权限请求的临时数据。
-     *
-     * Android 定位权限弹窗和 WebView 定位回调不是同一个 API，
-     * 所以这里把网页 origin 和 WebView callback 暂存起来，等用户选择后再回复网页。
-     */
-    private data class GeolocationPermissionPrompt(
-        val origin: String?,
-        val callback: GeolocationPermissions.Callback
-    )
 
     /**
      * Android 客户端证书选择器返回的私钥和证书链。
