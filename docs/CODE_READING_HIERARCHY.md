@@ -176,10 +176,16 @@ com.example.videobrowser
 | `app/src/test/java/com/example/videobrowser/settings/` | 设置读写和默认恢复 | 改 `settings/` |
 | `app/src/androidTest/java/` | WebView/JS 在真实 Android 组件中的行为 | 改 WebView 注入、JS、页面交互时补跑 |
 
-常用验证命令：
+常用开发验证命令：
 
 ```powershell
 .\gradlew.bat :app:testDebugUnitTest
 .\gradlew.bat :app:compileDebugAndroidTestKotlin
 .\gradlew.bat :app:compileDebugKotlin
+```
+
+发布构建命令：
+
+```powershell
+.\gradlew.bat :app:assembleRelease
 ```
