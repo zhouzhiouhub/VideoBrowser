@@ -1,5 +1,12 @@
 package com.example.videobrowser.utils
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“通用工具模块”。
+ * 文件名 UrlUtils 可以拆开理解为“Url Utils”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：提供 URL、媒体地址等跨模块复用的纯函数。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import java.net.IDN
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -9,11 +16,18 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
+/**
+ * URL 解析和展示工具。
+ *
+ * 这里的函数都是纯函数：不访问 Android 系统，也不读写状态。
+ * 地址栏、搜索建议、站点安全和历史展示都会复用这些规则。
+ */
 object UrlUtils {
     fun resolveAddressInput(
         input: String,
         searchUrlPrefix: String
     ): String? {
+        // 地址栏输入如果能解析成网页 URL 就直接打开，否则拼成当前搜索引擎的搜索 URL。
         val value = input.trim()
         if (value.isEmpty()) {
             return null
@@ -86,6 +100,7 @@ object UrlUtils {
         defaultScheme: String,
         hasExplicitScheme: Boolean
     ): String? {
+        // 这里会补齐 scheme、校验 host、保留 path/query/fragment，并对尾部做必要编码。
         val withoutScheme = when {
             hasExplicitScheme -> value.substringAfter("://", missingDelimiterValue = "")
             value.startsWith("//") -> value.removePrefix("//")

@@ -1,5 +1,12 @@
 package com.example.videobrowser.download
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“下载管理模块”。
+ * 文件名 DownloadController 可以拆开理解为“Download Controller”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -20,6 +27,12 @@ import com.example.videobrowser.video.MediaRouteRequest
 import com.example.videobrowser.video.MediaRouteSource
 import com.example.videobrowser.video.MediaRoutingController
 
+/**
+ * 下载流程控制器。
+ *
+ * WebView 触发下载时先进入这里：可播放媒体会转给原生播放器，普通文件交给 Android DownloadManager。
+ * 下载完成广播回来后，控制器再把状态同步到 DownloadRecordRepository。
+ */
 class DownloadController(
     private val activity: AppCompatActivity,
     private val browserManager: () -> BrowserManager,
@@ -96,6 +109,7 @@ class DownloadController(
         contentDisposition: String?,
         mimeType: String?
     ) {
+        // 真正创建系统下载前先做 URL 和文件名安全检查，必要时弹出确认对话框。
         if (url.isNullOrBlank()) {
             Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
             return
@@ -190,6 +204,7 @@ class DownloadController(
         mimeType: String?,
         fileName: String
     ) {
+        // DownloadManager 负责后台下载和系统通知；应用自己只保存一份轻量记录用于功能中心展示。
         runCatching {
             val resolvedUserAgent = userAgent?.takeIf { it.isNotBlank() }
                 ?: browserManager().userAgentString()?.takeIf { it.isNotBlank() }

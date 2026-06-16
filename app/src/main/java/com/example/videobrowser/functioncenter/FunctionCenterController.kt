@@ -1,5 +1,12 @@
 package com.example.videobrowser.functioncenter
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“功能中心模块”。
+ * 文件名 FunctionCenterController 可以拆开理解为“Function Center Controller”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -7,6 +14,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.storage.SavedPage
 
+/**
+ * 功能中心容器控制器。
+ *
+ * 它负责把页面 View 挂到 MainActivity 根布局上，并维护一个轻量页面栈。
+ * 页面内容本身由 FunctionCenterViewFactory 和具体页面类创建。
+ */
 class FunctionCenterController(
     activity: AppCompatActivity,
     private val rootView: View,
@@ -194,6 +207,7 @@ class FunctionCenterController(
     }
 
     private fun attachPage(page: View, onBack: () -> Unit, saveCurrentPage: Boolean) {
+        // saveCurrentPage 为 true 时把当前页压栈，这样功能中心内部的返回键能回到上一页。
         val container = rootView as? ViewGroup ?: return
         this.page?.let { currentPage ->
             (currentPage.parent as? ViewGroup)?.removeView(currentPage)

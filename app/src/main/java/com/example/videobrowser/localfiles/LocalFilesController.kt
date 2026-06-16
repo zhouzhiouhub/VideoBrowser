@@ -1,5 +1,12 @@
 package com.example.videobrowser.localfiles
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“本地文件模块”。
+ * 文件名 LocalFilesController 可以拆开理解为“Local Files Controller”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：管理目录授权、读取本地文档列表，并把本地媒体交给浏览器或播放器打开。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
@@ -19,6 +26,12 @@ import com.example.videobrowser.video.LocalPlaybackQueueBuilder
 import com.example.videobrowser.video.LocalSubtitleMatcher
 import com.example.videobrowser.video.PlaybackQueue
 
+/**
+ * 本地文件页面控制器。
+ *
+ * Android 的系统文件选择器只给 Uri，不给普通文件路径。
+ * 这个类通过 DocumentsContract 读取目录内容，并把本地媒体文件包装成浏览器或播放器能使用的 Uri。
+ */
 class LocalFilesController(
     private val activity: AppCompatActivity,
     private val preferenceStore: PreferenceStore,
@@ -119,6 +132,7 @@ class LocalFilesController(
     }
 
     private fun showLocalDirectoryPage(treeUri: Uri, path: List<LocalDirectoryPathItem>) {
+        // path 保存从根目录到当前目录的面包屑；进入子目录时追加，返回时 dropLast。
         val current = path.lastOrNull() ?: return showLocalDirectoryPage(treeUri)
         val onBack: () -> Unit = if (path.size > 1) {
             { showLocalDirectoryPage(treeUri, path.dropLast(1)) }
@@ -221,6 +235,7 @@ class LocalFilesController(
         path: List<LocalDirectoryPathItem>,
         siblingDocuments: List<LocalDocument>
     ) {
+        // 对单个文件提供打开、分享、重命名、删除等动作；媒体文件还会尝试构建同目录播放队列。
         functionCenter.showPage(
             title = document.name,
             onBack = { showLocalDirectoryPage(treeUri, path) }
@@ -235,6 +250,7 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_open_file),
                     summary = activity.getString(R.string.action_open_file_summary)
                 ) {
+                    // 打开本地媒体时，把同目录媒体和字幕一起传给播放层，播放器就能上一集/下一集和挂字幕。
                     val queueDocuments = siblingDocuments.map {
                         LocalPlaybackQueueBuilder.Document(
                             uri = it.uri.toString(),

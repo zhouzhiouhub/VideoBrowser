@@ -1,5 +1,12 @@
 package com.example.videobrowser.storage
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“收藏与历史存储模块”。
+ * 文件名 SavedPageRepository 可以拆开理解为“Saved Page Repository”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：读写收藏夹、浏览历史、导入导出数据，并提供搜索和过滤能力。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -18,6 +25,11 @@ data class BookmarkImportResult(
     val skippedCount: Int
 )
 
+/**
+ * 收藏夹和浏览历史仓库。
+ *
+ * 数据保存在 PreferenceStore 中，仓库负责去重、限制数量、导入导出、旧格式兼容和 URL 规范化。
+ */
 class SavedPageRepository(
     private val preferenceStore: PreferenceStore,
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() }
@@ -54,6 +66,7 @@ class SavedPageRepository(
     }
 
     fun importBookmarks(rawValue: String): BookmarkImportResult {
+        // 导入时会过滤无效 URL、跳过已存在链接，并尊重收藏数量上限。
         val existingBookmarks = bookmarks()
         val existingUrls = existingBookmarks
             .map { page -> bookmarkUrlKey(page.url) }
@@ -186,6 +199,7 @@ class SavedPageRepository(
     }
 
     private fun parseSavedPages(rawValue: String): List<SavedPage> {
+        // 新格式是带版本头的行文本；旧版本曾用 JSON，这里保留读取兼容。
         return when {
             rawValue.startsWith(FORMAT_HEADER_PREFIX) -> loadVersionedPages(rawValue)
             rawValue.trimStart().startsWith("[") -> loadLegacyJsonPages(rawValue)

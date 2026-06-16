@@ -1,7 +1,20 @@
 package com.example.videobrowser.download
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“下载管理模块”。
+ * 文件名 DownloadRecordRepository 可以拆开理解为“Download Record Repository”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import com.example.videobrowser.storage.PreferenceStore
 
+/**
+ * 下载记录仓库。
+ *
+ * Android DownloadManager 保存真实任务；这里保存应用自己的展示快照，
+ * 包括文件名、来源 URL、状态、失败原因和进度字节数。
+ */
 class DownloadRecordRepository(
     private val preferenceStore: PreferenceStore
 ) {
@@ -94,6 +107,7 @@ class DownloadRecordRepository(
     }
 
     private fun parseRecord(line: String): DownloadRecord? {
+        // 字段数量判断用于兼容旧版本记录：旧记录没有状态、原因或进度字段时仍能读取。
         val fields = splitEscaped(line)
         if (fields.size != LEGACY_FIELD_COUNT &&
             fields.size != STATUS_FIELD_COUNT &&

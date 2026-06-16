@@ -1,5 +1,12 @@
 package com.example.videobrowser.settings
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“设置模块”。
+ * 文件名 SettingsManager 可以拆开理解为“Settings Manager”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：封装浏览器设置、站点级开关、权限记录和恢复默认设置逻辑。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import android.content.Context
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
@@ -33,6 +40,12 @@ enum class SitePermissionDecision {
     BLOCK
 }
 
+/**
+ * 应用设置读写入口。
+ *
+ * 这个类把 PreferenceStore 里的字符串/布尔值包装成有业务含义的函数：
+ * 全局开关、站点级开关、站点权限、自定义快捷入口、主页、搜索引擎等都从这里读写。
+ */
 class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
@@ -208,6 +221,7 @@ class SettingsManager(
         permission: SitePermission,
         decision: SitePermissionDecision
     ): Boolean {
+        // 每个权限只有一种最终状态：允许、阻止或询问。保存新状态前先从两个集合里移除旧状态。
         val normalizedHost = SiteHost.normalize(host) ?: return false
         val allowedHosts = allowedSitePermissionHosts(permission).toMutableSet()
         val blockedHosts = blockedSitePermissionHosts(permission).toMutableSet()
@@ -519,6 +533,7 @@ class SettingsManager(
     }
 
     private fun saveHostSet(key: String, hosts: Set<String>) {
+        // 站点集合按行保存，写入前排序，能让存储内容稳定，测试和导出都更容易比较。
         if (hosts.isEmpty()) {
             preferenceStore.remove(key)
         } else {

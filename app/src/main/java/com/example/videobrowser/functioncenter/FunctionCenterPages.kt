@@ -1,5 +1,12 @@
 package com.example.videobrowser.functioncenter
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“功能中心模块”。
+ * 文件名 FunctionCenterPages 可以拆开理解为“Function Center Pages”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +24,12 @@ import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackProgress
 import java.io.File
 
+/**
+ * 功能中心页面编排器。
+ *
+ * FunctionCenterController 只负责显示页面；各个页面类只负责单页内容。
+ * FunctionCenterPages 把 MainActivity 传进来的动作和这些页面连接起来，是功能中心的“路由表”。
+ */
 class FunctionCenterPages(
     activity: AppCompatActivity,
     functionCenter: FunctionCenterController,
@@ -210,6 +223,7 @@ class FunctionCenterPages(
     private val activity = host.activity
 
     fun showRootPage() {
+        // 根页面是底部弹出的第一页，包含常用浏览器动作和当前页面相关工具。
         host.showBottomSheetPage(
             title = activity.getString(R.string.title_page_tools),
             onClose = { close() }

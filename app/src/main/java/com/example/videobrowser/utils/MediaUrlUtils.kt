@@ -1,5 +1,12 @@
 package com.example.videobrowser.utils
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“通用工具模块”。
+ * 文件名 MediaUrlUtils 可以拆开理解为“Media Url Utils”，表示它只负责应用管理或数据层中的一个小职责。
+ * 主要职责：提供 URL、媒体地址等跨模块复用的纯函数。
+ * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
+ */
 import android.net.Uri
 
 object MediaUrlUtils {
