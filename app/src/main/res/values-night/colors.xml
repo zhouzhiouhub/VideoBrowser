@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    这是夜间模式的颜色表，名称需要和浅色主题 colors.xml 保持一致。
+    系统切到深色模式时，Android 会优先读取这个目录下的同名颜色。
+-->
 <resources>
     <color name="browser_background">#11151B</color>
     <color name="browser_surface">#181D25</color>

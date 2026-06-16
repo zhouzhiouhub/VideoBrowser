@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    WebView 浏览器需要兼容一些仍使用 http 的网页资源，因此这里允许明文流量。
+    如果改成 false，部分旧站点或本地调试页面可能无法加载。
+-->
 <network-security-config>
     <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

@@ -1,3 +1,8 @@
+/*
+ * 初学者阅读提示：
+ * 这是 youtube 站点的适配脚本。
+ * 它只处理该站点特有的播放器结构、遮挡元素和视频控制桥接，通用逻辑仍在 common.js 中。
+ */
 (function () {
   var adapters = window.VideoBrowserSiteAdapters || {};
   window.VideoBrowserSiteAdapters = adapters;

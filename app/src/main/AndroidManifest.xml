@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    AndroidManifest 是应用和系统之间的说明书，系统会从这里知道应用需要哪些权限、
+    使用哪个主题、哪个 Activity 是启动入口，以及哪些网页链接可以交给本应用打开。
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- 浏览网页、调用网页相机/麦克风/定位能力时，必须先声明对应系统权限。 -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
@@ -17,11 +23,13 @@
         android:roundIcon="@mipmap/app_logo_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.VideoBrowser">
+        <!-- 原生播放器页面只由应用内部打开，所以 exported=false，外部应用不能直接启动它。 -->
         <activity
             android:name=".video.PlayerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:hardwareAccelerated="true" />
+        <!-- 主浏览器页面既是桌面启动入口，也接收系统分发来的 http/https 网页链接。 -->
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"

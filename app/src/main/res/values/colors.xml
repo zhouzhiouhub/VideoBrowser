@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+        初学者阅读提示：
+        colors.xml 集中保存浅色主题下的界面颜色。布局、主题和 Kotlin 会引用这些颜色名称，
+        这样调整品牌色或背景色时不用到每个文件里逐个修改。
+    -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="browser_background">#F5F6FB</color>

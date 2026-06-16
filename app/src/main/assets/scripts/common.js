@@ -1,3 +1,8 @@
+/*
+ * 初学者阅读提示：
+ * 这是所有网页都会注入的通用增强脚本。
+ * 它负责读取 Kotlin 侧传入的配置，执行页面清理、元素屏蔽、视频手势桥接和诊断日志。
+ */
 (function () {
   const state = window.__videobrowserState || {
     observer: null,

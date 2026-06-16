@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    这是 bg_profile_avatar 背景图形资源，通常定义圆角、描边、填充色或按压状态。
+    布局文件通过 @drawable/名称 把它设置到控件背景上。
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="@color/browser_soft_blue" />
     <corners android:radius="28dp" />

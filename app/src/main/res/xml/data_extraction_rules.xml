@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    Android 12 以后用这个文件声明云备份和设备迁移的数据范围。
+    本项目排除了文件、数据库和偏好设置，意思是浏览器本地数据默认只留在当前设备。
+-->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="file" path="." />

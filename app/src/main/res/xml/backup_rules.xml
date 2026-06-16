@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    这里控制 Android 自动云备份的范围。浏览器历史、规则、下载记录等本地数据不进入系统备份，
+    避免用户换机或恢复备份时带入敏感浏览数据。
+-->
 <full-backup-content>
     <exclude domain="file" path="." />
     <exclude domain="database" path="." />

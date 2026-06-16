@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    这是原生视频播放器页面的布局。FrameLayout 作为黑色全屏底板，
+    PlayerView 负责显示视频画面和 Media3 自带控制条；更复杂的手势层由 Kotlin 动态添加。
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/playerRoot"

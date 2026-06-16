@@ -1,5 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!--
+        初学者阅读提示：
+        主题决定状态栏、导航栏、强调色和是否使用系统 ActionBar。
+        Manifest 中的 @style/Theme.VideoBrowser 会最终应用这里定义的外观。
+    -->
     <style name="Base.Theme.VideoBrowser" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:colorAccent">@color/browser_primary</item>
         <item name="android:navigationBarColor">@color/browser_surface</item>

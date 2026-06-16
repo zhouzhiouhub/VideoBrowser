@@ -1,5 +1,10 @@
 package com.example.videobrowser.rules
 
+/**
+ * 测试阅读提示：
+ * 这个测试文件验证“Rule Subscription Importer Test”相关行为。
+ * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
+ */
 import com.example.videobrowser.adguard.AdGuardRuleParser
 import java.io.IOException
 import org.junit.Assert.assertEquals

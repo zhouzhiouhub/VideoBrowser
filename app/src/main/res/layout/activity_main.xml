@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    这是主浏览器页面的静态骨架。顶部是地址栏，中间是网页 WebView 和搜索建议层，
+    底部是导航工具栏；真正的点击逻辑、加载网页逻辑在 MainActivity 和 browser 模块里完成。
+-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootView"
@@ -6,6 +11,7 @@
     android:layout_height="match_parent"
     android:background="@color/browser_background">
 
+    <!-- 顶部工具栏承载地址输入、站点安全图标、搜索/打开按钮和功能入口。 -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
@@ -21,6 +27,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- 地址栏本身是一个横向容器，里面放搜索引擎标识、安全状态和可编辑输入框。 -->
         <LinearLayout
             android:id="@+id/addressBar"
             android:layout_width="0dp"

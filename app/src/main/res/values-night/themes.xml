@@ -1,3 +1,8 @@
+<!--
+    初学者阅读提示：
+    这是夜间模式主题，负责在深色环境下覆盖状态栏、导航栏等系统外观。
+    普通界面颜色仍主要来自 values-night/colors.xml。
+-->
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.VideoBrowser" parent="Theme.Material3.DayNight.NoActionBar">

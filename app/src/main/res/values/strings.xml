@@ -1,4 +1,9 @@
 <resources>
+    <!--
+        初学者阅读提示：
+        strings.xml 集中保存界面文字。Kotlin 和布局通过 @string/名称 引用这些文本，
+        以后要做多语言翻译时，也主要从这里开始。
+    -->
     <string name="app_name">VideoBrowser</string>
     <string name="hint_address_bar">输入网址或搜索</string>
     <string name="action_load_url">打开</string>

@@ -1,5 +1,10 @@
 package com.example.videobrowser.download
 
+/**
+ * 测试阅读提示：
+ * 这个测试文件验证“Download Record Cleaner Test”相关行为。
+ * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
+ */
 import com.example.videobrowser.storage.PreferenceStore
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

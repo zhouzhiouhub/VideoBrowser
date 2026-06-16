@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    这是 Android 8.0 及以上使用的自适应启动图标配置。
+    foreground 是前景图层，background 是背景图层，系统会按设备形状裁切显示。
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/app_logo_background" />
     <foreground android:drawable="@drawable/app_logo_foreground" />

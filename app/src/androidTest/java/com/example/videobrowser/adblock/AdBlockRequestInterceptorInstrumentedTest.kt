@@ -1,5 +1,10 @@
 package com.example.videobrowser.adblock
 
+/**
+ * 测试阅读提示：
+ * 这个测试文件验证“Ad Block Request Interceptor Instrumented Test”相关行为。
+ * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
+ */
 import android.net.Uri
 import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.rules.Rule

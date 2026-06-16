@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    初学者阅读提示：
+    这是 address_go_icon 颜色状态选择器，用于让同一个控件在普通、按下或不可用状态显示不同颜色。
+    布局或图标通过 @color/名称 引用它。
+-->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:color="@color/white" />
 </selector>
