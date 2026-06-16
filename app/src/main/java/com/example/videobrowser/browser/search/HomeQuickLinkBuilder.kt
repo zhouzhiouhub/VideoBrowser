@@ -17,6 +17,15 @@ data class HomeQuickLink(
 )
 
 object HomeQuickLinkBuilder {
+    /**
+     * 函数 `fromHistory`：封装 `from History` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param history 参数类型为 `List<SavedPage>`，表示函数执行 `history` 相关逻辑时需要读取或处理的输入。
+     * @param excludedUrls 参数类型为 `Collection<String>`，表示函数执行 `excludedUrls` 相关逻辑时需要读取或处理的输入。
+     * @param limit 参数类型为 `Int`，表示函数执行 `limit` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun fromHistory(
         history: List<SavedPage>,
         excludedUrls: Collection<String>,
@@ -42,6 +51,13 @@ object HomeQuickLinkBuilder {
             .toList()
     }
 
+    /**
+     * 函数 `urlKey`：封装 `url Key` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun urlKey(url: String): String? {
         val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return null
         val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
@@ -52,6 +68,13 @@ object HomeQuickLinkBuilder {
         return uri.toString().lowercase(Locale.ROOT).takeIf { host.isNotBlank() }
     }
 
+    /**
+     * 函数 `displayHost`：封装 `display Host` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun displayHost(url: String): String? {
         return runCatching { URI(url.trim()).host }
             .getOrNull()

@@ -47,13 +47,44 @@ class AddressSuggestionController(
     private var suppressTextChanges = false
     private var disposed = false
 
+    /**
+     * 函数 `setup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun setup() {
         addressInput.addTextChangedListener(
             object : TextWatcher {
+                /**
+                 * 函数 `beforeTextChanged`：封装 `before Text Changed` 这一段业务步骤，让调用方不用关心内部实现细节。
+                 *
+                 * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                 * @param s 参数类型为 `CharSequence?`，表示函数执行 `s` 相关逻辑时需要读取或处理的输入。
+                 * @param start 参数类型为 `Int`，表示函数执行 `start` 相关逻辑时需要读取或处理的输入。
+                 * @param count 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+                 * @param after 参数类型为 `Int`，表示函数执行 `after` 相关逻辑时需要读取或处理的输入。
+                 * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+                 */
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
 
+                /**
+                 * 函数 `onTextChanged`：处理 `on Text Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+                 *
+                 * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                 * @param s 参数类型为 `CharSequence?`，表示函数执行 `s` 相关逻辑时需要读取或处理的输入。
+                 * @param start 参数类型为 `Int`，表示函数执行 `start` 相关逻辑时需要读取或处理的输入。
+                 * @param before 参数类型为 `Int`，表示函数执行 `before` 相关逻辑时需要读取或处理的输入。
+                 * @param count 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+                 * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+                 */
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
 
+                /**
+                 * 函数 `afterTextChanged`：封装 `after Text Changed` 这一段业务步骤，让调用方不用关心内部实现细节。
+                 *
+                 * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                 * @param s 参数类型为 `Editable?`，表示函数执行 `s` 相关逻辑时需要读取或处理的输入。
+                 */
                 override fun afterTextChanged(s: Editable?) {
                     if (!suppressTextChanges) {
                         handleInputChanged()
@@ -63,6 +94,12 @@ class AddressSuggestionController(
         )
     }
 
+    /**
+     * 函数 `handleAddressFocusChanged`：处理 `handle Address Focus Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hasFocus 参数类型为 `Boolean`，表示函数执行 `hasFocus` 相关逻辑时需要读取或处理的输入。
+     */
     fun handleAddressFocusChanged(hasFocus: Boolean) {
         if (hasFocus) {
             handleInputChanged()
@@ -71,12 +108,22 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `syncVisibility`：根据最新状态刷新 `sync Visibility` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun syncVisibility() {
         if (!canShowSuggestions()) {
             hide()
         }
     }
 
+    /**
+     * 函数 `hide`：控制 `hide` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun hide() {
         requestSequence += 1
         handler.removeCallbacksAndMessages(null)
@@ -84,12 +131,23 @@ class AddressSuggestionController(
         panel.removeAllViews()
     }
 
+    /**
+     * 函数 `dispose`：封装 `dispose` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun dispose() {
         disposed = true
         hide()
         suggestionClient.dispose()
     }
 
+    /**
+     * 函数 `runWithSuggestionsSuppressed`：封装 `run With Suggestions Suppressed` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `() -> Unit`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     */
     fun runWithSuggestionsSuppressed(action: () -> Unit) {
         suppressTextChanges = true
         hide()
@@ -100,6 +158,11 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `handleInputChanged`：处理 `handle Input Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun handleInputChanged() {
         if (disposed) {
             return
@@ -139,6 +202,13 @@ class AddressSuggestionController(
         )
     }
 
+    /**
+     * 函数 `renderSuggestions`：封装 `render Suggestions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @param remoteKeywords 参数类型为 `List<String>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun renderSuggestions(query: String, remoteKeywords: List<String>) {
         val includePrivateSources = !isPrivateBrowsingEnabled()
         val suggestions = AddressSuggestionRanker.build(
@@ -160,6 +230,13 @@ class AddressSuggestionController(
         panel.visibility = View.VISIBLE
     }
 
+    /**
+     * 函数 `createSuggestionRow`：创建 `create Suggestion Row` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createSuggestionRow(suggestion: AddressSuggestion): View {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -188,6 +265,13 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `createIcon`：创建 `create Icon` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createIcon(suggestion: AddressSuggestion): ImageView {
         return ImageView(activity).apply {
             setImageResource(
@@ -203,6 +287,13 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `createTextContainer`：创建 `create Text Container` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createTextContainer(suggestion: AddressSuggestion): LinearLayout {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -228,6 +319,13 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `createPrimaryText`：创建 `create Primary Text` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param textValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createPrimaryText(textValue: String): TextView {
         return TextView(activity).apply {
             text = textValue
@@ -239,6 +337,13 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `createSecondaryText`：创建 `create Secondary Text` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param textValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createSecondaryText(textValue: String): TextView {
         return TextView(activity).apply {
             text = textValue
@@ -256,6 +361,12 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `selectSuggestion`：封装 `select Suggestion` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
+     */
     private fun selectSuggestion(suggestion: AddressSuggestion) {
         runWithSuggestionsSuppressed {
             when (suggestion) {
@@ -267,6 +378,13 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `contentDescriptionFor`：封装 `content Description For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun contentDescriptionFor(suggestion: AddressSuggestion): String {
         return when (suggestion) {
             is AddressSuggestion.Bookmark -> {
@@ -284,6 +402,13 @@ class AddressSuggestionController(
         }
     }
 
+    /**
+     * 函数 `canShowSuggestions`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun canShowSuggestions(query: String = currentQuery()): Boolean {
         return addressInput.hasFocus() &&
             query.isNotBlank() &&
@@ -291,10 +416,21 @@ class AddressSuggestionController(
             !isVideoFullscreenUiActive()
     }
 
+    /**
+     * 函数 `currentQuery`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentQuery(): String {
         return addressInput.text?.toString()?.trim().orEmpty()
     }
 
+    /**
+     * 函数 `setBoundedSelectableItemBackground`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun View.setBoundedSelectableItemBackground() {
         val outValue = TypedValue()
         activity.theme.resolveAttribute(

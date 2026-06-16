@@ -53,6 +53,11 @@ class BrowserControlsController(
         private set
     private var isPageLoading = false
 
+    /**
+     * 函数 `setup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun setup() {
         ViewCompat.setTooltipText(pageToolsButton, activity.getString(R.string.title_page_tools))
         ViewCompat.setTooltipText(wenxinButton, activity.getString(R.string.action_wenxin))
@@ -99,6 +104,12 @@ class BrowserControlsController(
         updateRefreshButton()
     }
 
+    /**
+     * 函数 `setHidden`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hidden 参数类型为 `Boolean`，表示函数执行 `hidden` 相关逻辑时需要读取或处理的输入。
+     */
     fun setHidden(hidden: Boolean) {
         if (areHidden == hidden) {
             onVisibilityChanged()
@@ -111,10 +122,23 @@ class BrowserControlsController(
         onVisibilityChanged()
     }
 
+    /**
+     * 函数 `setProgress`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param progress 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     fun setProgress(progress: Int) {
         pageProgress.progress = progress.coerceIn(0, 100)
     }
 
+    /**
+     * 函数 `updatePageProgressVisibility`：根据最新状态刷新 `update Page Progress Visibility` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param isPageLoading 参数类型为 `Boolean`，表示函数执行 `isPageLoading` 相关逻辑时需要读取或处理的输入。
+     * @param forceHidden 参数类型为 `Boolean`，表示函数执行 `forceHidden` 相关逻辑时需要读取或处理的输入。
+     */
     fun updatePageProgressVisibility(isPageLoading: Boolean, forceHidden: Boolean = false) {
         this.isPageLoading = isPageLoading
         updateRefreshButton()
@@ -125,6 +149,11 @@ class BrowserControlsController(
         }
     }
 
+    /**
+     * 函数 `updateNavigationButtons`：根据最新状态刷新 `update Navigation Buttons` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun updateNavigationButtons() {
         val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible())
         backButton.isEnabled = visibility.showBack
@@ -139,6 +168,12 @@ class BrowserControlsController(
         updateBookmarkButton()
     }
 
+    /**
+     * 函数 `applyBottomBarButtonArrangement`：根据最新状态刷新 `apply Bottom Bar Button Arrangement` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param arrangement 参数类型为 `BottomBarButtonArrangement`，表示函数执行 `arrangement` 相关逻辑时需要读取或处理的输入。
+     */
     private fun applyBottomBarButtonArrangement(arrangement: BottomBarButtonArrangement) {
         val constraints = ConstraintSet().apply { clone(bottomBar) }
         val actionIds = intArrayOf(
@@ -182,6 +217,17 @@ class BrowserControlsController(
         constraints.applyTo(bottomBar)
     }
 
+    /**
+     * 函数 `connectHorizontalChain`：封装 `connect Horizontal Chain` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param startId 参数类型为 `Int`，表示函数执行 `startId` 相关逻辑时需要读取或处理的输入。
+     * @param startSide 参数类型为 `Int`，表示函数执行 `startSide` 相关逻辑时需要读取或处理的输入。
+     * @param endId 参数类型为 `Int`，表示函数执行 `endId` 相关逻辑时需要读取或处理的输入。
+     * @param endSide 参数类型为 `Int`，表示函数执行 `endSide` 相关逻辑时需要读取或处理的输入。
+     * @param chainIds 参数类型为 `IntArray`，表示函数执行 `chainIds` 相关逻辑时需要读取或处理的输入。
+     * @param chainStyle 参数类型为 `Int`，表示函数执行 `chainStyle` 相关逻辑时需要读取或处理的输入。
+     */
     private fun ConstraintSet.connectHorizontalChain(
         startId: Int,
         startSide: Int,
@@ -209,6 +255,11 @@ class BrowserControlsController(
         setHorizontalChainStyle(chainIds.first(), chainStyle)
     }
 
+    /**
+     * 函数 `updateBookmarkButton`：根据最新状态刷新 `update Bookmark Button` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun updateBookmarkButton() {
         if (isHomePageVisible()) {
             bookmarkButton.isEnabled = false
@@ -239,6 +290,11 @@ class BrowserControlsController(
         ViewCompat.setTooltipText(bookmarkButton, actionText)
     }
 
+    /**
+     * 函数 `updateRefreshButton`：根据最新状态刷新 `update Refresh Button` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateRefreshButton() {
         val actionText = activity.getString(
             if (isPageLoading) R.string.action_stop_loading else R.string.action_refresh

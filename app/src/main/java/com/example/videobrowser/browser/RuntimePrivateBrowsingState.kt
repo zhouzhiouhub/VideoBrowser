@@ -16,6 +16,12 @@ class RuntimePrivateBrowsingState(
     val isPrivate: Boolean
         get() = mode == BrowserMode.PRIVATE
 
+    /**
+     * 函数 `enterPrivate`：封装 `enter Private` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun enterPrivate(): Boolean {
         if (isPrivate) {
             return false
@@ -24,6 +30,12 @@ class RuntimePrivateBrowsingState(
         return true
     }
 
+    /**
+     * 函数 `exitPrivate`：封装 `exit Private` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun exitPrivate(): Boolean {
         if (!isPrivate) {
             return false
@@ -33,6 +45,11 @@ class RuntimePrivateBrowsingState(
         return true
     }
 
+    /**
+     * 函数 `resetToStandard`：封装 `reset To Standard` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun resetToStandard() {
         if (isPrivate) {
             onPrivateCleanup()

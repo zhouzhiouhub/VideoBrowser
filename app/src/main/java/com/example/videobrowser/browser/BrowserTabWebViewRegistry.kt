@@ -106,32 +106,79 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
     val activeTabId: Long
         get() = tabs?.activeTabId ?: activeViewTabId
 
+    /**
+     * 函数 `activeTab`：封装 `active Tab` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun activeTab(): BrowserTab {
         return requireTabs().activeTab()
     }
 
+    /**
+     * 函数 `activeWebView`：封装 `active Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun activeWebView(): T {
         return viewsByTabId.getValue(activeViewTabId)
     }
 
+    /**
+     * 函数 `activeView`：封装 `active View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun activeView(): T {
         return activeWebView()
     }
 
+    /**
+     * 函数 `webViewFor`：封装 `web View For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun webViewFor(tabId: Long): T? {
         return viewsByTabId[tabId]
     }
 
+    /**
+     * 函数 `viewFor`：封装 `view For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun viewFor(tabId: Long): T? {
         return webViewFor(tabId)
     }
 
+    /**
+     * 函数 `tabIdFor`：封装 `tab Id For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `T`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun tabIdFor(view: T): Long? {
         return viewsByTabId.entries
             .firstOrNull { (_, tabView) -> tabView === view }
             ?.key
     }
 
+    /**
+     * 函数 `replaceView`：封装 `replace View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @param replacementView 参数类型为 `T`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun replaceView(tabId: Long, replacementView: T): ReplaceResult<T>? {
         val previousView = viewsByTabId[tabId] ?: return null
         val tabStore = requireTabs()
@@ -145,6 +192,13 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         )
     }
 
+    /**
+     * 函数 `activate`：封装 `activate` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun activate(tabId: Long): T {
         val currentWebView = activeWebView()
         val nextWebView = viewsByTabId.getOrPut(tabId) {
@@ -158,6 +212,14 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         return nextWebView
     }
 
+    /**
+     * 函数 `close`：控制 `close` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @param fallbackActiveTabId 参数类型为 `Long`，表示函数执行 `fallbackActiveTabId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun close(tabId: Long, fallbackActiveTabId: Long): T? {
         val closedWebView = viewsByTabId.remove(tabId) ?: return null
         val fallbackWebView = if (activeViewTabId == tabId) {
@@ -176,6 +238,15 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         return fallbackWebView
     }
 
+    /**
+     * 函数 `openTab`：启动或加载 `open Tab` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `T`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun openTab(view: T, url: String? = null, title: String = ""): OpenedTab<T> {
         val previousView = activeWebView()
         val tab = requireTabs().openTab(url = url, title = title)
@@ -188,6 +259,13 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         )
     }
 
+    /**
+     * 函数 `switchTo`：封装 `switch To` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun switchTo(tabId: Long): SwitchResult<T>? {
         val previousView = activeWebView()
         val tabStore = requireTabs()
@@ -205,6 +283,13 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         )
     }
 
+    /**
+     * 函数 `closeTab`：控制 `close Tab` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun closeTab(tabId: Long): CloseResult<T>? {
         val closedView = viewsByTabId[tabId]
         val tabStore = requireTabs()
@@ -227,6 +312,13 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         )
     }
 
+    /**
+     * 函数 `closeOtherTabs`：控制 `close Other Tabs` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun closeOtherTabs(tabId: Long): CloseOthersResult<T>? {
         val tabStore = requireTabs()
         val closedTabs = tabStore.closeOtherTabs(tabId)
@@ -245,6 +337,12 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         )
     }
 
+    /**
+     * 函数 `closeAllTabs`：控制 `close All Tabs` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun closeAllTabs(): CloseAllResult<T> {
         val tabStore = requireTabs()
         val closedTabs = tabStore.closeAllTabs()
@@ -260,16 +358,34 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         )
     }
 
+    /**
+     * 函数 `destroyAll`：封装 `destroy All` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param destroyView 参数类型为 `(T) -> Unit`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     fun destroyAll(destroyView: (T) -> Unit = destroyWebView) {
         val views = viewsByTabId.values.toList()
         viewsByTabId.clear()
         views.forEach(destroyView)
     }
 
+    /**
+     * 函数 `requireTabs`：封装 `require Tabs` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun requireTabs(): BrowserTabStore {
         return requireNotNull(tabs) { "BrowserTabStore is required for this operation." }
     }
 
+    /**
+     * 函数 `requireCreateWebView`：封装 `require Create Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun requireCreateWebView(): () -> T {
         return requireNotNull(createWebView) { "createWebView is required for this operation." }
     }

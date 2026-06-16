@@ -31,6 +31,14 @@ class BrowserExternalNavigator(
     private val currentShareableUrl: () -> String?,
     private val isShareableUrl: (String) -> Boolean
 ) {
+    /**
+     * 函数 `openExternalProtocolUrl`：启动或加载 `open External Protocol Url` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param loadFallbackUrl 参数类型为 `(String) -> Unit`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun openExternalProtocolUrl(
         url: String,
         loadFallbackUrl: (String) -> Unit = {}
@@ -49,6 +57,18 @@ class BrowserExternalNavigator(
         return true
     }
 
+    /**
+     * 函数 `openNativePlayer`：启动或加载 `open Native Player` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param userAgentOverride 参数类型为 `String?`，表示函数执行 `userAgentOverride` 相关逻辑时需要读取或处理的输入。
+     * @param titleOverride 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param privateBrowsing 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @param subtitleCandidates 参数类型为 `List<ExternalSubtitleCandidate>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param playbackQueue 参数类型为 `PlaybackQueue?`，表示函数执行 `playbackQueue` 相关逻辑时需要读取或处理的输入。
+     */
     fun openNativePlayer(
         url: String,
         mimeType: String? = null,
@@ -90,6 +110,14 @@ class BrowserExternalNavigator(
         activity.startActivity(intent)
     }
 
+    /**
+     * 函数 `openIntentUri`：启动或加载 `open Intent Uri` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param loadFallbackUrl 参数类型为 `(String) -> Unit`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun openIntentUri(
         url: String,
         loadFallbackUrl: (String) -> Unit
@@ -104,6 +132,13 @@ class BrowserExternalNavigator(
         return true
     }
 
+    /**
+     * 函数 `browserFallbackUrlFromIntentUri`：封装 `browser Fallback Url From Intent Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun browserFallbackUrlFromIntentUri(url: String): String? {
         val parsedFallbackUrl = runCatching {
             Intent.parseUri(url, Intent.URI_INTENT_SCHEME)

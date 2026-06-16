@@ -64,6 +64,11 @@ class SearchProviderController(
     lateinit var selectedProvider: SearchProvider
         private set
 
+    /**
+     * 函数 `setup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun setup() {
         // 每次重新进入主页都会重建列表，确保自定义快捷入口、历史入口和默认搜索引擎都是最新状态。
         selectedProvider = loadSavedSearchProvider()
@@ -93,6 +98,14 @@ class SearchProviderController(
         updateSelection()
     }
 
+    /**
+     * 函数 `syncVisibility`：根据最新状态刷新 `sync Visibility` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param areBrowserControlsHidden 参数类型为 `Boolean`，表示函数执行 `areBrowserControlsHidden` 相关逻辑时需要读取或处理的输入。
+     * @param isVideoFullscreenUiActive 参数类型为 `Boolean`，表示函数执行 `isVideoFullscreenUiActive` 相关逻辑时需要读取或处理的输入。
+     * @param isHomePageVisible 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     fun syncVisibility(
         areBrowserControlsHidden: Boolean,
         isVideoFullscreenUiActive: Boolean,
@@ -110,6 +123,13 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `addressBarDisplayText`：封装 `address Bar Display Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun addressBarDisplayText(url: String): String {
         if (isProviderHomeUrl(url)) {
             return ""
@@ -121,6 +141,13 @@ class SearchProviderController(
         return UrlUtils.displayUrl(url)
     }
 
+    /**
+     * 函数 `isProviderHomeUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun isProviderHomeUrl(url: String?): Boolean {
         if (url.isNullOrBlank()) {
             return false
@@ -135,6 +162,13 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `selectDefaultSearchProvider`：封装 `select Default Search Provider` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param providerId 参数类型为 `String`，表示函数执行 `providerId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun selectDefaultSearchProvider(providerId: String): Boolean {
         val provider = providers.firstOrNull { it.id == providerId } ?: return false
         selectedProvider = provider
@@ -143,6 +177,12 @@ class SearchProviderController(
         return true
     }
 
+    /**
+     * 函数 `addProviderItem`：封装 `add Provider Item` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addProviderItem(provider: SearchProvider) {
         val item = createProviderItem(provider)
         val badge = createProviderBadge(provider)
@@ -154,6 +194,12 @@ class SearchProviderController(
         providerList.addView(item, providerItemLayoutParams())
     }
 
+    /**
+     * 函数 `addCustomShortcutItem`：封装 `add Custom Shortcut Item` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
+     */
     private fun addCustomShortcutItem(shortcut: CustomShortcut) {
         val item = createCustomShortcutItem(shortcut)
         item.addView(
@@ -164,6 +210,12 @@ class SearchProviderController(
         providerList.addView(item, providerItemLayoutParams())
     }
 
+    /**
+     * 函数 `addRecentHistoryItem`：封装 `add Recent History Item` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param quickLink 参数类型为 `HomeQuickLink`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun addRecentHistoryItem(quickLink: HomeQuickLink) {
         val item = createRecentHistoryItem(quickLink)
         item.addView(createRecentHistoryBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
@@ -171,6 +223,11 @@ class SearchProviderController(
         providerList.addView(item, providerItemLayoutParams())
     }
 
+    /**
+     * 函数 `addAddShortcutItem`：封装 `add Add Shortcut Item` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun addAddShortcutItem() {
         val item = createAddShortcutItem()
         item.addView(createAddShortcutBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
@@ -178,6 +235,13 @@ class SearchProviderController(
         providerList.addView(item, providerItemLayoutParams())
     }
 
+    /**
+     * 函数 `createProviderItem`：创建 `create Provider Item` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createProviderItem(provider: SearchProvider): LinearLayout {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -194,6 +258,13 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createCustomShortcutItem`：创建 `create Custom Shortcut Item` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createCustomShortcutItem(shortcut: CustomShortcut): LinearLayout {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -214,6 +285,13 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createRecentHistoryItem`：创建 `create Recent History Item` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param quickLink 参数类型为 `HomeQuickLink`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createRecentHistoryItem(quickLink: HomeQuickLink): LinearLayout {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -234,6 +312,12 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createAddShortcutItem`：创建 `create Add Shortcut Item` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createAddShortcutItem(): LinearLayout {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -247,6 +331,12 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createRecentHistoryBadge`：创建 `create Recent History Badge` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createRecentHistoryBadge(): ImageView {
         return ImageView(activity).apply {
             setImageResource(R.drawable.ic_history_24)
@@ -258,6 +348,13 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createProviderBadge`：创建 `create Provider Badge` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createProviderBadge(provider: SearchProvider): TextView {
         return TextView(activity).apply {
             gravity = Gravity.CENTER
@@ -268,6 +365,13 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createCustomShortcutBadge`：创建 `create Custom Shortcut Badge` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createCustomShortcutBadge(shortcut: CustomShortcut): TextView {
         val badgeText = shortcutBadgeText(shortcut.name)
         return TextView(activity).apply {
@@ -283,6 +387,12 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createAddShortcutBadge`：创建 `create Add Shortcut Badge` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createAddShortcutBadge(): ImageView {
         return ImageView(activity).apply {
             setImageResource(R.drawable.ic_add_24)
@@ -294,10 +404,24 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createProviderLabel`：创建 `create Provider Label` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createProviderLabel(provider: SearchProvider): TextView {
         return createCustomShortcutLabel(provider.name)
     }
 
+    /**
+     * 函数 `createCustomShortcutLabel`：创建 `create Custom Shortcut Label` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param labelText 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createCustomShortcutLabel(labelText: String): TextView {
         return TextView(activity).apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -316,6 +440,12 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `selectProvider`：封装 `select Provider` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     */
     private fun selectProvider(provider: SearchProvider) {
         val shouldOpenProviderHome = isHomePageVisible()
         selectedProvider = provider
@@ -329,11 +459,22 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `loadSavedSearchProvider`：启动或加载 `load Saved Search Provider` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun loadSavedSearchProvider(): SearchProvider {
         val savedProviderId = settingsManager.searchEngineId()
         return providers.firstOrNull { it.id == savedProviderId } ?: providers.first()
     }
 
+    /**
+     * 函数 `updateSelection`：根据最新状态刷新 `update Selection` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateSelection() {
         providers.forEach { provider ->
             val views = providerViews[provider.id] ?: return@forEach
@@ -359,6 +500,11 @@ class SearchProviderController(
         updateAddressProviderBadge()
     }
 
+    /**
+     * 函数 `updateAddressProviderBadge`：根据最新状态刷新 `update Address Provider Badge` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateAddressProviderBadge() {
         addressProviderBadge.text = selectedProvider.badge
         addressProviderBadge.setTextColor(Color.WHITE)
@@ -373,6 +519,14 @@ class SearchProviderController(
         )
     }
 
+    /**
+     * 函数 `createProviderBadgeBackground`：创建 `create Provider Badge Background` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     * @param selected 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createProviderBadgeBackground(
         provider: SearchProvider,
         selected: Boolean
@@ -391,6 +545,13 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `createCircleBackground`：创建 `create Circle Background` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param color 参数类型为 `Int`，表示函数执行 `color` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createCircleBackground(color: Int): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.OVAL
@@ -398,6 +559,11 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `showAddShortcutDialog`：控制 `show Add Shortcut Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showAddShortcutDialog() {
         showCustomShortcutEditorDialog(
             titleResId = R.string.title_add_custom_shortcut,
@@ -410,6 +576,12 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `showCustomShortcutActionsDialog`：控制 `show Custom Shortcut Actions Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut) {
         val actions = listOf(
             activity.getString(R.string.action_edit) to { showEditCustomShortcutDialog(shortcut) },
@@ -423,6 +595,12 @@ class SearchProviderController(
             .show()
     }
 
+    /**
+     * 函数 `showEditCustomShortcutDialog`：控制 `show Edit Custom Shortcut Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showEditCustomShortcutDialog(shortcut: CustomShortcut) {
         showCustomShortcutEditorDialog(
             titleResId = R.string.title_edit_custom_shortcut,
@@ -435,6 +613,17 @@ class SearchProviderController(
         }
     }
 
+    /**
+     * 函数 `showCustomShortcutEditorDialog`：控制 `show Custom Shortcut Editor Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param titleResId 参数类型为 `Int`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param initialName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param initialUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param positiveButtonResId 参数类型为 `Int`，表示函数执行 `positiveButtonResId` 相关逻辑时需要读取或处理的输入。
+     * @param successToastResId 参数类型为 `Int`，表示函数执行 `successToastResId` 相关逻辑时需要读取或处理的输入。
+     * @param saveShortcut 参数类型为 `(String, String) -> Boolean`，表示函数执行 `saveShortcut` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showCustomShortcutEditorDialog(
         titleResId: Int,
         initialName: String,
@@ -494,6 +683,12 @@ class SearchProviderController(
         dialog.show()
     }
 
+    /**
+     * 函数 `showRemoveCustomShortcutDialog`：控制 `show Remove Custom Shortcut Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_remove_custom_shortcut)
@@ -517,6 +712,12 @@ class SearchProviderController(
             .show()
     }
 
+    /**
+     * 函数 `showRemoveRecentHistoryDialog`：控制 `show Remove Recent History Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param quickLink 参数类型为 `HomeQuickLink`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink) {
         AlertDialog.Builder(activity)
             .setTitle(R.string.title_remove_recent_site)
@@ -544,20 +745,45 @@ class SearchProviderController(
             .show()
     }
 
+    /**
+     * 函数 `providerItemLayoutParams`：封装 `provider Item Layout Params` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun providerItemLayoutParams(): LinearLayout.LayoutParams {
         return LinearLayout.LayoutParams(dp(78), ViewGroup.LayoutParams.MATCH_PARENT)
     }
 
+    /**
+     * 函数 `shortcutBadgeText`：封装 `shortcut Badge Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun shortcutBadgeText(name: String): String {
         return name.trim().take(2).ifBlank { "+" }
     }
 
+    /**
+     * 函数 `homeQuickLinkExcludedUrls`：封装 `home Quick Link Excluded Urls` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param customShortcuts 参数类型为 `List<CustomShortcut>`，表示函数执行 `customShortcuts` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun homeQuickLinkExcludedUrls(customShortcuts: List<CustomShortcut>): List<String> {
         return customShortcuts.map { shortcut -> shortcut.url } +
             providers.map { provider -> provider.homeUrl } +
             settingsManager.homeUrlOr(selectedProvider.homeUrl)
     }
 
+    /**
+     * 函数 `setBoundedSelectableItemBackground`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun View.setBoundedSelectableItemBackground() {
         val outValue = TypedValue()
         activity.theme.resolveAttribute(
@@ -568,6 +794,13 @@ class SearchProviderController(
         setBackgroundResource(outValue.resourceId)
     }
 
+    /**
+     * 函数 `normalizedPath`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizedPath(uri: Uri): String {
         return uri.path.orEmpty().trim('/')
     }

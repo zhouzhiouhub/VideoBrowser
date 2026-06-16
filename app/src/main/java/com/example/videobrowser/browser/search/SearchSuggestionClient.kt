@@ -18,6 +18,14 @@ import java.util.concurrent.Executors
 class SearchSuggestionClient(
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 ) {
+    /**
+     * 函数 `fetch`：封装 `fetch` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @param onResult 参数类型为 `(List<String>) -> Unit`，表示函数执行 `onResult` 相关逻辑时需要读取或处理的输入。
+     */
     fun fetch(
         provider: SearchProvider,
         query: String,
@@ -37,10 +45,23 @@ class SearchSuggestionClient(
         }
     }
 
+    /**
+     * 函数 `dispose`：封装 `dispose` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun dispose() {
         executor.shutdownNow()
     }
 
+    /**
+     * 函数 `fetchSuggestions`：封装 `fetch Suggestions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun fetchSuggestions(provider: SearchProvider, query: String): List<String> {
         val endpoint = suggestionEndpoint(provider, query)
         val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
@@ -64,6 +85,14 @@ class SearchSuggestionClient(
         }
     }
 
+    /**
+     * 函数 `suggestionEndpoint`：封装 `suggestion Endpoint` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
+     * @param query 参数类型为 `String`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun suggestionEndpoint(provider: SearchProvider, query: String): String {
         val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.name())
         return when (provider.id) {
@@ -74,12 +103,26 @@ class SearchSuggestionClient(
     }
 
     companion object {
+        /**
+         * 函数 `parseSuggestions`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param payload 参数类型为 `String`，表示函数执行 `payload` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun parseSuggestions(payload: String): List<String> {
             val json = payload.trim().withoutJsonpWrapper()
             return parseOpenSearchSuggestions(json)
                 .ifEmpty { parseSo360Suggestions(json) }
         }
 
+        /**
+         * 函数 `parseOpenSearchSuggestions`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param payload 参数类型为 `String`，表示函数执行 `payload` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parseOpenSearchSuggestions(payload: String): List<String> {
             if (!payload.startsWith("[")) {
                 return emptyList()
@@ -95,6 +138,13 @@ class SearchSuggestionClient(
             return parseQuotedStrings(payload.substring(secondArrayStart, secondArrayEnd + 1))
         }
 
+        /**
+         * 函数 `parseSo360Suggestions`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param payload 参数类型为 `String`，表示函数执行 `payload` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parseSo360Suggestions(payload: String): List<String> {
             return WORD_FIELD_REGEX.findAll(payload)
                 .map { match -> decodeJsonString(match.groupValues[1]).trim() }
@@ -102,6 +152,13 @@ class SearchSuggestionClient(
                 .toList()
         }
 
+        /**
+         * 函数 `parseQuotedStrings`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param payload 参数类型为 `String`，表示函数执行 `payload` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parseQuotedStrings(payload: String): List<String> {
             return JSON_STRING_REGEX.findAll(payload)
                 .map { match -> decodeJsonString(match.groupValues[1]).trim() }
@@ -109,6 +166,14 @@ class SearchSuggestionClient(
                 .toList()
         }
 
+        /**
+         * 函数 `matchingBracketIndex`：封装 `matching Bracket Index` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @param startIndex 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun matchingBracketIndex(value: String, startIndex: Int): Int {
             var depth = 0
             var inString = false
@@ -133,6 +198,13 @@ class SearchSuggestionClient(
             return -1
         }
 
+        /**
+         * 函数 `decodeJsonString`：封装 `decode Json String` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun decodeJsonString(value: String): String {
             val decoded = StringBuilder(value.length)
             var index = 0
@@ -192,6 +264,13 @@ class SearchSuggestionClient(
             return decoded.toString()
         }
 
+        /**
+         * 函数 `responseCharset`：封装 `response Charset` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param contentType 参数类型为 `String?`，表示函数执行 `contentType` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun responseCharset(contentType: String?): Charset {
             val charsetName = contentType
                 ?.substringAfter("charset=", missingDelimiterValue = "")
@@ -203,6 +282,12 @@ class SearchSuggestionClient(
                 ?: StandardCharsets.UTF_8
         }
 
+        /**
+         * 函数 `withoutJsonpWrapper`：封装 `without Jsonp Wrapper` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun String.withoutJsonpWrapper(): String {
             if (startsWith("{") || startsWith("[")) {
                 return this

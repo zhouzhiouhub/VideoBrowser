@@ -23,6 +23,14 @@ data class BrowserRequest(
     val pageUrl: String? = null
 ) {
     companion object {
+        /**
+         * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param request 参数类型为 `WebResourceRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+         * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun from(request: WebResourceRequest, pageUrl: String? = null): BrowserRequest {
             return BrowserRequest(
                 url = request.url,
@@ -46,6 +54,15 @@ data class BrowserRequest(
             )
         }
 
+        /**
+         * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @param isForMainFrame 参数类型为 `Boolean`，表示函数执行 `isForMainFrame` 相关逻辑时需要读取或处理的输入。
+         * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun from(url: String?, isForMainFrame: Boolean = false, pageUrl: String? = null): BrowserRequest? {
             val value = url?.trim().orEmpty()
             if (value.isEmpty()) {

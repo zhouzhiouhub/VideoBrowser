@@ -31,10 +31,22 @@ class BrowserSessionCoordinator(
     val isPrivate: Boolean
         get() = mode == BrowserMode.PRIVATE
 
+    /**
+     * 函数 `setStandardWebView`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param webView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     fun setStandardWebView(webView: WebView) {
         standardWebView = webView
     }
 
+    /**
+     * 函数 `enterPrivate`：封装 `enter Private` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun enterPrivate(): Boolean {
         if (isPrivate) {
             return true
@@ -74,6 +86,11 @@ class BrowserSessionCoordinator(
         }
     }
 
+    /**
+     * 函数 `exitPrivate`：封装 `exit Private` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun exitPrivate() {
         val temporaryWebView = privateWebView ?: run {
             mode = BrowserMode.STANDARD
@@ -100,6 +117,11 @@ class BrowserSessionCoordinator(
         onActiveWebViewChanged(standardWebView, BrowserMode.STANDARD)
     }
 
+    /**
+     * 函数 `destroyPrivateSession`：封装 `destroy Private Session` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun destroyPrivateSession() {
         if (isPrivate) {
             exitPrivate()
@@ -113,6 +135,12 @@ class BrowserSessionCoordinator(
         }
     }
 
+    /**
+     * 函数 `replacePrivateWebView`：封装 `replace Private Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun replacePrivateWebView(): WebView? {
         if (!isPrivate) {
             return null

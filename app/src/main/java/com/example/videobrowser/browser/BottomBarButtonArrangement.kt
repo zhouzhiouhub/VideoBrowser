@@ -11,6 +11,13 @@ enum class BottomBarButtonArrangement {
     VisibleActionsEvenlySpaced;
 
     companion object {
+        /**
+         * 函数 `forVisibility`：封装 `for Visibility` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param visibility 参数类型为 `BottomBarButtonVisibility`，表示函数执行 `visibility` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         @Suppress("UNUSED_PARAMETER")
         fun forVisibility(visibility: BottomBarButtonVisibility): BottomBarButtonArrangement {
             return VisibleActionsEvenlySpaced

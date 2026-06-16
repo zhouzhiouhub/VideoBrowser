@@ -18,6 +18,18 @@ import java.util.Locale
  * 因为不依赖 Android UI，所以适合用单元测试覆盖排序规则。
  */
 object AddressSuggestionRanker {
+    /**
+     * 函数 `build`：创建 `build` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param input 参数类型为 `String`，表示函数执行 `input` 相关逻辑时需要读取或处理的输入。
+     * @param history 参数类型为 `List<SavedPage>`，表示函数执行 `history` 相关逻辑时需要读取或处理的输入。
+     * @param bookmarks 参数类型为 `List<SavedPage>`，表示函数执行 `bookmarks` 相关逻辑时需要读取或处理的输入。
+     * @param remoteKeywords 参数类型为 `List<String>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param includePrivateSources 参数类型为 `Boolean`，表示函数执行 `includePrivateSources` 相关逻辑时需要读取或处理的输入。
+     * @param limit 参数类型为 `Int`，表示函数执行 `limit` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun build(
         input: String,
         history: List<SavedPage>,
@@ -67,6 +79,16 @@ object AddressSuggestionRanker {
             .take(limit - 1) + fallback
     }
 
+    /**
+     * 函数 `savedPageSuggestions`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
+     * @param normalizedInput 参数类型为 `String`，表示函数执行 `normalizedInput` 相关逻辑时需要读取或处理的输入。
+     * @param seenUrls 参数类型为 `MutableSet<String>`，表示函数执行 `seenUrls` 相关逻辑时需要读取或处理的输入。
+     * @param createSuggestion 参数类型为 `(SavedPage, String) -> T`，表示函数执行 `createSuggestion` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun <T : AddressSuggestion> savedPageSuggestions(
         pages: List<SavedPage>,
         normalizedInput: String,
@@ -87,6 +109,14 @@ object AddressSuggestionRanker {
         }
     }
 
+    /**
+     * 函数 `remoteSuggestions`：封装 `remote Suggestions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param remoteKeywords 参数类型为 `List<String>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param normalizedInput 参数类型为 `String`，表示函数执行 `normalizedInput` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun remoteSuggestions(
         remoteKeywords: List<String>,
         normalizedInput: String
@@ -107,6 +137,13 @@ object AddressSuggestionRanker {
         }
     }
 
+    /**
+     * 函数 `normalize`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalize(value: String): String {
         return value.trim().lowercase(Locale.ROOT)
     }

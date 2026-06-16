@@ -31,11 +31,22 @@ class BrowserControlsScrollController(
     private var isTouchActive = false
     private var pendingControlsHidden: Boolean? = null
 
+    /**
+     * 函数 `setup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @SuppressLint("ClickableViewAccessibility")
     fun setup() {
         attachToWebView(webView)
     }
 
+    /**
+     * 函数 `attachToWebView`：封装 `attach To Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param nextWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     @SuppressLint("ClickableViewAccessibility")
     fun attachToWebView(nextWebView: WebView) {
         if (webView !== nextWebView) {
@@ -53,12 +64,25 @@ class BrowserControlsScrollController(
         }
     }
 
+    /**
+     * 函数 `resetTracking`：封装 `reset Tracking` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param changeAt 参数类型为 `Long`，表示函数执行 `changeAt` 相关逻辑时需要读取或处理的输入。
+     */
     fun resetTracking(changeAt: Long = lastScrollChangeAt) {
         scrollDeltaY = 0
         scrollDirection = 0
         lastScrollChangeAt = changeAt
     }
 
+    /**
+     * 函数 `setControlsHidden`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hidden 参数类型为 `Boolean`，表示函数执行 `hidden` 相关逻辑时需要读取或处理的输入。
+     * @param allowDefer 参数类型为 `Boolean`，表示函数执行 `allowDefer` 相关逻辑时需要读取或处理的输入。
+     */
     fun setControlsHidden(hidden: Boolean, allowDefer: Boolean = true) {
         val shouldHide = hidden || isVideoFullscreenUiActive()
         if (allowDefer &&
@@ -80,6 +104,14 @@ class BrowserControlsScrollController(
         updatePageProgressVisibility(shouldHide)
     }
 
+    /**
+     * 函数 `handleTouch`：处理 `handle Touch` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `View`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param event 参数类型为 `MotionEvent`，表示函数执行 `event` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun handleTouch(view: View, event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -96,6 +128,13 @@ class BrowserControlsScrollController(
         return false
     }
 
+    /**
+     * 函数 `handleScroll`：处理 `handle Scroll` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param scrollY 参数类型为 `Int`，表示函数执行 `scrollY` 相关逻辑时需要读取或处理的输入。
+     * @param oldScrollY 参数类型为 `Int`，表示函数执行 `oldScrollY` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleScroll(scrollY: Int, oldScrollY: Int) {
         if (isVideoFullscreenUiActive()) {
             return
@@ -140,6 +179,12 @@ class BrowserControlsScrollController(
         }
     }
 
+    /**
+     * 函数 `applyPendingControlsAfterTouch`：根据最新状态刷新 `apply Pending Controls After Touch` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `View`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun applyPendingControlsAfterTouch(view: View) {
         val pendingHidden = pendingControlsHidden ?: return
         pendingControlsHidden = null

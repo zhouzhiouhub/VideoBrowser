@@ -40,6 +40,13 @@ sealed class BrowserPageError(
 }
 
 object BrowserErrorPage {
+    /**
+     * 函数 `render`：封装 `render` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param error 参数类型为 `BrowserPageError`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun render(error: BrowserPageError): String {
         val title = when (error) {
             is BrowserPageError.SafeBrowsing -> "连接已被阻止"
@@ -133,6 +140,13 @@ object BrowserErrorPage {
         """.trimIndent()
     }
 
+    /**
+     * 函数 `retryableUrl`：封装 `retryable Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun retryableUrl(url: String?): String? {
         val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return null
         return normalizedUrl.takeIf {
@@ -141,6 +155,12 @@ object BrowserErrorPage {
         }
     }
 
+    /**
+     * 函数 `escapeHtml`：封装 `escape Html` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun String.escapeHtml(): String {
         return buildString(length) {
             this@escapeHtml.forEach { char ->

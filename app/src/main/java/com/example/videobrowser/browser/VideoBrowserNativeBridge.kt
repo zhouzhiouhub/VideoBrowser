@@ -21,16 +21,33 @@ class VideoBrowserNativeBridge(
 ) {
     private val videoEventLogger = logVideoEvent
 
+    /**
+     * 函数 `enterFullscreen`：封装 `enter Fullscreen` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @JavascriptInterface
     fun enterFullscreen() {
         postToUi { enterFullscreen.invoke() }
     }
 
+    /**
+     * 函数 `exitFullscreen`：封装 `exit Fullscreen` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @JavascriptInterface
     fun exitFullscreen() {
         postToUi { exitFullscreen.invoke() }
     }
 
+    /**
+     * 函数 `updatePlaybackTimeline`：根据最新状态刷新 `update Playback Timeline` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param positionMs 参数类型为 `Double`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param durationMs 参数类型为 `Double`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     @JavascriptInterface
     fun updatePlaybackTimeline(positionMs: Double, durationMs: Double) {
         if (!positionMs.isFinite() || !durationMs.isFinite()) {
@@ -44,6 +61,13 @@ class VideoBrowserNativeBridge(
         postToUi { updatePlaybackTimeline.invoke(sanitizedPositionMs, sanitizedDurationMs) }
     }
 
+    /**
+     * 函数 `requestElementBlock`：处理 `request Element Block` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     * @param description 参数类型为 `String`，表示函数执行 `description` 相关逻辑时需要读取或处理的输入。
+     */
     @JavascriptInterface
     fun requestElementBlock(selector: String, description: String) {
         val sanitizedSelector = sanitizeSelector(selector) ?: return
@@ -51,17 +75,34 @@ class VideoBrowserNativeBridge(
         postToUi { requestElementBlock.invoke(sanitizedSelector, sanitizedDescription) }
     }
 
+    /**
+     * 函数 `blockSelectedElement`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     */
     @JavascriptInterface
     fun blockSelectedElement(selector: String) {
         val sanitizedSelector = sanitizeSelector(selector) ?: return
         postToUi { blockSelectedElement.invoke(sanitizedSelector) }
     }
 
+    /**
+     * 函数 `cancelElementPicker`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     @JavascriptInterface
     fun cancelElementPicker() {
         postToUi { cancelElementPicker.invoke() }
     }
 
+    /**
+     * 函数 `logVideoEvent`：封装 `log Video Event` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param message 参数类型为 `String`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
+     */
     @JavascriptInterface
     fun logVideoEvent(message: String) {
         val sanitizedMessage = sanitizeBridgeText(message, MAX_VIDEO_LOG_LENGTH)
@@ -71,6 +112,13 @@ class VideoBrowserNativeBridge(
         postToUi { videoEventLogger.invoke(sanitizedMessage) }
     }
 
+    /**
+     * 函数 `sanitizeSelector`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sanitizeSelector(selector: String): String? {
         return selector
             .trim()
@@ -80,6 +128,14 @@ class VideoBrowserNativeBridge(
             .takeIf { sanitized -> sanitized.isNotBlank() }
     }
 
+    /**
+     * 函数 `sanitizeBridgeText`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param maxLength 参数类型为 `Int`，表示函数执行 `maxLength` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sanitizeBridgeText(text: String, maxLength: Int): String {
         return text
             .replace(Regex("\\s+"), " ")

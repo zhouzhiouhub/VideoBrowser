@@ -94,6 +94,14 @@ class BrowserManager(
         }
     }
 
+    /**
+     * 函数 `switchWebView`：封装 `switch Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param nextWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param privateBrowsingEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @param detachCurrent 参数类型为 `Boolean`，表示函数执行 `detachCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     fun switchWebView(
         nextWebView: WebView,
         privateBrowsingEnabled: Boolean = this.privateBrowsingEnabled,
@@ -123,37 +131,80 @@ class BrowserManager(
         }
     }
 
+    /**
+     * 函数 `setChromeClient`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param client 参数类型为 `WebChromeClient?`，表示函数执行 `client` 相关逻辑时需要读取或处理的输入。
+     */
     fun setChromeClient(client: WebChromeClient?) {
         chromeClient = client
         webView.webChromeClient = client
     }
 
+    /**
+     * 函数 `setBrowserClient`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param client 参数类型为 `WebViewClient`，表示函数执行 `client` 相关逻辑时需要读取或处理的输入。
+     */
     fun setBrowserClient(client: WebViewClient) {
         browserClient = client
         webView.webViewClient = client
     }
 
+    /**
+     * 函数 `setDownloadListener`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param listener 参数类型为 `DownloadListener?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
+     */
     fun setDownloadListener(listener: DownloadListener?) {
         downloadListener = listener
         webView.setDownloadListener(listener)
     }
 
+    /**
+     * 函数 `setFindResultListener`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param listener 参数类型为 `((Int, Int, Boolean) -> Unit)?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
+     */
     fun setFindResultListener(listener: ((Int, Int, Boolean) -> Unit)?) {
         findResultListener = listener
         configuredWebViews.forEach(::applyFindResultListener)
     }
 
+    /**
+     * 函数 `addJavascriptInterface`：封装 `add Javascript Interface` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param interfaceObject 参数类型为 `Any`，表示函数执行 `interfaceObject` 相关逻辑时需要读取或处理的输入。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     fun addJavascriptInterface(interfaceObject: Any, name: String) {
         javascriptInterfaces.removeAll { it.name == name }
         javascriptInterfaces.add(JavascriptInterfaceBinding(interfaceObject, name))
         webView.addJavascriptInterface(interfaceObject, name)
     }
 
+    /**
+     * 函数 `load`：启动或加载 `load` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun load(url: String) {
         suspendCurrentPage()
         webView.loadUrl(url)
     }
 
+    /**
+     * 函数 `loadErrorPage`：启动或加载 `load Error Page` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param error 参数类型为 `BrowserPageError`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
+     */
     fun loadErrorPage(error: BrowserPageError) {
         disposeCurrentPage()
         webView.loadDataWithBaseURL(
@@ -165,6 +216,12 @@ class BrowserManager(
         )
     }
 
+    /**
+     * 函数 `goBack`：封装 `go Back` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun goBack(): Boolean {
         if (!webView.canGoBack()) {
             return false
@@ -174,6 +231,12 @@ class BrowserManager(
         return true
     }
 
+    /**
+     * 函数 `goForward`：封装 `go Forward` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun goForward(): Boolean {
         if (!webView.canGoForward()) {
             return false
@@ -183,31 +246,74 @@ class BrowserManager(
         return true
     }
 
+    /**
+     * 函数 `reload`：封装 `reload` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun reload() {
         suspendCurrentPage()
         webView.reload()
     }
 
+    /**
+     * 函数 `stopLoading`：封装 `stop Loading` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun stopLoading() {
         webView.stopLoading()
     }
 
+    /**
+     * 函数 `canGoBack`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun canGoBack(): Boolean {
         return webView.canGoBack()
     }
 
+    /**
+     * 函数 `canGoForward`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun canGoForward(): Boolean {
         return webView.canGoForward()
     }
 
+    /**
+     * 函数 `currentUrl`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun currentUrl(): String? {
         return webView.url
     }
 
+    /**
+     * 函数 `userAgentString`：封装 `user Agent String` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun userAgentString(): String? {
         return webView.settings.userAgentString
     }
 
+    /**
+     * 函数 `applyDesktopMode`：根据最新状态刷新 `apply Desktop Mode` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @param desktopUserAgent 参数类型为 `String`，表示函数执行 `desktopUserAgent` 相关逻辑时需要读取或处理的输入。
+     * @param defaultUserAgent 参数类型为 `String?`，表示函数执行 `defaultUserAgent` 相关逻辑时需要读取或处理的输入。
+     * @param reload 参数类型为 `Boolean`，表示函数执行 `reload` 相关逻辑时需要读取或处理的输入。
+     */
     fun applyDesktopMode(
         enabled: Boolean,
         desktopUserAgent: String,
@@ -227,6 +333,12 @@ class BrowserManager(
         }
     }
 
+    /**
+     * 函数 `setPrivateBrowsingEnabled`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
         privateBrowsingEnabled = enabled
         configuredWebViews.forEach(::applyCookiePolicy)
@@ -240,47 +352,106 @@ class BrowserManager(
         }
     }
 
+    /**
+     * 函数 `setThirdPartyCookiesEnabled`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     fun setThirdPartyCookiesEnabled(enabled: Boolean) {
         thirdPartyCookiesEnabled = enabled
         configuredWebViews.forEach(::applyCookiePolicy)
     }
 
+    /**
+     * 函数 `setMixedContentBlocked`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param blocked 参数类型为 `Boolean`，表示函数执行 `blocked` 相关逻辑时需要读取或处理的输入。
+     */
     fun setMixedContentBlocked(blocked: Boolean) {
         mixedContentBlocked = blocked
         configuredWebViews.forEach(::applyMixedContentMode)
     }
 
+    /**
+     * 函数 `setTextZoomPercent`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param percent 参数类型为 `Int`，表示函数执行 `percent` 相关逻辑时需要读取或处理的输入。
+     */
     fun setTextZoomPercent(percent: Int) {
         textZoomPercent = percent
         configuredWebViews.forEach(::applyTextZoom)
     }
 
+    /**
+     * 函数 `evaluateJavascript`：封装 `evaluate Javascript` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param script 参数类型为 `String`，表示函数执行 `script` 相关逻辑时需要读取或处理的输入。
+     */
     fun evaluateJavascript(script: String) {
         webView.evaluateJavascript(script, null)
     }
 
+    /**
+     * 函数 `findAllAsync`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param query 参数类型为 `String`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
+     */
     fun findAllAsync(query: String) {
         webView.findAllAsync(query)
     }
 
+    /**
+     * 函数 `findNext`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param forward 参数类型为 `Boolean`，表示函数执行 `forward` 相关逻辑时需要读取或处理的输入。
+     */
     fun findNext(forward: Boolean = true) {
         webView.findNext(forward)
     }
 
+    /**
+     * 函数 `clearFindMatches`：封装 `clear Find Matches` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clearFindMatches() {
         webView.clearMatches()
     }
 
+    /**
+     * 函数 `clearBrowsingData`：封装 `clear Browsing Data` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param clearSharedStores 参数类型为 `Boolean`，表示函数执行 `clearSharedStores` 相关逻辑时需要读取或处理的输入。
+     */
     fun clearBrowsingData(clearSharedStores: Boolean = true) {
         // clearSharedStores 为 true 时会清理 Cookie/WebStorage 等 WebView 全局数据。
         // 无痕退出时可按需要只清当前 WebView，避免影响普通模式的登录状态。
         clearBrowsingData(webView, clearSharedStores)
     }
 
+    /**
+     * 函数 `clearCache`：封装 `clear Cache` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clearCache() {
         webView.clearCache(true)
     }
 
+    /**
+     * 函数 `destroyWebView`：封装 `destroy Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param clearSharedStores 参数类型为 `Boolean`，表示函数执行 `clearSharedStores` 相关逻辑时需要读取或处理的输入。
+     */
     fun destroyWebView(targetWebView: WebView, clearSharedStores: Boolean = true) {
         targetWebView.webChromeClient = null
         if (targetWebView === webView) {
@@ -294,6 +465,13 @@ class BrowserManager(
         targetWebView.destroy()
     }
 
+    /**
+     * 函数 `clearBrowsingData`：封装 `clear Browsing Data` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param clearSharedStores 参数类型为 `Boolean`，表示函数执行 `clearSharedStores` 相关逻辑时需要读取或处理的输入。
+     */
     private fun clearBrowsingData(targetWebView: WebView, clearSharedStores: Boolean) {
         targetWebView.clearCache(true)
         targetWebView.clearHistory()
@@ -311,6 +489,12 @@ class BrowserManager(
         }
     }
 
+    /**
+     * 函数 `applyCookiePolicy`：根据最新状态刷新 `apply Cookie Policy` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun applyCookiePolicy(targetWebView: WebView) {
         CookieManager.getInstance().apply {
             setAcceptCookie(!privateBrowsingEnabled)
@@ -321,6 +505,12 @@ class BrowserManager(
         }
     }
 
+    /**
+     * 函数 `applyMixedContentMode`：根据最新状态刷新 `apply Mixed Content Mode` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun applyMixedContentMode(targetWebView: WebView) {
         targetWebView.settings.mixedContentMode = if (mixedContentBlocked) {
             WebSettings.MIXED_CONTENT_NEVER_ALLOW
@@ -329,10 +519,22 @@ class BrowserManager(
         }
     }
 
+    /**
+     * 函数 `applyTextZoom`：根据最新状态刷新 `apply Text Zoom` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun applyTextZoom(targetWebView: WebView) {
         targetWebView.settings.textZoom = textZoomPercent
     }
 
+    /**
+     * 函数 `applyFindResultListener`：根据最新状态刷新 `apply Find Result Listener` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun applyFindResultListener(targetWebView: WebView) {
         targetWebView.setFindListener(
             findResultListener?.let { listener ->
@@ -343,6 +545,11 @@ class BrowserManager(
         )
     }
 
+    /**
+     * 函数 `clearTransientBrowsingData`：封装 `clear Transient Browsing Data` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clearTransientBrowsingData() {
         disposeCurrentPage()
         webView.stopLoading()
@@ -350,18 +557,38 @@ class BrowserManager(
         clearBrowsingData(clearSharedStores = false)
     }
 
+    /**
+     * 函数 `onPause`：处理 `on Pause` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun onPause() {
         // MVP keeps WebView active so media playback is not forcibly paused.
     }
 
+    /**
+     * 函数 `onResume`：处理 `on Resume` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun onResume() {
         // Reserved for future WebView resume policy.
     }
 
+    /**
+     * 函数 `destroy`：封装 `destroy` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun destroy() {
         destroyWebView(webView)
     }
 
+    /**
+     * 函数 `suspendCurrentPage`：封装 `suspend Current Page` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun suspendCurrentPage() {
         if (webView.url.isNullOrBlank()) {
             return
@@ -369,6 +596,11 @@ class BrowserManager(
         webView.evaluateJavascript(PAGE_SUSPEND_SCRIPT, null)
     }
 
+    /**
+     * 函数 `disposeCurrentPage`：封装 `dispose Current Page` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun disposeCurrentPage() {
         if (webView.url.isNullOrBlank()) {
             return

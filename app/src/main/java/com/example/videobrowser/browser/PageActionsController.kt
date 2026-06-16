@@ -59,6 +59,16 @@ class PageActionsController(
     private val recreateActivity: () -> Unit,
     private val restoreBrowserDefaults: () -> Boolean = settingsManager::restoreDefaults
 ) {
+    /**
+     * 函数 `openLocalDocumentUri`：启动或加载 `open Local Document Uri` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param displayName 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param subtitleCandidates 参数类型为 `List<ExternalSubtitleCandidate>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param playbackQueue 参数类型为 `PlaybackQueue?`，表示函数执行 `playbackQueue` 相关逻辑时需要读取或处理的输入。
+     */
     fun openLocalDocumentUri(
         uri: Uri,
         displayName: String? = null,
@@ -96,6 +106,11 @@ class PageActionsController(
         openExternalDocument(uri, resolvedMimeType)
     }
 
+    /**
+     * 函数 `downloadCurrentUrl`：封装 `download Current Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun downloadCurrentUrl() {
         val url = currentShareableUrl() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -109,6 +124,11 @@ class PageActionsController(
         )
     }
 
+    /**
+     * 函数 `toggleCurrentBookmark`：封装 `toggle Current Bookmark` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun toggleCurrentBookmark() {
         val page = currentSavedPage() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -125,6 +145,11 @@ class PageActionsController(
         updateBookmarkButton()
     }
 
+    /**
+     * 函数 `copyCurrentUrl`：封装 `copy Current Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun copyCurrentUrl() {
         val url = currentShareableUrl() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -137,6 +162,11 @@ class PageActionsController(
         Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `shareCurrentUrl`：封装 `share Current Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun shareCurrentUrl() {
         val url = currentShareableUrl() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -149,6 +179,11 @@ class PageActionsController(
         activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
     }
 
+    /**
+     * 函数 `setCurrentPageAsHomePage`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun setCurrentPageAsHomePage() {
         val url = currentShareableUrl() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -162,6 +197,11 @@ class PageActionsController(
         Toast.makeText(activity, R.string.toast_home_page_updated, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `openCurrentUrlInNativePlayer`：启动或加载 `open Current Url In Native Player` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun openCurrentUrlInNativePlayer() {
         val url = currentShareableUrl() ?: run {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -174,6 +214,12 @@ class PageActionsController(
         openNativePlayer(url, null, null, null, emptyList(), null)
     }
 
+    /**
+     * 函数 `setPrivateBrowsingEnabled`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
         if (isPrivateBrowsingEnabled() == enabled) {
             updatePrivateBrowsingUi()
@@ -194,6 +240,11 @@ class PageActionsController(
         ).show()
     }
 
+    /**
+     * 函数 `restoreDefaultSettings`：封装 `restore Default Settings` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun restoreDefaultSettings() {
         browserManagers().forEachIndexed { index, manager ->
             manager.clearBrowsingData(clearSharedStores = index == 0)
@@ -203,6 +254,12 @@ class PageActionsController(
         recreateActivity()
     }
 
+    /**
+     * 函数 `addHistoryEntry`：封装 `add History Entry` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun addHistoryEntry(url: String?) {
         if (isPrivateBrowsingEnabled()) {
             return
@@ -214,6 +271,13 @@ class PageActionsController(
         savedPageRepository.addHistory(page)
     }
 
+    /**
+     * 函数 `openExternalDocument`：启动或加载 `open External Document` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     */
     private fun openExternalDocument(uri: Uri, mimeType: String?) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, mimeType ?: "*/*")
@@ -228,6 +292,13 @@ class PageActionsController(
         }
     }
 
+    /**
+     * 函数 `localDisplayName`：封装 `local Display Name` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun localDisplayName(uri: Uri): String? {
         return activity.contentResolver.query(
             uri,
@@ -244,6 +315,13 @@ class PageActionsController(
         }
     }
 
+    /**
+     * 函数 `currentSavedPage`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param urlOverride 参数类型为 `String?`，表示函数执行 `urlOverride` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSavedPage(urlOverride: String? = null): SavedPage? {
         val url = urlOverride ?: currentActionableUrl()
         if (url.isNullOrBlank() || !isShareableUrl(url)) {
@@ -256,6 +334,13 @@ class PageActionsController(
         return SavedPage(title = title, url = url)
     }
 
+    /**
+     * 函数 `getStringOrNull`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun Cursor.getStringOrNull(index: Int): String? {
         return if (index >= 0 && !isNull(index)) getString(index) else null
     }

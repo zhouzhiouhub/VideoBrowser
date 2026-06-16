@@ -62,6 +62,12 @@ class BrowserSessionController(
         renderIfActive()
     }
 
+    /**
+     * 函数 `handlePageFinished`：处理 `handle Page Finished` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun handlePageFinished(url: String?) {
         // 页面结束加载后才写历史并注入页面增强脚本，避免还没加载完就操作 DOM。
         currentPageUrl = url ?: currentPageUrl
@@ -76,6 +82,12 @@ class BrowserSessionController(
         }
     }
 
+    /**
+     * 函数 `handlePageFailed`：处理 `handle Page Failed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun handlePageFailed(url: String?) {
         currentPageUrl = url ?: currentPageUrl
         isHomePageVisible = false
@@ -87,6 +99,12 @@ class BrowserSessionController(
         }
     }
 
+    /**
+     * 函数 `handlePageProgressChanged`：处理 `handle Page Progress Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param newProgress 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     fun handlePageProgressChanged(newProgress: Int) {
         val normalizedProgress = newProgress.coerceIn(0, 100)
         isPageLoading = normalizedProgress in 1..99
@@ -98,6 +116,12 @@ class BrowserSessionController(
         }
     }
 
+    /**
+     * 函数 `handlePageTitleReceived`：处理 `handle Page Title Received` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     fun handlePageTitleReceived(title: String) {
         val normalizedTitle = title.trim()
         currentPageTitle = normalizedTitle
@@ -105,6 +129,12 @@ class BrowserSessionController(
         updateActivityTitleIfActive()
     }
 
+    /**
+     * 函数 `renderCurrentState`：封装 `render Current State` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param forceProgressHidden 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     fun renderCurrentState(forceProgressHidden: Boolean = !isPageLoading) {
         // renderCurrentState 是“把内存状态同步到 UI”的唯一出口，切换标签或退出无痕时会复用。
         if (!isActive()) {
@@ -118,6 +148,11 @@ class BrowserSessionController(
         updateNavigationButtons()
     }
 
+    /**
+     * 函数 `reset`：封装 `reset` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun reset() {
         currentPageTitle = ""
         currentPageUrl = null
@@ -128,6 +163,13 @@ class BrowserSessionController(
         renderCurrentState(forceProgressHidden = true)
     }
 
+    /**
+     * 函数 `restorePageMetadata`：封装 `restore Page Metadata` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     fun restorePageMetadata(url: String?, title: String) {
         currentPageUrl = url
         currentPageTitle = title.trim()
@@ -138,17 +180,32 @@ class BrowserSessionController(
         renderCurrentState(forceProgressHidden = true)
     }
 
+    /**
+     * 函数 `resetPageTitle`：封装 `reset Page Title` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun resetPageTitle() {
         currentPageTitle = ""
         updateActivityTitleIfActive()
     }
 
+    /**
+     * 函数 `renderIfActive`：封装 `render If Active` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun renderIfActive() {
         if (isActive()) {
             renderCurrentState(forceProgressHidden = false)
         }
     }
 
+    /**
+     * 函数 `updateActivityTitleIfActive`：根据最新状态刷新 `update Activity Title If Active` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateActivityTitleIfActive() {
         if (!isActive()) {
             return
@@ -157,6 +214,11 @@ class BrowserSessionController(
             ?: activity.getString(R.string.app_name)
     }
 
+    /**
+     * 函数 `notifyPageMetadataChanged`：封装 `notify Page Metadata Changed` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun notifyPageMetadataChanged() {
         onPageMetadataChanged(currentPageUrl, currentPageTitle)
     }

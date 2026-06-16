@@ -15,6 +15,13 @@ class SmartNoImageRequestInterceptor(
     private val isDisabledForCurrentSite: () -> Boolean,
     private val currentPageUrl: () -> String?
 ) {
+    /**
+     * 函数 `intercept`：封装 `intercept` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun intercept(request: BrowserRequest): WebResourceResponse? {
         val context = RequestContext.from(
             request = request,

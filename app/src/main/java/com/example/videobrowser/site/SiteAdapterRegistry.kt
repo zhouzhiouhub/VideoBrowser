@@ -19,6 +19,13 @@ import java.util.Locale
 class SiteAdapterRegistry(
     private val adapters: List<SiteAdapter>
 ) {
+    /**
+     * 函数 `matchingAdapters`：封装 `matching Adapters` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matchingAdapters(url: String?): List<SiteAdapter> {
         val normalizedUrl = url?.trim().orEmpty()
         if (normalizedUrl.isBlank()) {
@@ -27,6 +34,13 @@ class SiteAdapterRegistry(
         return adapters.filter { adapter -> adapter.matches(normalizedUrl) }
     }
 
+    /**
+     * 函数 `scriptFilesFor`：封装 `script Files For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun scriptFilesFor(url: String?): List<String> {
         return matchingAdapters(url)
             .flatMap { adapter -> adapter.scriptFiles() }
@@ -34,6 +48,12 @@ class SiteAdapterRegistry(
     }
 
     companion object {
+        /**
+         * 函数 `default`：封装 `default` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun default(): SiteAdapterRegistry {
             return SiteAdapterRegistry(
                 listOf(
@@ -71,6 +91,16 @@ class SiteAdapterRegistry(
             )
         }
 
+        /**
+         * 函数 `domainAdapter`：封装 `domain Adapter` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param displayName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param domains 参数类型为 `Set<String>`，表示函数执行 `domains` 相关逻辑时需要读取或处理的输入。
+         * @param scriptAssetPath 参数类型为 `String`，表示函数执行 `scriptAssetPath` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun domainAdapter(
             id: String,
             displayName: String,
@@ -94,6 +124,13 @@ private class DomainSiteAdapter(
 ) : SiteAdapter {
     private val domains = profile.domains.mapNotNull(::normalizeHost)
 
+    /**
+     * 函数 `matches`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     override fun matches(url: String): Boolean {
         val host = hostFromUrl(url) ?: return false
         return domains.any { domain ->
@@ -102,6 +139,13 @@ private class DomainSiteAdapter(
     }
 }
 
+/**
+ * 函数 `hostFromUrl`：封装 `host From Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+ *
+ * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+ * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+ * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+ */
 private fun hostFromUrl(url: String): String? {
     val value = url.trim()
     if (value.isBlank()) {
@@ -118,6 +162,13 @@ private fun hostFromUrl(url: String): String? {
     }.getOrNull()?.let(::normalizeHost)
 }
 
+/**
+ * 函数 `normalizeHost`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+ *
+ * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+ * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+ * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+ */
 private fun normalizeHost(host: String): String? {
     val normalized = host
         .trim()

@@ -21,6 +21,13 @@ data class BrowserTabSession(
 class BrowserTabSessionRepository(
     private val preferenceStore: PreferenceStore
 ) {
+    /**
+     * 函数 `save`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabs 参数类型为 `List<BrowserTab>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @param activeTabId 参数类型为 `Long`，表示函数执行 `activeTabId` 相关逻辑时需要读取或处理的输入。
+     */
     fun save(tabs: List<BrowserTab>, activeTabId: Long) {
         val sessionTabs = normalizeTabs(tabs)
         if (sessionTabs.isEmpty()) {
@@ -34,6 +41,12 @@ class BrowserTabSessionRepository(
         preferenceStore.putString(KEY_STANDARD_TAB_SESSION, renderSession(activeId, sessionTabs))
     }
 
+    /**
+     * 函数 `restore`：封装 `restore` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun restore(): BrowserTabSession? {
         val rawValue = preferenceStore.getString(KEY_STANDARD_TAB_SESSION, null) ?: return null
         return runCatching {
@@ -50,10 +63,22 @@ class BrowserTabSessionRepository(
         }.getOrNull()
     }
 
+    /**
+     * 函数 `clear`：封装 `clear` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clear() {
         preferenceStore.remove(KEY_STANDARD_TAB_SESSION)
     }
 
+    /**
+     * 函数 `normalizeTabs`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabs 参数类型为 `List<BrowserTab>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeTabs(tabs: List<BrowserTab>): List<BrowserTab> {
         return tabs
             .mapNotNull { tab -> normalizeTab(tab) }
@@ -61,6 +86,13 @@ class BrowserTabSessionRepository(
             .take(MAX_SESSION_TABS)
     }
 
+    /**
+     * 函数 `normalizeTab`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tab 参数类型为 `BrowserTab`，表示函数执行 `tab` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeTab(tab: BrowserTab): BrowserTab? {
         if (tab.id <= 0L) {
             return null
@@ -72,6 +104,13 @@ class BrowserTabSessionRepository(
         )
     }
 
+    /**
+     * 函数 `normalizeRestorableWebUrl`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeRestorableWebUrl(url: String?): String? {
         val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return null
         val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return null
@@ -85,6 +124,14 @@ class BrowserTabSessionRepository(
         return normalizedUrl
     }
 
+    /**
+     * 函数 `renderSession`：封装 `render Session` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param activeTabId 参数类型为 `Long`，表示函数执行 `activeTabId` 相关逻辑时需要读取或处理的输入。
+     * @param tabs 参数类型为 `List<BrowserTab>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun renderSession(activeTabId: Long, tabs: List<BrowserTab>): String {
         return buildString {
             append(activeTabId).append('\n')
@@ -101,6 +148,13 @@ class BrowserTabSessionRepository(
         }
     }
 
+    /**
+     * 函数 `parseTabLine`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseTabLine(line: String): BrowserTab? {
         val parts = line.split('\t')
         if (parts.size != 4) {
@@ -118,10 +172,24 @@ class BrowserTabSessionRepository(
         )
     }
 
+    /**
+     * 函数 `encode`：封装 `encode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun encode(value: String): String {
         return URLEncoder.encode(value, CHARSET_NAME)
     }
 
+    /**
+     * 函数 `decode`：封装 `decode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun decode(value: String): String? {
         return runCatching {
             URLDecoder.decode(value, CHARSET_NAME)

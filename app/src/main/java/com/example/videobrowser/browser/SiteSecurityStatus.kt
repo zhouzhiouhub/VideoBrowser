@@ -14,6 +14,12 @@ enum class SiteSecurityStatus {
     NOT_SECURE,
     UNKNOWN;
 
+    /**
+     * 函数 `protocolDisplayName`：封装 `protocol Display Name` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun protocolDisplayName(): String {
         return when (this) {
             SECURE -> "HTTPS"
@@ -22,11 +28,24 @@ enum class SiteSecurityStatus {
         }
     }
 
+    /**
+     * 函数 `isEncryptedConnection`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun isEncryptedConnection(): Boolean {
         return this == SECURE
     }
 
     companion object {
+        /**
+         * 函数 `fromUrl`：封装 `from Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun fromUrl(url: String?): SiteSecurityStatus {
             val scheme = url
                 ?.substringBefore(':', missingDelimiterValue = "")

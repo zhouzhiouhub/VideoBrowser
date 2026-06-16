@@ -29,6 +29,14 @@ data class RequestContext(
     )
 ) {
     companion object {
+        /**
+         * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+         * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun from(
             request: BrowserRequest,
             pageUrl: String? = request.pageUrl
@@ -46,12 +54,26 @@ data class RequestContext(
             )
         }
 
+        /**
+         * 函数 `hostFromUrl`：封装 `host From Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun hostFromUrl(url: String?): String? {
             return normalizedHostFromUrl(url)
         }
     }
 }
 
+/**
+ * 函数 `normalizedHostFromUrl`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+ *
+ * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+ * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+ * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+ */
 private fun normalizedHostFromUrl(url: String?): String? {
     val value = url?.trim().orEmpty()
     if (value.isEmpty()) {
@@ -60,6 +82,13 @@ private fun normalizedHostFromUrl(url: String?): String? {
     return normalizeHost(runCatching { URI(value).host }.getOrNull())
 }
 
+/**
+ * 函数 `normalizeHost`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+ *
+ * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+ * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+ * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+ */
 private fun normalizeHost(host: String?): String? {
     return host
         ?.trim()
@@ -68,6 +97,13 @@ private fun normalizeHost(host: String?): String? {
         ?.takeIf { it.isNotEmpty() }
 }
 
+/**
+ * 函数 `schemeFromUrl`：封装 `scheme From Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+ *
+ * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+ * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+ * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+ */
 private fun schemeFromUrl(url: String?): String? {
     val value = url?.trim().orEmpty()
     if (value.isEmpty()) {
