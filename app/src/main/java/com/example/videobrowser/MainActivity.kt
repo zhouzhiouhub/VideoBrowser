@@ -48,7 +48,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -66,6 +65,7 @@ import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserMode
+import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
@@ -76,11 +76,9 @@ import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.ClientCertificateController
-import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.FindInPageDialogController
 import com.example.videobrowser.browser.GeolocationPermissionController
-import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.HttpAuthController
 import com.example.videobrowser.browser.LinkContextMenuController
 import com.example.videobrowser.browser.PageActionsController
@@ -119,11 +117,7 @@ import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.FullscreenVideoController
-import com.example.videobrowser.video.MediaRouteAction
 import com.example.videobrowser.video.MediaRouteDecision
-import com.example.videobrowser.video.MediaRouteRequest
-import com.example.videobrowser.video.MediaRouteSource
-import com.example.videobrowser.video.MediaRoutingController
 import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackHistorySource
 import com.example.videobrowser.video.PlaybackProgress
@@ -205,6 +199,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var siteSecurityController: SiteSecurityController
     private lateinit var pageArchiveController: PageArchiveController
     private lateinit var pagePrintController: PagePrintController
+    private lateinit var browserNavigationController: BrowserNavigationController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
@@ -428,6 +423,19 @@ class MainActivity : AppCompatActivity() {
             },
             currentShareableUrl = ::currentShareableUrl,
             isShareableUrl = ::isShareableUrl
+        )
+        browserNavigationController = BrowserNavigationController(
+            activity = this,
+            ruleEngine = { if (::ruleEngine.isInitialized) ruleEngine else null },
+            browserManager = ::currentBrowserManager,
+            sessionController = ::currentSessionController,
+            externalNavigator = externalNavigator,
+            closeFunctionCenter = ::closeFunctionCenter,
+            openNativePlayer = ::openNativePlayer,
+            isProviderHomeUrl = ::isProviderHomeUrl,
+            updateAddressBar = ::updateAddressBar,
+            hideKeyboard = ::hideKeyboard,
+            showHomeContent = ::showHomeContent
         )
 
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
@@ -2492,7 +2500,7 @@ class MainActivity : AppCompatActivity() {
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     private fun loadUrl(url: String) {
-        loadUrlInternal(url, allowInsecureNavigation = false)
+        browserNavigationController.loadUrl(url)
     }
 
     /**
@@ -2502,58 +2510,7 @@ class MainActivity : AppCompatActivity() {
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     private fun loadUrlAfterInsecureNavigationConfirmation(url: String) {
-        loadUrlInternal(url, allowInsecureNavigation = true)
-    }
-
-    /**
-     * 函数 `loadUrlInternal`：启动或加载 `load Url Internal` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param allowInsecureNavigation 参数类型为 `Boolean`，表示函数执行 `allowInsecureNavigation` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun loadUrlInternal(url: String, allowInsecureNavigation: Boolean) {
-        val cleanedUrl = if (::ruleEngine.isInitialized) {
-            ruleEngine.cleanNavigationUrl(url, currentSessionController().currentPageUrl)
-        } else {
-            url
-        }
-        closeFunctionCenter()
-        val mediaDecision = MediaRoutingController.route(
-            MediaRouteRequest(
-                source = MediaRouteSource.ADDRESS_BAR,
-                url = cleanedUrl,
-                currentPageUrl = currentSessionController().currentPageUrl,
-                currentPageTitle = currentSessionController().currentPageTitle,
-                userAgent = currentBrowserManager().userAgentString()
-            )
-        )
-        when (mediaDecision.action) {
-            MediaRouteAction.OPEN_NATIVE_PLAYER -> {
-                openNativePlayer(mediaDecision)
-                return
-            }
-
-            MediaRouteAction.BLOCK -> return
-            else -> Unit
-        }
-
-        if (!allowInsecureNavigation &&
-            HttpNavigationSafetyPolicy.requiresInsecureNavigationConfirmation(
-                currentSessionController().currentPageUrl,
-                cleanedUrl
-            )
-        ) {
-            showInsecureNavigationConfirmation(cleanedUrl)
-            return
-        }
-
-        currentSessionController().currentPageUrl = cleanedUrl
-        val isProviderHome = isProviderHomeUrl(cleanedUrl)
-        updateAddressBar(cleanedUrl)
-        hideKeyboard()
-        showHomeContent(isProviderHome)
-        currentBrowserManager().load(cleanedUrl)
+        browserNavigationController.loadUrlAfterInsecureNavigationConfirmation(url)
     }
 
     /**
@@ -2664,19 +2621,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `isWebUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param scheme 参数类型为 `String?`，表示函数执行 `scheme` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isWebUrl(scheme: String?): Boolean {
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true) ||
-            scheme.equals("about", ignoreCase = true)
-    }
-
-    /**
      * 函数 `shouldBlockUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -2686,128 +2630,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun shouldBlockUrl(view: WebView?, uri: Uri, openMedia: Boolean = true): Boolean {
-        if (openMedia) {
-            val mediaDecision = MediaRoutingController.route(
-                MediaRouteRequest(
-                    source = MediaRouteSource.WEBVIEW_OVERRIDE,
-                    url = uri.toString(),
-                    currentPageUrl = currentSessionController().currentPageUrl,
-                    currentPageTitle = currentSessionController().currentPageTitle,
-                    userAgent = currentBrowserManager().userAgentString()
-                )
-            )
-            when (mediaDecision.action) {
-                MediaRouteAction.OPEN_NATIVE_PLAYER -> {
-                    view?.stopLoading()
-                    openNativePlayer(mediaDecision)
-                    return true
-                }
-
-                MediaRouteAction.BLOCK -> {
-                    if (openExternalProtocolNavigation(view, uri)) {
-                        return true
-                    }
-                    return true
-                }
-                else -> Unit
-            }
-        }
-
-        if (isUnavailableUcDownloadUrl(uri)) {
-            view?.stopLoading()
-            Toast.makeText(this, R.string.toast_uc_download_unavailable, Toast.LENGTH_SHORT).show()
-            return true
-        }
-
-        if (!isWebUrl(uri.scheme)) {
-            if (openExternalProtocolNavigation(view, uri)) {
-                return true
-            }
-            return true
-        }
-
-        if (openMedia &&
-            HttpNavigationSafetyPolicy.requiresInsecureNavigationConfirmation(
-                currentSessionController().currentPageUrl,
-                uri.toString()
-            )
-        ) {
-            view?.stopLoading()
-            showInsecureNavigationConfirmation(uri.toString())
-            return true
-        }
-
-        if (openMedia && ::ruleEngine.isInitialized) {
-            val originalUrl = uri.toString()
-            val cleanedUrl = ruleEngine.cleanNavigationUrl(
-                url = originalUrl,
-                pageUrl = currentSessionController().currentPageUrl
-            )
-            if (cleanedUrl != originalUrl) {
-                view?.stopLoading()
-                loadUrl(cleanedUrl)
-                return true
-            }
-        }
-
-        return false
-    }
-
-    /**
-     * 函数 `showInsecureNavigationConfirmation`：控制 `show Insecure Navigation Confirmation` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun showInsecureNavigationConfirmation(url: String) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_confirm_insecure_navigation)
-            .setMessage(
-                getString(
-                    R.string.dialog_confirm_insecure_navigation_message,
-                    UrlUtils.displayUrl(url)
-                )
-            )
-            .setPositiveButton(R.string.action_open_page) { _, _ ->
-                loadUrlAfterInsecureNavigationConfirmation(url)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `openExternalProtocolNavigation`：启动或加载 `open External Protocol Navigation` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun openExternalProtocolNavigation(view: WebView?, uri: Uri): Boolean {
-        if (!ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)) {
-            return false
-        }
-        view?.stopLoading()
-        externalNavigator.openExternalProtocolUrl(uri.toString()) { fallbackUrl ->
-            loadUrl(fallbackUrl)
-        }
-        return true
-    }
-
-    /**
-     * 函数 `isUnavailableUcDownloadUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isUnavailableUcDownloadUrl(uri: Uri): Boolean {
-        val host = uri.host?.lowercase().orEmpty()
-        val path = uri.path.orEmpty()
-        return (host == "down2.uc.cn" && path == "/ucbrowser/v2/down.php") ||
-            (host == "umcdn-oss.oss-cn-beijing.aliyuncs.com" &&
-                path.contains("/gongyp/shenmainuc8/") &&
-                path.endsWith(".apk", ignoreCase = true))
+        return browserNavigationController.shouldBlockUrl(view, uri, openMedia)
     }
 
     /**

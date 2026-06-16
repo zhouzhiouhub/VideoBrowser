@@ -18,8 +18,14 @@ class MediaRoutingWiringContractTest {
      */
     @Test
     fun mainActivityRoutesAddressBarAndWebViewOverridesThroughMediaRoutingController() {
-        val source = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val source = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"
+        ).readText()
 
+        assertTrue(mainActivity.contains("browserNavigationController.loadUrl(url)"))
+        assertTrue(mainActivity.contains("browserNavigationController.shouldBlockUrl(view, uri, openMedia)"))
         assertTrue(source.contains("MediaRoutingController.route("))
         assertTrue(source.contains("MediaRouteSource.ADDRESS_BAR"))
         assertTrue(source.contains("MediaRouteSource.WEBVIEW_OVERRIDE"))

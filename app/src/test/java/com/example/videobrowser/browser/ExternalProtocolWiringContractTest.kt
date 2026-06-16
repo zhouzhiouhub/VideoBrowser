@@ -20,14 +20,19 @@ class ExternalProtocolWiringContractTest {
     fun mainActivityRoutesExternalSchemesDirectlyToExternalNavigator() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val navigationController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(mainActivity.contains("private fun openExternalProtocolNavigation"))
-        assertTrue(mainActivity.contains("ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)"))
-        assertTrue(mainActivity.contains("view?.stopLoading()"))
-        assertTrue(mainActivity.contains("externalNavigator.openExternalProtocolUrl(uri.toString())"))
-        assertTrue(mainActivity.contains("MediaRouteAction.BLOCK ->"))
-        assertTrue(mainActivity.contains("openExternalProtocolNavigation(view, uri)"))
+        assertTrue(mainActivity.contains("private lateinit var browserNavigationController: BrowserNavigationController"))
+        assertTrue(mainActivity.contains("browserNavigationController.shouldBlockUrl(view, uri, openMedia)"))
+        assertTrue(navigationController.contains("private fun openExternalProtocolNavigation"))
+        assertTrue(navigationController.contains("ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)"))
+        assertTrue(navigationController.contains("view?.stopLoading()"))
+        assertTrue(navigationController.contains("externalNavigator.openExternalProtocolUrl(uri.toString())"))
+        assertTrue(navigationController.contains("MediaRouteAction.BLOCK ->"))
+        assertTrue(navigationController.contains("openExternalProtocolNavigation(view, uri)"))
         assertFalse(mainActivity.contains("showExternalProtocolConfirmation"))
         assertFalse(mainActivity.contains("openConfirmedExternalProtocol"))
         assertFalse(strings.contains("title_external_protocol_request"))
