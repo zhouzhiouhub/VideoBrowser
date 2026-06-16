@@ -1,5 +1,12 @@
 package com.example.videobrowser.browser.search
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“搜索入口与地址建议模块”。
+ * 文件名 AddressSuggestionController 可以拆开理解为“Address Suggestion Controller”，表示它只负责浏览器流程中的一个小职责。
+ * 主要职责：把地址栏输入、默认搜索引擎、远程搜索建议、收藏和历史候选项整理成用户可以点击的建议列表。
+ * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
+ */
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.TypedValue
@@ -15,6 +22,12 @@ import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPageRepository
 
+/**
+ * 地址栏建议面板控制器。
+ *
+ * 用户在地址栏输入时，这个类负责先显示本地建议，再延迟请求远程建议。
+ * requestSequence 用来区分新旧请求，避免慢返回的旧网络结果覆盖用户最新输入。
+ */
 class AddressSuggestionController(
     private val activity: AppCompatActivity,
     private val panel: LinearLayout,
@@ -91,6 +104,7 @@ class AddressSuggestionController(
         if (disposed) {
             return
         }
+        // 每次输入变化都递增序号，后续远程回调只有序号仍匹配时才允许更新 UI。
         requestSequence += 1
         handler.removeCallbacksAndMessages(null)
         val query = currentQuery()
@@ -101,6 +115,7 @@ class AddressSuggestionController(
 
         renderSuggestions(query, remoteKeywords = emptyList())
         if (isPrivateBrowsingEnabled()) {
+            // 无痕模式不读取历史/收藏，也不请求远程建议，减少可被记录的输入痕迹。
             return
         }
 

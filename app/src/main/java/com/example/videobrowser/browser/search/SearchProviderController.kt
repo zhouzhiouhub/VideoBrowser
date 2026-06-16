@@ -1,5 +1,12 @@
 package com.example.videobrowser.browser.search
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“搜索入口与地址建议模块”。
+ * 文件名 SearchProviderController 可以拆开理解为“Search Provider Controller”，表示它只负责浏览器流程中的一个小职责。
+ * 主要职责：把地址栏输入、默认搜索引擎、远程搜索建议、收藏和历史候选项整理成用户可以点击的建议列表。
+ * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
+ */
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -25,6 +32,12 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
 
+/**
+ * 首页搜索入口控制器。
+ *
+ * 它负责渲染搜索引擎按钮、自定义快捷入口和最近访问入口，并把用户选择保存到 SettingsManager。
+ * MainActivity 只关心“当前选中的搜索引擎是谁”，具体 UI 细节都留在这里。
+ */
 class SearchProviderController(
     private val activity: AppCompatActivity,
     private val providerScroll: HorizontalScrollView,
@@ -52,6 +65,7 @@ class SearchProviderController(
         private set
 
     fun setup() {
+        // 每次重新进入主页都会重建列表，确保自定义快捷入口、历史入口和默认搜索引擎都是最新状态。
         selectedProvider = loadSavedSearchProvider()
         if (!isPrivateBrowsingEnabled() && !settingsManager.hasHomeUrl()) {
             settingsManager.setHomeUrl(selectedProvider.homeUrl)

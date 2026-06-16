@@ -1,5 +1,12 @@
 package com.example.videobrowser.browser
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“浏览器核心模块”。
+ * 文件名 BrowserExternalNavigator 可以拆开理解为“Browser External Navigator”，表示它只负责浏览器流程中的一个小职责。
+ * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
+ * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
+ */
 import android.content.Intent
 import android.net.Uri
 import android.webkit.CookieManager
@@ -11,6 +18,12 @@ import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.PlayerActivity
 
+/**
+ * 浏览器跳出当前 WebView 的统一出口。
+ *
+ * 这里集中处理两类情况：一类是网页给出的特殊协议链接，另一类是把视频地址交给原生播放器。
+ * 集中在一个类里可以避免 MainActivity、PageActionsController 等位置重复拼装播放器 Intent。
+ */
 class BrowserExternalNavigator(
     private val activity: AppCompatActivity,
     private val browserManager: () -> BrowserManager,
@@ -45,6 +58,7 @@ class BrowserExternalNavigator(
         subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
         playbackQueue: PlaybackQueue? = null
     ) {
+        // 打开远程媒体时带上 Cookie 和 Referer，能提高需要登录或防盗链站点的播放成功率。
         val title = titleOverride
             ?.takeIf { it.isNotBlank() }
             ?: currentPageTitle()

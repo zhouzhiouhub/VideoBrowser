@@ -1,5 +1,12 @@
 package com.example.videobrowser.browser
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“浏览器核心模块”。
+ * 文件名 ChromeClient 可以拆开理解为“Chrome Client”，表示它只负责浏览器流程中的一个小职责。
+ * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
+ * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
+ */
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.net.Uri
@@ -21,6 +28,13 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 
+/**
+ * WebChromeClient 的应用适配层。
+ *
+ * WebChromeClient 处理的是“浏览器外壳能力”：网页标题、加载进度、文件选择、网页权限、
+ * JavaScript 弹窗、新窗口和全屏视频。这个类把这些 Android 回调转成构造参数里的函数，
+ * MainActivity 再决定真正的业务处理方式。
+ */
 class ChromeClient(
     private val activity: Activity,
     private val fullscreenContainer: FrameLayout,
@@ -132,6 +146,7 @@ class ChromeClient(
         message: String?,
         result: JsResult?
     ): Boolean {
+        // 网页弹窗必须调用 confirm/cancel 结束，否则网页里的 JavaScript 会一直等待。
         val jsResult = result ?: return false
         if (!canShowDialog()) {
             jsResult.cancel()
@@ -228,6 +243,8 @@ class ChromeClient(
             callback?.onCustomViewHidden()
             return
         }
+        // WebView 播放器进入全屏时会给一个自定义 View。
+        // App 把它移到 fullscreenContainer，让普通浏览器控件暂时让位。
         if (customView != null) {
             callback?.onCustomViewHidden()
             return

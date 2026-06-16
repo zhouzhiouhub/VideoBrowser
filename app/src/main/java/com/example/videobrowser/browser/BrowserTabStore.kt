@@ -1,5 +1,18 @@
 package com.example.videobrowser.browser
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“浏览器核心模块”。
+ * 文件名 BrowserTabStore 可以拆开理解为“Browser Tab Store”，表示它只负责浏览器流程中的一个小职责。
+ * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
+ * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
+ */
+/**
+ * 纯内存的标签页列表。
+ *
+ * 这里不操作 WebView，只维护 BrowserTab 数据：当前标签、关闭标签、恢复最近关闭标签。
+ * 这样标签页行为可以用普通单元测试验证，不需要启动 Android 设备。
+ */
 class BrowserTabStore(
     private val idGenerator: () -> Long = IdSequence()
 ) {
@@ -37,6 +50,7 @@ class BrowserTabStore(
     }
 
     fun closeTab(tabId: Long): Boolean {
+        // 浏览器至少保留一个标签页，避免 UI 没有 activeTab 可以显示。
         if (tabs.size == 1) {
             return false
         }
@@ -118,6 +132,7 @@ class BrowserTabStore(
     }
 
     private fun rememberClosedTabs(closedTabs: List<BrowserTab>) {
+        // 最近关闭列表只保留有限数量，防止用户长时间使用后内存无限增长。
         recentlyClosedTabs.addAll(closedTabs)
         if (recentlyClosedTabs.size > MAX_RECENTLY_CLOSED_TABS) {
             recentlyClosedTabs.subList(0, recentlyClosedTabs.size - MAX_RECENTLY_CLOSED_TABS).clear()

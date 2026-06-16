@@ -1,5 +1,12 @@
 package com.example.videobrowser.browser
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“浏览器核心模块”。
+ * 文件名 BrowserManager 可以拆开理解为“Browser Manager”，表示它只负责浏览器流程中的一个小职责。
+ * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
+ * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
+ */
 import android.os.Build
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
@@ -12,6 +19,12 @@ import android.webkit.WebViewClient
 import java.util.Collections
 import java.util.WeakHashMap
 
+/**
+ * WebView 的安全包装器。
+ *
+ * Android 的 WebView API 很分散：设置项、Cookie、前进后退、JS 注入、数据清理都在不同对象上。
+ * BrowserManager 把这些操作集中起来，MainActivity 只需要和这个类交互，就不用到处直接操作 WebView。
+ */
 class BrowserManager(
     private var webView: WebView
 ) {
@@ -34,6 +47,12 @@ class BrowserManager(
     val activeWebView: WebView
         get() = webView
 
+    /**
+     * 对当前 WebView 做一次基础配置。
+     *
+     * configuredWebViews 用 WeakHashMap 记录已经配置过的 WebView，避免同一个 WebView
+     * 在标签页切换时被重复设置；WeakHashMap 不会阻止旧 WebView 被回收。
+     */
     fun setup() {
         if (!configuredWebViews.add(webView)) {
             return
@@ -80,6 +99,8 @@ class BrowserManager(
         privateBrowsingEnabled: Boolean = this.privateBrowsingEnabled,
         detachCurrent: Boolean = true
     ) {
+        // 标签页切换时，BrowserManager 的“当前 WebView”会换成另一个实例。
+        // 这里重新挂回之前保存的 ChromeClient、WebViewClient、下载监听器和原生桥。
         if (webView === nextWebView) {
             setPrivateBrowsingEnabled(privateBrowsingEnabled)
             return
@@ -193,6 +214,7 @@ class BrowserManager(
         defaultUserAgent: String?,
         reload: Boolean
     ) {
+        // 桌面模式本质是修改 User-Agent 和 viewport 设置，然后按需重新加载当前页。
         webView.settings.userAgentString = if (enabled) {
             desktopUserAgent
         } else {
@@ -250,6 +272,8 @@ class BrowserManager(
     }
 
     fun clearBrowsingData(clearSharedStores: Boolean = true) {
+        // clearSharedStores 为 true 时会清理 Cookie/WebStorage 等 WebView 全局数据。
+        // 无痕退出时可按需要只清当前 WebView，避免影响普通模式的登录状态。
         clearBrowsingData(webView, clearSharedStores)
     }
 
