@@ -26,7 +26,6 @@ import android.os.Bundle
 import android.os.Message
 import android.os.SystemClock
 import android.security.KeyChain
-import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -82,6 +81,7 @@ import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.FindInPageDialogController
 import com.example.videobrowser.browser.GeolocationPermissionController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
+import com.example.videobrowser.browser.HttpAuthController
 import com.example.videobrowser.browser.LinkContextMenuController
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveController
@@ -192,6 +192,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var localFilesController: LocalFilesController
     private lateinit var pageActionsController: PageActionsController
+    private lateinit var httpAuthController: HttpAuthController
     private lateinit var linkContextMenuController: LinkContextMenuController
     private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
@@ -285,8 +286,6 @@ class MainActivity : AppCompatActivity() {
             geolocationPermissionController.handleAndroidPermissionResult(grants)
         }
     private var pendingClientCertRequest: ClientCertRequest? = null
-    private var pendingHttpAuthHandler: HttpAuthHandler? = null
-    private var pendingHttpAuthDialog: AlertDialog? = null
     // endregion
 
     // region 当前页面运行状态
@@ -468,6 +467,10 @@ class MainActivity : AppCompatActivity() {
             updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
             recreateActivity = { recreate() },
             restoreBrowserDefaults = browserDefaultSettingsResetter::restoreDefaults
+        )
+        httpAuthController = HttpAuthController(
+            activity = this,
+            dp = ::dp
         )
         pageArchiveController = PageArchiveController(
             activity = this,
@@ -1348,66 +1351,7 @@ class MainActivity : AppCompatActivity() {
         host: String?,
         realm: String?
     ) {
-        val authHandler = handler ?: return
-        cancelPendingHttpAuthRequest()
-        pendingHttpAuthHandler = authHandler
-        val usernameInput = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
-            setSingleLine(true)
-            hint = getString(R.string.hint_http_auth_username)
-        }
-        val passwordInput = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            setSingleLine(true)
-            hint = getString(R.string.hint_http_auth_password)
-        }
-        val form = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(8), dp(20), 0)
-            addView(usernameInput)
-            addView(passwordInput)
-        }
-        val displayHost = host?.takeIf { it.isNotBlank() }
-            ?: getString(R.string.permission_origin_unknown)
-        val displayRealm = realm?.takeIf { it.isNotBlank() }
-        var completed = false
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.title_http_auth_request)
-            .setMessage(
-                displayRealm?.let { value ->
-                    getString(R.string.dialog_http_auth_request_message_with_realm, displayHost, value)
-                } ?: getString(R.string.dialog_http_auth_request_message, displayHost)
-            )
-            .setView(form)
-            .setPositiveButton(R.string.action_http_auth_sign_in, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                completed = true
-                pendingHttpAuthHandler = null
-                pendingHttpAuthDialog = null
-                authHandler.proceed(
-                    usernameInput.text?.toString().orEmpty(),
-                    passwordInput.text?.toString().orEmpty()
-                )
-                dialog.dismiss()
-            }
-        }
-        dialog.setOnDismissListener {
-            if (!completed) {
-                completed = true
-                if (pendingHttpAuthHandler == authHandler) {
-                    pendingHttpAuthHandler = null
-                }
-                if (pendingHttpAuthDialog == dialog) {
-                    pendingHttpAuthDialog = null
-                }
-                authHandler.cancel()
-            }
-        }
-        pendingHttpAuthDialog = dialog
-        dialog.show()
+        httpAuthController.handleRequest(handler, host, realm)
     }
 
     /**
@@ -1416,13 +1360,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun cancelPendingHttpAuthRequest() {
-        val dialog = pendingHttpAuthDialog
-        val handler = pendingHttpAuthHandler
-        pendingHttpAuthDialog = null
-        pendingHttpAuthHandler = null
-        dialog?.setOnDismissListener(null)
-        dialog?.dismiss()
-        handler?.cancel()
+        if (::httpAuthController.isInitialized) {
+            httpAuthController.cancelPending()
+        }
     }
 
     /**
