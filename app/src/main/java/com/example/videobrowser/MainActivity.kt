@@ -91,6 +91,7 @@ import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
 import com.example.videobrowser.browser.WebFileChooserController
+import com.example.videobrowser.browser.WebWindowController
 import com.example.videobrowser.browser.WebPermissionRequestController
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.SearchSuggestionClient
@@ -194,6 +195,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var httpAuthController: HttpAuthController
     private lateinit var clientCertificateController: ClientCertificateController
     private lateinit var renderProcessRecoveryController: RenderProcessRecoveryController
+    private lateinit var webWindowController: WebWindowController
     private lateinit var linkContextMenuController: LinkContextMenuController
     private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
@@ -612,6 +614,15 @@ class MainActivity : AppCompatActivity() {
             },
             saveStandardTabSession = ::saveStandardTabSession,
             showBrowserErrorPage = ::showBrowserErrorPage
+        )
+        webWindowController = WebWindowController(
+            isPrivateBrowsingActive = { privateBrowsingActive },
+            standardTabStore = standardTabStore,
+            standardTabWebViews = standardTabWebViews,
+            standardSessionController = standardSessionController,
+            closeFunctionCenter = ::closeFunctionCenter,
+            saveStandardTabSession = ::saveStandardTabSession,
+            closeTab = ::closeTab
         )
 
         // 网页全屏视频控制器处理 WebChromeClient 自定义视图和网页视频手势协议。
@@ -1118,18 +1129,7 @@ class MainActivity : AppCompatActivity() {
         isUserGesture: Boolean,
         resultMsg: Message?
     ): Boolean {
-        if (privateBrowsingActive || !isUserGesture) {
-            return false
-        }
-        val transport = resultMsg?.obj as? WebView.WebViewTransport ?: return false
-        closeFunctionCenter()
-        val tab = standardTabStore.openTab()
-        val tabWebView = standardTabWebViews.activate(tab.id)
-        standardSessionController.restorePageMetadata(tab.url, tab.title)
-        saveStandardTabSession()
-        transport.webView = tabWebView
-        resultMsg?.sendToTarget()
-        return true
+        return webWindowController.handleCreateWebWindow(view, isDialog, isUserGesture, resultMsg)
     }
 
     /**
@@ -1139,11 +1139,9 @@ class MainActivity : AppCompatActivity() {
      * @param window 参数类型为 `WebView?`，表示函数执行 `window` 相关逻辑时需要读取或处理的输入。
      */
     private fun handleCloseWebWindow(window: WebView?) {
-        if (privateBrowsingActive || window == null) {
-            return
+        if (::webWindowController.isInitialized) {
+            webWindowController.handleCloseWebWindow(window)
         }
-        val tabId = standardTabWebViews.tabIdFor(window) ?: return
-        closeTab(tabId)
     }
 
     /**
