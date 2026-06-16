@@ -25,7 +25,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Message
 import android.os.SystemClock
-import android.security.KeyChain
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -76,6 +75,7 @@ import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.ChromeClient
+import com.example.videobrowser.browser.ClientCertificateController
 import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.FindInPageDialogController
@@ -129,8 +129,6 @@ import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebViewVideoCommand
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.security.PrivateKey
-import java.security.cert.X509Certificate
 
 /**
  * VideoBrowser 的主 Activity。
@@ -193,6 +191,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var localFilesController: LocalFilesController
     private lateinit var pageActionsController: PageActionsController
     private lateinit var httpAuthController: HttpAuthController
+    private lateinit var clientCertificateController: ClientCertificateController
     private lateinit var linkContextMenuController: LinkContextMenuController
     private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
@@ -285,7 +284,6 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
             geolocationPermissionController.handleAndroidPermissionResult(grants)
         }
-    private var pendingClientCertRequest: ClientCertRequest? = null
     // endregion
 
     // region 当前页面运行状态
@@ -471,6 +469,9 @@ class MainActivity : AppCompatActivity() {
         httpAuthController = HttpAuthController(
             activity = this,
             dp = ::dp
+        )
+        clientCertificateController = ClientCertificateController(
+            activity = this
         )
         pageArchiveController = PageArchiveController(
             activity = this,
@@ -1232,72 +1233,7 @@ class MainActivity : AppCompatActivity() {
         view: WebView?,
         request: ClientCertRequest?
     ) {
-        val certRequest = request ?: return
-        pendingClientCertRequest?.cancel()
-        pendingClientCertRequest = certRequest
-        KeyChain.choosePrivateKeyAlias(
-            this,
-            { alias -> handleClientCertAliasSelected(certRequest, alias) },
-            certRequest.keyTypes,
-            certRequest.principals,
-            certRequest.host,
-            certRequest.port,
-            null
-        )
-    }
-
-    /**
-     * 函数 `handleClientCertAliasSelected`：处理 `handle Client Cert Alias Selected` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `ClientCertRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     * @param alias 参数类型为 `String?`，表示函数执行 `alias` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleClientCertAliasSelected(
-        request: ClientCertRequest,
-        alias: String?
-    ) {
-        if (pendingClientCertRequest != request) {
-            return
-        }
-        if (alias.isNullOrBlank()) {
-            pendingClientCertRequest = null
-            request.cancel()
-            return
-        }
-
-        val appContext = applicationContext
-        Thread {
-            val credential = runCatching {
-                val privateKey = KeyChain.getPrivateKey(appContext, alias)
-                    ?: error("Client certificate private key is unavailable.")
-                val certificateChain = KeyChain.getCertificateChain(appContext, alias)
-                    ?: emptyArray()
-                ClientCertificateCredential(privateKey, certificateChain)
-            }.getOrElse { error ->
-                if (error is InterruptedException) {
-                    Thread.currentThread().interrupt()
-                }
-                null
-            }
-
-            runOnUiThread {
-                if (pendingClientCertRequest != request) {
-                    return@runOnUiThread
-                }
-                pendingClientCertRequest = null
-                if (credential != null && credential.certificateChain.isNotEmpty()) {
-                    request.proceed(credential.privateKey, credential.certificateChain)
-                } else {
-                    request.cancel()
-                    Toast.makeText(
-                        this,
-                        R.string.toast_client_certificate_unavailable,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }.start()
+        clientCertificateController.handleRequest(request)
     }
 
     /**
@@ -1306,8 +1242,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun cancelPendingClientCertRequest() {
-        pendingClientCertRequest?.cancel()
-        pendingClientCertRequest = null
+        if (::clientCertificateController.isInitialized) {
+            clientCertificateController.cancelPending()
+        }
     }
 
     /**
@@ -2951,16 +2888,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     // endregion
-
-    /**
-     * Android 客户端证书选择器返回的私钥和证书链。
-     *
-     * WebView 需要这两个值一起传回证书请求，所以用一个小对象临时打包。
-     */
-    private data class ClientCertificateCredential(
-        val privateKey: PrivateKey,
-        val certificateChain: Array<X509Certificate>
-    )
 
     companion object {
         // 所有只在 MainActivity 内使用的常量集中放在 companion object，避免魔法数字散落在函数里。
