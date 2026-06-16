@@ -83,6 +83,7 @@ import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
+import com.example.videobrowser.browser.FindInPageDialogController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveController
@@ -193,6 +194,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var localFilesController: LocalFilesController
     private lateinit var pageActionsController: PageActionsController
+    private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
     private lateinit var addressSuggestionController: AddressSuggestionController
@@ -492,6 +494,13 @@ class MainActivity : AppCompatActivity() {
             currentActionableUrl = ::currentActionableUrl,
             currentPageTitle = { currentSessionController().currentPageTitle },
             activeWebView = { currentBrowserManager().activeWebView }
+        )
+        findInPageDialogController = FindInPageDialogController(
+            activity = this,
+            findInPageController = findInPageController,
+            setFindResultListener = { listener -> currentBrowserManager().setFindResultListener(listener) },
+            closeFunctionCenter = { closeFunctionCenter() },
+            dp = ::dp
         )
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
@@ -2360,82 +2369,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showFindInPageDialog() {
-        closeFunctionCenter()
-        val input = EditText(this).apply {
-            hint = getString(R.string.hint_find_in_page)
-            setSingleLine(true)
-        }
-        val status = TextView(this).apply {
-            text = getString(R.string.find_in_page_status_idle)
-            setPadding(0, dp(8), 0, 0)
-        }
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(8), dp(20), 0)
-            addView(input)
-            addView(status)
-        }
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.action_find_in_page)
-            .setView(content)
-            .setPositiveButton(R.string.action_find, null)
-            .setNeutralButton(R.string.action_find_next, null)
-            .setNegativeButton(R.string.action_find_previous, null)
-            .create()
-        dialog.setOnShowListener {
-            currentBrowserManager().setFindResultListener { activeMatchOrdinal, numberOfMatches, isDoneCounting ->
-                status.text = findInPageStatusText(activeMatchOrdinal, numberOfMatches, isDoneCounting)
-            }
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val started = findInPageController.search(input.text?.toString().orEmpty())
-                if (!started) {
-                    Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
-                    status.text = getString(R.string.find_in_page_status_idle)
-                }
-            }
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-                val moved = findInPageController.findNext()
-                if (!moved) {
-                    Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
-                }
-            }
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
-                val moved = findInPageController.findPrevious()
-                if (!moved) {
-                    Toast.makeText(this, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-        dialog.setOnDismissListener {
-            currentBrowserManager().setFindResultListener(null)
-            findInPageController.clear()
-        }
-        dialog.show()
-    }
-
-    /**
-     * 函数 `findInPageStatusText`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param activeMatchOrdinal 参数类型为 `Int`，表示函数执行 `activeMatchOrdinal` 相关逻辑时需要读取或处理的输入。
-     * @param numberOfMatches 参数类型为 `Int`，表示函数执行 `numberOfMatches` 相关逻辑时需要读取或处理的输入。
-     * @param isDoneCounting 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun findInPageStatusText(
-        activeMatchOrdinal: Int,
-        numberOfMatches: Int,
-        isDoneCounting: Boolean
-    ): String {
-        return when {
-            !isDoneCounting -> getString(R.string.find_in_page_status_counting)
-            numberOfMatches <= 0 -> getString(R.string.find_in_page_status_no_matches)
-            else -> getString(
-                R.string.find_in_page_status_matches,
-                activeMatchOrdinal + 1,
-                numberOfMatches
-            )
-        }
+        findInPageDialogController.showDialog()
     }
 
     /**
