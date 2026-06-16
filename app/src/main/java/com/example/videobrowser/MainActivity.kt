@@ -24,7 +24,6 @@ import android.content.res.ColorStateList
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -2027,33 +2026,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val colors = if (isPrivateBrowsingEnabled()) {
-            BrowserUiColors(
-                background = Color.parseColor("#11151B"),
-                surface = Color.parseColor("#181D25"),
-                webViewBackground = Color.parseColor("#0B0F14"),
-                addressBackground = Color.parseColor("#222936"),
-                addressStroke = Color.parseColor("#303948"),
-                text = Color.parseColor("#F4F7FB"),
-                hint = Color.parseColor("#8F9BAD"),
-                icon = Color.parseColor("#E9EEF7"),
-                mutedIcon = Color.parseColor("#AAB4C3"),
-                progress = Color.parseColor("#4D8DFF")
-            )
-        } else {
-            BrowserUiColors(
-                background = ContextCompat.getColor(this, R.color.browser_background),
-                surface = ContextCompat.getColor(this, R.color.browser_surface),
-                webViewBackground = ContextCompat.getColor(this, R.color.webview_background),
-                addressBackground = ContextCompat.getColor(this, R.color.address_bar_background),
-                addressStroke = ContextCompat.getColor(this, R.color.address_bar_stroke),
-                text = ContextCompat.getColor(this, R.color.browser_text),
-                hint = ContextCompat.getColor(this, R.color.browser_text_hint),
-                icon = ContextCompat.getColor(this, R.color.browser_icon),
-                mutedIcon = ContextCompat.getColor(this, R.color.browser_icon_muted),
-                progress = ContextCompat.getColor(this, R.color.progress_active)
-            )
-        }
+        val colors = MainActivityBrowsingModeTheme.colors(
+            context = this,
+            privateBrowsing = isPrivateBrowsingEnabled()
+        )
 
         rootView.setBackgroundColor(colors.background)
         topBar.setBackgroundColor(colors.surface)
@@ -2908,25 +2884,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     // endregion
-
-    /**
-     * 主界面在普通/无痕模式下使用的一组颜色。
-     *
-     * 单独建成 data class 是为了让 applyBrowsingModeTheme() 先“决定颜色”，再“应用颜色”，
-     * 初学者阅读时可以把两步分开理解。
-     */
-    private data class BrowserUiColors(
-        val background: Int,
-        val surface: Int,
-        val webViewBackground: Int,
-        val addressBackground: Int,
-        val addressStroke: Int,
-        val text: Int,
-        val hint: Int,
-        val icon: Int,
-        val mutedIcon: Int,
-        val progress: Int
-    )
 
     /**
      * 定位权限请求的临时数据。
