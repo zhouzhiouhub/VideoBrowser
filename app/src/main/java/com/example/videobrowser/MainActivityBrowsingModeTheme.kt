@@ -17,6 +17,14 @@ import androidx.core.content.ContextCompat
  */
 internal object MainActivityBrowsingModeTheme {
 
+    /**
+     * 函数 `colors`：封装 `colors` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param context 参数类型为 `Context`，表示 Android 上下文，用来读取资源、启动系统服务或访问应用环境。
+     * @param privateBrowsing 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun colors(context: Context, privateBrowsing: Boolean): BrowserUiColors {
         return if (privateBrowsing) {
             privateBrowsingColors()

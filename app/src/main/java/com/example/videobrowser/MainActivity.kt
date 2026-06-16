@@ -692,23 +692,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `onNewIntent`：处理 `on New Intent` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param intent 参数类型为 `Intent`，表示函数执行 `intent` 相关逻辑时需要读取或处理的输入。
+     */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleLaunchIntent(intent)
     }
 
+    /**
+     * 函数 `onPause`：处理 `on Pause` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onPause() {
         saveStandardTabSession()
         currentBrowserManager().onPause()
         super.onPause()
     }
 
+    /**
+     * 函数 `onResume`：处理 `on Resume` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onResume() {
         super.onResume()
         currentBrowserManager().onResume()
     }
 
+    /**
+     * 函数 `dispatchKeyEvent`：封装 `dispatch Key Event` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param event 参数类型为 `KeyEvent`，表示函数执行 `event` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN && isVideoFullscreenUiActive) {
             fullscreenVideoController.wakeControls()
@@ -716,6 +739,11 @@ class MainActivity : AppCompatActivity() {
         return super.dispatchKeyEvent(event)
     }
 
+    /**
+     * 函数 `onDestroy`：处理 `on Destroy` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onDestroy() {
         cancelPendingWebFileChooser()
         cancelPendingWebPermissionRequest()
@@ -753,6 +781,11 @@ class MainActivity : AppCompatActivity() {
     // region WebView、ChromeClient 和 BrowserClient 组装
     // 这一组函数负责创建 WebView、绑定 WebChromeClient/WebViewClient，
     // 并处理网页弹窗、新窗口、渲染进程退出、证书和 HTTP 认证等浏览器外壳能力。
+    /**
+     * 函数 `setupBrowserWebViews`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupBrowserWebViews() {
         standardWebView = views.webView
         configureLinkContextMenu(standardWebView)
@@ -774,12 +807,22 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `restoreStandardTabSession`：封装 `restore Standard Tab Session` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun restoreStandardTabSession() {
         browserTabSessionRepository.restore()?.let { session ->
             standardTabStore.restore(session.tabs, session.activeTabId)
         }
     }
 
+    /**
+     * 函数 `saveStandardTabSession`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun saveStandardTabSession() {
         if (!::browserTabSessionRepository.isInitialized) {
             return
@@ -790,6 +833,12 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `createStandardTabWebView`：创建 `create Standard Tab Web View` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createStandardTabWebView(): WebView {
         return WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
@@ -802,10 +851,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `showStandardTabWebView`：控制 `show Standard Tab Web View` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun showStandardTabWebView(tabWebView: WebView) {
         showStandardTabWebView(tabWebView, detachCurrent = true)
     }
 
+    /**
+     * 函数 `showStandardTabWebView`：控制 `show Standard Tab Web View` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param detachCurrent 参数类型为 `Boolean`，表示函数执行 `detachCurrent` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showStandardTabWebView(tabWebView: WebView, detachCurrent: Boolean) {
         if (tabWebView.parent == null) {
             webViewContainer.addView(tabWebView)
@@ -820,10 +882,22 @@ class MainActivity : AppCompatActivity() {
         handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)
     }
 
+    /**
+     * 函数 `hideStandardTabWebView`：控制 `hide Standard Tab Web View` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun hideStandardTabWebView(tabWebView: WebView) {
         tabWebView.visibility = View.GONE
     }
 
+    /**
+     * 函数 `destroyStandardTabWebView`：封装 `destroy Standard Tab Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun destroyStandardTabWebView(tabWebView: WebView) {
         if (tabWebView.parent == webViewContainer) {
             webViewContainer.removeView(tabWebView)
@@ -831,30 +905,73 @@ class MainActivity : AppCompatActivity() {
         standardBrowserManager.destroyWebView(tabWebView, clearSharedStores = false)
     }
 
+    /**
+     * 函数 `currentBrowserManager`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentBrowserManager(): BrowserManager {
         return standardBrowserManager
     }
 
+    /**
+     * 函数 `browserManagers`：封装 `browser Managers` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun browserManagers(): List<BrowserManager> {
         return listOf(standardBrowserManager)
     }
 
+    /**
+     * 函数 `currentSessionController`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSessionController(): BrowserSessionController {
         return if (privateBrowsingActive) privateSessionController else standardSessionController
     }
 
+    /**
+     * 函数 `areBrowserSessionsInitialized`：封装 `are Browser Sessions Initialized` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun areBrowserSessionsInitialized(): Boolean {
         return ::standardSessionController.isInitialized && ::privateSessionController.isInitialized
     }
 
+    /**
+     * 函数 `currentChromeClient`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentChromeClient(): ChromeClient {
         return if (privateBrowsingActive) privateChromeClient else standardChromeClient
     }
 
+    /**
+     * 函数 `areChromeClientsInitialized`：封装 `are Chrome Clients Initialized` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun areChromeClientsInitialized(): Boolean {
         return ::standardChromeClient.isInitialized && ::privateChromeClient.isInitialized
     }
 
+    /**
+     * 函数 `handleActiveWebViewChanged`：处理 `handle Active Web View Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param activeWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param mode 参数类型为 `BrowserMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode) {
         privateBrowsingActive = mode == BrowserMode.PRIVATE
         configureLinkContextMenu(activeWebView)
@@ -872,6 +989,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `setupBrowserControls`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupBrowserControls() {
         browserControlsController.setup()
         siteSecurityIcon.setOnClickListener {
@@ -879,12 +1001,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `setupChromeClient`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupChromeClient() {
         standardChromeClient = createChromeClient(standardSessionController)
         privateChromeClient = createChromeClient(privateSessionController)
         currentBrowserManager().setChromeClient(currentChromeClient())
     }
 
+    /**
+     * 函数 `createChromeClient`：创建 `create Chrome Client` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param sessionController 参数类型为 `BrowserSessionController`，表示函数执行 `sessionController` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createChromeClient(sessionController: BrowserSessionController): ChromeClient {
         return ChromeClient(
             activity = this,
@@ -903,6 +1037,16 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `handleCreateWebWindow`：处理 `handle Create Web Window` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param isDialog 参数类型为 `Boolean`，表示函数执行 `isDialog` 相关逻辑时需要读取或处理的输入。
+     * @param isUserGesture 参数类型为 `Boolean`，表示函数执行 `isUserGesture` 相关逻辑时需要读取或处理的输入。
+     * @param resultMsg 参数类型为 `Message?`，表示函数执行 `resultMsg` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun handleCreateWebWindow(
         view: WebView?,
         isDialog: Boolean,
@@ -923,6 +1067,12 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    /**
+     * 函数 `handleCloseWebWindow`：处理 `handle Close Web Window` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param window 参数类型为 `WebView?`，表示函数执行 `window` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleCloseWebWindow(window: WebView?) {
         if (privateBrowsingActive || window == null) {
             return
@@ -931,6 +1081,11 @@ class MainActivity : AppCompatActivity() {
         closeTab(tabId)
     }
 
+    /**
+     * 函数 `setupBrowserClient`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupBrowserClient() {
         currentBrowserManager().setBrowserClient(
             BrowserClient(
@@ -949,6 +1104,14 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `handleRenderProcessGone`：处理 `handle Render Process Gone` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param didCrash 参数类型为 `Boolean`，表示函数执行 `didCrash` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun handleRenderProcessGone(view: WebView?, didCrash: Boolean): Boolean {
         val goneWebView = view ?: return true
         val pageUrl = currentSessionController().currentPageUrl
@@ -990,6 +1153,12 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    /**
+     * 函数 `disposeGoneWebView`：封装 `dispose Gone Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param goneWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun disposeGoneWebView(goneWebView: WebView) {
         if (goneWebView.parent == webViewContainer) {
             webViewContainer.removeView(goneWebView)
@@ -1003,6 +1172,13 @@ class MainActivity : AppCompatActivity() {
         goneWebView.destroy()
     }
 
+    /**
+     * 函数 `handleClientCertRequest`：处理 `handle Client Cert Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param request 参数类型为 `ClientCertRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     */
     private fun handleClientCertRequest(
         view: WebView?,
         request: ClientCertRequest?
@@ -1021,6 +1197,13 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `handleClientCertAliasSelected`：处理 `handle Client Cert Alias Selected` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `ClientCertRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @param alias 参数类型为 `String?`，表示函数执行 `alias` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleClientCertAliasSelected(
         request: ClientCertRequest,
         alias: String?
@@ -1068,14 +1251,32 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
+    /**
+     * 函数 `cancelPendingClientCertRequest`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun cancelPendingClientCertRequest() {
         pendingClientCertRequest?.cancel()
         pendingClientCertRequest = null
     }
 
+    /**
+     * 函数 `interceptBrowserRequest`：封装 `intercept Browser Request` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun interceptBrowserRequest(request: BrowserRequest) =
         adBlockRequestInterceptor.intercept(request) ?: smartNoImageRequestInterceptor.intercept(request)
 
+    /**
+     * 函数 `showBrowserErrorPage`：控制 `show Browser Error Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param error 参数类型为 `BrowserPageError`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showBrowserErrorPage(error: BrowserPageError) {
         currentSessionController().handlePageFailed(error.url)
         currentBrowserManager().loadErrorPage(error)
@@ -1086,6 +1287,15 @@ class MainActivity : AppCompatActivity() {
     // region 网页权限、文件选择、书签导入导出和系统认证
     // WebView 的相机、麦克风、定位、文件上传等能力都要经过 Android 系统授权。
     // 书签导入导出也依赖系统文件选择器，所以放在同一组系统交互逻辑里。
+    /**
+     * 函数 `handleHttpAuthRequest`：处理 `handle Http Auth Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param handler 参数类型为 `HttpAuthHandler?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param realm 参数类型为 `String?`，表示函数执行 `realm` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleHttpAuthRequest(
         view: WebView?,
         handler: HttpAuthHandler?,
@@ -1154,6 +1364,11 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    /**
+     * 函数 `cancelPendingHttpAuthRequest`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun cancelPendingHttpAuthRequest() {
         val dialog = pendingHttpAuthDialog
         val handler = pendingHttpAuthHandler
@@ -1164,10 +1379,20 @@ class MainActivity : AppCompatActivity() {
         handler?.cancel()
     }
 
+    /**
+     * 函数 `setupFullscreenGestureOverlay`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupFullscreenGestureOverlay() {
         fullscreenVideoController.attachOverlay()
     }
 
+    /**
+     * 函数 `exitPageFullscreenIfNeeded`：封装 `exit Page Fullscreen If Needed` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun exitPageFullscreenIfNeeded() {
         if (areChromeClientsInitialized() &&
             currentChromeClient().isFullscreenModeActive() &&
@@ -1177,6 +1402,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `handleVideoFullscreenChanged`：处理 `handle Video Fullscreen Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param fullscreen 参数类型为 `Boolean`，表示函数执行 `fullscreen` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
         fullscreenVideoController.handleFullscreenChanged(fullscreen)
         setBrowserControlsHidden(fullscreen)
@@ -1187,6 +1418,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `showWebFileChooser`：控制 `show Web File Chooser` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param filePathCallback 参数类型为 `ValueCallback<Array<Uri>>?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
+     * @param fileChooserParams 参数类型为 `FileChooserParams?`，表示函数执行 `fileChooserParams` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun showWebFileChooser(
         filePathCallback: ValueCallback<Array<Uri>>?,
         fileChooserParams: FileChooserParams?
@@ -1212,15 +1451,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `cancelPendingWebFileChooser`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun cancelPendingWebFileChooser() {
         pendingFileChooserCallback?.onReceiveValue(null)
         pendingFileChooserCallback = null
     }
 
+    /**
+     * 函数 `exportBookmarks`：封装 `export Bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun exportBookmarks() {
         bookmarkExportLauncher.launch(BOOKMARK_EXPORT_FILE_NAME)
     }
 
+    /**
+     * 函数 `exportBookmarksToUri`：封装 `export Bookmarks To Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun exportBookmarksToUri(uri: Uri) {
         val exported = runCatching {
             val payload = savedPageRepository.exportBookmarks().toByteArray(StandardCharsets.UTF_8)
@@ -1236,10 +1491,21 @@ class MainActivity : AppCompatActivity() {
         ).show()
     }
 
+    /**
+     * 函数 `importBookmarks`：封装 `import Bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun importBookmarks() {
         bookmarkImportLauncher.launch(arrayOf("text/plain", "application/json", "*/*"))
     }
 
+    /**
+     * 函数 `importBookmarksFromUri`：封装 `import Bookmarks From Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun importBookmarksFromUri(uri: Uri) {
         val result = runCatching {
             val payload = contentResolver.openInputStream(uri)?.use { input ->
@@ -1260,6 +1526,12 @@ class MainActivity : AppCompatActivity() {
         updateBookmarkButton()
     }
 
+    /**
+     * 函数 `defaultWebFileChooserIntent`：封装 `default Web File Chooser Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun defaultWebFileChooserIntent(): Intent {
         return Intent(Intent.ACTION_GET_CONTENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -1268,6 +1540,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `handleWebPermissionRequest`：处理 `handle Web Permission Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     */
     private fun handleWebPermissionRequest(request: PermissionRequest?) {
         request ?: return
         val requiredPermissions = androidPermissionsForWebResources(request.resources)
@@ -1293,6 +1571,12 @@ class MainActivity : AppCompatActivity() {
         webPermissionLauncher.launch(missingPermissions)
     }
 
+    /**
+     * 函数 `handleWebPermissionRequestAfterAndroidPermission`：处理 `handle Web Permission Request After Android Permission` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     */
     private fun handleWebPermissionRequestAfterAndroidPermission(request: PermissionRequest) {
         when (webPermissionDecision(request)) {
             SitePermissionDecision.ALLOW -> grantSupportedWebPermissionResources(request)
@@ -1301,6 +1585,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `handleWebPermissionRequestCanceled`：处理 `handle Web Permission Request Canceled` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     */
     private fun handleWebPermissionRequestCanceled(request: PermissionRequest?) {
         if (request == null) {
             pendingWebPermissionRequest?.deny()
@@ -1316,12 +1606,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `cancelPendingWebPermissionRequest`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun cancelPendingWebPermissionRequest() {
         pendingWebPermissionRequest?.deny()
         pendingWebPermissionRequest = null
         cancelPendingWebPermissionPrompt()
     }
 
+    /**
+     * 函数 `showWebPermissionPrompt`：控制 `show Web Permission Prompt` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     */
     private fun showWebPermissionPrompt(request: PermissionRequest) {
         cancelPendingWebPermissionPrompt()
         pendingWebPermissionPromptRequest = request
@@ -1351,6 +1652,14 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    /**
+     * 函数 `answerWebPermissionPrompt`：处理 `answer Web Permission Prompt` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @param rememberDecision 参数类型为 `Boolean`，表示函数执行 `rememberDecision` 相关逻辑时需要读取或处理的输入。
+     */
     private fun answerWebPermissionPrompt(
         request: PermissionRequest,
         allowed: Boolean,
@@ -1376,6 +1685,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `cancelPendingWebPermissionPrompt`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun cancelPendingWebPermissionPrompt() {
         val request = pendingWebPermissionPromptRequest
         pendingWebPermissionPromptRequest = null
@@ -1384,6 +1698,13 @@ class MainActivity : AppCompatActivity() {
         request?.deny()
     }
 
+    /**
+     * 函数 `webPermissionOrigin`：封装 `web Permission Origin` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun webPermissionOrigin(request: PermissionRequest): String {
         return request.origin
             ?.toString()
@@ -1391,6 +1712,13 @@ class MainActivity : AppCompatActivity() {
             ?: getString(R.string.permission_origin_unknown)
     }
 
+    /**
+     * 函数 `webPermissionResourceSummary`：封装 `web Permission Resource Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param resources 参数类型为 `Array<String>`，表示函数执行 `resources` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun webPermissionResourceSummary(resources: Array<String>): String {
         return resources
             .mapNotNull { resource -> webPermissionResourceLabel(resource) }
@@ -1398,6 +1726,13 @@ class MainActivity : AppCompatActivity() {
             .joinToString(", ")
     }
 
+    /**
+     * 函数 `webPermissionResourceLabel`：封装 `web Permission Resource Label` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param resource 参数类型为 `String`，表示函数执行 `resource` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun webPermissionResourceLabel(resource: String): String? {
         return when (resource) {
             PermissionRequest.RESOURCE_VIDEO_CAPTURE -> getString(R.string.web_permission_camera)
@@ -1406,6 +1741,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `webPermissionDecision`：封装 `web Permission Decision` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun webPermissionDecision(request: PermissionRequest): SitePermissionDecision {
         val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return SitePermissionDecision.ASK
         val permissions = request.resources
@@ -1423,6 +1765,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `saveWebPermissionDecision`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     private fun saveWebPermissionDecision(request: PermissionRequest, allowed: Boolean) {
         if (isPrivateBrowsingEnabled()) {
             if (allowed) {
@@ -1439,6 +1788,12 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    /**
+     * 函数 `allowWebPermissionForSession`：封装 `allow Web Permission For Session` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     */
     private fun allowWebPermissionForSession(request: PermissionRequest) {
         val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
         request.resources
@@ -1448,6 +1803,13 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    /**
+     * 函数 `sitePermissionForWebResource`：封装 `site Permission For Web Resource` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param resource 参数类型为 `String`，表示函数执行 `resource` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun sitePermissionForWebResource(resource: String): SitePermission? {
         return when (resource) {
             PermissionRequest.RESOURCE_VIDEO_CAPTURE -> SitePermission.CAMERA
@@ -1456,6 +1818,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `grantSupportedWebPermissionResources`：处理 `grant Supported Web Permission Resources` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `PermissionRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     */
     private fun grantSupportedWebPermissionResources(request: PermissionRequest) {
         val resources = supportedWebPermissionResources(request.resources)
         if (resources == null) {
@@ -1466,6 +1834,13 @@ class MainActivity : AppCompatActivity() {
         request.grant(resources)
     }
 
+    /**
+     * 函数 `supportedWebPermissionResources`：封装 `supported Web Permission Resources` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param resources 参数类型为 `Array<String>`，表示函数执行 `resources` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun supportedWebPermissionResources(resources: Array<String>): Array<String>? {
         val supportedResources = mutableListOf<String>()
         resources.forEach { resource ->
@@ -1484,6 +1859,13 @@ class MainActivity : AppCompatActivity() {
             ?.toTypedArray()
     }
 
+    /**
+     * 函数 `handleGeolocationPermissionRequest`：处理 `handle Geolocation Permission Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     * @param callback 参数类型为 `GeolocationPermissions.Callback?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
+     */
     private fun handleGeolocationPermissionRequest(
         origin: String?,
         callback: GeolocationPermissions.Callback?
@@ -1507,6 +1889,12 @@ class MainActivity : AppCompatActivity() {
         geolocationPermissionLauncher.launch(permissions)
     }
 
+    /**
+     * 函数 `handleGeolocationPermissionAfterAndroidPermission`：处理 `handle Geolocation Permission After Android Permission` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param prompt 参数类型为 `GeolocationPermissionPrompt`，表示函数执行 `prompt` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleGeolocationPermissionAfterAndroidPermission(prompt: GeolocationPermissionPrompt) {
         when (geolocationPermissionDecision(prompt.origin)) {
             SitePermissionDecision.ALLOW -> prompt.callback.invoke(prompt.origin, true, false)
@@ -1515,10 +1903,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `handleGeolocationPermissionHidden`：处理 `handle Geolocation Permission Hidden` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun handleGeolocationPermissionHidden() {
         cancelPendingGeolocationPermissionPrompt()
     }
 
+    /**
+     * 函数 `cancelPendingGeolocationPermissionPrompt`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun cancelPendingGeolocationPermissionPrompt() {
         val prompt = pendingGeolocationPermissionPrompt
         pendingGeolocationPermissionPrompt = null
@@ -1535,6 +1933,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `showGeolocationPermissionPrompt`：控制 `show Geolocation Permission Prompt` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param prompt 参数类型为 `GeolocationPermissionPrompt`，表示函数执行 `prompt` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showGeolocationPermissionPrompt(prompt: GeolocationPermissionPrompt) {
         cancelPendingGeolocationPermissionPrompt()
         pendingGeolocationSitePrompt = prompt
@@ -1564,6 +1968,14 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    /**
+     * 函数 `answerGeolocationPermissionPrompt`：处理 `answer Geolocation Permission Prompt` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param prompt 参数类型为 `GeolocationPermissionPrompt`，表示函数执行 `prompt` 相关逻辑时需要读取或处理的输入。
+     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     * @param rememberDecision 参数类型为 `Boolean`，表示函数执行 `rememberDecision` 相关逻辑时需要读取或处理的输入。
+     */
     private fun answerGeolocationPermissionPrompt(
         prompt: GeolocationPermissionPrompt,
         allowed: Boolean,
@@ -1586,6 +1998,13 @@ class MainActivity : AppCompatActivity() {
         prompt.callback.invoke(prompt.origin, allowed, false)
     }
 
+    /**
+     * 函数 `geolocationPermissionDecision`：封装 `geolocation Permission Decision` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun geolocationPermissionDecision(origin: String?): SitePermissionDecision {
         val hostName = SiteHost.fromUrl(origin) ?: return SitePermissionDecision.ASK
         val decision = settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)
@@ -1597,6 +2016,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `saveGeolocationPermissionDecision`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     * @param allowed 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     private fun saveGeolocationPermissionDecision(origin: String?, allowed: Boolean) {
         if (isPrivateBrowsingEnabled()) {
             if (allowed) {
@@ -1612,11 +2038,24 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `allowGeolocationPermissionForSession`：封装 `allow Geolocation Permission For Session` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     */
     private fun allowGeolocationPermissionForSession(origin: String?) {
         val hostName = SiteHost.fromUrl(origin) ?: return
         sessionSitePermissionStore.allow(hostName, SitePermission.LOCATION)
     }
 
+    /**
+     * 函数 `denyGeolocationPermissionPrompt`：处理 `deny Geolocation Permission Prompt` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
+     * @param callback 参数类型为 `GeolocationPermissions.Callback`，表示回调对象，异步操作完成后用它把结果通知回调用方。
+     */
     private fun denyGeolocationPermissionPrompt(
         origin: String?,
         callback: GeolocationPermissions.Callback
@@ -1624,6 +2063,12 @@ class MainActivity : AppCompatActivity() {
         callback.invoke(origin, false, false)
     }
 
+    /**
+     * 函数 `geolocationAndroidPermissions`：封装 `geolocation Android Permissions` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun geolocationAndroidPermissions(): Array<String> {
         return arrayOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -1631,6 +2076,13 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `androidPermissionsForWebResources`：封装 `android Permissions For Web Resources` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param resources 参数类型为 `Array<String>`，表示函数执行 `resources` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun androidPermissionsForWebResources(resources: Array<String>): List<String>? {
         val permissions = mutableListOf<String>()
         resources.forEach { resource ->
@@ -1646,6 +2098,13 @@ class MainActivity : AppCompatActivity() {
         return permissions.takeIf { it.isNotEmpty() }
     }
 
+    /**
+     * 函数 `hasAndroidPermission`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param permission 参数类型为 `String`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun hasAndroidPermission(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
     }
@@ -1654,6 +2113,12 @@ class MainActivity : AppCompatActivity() {
 
     // region 地址栏、顶部/底部工具栏和返回键
     // 这一组函数只处理用户正在看的浏览器外壳：进度条、搜索入口、滚动隐藏工具栏和返回键行为。
+    /**
+     * 函数 `updatePageProgressVisibility`：根据最新状态刷新 `update Page Progress Visibility` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param forceHidden 参数类型为 `Boolean`，表示函数执行 `forceHidden` 相关逻辑时需要读取或处理的输入。
+     */
     private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
         browserControlsController.updatePageProgressVisibility(
             currentSessionController().isPageLoading,
@@ -1661,14 +2126,31 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `setupWebViewScrollControls`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupWebViewScrollControls() {
         browserControlsScrollController.setup()
     }
 
+    /**
+     * 函数 `setBrowserControlsHidden`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hidden 参数类型为 `Boolean`，表示函数执行 `hidden` 相关逻辑时需要读取或处理的输入。
+     * @param allowDefer 参数类型为 `Boolean`，表示函数执行 `allowDefer` 相关逻辑时需要读取或处理的输入。
+     */
     private fun setBrowserControlsHidden(hidden: Boolean, allowDefer: Boolean = true) {
         browserControlsScrollController.setControlsHidden(hidden, allowDefer)
     }
 
+    /**
+     * 函数 `syncSearchProviderVisibility`：根据最新状态刷新 `sync Search Provider Visibility` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun syncSearchProviderVisibility() {
         if (!::searchProviderController.isInitialized) {
             return
@@ -1683,20 +2165,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `handleAddressFocusChanged`：处理 `handle Address Focus Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hasFocus 参数类型为 `Boolean`，表示函数执行 `hasFocus` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleAddressFocusChanged(hasFocus: Boolean) {
         if (::addressSuggestionController.isInitialized) {
             addressSuggestionController.handleAddressFocusChanged(hasFocus)
         }
     }
 
+    /**
+     * 函数 `setupSearchProviders`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupSearchProviders() {
         searchProviderController.setup()
     }
 
+    /**
+     * 函数 `setupBackNavigation`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupBackNavigation() {
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
+                /**
+                 * 函数 `handleOnBackPressed`：处理 `handle On Back Pressed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+                 *
+                 * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                 */
                 override fun handleOnBackPressed() {
                     handleBrowserBack()
                 }
@@ -1704,6 +2207,11 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `handleBrowserBack`：处理 `handle Browser Back` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun handleBrowserBack() {
         if (handleFunctionCenterBack()) {
             resetBackExitConfirmation()
@@ -1736,6 +2244,11 @@ class MainActivity : AppCompatActivity() {
         confirmExitOnSecondBack()
     }
 
+    /**
+     * 函数 `confirmExitOnSecondBack`：封装 `confirm Exit On Second Back` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun confirmExitOnSecondBack() {
         val now = SystemClock.elapsedRealtime()
         if (lastBackExitPromptElapsedRealtime != 0L &&
@@ -1750,6 +2263,11 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, R.string.toast_press_back_again_to_exit, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `resetBackExitConfirmation`：封装 `reset Back Exit Confirmation` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun resetBackExitConfirmation() {
         lastBackExitPromptElapsedRealtime = 0L
     }
@@ -1758,6 +2276,12 @@ class MainActivity : AppCompatActivity() {
 
     // region 原生桥、功能中心、本地文件和页面工具
     // 原生桥把网页里的 JavaScript 调用转成 Kotlin 回调；功能中心和本地文件入口复用这些动作。
+    /**
+     * 函数 `createNativeBridge`：创建 `create Native Bridge` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun createNativeBridge(): VideoBrowserNativeBridge {
         return VideoBrowserNativeBridge(
             postToUi = { action -> runOnUiThread { action() } },
@@ -1783,19 +2307,39 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `startElementPicker`：启动或加载 `start Element Picker` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun startElementPicker() {
         elementPickerController.start()
     }
 
+    /**
+     * 函数 `showFunctionCenter`：控制 `show Function Center` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showFunctionCenter() {
         hideKeyboard()
         functionCenterPages.showRootPage()
     }
 
+    /**
+     * 函数 `showFunctionCenterRootPage`：控制 `show Function Center Root Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showFunctionCenterRootPage() {
         functionCenterPages.showRootPage()
     }
 
+    /**
+     * 函数 `showFindInPageDialog`：控制 `show Find In Page Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showFindInPageDialog() {
         closeFunctionCenter()
         val input = EditText(this).apply {
@@ -1850,6 +2394,15 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    /**
+     * 函数 `findInPageStatusText`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param activeMatchOrdinal 参数类型为 `Int`，表示函数执行 `activeMatchOrdinal` 相关逻辑时需要读取或处理的输入。
+     * @param numberOfMatches 参数类型为 `Int`，表示函数执行 `numberOfMatches` 相关逻辑时需要读取或处理的输入。
+     * @param isDoneCounting 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun findInPageStatusText(
         activeMatchOrdinal: Int,
         numberOfMatches: Int,
@@ -1866,6 +2419,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `saveCurrentPageArchive`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun saveCurrentPageArchive() {
         val pageUrl = currentActionableUrl()
         if (pageUrl == null) {
@@ -1903,6 +2461,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `currentPageArchiveFileName`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentPageArchiveFileName(pageUrl: String): String {
         return PageArchiveFileName.create(
             pageTitle = currentSessionController().currentPageTitle,
@@ -1911,6 +2476,13 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `exportPageArchiveToUri`：封装 `export Page Archive To Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param archiveFile 参数类型为 `File`，表示函数执行 `archiveFile` 相关逻辑时需要读取或处理的输入。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun exportPageArchiveToUri(archiveFile: File, uri: Uri) {
         runCatching {
             contentResolver.openOutputStream(uri)?.use { output ->
@@ -1925,11 +2497,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `clearPendingPageArchive`：封装 `clear Pending Page Archive` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun clearPendingPageArchive() {
         pendingPageArchiveFile?.delete()
         pendingPageArchiveFile = null
     }
 
+    /**
+     * 函数 `printCurrentPage`：封装 `print Current Page` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun printCurrentPage() {
         val pageUrl = currentActionableUrl()
         if (pageUrl == null) {
@@ -1946,6 +2528,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `currentPrintJobName`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentPrintJobName(pageUrl: String): String {
         val title = currentSessionController().currentPageTitle
             .replace(WHITESPACE_SEQUENCE, " ")
@@ -1956,27 +2545,64 @@ class MainActivity : AppCompatActivity() {
         return getString(R.string.print_job_name, title)
     }
 
+    /**
+     * 函数 `showProfilePage`：控制 `show Profile Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showProfilePage() {
         hideKeyboard()
         functionCenterPages.showProfilePage()
     }
 
+    /**
+     * 函数 `handleFunctionCenterBack`：处理 `handle Function Center Back` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun handleFunctionCenterBack(): Boolean {
         return functionCenterPages.handleBack()
     }
 
+    /**
+     * 函数 `closeFunctionCenter`：控制 `close Function Center` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun closeFunctionCenter(): Boolean {
         return functionCenterPages.close()
     }
 
+    /**
+     * 函数 `setupFileOperationLaunchers`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupFileOperationLaunchers() {
         localFilesController.setupLaunchers()
     }
 
+    /**
+     * 函数 `showFileOperationsPage`：控制 `show File Operations Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showFileOperationsPage() {
         localFilesController.showFileOperationsPage()
     }
 
+    /**
+     * 函数 `openLocalDocumentUri`：启动或加载 `open Local Document Uri` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param displayName 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param subtitleCandidates 参数类型为 `List<ExternalSubtitleCandidate>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param playbackQueue 参数类型为 `PlaybackQueue?`，表示函数执行 `playbackQueue` 相关逻辑时需要读取或处理的输入。
+     */
     private fun openLocalDocumentUri(
         uri: Uri,
         displayName: String? = null,
@@ -1993,6 +2619,12 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `loadLocalDocumentUrlInBrowser`：启动或加载 `load Local Document Url In Browser` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun loadLocalDocumentUrlInBrowser(url: String) {
         closeFunctionCenter()
         currentSessionController().currentPageUrl = url
@@ -2002,6 +2634,12 @@ class MainActivity : AppCompatActivity() {
         currentBrowserManager().load(url)
     }
 
+    /**
+     * 函数 `openPlaybackHistoryItem`：启动或加载 `open Playback History Item` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param progress 参数类型为 `PlaybackProgress`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun openPlaybackHistoryItem(progress: PlaybackProgress) {
         openNativePlayer(
             url = progress.mediaIdentity,
@@ -2013,6 +2651,11 @@ class MainActivity : AppCompatActivity() {
 
     // region 浏览模式、站点功能开关和标签页管理
     // 普通模式和无痕模式共享大部分 UI，但使用不同的标签页存储和 WebView 会话。
+    /**
+     * 函数 `updatePrivateBrowsingUi`：根据最新状态刷新 `update Private Browsing Ui` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updatePrivateBrowsingUi() {
         if (!::views.isInitialized || !::settingsManager.isInitialized) {
             return
@@ -2021,6 +2664,11 @@ class MainActivity : AppCompatActivity() {
         applyBrowsingModeTheme()
     }
 
+    /**
+     * 函数 `applyBrowsingModeTheme`：根据最新状态刷新 `apply Browsing Mode Theme` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun applyBrowsingModeTheme() {
         if (!::views.isInitialized) {
             return
@@ -2055,62 +2703,151 @@ class MainActivity : AppCompatActivity() {
             !isPrivateBrowsingEnabled()
     }
 
+    /**
+     * 函数 `isAdBlockEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isAdBlockEnabled(): Boolean {
         return pageFeatureCoordinator.isAdBlockEnabled()
     }
 
+    /**
+     * 函数 `isCurrentSiteAdBlockDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isCurrentSiteAdBlockDisabled(): Boolean {
         return pageFeatureCoordinator.isCurrentSiteAdBlockDisabled()
     }
 
+    /**
+     * 函数 `isSmartNoImageEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isSmartNoImageEnabled(): Boolean {
         return pageFeatureCoordinator.isSmartNoImageEnabled()
     }
 
+    /**
+     * 函数 `isJsInjectionEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isJsInjectionEnabled(): Boolean {
         return pageFeatureCoordinator.isJsInjectionEnabled()
     }
 
+    /**
+     * 函数 `isCurrentSiteJsInjectionDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isCurrentSiteJsInjectionDisabled(): Boolean {
         return pageFeatureCoordinator.isCurrentSiteJsInjectionDisabled()
     }
 
+    /**
+     * 函数 `isPageCleanupEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isPageCleanupEnabled(): Boolean {
         return pageFeatureCoordinator.isPageCleanupEnabled()
     }
 
+    /**
+     * 函数 `isCurrentSitePageCleanupDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isCurrentSitePageCleanupDisabled(): Boolean {
         return pageFeatureCoordinator.isCurrentSitePageCleanupDisabled()
     }
 
+    /**
+     * 函数 `isVideoEnhancementEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isVideoEnhancementEnabled(): Boolean {
         return pageFeatureCoordinator.isVideoEnhancementEnabled()
     }
 
+    /**
+     * 函数 `isCurrentSiteVideoEnhancementDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isCurrentSiteVideoEnhancementDisabled(): Boolean {
         return pageFeatureCoordinator.isCurrentSiteVideoEnhancementDisabled()
     }
 
+    /**
+     * 函数 `isDesktopModeEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isDesktopModeEnabled(): Boolean {
         return settingsManager.isDesktopModeEnabled()
     }
 
+    /**
+     * 函数 `isPrivateBrowsingEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isPrivateBrowsingEnabled(): Boolean {
         return privateBrowsingActive
     }
 
+    /**
+     * 函数 `currentTabStore`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentTabStore(): BrowserTabStore {
         return if (privateBrowsingActive) privateTabStore else standardTabStore
     }
 
+    /**
+     * 函数 `currentTabs`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentTabs(): List<BrowserTab> {
         return currentTabStore().tabs()
     }
 
+    /**
+     * 函数 `activeTabId`：封装 `active Tab Id` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun activeTabId(): Long {
         return currentTabStore().activeTabId
     }
 
+    /**
+     * 函数 `openNewTab`：启动或加载 `open New Tab` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun openNewTab() {
         closeFunctionCenter()
         if (!privateBrowsingActive) {
@@ -2124,10 +2861,21 @@ class MainActivity : AppCompatActivity() {
         openHomePage()
     }
 
+    /**
+     * 函数 `canReopenClosedTab`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun canReopenClosedTab(): Boolean {
         return currentTabStore().canReopenClosedTab()
     }
 
+    /**
+     * 函数 `reopenClosedTab`：封装 `reopen Closed Tab` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun reopenClosedTab() {
         if (!privateBrowsingActive) {
             val reopenedTab = standardTabStore.reopenClosedTab() ?: return
@@ -2141,6 +2889,12 @@ class MainActivity : AppCompatActivity() {
         reopenedTab.url?.let(::loadUrl) ?: openHomePage()
     }
 
+    /**
+     * 函数 `switchTab`：封装 `switch Tab` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     */
     private fun switchTab(tabId: Long) {
         closeFunctionCenter()
         if (!privateBrowsingActive) {
@@ -2160,6 +2914,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `closeTab`：控制 `close Tab` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     */
     private fun closeTab(tabId: Long) {
         if (!privateBrowsingActive) {
             val closingActiveTab = standardTabStore.activeTabId == tabId
@@ -2183,6 +2943,12 @@ class MainActivity : AppCompatActivity() {
         showActiveTab(tabStore.activeTab())
     }
 
+    /**
+     * 函数 `closeOtherTabs`：控制 `close Other Tabs` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     */
     private fun closeOtherTabs(tabId: Long) {
         if (!privateBrowsingActive) {
             val previousView = standardTabWebViews.activeWebView()
@@ -2205,6 +2971,11 @@ class MainActivity : AppCompatActivity() {
         showActiveTab(tabStore.activeTab())
     }
 
+    /**
+     * 函数 `closeAllTabs`：控制 `close All Tabs` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun closeAllTabs() {
         if (!privateBrowsingActive) {
             val result = standardTabWebViews.closeAllTabs()
@@ -2219,6 +2990,12 @@ class MainActivity : AppCompatActivity() {
         openHomePage()
     }
 
+    /**
+     * 函数 `duplicateTab`：封装 `duplicate Tab` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
+     */
     private fun duplicateTab(tabId: Long) {
         val sourceTab = currentTabStore().tabs().firstOrNull { tab -> tab.id == tabId } ?: return
         if (!privateBrowsingActive) {
@@ -2236,6 +3013,12 @@ class MainActivity : AppCompatActivity() {
         sourceTab.url?.let(::loadUrl) ?: openHomePage()
     }
 
+    /**
+     * 函数 `openUrlInNewTab`：启动或加载 `open Url In New Tab` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun openUrlInNewTab(url: String) {
         if (!privateBrowsingActive) {
             val result = standardTabWebViews.openTab(
@@ -2251,6 +3034,12 @@ class MainActivity : AppCompatActivity() {
         loadUrl(url)
     }
 
+    /**
+     * 函数 `showActiveTab`：控制 `show Active Tab` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param tab 参数类型为 `BrowserTab`，表示函数执行 `tab` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showActiveTab(tab: BrowserTab) {
         if (!privateBrowsingActive) {
             standardTabWebViews.viewFor(tab.id)?.let(::showStandardTabWebView)
@@ -2261,6 +3050,12 @@ class MainActivity : AppCompatActivity() {
         tab.url?.let(::loadUrl) ?: openHomePage()
     }
 
+    /**
+     * 函数 `setPrivateBrowsingActive`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     private fun setPrivateBrowsingActive(enabled: Boolean) {
         if (enabled == privateBrowsingActive) {
             updatePrivateBrowsingUi()
@@ -2294,10 +3089,21 @@ class MainActivity : AppCompatActivity() {
 
     // region 下载、桌面模式、链接菜单和原生播放器入口
     // 这一组函数处理“当前页面之外”的动作：下载资源、切换桌面 UA、长按链接菜单和跳到原生播放器。
+    /**
+     * 函数 `setupDownloadHandling`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupDownloadHandling() {
         downloadController.attachTo(browserManagers())
     }
 
+    /**
+     * 函数 `applyDesktopMode`：根据最新状态刷新 `apply Desktop Mode` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param reload 参数类型为 `Boolean`，表示函数执行 `reload` 相关逻辑时需要读取或处理的输入。
+     */
     private fun applyDesktopMode(reload: Boolean) {
         val desktopModeEnabled = isDesktopModeEnabled()
         applyBrowserContentOrientation(desktopModeEnabled)
@@ -2309,6 +3115,12 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `applyBrowserContentOrientation`：根据最新状态刷新 `apply Browser Content Orientation` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param desktopModeEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     private fun applyBrowserContentOrientation(desktopModeEnabled: Boolean) {
         if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
             return
@@ -2320,6 +3132,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `injectPageFeatures`：封装 `inject Page Features` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun injectPageFeatures() {
         if (!::pageFeatureCoordinator.isInitialized) {
             return
@@ -2327,25 +3144,56 @@ class MainActivity : AppCompatActivity() {
         pageFeatureCoordinator.injectPageFeatures()
     }
 
+    /**
+     * 函数 `currentShareableUrl`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentShareableUrl(): String? {
         return currentActionableUrl()
     }
 
+    /**
+     * 函数 `currentActionableUrl`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentActionableUrl(): String? {
         return listOf(currentSessionController().currentPageUrl, currentBrowserManager().currentUrl())
             .firstOrNull { url -> !url.isNullOrBlank() && isShareableUrl(url) }
     }
 
+    /**
+     * 函数 `currentSiteHost`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSiteHost(): String? {
         return SiteHost.fromUrl(currentSessionController().currentPageUrl)
     }
 
+    /**
+     * 函数 `isShareableUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isShareableUrl(url: String): Boolean {
         val scheme = Uri.parse(url).scheme
         return scheme.equals("http", ignoreCase = true) ||
             scheme.equals("https", ignoreCase = true)
     }
 
+    /**
+     * 函数 `configureLinkContextMenu`：封装 `configure Link Context Menu` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     */
     private fun configureLinkContextMenu(targetWebView: WebView) {
         targetWebView.setOnLongClickListener { view ->
             val hitTestResult = (view as? WebView)?.hitTestResult
@@ -2361,6 +3209,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `imageHitTestUrl`：封装 `image Hit Test Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hitTestResult 参数类型为 `WebView.HitTestResult?`，表示函数执行 `hitTestResult` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun imageHitTestUrl(hitTestResult: WebView.HitTestResult?): String? {
         if (hitTestResult?.type != WebView.HitTestResult.IMAGE_TYPE) {
             return null
@@ -2370,6 +3225,12 @@ class MainActivity : AppCompatActivity() {
             ?.takeIf(::isShareableUrl)
     }
 
+    /**
+     * 函数 `showImageContextMenu`：控制 `show Image Context Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun showImageContextMenu(url: String) {
         val actions = arrayOf(
             getString(R.string.action_open_image_new_tab),
@@ -2391,14 +3252,32 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * 函数 `downloadImageUrl`：封装 `download Image Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun downloadImageUrl(url: String) {
         downloadLinkUrl(url)
     }
 
+    /**
+     * 函数 `copyImageUrl`：封装 `copy Image Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun copyImageUrl(url: String) {
         copyLinkUrl(url)
     }
 
+    /**
+     * 函数 `shareImageUrl`：封装 `share Image Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun shareImageUrl(url: String) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
@@ -2407,6 +3286,13 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent.createChooser(intent, getString(R.string.action_share_image_link)))
     }
 
+    /**
+     * 函数 `linkHitTestUrl`：封装 `link Hit Test Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hitTestResult 参数类型为 `WebView.HitTestResult?`，表示函数执行 `hitTestResult` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun linkHitTestUrl(hitTestResult: WebView.HitTestResult?): String? {
         val type = hitTestResult?.type ?: return null
         if (type != WebView.HitTestResult.SRC_ANCHOR_TYPE &&
@@ -2419,6 +3305,12 @@ class MainActivity : AppCompatActivity() {
             ?.takeIf(::isShareableUrl)
     }
 
+    /**
+     * 函数 `showLinkContextMenu`：控制 `show Link Context Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun showLinkContextMenu(url: String) {
         val actions = arrayOf(
             getString(R.string.action_open_link_new_tab),
@@ -2440,6 +3332,12 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * 函数 `downloadLinkUrl`：封装 `download Link Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun downloadLinkUrl(url: String) {
         downloadController.enqueue(
             url = url,
@@ -2449,6 +3347,12 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `copyLinkUrl`：封装 `copy Link Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun copyLinkUrl(url: String) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(
@@ -2457,6 +3361,12 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `shareLinkUrl`：封装 `share Link Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun shareLinkUrl(url: String) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
@@ -2465,6 +3375,17 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent.createChooser(intent, getString(R.string.action_share_link)))
     }
 
+    /**
+     * 函数 `openNativePlayer`：启动或加载 `open Native Player` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @param userAgentOverride 参数类型为 `String?`，表示函数执行 `userAgentOverride` 相关逻辑时需要读取或处理的输入。
+     * @param titleOverride 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param subtitleCandidates 参数类型为 `List<ExternalSubtitleCandidate>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param playbackQueue 参数类型为 `PlaybackQueue?`，表示函数执行 `playbackQueue` 相关逻辑时需要读取或处理的输入。
+     */
     private fun openNativePlayer(
         url: String,
         mimeType: String? = null,
@@ -2484,6 +3405,12 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `openNativePlayer`：启动或加载 `open Native Player` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param decision 参数类型为 `MediaRouteDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
+     */
     private fun openNativePlayer(decision: MediaRouteDecision) {
         val mediaItem = decision.mediaItem ?: return
         openNativePlayer(
@@ -2500,6 +3427,11 @@ class MainActivity : AppCompatActivity() {
 
     // region 地址解析、页面加载和站点安全提示
     // 地址栏输入先被解析为 URL 或搜索词；真正加载前还会经过媒体路由、HTTP 降级确认和规则清理。
+    /**
+     * 函数 `loadAddressInput`：启动或加载 `load Address Input` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun loadAddressInput() {
         val input = addressInput.text?.toString()?.trim().orEmpty()
         addressSuggestionController.runWithSuggestionsSuppressed {
@@ -2511,6 +3443,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `searchAddressKeyword`：封装 `search Address Keyword` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param keyword 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     private fun searchAddressKeyword(keyword: String) {
         val query = keyword.replace(WHITESPACE_SEQUENCE, " ").trim()
         if (query.isEmpty()) {
@@ -2520,10 +3458,20 @@ class MainActivity : AppCompatActivity() {
         loadUrl("${searchProviderController.selectedProvider.searchUrlPrefix}$encodedQuery")
     }
 
+    /**
+     * 函数 `openHomePage`：启动或加载 `open Home Page` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun openHomePage() {
         loadUrl(settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl))
     }
 
+    /**
+     * 函数 `openInitialStandardPage`：启动或加载 `open Initial Standard Page` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun openInitialStandardPage() {
         val restoredUrl = standardTabStore.activeTab().url
         if (restoredUrl.isNullOrBlank()) {
@@ -2533,16 +3481,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `openWenxinPage`：启动或加载 `open Wenxin Page` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun openWenxinPage() {
         loadUrl(BAIDU_WENXIN_URL)
     }
 
+    /**
+     * 函数 `handleLaunchIntent`：处理 `handle Launch Intent` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param intent 参数类型为 `Intent?`，表示函数执行 `intent` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun handleLaunchIntent(intent: Intent?): Boolean {
         val launchUrl = externalWebUrlFromIntent(intent) ?: return false
         loadUrl(launchUrl)
         return true
     }
 
+    /**
+     * 函数 `externalWebUrlFromIntent`：封装 `external Web Url From Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param intent 参数类型为 `Intent?`，表示函数执行 `intent` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun externalWebUrlFromIntent(intent: Intent?): String? {
         if (intent?.action != Intent.ACTION_VIEW) {
             return null
@@ -2552,14 +3519,33 @@ class MainActivity : AppCompatActivity() {
             ?.takeIf { it.isNotEmpty() && isShareableUrl(it) }
     }
 
+    /**
+     * 函数 `loadUrl`：启动或加载 `load Url` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun loadUrl(url: String) {
         loadUrlInternal(url, allowInsecureNavigation = false)
     }
 
+    /**
+     * 函数 `loadUrlAfterInsecureNavigationConfirmation`：启动或加载 `load Url After Insecure Navigation Confirmation` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun loadUrlAfterInsecureNavigationConfirmation(url: String) {
         loadUrlInternal(url, allowInsecureNavigation = true)
     }
 
+    /**
+     * 函数 `loadUrlInternal`：启动或加载 `load Url Internal` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param allowInsecureNavigation 参数类型为 `Boolean`，表示函数执行 `allowInsecureNavigation` 相关逻辑时需要读取或处理的输入。
+     */
     private fun loadUrlInternal(url: String, allowInsecureNavigation: Boolean) {
         val cleanedUrl = if (::ruleEngine.isInitialized) {
             ruleEngine.cleanNavigationUrl(url, currentSessionController().currentPageUrl)
@@ -2604,6 +3590,12 @@ class MainActivity : AppCompatActivity() {
         currentBrowserManager().load(cleanedUrl)
     }
 
+    /**
+     * 函数 `updateAddressBar`：根据最新状态刷新 `update Address Bar` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun updateAddressBar(url: String?) {
         updateSiteSecurityStatus(url)
         if (url.isNullOrBlank()) {
@@ -2618,6 +3610,12 @@ class MainActivity : AppCompatActivity() {
         addressInput.setSelection(addressInput.text?.length ?: 0)
     }
 
+    /**
+     * 函数 `updateSiteSecurityStatus`：根据最新状态刷新 `update Site Security Status` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun updateSiteSecurityStatus(url: String?) {
         when (SiteSecurityStatus.fromUrl(url)) {
             SiteSecurityStatus.SECURE -> showSiteSecurityStatus(
@@ -2641,6 +3639,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `showSiteSecurityStatus`：控制 `show Site Security Status` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param iconResId 参数类型为 `Int`，表示函数执行 `iconResId` 相关逻辑时需要读取或处理的输入。
+     * @param colorResId 参数类型为 `Int`，表示函数执行 `colorResId` 相关逻辑时需要读取或处理的输入。
+     * @param descriptionResId 参数类型为 `Int`，表示函数执行 `descriptionResId` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showSiteSecurityStatus(
         iconResId: Int,
         colorResId: Int,
@@ -2656,6 +3662,11 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setTooltipText(siteSecurityIcon, actionDescription)
     }
 
+    /**
+     * 函数 `showSiteSecurityInfoDialog`：控制 `show Site Security Info Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showSiteSecurityInfoDialog() {
         val pageUrl = listOf(
             currentSessionController().currentPageUrl,
@@ -2701,6 +3712,13 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
+    /**
+     * 函数 `siteSecurityCertificateSummary`：封装 `site Security Certificate Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param status 参数类型为 `SiteSecurityStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun siteSecurityCertificateSummary(status: SiteSecurityStatus): String {
         return when (status) {
             SiteSecurityStatus.SECURE -> getString(R.string.site_security_certificate_validated)
@@ -2709,6 +3727,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `siteSecurityMixedContentSummary`：封装 `site Security Mixed Content Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param status 参数类型为 `SiteSecurityStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun siteSecurityMixedContentSummary(status: SiteSecurityStatus): String {
         return when (status) {
             SiteSecurityStatus.SECURE -> if (settingsManager.isMixedContentBlocked()) {
@@ -2722,6 +3747,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `showCurrentSiteSettingsPage`：控制 `show Current Site Settings Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showCurrentSiteSettingsPage() {
         hideKeyboard()
         functionCenterPages.showCurrentSiteSettingsPage()
@@ -2731,20 +3761,43 @@ class MainActivity : AppCompatActivity() {
 
     // region 小工具函数和 WebView 跳转拦截
     // 这里放跨多个小流程复用的辅助函数，例如 dp 转换、键盘隐藏、URL 类型判断和 shouldOverrideUrlLoading 判断。
+    /**
+     * 函数 `addressBarDisplayText`：封装 `address Bar Display Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun addressBarDisplayText(url: String): String {
         return searchProviderController.addressBarDisplayText(url)
     }
 
+    /**
+     * 函数 `updateNavigationButtons`：根据最新状态刷新 `update Navigation Buttons` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateNavigationButtons() {
         browserControlsController.updateNavigationButtons()
     }
 
+    /**
+     * 函数 `updateBookmarkButton`：根据最新状态刷新 `update Bookmark Button` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateBookmarkButton() {
         if (::browserControlsController.isInitialized) {
             browserControlsController.updateBookmarkButton()
         }
     }
 
+    /**
+     * 函数 `showHomeContent`：控制 `show Home Content` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param show 参数类型为 `Boolean`，表示函数执行 `show` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showHomeContent(show: Boolean) {
         browserControlsScrollController.resetTracking()
         setBrowserControlsHidden(false)
@@ -2755,6 +3808,11 @@ class MainActivity : AppCompatActivity() {
         applyBrowsingModeTheme()
     }
 
+    /**
+     * 函数 `hideKeyboard`：控制 `hide Keyboard` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun hideKeyboard() {
         if (::addressSuggestionController.isInitialized) {
             addressSuggestionController.hide()
@@ -2765,16 +3823,39 @@ class MainActivity : AppCompatActivity() {
         inputMethodManager.hideSoftInputFromWindow(addressInput.windowToken, 0)
     }
 
+    /**
+     * 函数 `dp`：封装 `dp` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).toInt()
     }
 
+    /**
+     * 函数 `isWebUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param scheme 参数类型为 `String?`，表示函数执行 `scheme` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isWebUrl(scheme: String?): Boolean {
         return scheme.equals("http", ignoreCase = true) ||
             scheme.equals("https", ignoreCase = true) ||
             scheme.equals("about", ignoreCase = true)
     }
 
+    /**
+     * 函数 `shouldBlockUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param openMedia 参数类型为 `Boolean`，表示函数执行 `openMedia` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun shouldBlockUrl(view: WebView?, uri: Uri, openMedia: Boolean = true): Boolean {
         if (openMedia) {
             val mediaDecision = MediaRoutingController.route(
@@ -2843,6 +3924,12 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
+    /**
+     * 函数 `showInsecureNavigationConfirmation`：控制 `show Insecure Navigation Confirmation` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     private fun showInsecureNavigationConfirmation(url: String) {
         AlertDialog.Builder(this)
             .setTitle(R.string.title_confirm_insecure_navigation)
@@ -2859,6 +3946,14 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * 函数 `openExternalProtocolNavigation`：启动或加载 `open External Protocol Navigation` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun openExternalProtocolNavigation(view: WebView?, uri: Uri): Boolean {
         if (!ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)) {
             return false
@@ -2870,6 +3965,13 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    /**
+     * 函数 `isUnavailableUcDownloadUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isUnavailableUcDownloadUrl(uri: Uri): Boolean {
         val host = uri.host?.lowercase().orEmpty()
         val path = uri.path.orEmpty()
@@ -2879,6 +3981,13 @@ class MainActivity : AppCompatActivity() {
                 path.endsWith(".apk", ignoreCase = true))
     }
 
+    /**
+     * 函数 `isProviderHomeUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isProviderHomeUrl(url: String?): Boolean {
         return searchProviderController.isProviderHomeUrl(url)
     }
