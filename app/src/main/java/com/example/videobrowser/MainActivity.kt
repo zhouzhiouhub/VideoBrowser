@@ -15,8 +15,6 @@ package com.example.videobrowser
  * 3. 遇到具体业务时跳到对应包，例如 browser、video、download、functioncenter。
  */
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -84,6 +82,7 @@ import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.FindInPageDialogController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
+import com.example.videobrowser.browser.LinkContextMenuController
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveController
 import com.example.videobrowser.browser.PagePrintController
@@ -194,6 +193,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var localFilesController: LocalFilesController
     private lateinit var pageActionsController: PageActionsController
+    private lateinit var linkContextMenuController: LinkContextMenuController
     private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
@@ -409,6 +409,20 @@ class MainActivity : AppCompatActivity() {
             openUrl = ::loadUrl,
             searchKeyword = ::searchAddressKeyword,
             dp = ::dp
+        )
+        linkContextMenuController = LinkContextMenuController(
+            activity = this,
+            openUrlInNewTab = ::openUrlInNewTab,
+            downloadUrl = { url, userAgent ->
+                downloadController.enqueue(
+                    url = url,
+                    userAgent = userAgent,
+                    contentDisposition = null,
+                    mimeType = null
+                )
+            },
+            currentUserAgent = { currentBrowserManager().userAgentString() },
+            isShareableUrl = ::isShareableUrl
         )
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
@@ -3014,184 +3028,7 @@ class MainActivity : AppCompatActivity() {
      * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
      */
     private fun configureLinkContextMenu(targetWebView: WebView) {
-        targetWebView.setOnLongClickListener { view ->
-            val hitTestResult = (view as? WebView)?.hitTestResult
-                ?: return@setOnLongClickListener false
-            linkHitTestUrl(hitTestResult)?.let { linkUrl ->
-                showLinkContextMenu(linkUrl)
-                return@setOnLongClickListener true
-            }
-            val imageUrl = imageHitTestUrl(hitTestResult)
-                ?: return@setOnLongClickListener false
-            showImageContextMenu(imageUrl)
-            true
-        }
-    }
-
-    /**
-     * 函数 `imageHitTestUrl`：封装 `image Hit Test Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param hitTestResult 参数类型为 `WebView.HitTestResult?`，表示函数执行 `hitTestResult` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun imageHitTestUrl(hitTestResult: WebView.HitTestResult?): String? {
-        if (hitTestResult?.type != WebView.HitTestResult.IMAGE_TYPE) {
-            return null
-        }
-        return hitTestResult.extra
-            ?.trim()
-            ?.takeIf(::isShareableUrl)
-    }
-
-    /**
-     * 函数 `showImageContextMenu`：控制 `show Image Context Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun showImageContextMenu(url: String) {
-        val actions = arrayOf(
-            getString(R.string.action_open_image_new_tab),
-            getString(R.string.action_download_image),
-            getString(R.string.action_copy_image_link),
-            getString(R.string.action_share_image_link)
-        )
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_image_context_menu)
-            .setItems(actions) { dialog, which ->
-                when (which) {
-                    0 -> openUrlInNewTab(url)
-                    1 -> downloadImageUrl(url)
-                    2 -> copyImageUrl(url)
-                    3 -> shareImageUrl(url)
-                }
-                dialog.dismiss()
-            }
-            .show()
-    }
-
-    /**
-     * 函数 `downloadImageUrl`：封装 `download Image Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun downloadImageUrl(url: String) {
-        downloadLinkUrl(url)
-    }
-
-    /**
-     * 函数 `copyImageUrl`：封装 `copy Image Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun copyImageUrl(url: String) {
-        copyLinkUrl(url)
-    }
-
-    /**
-     * 函数 `shareImageUrl`：封装 `share Image Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun shareImageUrl(url: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, url)
-        }
-        startActivity(Intent.createChooser(intent, getString(R.string.action_share_image_link)))
-    }
-
-    /**
-     * 函数 `linkHitTestUrl`：封装 `link Hit Test Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param hitTestResult 参数类型为 `WebView.HitTestResult?`，表示函数执行 `hitTestResult` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun linkHitTestUrl(hitTestResult: WebView.HitTestResult?): String? {
-        val type = hitTestResult?.type ?: return null
-        if (type != WebView.HitTestResult.SRC_ANCHOR_TYPE &&
-            type != WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE
-        ) {
-            return null
-        }
-        return hitTestResult.extra
-            ?.trim()
-            ?.takeIf(::isShareableUrl)
-    }
-
-    /**
-     * 函数 `showLinkContextMenu`：控制 `show Link Context Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun showLinkContextMenu(url: String) {
-        val actions = arrayOf(
-            getString(R.string.action_open_link_new_tab),
-            getString(R.string.action_download_link),
-            getString(R.string.action_copy_link),
-            getString(R.string.action_share_link)
-        )
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_link_context_menu)
-            .setItems(actions) { dialog, which ->
-                when (which) {
-                    0 -> openUrlInNewTab(url)
-                    1 -> downloadLinkUrl(url)
-                    2 -> copyLinkUrl(url)
-                    3 -> shareLinkUrl(url)
-                }
-                dialog.dismiss()
-            }
-            .show()
-    }
-
-    /**
-     * 函数 `downloadLinkUrl`：封装 `download Link Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun downloadLinkUrl(url: String) {
-        downloadController.enqueue(
-            url = url,
-            userAgent = currentBrowserManager().userAgentString(),
-            contentDisposition = null,
-            mimeType = null
-        )
-    }
-
-    /**
-     * 函数 `copyLinkUrl`：封装 `copy Link Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun copyLinkUrl(url: String) {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(
-            ClipData.newPlainText(getString(R.string.clipboard_page_url), url)
-        )
-        Toast.makeText(this, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * 函数 `shareLinkUrl`：封装 `share Link Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun shareLinkUrl(url: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, url)
-        }
-        startActivity(Intent.createChooser(intent, getString(R.string.action_share_link)))
+        linkContextMenuController.configure(targetWebView)
     }
 
     /**
