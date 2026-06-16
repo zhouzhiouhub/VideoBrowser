@@ -1,5 +1,12 @@
 package com.example.videobrowser.adguard
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“AdGuard 规则解析模块”。
+ * 文件名 AdGuardRuleParser 可以拆开理解为“Ad Guard Rule Parser”，表示它只负责页面净化链路中的一个小职责。
+ * 主要职责：把外部订阅里的 AdGuard 风格规则拆分成项目内部可理解的规则文本。
+ * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
+ */
 import com.example.videobrowser.rules.DomainScope
 import com.example.videobrowser.rules.ElementRule
 import com.example.videobrowser.rules.ElementRuleType
@@ -12,8 +19,15 @@ import com.example.videobrowser.rules.SkippedRule
 import com.example.videobrowser.site.SiteHost
 import java.util.Locale
 
+/**
+ * AdGuard 订阅解析器。
+ *
+ * 订阅文本里可能混有请求拦截、元素隐藏、安全脚本、移除参数和注释。
+ * 这个类逐行识别规则类型，把项目支持的部分转成内部模型，不支持的部分记录到 skippedRules。
+ */
 class AdGuardRuleParser {
     fun parseSubscription(text: String, source: String): AdGuardParseResult {
+        // 每类规则既保存解析后的对象，也保存原始行，方便后续缓存到对应规则文件。
         val requestRules = mutableListOf<Rule>()
         val elementRules = mutableListOf<ElementRule>()
         val scriptletRules = mutableListOf<ScriptletRule>()
@@ -114,6 +128,7 @@ class AdGuardRuleParser {
         }
 
         val id = "$source:$lineNumber"
+        // 解析顺序很重要：先识别更特殊的规则，再退回到普通请求规则。
         if (trimmed.contains("\$removeparam=", ignoreCase = true)) {
             return parseRemoveParamRule(trimmed, id, source)?.let(ParsedAdGuardLine::RemoveParam)
                 ?: skipped(source, lineNumber, line)
@@ -189,6 +204,7 @@ class AdGuardRuleParser {
     }
 
     private fun isSafeSelector(selector: String): Boolean {
+        // CSS selector 会被注入网页执行，所以只接受简单、安全、长度可控的 selector。
         val value = selector.trim()
         if (value.isEmpty() || value.length > MAX_SELECTOR_LENGTH) {
             return false

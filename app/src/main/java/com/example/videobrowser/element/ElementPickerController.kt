@@ -1,5 +1,12 @@
 package com.example.videobrowser.element
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“元素选择器模块”。
+ * 文件名 ElementPickerController 可以拆开理解为“Element Picker Controller”，表示它只负责页面净化链路中的一个小职责。
+ * 主要职责：让用户在网页上点选要屏蔽的元素，并把 CSS 选择器保存到站点设置。
+ * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
+ */
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -8,6 +15,12 @@ import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 
+/**
+ * 用户手动屏蔽网页元素的控制器。
+ *
+ * 流程是：开始选择 -> 注入选择脚本 -> 网页回传 CSS selector -> 用户确认 -> 保存到当前站点设置。
+ * 下一次页面注入时，PageFeatureCoordinator 会把这些 selector 传给 JsInjector。
+ */
 class ElementPickerController(
     private val activity: AppCompatActivity,
     private val browserManager: () -> BrowserManager,
@@ -24,6 +37,7 @@ class ElementPickerController(
         private set
 
     fun start() {
+        // 没有当前站点时不能保存站点级 selector；JS 注入关闭时也无法让网页进入选择模式。
         val host = currentSiteHost()
         if (host == null) {
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
@@ -66,6 +80,7 @@ class ElementPickerController(
     }
 
     fun handlePickedElement(selector: String, description: String) {
+        // 网页回调可能晚到；如果会话超时或已取消，就不再保存 selector。
         if (!isSessionValid()) {
             finishSession()
             return

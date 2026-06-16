@@ -1,5 +1,12 @@
 package com.example.videobrowser.rules
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“规则引擎模块”。
+ * 文件名 RuleFileLoader 可以拆开理解为“Rule File Loader”，表示它只负责页面净化链路中的一个小职责。
+ * 主要职责：读取、解析、索引和匹配广告拦截规则、元素隐藏规则、参数清理规则和安全脚本规则。
+ * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
+ */
 import android.content.res.AssetManager
 import com.example.videobrowser.adguard.AdGuardRuleParser
 import com.example.videobrowser.site.SiteHost
@@ -8,6 +15,12 @@ import java.io.InputStream
 import java.util.Locale
 import java.util.Properties
 
+/**
+ * 规则文件加载器。
+ *
+ * assets/rules 是随 App 内置的默认规则，cacheDirectory 是用户订阅下载后的缓存规则。
+ * 加载时先读内置规则再读缓存规则，因此用户订阅可以在同一个 RuleEngine 中参与匹配。
+ */
 class RuleFileLoader(
     private val openAsset: (String) -> InputStream?,
     private val cacheDirectory: File? = null
@@ -68,6 +81,8 @@ class RuleFileLoader(
         cacheFileName: String,
         parser: (String, String, Int) -> ParsedRule<T>
     ): RuleLoadResult<T> {
+        // 同一种规则可能来自两个位置：安装包 assets 和本机缓存。
+        // 两边解析结果会合并，跳过的规则也会保留下来，方便调试订阅质量。
         val rules = mutableListOf<T>()
         val skippedRules = mutableListOf<SkippedRule>()
 
@@ -96,6 +111,7 @@ class RuleFileLoader(
         rules: MutableList<T>,
         skippedRules: MutableList<SkippedRule>
     ) {
+        // 逐行解析可以让错误定位到具体 source:line，订阅里一条坏规则不会影响其他规则。
         val stream = runCatching { streamProvider() }.getOrNull() ?: return
         runCatching {
             stream.bufferedReader(Charsets.UTF_8).useLines { lines ->

@@ -1,5 +1,12 @@
 package com.example.videobrowser.inject
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“页面脚本注入模块”。
+ * 文件名 JsInjector 可以拆开理解为“Js Injector”，表示它只负责页面净化链路中的一个小职责。
+ * 主要职责：读取内置 JavaScript，按当前站点和设置组合注入脚本，让页面净化和视频增强生效。
+ * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
+ */
 import com.example.videobrowser.site.SiteAdapterRegistry
 import com.example.videobrowser.rules.RuleEngine
 
@@ -35,6 +42,7 @@ class JsInjector(
         if (!config.jsInjectionEnabled) {
             return
         }
+        // effectiveConfig 合并“用户设置”和“规则引擎计算结果”，后面的 JS 只需要读取一个 config。
         val effectiveConfig = config.copy(
             cssSelectors = (config.cssSelectors + ruleEngine.cssSelectorsFor(pageUrl)).distinct(),
             domSelectors = (config.domSelectors + ruleEngine.domSelectorsFor(pageUrl)).distinct(),
@@ -55,6 +63,7 @@ class JsInjector(
                 ruleEngine.isScriptletVideoControlsEnabledFor(pageUrl)
         )
         val commonScriptContent = commonScript
+        // 不同站点可能需要额外脚本；相同脚本 path 去重，避免重复注入。
         val siteScripts = siteAdapterRegistry.matchingAdapters(pageUrl).flatMap { adapter ->
             adapter.scriptFiles().map { path ->
                 SiteScript(
@@ -86,6 +95,7 @@ class JsInjector(
             config: PageFeatureConfig,
             siteScripts: List<SiteScript> = emptyList()
         ): String {
+            // 这里生成一个自执行函数，确保变量只存在于这一段脚本内部，不污染网页全局作用域。
             return buildString {
                 appendLine("(function () {")
                 append("  var config = ")

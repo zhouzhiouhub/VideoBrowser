@@ -1,5 +1,12 @@
 package com.example.videobrowser.inject
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“页面脚本注入模块”。
+ * 文件名 ScriptLoader 可以拆开理解为“Script Loader”，表示它只负责页面净化链路中的一个小职责。
+ * 主要职责：读取内置 JavaScript，按当前站点和设置组合注入脚本，让页面净化和视频增强生效。
+ * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
+ */
 import android.content.res.AssetManager
 import java.io.InputStream
 

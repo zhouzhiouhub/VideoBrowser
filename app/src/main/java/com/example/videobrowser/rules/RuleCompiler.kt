@@ -1,5 +1,12 @@
 package com.example.videobrowser.rules
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“规则引擎模块”。
+ * 文件名 RuleCompiler 可以拆开理解为“Rule Compiler”，表示它只负责页面净化链路中的一个小职责。
+ * 主要职责：读取、解析、索引和匹配广告拦截规则、元素隐藏规则、参数清理规则和安全脚本规则。
+ * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
+ */
 import java.util.Locale
 
 /**
@@ -15,6 +22,7 @@ class RuleCompiler {
         scriptletRules: List<ScriptletRule> = emptyList(),
         removeParamRules: List<RemoveParamRule> = emptyList()
     ): CompiledRuleSet {
+        // 编译阶段不做真实匹配，只把不同类型的规则分门别类，方便 RuleEngine 快速查询。
         val skippedRules = mutableListOf<SkippedRule>()
         val requestCapabilities = requestRules.mapNotNull { rule ->
             compileRequestRule(rule, skippedRules)
@@ -56,6 +64,7 @@ class RuleCompiler {
         rule: Rule,
         skippedRules: MutableList<SkippedRule>
     ): RuleCapability.Request? {
+        // 如果规则类型需要正则但正则没有成功构建，就跳过并记录原因，避免运行时抛异常。
         if (rule.type == RuleType.URL_PATTERN && rule.normalizedPatternRegex == null) {
             skippedRules += skipped(rule, "unsupported url pattern")
             return null

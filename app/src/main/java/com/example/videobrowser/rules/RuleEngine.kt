@@ -1,5 +1,12 @@
 package com.example.videobrowser.rules
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“规则引擎模块”。
+ * 文件名 RuleEngine 可以拆开理解为“Rule Engine”，表示它只负责页面净化链路中的一个小职责。
+ * 主要职责：读取、解析、索引和匹配广告拦截规则、元素隐藏规则、参数清理规则和安全脚本规则。
+ * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
+ */
 import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.RequestContext
 import com.example.videobrowser.browser.ResourceType
@@ -8,6 +15,15 @@ import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
+/**
+ * 页面净化规则的统一查询入口。
+ *
+ * RuleEngine 启动时先把原始规则编译成索引，运行时只回答几个问题：
+ * - 某个网络请求是否应该放行或拦截。
+ * - 当前页面应该隐藏/移除哪些 DOM 元素。
+ * - 当前页面应该启用哪些安全脚本钩子。
+ * - 导航 URL 上哪些追踪参数可以删除。
+ */
 class RuleEngine(
     rules: List<Rule>,
     elementRules: List<ElementRule> = emptyList(),
@@ -47,6 +63,7 @@ class RuleEngine(
         pageHost: String? = null,
         resourceType: ResourceType = ResourceType.UNKNOWN
     ): RuleMatchResult {
+        // 放行规则优先于阻断规则，避免白名单被后面的通配拦截规则覆盖。
         findFirstMatchingRule(
             action = RuleAction.ALLOW,
             url = url,
@@ -124,6 +141,7 @@ class RuleEngine(
     }
 
     fun cleanNavigationUrl(url: String, pageUrl: String? = null): String {
+        // 导航清理只处理 http/https URL，其他 scheme 不应该被当成普通网页参数改写。
         val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return url
         val scheme = uri.scheme?.lowercase().orEmpty()
         if (scheme != "http" && scheme != "https") {
@@ -163,6 +181,7 @@ class RuleEngine(
     }
 
     fun cssSelectorsFor(pageUrl: String?): List<String> {
+        // 先找例外规则，再从隐藏规则里排除例外 selector，这就是常见过滤规则里的“取消隐藏”语义。
         val pageHost = SiteHost.fromUrl(pageUrl)
         val exceptions = compiledRules.cssUnhideCandidatesFor(pageHost)
             .filter { rule ->
