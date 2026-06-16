@@ -32,12 +32,17 @@ class PlaybackHistoryWiringContractTest {
     fun webViewPlaybackTimelineRecordsPlaybackHistory() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val webRecorder = projectFile(
+            "src/main/java/com/example/videobrowser/video/WebPlaybackHistoryRecorder.kt"
+        ).readText()
         val script = projectFile("src/main/assets/scripts/common.js").readText()
 
         assertTrue(mainActivity.contains("updatePlaybackTimeline = ::updateWebViewPlaybackTimeline"))
-        assertTrue(mainActivity.contains("recordWebViewPlaybackHistory(positionMs, durationMs)"))
-        assertTrue(mainActivity.contains("source = PlaybackHistorySource.WEB_PAGE"))
-        assertTrue(mainActivity.contains("WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS"))
+        assertTrue(mainActivity.contains("private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder"))
+        assertTrue(mainActivity.contains("webPlaybackHistoryRecorder.record(positionMs, durationMs)"))
+        assertTrue(webRecorder.contains("source = PlaybackHistorySource.WEB_PAGE"))
+        assertTrue(webRecorder.contains("private const val SAVE_THROTTLE_MS = 5_000L"))
+        assertTrue(webRecorder.contains("playbackHistoryRepository.save("))
         assertTrue(script.contains("reportPlaybackTimeline(video);"))
     }
 

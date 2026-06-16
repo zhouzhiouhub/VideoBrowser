@@ -129,6 +129,7 @@ import com.example.videobrowser.video.PlaybackHistorySource
 import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebViewVideoCommand
+import com.example.videobrowser.video.WebPlaybackHistoryRecorder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -177,8 +178,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bookmarkImportExportController: BookmarkImportExportController
     private lateinit var downloadRecordRepository: DownloadRecordRepository
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
-    private var lastWebPlaybackHistoryIdentity: String? = null
-    private var lastWebPlaybackHistorySavedAt = 0L
+    private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder
     private lateinit var ruleEngine: RuleEngine
     private lateinit var standardWebView: WebView
     private lateinit var standardBrowserManager: BrowserManager
@@ -333,6 +333,14 @@ class MainActivity : AppCompatActivity() {
         restoreStandardTabSession()
         downloadRecordRepository = DownloadRecordRepository(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
+        webPlaybackHistoryRecorder = WebPlaybackHistoryRecorder(
+            playbackHistoryRepository = playbackHistoryRepository,
+            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            currentShareableUrl = ::currentShareableUrl,
+            isShareableUrl = ::isShareableUrl,
+            defaultVideoSpeed = settingsManager::defaultVideoSpeed,
+            currentPageTitle = { currentSessionController().currentPageTitle }
+        )
         browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
@@ -1618,38 +1626,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateWebViewPlaybackTimeline(positionMs: Double, durationMs: Double) {
         fullscreenVideoController.updatePlaybackTimeline(positionMs, durationMs)
-        recordWebViewPlaybackHistory(positionMs, durationMs)
-    }
-
-    private fun recordWebViewPlaybackHistory(positionMs: Double, durationMs: Double) {
-        if (isPrivateBrowsingEnabled()) {
-            return
-        }
-        val pageUrl = currentShareableUrl()?.takeIf { it.isNotBlank() } ?: return
-        if (!isShareableUrl(pageUrl)) {
-            return
-        }
-        val nowElapsed = SystemClock.elapsedRealtime()
-        if (lastWebPlaybackHistoryIdentity == pageUrl &&
-            nowElapsed - lastWebPlaybackHistorySavedAt < WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS
-        ) {
-            return
-        }
-        lastWebPlaybackHistoryIdentity = pageUrl
-        lastWebPlaybackHistorySavedAt = nowElapsed
-
-        playbackHistoryRepository.save(
-            PlaybackProgress(
-                mediaIdentity = pageUrl,
-                positionMs = positionMs.toLong().coerceAtLeast(0L),
-                durationMs = durationMs.toLong().coerceAtLeast(0L),
-                speed = settingsManager.defaultVideoSpeed(),
-                updatedAtMillis = System.currentTimeMillis(),
-                title = currentSessionController().currentPageTitle,
-                source = PlaybackHistorySource.WEB_PAGE
-            ),
-            privateBrowsing = false
-        )
+        webPlaybackHistoryRecorder.record(positionMs, durationMs)
     }
 
     /**
@@ -2853,7 +2830,6 @@ class MainActivity : AppCompatActivity() {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
-        private const val WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS = 5_000L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
         private const val BACK_EXIT_CONFIRM_WINDOW_MS = 2000L
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
