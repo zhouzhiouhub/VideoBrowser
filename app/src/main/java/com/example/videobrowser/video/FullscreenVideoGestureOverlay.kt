@@ -62,6 +62,7 @@ class FullscreenVideoGestureOverlay(
     var onDirectionalLongPressEnd: (() -> Unit)? = null
     var onToggleOrientation: (() -> Boolean)? = null
     var onUserInteraction: (() -> Unit)? = null
+    var arePlaybackControlsVisible: (() -> Boolean)? = null
     var onExitFullscreen: (() -> Unit)? = null
     var onTrackSelectionRequested: (() -> Unit)? = null
     var onPlaybackQueueRequested: (() -> Unit)? = null
@@ -99,6 +100,7 @@ class FullscreenVideoGestureOverlay(
     private var savedWindowBrightness: Float? = null
     private var touchStartedOnControl = false
     private var touchStartedInBottomPassthrough = false
+    private var playbackControlsVisibleOnTouchStart = true
     private var activeGesture = VerticalGesture.NONE
     private var tapCandidate = false
     private var longPressActive = false
@@ -289,6 +291,7 @@ class FullscreenVideoGestureOverlay(
         }
 
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            playbackControlsVisibleOnTouchStart = arePlaybackControlsVisible?.invoke() ?: true
             touchStartedOnControl = isControlPoint(event.x, event.y)
             touchStartedInBottomPassthrough =
                 !locked && event.y >= height - bottomPassthroughHeight()
@@ -836,7 +839,9 @@ class FullscreenVideoGestureOverlay(
         when (val zone = screenZoneFor(upX)) {
             ScreenZone.CENTER -> {
                 clearPendingSideTap()
-                onTogglePlayPause?.invoke()
+                if (playbackControlsVisibleOnTouchStart) {
+                    onTogglePlayPause?.invoke()
+                }
             }
             ScreenZone.LEFT,
             ScreenZone.RIGHT -> registerSideTap(zone, eventTime)
@@ -1142,6 +1147,7 @@ class FullscreenVideoGestureOverlay(
         tapCandidate = false
         touchStartedOnControl = false
         touchStartedInBottomPassthrough = false
+        playbackControlsVisibleOnTouchStart = true
         downZone = ScreenZone.CENTER
     }
 

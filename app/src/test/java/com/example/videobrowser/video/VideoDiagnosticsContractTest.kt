@@ -73,6 +73,39 @@ class VideoDiagnosticsContractTest {
     }
 
     /**
+     * 测试函数 `nativeFullscreenTapWakesHiddenControlsBeforeTogglingPlayback`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `native Fullscreen Tap Wakes Hidden Controls Before Toggling Playback` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
+    @Test
+    fun nativeFullscreenTapWakesHiddenControlsBeforeTogglingPlayback() {
+        val overlaySource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
+        ).readText()
+        val playerActivitySource = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+        ).readText()
+        val dispatchBody = functionBody(
+            overlaySource,
+            "override fun dispatchTouchEvent(event: MotionEvent): Boolean"
+        )
+        val handleTapBody = functionBody(
+            overlaySource,
+            "private fun handleTap(upX: Float, eventTime: Long)"
+        )
+
+        assertTrue(overlaySource.contains("var arePlaybackControlsVisible: (() -> Boolean)? = null"))
+        assertTrue(dispatchBody.contains("playbackControlsVisibleOnTouchStart = arePlaybackControlsVisible?.invoke() ?: true"))
+        assertTrue(handleTapBody.contains("if (playbackControlsVisibleOnTouchStart)"))
+        assertTrue(
+            handleTapBody.indexOf("if (playbackControlsVisibleOnTouchStart)") <
+                handleTapBody.indexOf("onTogglePlayPause?.invoke()")
+        )
+        assertTrue(playerActivitySource.contains("arePlaybackControlsVisible = ::arePlayerControlsVisible"))
+        assertTrue(playerActivitySource.contains("playerView.isControllerFullyVisible"))
+    }
+
+    /**
      * 测试函数 `nativePlayerAppliesDefaultEnhancementBeforePreparingAndCanRetryWithoutEffects`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `native Player Applies Default Enhancement Before Preparing And Can Retry Without Effects` 这条行为是否成立。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。

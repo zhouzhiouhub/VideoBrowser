@@ -438,6 +438,7 @@ class PlayerActivity : AppCompatActivity() {
             onDirectionalLongPressEnd = ::stopDirectionalLongPress
             onToggleOrientation = ::togglePlayerOrientation
             onUserInteraction = ::wakePlayerControls
+            arePlaybackControlsVisible = ::arePlayerControlsVisible
             onExitFullscreen = ::finish
             onTrackSelectionRequested = {
                 handlePlaybackCommand(PlaybackCommand.ShowTrackSelection)
@@ -673,6 +674,16 @@ class PlayerActivity : AppCompatActivity() {
             }
         )
         playerView.showController()
+    }
+
+    /**
+     * 函数 `arePlayerControlsVisible`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
+    private fun arePlayerControlsVisible(): Boolean {
+        return ::playerView.isInitialized && playerView.isControllerFullyVisible
     }
 
     /**
