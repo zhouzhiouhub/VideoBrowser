@@ -87,7 +87,7 @@ import com.example.videobrowser.browser.ExternalProtocolPolicy
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.PageActionsController
-import com.example.videobrowser.browser.PageArchiveFileName
+import com.example.videobrowser.browser.PageArchiveController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
@@ -129,7 +129,6 @@ import com.example.videobrowser.video.PlaybackHistorySource
 import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebViewVideoCommand
-import java.io.File
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.PrivateKey
@@ -200,6 +199,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var addressSuggestionController: AddressSuggestionController
     private lateinit var downloadController: DownloadController
     private lateinit var siteSecurityController: SiteSecurityController
+    private lateinit var pageArchiveController: PageArchiveController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
@@ -271,15 +271,9 @@ class MainActivity : AppCompatActivity() {
                 bookmarkImportExportController.importFromUri(uri)
             }
         }
-    private var pendingPageArchiveFile: File? = null
     private val pageArchiveExportLauncher =
-        registerForActivityResult(ActivityResultContracts.CreateDocument(PAGE_ARCHIVE_MIME_TYPE)) { uri ->
-            val archiveFile = pendingPageArchiveFile
-            pendingPageArchiveFile = null
-            if (uri != null && archiveFile != null) {
-                exportPageArchiveToUri(archiveFile, uri)
-            }
-            archiveFile?.delete()
+        registerForActivityResult(ActivityResultContracts.CreateDocument(PageArchiveController.MIME_TYPE)) { uri ->
+            pageArchiveController.handleExportResult(uri)
         }
     private var pendingWebPermissionRequest: PermissionRequest? = null
     private var pendingWebPermissionPromptRequest: PermissionRequest? = null
@@ -485,6 +479,13 @@ class MainActivity : AppCompatActivity() {
             updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
             recreateActivity = { recreate() },
             restoreBrowserDefaults = browserDefaultSettingsResetter::restoreDefaults
+        )
+        pageArchiveController = PageArchiveController(
+            activity = this,
+            currentActionableUrl = ::currentActionableUrl,
+            currentPageTitle = { currentSessionController().currentPageTitle },
+            activeWebView = { currentBrowserManager().activeWebView },
+            launchArchiveExport = pageArchiveExportLauncher::launch
         )
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
@@ -773,7 +774,9 @@ class MainActivity : AppCompatActivity() {
         cancelPendingGeolocationPermissionPrompt()
         cancelPendingHttpAuthRequest()
         cancelPendingClientCertRequest()
-        clearPendingPageArchive()
+        if (::pageArchiveController.isInitialized) {
+            pageArchiveController.dispose()
+        }
         if (::addressSuggestionController.isInitialized) {
             addressSuggestionController.dispose()
         }
@@ -2435,86 +2438,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun saveCurrentPageArchive() {
-        val pageUrl = currentActionableUrl()
-        if (pageUrl == null) {
-            Toast.makeText(this, R.string.toast_page_archive_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val archiveDirectory = File(cacheDir, PAGE_ARCHIVE_TEMP_DIR_NAME).apply {
-            mkdirs()
-        }
-        val archiveFile = File(archiveDirectory, PAGE_ARCHIVE_TEMP_FILE_NAME)
-        clearPendingPageArchive()
-        archiveFile.delete()
-
-        currentBrowserManager().activeWebView.saveWebArchive(
-            archiveFile.absolutePath,
-            false
-        ) { savedPath ->
-            val savedFile = savedPath
-                ?.let(::File)
-                ?.takeIf { file -> file.isFile }
-            if (savedFile == null) {
-                archiveFile.delete()
-                Toast.makeText(this, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
-                return@saveWebArchive
-            }
-
-            pendingPageArchiveFile = savedFile
-            runCatching {
-                pageArchiveExportLauncher.launch(currentPageArchiveFileName(pageUrl))
-            }.onFailure {
-                clearPendingPageArchive()
-                Toast.makeText(this, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    /**
-     * 函数 `currentPageArchiveFileName`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentPageArchiveFileName(pageUrl: String): String {
-        return PageArchiveFileName.create(
-            pageTitle = currentSessionController().currentPageTitle,
-            pageUrl = pageUrl,
-            fallbackName = getString(R.string.app_name)
-        )
-    }
-
-    /**
-     * 函数 `exportPageArchiveToUri`：封装 `export Page Archive To Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param archiveFile 参数类型为 `File`，表示函数执行 `archiveFile` 相关逻辑时需要读取或处理的输入。
-     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun exportPageArchiveToUri(archiveFile: File, uri: Uri) {
-        runCatching {
-            contentResolver.openOutputStream(uri)?.use { output ->
-                archiveFile.inputStream().use { input ->
-                    input.copyTo(output)
-                }
-            } ?: error("Unable to open page archive export target")
-        }.onSuccess {
-            Toast.makeText(this, R.string.toast_page_archive_saved, Toast.LENGTH_SHORT).show()
-        }.onFailure {
-            Toast.makeText(this, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * 函数 `clearPendingPageArchive`：封装 `clear Pending Page Archive` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun clearPendingPageArchive() {
-        pendingPageArchiveFile?.delete()
-        pendingPageArchiveFile = null
+        pageArchiveController.saveCurrentPageArchive()
     }
 
     /**
@@ -3901,9 +3825,6 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS = 5_000L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
-        private const val PAGE_ARCHIVE_MIME_TYPE = "multipart/related"
-        private const val PAGE_ARCHIVE_TEMP_DIR_NAME = "page-archives"
-        private const val PAGE_ARCHIVE_TEMP_FILE_NAME = "current-page.mhtml"
         private const val MAX_PRINT_JOB_TITLE_LENGTH = 80
         private const val BACK_EXIT_CONFIRM_WINDOW_MS = 2000L
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
