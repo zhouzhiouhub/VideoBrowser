@@ -74,6 +74,11 @@ class PlayerActivity : AppCompatActivity() {
     private var videoZoomMode = VideoZoomMode.FIT
 
     private val reverseScanRunnable = object : Runnable {
+        /**
+         * 函数 `run`：封装 `run` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         */
         override fun run() {
             if (!directionalLongPressActive || longPressDirection >= 0) {
                 return
@@ -83,6 +88,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `onCreate`：处理 `on Create` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param savedInstanceState 参数类型为 `Bundle?`，表示函数执行 `savedInstanceState` 相关逻辑时需要读取或处理的输入。
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 播放器默认横屏，并把系统音量键绑定到媒体音量。
@@ -156,6 +167,13 @@ class PlayerActivity : AppCompatActivity() {
         hideSystemBars()
     }
 
+    /**
+     * 函数 `dispatchKeyEvent`：封装 `dispatch Key Event` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param event 参数类型为 `KeyEvent`，表示函数执行 `event` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             wakePlayerControls()
@@ -163,11 +181,21 @@ class PlayerActivity : AppCompatActivity() {
         return super.dispatchKeyEvent(event)
     }
 
+    /**
+     * 函数 `onStart`：处理 `on Start` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onStart() {
         super.onStart()
         initializePlayer()
     }
 
+    /**
+     * 函数 `onResume`：处理 `on Resume` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onResume() {
         super.onResume()
         if (::gestureOverlay.isInitialized) {
@@ -177,6 +205,11 @@ class PlayerActivity : AppCompatActivity() {
         hideSystemBars()
     }
 
+    /**
+     * 函数 `onPause`：处理 `on Pause` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onPause() {
         if (::gestureOverlay.isInitialized) {
             gestureOverlay.hideOverlay()
@@ -184,6 +217,12 @@ class PlayerActivity : AppCompatActivity() {
         super.onPause()
     }
 
+    /**
+     * 函数 `onWindowFocusChanged`：处理 `on Window Focus Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param hasFocus 参数类型为 `Boolean`，表示函数执行 `hasFocus` 相关逻辑时需要读取或处理的输入。
+     */
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
@@ -191,6 +230,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `onSaveInstanceState`：处理 `on Save Instance State` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param outState 参数类型为 `Bundle`，表示函数执行 `outState` 相关逻辑时需要读取或处理的输入。
+     */
     override fun onSaveInstanceState(outState: Bundle) {
         savePlayerState()
         val sessionState = currentPlaybackSessionState()
@@ -210,11 +255,21 @@ class PlayerActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
 
+    /**
+     * 函数 `onStop`：处理 `on Stop` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onStop() {
         releasePlayer()
         super.onStop()
     }
 
+    /**
+     * 函数 `initializePlayer`：封装 `initialize Player` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun initializePlayer() {
         if (player != null) {
             Log.d(VIDEO_LOG_TAG, "event=native-initialize skipped=true")
@@ -262,6 +317,12 @@ class PlayerActivity : AppCompatActivity() {
                 }
                 exoPlayer.addListener(
                     object : Player.Listener {
+                        /**
+                         * 函数 `onPlayerError`：处理 `on Player Error` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+                         *
+                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                         * @param error 参数类型为 `PlaybackException`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
+                         */
                         override fun onPlayerError(error: PlaybackException) {
                             Log.d(
                                 VIDEO_LOG_TAG,
@@ -278,6 +339,13 @@ class PlayerActivity : AppCompatActivity() {
                             ).show()
                         }
 
+                        /**
+                         * 函数 `onPlayWhenReadyChanged`：处理 `on Play When Ready Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+                         *
+                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                         * @param playWhenReady 参数类型为 `Boolean`，表示函数执行 `playWhenReady` 相关逻辑时需要读取或处理的输入。
+                         * @param reason 参数类型为 `Int`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+                         */
                         override fun onPlayWhenReadyChanged(
                             playWhenReady: Boolean,
                             reason: Int
@@ -289,6 +357,12 @@ class PlayerActivity : AppCompatActivity() {
                             wakePlayerControls()
                         }
 
+                        /**
+                         * 函数 `onPlaybackStateChanged`：处理 `on Playback State Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+                         *
+                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                         * @param playbackState 参数类型为 `Int`，表示函数执行 `playbackState` 相关逻辑时需要读取或处理的输入。
+                         */
                         override fun onPlaybackStateChanged(playbackState: Int) {
                             Log.d(
                                 VIDEO_LOG_TAG,
@@ -297,6 +371,13 @@ class PlayerActivity : AppCompatActivity() {
                             wakePlayerControls()
                         }
 
+                        /**
+                         * 函数 `onMediaItemTransition`：处理 `on Media Item Transition` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+                         *
+                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+                         * @param mediaItem 参数类型为 `MediaItem?`，表示函数执行 `mediaItem` 相关逻辑时需要读取或处理的输入。
+                         * @param reason 参数类型为 `Int`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+                         */
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                             currentMediaItemIndex = exoPlayer.currentMediaItemIndex
                             playbackQueue = playbackQueue
@@ -319,6 +400,11 @@ class PlayerActivity : AppCompatActivity() {
             }
     }
 
+    /**
+     * 函数 `retryPlaybackWithoutVideoEffects`：封装 `retry Playback Without Video Effects` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun retryPlaybackWithoutVideoEffects() {
         if (retriedPlaybackWithoutVideoEffects) {
             return
@@ -331,6 +417,11 @@ class PlayerActivity : AppCompatActivity() {
         initializePlayer()
     }
 
+    /**
+     * 函数 `setupGestureOverlay`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupGestureOverlay() {
         // 手势层不直接操作 ExoPlayer，而是统一发 PlaybackCommand，再由 handlePlaybackCommand 分发。
         gestureOverlay = FullscreenVideoGestureOverlay(this).apply {
@@ -377,6 +468,13 @@ class PlayerActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `handlePlaybackCommand`：处理 `handle Playback Command` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param command 参数类型为 `PlaybackCommand`，表示函数执行 `command` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun handlePlaybackCommand(command: PlaybackCommand): Any? {
         // 这一层把 UI 手势/按钮命令转换成播放器动作，后续新增控制项时也从这里接入。
         return when (command) {
@@ -434,6 +532,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `currentPlaybackSessionState`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentPlaybackSessionState(): PlaybackSessionState {
         val exoPlayer = player
         val durationMs = exoPlayer
@@ -449,11 +553,23 @@ class PlayerActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `seekPlayerBy`：封装 `seek Player By` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param offsetMs 参数类型为 `Long`，表示函数执行 `offsetMs` 相关逻辑时需要读取或处理的输入。
+     */
     private fun seekPlayerBy(offsetMs: Long) {
         val exoPlayer = player ?: return
         seekPlayerTo(exoPlayer.currentPosition + offsetMs)
     }
 
+    /**
+     * 函数 `seekPlayerTo`：封装 `seek Player To` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param positionMs 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun seekPlayerTo(positionMs: Long) {
         val exoPlayer = player ?: return
         val duration = exoPlayer.duration
@@ -465,6 +581,12 @@ class PlayerActivity : AppCompatActivity() {
         exoPlayer.seekTo(boundedTarget)
     }
 
+    /**
+     * 函数 `currentPlayerSeekPosition`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentPlayerSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition? {
         val exoPlayer = player ?: return null
         val duration = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0L }
@@ -474,6 +596,12 @@ class PlayerActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `togglePlayerPlayPause`：封装 `toggle Player Play Pause` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun togglePlayerPlayPause(): Boolean? {
         val exoPlayer = player ?: return null
         Log.d(
@@ -493,6 +621,12 @@ class PlayerActivity : AppCompatActivity() {
         return exoPlayer.playWhenReady
     }
 
+    /**
+     * 函数 `playPlayer`：封装 `play Player` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun playPlayer(): Boolean? {
         val exoPlayer = player ?: return null
         if (exoPlayer.playbackState == Player.STATE_ENDED) {
@@ -503,6 +637,12 @@ class PlayerActivity : AppCompatActivity() {
         return exoPlayer.playWhenReady
     }
 
+    /**
+     * 函数 `pausePlayer`：封装 `pause Player` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun pausePlayer(): Boolean? {
         val exoPlayer = player ?: return null
         exoPlayer.pause()
@@ -510,6 +650,11 @@ class PlayerActivity : AppCompatActivity() {
         return exoPlayer.playWhenReady
     }
 
+    /**
+     * 函数 `wakePlayerControls`：封装 `wake Player Controls` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun wakePlayerControls() {
         if (!::playerView.isInitialized) {
             return
@@ -530,6 +675,12 @@ class PlayerActivity : AppCompatActivity() {
         playerView.showController()
     }
 
+    /**
+     * 函数 `shouldKeepPlayerControlsVisible`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun shouldKeepPlayerControlsVisible(): Boolean {
         val exoPlayer = player ?: return false
         return !exoPlayer.playWhenReady ||
@@ -537,12 +688,23 @@ class PlayerActivity : AppCompatActivity() {
             exoPlayer.playbackState == Player.STATE_ENDED
     }
 
+    /**
+     * 函数 `setPlayerPlaybackSpeed`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     */
     private fun setPlayerPlaybackSpeed(speed: Float) {
         selectedPlaybackSpeed = normalizePlaybackSpeed(speed)
         settingsManager.setDefaultVideoSpeed(selectedPlaybackSpeed)
         player?.setPlaybackSpeed(selectedPlaybackSpeed)
     }
 
+    /**
+     * 函数 `playPreviousMedia`：封装 `play Previous Media` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun playPreviousMedia() {
         val previousIndex = when {
             currentMediaItemIndex > 0 -> currentMediaItemIndex - 1
@@ -554,6 +716,11 @@ class PlayerActivity : AppCompatActivity() {
         playMediaAt(previousIndex)
     }
 
+    /**
+     * 函数 `playNextMedia`：封装 `play Next Media` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun playNextMedia() {
         val nextIndex = when {
             currentMediaItemIndex + 1 < playbackQueue.items.size -> currentMediaItemIndex + 1
@@ -563,6 +730,12 @@ class PlayerActivity : AppCompatActivity() {
         playMediaAt(nextIndex)
     }
 
+    /**
+     * 函数 `playMediaAt`：封装 `play Media At` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun playMediaAt(index: Int) {
         val exoPlayer = player ?: return
         if (index !in playbackQueue.items.indices) {
@@ -586,6 +759,12 @@ class PlayerActivity : AppCompatActivity() {
         wakePlayerControls()
     }
 
+    /**
+     * 函数 `cycleRepeatMode`：封装 `cycle Repeat Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun cycleRepeatMode(): PlaybackRepeatMode {
         repeatMode = when (repeatMode) {
             PlaybackRepeatMode.NONE -> PlaybackRepeatMode.ONE
@@ -598,6 +777,11 @@ class PlayerActivity : AppCompatActivity() {
         return repeatMode
     }
 
+    /**
+     * 函数 `updateQueueControls`：根据最新状态刷新 `update Queue Controls` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateQueueControls() {
         if (!::gestureOverlay.isInitialized) {
             return
@@ -606,6 +790,13 @@ class PlayerActivity : AppCompatActivity() {
         gestureOverlay.setRepeatMode(repeatMode)
     }
 
+    /**
+     * 函数 `media3RepeatMode`：封装 `media3 Repeat Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param mode 参数类型为 `PlaybackRepeatMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun media3RepeatMode(mode: PlaybackRepeatMode): Int {
         return when (mode) {
             PlaybackRepeatMode.NONE -> Player.REPEAT_MODE_OFF
@@ -614,6 +805,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `cycleVideoZoomMode`：封装 `cycle Video Zoom Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun cycleVideoZoomMode(): VideoZoomMode {
         videoZoomMode = videoZoomMode.next()
         applyVideoZoomMode()
@@ -621,6 +818,11 @@ class PlayerActivity : AppCompatActivity() {
         return videoZoomMode
     }
 
+    /**
+     * 函数 `applyVideoZoomMode`：根据最新状态刷新 `apply Video Zoom Mode` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun applyVideoZoomMode() {
         if (::playerView.isInitialized) {
             playerView.resizeMode = videoZoomMode.resizeMode
@@ -630,6 +832,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `toggleShuffleMode`：封装 `toggle Shuffle Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun toggleShuffleMode(): Boolean {
         if (playbackQueue.items.size <= 1) {
             wakePlayerControls()
@@ -648,6 +856,11 @@ class PlayerActivity : AppCompatActivity() {
         return playbackQueue.isShuffled
     }
 
+    /**
+     * 函数 `syncPlayerQueueToPlaybackQueue`：根据最新状态刷新 `sync Player Queue To Playback Queue` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun syncPlayerQueueToPlaybackQueue() {
         val exoPlayer = player ?: return
         exoPlayer.setMediaItems(playbackQueue.items.map(::toMediaItem), currentMediaItemIndex, playbackPosition)
@@ -657,6 +870,11 @@ class PlayerActivity : AppCompatActivity() {
         exoPlayer.prepare()
     }
 
+    /**
+     * 函数 `showPlaybackQueueMenu`：控制 `show Playback Queue Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showPlaybackQueueMenu() {
         if (playbackQueue.items.size <= 1) {
             wakePlayerControls()
@@ -678,6 +896,12 @@ class PlayerActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * 函数 `shuffleActionLabel`：封装 `shuffle Action Label` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun shuffleActionLabel(): Int {
         return if (playbackQueue.isShuffled) {
             R.string.video_queue_restore_order
@@ -686,6 +910,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `showPlaybackQueueRemoveMenu`：控制 `show Playback Queue Remove Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showPlaybackQueueRemoveMenu() {
         if (playbackQueue.items.size <= 1) {
             wakePlayerControls()
@@ -700,6 +929,12 @@ class PlayerActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * 函数 `removeMediaFromQueue`：封装 `remove Media From Queue` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun removeMediaFromQueue(index: Int) {
         if (index !in playbackQueue.items.indices || playbackQueue.items.size <= 1) {
             wakePlayerControls()
@@ -725,6 +960,12 @@ class PlayerActivity : AppCompatActivity() {
         wakePlayerControls()
     }
 
+    /**
+     * 函数 `playbackQueueLabels`：封装 `playback Queue Labels` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun playbackQueueLabels(): Array<String> {
         return playbackQueue.items.mapIndexed { index, item ->
             val title = item.title
@@ -739,6 +980,11 @@ class PlayerActivity : AppCompatActivity() {
         }.toTypedArray()
     }
 
+    /**
+     * 函数 `showTrackSelectionMenu`：控制 `show Track Selection Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showTrackSelectionMenu() {
         if (player == null) {
             Toast.makeText(this, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
@@ -761,6 +1007,13 @@ class PlayerActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * 函数 `showTrackSelectionDialog`：控制 `show Track Selection Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param trackType 参数类型为 `Int`，表示函数执行 `trackType` 相关逻辑时需要读取或处理的输入。
+     * @param titleResId 参数类型为 `Int`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     */
     @OptIn(UnstableApi::class)
     private fun showTrackSelectionDialog(trackType: Int, titleResId: Int) {
         val exoPlayer = player ?: run {
@@ -785,6 +1038,12 @@ class PlayerActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * 函数 `startDirectionalLongPress`：启动或加载 `start Directional Long Press` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param direction 参数类型为 `Int`，表示函数执行 `direction` 相关逻辑时需要读取或处理的输入。
+     */
     private fun startDirectionalLongPress(direction: Int) {
         val exoPlayer = player ?: return
         stopDirectionalLongPress()
@@ -804,6 +1063,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `stopDirectionalLongPress`：封装 `stop Directional Long Press` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun stopDirectionalLongPress() {
         if (!directionalLongPressActive) {
             return
@@ -822,12 +1086,23 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `togglePlayerOrientation`：封装 `toggle Player Orientation` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun togglePlayerOrientation(): Boolean {
         isLandscape = !isLandscape
         applyRequestedOrientation()
         return isLandscape
     }
 
+    /**
+     * 函数 `applyRequestedOrientation`：根据最新状态刷新 `apply Requested Orientation` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun applyRequestedOrientation() {
         requestedOrientation = if (isLandscape) {
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
@@ -839,6 +1114,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `releasePlayer`：封装 `release Player` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun releasePlayer() {
         stopDirectionalLongPress()
         savePlayerState()
@@ -847,6 +1127,11 @@ class PlayerActivity : AppCompatActivity() {
         player = null
     }
 
+    /**
+     * 函数 `savePlayerState`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun savePlayerState() {
         player?.let {
             playbackPosition = it.currentPosition
@@ -856,6 +1141,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `restorePlaybackHistory`：封装 `restore Playback History` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun restorePlaybackHistory() {
         if (settingsManager.alwaysStartVideosFromBeginning()) {
             playbackPosition = 0L
@@ -872,6 +1162,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `savePlaybackHistory`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param exoPlayer 参数类型为 `ExoPlayer`，表示函数执行 `exoPlayer` 相关逻辑时需要读取或处理的输入。
+     */
     private fun savePlaybackHistory(exoPlayer: ExoPlayer) {
         val identity = playbackHistoryIdentity()
         if (identity.isBlank()) {
@@ -890,6 +1186,12 @@ class PlayerActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `requestHeaders`：处理 `request Headers` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun requestHeaders(): Map<String, String> {
         val headers = mutableMapOf<String, String>()
         intent.getStringExtra(EXTRA_COOKIE)
@@ -901,6 +1203,12 @@ class PlayerActivity : AppCompatActivity() {
         return headers
     }
 
+    /**
+     * 函数 `currentPlayableMediaItem`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentPlayableMediaItem(): PlayableMediaItem {
         val uri = mediaUri()
         return PlayableMediaItem(
@@ -919,6 +1227,13 @@ class PlayerActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `toMediaItem`：封装 `to Media Item` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param item 参数类型为 `PlayableMediaItem`，表示函数执行 `item` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun toMediaItem(item: PlayableMediaItem): MediaItem {
         return MediaItem.Builder()
             .setUri(Uri.parse(item.uri))
@@ -929,6 +1244,13 @@ class PlayerActivity : AppCompatActivity() {
             .build()
     }
 
+    /**
+     * 函数 `toSubtitleConfiguration`：封装 `to Subtitle Configuration` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param candidate 参数类型为 `ExternalSubtitleCandidate`，表示函数执行 `candidate` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun toSubtitleConfiguration(
         candidate: ExternalSubtitleCandidate
     ): MediaItem.SubtitleConfiguration {
@@ -939,11 +1261,25 @@ class PlayerActivity : AppCompatActivity() {
         return builder.build()
     }
 
+    /**
+     * 函数 `isLocalMediaUri`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isLocalMediaUri(uri: String): Boolean {
         return uri.startsWith("content:", ignoreCase = true) ||
             uri.startsWith("file:", ignoreCase = true)
     }
 
+    /**
+     * 函数 `normalizedMimeType`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizedMimeType(mimeType: String?): String? {
         return when (mimeType?.substringBefore(';')?.trim()?.lowercase()) {
             "application/vnd.apple.mpegurl",
@@ -958,6 +1294,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `hideSystemBars`：控制 `hide System Bars` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun hideSystemBars() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
@@ -966,19 +1307,43 @@ class PlayerActivity : AppCompatActivity() {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
+    /**
+     * 函数 `mediaUri`：封装 `media Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun mediaUri(): String {
         return intent.getStringExtra(EXTRA_MEDIA_URI).orEmpty()
     }
 
+    /**
+     * 函数 `playbackHistoryIdentity`：封装 `playback History Identity` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun playbackHistoryIdentity(): String {
         return playbackQueue.items.getOrNull(currentMediaItemIndex)?.uri?.trim()
             ?: mediaUri().trim()
     }
 
+    /**
+     * 函数 `isPrivateBrowsingPlayback`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isPrivateBrowsingPlayback(): Boolean {
         return intent.getBooleanExtra(EXTRA_PRIVATE_BROWSING, false)
     }
 
+    /**
+     * 函数 `subtitleCandidatesFromIntent`：封装 `subtitle Candidates From Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun subtitleCandidatesFromIntent(): List<ExternalSubtitleCandidate> {
         val uris = intent.getStringArrayListExtra(EXTRA_SUBTITLE_URIS).orEmpty()
         val labels = intent.getStringArrayListExtra(EXTRA_SUBTITLE_LABELS).orEmpty()
@@ -996,12 +1361,25 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `playbackQueueFromIntent`：封装 `playback Queue From Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun playbackQueueFromIntent(): PlaybackQueue {
         val encodedQueue = intent.getStringExtra(EXTRA_PLAYBACK_QUEUE)
         return encodedQueue?.let(::decodePlaybackQueue)
             ?: PlaybackQueue.single(currentPlayableMediaItem())
     }
 
+    /**
+     * 函数 `decodePlaybackQueue`：封装 `decode Playback Queue` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param encodedQueue 参数类型为 `String`，表示函数执行 `encodedQueue` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun decodePlaybackQueue(encodedQueue: String): PlaybackQueue? {
         return runCatching {
             val root = JSONObject(encodedQueue)
@@ -1028,6 +1406,13 @@ class PlayerActivity : AppCompatActivity() {
         }.getOrNull()
     }
 
+    /**
+     * 函数 `playableItemsFromJson`：封装 `playable Items From Json` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param array 参数类型为 `JSONArray?`，表示函数执行 `array` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun playableItemsFromJson(array: JSONArray?): List<PlayableMediaItem> {
         if (array == null) {
             return emptyList()
@@ -1037,6 +1422,12 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `toPlayableMediaItem`：封装 `to Playable Media Item` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun JSONObject.toPlayableMediaItem(): PlayableMediaItem? {
         val uri = optString("uri").takeIf { it.isNotBlank() } ?: return null
         return PlayableMediaItem(
@@ -1050,6 +1441,13 @@ class PlayerActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * 函数 `subtitleArrayFromJson`：封装 `subtitle Array From Json` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param array 参数类型为 `JSONArray?`，表示函数执行 `array` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun subtitleArrayFromJson(array: JSONArray?): List<ExternalSubtitleCandidate> {
         if (array == null) {
             return emptyList()
@@ -1067,6 +1465,13 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 函数 `normalizePlaybackSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizePlaybackSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -1110,6 +1515,22 @@ class PlayerActivity : AppCompatActivity() {
         private const val MIME_DASH = "application/dash+xml"
         private const val MIME_SMOOTH_STREAMING = "application/vnd.ms-sstr+xml"
 
+        /**
+         * 函数 `createIntent`：创建 `create Intent` 需要的对象、视图或配置，并返回给后续流程使用。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param context 参数类型为 `Context`，表示 Android 上下文，用来读取资源、启动系统服务或访问应用环境。
+         * @param mediaUri 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @param title 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
+         * @param userAgent 参数类型为 `String?`，表示函数执行 `userAgent` 相关逻辑时需要读取或处理的输入。
+         * @param cookie 参数类型为 `String?`，表示函数执行 `cookie` 相关逻辑时需要读取或处理的输入。
+         * @param referer 参数类型为 `String?`，表示函数执行 `referer` 相关逻辑时需要读取或处理的输入。
+         * @param privateBrowsing 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+         * @param subtitleCandidates 参数类型为 `List<ExternalSubtitleCandidate>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @param playbackQueue 参数类型为 `PlaybackQueue?`，表示函数执行 `playbackQueue` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun createIntent(
             context: Context,
             mediaUri: String,
@@ -1155,6 +1576,13 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         private object PlaybackQueueJson {
+            /**
+             * 函数 `encode`：封装 `encode` 这一段业务步骤，让调用方不用关心内部实现细节。
+             *
+             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+             * @param queue 参数类型为 `PlaybackQueue`，表示函数执行 `queue` 相关逻辑时需要读取或处理的输入。
+             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+             */
             fun encode(queue: PlaybackQueue): String {
                 return JSONObject()
                     .put("currentIndex", queue.currentIndex)
@@ -1178,11 +1606,24 @@ class PlayerActivity : AppCompatActivity() {
                     .toString()
             }
 
+            /**
+             * 函数 `sourceFromName`：封装 `source From Name` 这一段业务步骤，让调用方不用关心内部实现细节。
+             *
+             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+             * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+             */
             fun sourceFromName(name: String): PlayableMediaSource {
                 return runCatching { PlayableMediaSource.valueOf(name) }
                     .getOrDefault(PlayableMediaSource.REMOTE_URL)
             }
 
+            /**
+             * 函数 `toJson`：封装 `to Json` 这一段业务步骤，让调用方不用关心内部实现细节。
+             *
+             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+             */
             private fun PlayableMediaItem.toJson(): JSONObject {
                 return JSONObject()
                     .put("uri", uri)
@@ -1199,6 +1640,12 @@ class PlayerActivity : AppCompatActivity() {
                     )
             }
 
+            /**
+             * 函数 `toJson`：封装 `to Json` 这一段业务步骤，让调用方不用关心内部实现细节。
+             *
+             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+             */
             private fun ExternalSubtitleCandidate.toJson(): JSONObject {
                 return JSONObject()
                     .put("uri", uri)

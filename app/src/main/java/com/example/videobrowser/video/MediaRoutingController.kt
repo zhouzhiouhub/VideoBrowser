@@ -16,6 +16,13 @@ import com.example.videobrowser.utils.MediaUrlUtils
  * 这里根据来源和 URL 类型决定：交给原生播放器、继续用 WebView 加载、下载、交给系统或直接阻止。
  */
 object MediaRoutingController {
+    /**
+     * 函数 `route`：封装 `route` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `MediaRouteRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun route(request: MediaRouteRequest): MediaRouteDecision {
         // route 是纯函数，方便测试；它只返回决策，不直接打开页面或播放器。
         val url = request.url.trim()
@@ -78,6 +85,12 @@ object MediaRoutingController {
         }
     }
 
+    /**
+     * 函数 `toPlayableMediaItem`：封装 `to Playable Media Item` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun MediaRouteRequest.toPlayableMediaItem(): PlayableMediaItem {
         // 把路由请求转换成播放器需要的媒体项，同时尽量带上标题、类型、UA 和来源页。
         return PlayableMediaItem(
@@ -97,6 +110,13 @@ object MediaRoutingController {
         )
     }
 
+    /**
+     * 函数 `isWebUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isWebUrl(url: String): Boolean {
         val scheme = url.substringBefore(':', missingDelimiterValue = "")
         return scheme.equals("http", ignoreCase = true) ||

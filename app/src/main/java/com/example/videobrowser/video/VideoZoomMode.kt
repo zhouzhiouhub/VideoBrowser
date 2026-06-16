@@ -14,6 +14,12 @@ enum class VideoZoomMode(val resizeMode: Int) {
     STRETCH(AspectRatioFrameLayout.RESIZE_MODE_FILL),
     CROP(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
 
+    /**
+     * 函数 `next`：封装 `next` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun next(): VideoZoomMode {
         return when (this) {
             FIT -> STRETCH

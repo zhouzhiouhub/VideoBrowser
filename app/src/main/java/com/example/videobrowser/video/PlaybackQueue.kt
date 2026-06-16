@@ -24,10 +24,22 @@ data class PlaybackQueue(
     val isShuffled: Boolean
         get() = originalItems != null
 
+    /**
+     * 函数 `currentItem`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun currentItem(): PlayableMediaItem? {
         return items.getOrNull(currentIndex)
     }
 
+    /**
+     * 函数 `next`：封装 `next` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun next(): PlaybackQueue {
         // repeatMode.ALL 会在最后一项之后回到第一项；NONE 则停在当前队列末尾。
         if (items.isEmpty()) {
@@ -41,6 +53,12 @@ data class PlaybackQueue(
         }
     }
 
+    /**
+     * 函数 `previous`：封装 `previous` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun previous(): PlaybackQueue {
         if (items.isEmpty()) {
             return this
@@ -53,6 +71,13 @@ data class PlaybackQueue(
         }
     }
 
+    /**
+     * 函数 `select`：封装 `select` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun select(index: Int): PlaybackQueue {
         return if (index in items.indices) {
             copy(currentIndex = index)
@@ -61,6 +86,13 @@ data class PlaybackQueue(
         }
     }
 
+    /**
+     * 函数 `removeAt`：封装 `remove At` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun removeAt(index: Int): PlaybackQueue {
         if (index !in items.indices || items.size <= 1) {
             return this
@@ -83,10 +115,24 @@ data class PlaybackQueue(
         )
     }
 
+    /**
+     * 函数 `shuffle`：封装 `shuffle` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param random 参数类型为 `Random`，表示函数执行 `random` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun shuffle(random: Random = Random.Default): PlaybackQueue {
         return shuffle { tail -> tail.shuffled(random) }
     }
 
+    /**
+     * 函数 `shuffle`：封装 `shuffle` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param reorderTail 参数类型为 `(List<PlayableMediaItem>) -> List<PlayableMediaItem>`，表示函数执行 `reorderTail` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun shuffle(reorderTail: (List<PlayableMediaItem>) -> List<PlayableMediaItem>): PlaybackQueue {
         // 当前正在播放的项目固定在第一位，只打乱后面的队列，避免用户开启随机后立刻跳走。
         if (items.size <= 1) {
@@ -107,6 +153,12 @@ data class PlaybackQueue(
         )
     }
 
+    /**
+     * 函数 `restoreOriginalOrder`：封装 `restore Original Order` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun restoreOriginalOrder(): PlaybackQueue {
         val originalOrder = originalItems ?: return this
         val current = currentItem()
@@ -122,6 +174,13 @@ data class PlaybackQueue(
     }
 
     companion object {
+        /**
+         * 函数 `single`：封装 `single` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param item 参数类型为 `PlayableMediaItem`，表示函数执行 `item` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun single(item: PlayableMediaItem): PlaybackQueue {
             return PlaybackQueue(items = listOf(item))
         }

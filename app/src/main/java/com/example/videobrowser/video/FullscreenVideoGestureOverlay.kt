@@ -150,6 +150,11 @@ class FullscreenVideoGestureOverlay(
         setLandscape(true)
     }
 
+    /**
+     * 函数 `showOverlay`：控制 `show Overlay` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun showOverlay() {
         if (visibility != View.VISIBLE) {
             savedWindowBrightness = activity.window.attributes.screenBrightness
@@ -159,6 +164,11 @@ class FullscreenVideoGestureOverlay(
         setLocked(false, announce = false)
     }
 
+    /**
+     * 函数 `hideOverlay`：控制 `hide Overlay` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun hideOverlay() {
         speedPopup?.dismiss()
         speedPopup = null
@@ -174,6 +184,12 @@ class FullscreenVideoGestureOverlay(
         visibility = View.GONE
     }
 
+    /**
+     * 函数 `setPlaybackSpeed`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     */
     fun setPlaybackSpeed(speed: Float) {
         playbackSpeed = normalizeSpeed(speed)
         speedButton.text = VideoGestureFeedbackFormatter.formatSpeed(playbackSpeed)
@@ -183,6 +199,12 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `setLandscape`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param isLandscape 参数类型为 `Boolean`，表示函数执行 `isLandscape` 相关逻辑时需要读取或处理的输入。
+     */
     fun setLandscape(isLandscape: Boolean) {
         landscape = isLandscape
         val label = if (landscape) {
@@ -195,6 +217,12 @@ class FullscreenVideoGestureOverlay(
         ViewCompat.setTooltipText(rotateButton, label)
     }
 
+    /**
+     * 函数 `setQueueControlsVisible`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param visible 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     fun setQueueControlsVisible(visible: Boolean) {
         val visibility = if (visible) View.VISIBLE else View.GONE
         previousButton.visibility = visibility
@@ -203,6 +231,12 @@ class FullscreenVideoGestureOverlay(
         queueButton.visibility = visibility
     }
 
+    /**
+     * 函数 `setRepeatMode`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param mode 参数类型为 `PlaybackRepeatMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
+     */
     fun setRepeatMode(mode: PlaybackRepeatMode) {
         repeatMode = mode
         repeatButton.text = when (mode) {
@@ -219,6 +253,12 @@ class FullscreenVideoGestureOverlay(
         ViewCompat.setTooltipText(repeatButton, label)
     }
 
+    /**
+     * 函数 `setVideoZoomMode`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param mode 参数类型为 `VideoZoomMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
+     */
     fun setVideoZoomMode(mode: VideoZoomMode) {
         videoZoomMode = mode
         zoomButton.text = when (mode) {
@@ -235,6 +275,13 @@ class FullscreenVideoGestureOverlay(
         ViewCompat.setTooltipText(zoomButton, label)
     }
 
+    /**
+     * 函数 `dispatchTouchEvent`：封装 `dispatch Touch Event` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param event 参数类型为 `MotionEvent`，表示函数执行 `event` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         // 入口先处理“控件点击”和“底部系统播放器控件透传”，剩下的触摸才进入手势识别。
         if (visibility != View.VISIBLE || width <= 0 || height <= 0) {
@@ -277,6 +324,13 @@ class FullscreenVideoGestureOverlay(
         return handleGestureEvent(event)
     }
 
+    /**
+     * 函数 `dispatchHoverEvent`：封装 `dispatch Hover Event` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param event 参数类型为 `MotionEvent`，表示函数执行 `event` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     override fun dispatchHoverEvent(event: MotionEvent): Boolean {
         if (visibility == View.VISIBLE && event.isWakeControlsAction()) {
             notifyUserInteraction()
@@ -284,11 +338,21 @@ class FullscreenVideoGestureOverlay(
         return super.dispatchHoverEvent(event)
     }
 
+    /**
+     * 函数 `onDetachedFromWindow`：处理 `on Detached From Window` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     override fun onDetachedFromWindow() {
         hideOverlay()
         super.onDetachedFromWindow()
     }
 
+    /**
+     * 函数 `setupExitButton`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupExitButton() {
         val label = context.getString(R.string.video_control_exit_fullscreen)
         exitButton.apply {
@@ -319,6 +383,11 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `setupLockButton`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupLockButton() {
         lockButton.setOnClickListener {
             notifyUserInteraction()
@@ -336,6 +405,11 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `setupControlsGroup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupControlsGroup() {
         controlsGroup.orientation = LinearLayout.HORIZONTAL
         controlsGroup.gravity = Gravity.CENTER_VERTICAL
@@ -489,6 +563,11 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `setupFeedbackView`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun setupFeedbackView() {
         feedbackView.apply {
             visibility = View.GONE
@@ -516,6 +595,12 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `controlTextView`：封装 `control Text View` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun controlTextView(): TextView {
         return TextView(context).apply {
             gravity = Gravity.CENTER
@@ -531,6 +616,13 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `handleGestureEvent`：处理 `handle Gesture Event` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param event 参数类型为 `MotionEvent`，表示函数执行 `event` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun handleGestureEvent(event: MotionEvent): Boolean {
         // 这里是触摸事件的总入口：先记录起点区域，再根据移动方向决定是哪一种手势。
         when (event.actionMasked) {
@@ -618,6 +710,12 @@ class FullscreenVideoGestureOverlay(
         return true
     }
 
+    /**
+     * 函数 `beginHorizontalSeek`：封装 `begin Horizontal Seek` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param deltaX 参数类型为 `Float`，表示函数执行 `deltaX` 相关逻辑时需要读取或处理的输入。
+     */
     private fun beginHorizontalSeek(deltaX: Float) {
         // 横向滑动开始时记录当前播放位置，后续移动只是在这个基础上计算预览目标。
         activeGesture = VerticalGesture.HORIZONTAL_SEEK
@@ -633,6 +731,12 @@ class FullscreenVideoGestureOverlay(
         updateHorizontalSeek(deltaX)
     }
 
+    /**
+     * 函数 `updateHorizontalSeek`：根据最新状态刷新 `update Horizontal Seek` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param deltaX 参数类型为 `Float`，表示函数执行 `deltaX` 相关逻辑时需要读取或处理的输入。
+     */
     private fun updateHorizontalSeek(deltaX: Float) {
         val offsetMs = VideoSeekDragCalculator.offsetForDrag(deltaX, width, seekDurationMs)
         pendingHorizontalSeekMs = offsetMs
@@ -655,6 +759,12 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `finishHorizontalSeek`：封装 `finish Horizontal Seek` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param commit 参数类型为 `Boolean`，表示函数执行 `commit` 相关逻辑时需要读取或处理的输入。
+     */
     private fun finishHorizontalSeek(commit: Boolean) {
         // 抬手时才真正 seek，移动过程只显示反馈，避免每一帧都让播放器跳转。
         val feedbackText = feedbackView.text?.toString().orEmpty()
@@ -676,6 +786,12 @@ class FullscreenVideoGestureOverlay(
         pendingSeekTargetMs = null
     }
 
+    /**
+     * 函数 `updateBrightness`：根据最新状态刷新 `update Brightness` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param deltaY 参数类型为 `Float`，表示函数执行 `deltaY` 相关逻辑时需要读取或处理的输入。
+     */
     private fun updateBrightness(deltaY: Float) {
         val deltaRatio = -deltaY / height.toFloat()
         val brightness = (initialBrightness + deltaRatio).coerceIn(MIN_BRIGHTNESS, 1f)
@@ -687,6 +803,12 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `updateVolume`：根据最新状态刷新 `update Volume` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param deltaY 参数类型为 `Float`，表示函数执行 `deltaY` 相关逻辑时需要读取或处理的输入。
+     */
     private fun updateVolume(deltaY: Float) {
         val minVolume = streamMinVolume()
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
@@ -702,6 +824,13 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `handleTap`：处理 `handle Tap` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param upX 参数类型为 `Float`，表示函数执行 `upX` 相关逻辑时需要读取或处理的输入。
+     * @param eventTime 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun handleTap(upX: Float, eventTime: Long) {
         notifyUserInteraction()
         when (val zone = screenZoneFor(upX)) {
@@ -715,6 +844,13 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `registerSideTap`：封装 `register Side Tap` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param zone 参数类型为 `ScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
+     * @param eventTime 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun registerSideTap(zone: ScreenZone, eventTime: Long) {
         if (pendingTapZone == zone && eventTime - pendingTapTime <= DOUBLE_TAP_TIMEOUT_MS) {
             clearPendingSideTap()
@@ -727,6 +863,12 @@ class FullscreenVideoGestureOverlay(
         feedbackHandler.postDelayed(clearPendingTapRunnable, DOUBLE_TAP_TIMEOUT_MS)
     }
 
+    /**
+     * 函数 `handleDoubleTap`：处理 `handle Double Tap` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param zone 参数类型为 `ScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
+     */
     private fun handleDoubleTap(zone: ScreenZone) {
         val direction = if (zone == ScreenZone.LEFT) -1 else 1
         onSeekBy?.invoke(direction * SEEK_STEP_MS)
@@ -741,6 +883,11 @@ class FullscreenVideoGestureOverlay(
         feedbackHandler.postDelayed(clearSeekAccumulatorRunnable, SEEK_ACCUMULATE_RESET_MS)
     }
 
+    /**
+     * 函数 `triggerLongPress`：封装 `trigger Long Press` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun triggerLongPress() {
         // 长按左右区域触发连续快退/快进；中心区域不触发，避免和普通点击冲突。
         if (locked || longPressActive || activeGesture != VerticalGesture.NONE || !downZone.isSide()) {
@@ -758,6 +905,11 @@ class FullscreenVideoGestureOverlay(
         )
     }
 
+    /**
+     * 函数 `stopLongPress`：封装 `stop Long Press` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun stopLongPress() {
         if (!longPressActive) return
         longPressActive = false
@@ -766,6 +918,11 @@ class FullscreenVideoGestureOverlay(
         feedbackView.visibility = View.GONE
     }
 
+    /**
+     * 函数 `showSpeedPopup`：控制 `show Speed Popup` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun showSpeedPopup() {
         speedPopup?.dismiss()
         val content = LinearLayout(context).apply {
@@ -811,6 +968,13 @@ class FullscreenVideoGestureOverlay(
         speedPopup?.showAsDropDown(speedButton, 0, dp(6))
     }
 
+    /**
+     * 函数 `setLocked`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param announce 参数类型为 `Boolean`，表示函数执行 `announce` 相关逻辑时需要读取或处理的输入。
+     */
     private fun setLocked(value: Boolean, announce: Boolean) {
         if (locked == value && announce) {
             showFeedback(if (locked) LOCKED_ICON else UNLOCKED_ICON)
@@ -831,6 +995,11 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `updateLockUi`：根据最新状态刷新 `update Lock Ui` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun updateLockUi() {
         val controlLabel = context.getString(
             if (locked) R.string.video_control_unlock else R.string.video_control_lock
@@ -845,12 +1014,29 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `isControlPoint`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param x 参数类型为 `Float`，表示函数执行 `x` 相关逻辑时需要读取或处理的输入。
+     * @param y 参数类型为 `Float`，表示函数执行 `y` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isControlPoint(x: Float, y: Float): Boolean {
         return isPointInside(exitButton, x, y) ||
             isPointInside(lockButton, x, y) ||
             (!locked && isPointInside(controlsGroup, x, y))
     }
 
+    /**
+     * 函数 `isPointInside`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param view 参数类型为 `View`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param x 参数类型为 `Float`，表示函数执行 `x` 相关逻辑时需要读取或处理的输入。
+     * @param y 参数类型为 `Float`，表示函数执行 `y` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isPointInside(view: View, x: Float, y: Float): Boolean {
         if (view.visibility != View.VISIBLE) return false
         return x >= view.left &&
@@ -859,6 +1045,12 @@ class FullscreenVideoGestureOverlay(
             y <= view.bottom
     }
 
+    /**
+     * 函数 `currentWindowBrightness`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentWindowBrightness(): Float {
         val current = activity.window.attributes.screenBrightness
         if (current >= 0f) {
@@ -872,6 +1064,11 @@ class FullscreenVideoGestureOverlay(
         }.getOrDefault(DEFAULT_BRIGHTNESS).coerceIn(MIN_BRIGHTNESS, 1f)
     }
 
+    /**
+     * 函数 `restoreWindowBrightness`：封装 `restore Window Brightness` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun restoreWindowBrightness() {
         val saved = savedWindowBrightness ?: return
         val attributes = activity.window.attributes
@@ -880,6 +1077,12 @@ class FullscreenVideoGestureOverlay(
         savedWindowBrightness = null
     }
 
+    /**
+     * 函数 `streamMinVolume`：封装 `stream Min Volume` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun streamMinVolume(): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             audioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC)
@@ -888,12 +1091,28 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `volumePercent`：封装 `volume Percent` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param volume 参数类型为 `Int`，表示函数执行 `volume` 相关逻辑时需要读取或处理的输入。
+     * @param minVolume 参数类型为 `Int`，表示函数执行 `minVolume` 相关逻辑时需要读取或处理的输入。
+     * @param maxVolume 参数类型为 `Int`，表示函数执行 `maxVolume` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun volumePercent(volume: Int, minVolume: Int, maxVolume: Int): Int {
         return (((volume - minVolume).toFloat() / (maxVolume - minVolume)) * 100)
             .roundToInt()
             .coerceIn(0, 100)
     }
 
+    /**
+     * 函数 `showFeedback`：控制 `show Feedback` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param autoHide 参数类型为 `Boolean`，表示函数执行 `autoHide` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showFeedback(text: String, autoHide: Boolean = true) {
         feedbackView.text = text
         feedbackView.visibility = View.VISIBLE
@@ -904,10 +1123,20 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `notifyUserInteraction`：封装 `notify User Interaction` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun notifyUserInteraction() {
         onUserInteraction?.invoke()
     }
 
+    /**
+     * 函数 `resetTouchState`：封装 `reset Touch State` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun resetTouchState() {
         activeGesture = VerticalGesture.NONE
         tapCandidate = false
@@ -916,18 +1145,36 @@ class FullscreenVideoGestureOverlay(
         downZone = ScreenZone.CENTER
     }
 
+    /**
+     * 函数 `clearPendingSideTap`：封装 `clear Pending Side Tap` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun clearPendingSideTap() {
         pendingTapZone = ScreenZone.NONE
         pendingTapTime = 0L
         feedbackHandler.removeCallbacks(clearPendingTapRunnable)
     }
 
+    /**
+     * 函数 `clearSeekAccumulator`：封装 `clear Seek Accumulator` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun clearSeekAccumulator() {
         seekAccumulatorDirection = 0
         seekAccumulatorCount = 0
         feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
     }
 
+    /**
+     * 函数 `roundedBackground`：封装 `rounded Background` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param color 参数类型为 `Int`，表示函数执行 `color` 相关逻辑时需要读取或处理的输入。
+     * @param radius 参数类型为 `Int`，表示函数执行 `radius` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun roundedBackground(color: Int, radius: Int): GradientDrawable {
         return GradientDrawable().apply {
             setColor(color)
@@ -935,6 +1182,13 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `normalizeSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -943,6 +1197,13 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `screenZoneFor`：封装 `screen Zone For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param x 参数类型为 `Float`，表示函数执行 `x` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun screenZoneFor(x: Float): ScreenZone {
         return when {
             x < 0f || width <= 0 -> ScreenZone.NONE
@@ -952,15 +1213,33 @@ class FullscreenVideoGestureOverlay(
         }
     }
 
+    /**
+     * 函数 `bottomPassthroughHeight`：封装 `bottom Passthrough Height` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun bottomPassthroughHeight(): Int {
         return dp(BOTTOM_PASSTHROUGH_DP)
     }
 
+    /**
+     * 函数 `isFinishedAction`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun MotionEvent.isFinishedAction(): Boolean {
         return actionMasked == MotionEvent.ACTION_UP ||
             actionMasked == MotionEvent.ACTION_CANCEL
     }
 
+    /**
+     * 函数 `isWakeControlsAction`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun MotionEvent.isWakeControlsAction(): Boolean {
         return actionMasked == MotionEvent.ACTION_DOWN ||
             actionMasked == MotionEvent.ACTION_MOVE ||
@@ -969,10 +1248,23 @@ class FullscreenVideoGestureOverlay(
             actionMasked == MotionEvent.ACTION_HOVER_MOVE
     }
 
+    /**
+     * 函数 `isSide`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun ScreenZone.isSide(): Boolean {
         return this == ScreenZone.LEFT || this == ScreenZone.RIGHT
     }
 
+    /**
+     * 函数 `dp`：封装 `dp` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).roundToInt()
     }

@@ -19,6 +19,14 @@ data class WebViewVideoTimeline(
     val durationMs: Long?
 ) {
     companion object {
+        /**
+         * 函数 `fromBridge`：封装 `from Bridge` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param positionMs 参数类型为 `Double`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @param durationMs 参数类型为 `Double`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun fromBridge(positionMs: Double, durationMs: Double): WebViewVideoTimeline {
             return WebViewVideoTimeline(
                 positionMs = positionMs
@@ -44,6 +52,12 @@ sealed class WebViewVideoCommand {
     data class StartDirectionalPlayback(val direction: Int) : WebViewVideoCommand()
     object StopDirectionalPlayback : WebViewVideoCommand()
 
+    /**
+     * 函数 `toJavascript`：封装 `to Javascript` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun toJavascript(): String {
         // 命令只在这里转换成 JavaScript，调用方不需要知道网页增强脚本的函数名细节。
         return when (this) {
@@ -62,6 +76,14 @@ sealed class WebViewVideoCommand {
         }
     }
 
+    /**
+     * 函数 `enhancerCall`：封装 `enhancer Call` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param functionName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param arguments 参数类型为 `String`，表示函数执行 `arguments` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun enhancerCall(functionName: String, vararg arguments: String): String {
         return "(function(){var enhancer=window.VideoBrowserEnhancer;" +
             "if(!enhancer)return;" +
@@ -70,6 +92,12 @@ sealed class WebViewVideoCommand {
             "}})();"
     }
 
+    /**
+     * 函数 `togglePlayPauseScript`：封装 `toggle Play Pause Script` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun togglePlayPauseScript(): String {
         return "(function(){var enhancer=window.VideoBrowserEnhancer;" +
             "if(!enhancer)return;" +
@@ -82,10 +110,24 @@ sealed class WebViewVideoCommand {
             "})();"
     }
 
+    /**
+     * 函数 `secondsArgument`：封装 `seconds Argument` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param durationMs 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun secondsArgument(durationMs: Long): String {
         return String.format(Locale.US, "%.3f", durationMs / 1000.0)
     }
 
+    /**
+     * 函数 `speedArgument`：封装 `speed Argument` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun speedArgument(speed: Float): String {
         val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed

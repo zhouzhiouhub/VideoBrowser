@@ -23,6 +23,13 @@ data class PlaybackProgress(
 class PlaybackHistoryRepository(
     private val preferenceStore: PreferenceStore
 ) {
+    /**
+     * 函数 `save`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param progress 参数类型为 `PlaybackProgress`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param privateBrowsing 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
+     */
     fun save(progress: PlaybackProgress, privateBrowsing: Boolean = false) {
         // 无痕播放不写入播放历史；普通模式下同一媒体只保留最新一条。
         if (privateBrowsing) {
@@ -36,6 +43,12 @@ class PlaybackHistoryRepository(
         save(records.take(RECORD_LIMIT))
     }
 
+    /**
+     * 函数 `records`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun records(): List<PlaybackProgress> {
         val rawValue = preferenceStore.getString(KEY_PLAYBACK_HISTORY, null) ?: return emptyList()
         return rawValue
@@ -44,10 +57,24 @@ class PlaybackHistoryRepository(
             .toList()
     }
 
+    /**
+     * 函数 `progressFor`：封装 `progress For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param mediaIdentity 参数类型为 `String`，表示函数执行 `mediaIdentity` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun progressFor(mediaIdentity: String): PlaybackProgress? {
         return records().firstOrNull { it.mediaIdentity == mediaIdentity }
     }
 
+    /**
+     * 函数 `resumePositionFor`：封装 `resume Position For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param mediaIdentity 参数类型为 `String`，表示函数执行 `mediaIdentity` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun resumePositionFor(mediaIdentity: String): Long? {
         // 接近片尾时不提示续播，避免用户下次打开已经看完的视频还跳到结尾。
         val progress = progressFor(mediaIdentity) ?: return null
@@ -62,10 +89,21 @@ class PlaybackHistoryRepository(
         return progress.positionMs
     }
 
+    /**
+     * 函数 `clear`：封装 `clear` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clear() {
         preferenceStore.remove(KEY_PLAYBACK_HISTORY)
     }
 
+    /**
+     * 函数 `save`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param records 参数类型为 `List<PlaybackProgress>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     */
     private fun save(records: List<PlaybackProgress>) {
         if (records.isEmpty()) {
             preferenceStore.remove(KEY_PLAYBACK_HISTORY)
@@ -77,6 +115,13 @@ class PlaybackHistoryRepository(
         )
     }
 
+    /**
+     * 函数 `parseProgress`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseProgress(line: String): PlaybackProgress? {
         val fields = splitEscaped(line)
         if (fields.size != FIELD_COUNT) {
@@ -92,6 +137,13 @@ class PlaybackHistoryRepository(
         )
     }
 
+    /**
+     * 函数 `encodeProgress`：封装 `encode Progress` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param progress 参数类型为 `PlaybackProgress`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun encodeProgress(progress: PlaybackProgress): String {
         return listOf(
             progress.mediaIdentity,
@@ -102,6 +154,13 @@ class PlaybackHistoryRepository(
         ).joinToString(separator = "\t", transform = ::escape)
     }
 
+    /**
+     * 函数 `normalize`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param progress 参数类型为 `PlaybackProgress`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalize(progress: PlaybackProgress): PlaybackProgress? {
         val mediaIdentity = progress.mediaIdentity.trim().takeIf { it.isNotEmpty() }
             ?: return null
@@ -114,6 +173,13 @@ class PlaybackHistoryRepository(
         )
     }
 
+    /**
+     * 函数 `normalizeSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeSpeed(speed: Float): Float {
         return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -122,6 +188,13 @@ class PlaybackHistoryRepository(
         }
     }
 
+    /**
+     * 函数 `splitEscaped`：封装 `split Escaped` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun splitEscaped(line: String): List<String> {
         val fields = mutableListOf<String>()
         val current = StringBuilder()
@@ -155,6 +228,13 @@ class PlaybackHistoryRepository(
         return fields
     }
 
+    /**
+     * 函数 `escape`：封装 `escape` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun escape(value: String): String {
         return buildString {
             value.forEach { char ->

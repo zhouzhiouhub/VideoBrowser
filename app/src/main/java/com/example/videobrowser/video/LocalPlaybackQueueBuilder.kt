@@ -23,6 +23,16 @@ object LocalPlaybackQueueBuilder {
         val isDirectory: Boolean
     )
 
+    /**
+     * 函数 `fromDocuments`：封装 `from Documents` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param currentUri 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param currentName 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param currentMimeType 参数类型为 `String?`，表示函数执行 `currentMimeType` 相关逻辑时需要读取或处理的输入。
+     * @param documents 参数类型为 `List<Document>`，表示函数执行 `documents` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun fromDocuments(
         currentUri: String,
         currentName: String? = null,
@@ -71,6 +81,13 @@ object LocalPlaybackQueueBuilder {
         )
     }
 
+    /**
+     * 函数 `isPlayableMediaDocument`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param document 参数类型为 `Document`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isPlayableMediaDocument(document: Document): Boolean {
         return MediaUrlUtils.isPlayableMediaUri(document.uri, document.mimeType) ||
             MediaUrlUtils.isPlayableMediaUri("file:///${document.name}", document.mimeType)

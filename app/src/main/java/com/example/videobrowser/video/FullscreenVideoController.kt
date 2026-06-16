@@ -39,6 +39,11 @@ class FullscreenVideoController(
     var isFullscreenUiActive = false
         private set
 
+    /**
+     * 函数 `attachOverlay`：封装 `attach Overlay` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun attachOverlay() {
         // 覆盖层加到主界面根布局上，只有网页视频进入全屏时才显示。
         gestureOverlay = FullscreenVideoGestureOverlay(activity).apply {
@@ -71,6 +76,12 @@ class FullscreenVideoController(
         )
     }
 
+    /**
+     * 函数 `handleFullscreenChanged`：处理 `handle Fullscreen Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param fullscreen 参数类型为 `Boolean`，表示函数执行 `fullscreen` 相关逻辑时需要读取或处理的输入。
+     */
     fun handleFullscreenChanged(fullscreen: Boolean) {
         val wasFullscreen = isFullscreenUiActive
         isFullscreenUiActive = fullscreen
@@ -89,6 +100,11 @@ class FullscreenVideoController(
         }
     }
 
+    /**
+     * 函数 `wakeControls`：封装 `wake Controls` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun wakeControls() {
         if (!isFullscreenUiActive) {
             return
@@ -105,12 +121,24 @@ class FullscreenVideoController(
         evaluateWebVideoCommand(WebViewVideoCommand.WakeControls)
     }
 
+    /**
+     * 函数 `updatePlaybackTimeline`：根据最新状态刷新 `update Playback Timeline` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param positionMs 参数类型为 `Double`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param durationMs 参数类型为 `Double`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     fun updatePlaybackTimeline(positionMs: Double, durationMs: Double) {
         val timeline = WebViewVideoTimeline.fromBridge(positionMs, durationMs)
         videoPositionMs = timeline.positionMs
         videoDurationMs = timeline.durationMs
     }
 
+    /**
+     * 函数 `enterFullscreen`：封装 `enter Fullscreen` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun enterFullscreen() {
         // 进入全屏时重置时间轴缓存，并把默认倍速同步到网页播放器。
         val defaultSpeed = defaultVideoSpeed()
@@ -126,6 +154,11 @@ class FullscreenVideoController(
         requestTimeline()
     }
 
+    /**
+     * 函数 `refreshFullscreenOverlay`：根据最新状态刷新 `refresh Fullscreen Overlay` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun refreshFullscreenOverlay() {
         Log.d(
             VIDEO_LOG_TAG,
@@ -137,6 +170,11 @@ class FullscreenVideoController(
         requestTimeline()
     }
 
+    /**
+     * 函数 `exitFullscreen`：封装 `exit Fullscreen` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun exitFullscreen() {
         Log.d(
             VIDEO_LOG_TAG,
@@ -153,6 +191,11 @@ class FullscreenVideoController(
         }
     }
 
+    /**
+     * 函数 `hideFullscreenOverlay`：控制 `hide Fullscreen Overlay` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun hideFullscreenOverlay() {
         val defaultSpeed = defaultVideoSpeed()
         Log.d(VIDEO_LOG_TAG, "event=web-hide-fullscreen-overlay defaultSpeed=$defaultSpeed")
@@ -163,12 +206,24 @@ class FullscreenVideoController(
         gestureOverlay.hideOverlay()
     }
 
+    /**
+     * 函数 `seekBy`：封装 `seek By` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param offsetMs 参数类型为 `Long`，表示函数执行 `offsetMs` 相关逻辑时需要读取或处理的输入。
+     */
     private fun seekBy(offsetMs: Long) {
         Log.d(VIDEO_LOG_TAG, "event=web-seek-by offsetMs=$offsetMs positionMs=$videoPositionMs")
         videoPositionMs = boundedVideoPosition(offsetMs)
         evaluateWebVideoCommand(WebViewVideoCommand.SeekBy(offsetMs))
     }
 
+    /**
+     * 函数 `seekTo`：封装 `seek To` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param positionMs 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     */
     private fun seekTo(positionMs: Long) {
         val duration = videoDurationMs
         Log.d(VIDEO_LOG_TAG, "event=web-seek-to requestedMs=$positionMs durationMs=$duration")
@@ -181,6 +236,12 @@ class FullscreenVideoController(
         evaluateWebVideoCommand(WebViewVideoCommand.SeekTo(boundedPositionMs))
     }
 
+    /**
+     * 函数 `currentSeekPosition`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun currentSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition {
         requestTimeline()
         return FullscreenVideoGestureOverlay.SeekPosition(
@@ -189,6 +250,13 @@ class FullscreenVideoController(
         )
     }
 
+    /**
+     * 函数 `boundedVideoPosition`：封装 `bounded Video Position` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param offsetMs 参数类型为 `Long`，表示函数执行 `offsetMs` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun boundedVideoPosition(offsetMs: Long): Long? {
         val current = videoPositionMs ?: return null
         val target = current + offsetMs
@@ -200,21 +268,43 @@ class FullscreenVideoController(
         }
     }
 
+    /**
+     * 函数 `requestTimeline`：处理 `request Timeline` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun requestTimeline() {
         evaluateWebVideoCommand(WebViewVideoCommand.RequestTimeline)
     }
 
+    /**
+     * 函数 `resetTimeline`：封装 `reset Timeline` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun resetTimeline() {
         videoPositionMs = null
         videoDurationMs = null
     }
 
+    /**
+     * 函数 `togglePlayback`：封装 `toggle Playback` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun togglePlayback(): Boolean? {
         Log.d(VIDEO_LOG_TAG, "event=web-toggle-playback")
         evaluateWebVideoCommand(WebViewVideoCommand.TogglePlayPause)
         return null
     }
 
+    /**
+     * 函数 `setPlaybackSpeed`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
+     */
     private fun setPlaybackSpeed(speed: Float) {
         val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
             speed
@@ -229,20 +319,43 @@ class FullscreenVideoController(
         evaluateWebVideoCommand(WebViewVideoCommand.SetPlaybackSpeed(normalizedSpeed))
     }
 
+    /**
+     * 函数 `startDirectionalLongPress`：启动或加载 `start Directional Long Press` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param direction 参数类型为 `Int`，表示函数执行 `direction` 相关逻辑时需要读取或处理的输入。
+     */
     private fun startDirectionalLongPress(direction: Int) {
         evaluateWebVideoCommand(WebViewVideoCommand.StartDirectionalPlayback(direction))
     }
 
+    /**
+     * 函数 `stopDirectionalLongPress`：封装 `stop Directional Long Press` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun stopDirectionalLongPress() {
         evaluateWebVideoCommand(WebViewVideoCommand.StopDirectionalPlayback)
         setPlaybackSpeed(playbackSpeed)
     }
 
+    /**
+     * 函数 `evaluateWebVideoCommand`：封装 `evaluate Web Video Command` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param command 参数类型为 `WebViewVideoCommand`，表示函数执行 `command` 相关逻辑时需要读取或处理的输入。
+     */
     private fun evaluateWebVideoCommand(command: WebViewVideoCommand) {
         // WebViewVideoCommand 负责生成安全的 JavaScript 字符串，避免在这里手写脚本片段。
         browserManager().evaluateJavascript(command.toJavascript())
     }
 
+    /**
+     * 函数 `defaultVideoSpeed`：封装 `default Video Speed` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun defaultVideoSpeed(): Float {
         return settingsManager()?.defaultVideoSpeed() ?: SettingsManager.DEFAULT_VIDEO_SPEED
     }

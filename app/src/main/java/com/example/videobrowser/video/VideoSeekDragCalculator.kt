@@ -13,6 +13,13 @@ object VideoSeekDragCalculator {
     private const val UNKNOWN_DURATION_SEEK_SPAN_MS = 60_000L
     private const val MAX_KNOWN_DURATION_SEEK_SPAN_MS = 10L * 60L * 1000L
 
+    /**
+     * 函数 `seekSpanForDuration`：封装 `seek Span For Duration` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param durationMs 参数类型为 `Long?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun seekSpanForDuration(durationMs: Long?): Long {
         return durationMs
             ?.takeIf { it > 0L }
@@ -20,6 +27,15 @@ object VideoSeekDragCalculator {
             ?: UNKNOWN_DURATION_SEEK_SPAN_MS
     }
 
+    /**
+     * 函数 `offsetForDrag`：封装 `offset For Drag` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param deltaX 参数类型为 `Float`，表示函数执行 `deltaX` 相关逻辑时需要读取或处理的输入。
+     * @param viewWidth 参数类型为 `Int`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param durationMs 参数类型为 `Long?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun offsetForDrag(deltaX: Float, viewWidth: Int, durationMs: Long?): Long {
         if (viewWidth <= 0) return 0L
 
@@ -27,6 +43,16 @@ object VideoSeekDragCalculator {
         return (ratio * seekSpanForDuration(durationMs)).roundToLong()
     }
 
+    /**
+     * 函数 `targetForDrag`：封装 `target For Drag` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param startPositionMs 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param durationMs 参数类型为 `Long?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @param deltaX 参数类型为 `Float`，表示函数执行 `deltaX` 相关逻辑时需要读取或处理的输入。
+     * @param viewWidth 参数类型为 `Int`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun targetForDrag(
         startPositionMs: Long,
         durationMs: Long?,
