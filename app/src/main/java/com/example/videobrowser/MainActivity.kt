@@ -29,8 +29,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Message
 import android.os.SystemClock
-import android.print.PrintAttributes
-import android.print.PrintManager
 import android.security.KeyChain
 import android.text.InputType
 import android.util.Log
@@ -88,6 +86,7 @@ import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.HttpNavigationSafetyPolicy
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveController
+import com.example.videobrowser.browser.PagePrintController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
@@ -200,6 +199,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var downloadController: DownloadController
     private lateinit var siteSecurityController: SiteSecurityController
     private lateinit var pageArchiveController: PageArchiveController
+    private lateinit var pagePrintController: PagePrintController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
@@ -486,6 +486,12 @@ class MainActivity : AppCompatActivity() {
             currentPageTitle = { currentSessionController().currentPageTitle },
             activeWebView = { currentBrowserManager().activeWebView },
             launchArchiveExport = pageArchiveExportLauncher::launch
+        )
+        pagePrintController = PagePrintController(
+            activity = this,
+            currentActionableUrl = ::currentActionableUrl,
+            currentPageTitle = { currentSessionController().currentPageTitle },
+            activeWebView = { currentBrowserManager().activeWebView }
         )
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
@@ -2447,36 +2453,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun printCurrentPage() {
-        val pageUrl = currentActionableUrl()
-        if (pageUrl == null) {
-            Toast.makeText(this, R.string.toast_print_page_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val jobName = currentPrintJobName(pageUrl)
-        runCatching {
-            val printManager = getSystemService(Context.PRINT_SERVICE) as PrintManager
-            val printAdapter = currentBrowserManager().activeWebView.createPrintDocumentAdapter(jobName)
-            printManager.print(jobName, printAdapter, PrintAttributes.Builder().build())
-        }.onFailure {
-            Toast.makeText(this, R.string.toast_print_page_unavailable, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * 函数 `currentPrintJobName`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentPrintJobName(pageUrl: String): String {
-        val title = currentSessionController().currentPageTitle
-            .replace(WHITESPACE_SEQUENCE, " ")
-            .trim()
-            .ifBlank { Uri.parse(pageUrl).host.orEmpty() }
-            .ifBlank { getString(R.string.app_name) }
-            .take(MAX_PRINT_JOB_TITLE_LENGTH)
-        return getString(R.string.print_job_name, title)
+        pagePrintController.printCurrentPage()
     }
 
     /**
@@ -3825,7 +3802,6 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS = 5_000L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
-        private const val MAX_PRINT_JOB_TITLE_LENGTH = 80
         private const val BACK_EXIT_CONFIRM_WINDOW_MS = 2000L
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private const val DESKTOP_USER_AGENT =
