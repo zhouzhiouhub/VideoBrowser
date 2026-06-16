@@ -55,6 +55,9 @@ class BrowserControlsControllerContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserControlsController.kt"
         ).readText()
+        val backNavigationController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserBackNavigationController.kt"
+        ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
@@ -63,13 +66,15 @@ class BrowserControlsControllerContractTest {
         assertTrue(controller.contains("backButton.setOnClickListener { onBack() }"))
         assertTrue(controller.contains("backButton.isEnabled = visibility.showBack"))
         assertTrue(mainActivity.contains("onBack = ::handleBrowserBack"))
-        assertTrue(mainActivity.contains("override fun handleOnBackPressed()"))
+        assertTrue(mainActivity.contains("browserBackNavigationController.setupBackNavigation()"))
+        assertTrue(mainActivity.contains("browserBackNavigationController.handleBrowserBack()"))
+        assertTrue(backNavigationController.contains("override fun handleOnBackPressed()"))
         assertTrue(mainActivity.contains("private fun handleBrowserBack()"))
-        assertTrue(mainActivity.contains("currentBrowserManager().goBack()"))
-        assertTrue(mainActivity.contains("private fun confirmExitOnSecondBack()"))
-        assertTrue(mainActivity.contains("BACK_EXIT_CONFIRM_WINDOW_MS"))
-        assertTrue(mainActivity.contains("SystemClock.elapsedRealtime()"))
-        assertTrue(mainActivity.contains("R.string.toast_press_back_again_to_exit"))
+        assertTrue(backNavigationController.contains("browserManager().goBack()"))
+        assertTrue(backNavigationController.contains("private fun confirmExitOnSecondBack()"))
+        assertTrue(backNavigationController.contains("BACK_EXIT_CONFIRM_WINDOW_MS"))
+        assertTrue(backNavigationController.contains("SystemClock.elapsedRealtime()"))
+        assertTrue(backNavigationController.contains("R.string.toast_press_back_again_to_exit"))
         assertTrue(strings.contains("toast_press_back_again_to_exit"))
     }
 

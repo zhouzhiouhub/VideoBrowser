@@ -21,7 +21,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Message
-import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -42,7 +41,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -52,6 +50,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
@@ -120,7 +119,6 @@ import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackHistorySource
 import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
-import com.example.videobrowser.video.WebViewVideoCommand
 import com.example.videobrowser.video.WebPlaybackHistoryRecorder
 
 /**
@@ -199,6 +197,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserNavigationController: BrowserNavigationController
     private lateinit var browserDisplayModeController: BrowserDisplayModeController
     private lateinit var browsingModeThemeController: BrowsingModeThemeController
+    private lateinit var browserBackNavigationController: BrowserBackNavigationController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
@@ -286,7 +285,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 当前页面运行状态
     private var privateBrowsingActive = false
-    private var lastBackExitPromptElapsedRealtime = 0L
     private val isHomePageVisible: Boolean
         get() = currentSessionController().isHomePageVisible
     private val isVideoFullscreenUiActive: Boolean
@@ -794,6 +792,21 @@ class MainActivity : AppCompatActivity() {
             isJsInjectionEnabled = ::isJsInjectionEnabled,
             isCurrentSiteJsInjectionDisabled = ::isCurrentSiteJsInjectionDisabled,
             injectPageFeatures = ::injectPageFeatures
+        )
+        browserBackNavigationController = BrowserBackNavigationController(
+            activity = this,
+            browserManager = ::currentBrowserManager,
+            currentChromeClient = {
+                if (areChromeClientsInitialized()) {
+                    currentChromeClient()
+                } else {
+                    null
+                }
+            },
+            handleFunctionCenterBack = ::handleFunctionCenterBack,
+            isElementPickerActive = { elementPickerController.isActive },
+            cancelElementPicker = elementPickerController::cancel,
+            updateNavigationButtons = ::updateNavigationButtons
         )
 
         // 系统栏/刘海安全区变化时，主界面留出边距；视频全屏时则交给全屏容器占满屏幕。
@@ -1569,19 +1582,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun setupBackNavigation() {
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : OnBackPressedCallback(true) {
-                /**
-                 * 函数 `handleOnBackPressed`：处理 `handle On Back Pressed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-                 *
-                 * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-                 */
-                override fun handleOnBackPressed() {
-                    handleBrowserBack()
-                }
-            }
-        )
+        browserBackNavigationController.setupBackNavigation()
     }
 
     /**
@@ -1590,54 +1591,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun handleBrowserBack() {
-        if (handleFunctionCenterBack()) {
-            resetBackExitConfirmation()
-            return
-        }
-        if (elementPickerController.isActive) {
-            elementPickerController.cancel()
-            resetBackExitConfirmation()
-            return
-        }
-        if (areChromeClientsInitialized() && currentChromeClient().isShowingCustomView()) {
-            currentChromeClient().hideCustomView()
-            resetBackExitConfirmation()
-            return
-        }
-        if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
-            currentBrowserManager().evaluateJavascript(
-                WebViewVideoCommand.ExitFullscreen.toJavascript()
-            )
-            currentChromeClient().exitPageFullscreen()
-            resetBackExitConfirmation()
-            return
-        }
-        if (currentBrowserManager().goBack()) {
-            updateNavigationButtons()
-            resetBackExitConfirmation()
-            return
-        }
-
-        confirmExitOnSecondBack()
-    }
-
-    /**
-     * 函数 `confirmExitOnSecondBack`：封装 `confirm Exit On Second Back` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun confirmExitOnSecondBack() {
-        val now = SystemClock.elapsedRealtime()
-        if (lastBackExitPromptElapsedRealtime != 0L &&
-            now - lastBackExitPromptElapsedRealtime <= BACK_EXIT_CONFIRM_WINDOW_MS
-        ) {
-            resetBackExitConfirmation()
-            finish()
-            return
-        }
-
-        lastBackExitPromptElapsedRealtime = now
-        Toast.makeText(this, R.string.toast_press_back_again_to_exit, Toast.LENGTH_SHORT).show()
+        browserBackNavigationController.handleBrowserBack()
     }
 
     /**
@@ -1646,7 +1600,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun resetBackExitConfirmation() {
-        lastBackExitPromptElapsedRealtime = 0L
+        if (::browserBackNavigationController.isInitialized) {
+            browserBackNavigationController.resetBackExitConfirmation()
+        }
     }
 
     // endregion
@@ -2496,6 +2452,5 @@ class MainActivity : AppCompatActivity() {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
-        private const val BACK_EXIT_CONFIRM_WINDOW_MS = 2000L
     }
 }
