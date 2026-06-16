@@ -23,6 +23,13 @@ data class SyntheticResponseSpec(
         require(reasonPhrase.isNotBlank()) { "Synthetic response reason phrase must not be blank." }
     }
 
+    /**
+     * 函数 `equals`：封装 `equals` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param other 参数类型为 `Any?`，表示函数执行 `other` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is SyntheticResponseSpec) return false
@@ -35,6 +42,12 @@ data class SyntheticResponseSpec(
             body.contentEquals(other.body)
     }
 
+    /**
+     * 函数 `hashCode`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     override fun hashCode(): Int {
         var result = name.hashCode()
         result = 31 * result + mimeType.hashCode()

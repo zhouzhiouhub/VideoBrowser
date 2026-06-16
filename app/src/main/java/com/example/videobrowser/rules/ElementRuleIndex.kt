@@ -17,6 +17,13 @@ class ElementRuleIndex<T : RuleCapability.PageMutation> private constructor(
     private val capabilitiesByPageHostSuffix: Map<String, List<IndexedElementCapability<T>>>,
     private val fallbackCapabilities: List<IndexedElementCapability<T>>
 ) {
+    /**
+     * 函数 `candidatesFor`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun candidatesFor(pageHost: String?): List<T> {
         val scopedCandidates = hostSuffixes(pageHost)
             .flatMap { suffix ->
@@ -29,6 +36,13 @@ class ElementRuleIndex<T : RuleCapability.PageMutation> private constructor(
     }
 
     companion object {
+        /**
+         * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param capabilities 参数类型为 `List<T>`，表示函数执行 `capabilities` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun <T : RuleCapability.PageMutation> from(
             capabilities: List<T>
         ): ElementRuleIndex<T> {
@@ -67,6 +81,13 @@ class ElementRuleIndex<T : RuleCapability.PageMutation> private constructor(
             )
         }
 
+        /**
+         * 函数 `hostSuffixes`：封装 `host Suffixes` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun hostSuffixes(host: String?): List<String> {
             val normalizedHost = SiteHost.normalize(host) ?: return emptyList()
             val labels = normalizedHost.split('.').filter { label -> label.isNotEmpty() }

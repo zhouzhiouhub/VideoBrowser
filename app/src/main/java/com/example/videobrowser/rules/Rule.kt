@@ -40,6 +40,15 @@ data class Rule(
     companion object {
         const val SOURCE_BUILT_IN = "built-in"
 
+        /**
+         * 函数 `blockUrlContains`：封装 `block Url Contains` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param pattern 参数类型为 `String`，表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
+         * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun blockUrlContains(
             pattern: String,
             id: String = "block:url:$pattern",
@@ -54,6 +63,15 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `blockDomainContains`：封装 `block Domain Contains` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
+         * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun blockDomainContains(
             domain: String,
             id: String = "block:domain:$domain",
@@ -68,6 +86,15 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `allowUrlContains`：封装 `allow Url Contains` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param pattern 参数类型为 `String`，表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
+         * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun allowUrlContains(
             pattern: String,
             id: String = "allow:url:$pattern",
@@ -82,6 +109,15 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `allowDomainContains`：封装 `allow Domain Contains` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
+         * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun allowDomainContains(
             domain: String,
             id: String = "allow:domain:$domain",
@@ -96,6 +132,15 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `fromRequestRuleText`：封装 `from Request Rule Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @param id 参数类型为 `String?`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun fromRequestRuleText(
             text: String,
             id: String? = null,
@@ -147,6 +192,21 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `requestRule`：处理 `request Rule` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param pattern 参数类型为 `String`，表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
+         * @param type 参数类型为 `RuleType`，表示函数执行 `type` 相关逻辑时需要读取或处理的输入。
+         * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+         * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+         * @param domainScope 参数类型为 `DomainScope`，表示函数执行 `domainScope` 相关逻辑时需要读取或处理的输入。
+         * @param thirdParty 参数类型为 `Boolean?`，表示函数执行 `thirdParty` 相关逻辑时需要读取或处理的输入。
+         * @param resourceTypes 参数类型为 `Set<ResourceType>`，表示函数执行 `resourceTypes` 相关逻辑时需要读取或处理的输入。
+         * @param redirectResourceName 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun requestRule(
             id: String,
             pattern: String,
@@ -176,6 +236,13 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `requestRuleTypeFor`：处理 `request Rule Type For` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun requestRuleTypeFor(text: String): RuleType {
             parsePureDomainRule(text)?.let {
                 return RuleType.DOMAIN_CONTAINS
@@ -187,6 +254,13 @@ data class Rule(
             }
         }
 
+        /**
+         * 函数 `parsePureDomainRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parsePureDomainRule(text: String): String? {
             if (!text.startsWith("||") || !text.endsWith("^")) {
                 return null
@@ -207,12 +281,26 @@ data class Rule(
             return domain.takeIf { hasOnlyDomainCharacters }
         }
 
+        /**
+         * 函数 `hasUnsupportedRequestSyntax`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun hasUnsupportedRequestSyntax(text: String): Boolean {
             return text.contains("##") ||
                 text.contains("#@#") ||
                 text.contains("#%#")
         }
 
+        /**
+         * 函数 `hasPatternSyntax`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun hasPatternSyntax(text: String): Boolean {
             return text.contains('*') ||
                 text.contains('^') ||
@@ -220,6 +308,13 @@ data class Rule(
                 text.endsWith("|")
         }
 
+        /**
+         * 函数 `splitRequestOptions`：封装 `split Request Options` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun splitRequestOptions(text: String): Pair<String, String?> {
             val optionsIndex = text.indexOf('$')
             if (optionsIndex < 0) {
@@ -229,6 +324,13 @@ data class Rule(
                 text.substring(optionsIndex + 1).trim().takeIf { it.isNotEmpty() }
         }
 
+        /**
+         * 函数 `parseRequestOptions`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String?`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parseRequestOptions(text: String?): RequestRuleOptions? {
             if (text.isNullOrBlank()) {
                 return RequestRuleOptions()
@@ -274,6 +376,13 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `parseRedirectResourceName`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parseRedirectResourceName(text: String): String? {
             val normalized = text.trim().lowercase(Locale.US)
             return normalized.takeIf { resourceName ->
@@ -281,6 +390,13 @@ data class Rule(
             }
         }
 
+        /**
+         * 函数 `parseOptionDomainScope`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parseOptionDomainScope(text: String): DomainScope? {
             val included = mutableSetOf<String>()
             val excluded = mutableSetOf<String>()
@@ -309,11 +425,25 @@ data class Rule(
             )
         }
 
+        /**
+         * 函数 `isValidDomainPattern`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun isValidDomainPattern(domain: String): Boolean {
             return domain.isNotBlank() &&
                 domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
         }
 
+        /**
+         * 函数 `buildUrlPatternRegex`：创建 `build Url Pattern Regex` 需要的对象、视图或配置，并返回给后续流程使用。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param pattern 参数类型为 `String`，表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun buildUrlPatternRegex(pattern: String): Regex? {
             val source = pattern.trim().lowercase(Locale.US)
             if (source.isEmpty()) {

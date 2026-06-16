@@ -14,10 +14,24 @@ import com.example.videobrowser.rules.RuleEngine
  * 内置请求级规则源。P6 后命中判断统一交给 RuleEngine。
  */
 object BuiltInAdBlockRules {
+    /**
+     * 函数 `requestRules`：处理 `request Rules` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun requestRules(): List<Rule> {
         return REQUEST_RULES
     }
 
+    /**
+     * 函数 `matches`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matches(url: String, host: String?): Boolean {
         return RULE_ENGINE.matchRequest(url = url, host = host).shouldBlock
     }

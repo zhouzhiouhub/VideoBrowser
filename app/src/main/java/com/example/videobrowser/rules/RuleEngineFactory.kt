@@ -13,6 +13,15 @@ import com.example.videobrowser.adblock.BuiltInAdBlockRules
 import java.io.File
 
 object RuleEngineFactory {
+    /**
+     * 函数 `create`：创建 `create` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param assets 参数类型为 `AssetManager`，表示函数执行 `assets` 相关逻辑时需要读取或处理的输入。
+     * @param filesDir 参数类型为 `File`，表示函数执行 `filesDir` 相关逻辑时需要读取或处理的输入。
+     * @param logTag 参数类型为 `String`，表示函数执行 `logTag` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun create(
         assets: AssetManager,
         filesDir: File,
@@ -45,15 +54,36 @@ object RuleEngineFactory {
         )
     }
 
+    /**
+     * 函数 `clearRuleCache`：封装 `clear Rule Cache` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param filesDir 参数类型为 `File`，表示函数执行 `filesDir` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun clearRuleCache(filesDir: File): Boolean {
         val cacheDirectory = ruleCacheDirectory(filesDir)
         return !cacheDirectory.exists() || cacheDirectory.deleteRecursively()
     }
 
+    /**
+     * 函数 `ruleCacheDirectory`：封装 `rule Cache Directory` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param filesDir 参数类型为 `File`，表示函数执行 `filesDir` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun ruleCacheDirectory(filesDir: File): File {
         return File(filesDir, RULE_CACHE_DIR)
     }
 
+    /**
+     * 函数 `logSkippedRules`：封装 `log Skipped Rules` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param skippedRules 参数类型为 `List<SkippedRule>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @param logTag 参数类型为 `String`，表示函数执行 `logTag` 相关逻辑时需要读取或处理的输入。
+     */
     private fun logSkippedRules(skippedRules: List<SkippedRule>, logTag: String) {
         skippedRules.forEach { skippedRule ->
             Log.w(

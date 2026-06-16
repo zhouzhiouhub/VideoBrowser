@@ -44,10 +44,24 @@ class RuleEngine(
         .mapIndexed { index, capability -> capability.rule to index }
         .toMap()
 
+    /**
+     * 函数 `matchRequest`：封装 `match Request` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matchRequest(request: BrowserRequest): RuleMatchResult {
         return matchRequest(RequestContext.from(request))
     }
 
+    /**
+     * 函数 `matchRequest`：封装 `match Request` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param context 参数类型为 `RequestContext`，表示 Android 上下文，用来读取资源、启动系统服务或访问应用环境。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matchRequest(context: RequestContext): RuleMatchResult {
         return matchRequest(
             url = context.requestUrl,
@@ -57,6 +71,16 @@ class RuleEngine(
         )
     }
 
+    /**
+     * 函数 `matchRequest`：封装 `match Request` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matchRequest(
         url: String,
         host: String? = null,
@@ -87,6 +111,13 @@ class RuleEngine(
         return RuleMatchResult.NoMatch
     }
 
+    /**
+     * 函数 `matchRequestCandidates`：封装 `match Request Candidates` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param context 参数类型为 `RequestContext`，表示 Android 上下文，用来读取资源、启动系统服务或访问应用环境。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matchRequestCandidates(context: RequestContext): List<RuleMatchResult> {
         return matchRequestCandidates(
             url = context.requestUrl,
@@ -96,6 +127,16 @@ class RuleEngine(
         )
     }
 
+    /**
+     * 函数 `matchRequestCandidates`：封装 `match Request Candidates` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matchRequestCandidates(
         url: String,
         host: String? = null,
@@ -117,6 +158,13 @@ class RuleEngine(
             .filter { result -> result.matched }
     }
 
+    /**
+     * 函数 `matchRequestSummary`：封装 `match Request Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param context 参数类型为 `RequestContext`，表示 Android 上下文，用来读取资源、启动系统服务或访问应用环境。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matchRequestSummary(context: RequestContext): RequestRuleMatchSummary {
         val candidates = matchRequestCandidates(context)
         return RequestRuleMatchSummary(
@@ -128,18 +176,44 @@ class RuleEngine(
         )
     }
 
+    /**
+     * 函数 `rules`：封装 `rules` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun rules(): List<Rule> {
         return compiledRules.requestRules()
     }
 
+    /**
+     * 函数 `elementRules`：封装 `element Rules` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun elementRules(): List<ElementRule> {
         return compiledRules.elementRules()
     }
 
+    /**
+     * 函数 `skippedRules`：封装 `skipped Rules` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun skippedRules(): List<SkippedRule> {
         return compiledRules.skippedRules
     }
 
+    /**
+     * 函数 `cleanNavigationUrl`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun cleanNavigationUrl(url: String, pageUrl: String? = null): String {
         // 导航清理只处理 http/https URL，其他 scheme 不应该被当成普通网页参数改写。
         val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return url
@@ -180,6 +254,13 @@ class RuleEngine(
         return renderUriWithQuery(uri, keptQueryParts.joinToString("&").takeIf { it.isNotEmpty() })
     }
 
+    /**
+     * 函数 `cssSelectorsFor`：封装 `css Selectors For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun cssSelectorsFor(pageUrl: String?): List<String> {
         // 先找例外规则，再从隐藏规则里排除例外 selector，这就是常见过滤规则里的“取消隐藏”语义。
         val pageHost = SiteHost.fromUrl(pageUrl)
@@ -198,6 +279,13 @@ class RuleEngine(
             .distinct()
     }
 
+    /**
+     * 函数 `domSelectorsFor`：封装 `dom Selectors For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun domSelectorsFor(pageUrl: String?): List<String> {
         val pageHost = SiteHost.fromUrl(pageUrl)
         return compiledRules.domRemoveCandidatesFor(pageHost)
@@ -208,6 +296,13 @@ class RuleEngine(
             .distinct()
     }
 
+    /**
+     * 函数 `scriptletWindowOpenBlockedKeywordsFor`：封装 `scriptlet Window Open Blocked Keywords For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun scriptletWindowOpenBlockedKeywordsFor(pageUrl: String?): List<String> {
         return scriptletArgumentsFor(
             pageUrl = pageUrl,
@@ -215,6 +310,13 @@ class RuleEngine(
         )
     }
 
+    /**
+     * 函数 `scriptletFetchBlockedKeywordsFor`：封装 `scriptlet Fetch Blocked Keywords For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun scriptletFetchBlockedKeywordsFor(pageUrl: String?): List<String> {
         return scriptletArgumentsFor(
             pageUrl = pageUrl,
@@ -222,18 +324,39 @@ class RuleEngine(
         )
     }
 
+    /**
+     * 函数 `isScriptletSkipButtonsEnabledFor`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun isScriptletSkipButtonsEnabledFor(pageUrl: String?): Boolean {
         return scriptletHooksFor(pageUrl).any { capability ->
             capability.hookName == "click-skip-buttons"
         }
     }
 
+    /**
+     * 函数 `isScriptletVideoControlsEnabledFor`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun isScriptletVideoControlsEnabledFor(pageUrl: String?): Boolean {
         return scriptletHooksFor(pageUrl).any { capability ->
             capability.hookName == "enable-video-controls"
         }
     }
 
+    /**
+     * 函数 `urlContainsBlockPatternsFor`：封装 `url Contains Block Patterns For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun urlContainsBlockPatternsFor(pageUrl: String?): List<String> {
         val pageHost = SiteHost.fromUrl(pageUrl)
         return requestCapabilities
@@ -249,12 +372,27 @@ class RuleEngine(
             .distinct()
     }
 
+    /**
+     * 函数 `decodedQueryName`：封装 `decoded Query Name` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param rawName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun decodedQueryName(rawName: String): String {
         return runCatching {
             URLDecoder.decode(rawName, StandardCharsets.UTF_8.name())
         }.getOrDefault(rawName)
     }
 
+    /**
+     * 函数 `renderUriWithQuery`：封装 `render Uri With Query` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param uri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param rawQuery 参数类型为 `String?`，表示函数执行 `rawQuery` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun renderUriWithQuery(uri: URI, rawQuery: String?): String {
         return buildString {
             append(uri.scheme)
@@ -275,6 +413,17 @@ class RuleEngine(
         }
     }
 
+    /**
+     * 函数 `findFirstMatchingRule`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun findFirstMatchingRule(
         action: RuleAction,
         url: String,
@@ -296,6 +445,17 @@ class RuleEngine(
         ).firstOrNull()?.rule
     }
 
+    /**
+     * 函数 `matchingCapabilitiesFor`：封装 `matching Capabilities For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun matchingCapabilitiesFor(
         action: RuleAction,
         url: String,
@@ -319,6 +479,14 @@ class RuleEngine(
             }
     }
 
+    /**
+     * 函数 `scriptletArgumentsFor`：封装 `scriptlet Arguments For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param hookName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun scriptletArgumentsFor(pageUrl: String?, hookName: String): List<String> {
         return scriptletHooksFor(pageUrl)
             .filter { capability -> capability.hookName == hookName }
@@ -326,6 +494,13 @@ class RuleEngine(
             .distinct()
     }
 
+    /**
+     * 函数 `scriptletHooksFor`：封装 `scriptlet Hooks For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun scriptletHooksFor(pageUrl: String?): List<RuleCapability.SafeHook> {
         val pageHost = SiteHost.fromUrl(pageUrl)
         return compiledRules.safeHookCapabilities.filter { capability ->

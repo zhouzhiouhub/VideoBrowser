@@ -38,6 +38,13 @@ class JsInjector(
     }
     private val siteScriptCache = mutableMapOf<String, String>()
 
+    /**
+     * 函数 `inject`：封装 `inject` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param config 参数类型为 `PageFeatureConfig`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
+     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     */
     fun inject(config: PageFeatureConfig, pageUrl: String? = null) {
         if (!config.jsInjectionEnabled) {
             return
@@ -76,10 +83,24 @@ class JsInjector(
         evaluateJavascript(buildInjectionScript(commonScriptContent, effectiveConfig, siteScripts))
     }
 
+    /**
+     * 函数 `buildInjectionScript`：创建 `build Injection Script` 需要的对象、视图或配置，并返回给后续流程使用。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param config 参数类型为 `PageFeatureConfig`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     internal fun buildInjectionScript(config: PageFeatureConfig): String {
         return buildInjectionScript(commonScript, config, emptyList())
     }
 
+    /**
+     * 函数 `loadSiteScript`：启动或加载 `load Site Script` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun loadSiteScript(path: String): String {
         return siteScriptCache.getOrPut(path) {
             scriptLoader.loadScript(path)
@@ -90,6 +111,15 @@ class JsInjector(
         const val COMMON_SCRIPT_INSTALLED_FLAG = "__VIDEOBROWSER_COMMON_SCRIPT_INSTALLED__"
         const val SITE_SCRIPT_FLAGS = "__VIDEOBROWSER_SITE_SCRIPT_FLAGS__"
 
+        /**
+         * 函数 `buildInjectionScript`：创建 `build Injection Script` 需要的对象、视图或配置，并返回给后续流程使用。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param commonScript 参数类型为 `String`，表示函数执行 `commonScript` 相关逻辑时需要读取或处理的输入。
+         * @param config 参数类型为 `PageFeatureConfig`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
+         * @param siteScripts 参数类型为 `List<SiteScript>`，表示函数执行 `siteScripts` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun buildInjectionScript(
             commonScript: String,
             config: PageFeatureConfig,
@@ -142,6 +172,12 @@ class JsInjector(
             }
         }
 
+        /**
+         * 函数 `toJsonLiteral`：封装 `to Json Literal` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun PageFeatureConfig.toJsonLiteral(): String {
             return buildString {
                 append("{\"cleanupEnabled\":")
@@ -168,6 +204,12 @@ class JsInjector(
             }
         }
 
+        /**
+         * 函数 `buildApplyCall`：创建 `build Apply Call` 需要的对象、视图或配置，并返回给后续流程使用。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun SiteScript.buildApplyCall(): String {
             val adapterIdLiteral = adapterId.toJsonStringLiteral()
             return buildString {
@@ -184,6 +226,12 @@ class JsInjector(
             }
         }
 
+        /**
+         * 函数 `toJsonStringLiteral`：封装 `to Json String Literal` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun String.toJsonStringLiteral(): String {
             return buildString {
                 append('"')
@@ -208,6 +256,12 @@ class JsInjector(
             }
         }
 
+        /**
+         * 函数 `List`：封装 `List` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun List<String>.toJsonArrayLiteral(): String {
             return joinToString(prefix = "[", postfix = "]") { value ->
                 value.toJsonStringLiteral()

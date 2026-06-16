@@ -32,6 +32,15 @@ data class AdBlockDecision(
             reason == AdBlockDecisionReason.SITE_AD_BLOCK_DISABLED
 
     companion object {
+        /**
+         * 函数 `allow`：封装 `allow` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param reason 参数类型为 `AdBlockDecisionReason`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+         * @param ruleCandidates 参数类型为 `List<RuleMatchResult>`，表示函数执行 `ruleCandidates` 相关逻辑时需要读取或处理的输入。
+         * @param overrideReason 参数类型为 `AdBlockOverrideReason?`，表示函数执行 `overrideReason` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun allow(
             reason: AdBlockDecisionReason,
             ruleCandidates: List<RuleMatchResult> = emptyList(),
@@ -46,6 +55,15 @@ data class AdBlockDecision(
             )
         }
 
+        /**
+         * 函数 `allowByRule`：封装 `allow By Rule` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param result 参数类型为 `RuleMatchResult`，表示函数执行 `result` 相关逻辑时需要读取或处理的输入。
+         * @param ruleCandidates 参数类型为 `List<RuleMatchResult>`，表示函数执行 `ruleCandidates` 相关逻辑时需要读取或处理的输入。
+         * @param overrideReason 参数类型为 `AdBlockOverrideReason?`，表示函数执行 `overrideReason` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun allowByRule(
             result: RuleMatchResult,
             ruleCandidates: List<RuleMatchResult> = listOf(result),
@@ -60,6 +78,16 @@ data class AdBlockDecision(
             )
         }
 
+        /**
+         * 函数 `blockByRule`：封装 `block By Rule` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param result 参数类型为 `RuleMatchResult`，表示函数执行 `result` 相关逻辑时需要读取或处理的输入。
+         * @param reason 参数类型为 `AdBlockDecisionReason`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+         * @param ruleCandidates 参数类型为 `List<RuleMatchResult>`，表示函数执行 `ruleCandidates` 相关逻辑时需要读取或处理的输入。
+         * @param overrideReason 参数类型为 `AdBlockOverrideReason?`，表示函数执行 `overrideReason` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun blockByRule(
             result: RuleMatchResult,
             reason: AdBlockDecisionReason = AdBlockDecisionReason.RULE_BLOCKED,

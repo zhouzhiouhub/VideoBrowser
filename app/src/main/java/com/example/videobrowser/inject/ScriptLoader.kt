@@ -18,6 +18,13 @@ class ScriptLoader(
 ) {
     constructor(assets: AssetManager) : this({ path -> assets.open(path) })
 
+    /**
+     * 函数 `loadScript`：启动或加载 `load Script` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun loadScript(path: String): String {
         val normalizedPath = validateScriptPath(path)
         return openAsset(normalizedPath).bufferedReader(Charsets.UTF_8).use { reader ->
@@ -25,10 +32,23 @@ class ScriptLoader(
         }
     }
 
+    /**
+     * 函数 `loadCommonScript`：启动或加载 `load Common Script` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun loadCommonScript(): String {
         return loadScript(COMMON_SCRIPT_ASSET)
     }
 
+    /**
+     * 函数 `validateScriptPath`：封装 `validate Script Path` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param path 参数类型为 `String`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun validateScriptPath(path: String): String {
         val normalizedPath = path.trim()
         require(normalizedPath.isNotBlank()) {

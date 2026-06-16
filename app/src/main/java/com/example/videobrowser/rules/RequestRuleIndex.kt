@@ -20,6 +20,15 @@ class RequestRuleIndex private constructor(
     private val urlContainsCapabilitiesByAction: Map<RuleAction, List<IndexedRequestCapability>>,
     private val fallbackCapabilitiesByAction: Map<RuleAction, List<IndexedRequestCapability>>
 ) {
+    /**
+     * 函数 `candidatesFor`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun candidatesFor(
         action: RuleAction,
         host: String?,
@@ -42,6 +51,14 @@ class RequestRuleIndex private constructor(
             .map { indexed -> indexed.capability }
     }
 
+    /**
+     * 函数 `urlContainsCandidatesFor`：封装 `url Contains Candidates For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun urlContainsCandidatesFor(
         action: RuleAction,
         url: String?
@@ -64,6 +81,13 @@ class RequestRuleIndex private constructor(
             fallbackCapabilitiesByAction = emptyMap()
         )
 
+        /**
+         * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param capabilities 参数类型为 `List<RuleCapability.Request>`，表示函数执行 `capabilities` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun from(capabilities: List<RuleCapability.Request>): RequestRuleIndex {
             if (capabilities.isEmpty()) {
                 return Empty
@@ -127,6 +151,13 @@ class RequestRuleIndex private constructor(
             )
         }
 
+        /**
+         * 函数 `hostSuffixes`：封装 `host Suffixes` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun hostSuffixes(host: String?): List<String> {
             val normalizedHost = SiteHost.normalize(host) ?: return emptyList()
             val labels = normalizedHost.split('.').filter { label -> label.isNotEmpty() }
@@ -135,6 +166,13 @@ class RequestRuleIndex private constructor(
             }
         }
 
+        /**
+         * 函数 `stableKeywordFor`：封装 `stable Keyword For` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param pattern 参数类型为 `String`，表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun stableKeywordFor(pattern: String): String? {
             val longestToken = alphanumericTokens(pattern)
                 .maxByOrNull { keyword -> keyword.length }
@@ -142,6 +180,13 @@ class RequestRuleIndex private constructor(
             return longestToken.take(INDEX_KEY_LENGTH)
         }
 
+        /**
+         * 函数 `alphanumericTokens`：封装 `alphanumeric Tokens` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun alphanumericTokens(text: String): List<String> {
             val tokens = mutableListOf<String>()
             val builder = StringBuilder()
@@ -156,6 +201,13 @@ class RequestRuleIndex private constructor(
             return tokens.distinct()
         }
 
+        /**
+         * 函数 `indexKeysForUrl`：封装 `index Keys For Url` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun indexKeysForUrl(url: String): List<String> {
             val normalizedUrl = url.trim().lowercase(Locale.US)
             if (normalizedUrl.length < INDEX_KEY_LENGTH) {
@@ -166,6 +218,13 @@ class RequestRuleIndex private constructor(
                 .distinct()
         }
 
+        /**
+         * 函数 `flushKeyword`：封装 `flush Keyword` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param builder 参数类型为 `StringBuilder`，表示函数执行 `builder` 相关逻辑时需要读取或处理的输入。
+         * @param tokens 参数类型为 `MutableList<String>`，表示函数执行 `tokens` 相关逻辑时需要读取或处理的输入。
+         */
         private fun flushKeyword(
             builder: StringBuilder,
             tokens: MutableList<String>

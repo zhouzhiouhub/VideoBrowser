@@ -23,6 +23,13 @@ class AdBlockManager(
     private val logger: AdBlockLogger? = null,
     private val ruleEngine: RuleEngine = RuleEngine(BuiltInAdBlockRules.requestRules())
 ) {
+    /**
+     * 函数 `evaluate`：封装 `evaluate` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun evaluate(request: BrowserRequest): AdBlockDecision {
         // RequestContext 把 URL、页面 URL、host、资源类型等信息整理好，规则系统只依赖这个统一模型。
         val context = RequestContext.from(
@@ -42,10 +49,25 @@ class AdBlockManager(
         return decision
     }
 
+    /**
+     * 函数 `shouldBlock`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun shouldBlock(request: BrowserRequest): Boolean {
         return evaluate(request).shouldBlock
     }
 
+    /**
+     * 函数 `logDecision`：封装 `log Decision` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
+     * @param context 参数类型为 `RequestContext`，表示 Android 上下文，用来读取资源、启动系统服务或访问应用环境。
+     * @param decision 参数类型为 `AdBlockDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
+     */
     private fun logDecision(
         request: BrowserRequest,
         context: RequestContext,

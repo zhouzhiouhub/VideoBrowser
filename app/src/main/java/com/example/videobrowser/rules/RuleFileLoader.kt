@@ -28,6 +28,12 @@ class RuleFileLoader(
     private val adGuardRuleParser = AdGuardRuleParser()
     private val cacheSourceLabel: String? by lazy { readCacheSourceLabel() }
 
+    /**
+     * 函数 `loadRequestRules`：启动或加载 `load Request Rules` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun loadRequestRules(): RuleLoadResult<Rule> {
         return loadRules(
             assetPath = REQUEST_RULES_ASSET,
@@ -36,6 +42,12 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `loadCssRules`：启动或加载 `load Css Rules` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun loadCssRules(): RuleLoadResult<ElementRule> {
         return loadRules(
             assetPath = CSS_RULES_ASSET,
@@ -46,6 +58,12 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `loadDomRules`：启动或加载 `load Dom Rules` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun loadDomRules(): RuleLoadResult<ElementRule> {
         return loadRules(
             assetPath = DOM_RULES_ASSET,
@@ -56,6 +74,12 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `loadScriptletRules`：启动或加载 `load Scriptlet Rules` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun loadScriptletRules(): RuleLoadResult<ScriptletRule> {
         return loadRules(
             assetPath = SCRIPTLET_RULES_ASSET,
@@ -66,6 +90,12 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `loadRemoveParamRules`：启动或加载 `load Remove Param Rules` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun loadRemoveParamRules(): RuleLoadResult<RemoveParamRule> {
         return loadRules(
             assetPath = REMOVE_PARAM_RULES_ASSET,
@@ -76,6 +106,15 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `loadRules`：启动或加载 `load Rules` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param assetPath 参数类型为 `String`，表示函数执行 `assetPath` 相关逻辑时需要读取或处理的输入。
+     * @param cacheFileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param parser 参数类型为 `(String, String, Int) -> ParsedRule<T>`，表示函数执行 `parser` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun <T> loadRules(
         assetPath: String,
         cacheFileName: String,
@@ -104,6 +143,16 @@ class RuleFileLoader(
         return RuleLoadResult(rules = rules, skippedRules = skippedRules)
     }
 
+    /**
+     * 函数 `readRules`：封装 `read Rules` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param streamProvider 参数类型为 `() -> InputStream?`，表示函数执行 `streamProvider` 相关逻辑时需要读取或处理的输入。
+     * @param parser 参数类型为 `(String, String, Int) -> ParsedRule<T>`，表示函数执行 `parser` 相关逻辑时需要读取或处理的输入。
+     * @param rules 参数类型为 `MutableList<T>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @param skippedRules 参数类型为 `MutableList<SkippedRule>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     */
     private fun <T> readRules(
         source: String,
         streamProvider: () -> InputStream?,
@@ -133,6 +182,13 @@ class RuleFileLoader(
         }
     }
 
+    /**
+     * 函数 `openCacheFile`：启动或加载 `open Cache File` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun openCacheFile(fileName: String): InputStream? {
         return cacheDirectory
             ?.resolve(fileName)
@@ -140,6 +196,13 @@ class RuleFileLoader(
             ?.inputStream()
     }
 
+    /**
+     * 函数 `cacheSource`：封装 `cache Source` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun cacheSource(fileName: String): String {
         val label = cacheSourceLabel
         return if (label.isNullOrBlank()) {
@@ -149,6 +212,12 @@ class RuleFileLoader(
         }
     }
 
+    /**
+     * 函数 `readCacheSourceLabel`：封装 `read Cache Source Label` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun readCacheSourceLabel(): String? {
         val metadataFile = cacheDirectory
             ?.resolve(RULE_CACHE_METADATA_FILE)
@@ -163,6 +232,15 @@ class RuleFileLoader(
         }.getOrNull()
     }
 
+    /**
+     * 函数 `parseRequestRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseRequestRule(line: String, source: String, lineNumber: Int): ParsedRule<Rule> {
         if (shouldIgnoreRuleLine(line)) {
             return ParsedRule.Ignored
@@ -179,6 +257,15 @@ class RuleFileLoader(
         }
     }
 
+    /**
+     * 函数 `parseCssRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseCssRule(line: String, source: String, lineNumber: Int): ParsedRule<ElementRule> {
         if (shouldIgnoreRuleLine(line)) {
             return ParsedRule.Ignored
@@ -220,6 +307,15 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `parseScriptletRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseScriptletRule(
         line: String,
         source: String,
@@ -234,6 +330,15 @@ class RuleFileLoader(
         }
     }
 
+    /**
+     * 函数 `parseRemoveParamRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseRemoveParamRule(
         line: String,
         source: String,
@@ -250,6 +355,15 @@ class RuleFileLoader(
         }
     }
 
+    /**
+     * 函数 `parseDomRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseDomRule(line: String, source: String, lineNumber: Int): ParsedRule<ElementRule> {
         if (shouldIgnoreRuleLine(line)) {
             return ParsedRule.Ignored
@@ -273,6 +387,13 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `shouldIgnoreRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun shouldIgnoreRuleLine(line: String): Boolean {
         val trimmed = line.trim()
         return trimmed.isEmpty() ||
@@ -281,6 +402,13 @@ class RuleFileLoader(
             trimmed == "#"
     }
 
+    /**
+     * 函数 `parseDomains`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseDomains(value: String): DomainScope? {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) {
@@ -312,10 +440,24 @@ class RuleFileLoader(
         )
     }
 
+    /**
+     * 函数 `isValidDomain`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isValidDomain(domain: String): Boolean {
         return domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
     }
 
+    /**
+     * 函数 `isSafeSelector`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isSafeSelector(selector: String): Boolean {
         val value = selector.trim()
         if (value.isEmpty() || value.length > MAX_SELECTOR_LENGTH) {
@@ -328,11 +470,28 @@ class RuleFileLoader(
         return !UNSUPPORTED_SELECTOR_TOKENS.any { token -> lowered.contains(token) }
     }
 
+    /**
+     * 函数 `isScriptletRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isScriptletRuleLine(trimmed: String): Boolean {
         return trimmed.contains("##+js(") ||
             trimmed.contains("#%#")
     }
 
+    /**
+     * 函数 `skipped`：封装 `skipped` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param reason 参数类型为 `String`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun skipped(source: String, lineNumber: Int, text: String, reason: String): SkippedRule {
         return SkippedRule(
             source = source,
@@ -367,6 +526,14 @@ class RuleFileLoader(
             "expression("
         )
 
+        /**
+         * 函数 `fromAssets`：封装 `from Assets` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param assets 参数类型为 `AssetManager`，表示函数执行 `assets` 相关逻辑时需要读取或处理的输入。
+         * @param cacheDirectory 参数类型为 `File?`，表示函数执行 `cacheDirectory` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun fromAssets(assets: AssetManager, cacheDirectory: File? = null): RuleFileLoader {
             return RuleFileLoader(
                 openAsset = { path -> assets.open(path) },

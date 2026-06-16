@@ -10,6 +10,13 @@ package com.example.videobrowser.adblock
 import java.util.Locale
 
 object AdBlockLogEntryFormatter {
+    /**
+     * 函数 `summary`：封装 `summary` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param entry 参数类型为 `AdBlockLogEntry`，表示函数执行 `entry` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun summary(entry: AdBlockLogEntry): String {
         val source = entry.ruleSource ?: entry.reason.name.lowercase(Locale.US)
         val rule = entry.ruleId ?: entry.rulePattern ?: entry.reason.name
@@ -23,6 +30,15 @@ object AdBlockLogEntryFormatter {
         return parts.joinToString(separator = "  ")
     }
 
+    /**
+     * 函数 `recoveryActionFor`：封装 `recovery Action For` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param entry 参数类型为 `AdBlockLogEntry`，表示函数执行 `entry` 相关逻辑时需要读取或处理的输入。
+     * @param isUserWhitelisted 参数类型为 `(String) -> Boolean`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
+     * @param isAdBlockDisabledForSite 参数类型为 `(String) -> Boolean`，表示函数执行 `isAdBlockDisabledForSite` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun recoveryActionFor(
         entry: AdBlockLogEntry,
         isUserWhitelisted: (String) -> Boolean,
@@ -55,6 +71,13 @@ object AdBlockLogEntryFormatter {
         return null
     }
 
+    /**
+     * 函数 `candidateSummary`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param candidates 参数类型为 `List<AdBlockRuleCandidate>`，表示函数执行 `candidates` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun candidateSummary(candidates: List<AdBlockRuleCandidate>): String {
         return candidates.joinToString(separator = ", ") { candidate ->
             "${candidate.action.name}:${candidate.ruleId}@${candidate.ruleSource}"

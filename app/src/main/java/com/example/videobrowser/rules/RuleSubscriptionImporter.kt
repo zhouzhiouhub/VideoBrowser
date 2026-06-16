@@ -16,6 +16,14 @@ class RuleSubscriptionImporter(
     private val cacheDirectory: File,
     private val parser: AdGuardRuleParser = AdGuardRuleParser()
 ) {
+    /**
+     * 函数 `importText`：封装 `import Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param subscriptionId 参数类型为 `String`，表示函数执行 `subscriptionId` 相关逻辑时需要读取或处理的输入。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun importText(subscriptionId: String, text: String): RuleSubscriptionImportResult {
         val normalizedId = normalizeSubscriptionId(subscriptionId)
         val parseResult = parser.parseSubscription(
@@ -56,6 +64,14 @@ class RuleSubscriptionImporter(
         )
     }
 
+    /**
+     * 函数 `update`：根据最新状态刷新 `update` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param subscriptionId 参数类型为 `String`，表示函数执行 `subscriptionId` 相关逻辑时需要读取或处理的输入。
+     * @param fetchText 参数类型为 `() -> String`，表示函数执行 `fetchText` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun update(subscriptionId: String, fetchText: () -> String): RuleSubscriptionImportResult {
         return runCatching {
             importText(subscriptionId, fetchText())
@@ -68,6 +84,13 @@ class RuleSubscriptionImporter(
         }
     }
 
+    /**
+     * 函数 `writeMetadata`：封装 `write Metadata` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param subscriptionId 参数类型为 `String`，表示函数执行 `subscriptionId` 相关逻辑时需要读取或处理的输入。
+     * @param parseResult 参数类型为 `com.example.videobrowser.adguard.AdGuardParseResult`，表示函数执行 `parseResult` 相关逻辑时需要读取或处理的输入。
+     */
     private fun writeMetadata(
         subscriptionId: String,
         parseResult: com.example.videobrowser.adguard.AdGuardParseResult
@@ -86,6 +109,12 @@ class RuleSubscriptionImporter(
             .use { output -> properties.store(output, "VideoBrowser rule subscription cache") }
     }
 
+    /**
+     * 函数 `hasExistingCache`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun hasExistingCache(): Boolean {
         return listOf(
             RuleFileLoader.REQUEST_RULES_CACHE_FILE,
@@ -96,6 +125,13 @@ class RuleSubscriptionImporter(
         ).any { fileName -> cacheDirectory.resolve(fileName).isFile }
     }
 
+    /**
+     * 函数 `renderLines`：封装 `render Lines` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param lines 参数类型为 `List<String>`，表示函数执行 `lines` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun renderLines(lines: List<String>): String {
         return if (lines.isEmpty()) {
             ""
@@ -104,6 +140,13 @@ class RuleSubscriptionImporter(
         }
     }
 
+    /**
+     * 函数 `normalizeSubscriptionId`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param subscriptionId 参数类型为 `String`，表示函数执行 `subscriptionId` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeSubscriptionId(subscriptionId: String): String {
         val normalized = subscriptionId
             .trim()

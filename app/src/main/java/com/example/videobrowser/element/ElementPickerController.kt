@@ -36,6 +36,11 @@ class ElementPickerController(
     var isActive = false
         private set
 
+    /**
+     * 函数 `start`：启动或加载 `start` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun start() {
         // 没有当前站点时不能保存站点级 selector；JS 注入关闭时也无法让网页进入选择模式。
         val host = currentSiteHost()
@@ -62,6 +67,11 @@ class ElementPickerController(
         Toast.makeText(activity, R.string.toast_element_picker_started, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `cancel`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun cancel() {
         if (!isActive) {
             return
@@ -71,6 +81,11 @@ class ElementPickerController(
         Toast.makeText(activity, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `handleCancelledFromPage`：处理 `handle Cancelled From Page` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun handleCancelledFromPage() {
         if (!isActive) {
             return
@@ -79,6 +94,13 @@ class ElementPickerController(
         Toast.makeText(activity, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * 函数 `handlePickedElement`：处理 `handle Picked Element` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     * @param description 参数类型为 `String`，表示函数执行 `description` 相关逻辑时需要读取或处理的输入。
+     */
     fun handlePickedElement(selector: String, description: String) {
         // 网页回调可能晚到；如果会话超时或已取消，就不再保存 selector。
         if (!isSessionValid()) {
@@ -94,6 +116,11 @@ class ElementPickerController(
         showConfirmElementBlockDialog(host, selector, description)
     }
 
+    /**
+     * 函数 `clearState`：封装 `clear State` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clearState() {
         isActive = false
         startedAt = 0L
@@ -101,11 +128,24 @@ class ElementPickerController(
         dialog = null
     }
 
+    /**
+     * 函数 `dispose`：封装 `dispose` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun dispose() {
         dialog?.dismiss()
         dialog = null
     }
 
+    /**
+     * 函数 `showConfirmElementBlockDialog`：控制 `show Confirm Element Block Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     * @param description 参数类型为 `String`，表示函数执行 `description` 相关逻辑时需要读取或处理的输入。
+     */
     private fun showConfirmElementBlockDialog(host: String, selector: String, description: String) {
         val detail = listOf(description.trim(), selector.trim())
             .filter { value -> value.isNotBlank() }
@@ -134,6 +174,13 @@ class ElementPickerController(
         activeDialog.show()
     }
 
+    /**
+     * 函数 `savePickedElement`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     */
     private fun savePickedElement(host: String, selector: String) {
         val alreadySaved = settingsManager.hasUserElementHideSelectorForSite(host, selector)
         val saved = alreadySaved || settingsManager.addUserElementHideSelectorForSite(host, selector)
@@ -155,11 +202,22 @@ class ElementPickerController(
         ).show()
     }
 
+    /**
+     * 函数 `isSessionValid`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isSessionValid(): Boolean {
         return isActive &&
             SystemClock.elapsedRealtime() - startedAt <= ELEMENT_PICKER_TIMEOUT_MS
     }
 
+    /**
+     * 函数 `finishSession`：封装 `finish Session` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     private fun finishSession() {
         clearState()
         browserManager().evaluateJavascript(FINISH_ELEMENT_PICKER_SCRIPT)

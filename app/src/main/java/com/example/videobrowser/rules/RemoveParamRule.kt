@@ -23,6 +23,12 @@ data class RemoveParamRule(
         require(parameterName.trim().isNotEmpty()) { "RemoveParam parameter name must not be blank." }
     }
 
+    /**
+     * 函数 `toRequestMatcherRule`：封装 `to Request Matcher Rule` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun toRequestMatcherRule(): Rule {
         return Rule(
             id = "$id:matcher",
@@ -35,6 +41,15 @@ data class RemoveParamRule(
     }
 
     companion object {
+        /**
+         * 函数 `fromAdGuardRuleText`：封装 `from Ad Guard Rule Text` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @param id 参数类型为 `String?`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+         * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun fromAdGuardRuleText(
             text: String,
             id: String? = null,
@@ -99,6 +114,13 @@ data class RemoveParamRule(
             )
         }
 
+        /**
+         * 函数 `splitOptions`：封装 `split Options` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun splitOptions(text: String): Pair<String, String?> {
             val optionsIndex = text.indexOf('$')
             if (optionsIndex < 0) {
@@ -108,6 +130,13 @@ data class RemoveParamRule(
                 text.substring(optionsIndex + 1).trim().takeIf { it.isNotEmpty() }
         }
 
+        /**
+         * 函数 `parseParameterName`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         private fun parseParameterName(value: String): String? {
             val parameter = value.trim()
             return parameter.takeIf { candidate ->

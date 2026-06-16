@@ -19,6 +19,13 @@ data class DomainScope(
     val hasRestrictions: Boolean
         get() = normalizedIncludedDomains.isNotEmpty() || normalizedExcludedDomains.isNotEmpty()
 
+    /**
+     * 函数 `matches`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun matches(host: String?): Boolean {
         if (!hasRestrictions) {
             return true
@@ -37,6 +44,14 @@ data class DomainScope(
     companion object {
         val Empty = DomainScope()
 
+        /**
+         * 函数 `hostMatchesDomain`：封装 `host Matches Domain` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+         * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun hostMatchesDomain(host: String, domain: String): Boolean {
             return host == domain || host.endsWith(".$domain")
         }

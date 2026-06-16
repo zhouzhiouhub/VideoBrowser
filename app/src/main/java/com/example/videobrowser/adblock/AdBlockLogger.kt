@@ -13,6 +13,16 @@ class AdBlockLogger(
 ) {
     private val entries = ArrayDeque<AdBlockLogEntry>()
 
+    /**
+     * 函数 `log`：封装 `log` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param action 参数类型为 `AdBlockLogAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
+     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
+     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
+     * @param decision 参数类型为 `AdBlockDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
+     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
+     */
     fun log(
         action: AdBlockLogAction,
         url: String,
@@ -46,6 +56,12 @@ class AdBlockLogger(
         )
     }
 
+    /**
+     * 函数 `log`：封装 `log` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param entry 参数类型为 `AdBlockLogEntry`，表示函数执行 `entry` 相关逻辑时需要读取或处理的输入。
+     */
     fun log(entry: AdBlockLogEntry) {
         entries.addFirst(entry)
         while (entries.size > maxEntries) {
@@ -53,10 +69,21 @@ class AdBlockLogger(
         }
     }
 
+    /**
+     * 函数 `entries`：封装 `entries` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun entries(): List<AdBlockLogEntry> {
         return entries.toList()
     }
 
+    /**
+     * 函数 `clear`：封装 `clear` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
     fun clear() {
         entries.clear()
     }

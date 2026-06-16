@@ -31,6 +31,13 @@ data class RuleMatchResult(
     companion object {
         val NoMatch = RuleMatchResult(matched = false)
 
+        /**
+         * 函数 `block`：封装 `block` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param rule 参数类型为 `Rule`，表示函数执行 `rule` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun block(rule: Rule): RuleMatchResult {
             return RuleMatchResult(
                 matched = true,
@@ -39,6 +46,13 @@ data class RuleMatchResult(
             )
         }
 
+        /**
+         * 函数 `allow`：封装 `allow` 这一段业务步骤，让调用方不用关心内部实现细节。
+         *
+         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+         * @param rule 参数类型为 `Rule`，表示函数执行 `rule` 相关逻辑时需要读取或处理的输入。
+         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+         */
         fun allow(rule: Rule): RuleMatchResult {
             return RuleMatchResult(
                 matched = true,

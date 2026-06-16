@@ -17,6 +17,15 @@ object ScriptletRegistry {
     const val REASON_INVALID_DOMAIN = "invalid scriptlet domain"
     const val REASON_RAW_SCRIPTLET_JAVASCRIPT = "raw scriptlet javascript not allowed"
 
+    /**
+     * 函数 `parse`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun parse(
         text: String,
         id: String,
@@ -64,6 +73,14 @@ object ScriptletRegistry {
         }
     }
 
+    /**
+     * 函数 `validate`：封装 `validate` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param arguments 参数类型为 `List<String>`，表示函数执行 `arguments` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun validate(name: String, arguments: List<String>): ScriptletValidation {
         val normalizedName = name.trim().lowercase(Locale.US)
         val spec = SUPPORTED_SCRIPTLETS[normalizedName] ?: return ScriptletValidation.Unsupported
@@ -76,12 +93,27 @@ object ScriptletRegistry {
         return ScriptletValidation.Valid
     }
 
+    /**
+     * 函数 `parseSyntax`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseSyntax(text: String): ScriptletSyntax? {
         findScriptletBody(text, UBO_SCRIPTLET_MARKER)?.let { return it }
         findScriptletBody(text, ADGUARD_SCRIPTLET_MARKER)?.let { return it }
         return null
     }
 
+    /**
+     * 函数 `findScriptletBody`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param marker 参数类型为 `String`，表示函数执行 `marker` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun findScriptletBody(text: String, marker: String): ScriptletSyntax? {
         val markerIndex = text.indexOf(marker)
         if (markerIndex < 0 || !text.endsWith(")")) {
@@ -96,6 +128,13 @@ object ScriptletRegistry {
         )
     }
 
+    /**
+     * 函数 `splitArguments`：封装 `split Arguments` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun splitArguments(text: String): List<String>? {
         val arguments = mutableListOf<String>()
         val current = StringBuilder()
@@ -134,10 +173,24 @@ object ScriptletRegistry {
         return arguments.filter { argument -> argument.isNotEmpty() }
     }
 
+    /**
+     * 函数 `normalizeArgument`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param argument 参数类型为 `String`，表示函数执行 `argument` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun normalizeArgument(argument: String): String {
         return argument.trim()
     }
 
+    /**
+     * 函数 `parseDomains`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseDomains(value: String): DomainScope? {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) {
@@ -167,11 +220,25 @@ object ScriptletRegistry {
         )
     }
 
+    /**
+     * 函数 `isValidDomain`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isValidDomain(domain: String): Boolean {
         return domain.isNotBlank() &&
             domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
     }
 
+    /**
+     * 函数 `shouldIgnoreRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun shouldIgnoreRuleLine(trimmed: String): Boolean {
         return trimmed.isEmpty() ||
             trimmed.startsWith("!") ||
@@ -179,6 +246,13 @@ object ScriptletRegistry {
             trimmed == "#"
     }
 
+    /**
+     * 函数 `isSafeKeyword`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param argument 参数类型为 `String`，表示函数执行 `argument` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isSafeKeyword(argument: String): Boolean {
         val value = argument.trim()
         if (value.length !in 3..100) {

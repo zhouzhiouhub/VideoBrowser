@@ -26,6 +26,14 @@ import java.util.Locale
  * 这个类逐行识别规则类型，把项目支持的部分转成内部模型，不支持的部分记录到 skippedRules。
  */
 class AdGuardRuleParser {
+    /**
+     * 函数 `parseSubscription`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun parseSubscription(text: String, source: String): AdGuardParseResult {
         // 每类规则既保存解析后的对象，也保存原始行，方便后续缓存到对应规则文件。
         val requestRules = mutableListOf<Rule>()
@@ -75,14 +83,41 @@ class AdGuardRuleParser {
         )
     }
 
+    /**
+     * 函数 `parseRequestRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun parseRequestRule(text: String, id: String, source: String): Rule? {
         return Rule.fromRequestRuleText(text = text, id = id, source = source)
     }
 
+    /**
+     * 函数 `parseRemoveParamRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun parseRemoveParamRule(text: String, id: String, source: String): RemoveParamRule? {
         return RemoveParamRule.fromAdGuardRuleText(text = text, id = id, source = source)
     }
 
+    /**
+     * 函数 `parseElementRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun parseElementRule(text: String, id: String, source: String): ElementRule? {
         val trimmed = text.trim()
         if (isIgnored(trimmed) || isScriptletRuleLine(trimmed) || trimmed.contains("#?#")) {
@@ -114,6 +149,15 @@ class AdGuardRuleParser {
         )
     }
 
+    /**
+     * 函数 `parseScriptletRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
+     * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     fun parseScriptletRule(text: String, id: String, source: String): ScriptletRule? {
         return when (val result = ScriptletRegistry.parse(text, id, source)) {
             is ScriptletParseResult.Rule -> result.value
@@ -121,6 +165,15 @@ class AdGuardRuleParser {
         }
     }
 
+    /**
+     * 函数 `parseLine`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseLine(line: String, source: String, lineNumber: Int): ParsedAdGuardLine {
         val trimmed = line.trim()
         if (isIgnored(trimmed)) {
@@ -150,6 +203,15 @@ class AdGuardRuleParser {
             ?: skipped(source, lineNumber, line)
     }
 
+    /**
+     * 函数 `skipped`：封装 `skipped` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
+     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
+     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun skipped(source: String, lineNumber: Int, line: String): ParsedAdGuardLine.Skipped {
         return ParsedAdGuardLine.Skipped(
             SkippedRule(
@@ -161,6 +223,13 @@ class AdGuardRuleParser {
         )
     }
 
+    /**
+     * 函数 `isIgnored`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isIgnored(trimmed: String): Boolean {
         return trimmed.isEmpty() ||
             trimmed.startsWith("!") ||
@@ -168,6 +237,13 @@ class AdGuardRuleParser {
             trimmed == "#"
     }
 
+    /**
+     * 函数 `parseDomains`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun parseDomains(value: String): DomainScope? {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) {
@@ -199,10 +275,24 @@ class AdGuardRuleParser {
         )
     }
 
+    /**
+     * 函数 `isValidDomain`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isValidDomain(domain: String): Boolean {
         return domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
     }
 
+    /**
+     * 函数 `isSafeSelector`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isSafeSelector(selector: String): Boolean {
         // CSS selector 会被注入网页执行，所以只接受简单、安全、长度可控的 selector。
         val value = selector.trim()
@@ -216,6 +306,13 @@ class AdGuardRuleParser {
         return !UNSUPPORTED_SELECTOR_TOKENS.any { token -> lowered.contains(token) }
     }
 
+    /**
+     * 函数 `isScriptletRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
     private fun isScriptletRuleLine(trimmed: String): Boolean {
         return trimmed.contains("##+js(") ||
             trimmed.contains("#%#")
