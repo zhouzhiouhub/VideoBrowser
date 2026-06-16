@@ -3,7 +3,8 @@ package com.example.videobrowser
 /**
  * MainActivity 的视图绑定清单。
  *
- * 初学者可以把这个类理解为“activity_main.xml 里常用控件的索引表”：
+ * 初学者阅读提示：
+ * 可以把这个类理解为“activity_main.xml 里常用控件的索引表”：
  * - 左边的属性名是 Kotlin 代码里要使用的变量。
  * - 右边的 findViewById 会按 XML 里的 id 找到真实控件。
  * - MainActivity 只保留一个 views 对象，避免在主类里散落大量 findViewById。
