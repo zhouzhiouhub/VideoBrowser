@@ -133,6 +133,12 @@
     'midroll'
   ];
 
+  /**
+   * 函数 `shouldBlockUrl`：封装 `should Block Url` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function shouldBlockUrl(value) {
     return shouldBlockUrlAgainstKeywords(
       value,
@@ -140,6 +146,13 @@
     );
   }
 
+  /**
+   * 函数 `shouldBlockUrlAgainstKeywords`：封装 `should Block Url Against Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   * @param {*} keywords 表示函数执行 `keywords` 相关逻辑时需要读取或处理的输入。
+   */
   function shouldBlockUrlAgainstKeywords(value, keywords) {
     const url = String(value || '').toLowerCase();
     return keywords.some(function (keyword) {
@@ -147,18 +160,39 @@
     });
   }
 
+  /**
+   * 函数 `externalBlockedKeywords`：封装 `external Blocked Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function externalBlockedKeywords() {
     return configKeywordList('blockedUrlKeywords');
   }
 
+  /**
+   * 函数 `scriptletWindowOpenBlockedKeywords`：封装 `scriptlet Window Open Blocked Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function scriptletWindowOpenBlockedKeywords() {
     return configKeywordList('scriptletWindowOpenBlockedKeywords');
   }
 
+  /**
+   * 函数 `scriptletFetchBlockedKeywords`：封装 `scriptlet Fetch Blocked Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function scriptletFetchBlockedKeywords() {
     return configKeywordList('scriptletFetchBlockedKeywords');
   }
 
+  /**
+   * 函数 `configKeywordList`：封装 `config Keyword List` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} fieldName 表示函数执行 `fieldName` 相关逻辑时需要读取或处理的输入。
+   */
   function configKeywordList(fieldName) {
     const values = state.config && state.config[fieldName];
     if (!Array.isArray(values)) return [];
@@ -169,18 +203,39 @@
     });
   }
 
+  /**
+   * 函数 `externalCssSelectors`：封装 `external Css Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function externalCssSelectors() {
     return safeSelectorList(state.config && state.config.cssSelectors);
   }
 
+  /**
+   * 函数 `userCssSelectors`：封装 `user Css Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function userCssSelectors() {
     return safeSelectorList(state.config && state.config.userCssSelectors);
   }
 
+  /**
+   * 函数 `externalDomSelectors`：封装 `external Dom Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function externalDomSelectors() {
     return safeSelectorList(state.config && state.config.domSelectors);
   }
 
+  /**
+   * 函数 `safeSelectorList`：封装 `safe Selector List` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function safeSelectorList(value) {
     if (!Array.isArray(value)) return [];
     return value.map(function (selector) {
@@ -190,12 +245,24 @@
     });
   }
 
+  /**
+   * 函数 `isSafeSelector`：封装 `is Safe Selector` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   */
   function isSafeSelector(selector) {
     if (!selector || selector.length > 200) return false;
     if (/[{};<>]/.test(selector)) return false;
     return !/:has\(|:contains\(|:matches\(|:xpath\(|javascript:|expression\(/i.test(selector);
   }
 
+  /**
+   * 函数 `querySelectorAllSafe`：封装 `query Selector All Safe` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   */
   function querySelectorAllSafe(selector) {
     try {
       return document.querySelectorAll(selector);
@@ -204,6 +271,13 @@
     }
   }
 
+  /**
+   * 函数 `injectStyle`：封装 `inject Style` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} includeGenericSelectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   * @param {*} includeRuleSelectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   */
   function injectStyle(includeGenericSelectors, includeRuleSelectors) {
     const selectors = (includeGenericSelectors ? adSelectors.concat(accountSelectors, cleanupSelectors) : [])
       .concat(includeRuleSelectors ? externalCssSelectors() : [])
@@ -225,11 +299,23 @@
       '{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';
   }
 
+  /**
+   * 函数 `removeStyle`：封装 `remove Style` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeStyle() {
     const style = document.getElementById(styleId);
     if (style) style.remove();
   }
 
+  /**
+   * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
+   * @param {*} details 表示本次脚本运行的配置或上下文数据。
+   */
   function logVideoDiagnostic(event, details) {
     const values = details && typeof details === 'object' ? details : {};
     const parts = [
@@ -255,6 +341,12 @@
     } catch (_) {}
   }
 
+  /**
+   * 函数 `safeLogValue`：封装 `safe Log Value` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function safeLogValue(value) {
     return String(value === null || typeof value === 'undefined' ? '' : value)
       .replace(/\s+/g, ' ')
@@ -262,6 +354,13 @@
       .slice(0, 180);
   }
 
+  /**
+   * 函数 `videoLogDetails`：封装 `video Log Details` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} extra 表示本次脚本运行的配置或上下文数据。
+   */
   function videoLogDetails(video, extra) {
     const values = extra && typeof extra === 'object' ? extra : {};
     const source = video && (video.currentSrc || video.src || video.getAttribute('src') || '');
@@ -277,6 +376,11 @@
     }, values);
   }
 
+  /**
+   * 函数 `cleanupLegacyVideoOverlays`：封装 `cleanup Legacy Video Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function cleanupLegacyVideoOverlays() {
     if (state.videoOverlays && typeof state.videoOverlays.forEach === 'function') {
       state.videoOverlays.forEach(function (controls) {
@@ -299,6 +403,12 @@
     });
   }
 
+  /**
+   * 函数 `runWithMutationSuppressed`：封装 `run With Mutation Suppressed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} work 表示稍后执行的回调、清理函数或调用参数。
+   */
   function runWithMutationSuppressed(work) {
     state.suppressMutationWork = true;
     try {
@@ -310,6 +420,11 @@
     }
   }
 
+  /**
+   * 函数 `removeAds`：封装 `remove Ads` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeAds() {
     if (!state.config.cleanupEnabled || !document.documentElement) return;
     if (shouldSkipGenericCleanup()) {
@@ -336,6 +451,11 @@
     });
   }
 
+  /**
+   * 函数 `removeConfiguredDomElements`：封装 `remove Configured Dom Elements` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeConfiguredDomElements() {
     externalDomSelectors().forEach(function (selector) {
       querySelectorAllSafe(selector).forEach(function (element) {
@@ -344,6 +464,11 @@
     });
   }
 
+  /**
+   * 函数 `removeGenericAdOverlays`：封装 `remove Generic Ad Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeGenericAdOverlays() {
     if (!document.body) return;
 
@@ -362,6 +487,13 @@
     runGeneratedAdScaffoldCleanup(Date.now(), true);
   }
 
+  /**
+   * 函数 `runGeneratedAdScaffoldCleanup`：封装 `run Generated Ad Scaffold Cleanup` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} now 表示函数执行 `now` 相关逻辑时需要读取或处理的输入。
+   * @param {*} force 表示函数执行 `force` 相关逻辑时需要读取或处理的输入。
+   */
   function runGeneratedAdScaffoldCleanup(now, force) {
     const timestamp = Number(now || Date.now());
     if (!force && timestamp - Number(state.lastGeneratedAdCleanupAt || 0) < generatedAdCleanupIntervalMs) {
@@ -371,6 +503,11 @@
     removeGeneratedAdScaffolds();
   }
 
+  /**
+   * 函数 `removeGeneratedAdScaffolds`：封装 `remove Generated Ad Scaffolds` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeGeneratedAdScaffolds() {
     const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
     const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
@@ -417,6 +554,14 @@
     }
   }
 
+  /**
+   * 函数 `isVisibleRectInViewport`：封装 `is Visible Rect In Viewport` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} viewportWidth 表示函数执行 `viewportWidth` 相关逻辑时需要读取或处理的输入。
+   * @param {*} viewportHeight 表示函数执行 `viewportHeight` 相关逻辑时需要读取或处理的输入。
+   */
   function isVisibleRectInViewport(rect, viewportWidth, viewportHeight) {
     return Boolean(
       rect &&
@@ -429,6 +574,16 @@
     );
   }
 
+  /**
+   * 函数 `isGeneratedImageSlice`：封装 `is Generated Image Slice` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} style 表示函数执行 `style` 相关逻辑时需要读取或处理的输入。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} viewportWidth 表示函数执行 `viewportWidth` 相关逻辑时需要读取或处理的输入。
+   * @param {*} viewportHeight 表示函数执行 `viewportHeight` 相关逻辑时需要读取或处理的输入。
+   */
   function isGeneratedImageSlice(element, style, rect, viewportWidth, viewportHeight) {
     if (parseZIndex(style.zIndex) < 1000000) return false;
     if (!/^url\(["']?data:image\//i.test(String(style.backgroundImage || ''))) return false;
@@ -440,6 +595,16 @@
     return true;
   }
 
+  /**
+   * 函数 `isGeneratedClickGridCell`：封装 `is Generated Click Grid Cell` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} style 表示函数执行 `style` 相关逻辑时需要读取或处理的输入。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} viewportWidth 表示函数执行 `viewportWidth` 相关逻辑时需要读取或处理的输入。
+   * @param {*} viewportHeight 表示函数执行 `viewportHeight` 相关逻辑时需要读取或处理的输入。
+   */
   function isGeneratedClickGridCell(element, style, rect, viewportWidth, viewportHeight) {
     const opacity = Number.parseFloat(style.opacity);
     if (!Number.isFinite(opacity) || opacity > 0.02) return false;
@@ -453,6 +618,14 @@
     return true;
   }
 
+  /**
+   * 函数 `isGeneratedAdAdjunctControl`：封装 `is Generated Ad Adjunct Control` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} style 表示函数执行 `style` 相关逻辑时需要读取或处理的输入。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function isGeneratedAdAdjunctControl(element, style, rect) {
     if (parseZIndex(style.zIndex) < 1000000) return false;
     if (normalizeText(element.innerText || element.textContent).length > 20) return false;
@@ -463,8 +636,19 @@
       (!descriptor.trim() && !String(style.backgroundImage || '').match(/^url\(/i));
   }
 
+  /**
+   * 函数 `collectGenericAdOverlayCandidates`：封装 `collect Generic Ad Overlay Candidates` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function collectGenericAdOverlayCandidates() {
     const candidates = [];
+    /**
+     * 函数 `addCandidate`：封装 `add Candidate` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+     */
     function addCandidate(element) {
       if (element && candidates.indexOf(element) === -1) candidates.push(element);
     }
@@ -579,6 +763,12 @@
     return candidates;
   }
 
+  /**
+   * 函数 `findGenericAdOverlayRoot`：封装 `find Generic Ad Overlay Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function findGenericAdOverlayRoot(element) {
     let current = element;
     let matchedRoot = null;
@@ -592,6 +782,13 @@
     return matchedRoot;
   }
 
+  /**
+   * 函数 `shouldUseGenericAdOverlayRoot`：封装 `should Use Generic Ad Overlay Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} currentRoot 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} candidateRoot 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function shouldUseGenericAdOverlayRoot(currentRoot, candidateRoot) {
     if (!currentRoot) return true;
 
@@ -612,6 +809,12 @@
     return candidateArea <= currentArea * 2.8;
   }
 
+  /**
+   * 函数 `isLikelyGenericAdOverlay`：封装 `is Likely Generic Ad Overlay` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isLikelyGenericAdOverlay(element) {
     if (!element || isProtectedAppContainer(element)) return false;
     if (element.querySelector('video')) return false;
@@ -760,6 +963,12 @@
     );
   }
 
+  /**
+   * 函数 `mediaSourceLooksLikeAd`：封装 `media Source Looks Like Ad` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function mediaSourceLooksLikeAd(element) {
     return Array.prototype.some.call(
       element.querySelectorAll('img,source'),
@@ -771,6 +980,12 @@
     );
   }
 
+  /**
+   * 函数 `mediaSourceValue`：封装 `media Source Value` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} media 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function mediaSourceValue(media) {
     return String(
       media &&
@@ -784,6 +999,12 @@
     );
   }
 
+  /**
+   * 函数 `hasCloseLikeDescendant`：封装 `has Close Like Descendant` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function hasCloseLikeDescendant(element) {
     if (!element) return false;
     if (isCloseLikeControl(element)) return true;
@@ -796,6 +1017,12 @@
     );
   }
 
+  /**
+   * 函数 `isCloseLikeControl`：封装 `is Close Like Control` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isCloseLikeControl(element) {
     if (!element) return false;
     const rect = element.getBoundingClientRect();
@@ -816,6 +1043,12 @@
       /close|dismiss|cancel|skip|关闭|關閉|跳过|跳過/i.test(descriptor + ' ' + text);
   }
 
+  /**
+   * 函数 `hideGenericOverlayBackdrops`：封装 `hide Generic Overlay Backdrops` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} root 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function hideGenericOverlayBackdrops(root) {
     if (!root || !document.body) return;
     querySelectorAllSafe('body *').forEach(function (element) {
@@ -840,11 +1073,22 @@
     });
   }
 
+  /**
+   * 函数 `clearOverlayScrollLocks`：封装 `clear Overlay Scroll Locks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function clearOverlayScrollLocks() {
     unlockScrollContainer(document.documentElement);
     unlockScrollContainer(document.body);
   }
 
+  /**
+   * 函数 `unlockScrollContainer`：封装 `unlock Scroll Container` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function unlockScrollContainer(element) {
     if (!element) return;
     [
@@ -867,12 +1111,24 @@
     });
   }
 
+  /**
+   * 函数 `isScrollLockClass`：封装 `is Scroll Lock Class` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} className 表示函数执行 `className` 相关逻辑时需要读取或处理的输入。
+   */
   function isScrollLockClass(className) {
     return /(^|[-_])(overflow-hidden|no-scroll|noscroll|scroll-lock|lock-scroll)([-_]|$)/i
       .test(String(className || '')) ||
       /^adm-overflow-hidden$/i.test(String(className || ''));
   }
 
+  /**
+   * 函数 `elementDescriptor`：封装 `element Descriptor` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function elementDescriptor(element) {
     return (
       String(element.id || '') + ' ' +
@@ -883,19 +1139,40 @@
     );
   }
 
+  /**
+   * 函数 `parseZIndex`：封装 `parse ZIndex` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function parseZIndex(value) {
     const parsed = Number.parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  /**
+   * 函数 `dismissSitePrompts`：封装 `dismiss Site Prompts` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function dismissSitePrompts() {
     dismissBilibiliBrowserChoicePrompts();
   }
 
+  /**
+   * 函数 `shouldSkipGenericCleanup`：封装 `should Skip Generic Cleanup` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function shouldSkipGenericCleanup() {
     return isBilibiliHost() || isSearchProviderResultPage();
   }
 
+  /**
+   * 函数 `isSearchProviderResultPage`：封装 `is Search Provider Result Page` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function isSearchProviderResultPage() {
     const host = String(location.hostname || '').toLowerCase();
     const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
@@ -917,6 +1194,11 @@
     return false;
   }
 
+  /**
+   * 函数 `removeSearchResultAds`：封装 `remove Search Result Ads` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeSearchResultAds() {
     if (!isSearchProviderResultPage()) return;
 
@@ -929,6 +1211,11 @@
     });
   }
 
+  /**
+   * 函数 `hideKnownSearchAdContainers`：封装 `hide Known Search Ad Containers` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function hideKnownSearchAdContainers() {
     const selectors = [
       '[tpl^="ad"]',
@@ -955,6 +1242,11 @@
     });
   }
 
+  /**
+   * 函数 `findSearchAdDisclosureMarkers`：封装 `find Search Ad Disclosure Markers` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function findSearchAdDisclosureMarkers() {
     const markers = [];
     document.querySelectorAll(
@@ -974,6 +1266,13 @@
     return markers;
   }
 
+  /**
+   * 函数 `isSearchAdDisclosure`：封装 `is Search Ad Disclosure` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} text 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   * @param {*} descriptor 表示函数执行 `descriptor` 相关逻辑时需要读取或处理的输入。
+   */
   function isSearchAdDisclosure(text, descriptor) {
     const compactText = String(text || '').replace(/\s+/g, '');
     const compactDescriptor = String(descriptor || '').replace(/\s+/g, '');
@@ -990,6 +1289,12 @@
       compactText.length <= 24;
   }
 
+  /**
+   * 函数 `findSearchResultRoot`：封装 `find Search Result Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} marker 表示函数执行 `marker` 相关逻辑时需要读取或处理的输入。
+   */
   function findSearchResultRoot(marker) {
     if (!marker || !document.body) return null;
 
@@ -1015,6 +1320,12 @@
     return candidate;
   }
 
+  /**
+   * 函数 `isSearchControlContainer`：封装 `is Search Control Container` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isSearchControlContainer(element) {
     if (!element || typeof element.querySelector !== 'function') return false;
     if (element.querySelector('input,textarea,select,form')) return true;
@@ -1027,6 +1338,11 @@
     return topChromeLike || /searchbox|search-box|searchbar|search-bar|tab|tabs|navbar|nav-bar/i.test(descriptor);
   }
 
+  /**
+   * 函数 `dismissBilibiliBrowserChoicePrompts`：封装 `dismiss Bilibili Browser Choice Prompts` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function dismissBilibiliBrowserChoicePrompts() {
     if (!isBilibiliHost() || !document.body) return;
 
@@ -1056,10 +1372,22 @@
     });
   }
 
+  /**
+   * 函数 `normalizeText`：封装 `normalize Text` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function normalizeText(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();
   }
 
+  /**
+   * 函数 `findBilibiliPromptRoot`：封装 `find Bilibili Prompt Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function findBilibiliPromptRoot(element) {
     let current = element;
     for (let depth = 0; current && depth < 8; depth += 1, current = current.parentElement) {
@@ -1084,11 +1412,23 @@
     return null;
   }
 
+  /**
+   * 函数 `isBilibiliContentContainer`：封装 `is Bilibili Content Container` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isBilibiliContentContainer(element) {
     const descriptor = (String(element.id || '') + ' ' + String(element.className || '')).toLowerCase();
     return /\bm-home\b|\bm-video\b|video-normal|player|recommend|feed-list|video-list|v-card/.test(descriptor);
   }
 
+  /**
+   * 函数 `hideBilibiliPromptBackdrops`：封装 `hide Bilibili Prompt Backdrops` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} promptRoot 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function hideBilibiliPromptBackdrops(promptRoot) {
     document.querySelectorAll('body *').forEach(function (element) {
       if (!element || element === promptRoot || element.contains(promptRoot) || promptRoot.contains(element)) {
@@ -1113,6 +1453,13 @@
     });
   }
 
+  /**
+   * 函数 `hideElement`：封装 `hide Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+   */
   function hideElement(element, reason) {
     if (!element || element === document.body || element === document.documentElement) return;
     if (isProtectedAppContainer(element)) return;
@@ -1122,6 +1469,13 @@
     element.style.setProperty('pointer-events', 'none', 'important');
   }
 
+  /**
+   * 函数 `removeElement`：封装 `remove Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+   */
   function removeElement(element, reason) {
     if (!element || element === document.body || element === document.documentElement) return;
     if (isProtectedAppContainer(element)) return;
@@ -1129,11 +1483,22 @@
     element.remove();
   }
 
+  /**
+   * 函数 `isProtectedAppContainer`：封装 `is Protected App Container` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isProtectedAppContainer(element) {
     const id = String(element && element.id || '').toLowerCase();
     return id === 'app' || id === 'root' || id === '__next' || id === 'nuxt';
   }
 
+  /**
+   * 函数 `startElementPicker`：封装 `start Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function startElementPicker() {
     stopElementPicker();
     if (!document.documentElement || !document.body) return false;
@@ -1177,6 +1542,13 @@
     return true;
   }
 
+  /**
+   * 函数 `addElementPickerListener`：封装 `add Element Picker Listener` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} type 表示函数执行 `type` 相关逻辑时需要读取或处理的输入。
+   * @param {*} listener 表示函数执行 `listener` 相关逻辑时需要读取或处理的输入。
+   */
   function addElementPickerListener(type, listener) {
     if (!state.elementPicker) return;
     document.addEventListener(type, listener, true);
@@ -1186,6 +1558,12 @@
     });
   }
 
+  /**
+   * 函数 `handleElementPickerMove`：封装 `handle Element Picker Move` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
+   */
   function handleElementPickerMove(event) {
     const picker = state.elementPicker;
     if (!picker) return;
@@ -1198,6 +1576,12 @@
     preventElementPickerEvent(event);
   }
 
+  /**
+   * 函数 `handleElementPickerSelection`：封装 `handle Element Picker Selection` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
+   */
   function handleElementPickerSelection(event) {
     const picker = state.elementPicker;
     if (!picker) return;
@@ -1230,6 +1614,12 @@
     stopElementPicker();
   }
 
+  /**
+   * 函数 `preventElementPickerEvent`：封装 `prevent Element Picker Event` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
+   */
   function preventElementPickerEvent(event) {
     if (!event) return;
     try { event.preventDefault(); } catch (_) {}
@@ -1237,6 +1627,12 @@
     try { event.stopImmediatePropagation(); } catch (_) {}
   }
 
+  /**
+   * 函数 `elementPickerTargetFromEvent`：封装 `element Picker Target From Event` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
+   */
   function elementPickerTargetFromEvent(event) {
     const point = pointFromPickerEvent(event);
     if (!point) return null;
@@ -1249,6 +1645,12 @@
     return normalizePickerTarget(element);
   }
 
+  /**
+   * 函数 `pointFromPickerEvent`：封装 `point From Picker Event` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
+   */
   function pointFromPickerEvent(event) {
     if (!event) return null;
     const touch = event.changedTouches && event.changedTouches.length
@@ -1263,6 +1665,12 @@
     return { x: x, y: y };
   }
 
+  /**
+   * 函数 `normalizePickerTarget`：封装 `normalize Picker Target` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function normalizePickerTarget(element) {
     let current = element && element.nodeType === 1 ? element : null;
     for (let depth = 0; current && depth < 6; depth += 1, current = current.parentElement) {
@@ -1273,10 +1681,22 @@
     return null;
   }
 
+  /**
+   * 函数 `isElementPickerInternal`：封装 `is Element Picker Internal` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isElementPickerInternal(element) {
     return String(element && element.id || '') === '__videobrowser_element_picker_overlay__';
   }
 
+  /**
+   * 函数 `highlightPickedElement`：封装 `highlight Picked Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function highlightPickedElement(element) {
     const picker = state.elementPicker;
     if (!picker || !picker.overlay || !element || !element.getBoundingClientRect) return;
@@ -1289,6 +1709,12 @@
     picker.overlay.style.height = Math.max(0, rect.height) + 'px';
   }
 
+  /**
+   * 函数 `buildElementPickerSelector`：封装 `build Element Picker Selector` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function buildElementPickerSelector(element) {
     if (!element || element === document.body || element === document.documentElement) return null;
 
@@ -1313,12 +1739,24 @@
     return isSafeSelector(fallback) ? fallback : null;
   }
 
+  /**
+   * 函数 `selectorFromElementId`：封装 `selector From Element Id` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function selectorFromElementId(element) {
     const id = String(element.id || '').trim();
     if (!isStableSelectorToken(id)) return null;
     return '#' + cssIdentifier(id);
   }
 
+  /**
+   * 函数 `selectorFromElementClasses`：封装 `selector From Element Classes` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function selectorFromElementClasses(element) {
     const tagName = elementTagName(element);
     const classes = stableClassTokens(element).slice(0, 3);
@@ -1328,6 +1766,12 @@
     }).join('');
   }
 
+  /**
+   * 函数 `selectorSegmentForElement`：封装 `selector Segment For Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function selectorSegmentForElement(element) {
     const tagName = elementTagName(element);
     const idSelector = selectorFromElementId(element);
@@ -1346,6 +1790,13 @@
     return segment;
   }
 
+  /**
+   * 函数 `shouldAppendNthOfType`：封装 `should Append Nth Of Type` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} segment 表示函数执行 `segment` 相关逻辑时需要读取或处理的输入。
+   */
   function shouldAppendNthOfType(element, segment) {
     const parent = element.parentElement;
     if (!parent) return false;
@@ -1358,6 +1809,12 @@
     return matches > 1;
   }
 
+  /**
+   * 函数 `nthOfType`：封装 `nth Of Type` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function nthOfType(element) {
     let index = 1;
     let sibling = element.previousElementSibling;
@@ -1369,10 +1826,22 @@
     return index;
   }
 
+  /**
+   * 函数 `elementTagName`：封装 `element Tag Name` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function elementTagName(element) {
     return String(element && element.tagName || '').toLowerCase();
   }
 
+  /**
+   * 函数 `stableClassTokens`：封装 `stable Class Tokens` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function stableClassTokens(element) {
     return Array.prototype.slice.call(element.classList || [])
       .map(function (value) { return String(value || '').trim(); })
@@ -1382,6 +1851,12 @@
       });
   }
 
+  /**
+   * 函数 `isStableSelectorToken`：封装 `is Stable Selector Token` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function isStableSelectorToken(value) {
     const token = String(value || '').trim();
     if (token.length < 2 || token.length > 80) return false;
@@ -1391,6 +1866,12 @@
     return !/^(active|current|selected|open|close|show|hide|visible|hidden|loaded)$/i.test(token);
   }
 
+  /**
+   * 函数 `cssIdentifier`：封装 `css Identifier` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function cssIdentifier(value) {
     if (window.CSS && typeof window.CSS.escape === 'function') {
       return window.CSS.escape(String(value));
@@ -1400,11 +1881,23 @@
     });
   }
 
+  /**
+   * 函数 `isUniqueSelector`：封装 `is Unique Selector` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   */
   function isUniqueSelector(selector) {
     const matches = querySelectorAllSafe(selector);
     return matches.length === 1;
   }
 
+  /**
+   * 函数 `describePickedElement`：封装 `describe Picked Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function describePickedElement(element) {
     const parts = [elementTagName(element)];
     const id = String(element.id || '').trim();
@@ -1416,6 +1909,12 @@
     return parts.join(' ');
   }
 
+  /**
+   * 函数 `detachElementPickerListeners`：封装 `detach Element Picker Listeners` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} picker 表示函数执行 `picker` 相关逻辑时需要读取或处理的输入。
+   */
   function detachElementPickerListeners(picker) {
     if (!picker || !Array.isArray(picker.listeners)) return;
     picker.listeners.forEach(function (entry) {
@@ -1424,6 +1923,11 @@
     picker.listeners.length = 0;
   }
 
+  /**
+   * 函数 `stopElementPicker`：封装 `stop Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function stopElementPicker() {
     const picker = state.elementPicker;
     if (!picker) return;
@@ -1434,9 +1938,20 @@
     state.elementPicker = null;
   }
 
+  /**
+   * 函数 `removeTopAccountBars`：封装 `remove Top Account Bars` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeTopAccountBars() {
     if (!/(\.|^)baidu\.com$/i.test(location.hostname)) return;
     const candidates = [];
+    /**
+     * 函数 `addCandidate`：封装 `add Candidate` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+     */
     function addCandidate(element) {
       if (element && candidates.indexOf(element) === -1) candidates.push(element);
     }
@@ -1459,6 +1974,11 @@
     });
   }
 
+  /**
+   * 函数 `removeTopNoiseBlocks`：封装 `remove Top Noise Blocks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function removeTopNoiseBlocks() {
     if (!isSearchProviderHomePage()) return;
 
@@ -1489,12 +2009,22 @@
     });
   }
 
+  /**
+   * 函数 `isSearchProviderHomePage`：封装 `is Search Provider Home Page` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function isSearchProviderHomePage() {
     const host = String(location.hostname || '').toLowerCase();
     const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
     return path === '/' && /^(m\.baidu\.com|m\.sogou\.com|m\.so\.com|quark\.sm\.cn|so\.m\.sm\.cn|www\.bing\.com)$/i.test(host);
   }
 
+  /**
+   * 函数 `enhanceVideos`：封装 `enhance Videos` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function enhanceVideos() {
     document.querySelectorAll('video').forEach(function (video) {
       if (state.config.videoEnabled || state.config.scriptletVideoControlsEnabled) {
@@ -1531,6 +2061,12 @@
     '[class*="controlbar"]'
   ];
 
+  /**
+   * 函数 `enableNativeVideoControls`：封装 `enable Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function enableNativeVideoControls(video) {
     if (!video.controls) video.controls = true;
     if (video.getAttribute('controls') !== 'controls') {
@@ -1541,6 +2077,13 @@
     if (video.style.maxWidth !== '100%') video.style.maxWidth = '100%';
   }
 
+  /**
+   * 函数 `removeNativeVideoControls`：封装 `remove Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+   */
   function removeNativeVideoControls(video, reason) {
     if (!video) return false;
     const hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
@@ -1554,6 +2097,12 @@
     return hadNativeControls;
   }
 
+  /**
+   * 函数 `hasLikelyCustomPlayerControls`：封装 `has Likely Custom Player Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function hasLikelyCustomPlayerControls(video) {
     const root = customPlayerRootFor(video);
     if (!root) return false;
@@ -1569,6 +2118,12 @@
     });
   }
 
+  /**
+   * 函数 `customPlayerRootFor`：封装 `custom Player Root For` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function customPlayerRootFor(video) {
     if (!video || !video.isConnected) return null;
     let current = video.parentElement || video;
@@ -1580,12 +2135,25 @@
     return video.parentElement || video;
   }
 
+  /**
+   * 函数 `isLikelyCustomPlayerRoot`：封装 `is Likely Custom Player Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isLikelyCustomPlayerRoot(element) {
     const descriptor = elementDescriptor(element).toLowerCase();
     return /xgplayer|dplayer|artplayer|jwplayer|video-js|vjs-|plyr|ckplayer|prism-player|mejs|hls-player|video-player|player-container|player-wrap|player_box|playerbox|video-container|video-wrap|video_box|videobox/i
       .test(descriptor);
   }
 
+  /**
+   * 函数 `querySelectorAllSafeWithin`：封装 `query Selector All Safe Within` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} root 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   */
   function querySelectorAllSafeWithin(root, selector) {
     if (!root || typeof root.querySelectorAll !== 'function') return [];
     try {
@@ -1595,6 +2163,13 @@
     }
   }
 
+  /**
+   * 函数 `isLikelyCustomControlElement`：封装 `is Likely Custom Control Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isLikelyCustomControlElement(element, video) {
     if (!element || element === video || element.querySelector('video')) return false;
     if (element.getAttribute('data-videobrowser-dismissed')) return false;
@@ -1612,6 +2187,13 @@
     return rectsOverlap(rect, expandedRect(videoRect, 12));
   }
 
+  /**
+   * 函数 `expandedRect`：封装 `expanded Rect` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} amount 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function expandedRect(rect, amount) {
     return {
       left: rect.left - amount,
@@ -1623,6 +2205,13 @@
     };
   }
 
+  /**
+   * 函数 `rectsOverlap`：封装 `rects Overlap` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} first 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} second 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function rectsOverlap(first, second) {
     return first.left < second.right &&
       first.right > second.left &&
@@ -1630,6 +2219,13 @@
       first.bottom > second.top;
   }
 
+  /**
+   * 函数 `isLikelyMediaControlElement`：封装 `is Likely Media Control Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isLikelyMediaControlElement(element, video) {
     if (!isLikelyCustomControlElement(element, video)) return false;
     const descriptor = elementDescriptor(element).toLowerCase();
@@ -1644,9 +2240,20 @@
       .test(descriptor + ' ' + text);
   }
 
+  /**
+   * 函数 `installVideoFullscreenHooks`：封装 `install Video Fullscreen Hooks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function installVideoFullscreenHooks(video) {
     if (!video || state.fullscreenHookedVideos.has(video)) return;
     state.fullscreenHookedVideos.add(video);
+    /**
+     * 函数 `timelineReporter`：封装 `timeline Reporter` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     const timelineReporter = function () {
       if (isVideoFullscreen(video) || state.nativeFullscreenVideo === video) {
         reportPlaybackTimeline(video);
@@ -1674,9 +2281,20 @@
     });
   }
 
+  /**
+   * 函数 `installPlaybackSpeedHooks`：封装 `install Playback Speed Hooks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function installPlaybackSpeedHooks(video) {
     if (!video || state.speedHookedVideos.has(video)) return;
     state.speedHookedVideos.add(video);
+    /**
+     * 函数 `enforceSpeed`：封装 `enforce Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     const enforceSpeed = function () {
       window.setTimeout(function () {
         applyVideoSpeed(video);
@@ -1687,21 +2305,45 @@
     });
   }
 
+  /**
+   * 函数 `desiredVideoSpeed`：封装 `desired Video Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function desiredVideoSpeed(video) {
     const speed = currentFullscreenPlaybackSpeed();
     if (!state.config.videoEnabled || !isFullscreenPlaybackTarget(video)) return 1;
     return Number.isFinite(speed) && speed > 0 ? speed : 1;
   }
 
+  /**
+   * 函数 `currentFullscreenPlaybackSpeed`：封装 `current Fullscreen Playback Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function currentFullscreenPlaybackSpeed() {
     const speed = Number(state.fullscreenPlaybackSpeed || 1);
     return Number.isFinite(speed) && speed > 0 ? speed : 1;
   }
 
+  /**
+   * 函数 `isFullscreenPlaybackTarget`：封装 `is Fullscreen Playback Target` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isFullscreenPlaybackTarget(video) {
     return Boolean(video && (isVideoFullscreen(video) || state.nativeFullscreenVideo === video));
   }
 
+  /**
+   * 函数 `siteVideoCapabilitiesFor`：封装 `site Video Capabilities For` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function siteVideoCapabilitiesFor(video, action) {
     const adapters = window.VideoBrowserSiteAdapters || {};
     return Object.keys(adapters).map(function (key) {
@@ -1728,10 +2370,25 @@
     });
   }
 
+  /**
+   * 函数 `hasSiteVideoCapability`：封装 `has Site Video Capability` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function hasSiteVideoCapability(video, action) {
     return siteVideoCapabilitiesFor(video, action).length > 0;
   }
 
+  /**
+   * 函数 `invokeSiteVideoCapability`：封装 `invoke Site Video Capability` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   * @param {*} args 表示稍后执行的回调、清理函数或调用参数。
+   */
   function invokeSiteVideoCapability(video, action, args) {
     const capabilitiesList = siteVideoCapabilitiesFor(video, action);
     for (let index = 0; index < capabilitiesList.length; index += 1) {
@@ -1748,6 +2405,12 @@
     return { handled: false, value: undefined };
   }
 
+  /**
+   * 函数 `applyVideoSpeed`：封装 `apply Video Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function applyVideoSpeed(video) {
     const speed = desiredVideoSpeed(video);
     if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) {
@@ -1763,6 +2426,12 @@
     } catch (_) {}
   }
 
+  /**
+   * 函数 `preferBestVideoQuality`：封装 `prefer Best Video Quality` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function preferBestVideoQuality(video) {
     if (!state.config.videoEnabled || !video || !video.isConnected) return;
     if (!hasSiteVideoCapability(video, 'preferBestQuality')) return;
@@ -1791,6 +2460,12 @@
     }));
   }
 
+  /**
+   * 函数 `enableVideoControls`：封装 `enable Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function enableVideoControls(video) {
     const siteResult = invokeSiteVideoCapability(video, 'enableControls', []);
     if (siteResult.handled) {
@@ -1813,6 +2488,12 @@
     }));
   }
 
+  /**
+   * 函数 `wakeVideoControls`：封装 `wake Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function wakeVideoControls(video) {
     const target = video || activeFullscreenVideo();
     if (!target) return false;
@@ -1840,6 +2521,15 @@
     return true;
   }
 
+  /**
+   * 函数 `dispatchControlWakeEvent`：封装 `dispatch Control Wake Event` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} target 表示函数执行 `target` 相关逻辑时需要读取或处理的输入。
+   * @param {*} type 表示函数执行 `type` 相关逻辑时需要读取或处理的输入。
+   * @param {*} clientX 表示函数执行 `clientX` 相关逻辑时需要读取或处理的输入。
+   * @param {*} clientY 表示函数执行 `clientY` 相关逻辑时需要读取或处理的输入。
+   */
   function dispatchControlWakeEvent(target, type, clientX, clientY) {
     if (!target || typeof target.dispatchEvent !== 'function') return;
     try {
@@ -1853,6 +2543,14 @@
     } catch (_) {}
   }
 
+  /**
+   * 函数 `dispatchPointerWakeEvent`：封装 `dispatch Pointer Wake Event` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} target 表示函数执行 `target` 相关逻辑时需要读取或处理的输入。
+   * @param {*} clientX 表示函数执行 `clientX` 相关逻辑时需要读取或处理的输入。
+   * @param {*} clientY 表示函数执行 `clientY` 相关逻辑时需要读取或处理的输入。
+   */
   function dispatchPointerWakeEvent(target, clientX, clientY) {
     if (!target || typeof target.dispatchEvent !== 'function' || typeof PointerEvent !== 'function') {
       return;
@@ -1869,6 +2567,12 @@
     } catch (_) {}
   }
 
+  /**
+   * 函数 `videoTimeline`：封装 `video Timeline` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function videoTimeline(video) {
     const duration = video.duration;
     if (Number.isFinite(duration) && duration > 0) {
@@ -1888,6 +2592,12 @@
     return { canSeek: true, start: start, end: end };
   }
 
+  /**
+   * 函数 `reportPlaybackTimeline`：封装 `report Playback Timeline` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function reportPlaybackTimeline(video) {
     const target = video || activeFullscreenVideo();
     if (!target) return;
@@ -1906,10 +2616,22 @@
     }
   }
 
+  /**
+   * 函数 `isBilibiliHost`：封装 `is Bilibili Host` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function isBilibiliHost() {
     return /(\.|^)bilibili\.com$/i.test(location.hostname);
   }
 
+  /**
+   * 函数 `seekVideo`：封装 `seek Video` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} sliderValue 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function seekVideo(video, sliderValue) {
     const timeline = videoTimeline(video);
     if (!timeline.canSeek) return;
@@ -1927,6 +2649,13 @@
     reportPlaybackTimeline(video);
   }
 
+  /**
+   * 函数 `seekVideoTo`：封装 `seek Video To` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} targetSeconds 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function seekVideoTo(video, targetSeconds) {
     if (!video || !Number.isFinite(targetSeconds)) return;
     const siteResult = invokeSiteVideoCapability(video, 'seekTo', [targetSeconds]);
@@ -1953,6 +2682,13 @@
     reportPlaybackTimeline(video);
   }
 
+  /**
+   * 函数 `seekVideoBy`：封装 `seek Video By` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} offsetSeconds 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function seekVideoBy(video, offsetSeconds) {
     if (!video || !Number.isFinite(offsetSeconds)) return;
     const siteResult = invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds]);
@@ -1979,6 +2715,11 @@
     reportPlaybackTimeline(video);
   }
 
+  /**
+   * 函数 `activeFullscreenVideo`：封装 `active Fullscreen Video` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function activeFullscreenVideo() {
     if (state.nativeFullscreenVideo && state.nativeFullscreenVideo.isConnected) {
       return state.nativeFullscreenVideo;
@@ -1999,6 +2740,12 @@
     }) || videos[0] || null;
   }
 
+  /**
+   * 函数 `requestVideoFullscreen`：封装 `request Video Fullscreen` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function requestVideoFullscreen(video) {
     if (isVideoFullscreen(video)) {
       exitVideoFullscreen();
@@ -2026,6 +2773,11 @@
     }
   }
 
+  /**
+   * 函数 `exitVideoFullscreen`：封装 `exit Video Fullscreen` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function exitVideoFullscreen() {
     stopDirectionalPlayback();
     state.nativeFullscreenVideo = null;
@@ -2040,6 +2792,12 @@
     exitNativeFullscreen();
   }
 
+  /**
+   * 函数 `isVideoFullscreen`：封装 `is Video Fullscreen` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isVideoFullscreen(video) {
     return video && (
       document.fullscreenElement === video ||
@@ -2049,6 +2807,11 @@
     );
   }
 
+  /**
+   * 函数 `enterNativeFullscreen`：封装 `enter Native Fullscreen` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function enterNativeFullscreen() {
     const bridge = window.VideoBrowserNative;
     if (bridge && typeof bridge.enterFullscreen === 'function') {
@@ -2056,6 +2819,11 @@
     }
   }
 
+  /**
+   * 函数 `exitNativeFullscreen`：封装 `exit Native Fullscreen` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function exitNativeFullscreen() {
     const bridge = window.VideoBrowserNative;
     if (bridge && typeof bridge.exitFullscreen === 'function') {
@@ -2063,6 +2831,12 @@
     }
   }
 
+  /**
+   * 函数 `formatTime`：封装 `format Time` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function formatTime(value) {
     if (!Number.isFinite(value) || value < 0) return '00:00';
     const total = Math.floor(value);
@@ -2071,6 +2845,11 @@
     return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
   }
 
+  /**
+   * 函数 `clickSkipButtons`：封装 `click Skip Buttons` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function clickSkipButtons() {
     if (!state.config.videoEnabled && !state.config.scriptletSkipButtonsEnabled) return;
     skipSelectors.forEach(function (selector) {
@@ -2082,12 +2861,22 @@
     });
   }
 
+  /**
+   * 函数 `hasActiveVideo`：封装 `has Active Video` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function hasActiveVideo() {
     return Array.prototype.some.call(document.querySelectorAll('video'), function (video) {
       return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
     });
   }
 
+  /**
+   * 函数 `installFullscreenEventHooks`：封装 `install Fullscreen Event Hooks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function installFullscreenEventHooks() {
     document.addEventListener('fullscreenchange', syncDocumentFullscreenState);
     document.addEventListener('webkitfullscreenchange', syncDocumentFullscreenState);
@@ -2101,6 +2890,11 @@
     });
   }
 
+  /**
+   * 函数 `syncDocumentFullscreenState`：封装 `sync Document Fullscreen State` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function syncDocumentFullscreenState() {
     const hasDocumentFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
     if (hasDocumentFullscreen) {
@@ -2129,11 +2923,22 @@
     exitNativeFullscreen();
   }
 
+  /**
+   * 函数 `installHooks`：封装 `install Hooks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function installHooks() {
     if (state.hooked) return;
     state.hooked = true;
 
     const originalOpen = window.open;
+    /**
+     * 函数 `window.open`：封装 `open` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} url 表示要判断、转换或传给播放器/规则逻辑的输入值。
+     */
     window.open = function (url) {
       if (
         (state.config.cleanupEnabled && shouldBlockUrl(url)) ||
@@ -2146,6 +2951,11 @@
 
     const originalFetch = window.fetch;
     if (typeof originalFetch === 'function') {
+      /**
+       * 函数 `window.fetch`：封装 `fetch` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+       *
+       * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+       */
       window.fetch = function () {
         if (arguments.length > 0) {
           const input = arguments[0];
@@ -2164,6 +2974,11 @@
     installFullscreenEventHooks();
   }
 
+  /**
+   * 函数 `runPageWork`：封装 `run Page Work` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function runPageWork() {
     state.pendingWork = false;
     if (state.disposed) return;
@@ -2189,6 +3004,11 @@
     enhanceVideos();
   }
 
+  /**
+   * 函数 `schedulePageWork`：封装 `schedule Page Work` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function schedulePageWork() {
     if (state.disposed || state.pendingWork) return;
 
@@ -2199,12 +3019,22 @@
     window.setTimeout(runPageWork, delay);
   }
 
+  /**
+   * 函数 `pausePageVideos`：封装 `pause Page Videos` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function pausePageVideos() {
     document.querySelectorAll('video').forEach(function (video) {
       try { video.pause(); } catch (_) {}
     });
   }
 
+  /**
+   * 函数 `togglePlayPause`：封装 `toggle Play Pause` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function togglePlayPause() {
     const video = activeFullscreenVideo();
     if (!video) return false;
@@ -2221,6 +3051,12 @@
     return false;
   }
 
+  /**
+   * 函数 `startDirectionalPlayback`：封装 `start Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} direction 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function startDirectionalPlayback(direction) {
     const video = activeFullscreenVideo();
     if (!video) return;
@@ -2255,6 +3091,11 @@
     }, 250);
   }
 
+  /**
+   * 函数 `stopDirectionalPlayback`：封装 `stop Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function stopDirectionalPlayback() {
     const scan = state.directionalPlayback;
     if (!scan) return;
@@ -2278,6 +3119,12 @@
     document.querySelectorAll('video').forEach(applyVideoSpeed);
   }
 
+  /**
+   * 函数 `suspendPageFeatures`：封装 `suspend Page Features` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
+   */
   function suspendPageFeatures(options) {
     stopDirectionalPlayback();
     stopElementPicker();
@@ -2288,6 +3135,12 @@
     cleanupLegacyVideoOverlays();
   }
 
+  /**
+   * 函数 `disposePageFeatures`：封装 `dispose Page Features` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
+   */
   function disposePageFeatures(options) {
     suspendPageFeatures(options);
     state.disposed = true;
@@ -2303,6 +3156,11 @@
     }
   }
 
+  /**
+   * 函数 `startWorkers`：封装 `start Workers` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function startWorkers() {
     if (state.disposed) return;
 
@@ -2330,6 +3188,12 @@
   }
 
   window.VideoBrowserEnhancer = {
+    /**
+     * 函数 `apply`：封装 `apply` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} config 表示本次脚本运行的配置或上下文数据。
+     */
     apply: function (config) {
       state.disposed = false;
       state.config = config || {};
@@ -2339,24 +3203,62 @@
       runPageWork();
       startWorkers();
     },
+    /**
+     * 函数 `exitFullscreen`：封装 `exit Fullscreen` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     exitFullscreen: function () {
       exitVideoFullscreen();
     },
+    /**
+     * 函数 `seekBy`：封装 `seek By` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} offsetSeconds 表示参与几何计算、播放控制或列表定位的数值。
+     */
     seekBy: function (offsetSeconds) {
       seekVideoBy(activeFullscreenVideo(), Number(offsetSeconds || 0));
     },
+    /**
+     * 函数 `seekTo`：封装 `seek To` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} targetSeconds 表示参与几何计算、播放控制或列表定位的数值。
+     */
     seekTo: function (targetSeconds) {
       seekVideoTo(activeFullscreenVideo(), Number(targetSeconds || 0));
     },
+    /**
+     * 函数 `reportPlaybackTimeline`：封装 `report Playback Timeline` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     reportPlaybackTimeline: function () {
       reportPlaybackTimeline(activeFullscreenVideo());
     },
+    /**
+     * 函数 `togglePlayPause`：封装 `toggle Play Pause` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     togglePlayPause: function () {
       return togglePlayPause();
     },
+    /**
+     * 函数 `wakeControls`：封装 `wake Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     wakeControls: function () {
       return wakeVideoControls(activeFullscreenVideo());
     },
+    /**
+     * 函数 `setPlaybackSpeed`：封装 `set Playback Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} speed 表示参与几何计算、播放控制或列表定位的数值。
+     */
     setPlaybackSpeed: function (speed) {
       stopDirectionalPlayback();
       const normalizedSpeed = Number(speed || 1);
@@ -2370,24 +3272,62 @@
       if (siteResult.handled) return;
       document.querySelectorAll('video').forEach(applyVideoSpeed);
     },
+    /**
+     * 函数 `startDirectionalPlayback`：封装 `start Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} direction 表示参与几何计算、播放控制或列表定位的数值。
+     */
     startDirectionalPlayback: function (direction) {
       startDirectionalPlayback(direction);
     },
+    /**
+     * 函数 `stopDirectionalPlayback`：封装 `stop Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     stopDirectionalPlayback: function () {
       stopDirectionalPlayback();
     },
+    /**
+     * 函数 `startElementPicker`：封装 `start Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     startElementPicker: function () {
       return startElementPicker();
     },
+    /**
+     * 函数 `cancelElementPicker`：封装 `cancel Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     cancelElementPicker: function () {
       stopElementPicker();
     },
+    /**
+     * 函数 `finishElementPicker`：封装 `finish Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     */
     finishElementPicker: function () {
       stopElementPicker();
     },
+    /**
+     * 函数 `suspend`：封装 `suspend` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
+     */
     suspend: function (options) {
       suspendPageFeatures(options || {});
     },
+    /**
+     * 函数 `dispose`：封装 `dispose` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
+     */
     dispose: function (options) {
       disposePageFeatures(options || {});
     }

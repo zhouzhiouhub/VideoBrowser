@@ -31,6 +31,12 @@
     '[class*="mplayer"][class*="pause"]'
   ];
 
+  /**
+   * 函数 `query`：封装 `query` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   */
   function query(selector) {
     try {
       return document.querySelectorAll(selector);
@@ -39,6 +45,12 @@
     }
   }
 
+  /**
+   * 函数 `textOf`：封装 `text Of` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function textOf(element) {
     return String(
       element.innerText ||
@@ -49,6 +61,13 @@
     );
   }
 
+  /**
+   * 函数 `hideElement`：封装 `hide Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
+   */
   function hideElement(element, reason) {
     if (!element || element === document.body || element === document.documentElement) return;
     if (String(element.id || '').toLowerCase() === 'app') return;
@@ -58,6 +77,12 @@
     element.style.setProperty('pointer-events', 'none', 'important');
   }
 
+  /**
+   * 函数 `hideSelectors`：封装 `hide Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} selectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
+   */
   function hideSelectors(selectors) {
     selectors.forEach(function (selector) {
       query(selector).forEach(function (element) {
@@ -66,6 +91,12 @@
     });
   }
 
+  /**
+   * 函数 `clickTextButtons`：封装 `click Text Buttons` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} pattern 表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
+   */
   function clickTextButtons(pattern) {
     query('button,a,[role="button"],.close,.cancel,.skip').forEach(function (element) {
       if (pattern.test(textOf(element)) && typeof element.click === 'function') {
@@ -74,6 +105,13 @@
     });
   }
 
+  /**
+   * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
+   * @param {*} details 表示本次脚本运行的配置或上下文数据。
+   */
   function logVideoDiagnostic(event, details) {
     var bridge = window.VideoBrowserNative;
     var message = 'event=' + event + ' adapter=bilibili host=' + location.hostname + ' ' + (details || '');
@@ -90,10 +128,22 @@
     } catch (_) {}
   }
 
+  /**
+   * 函数 `videoSource`：封装 `video Source` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function videoSource(video) {
     return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
   }
 
+  /**
+   * 函数 `removeNativeVideoControls`：封装 `remove Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function removeNativeVideoControls(video) {
     if (!video) return;
     var hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
@@ -104,6 +154,11 @@
     }
   }
 
+  /**
+   * 函数 `hideVideoPlayPauseOverlays`：封装 `hide Video Play Pause Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function hideVideoPlayPauseOverlays() {
     var videos = Array.prototype.slice.call(query('video')).filter(function (video) {
       return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
@@ -119,6 +174,13 @@
     });
   }
 
+  /**
+   * 函数 `matchingVideoForOverlay`：封装 `matching Video For Overlay` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} videos 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function matchingVideoForOverlay(element, videos) {
     var elementRect = safeRect(element);
     if (!elementRect) return null;
@@ -139,6 +201,13 @@
     return bestVideo;
   }
 
+  /**
+   * 函数 `isLikelyCenterPlaybackOverlay`：封装 `is Likely Center Playback Overlay` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function isLikelyCenterPlaybackOverlay(element, video) {
     if (!element || !video || element.querySelector('video')) return false;
 
@@ -166,6 +235,13 @@
     return compactControl || knownStateLayer;
   }
 
+  /**
+   * 函数 `playbackOverlayRoot`：封装 `playback Overlay Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function playbackOverlayRoot(element, video) {
     var root = element;
     for (var depth = 0; depth < 3 && root.parentElement; depth += 1) {
@@ -178,6 +254,12 @@
     return root;
   }
 
+  /**
+   * 函数 `safeRect`：封装 `safe Rect` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function safeRect(element) {
     if (!element || typeof element.getBoundingClientRect !== 'function') return null;
     var rect = element.getBoundingClientRect();
@@ -185,6 +267,13 @@
     return rect;
   }
 
+  /**
+   * 函数 `expandedRect`：封装 `expanded Rect` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} amount 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function expandedRect(rect, amount) {
     return {
       left: rect.left - amount,
@@ -196,6 +285,13 @@
     };
   }
 
+  /**
+   * 函数 `rectsOverlap`：封装 `rects Overlap` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} first 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} second 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function rectsOverlap(first, second) {
     return first.left < second.right &&
       first.right > second.left &&
@@ -203,20 +299,44 @@
       first.bottom > second.top;
   }
 
+  /**
+   * 函数 `rectCenterX`：封装 `rect Center X` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function rectCenterX(rect) {
     return rect.left + rect.width / 2;
   }
 
+  /**
+   * 函数 `rectCenterY`：封装 `rect Center Y` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function rectCenterY(rect) {
     return rect.top + rect.height / 2;
   }
 
+  /**
+   * 函数 `centerDistance`：封装 `center Distance` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} first 表示参与几何计算、播放控制或列表定位的数值。
+   * @param {*} second 表示参与几何计算、播放控制或列表定位的数值。
+   */
   function centerDistance(first, second) {
     var dx = rectCenterX(first) - rectCenterX(second);
     var dy = rectCenterY(first) - rectCenterY(second);
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  /**
+   * 函数 `findBilibiliPlayerApi`：封装 `find Bilibili Player Api` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function findBilibiliPlayerApi() {
     var candidates = [
       window.player,
@@ -233,6 +353,13 @@
     return null;
   }
 
+  /**
+   * 函数 `playerMethodsFor`：封装 `player Methods For` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function playerMethodsFor(action, video) {
     if (action === 'togglePlayPause') {
       return video && (video.paused || video.ended)
@@ -248,6 +375,13 @@
     return [];
   }
 
+  /**
+   * 函数 `hasPlayerMethod`：封装 `has Player Method` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function hasPlayerMethod(action, video) {
     var api = findBilibiliPlayerApi();
     if (!api) return false;
@@ -256,6 +390,13 @@
     });
   }
 
+  /**
+   * 函数 `callPlayerMethod`：封装 `call Player Method` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} methodNames 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   * @param {*} args 表示稍后执行的回调、清理函数或调用参数。
+   */
   function callPlayerMethod(methodNames, args) {
     var api = findBilibiliPlayerApi();
     if (!api) return null;
@@ -274,6 +415,12 @@
     return null;
   }
 
+  /**
+   * 函数 `readPlayerMethod`：封装 `read Player Method` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} methodNames 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function readPlayerMethod(methodNames) {
     var api = findBilibiliPlayerApi();
     if (!api) return null;
@@ -290,6 +437,12 @@
     return null;
   }
 
+  /**
+   * 函数 `qualityValueOf`：封装 `quality Value Of` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} candidate 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function qualityValueOf(candidate) {
     if (typeof candidate === 'number') return candidate;
     if (typeof candidate === 'string') {
@@ -306,6 +459,11 @@
     return null;
   }
 
+  /**
+   * 函数 `bestApiQualityValue`：封装 `best Api Quality Value` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function bestApiQualityValue() {
     var qualityList = readPlayerMethod([
       'getSupportedQuality',
@@ -327,6 +485,11 @@
     return best;
   }
 
+  /**
+   * 函数 `preferBestQualityByApi`：封装 `prefer Best Quality By Api` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function preferBestQualityByApi() {
     var quality = bestApiQualityValue();
     if (!Number.isFinite(quality)) return null;
@@ -336,6 +499,12 @@
     );
   }
 
+  /**
+   * 函数 `qualityScore`：封装 `quality Score` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} text 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function qualityScore(text) {
     var value = String(text || '').replace(/\s+/g, ' ').trim();
     if (!value) return 0;
@@ -351,6 +520,12 @@
     return 0;
   }
 
+  /**
+   * 函数 `visibleElement`：封装 `visible Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function visibleElement(element) {
     var rect = element && typeof element.getBoundingClientRect === 'function'
       ? element.getBoundingClientRect()
@@ -358,6 +533,12 @@
     return Boolean(rect && rect.width > 0 && rect.height > 0);
   }
 
+  /**
+   * 函数 `clickableQualityElement`：封装 `clickable Quality Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function clickableQualityElement(element) {
     var current = element;
     for (var depth = 0; current && depth < 4; depth += 1, current = current.parentElement) {
@@ -369,6 +550,11 @@
     return element;
   }
 
+  /**
+   * 函数 `bestVisibleQualityOption`：封装 `best Visible Quality Option` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function bestVisibleQualityOption() {
     var candidates = [];
     query('[class*="quality"],[class*="Quality"],[aria-label*="\u753b\u8d28"],[title*="\u753b\u8d28"]').forEach(function (root) {
@@ -399,6 +585,11 @@
     return candidates[0] || null;
   }
 
+  /**
+   * 函数 `clickQualityMenuControl`：封装 `click Quality Menu Control` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function clickQualityMenuControl() {
     var controls = Array.prototype.slice.call(query(
       '.bpx-player-ctrl-quality,.bilibili-player-video-quality,[class*="quality"],[aria-label*="\u753b\u8d28"],[title*="\u753b\u8d28"]'
@@ -416,6 +607,11 @@
     return false;
   }
 
+  /**
+   * 函数 `preferBestQualityByMenu`：封装 `prefer Best Quality By Menu` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function preferBestQualityByMenu() {
     var option = bestVisibleQualityOption();
     if (option) {
@@ -440,11 +636,24 @@
     return true;
   }
 
+  /**
+   * 函数 `handledValue`：封装 `handled Value` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} callResult 表示函数执行 `callResult` 相关逻辑时需要读取或处理的输入。
+   * @param {*} fallbackValue 表示要判断、转换或传给播放器/规则逻辑的输入值。
+   */
   function handledValue(callResult, fallbackValue) {
     if (!callResult || !callResult.handled) return null;
     return typeof callResult.value === 'undefined' ? fallbackValue : callResult.value;
   }
 
+  /**
+   * 函数 `currentVideoTime`：封装 `current Video Time` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+   */
   function currentVideoTime(video) {
     var api = findBilibiliPlayerApi();
     if (api) {
@@ -461,6 +670,12 @@
     return Number(video && video.currentTime || 0);
   }
 
+  /**
+   * 函数 `run`：封装 `run` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} config 表示本次脚本运行的配置或上下文数据。
+   */
   function run(config) {
     if (!document.documentElement) return;
     if (config && config.cleanupEnabled) {
@@ -485,6 +700,11 @@
     }
   }
 
+  /**
+   * 函数 `startWorker`：封装 `start Worker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   */
   function startWorker() {
     if (state.intervalId) return;
     state.intervalId = window.setInterval(function () {
@@ -494,45 +714,103 @@
 
   adapters.bilibili = adapters.bilibili || {};
   adapters.bilibili.videoCapabilities = {
+    /**
+     * 函数 `supports`：封装 `supports` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     */
     supports: function (video) {
       return Boolean(video && video.isConnected);
     },
+    /**
+     * 函数 `canUse`：封装 `can Use` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     */
     canUse: function (action, video) {
       if (action === 'enableControls') return true;
       if (action === 'preferBestQuality') return true;
       return hasPlayerMethod(action, video);
     },
+    /**
+     * 函数 `enableControls`：封装 `enable Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     */
     enableControls: function (video) {
       removeNativeVideoControls(video);
       hideVideoPlayPauseOverlays();
       return Boolean(video);
     },
+    /**
+     * 函数 `togglePlayPause`：封装 `toggle Play Pause` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     */
     togglePlayPause: function (video) {
       var methodNames = playerMethodsFor('togglePlayPause', video);
       var result = callPlayerMethod(methodNames, []);
       if (!result) return null;
       return video && (video.paused || video.ended);
     },
+    /**
+     * 函数 `seekBy`：封装 `seek By` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     * @param {*} offsetSeconds 表示参与几何计算、播放控制或列表定位的数值。
+     */
     seekBy: function (video, offsetSeconds) {
       var offset = Number(offsetSeconds);
       if (!Number.isFinite(offset)) return null;
       var target = currentVideoTime(video) + offset;
       return handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
     },
+    /**
+     * 函数 `seekTo`：封装 `seek To` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     * @param {*} targetSeconds 表示参与几何计算、播放控制或列表定位的数值。
+     */
     seekTo: function (video, targetSeconds) {
       var target = Number(targetSeconds);
       if (!Number.isFinite(target)) return null;
       return handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
     },
+    /**
+     * 函数 `setPlaybackSpeed`：封装 `set Playback Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     * @param {*} speed 表示参与几何计算、播放控制或列表定位的数值。
+     */
     setPlaybackSpeed: function (video, speed) {
       var normalizedSpeed = Number(speed);
       if (!Number.isFinite(normalizedSpeed) || normalizedSpeed <= 0) return null;
       return handledValue(callPlayerMethod(['setPlaybackRate', 'setPlaybackSpeed'], [normalizedSpeed]), true);
     },
+    /**
+     * 函数 `preferBestQuality`：封装 `prefer Best Quality` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
+     */
     preferBestQuality: function (video) {
       return preferBestQualityByApi() || preferBestQualityByMenu();
     }
   };
+  /**
+   * 函数 `adapters.bilibili.apply`：封装 `apply` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
+   *
+   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
+   * @param {*} config 表示本次脚本运行的配置或上下文数据。
+   */
   adapters.bilibili.apply = function (config) {
     this.lastConfig = config || {};
     state.config = this.lastConfig;
