@@ -65,7 +65,17 @@
    * @param {*} selectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function hideSelectors(selectors) {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     selectors.forEach(function (selector) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       query(selector).forEach(function (element) {
         hideElement(element, 'tencent-ad');
       });
@@ -79,6 +89,11 @@
    * @param {*} pattern 表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
    */
   function clickTextButtons(pattern) {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     query('button,a,[role="button"],.close,.skip,.txp_btn_skip,.txp_ad_skip').forEach(function (element) {
       if (pattern.test(textOf(element)) && typeof element.click === 'function') {
         element.click();
@@ -171,6 +186,10 @@
    */
   function startWorker() {
     if (state.intervalId) return;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     state.intervalId = window.setInterval(function () {
       run(state.config || {});
     }, 1800);

@@ -155,6 +155,11 @@
    */
   function shouldBlockUrlAgainstKeywords(value, keywords) {
     const url = String(value || '').toLowerCase();
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param keyword 表示当前回调正在处理的名称、键或文本值。
+     */
     return keywords.some(function (keyword) {
       return url.indexOf(keyword) !== -1;
     });
@@ -196,8 +201,18 @@
   function configKeywordList(fieldName) {
     const values = state.config && state.config[fieldName];
     if (!Array.isArray(values)) return [];
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param keyword 表示当前回调正在处理的名称、键或文本值。
+     */
     return values.map(function (keyword) {
       return String(keyword || '').trim().toLowerCase();
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param keyword 表示当前回调正在处理的名称、键或文本值。
+     */
     }).filter(function (keyword) {
       return keyword.length >= 3;
     });
@@ -238,8 +253,18 @@
    */
   function safeSelectorList(value) {
     if (!Array.isArray(value)) return [];
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     return value.map(function (selector) {
       return String(selector || '').trim();
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     }).filter(function (selector) {
       return isSafeSelector(selector);
     });
@@ -282,6 +307,12 @@
     const selectors = (includeGenericSelectors ? adSelectors.concat(accountSelectors, cleanupSelectors) : [])
       .concat(includeRuleSelectors ? externalCssSelectors() : [])
       .concat(userCssSelectors());
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     * @param index 表示排序、比较或去重时当前回调收到的位置或比较对象。
+     */
     const uniqueSelectors = selectors.filter(function (selector, index) {
       return selectors.indexOf(selector) === index;
     });
@@ -323,6 +354,11 @@
       'host=' + safeLogValue(location.hostname || ''),
       'path=' + safeLogValue(location.pathname || '/')
     ];
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param key 表示当前回调正在处理的名称、键或文本值。
+     */
     Object.keys(values).forEach(function (key) {
       parts.push(safeLogValue(key) + '=' + safeLogValue(values[key]));
     });
@@ -383,8 +419,18 @@
    */
   function cleanupLegacyVideoOverlays() {
     if (state.videoOverlays && typeof state.videoOverlays.forEach === 'function') {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param controls 表示当前回调收到的 `controls` 参数。
+       */
       state.videoOverlays.forEach(function (controls) {
         if (controls && Array.isArray(controls.disposers)) {
+          /*
+           * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+           * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+           * @param dispose 表示当前回调需要执行的函数或请求来源。
+           */
           controls.disposers.forEach(function (dispose) {
             try { dispose(); } catch (_) {}
           });
@@ -396,7 +442,16 @@
       }
     }
     state.videoOverlays = null;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     runWithMutationSuppressed(function () {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param overlay 表示当前回调正在检查或操作的页面元素。
+       */
       document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
         overlay.remove();
       });
@@ -414,6 +469,10 @@
     try {
       return work();
     } finally {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       */
       window.setTimeout(function () {
         state.suppressMutationWork = false;
       }, 0);
@@ -436,9 +495,23 @@
       return;
     }
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     runWithMutationSuppressed(function () {
       injectStyle(true, true);
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+       */
       adSelectors.concat(accountSelectors, cleanupSelectors).forEach(function (selector) {
+        /*
+         * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+         * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+         * @param element 表示当前回调正在检查或操作的页面元素。
+         */
         document.querySelectorAll(selector).forEach(function (element) {
           hideElement(element, 'generic-cleanup');
         });
@@ -457,7 +530,17 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function removeConfiguredDomElements() {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     externalDomSelectors().forEach(function (selector) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       querySelectorAllSafe(selector).forEach(function (element) {
         removeElement(element, 'rule-dom-remove');
       });
@@ -473,11 +556,21 @@
     if (!document.body) return;
 
     const roots = [];
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param candidate 表示当前回调正在检查或操作的页面元素。
+     */
     collectGenericAdOverlayCandidates().forEach(function (candidate) {
       const root = findGenericAdOverlayRoot(candidate);
       if (root && roots.indexOf(root) === -1) roots.push(root);
     });
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param root 表示当前回调正在检查或操作的页面元素。
+     */
     roots.forEach(function (root) {
       hideElement(root, 'generic-ad-overlay');
       hideGenericOverlayBackdrops(root);
@@ -516,6 +609,11 @@
     const imageSlices = [];
     const clickGridCells = [];
     const adjunctControls = [];
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     querySelectorAllSafe('body *').forEach(function (element) {
       if (!element || isProtectedAppContainer(element)) return;
 
@@ -539,15 +637,30 @@
     });
 
     if (imageSlices.length >= 12) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       imageSlices.forEach(function (element) {
         hideElement(element, 'generated-sliced-ad');
       });
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       adjunctControls.forEach(function (element) {
         hideElement(element, 'generated-sliced-ad');
       });
     }
 
     if (clickGridCells.length >= 20) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       clickGridCells.forEach(function (element) {
         hideElement(element, 'generated-click-grid');
       });
@@ -678,13 +791,28 @@
       '[style*="position:fixed"]',
       '[style*="position: absolute"]',
       '[style*="position:absolute"]'
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     ].forEach(function (selector) {
       querySelectorAllSafe(selector).forEach(addCandidate);
     });
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     querySelectorAllSafe('button,a,i,[role="button"],[aria-label],[title]').forEach(function (element) {
       if (isCloseLikeControl(element)) addCandidate(element);
     });
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     querySelectorAllSafe('img,picture,svg').forEach(function (element) {
       const rect = element.getBoundingClientRect();
       const source = mediaSourceValue(element);
@@ -697,6 +825,11 @@
       }
     });
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     querySelectorAllSafe('body *').forEach(function (element) {
       if (!element || isProtectedAppContainer(element) || element.querySelector('video')) return;
 
@@ -734,6 +867,11 @@
       }
     });
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     querySelectorAllSafe('body *').forEach(function (element) {
       if (!element || isProtectedAppContainer(element) || element.querySelector('video,form,input,textarea,select')) {
         return;
@@ -972,6 +1110,11 @@
   function mediaSourceLooksLikeAd(element) {
     return Array.prototype.some.call(
       element.querySelectorAll('img,source'),
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param media 表示当前回调正在检查或操作的页面元素。
+       */
       function (media) {
         const value = mediaSourceValue(media);
         return /^data:image\//i.test(value) ||
@@ -1051,6 +1194,11 @@
    */
   function hideGenericOverlayBackdrops(root) {
     if (!root || !document.body) return;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     querySelectorAllSafe('body *').forEach(function (element) {
       if (!element || element === root || element.contains(root) || root.contains(element)) return;
       if (isProtectedAppContainer(element)) return;
@@ -1099,11 +1247,21 @@
       'height',
       'touch-action',
       'overscroll-behavior'
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param property 表示当前回调正在处理的名称、键或文本值。
+     */
     ].forEach(function (property) {
       element.style.removeProperty(property);
     });
 
     if (!element.classList) return;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param className 表示当前回调正在处理的名称、键或文本值。
+     */
     Array.prototype.slice.call(element.classList).forEach(function (className) {
       if (isScrollLockClass(className)) {
         element.classList.remove(className);
@@ -1202,8 +1360,17 @@
   function removeSearchResultAds() {
     if (!isSearchProviderResultPage()) return;
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     runWithMutationSuppressed(function () {
       hideKnownSearchAdContainers();
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param marker 表示当前回调正在检查或操作的页面元素。
+       */
       findSearchAdDisclosureMarkers().forEach(function (marker) {
         const root = findSearchResultRoot(marker);
         if (root) hideElement(root, 'search-result-ad');
@@ -1234,7 +1401,17 @@
       '[class*="wise_ad"]'
     ];
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     selectors.forEach(function (selector) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       document.querySelectorAll(selector).forEach(function (element) {
         const root = findSearchResultRoot(element) || element;
         hideElement(root, 'search-result-ad-container');
@@ -1251,6 +1428,11 @@
     const markers = [];
     document.querySelectorAll(
       'span,i,em,b,a,button,[role="button"],[aria-label],[title],[class*="ad"],[class*="adv"]'
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     ).forEach(function (element) {
       const text = normalizeText(
         element.innerText ||
@@ -1355,6 +1537,11 @@
       'div,section,aside,[role="dialog"],[class*="dialog"],[class*="modal"],' +
       '[class*="popup"],[class*="mask"],[class*="overlay"],[class*="sheet"]'
     );
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     candidates.forEach(function (element) {
       if (String(element.id || '').toLowerCase() === 'app') return;
       if (isBilibiliContentContainer(element)) return;
@@ -1430,6 +1617,11 @@
    * @param {*} promptRoot 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function hideBilibiliPromptBackdrops(promptRoot) {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     document.querySelectorAll('body *').forEach(function (element) {
       if (!element || element === promptRoot || element.contains(promptRoot) || promptRoot.contains(element)) {
         return;
@@ -1761,6 +1953,11 @@
     const tagName = elementTagName(element);
     const classes = stableClassTokens(element).slice(0, 3);
     if (!tagName || !classes.length) return null;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param className 表示当前回调正在处理的名称、键或文本值。
+     */
     return tagName + classes.map(function (className) {
       return '.' + cssIdentifier(className);
     }).join('');
@@ -1780,6 +1977,11 @@
     let segment = tagName;
     const classes = stableClassTokens(element).slice(0, 2);
     if (classes.length) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param className 表示当前回调正在处理的名称、键或文本值。
+       */
       segment += classes.map(function (className) {
         return '.' + cssIdentifier(className);
       }).join('');
@@ -1801,6 +2003,11 @@
     const parent = element.parentElement;
     if (!parent) return false;
     let matches = 0;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param sibling 表示当前回调正在检查或操作的页面元素。
+     */
     Array.prototype.forEach.call(parent.children, function (sibling) {
       try {
         if (sibling.matches(segment)) matches += 1;
@@ -1844,8 +2051,20 @@
    */
   function stableClassTokens(element) {
     return Array.prototype.slice.call(element.classList || [])
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param value 表示当前回调正在处理的名称、键或文本值。
+       */
       .map(function (value) { return String(value || '').trim(); })
       .filter(isStableSelectorToken)
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param value 表示当前回调正在处理的名称、键或文本值。
+       * @param index 表示排序、比较或去重时当前回调收到的位置或比较对象。
+       * @param values 表示当前回调正在处理的名称、键或文本值。
+       */
       .filter(function (value, index, values) {
         return values.indexOf(value) === index;
       });
@@ -1876,6 +2095,11 @@
     if (window.CSS && typeof window.CSS.escape === 'function') {
       return window.CSS.escape(String(value));
     }
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param character 表示当前回调收到的 `character` 参数。
+     */
     return String(value).replace(/[^A-Za-z0-9_-]/g, function (character) {
       return '\\' + character.charCodeAt(0).toString(16) + ' ';
     });
@@ -1917,6 +2141,11 @@
    */
   function detachElementPickerListeners(picker) {
     if (!picker || !Array.isArray(picker.listeners)) return;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param entry 表示当前回调收到的 `entry` 参数。
+     */
     picker.listeners.forEach(function (entry) {
       document.removeEventListener(entry.type, entry.listener, true);
     });
@@ -1959,6 +2188,11 @@
       'header,[role="banner"],[id*="top"],[class*="top"],[id*="head"],[class*="head"],body>div,body>div>div'
     ).forEach(addCandidate);
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     candidates.forEach(function (element) {
       if (!element || element.querySelector('input,textarea,form')) return;
       const rect = element.getBoundingClientRect();
@@ -1984,6 +2218,11 @@
 
     document.querySelectorAll(
       'body>div,body>section,header,[role="banner"],[id*="top"],[class*="top"],[id*="banner"],[class*="banner"]'
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     ).forEach(function (element) {
       if (!element || element.querySelector('input,textarea,select,form,video,canvas')) return;
 
@@ -2026,6 +2265,11 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function enhanceVideos() {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param video 表示当前回调正在检查或操作的页面元素。
+     */
     document.querySelectorAll('video').forEach(function (video) {
       if (state.config.videoEnabled || state.config.scriptletVideoControlsEnabled) {
         enableVideoControls(video);
@@ -2106,13 +2350,28 @@
   function hasLikelyCustomPlayerControls(video) {
     const root = customPlayerRootFor(video);
     if (!root) return false;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     const controls = customPlayerControlSelectors.some(function (selector) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       return querySelectorAllSafeWithin(root, selector).some(function (element) {
         return isLikelyCustomControlElement(element, video);
       });
     });
     if (controls) return true;
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     return querySelectorAllSafeWithin(root, 'button,[role="button"],input[type="range"]').some(function (element) {
       return isLikelyMediaControlElement(element, video);
     });
@@ -2259,12 +2518,20 @@
         reportPlaybackTimeline(video);
       }
     };
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     video.addEventListener('webkitbeginfullscreen', function () {
       state.nativeFullscreenVideo = video;
       applyVideoSpeed(video);
       reportPlaybackTimeline(video);
       enterNativeFullscreen();
     });
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     video.addEventListener('webkitendfullscreen', function () {
       stopDirectionalPlayback();
       state.nativeFullscreenVideo = null;
@@ -2273,9 +2540,18 @@
       applyVideoSpeed(video);
       exitNativeFullscreen();
     });
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     video.addEventListener('dblclick', function () {
       requestVideoFullscreen(video);
     });
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param eventName 表示当前回调正在处理的名称、键或文本值。
+     */
     ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'play', 'playing'].forEach(function (eventName) {
       video.addEventListener(eventName, timelineReporter);
     });
@@ -2296,10 +2572,19 @@
      * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
      */
     const enforceSpeed = function () {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       */
       window.setTimeout(function () {
         applyVideoSpeed(video);
       }, 0);
     };
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param eventName 表示当前回调正在处理的名称、键或文本值。
+     */
     ['loadedmetadata', 'play', 'playing', 'ratechange', 'webkitbeginfullscreen'].forEach(function (eventName) {
       video.addEventListener(eventName, enforceSpeed);
     });
@@ -2346,9 +2631,19 @@
    */
   function siteVideoCapabilitiesFor(video, action) {
     const adapters = window.VideoBrowserSiteAdapters || {};
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param key 表示当前回调正在处理的名称、键或文本值。
+     */
     return Object.keys(adapters).map(function (key) {
       const adapter = adapters[key];
       return adapter && adapter.videoCapabilities;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param capabilities 表示当前回调收到的 `capabilities` 参数。
+     */
     }).filter(function (capabilities) {
       if (!capabilities || typeof capabilities !== 'object') return false;
       if (action && typeof capabilities[action] !== 'function') return false;
@@ -2735,6 +3030,11 @@
       }
     }
     const videos = Array.prototype.slice.call(document.querySelectorAll('video'));
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param video 表示当前回调正在检查或操作的页面元素。
+     */
     return videos.find(function (video) {
       return video && video.isConnected && !video.paused && !video.ended;
     }) || videos[0] || null;
@@ -2759,6 +3059,11 @@
       { element: target, request: target.requestFullscreen || target.webkitRequestFullscreen },
       { element: video, request: video.requestFullscreen || video.webkitRequestFullscreen || video.webkitEnterFullscreen }
     ];
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param requester 表示当前回调需要执行的函数或请求来源。
+     */
     const requested = requesters.some(function (requester) {
       if (typeof requester.request !== 'function') return false;
       try {
@@ -2852,7 +3157,17 @@
    */
   function clickSkipButtons() {
     if (!state.config.videoEnabled && !state.config.scriptletSkipButtonsEnabled) return;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     skipSelectors.forEach(function (selector) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param button 表示当前回调正在检查或操作的页面元素。
+       */
       document.querySelectorAll(selector).forEach(function (button) {
         const text = String(button.innerText || button.textContent || button.getAttribute('aria-label') || '');
         const looksLikeSkip = /skip|跳过|关闭|close/i.test(text) || selector.indexOf('skip') !== -1;
@@ -2867,6 +3182,11 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function hasActiveVideo() {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param video 表示当前回调正在检查或操作的页面元素。
+     */
     return Array.prototype.some.call(document.querySelectorAll('video'), function (video) {
       return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
     });
@@ -2880,9 +3200,17 @@
   function installFullscreenEventHooks() {
     document.addEventListener('fullscreenchange', syncDocumentFullscreenState);
     document.addEventListener('webkitfullscreenchange', syncDocumentFullscreenState);
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     window.addEventListener('pagehide', function () {
       suspendPageFeatures({ pauseVideos: true });
     });
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     window.addEventListener('pageshow', function () {
       state.disposed = false;
       startWorkers();
@@ -3025,6 +3353,11 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function pausePageVideos() {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param video 表示当前回调正在检查或操作的页面元素。
+     */
     document.querySelectorAll('video').forEach(function (video) {
       try { video.pause(); } catch (_) {}
     });
@@ -3044,6 +3377,10 @@
       try {
         if (video.ended) video.currentTime = 0;
       } catch (_) {}
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       */
       try { video.play().catch(function () {}); } catch (__) {}
       return true;
     }
@@ -3075,12 +3412,20 @@
     if (normalizedDirection > 0) {
       state.fullscreenPlaybackSpeed = 2;
       applyVideoSpeed(video);
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       */
       try { video.play().catch(function () {}); } catch (_) {}
       return;
     }
 
     try { video.pause(); } catch (_) {}
     seekVideoBy(video, -0.5);
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     state.directionalPlayback.intervalId = window.setInterval(function () {
       const scan = state.directionalPlayback;
       if (!scan || scan.direction >= 0 || !scan.video || !scan.video.isConnected) {
@@ -3113,6 +3458,10 @@
       if (scan.wasPaused) {
         try { video.pause(); } catch (_) {}
       } else {
+        /*
+         * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+         * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+         */
         try { video.play().catch(function () {}); } catch (__) {}
       }
     }
@@ -3170,6 +3519,10 @@
     }
 
     if (!state.observer && document.documentElement && !isBilibiliHost()) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       */
       state.observer = new MutationObserver(function () {
         if (state.suppressMutationWork) return;
         schedulePageWork();
@@ -3181,6 +3534,10 @@
     }
 
     if (!state.intervalId) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       */
       state.intervalId = window.setInterval(function () {
         schedulePageWork();
       }, 1500);

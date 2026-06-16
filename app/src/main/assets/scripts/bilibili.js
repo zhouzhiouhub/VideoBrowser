@@ -84,7 +84,17 @@
    * @param {*} selectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function hideSelectors(selectors) {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     selectors.forEach(function (selector) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       query(selector).forEach(function (element) {
         hideElement(element, 'bilibili-ad');
       });
@@ -98,6 +108,11 @@
    * @param {*} pattern 表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
    */
   function clickTextButtons(pattern) {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param element 表示当前回调正在检查或操作的页面元素。
+     */
     query('button,a,[role="button"],.close,.cancel,.skip').forEach(function (element) {
       if (pattern.test(textOf(element)) && typeof element.click === 'function') {
         element.click();
@@ -160,12 +175,27 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function hideVideoPlayPauseOverlays() {
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param video 表示当前回调正在检查或操作的页面元素。
+     */
     var videos = Array.prototype.slice.call(query('video')).filter(function (video) {
       return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
     });
     if (!videos.length) return;
 
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
+     */
     playbackOverlaySelectors.forEach(function (selector) {
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       query(selector).forEach(function (element) {
         var video = matchingVideoForOverlay(element, videos);
         if (!video || !isLikelyCenterPlaybackOverlay(element, video)) return;
@@ -187,6 +217,11 @@
 
     var bestVideo = null;
     var bestDistance = Infinity;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param video 表示当前回调正在检查或操作的页面元素。
+     */
     videos.forEach(function (video) {
       var videoRect = safeRect(video);
       if (!videoRect) return;
@@ -385,6 +420,11 @@
   function hasPlayerMethod(action, video) {
     var api = findBilibiliPlayerApi();
     if (!api) return false;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param methodName 表示当前回调收到的 `methodName` 参数。
+     */
     return playerMethodsFor(action, video).some(function (methodName) {
       return typeof api[methodName] === 'function';
     });
@@ -477,6 +517,11 @@
     if (!Array.isArray(qualityList) || !qualityList.length) return null;
 
     var best = null;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param candidate 表示当前回调正在检查或操作的页面元素。
+     */
     qualityList.forEach(function (candidate) {
       var value = qualityValueOf(candidate);
       if (!Number.isFinite(value)) return;
@@ -557,6 +602,11 @@
    */
   function bestVisibleQualityOption() {
     var candidates = [];
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param root 表示当前回调正在检查或操作的页面元素。
+     */
     query('[class*="quality"],[class*="Quality"],[aria-label*="\u753b\u8d28"],[title*="\u753b\u8d28"]').forEach(function (root) {
       if (!root || root.querySelector('video')) return;
       var elements = Array.prototype.slice.call(root.querySelectorAll(
@@ -565,6 +615,11 @@
       if (root.matches && root.matches('button,a,li,[role="button"],[role="menuitem"]')) {
         elements.unshift(root);
       }
+      /*
+       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+       * @param element 表示当前回调正在检查或操作的页面元素。
+       */
       elements.forEach(function (element) {
         if (!visibleElement(element)) return;
         var text = textOf(element);
@@ -579,6 +634,12 @@
         });
       });
     });
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     * @param first 表示排序、比较或去重时当前回调收到的位置或比较对象。
+     * @param second 表示排序、比较或去重时当前回调收到的位置或比较对象。
+     */
     candidates.sort(function (first, second) {
       return second.score - first.score;
     });
@@ -625,6 +686,10 @@
     }
 
     if (!clickQualityMenuControl()) return false;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     window.setTimeout(function () {
       var delayedOption = bestVisibleQualityOption();
       if (!delayedOption) return;
@@ -707,6 +772,10 @@
    */
   function startWorker() {
     if (state.intervalId) return;
+    /*
+     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
+     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
+     */
     state.intervalId = window.setInterval(function () {
       run(state.config || {});
     }, 1800);
