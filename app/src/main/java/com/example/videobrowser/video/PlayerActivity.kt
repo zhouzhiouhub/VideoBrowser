@@ -1,5 +1,12 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 PlayerActivity 可以拆开理解为“Player Activity”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -37,6 +44,12 @@ import com.example.videobrowser.storage.PreferenceStore
 import org.json.JSONArray
 import org.json.JSONObject
 
+/**
+ * 原生视频播放器界面。
+ *
+ * 它使用 AndroidX Media3 ExoPlayer 播放直接视频地址或本地视频文件。
+ * MainActivity 负责发现“应该原生播放”的媒体，真正的播放、手势、字幕、队列和历史都在这里处理。
+ */
 class PlayerActivity : AppCompatActivity() {
     private lateinit var playerRoot: FrameLayout
     private lateinit var playerView: PlayerView
@@ -72,6 +85,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 播放器默认横屏，并把系统音量键绑定到媒体音量。
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_player)
@@ -83,6 +97,7 @@ class PlayerActivity : AppCompatActivity() {
         } else {
             null
         }
+        // 横竖屏切换或系统重建 Activity 时优先恢复队列；首次进入则从 Intent 解析队列。
         playbackQueue = savedPlaybackQueue ?: playbackQueueFromIntent()
         currentMediaItemIndex = playbackQueue.currentIndex
         repeatMode = playbackQueue.repeatMode
@@ -95,6 +110,7 @@ class PlayerActivity : AppCompatActivity() {
         playerView.setControllerShowTimeoutMs(CONTROLS_HIDE_DELAY_MS)
 
         if (savedInstanceState != null) {
+            // 系统重建时恢复内存状态，避免旋转或后台回收后从头播放。
             playbackPosition = savedInstanceState.getLong(STATE_PLAYBACK_POSITION)
             playWhenReady = savedInstanceState.getBoolean(STATE_PLAY_WHEN_READY, true)
             currentMediaItemIndex = savedInstanceState.getInt(STATE_MEDIA_ITEM_INDEX)
@@ -212,6 +228,7 @@ class PlayerActivity : AppCompatActivity() {
         val dataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(requestHeaders())
+        // WebView 传来的 User-Agent、Cookie、Referer 会放进请求头，减少站点防盗链导致的播放失败。
         intent.getStringExtra(EXTRA_USER_AGENT)
             ?.takeIf { it.isNotBlank() }
             ?.let { dataSourceFactory.setUserAgent(it) }
@@ -222,6 +239,7 @@ class PlayerActivity : AppCompatActivity() {
         val mediaItems = playbackQueue.items.map(::toMediaItem)
         val videoEffects = NativeVideoEnhancement.defaultEffects()
 
+        // ExoPlayer 生命周期跟随 Activity：onStart 初始化，onStop 释放，播放位置由 savePlayerState 保存。
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
@@ -314,6 +332,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun setupGestureOverlay() {
+        // 手势层不直接操作 ExoPlayer，而是统一发 PlaybackCommand，再由 handlePlaybackCommand 分发。
         gestureOverlay = FullscreenVideoGestureOverlay(this).apply {
             onSeekBy = { offsetMs -> handlePlaybackCommand(PlaybackCommand.SeekBy(offsetMs)) }
             onSeekTo = { positionMs -> handlePlaybackCommand(PlaybackCommand.SeekTo(positionMs)) }
@@ -359,6 +378,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun handlePlaybackCommand(command: PlaybackCommand): Any? {
+        // 这一层把 UI 手势/按钮命令转换成播放器动作，后续新增控制项时也从这里接入。
         return when (command) {
             PlaybackCommand.Play -> playPlayer()
             PlaybackCommand.Pause -> pausePlayer()

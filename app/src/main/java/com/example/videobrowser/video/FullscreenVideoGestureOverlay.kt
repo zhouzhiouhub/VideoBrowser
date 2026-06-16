@@ -1,5 +1,12 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 FullscreenVideoGestureOverlay 可以拆开理解为“Fullscreen Video Gesture Overlay”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import android.app.Activity
 import android.content.Context
 import android.graphics.Color
@@ -28,6 +35,16 @@ import com.example.videobrowser.R
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+/**
+ * 全屏视频上方的透明手势层。
+ *
+ * 它自己不播放视频，只负责把触摸行为翻译成回调：
+ * - 左右滑动：预览并提交进度跳转。
+ * - 左侧上下滑动：调亮度。
+ * - 右侧上下滑动：调音量。
+ * - 点击/双击/长按：唤醒控件、播放暂停、快退快进。
+ * - 顶部按钮：退出、锁定、倍速、字幕、队列、缩放、旋转等。
+ */
 class FullscreenVideoGestureOverlay(
     private val activity: Activity
 ) : FrameLayout(activity) {
@@ -219,6 +236,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        // 入口先处理“控件点击”和“底部系统播放器控件透传”，剩下的触摸才进入手势识别。
         if (visibility != View.VISIBLE || width <= 0 || height <= 0) {
             return false
         }
@@ -249,6 +267,7 @@ class FullscreenVideoGestureOverlay(
         }
 
         if (locked) {
+            // 锁定后只吞掉触摸并保留解锁按钮，避免误触改变播放状态。
             if (event.isFinishedAction()) {
                 resetTouchState()
             }
@@ -513,6 +532,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun handleGestureEvent(event: MotionEvent): Boolean {
+        // 这里是触摸事件的总入口：先记录起点区域，再根据移动方向决定是哪一种手势。
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = event.x
@@ -599,6 +619,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun beginHorizontalSeek(deltaX: Float) {
+        // 横向滑动开始时记录当前播放位置，后续移动只是在这个基础上计算预览目标。
         activeGesture = VerticalGesture.HORIZONTAL_SEEK
         clearPendingSideTap()
         clearSeekAccumulator()
@@ -635,6 +656,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun finishHorizontalSeek(commit: Boolean) {
+        // 抬手时才真正 seek，移动过程只显示反馈，避免每一帧都让播放器跳转。
         val feedbackText = feedbackView.text?.toString().orEmpty()
         if (commit && pendingHorizontalSeekMs != 0L) {
             pendingSeekTargetMs?.let { onSeekTo?.invoke(it) }
@@ -720,6 +742,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun triggerLongPress() {
+        // 长按左右区域触发连续快退/快进；中心区域不触发，避免和普通点击冲突。
         if (locked || longPressActive || activeGesture != VerticalGesture.NONE || !downZone.isSide()) {
             return
         }

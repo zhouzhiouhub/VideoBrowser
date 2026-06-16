@@ -1,7 +1,17 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 PlaybackHistoryRepository 可以拆开理解为“Playback History Repository”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import com.example.videobrowser.storage.PreferenceStore
 
+/**
+ * 单个媒体的播放进度记录。
+ */
 data class PlaybackProgress(
     val mediaIdentity: String,
     val positionMs: Long,
@@ -14,6 +24,7 @@ class PlaybackHistoryRepository(
     private val preferenceStore: PreferenceStore
 ) {
     fun save(progress: PlaybackProgress, privateBrowsing: Boolean = false) {
+        // 无痕播放不写入播放历史；普通模式下同一媒体只保留最新一条。
         if (privateBrowsing) {
             return
         }
@@ -38,6 +49,7 @@ class PlaybackHistoryRepository(
     }
 
     fun resumePositionFor(mediaIdentity: String): Long? {
+        // 接近片尾时不提示续播，避免用户下次打开已经看完的视频还跳到结尾。
         val progress = progressFor(mediaIdentity) ?: return null
         if (progress.positionMs <= 0L) {
             return null

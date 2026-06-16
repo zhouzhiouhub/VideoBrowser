@@ -1,7 +1,20 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 PlaybackQueue 可以拆开理解为“Playback Queue”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import kotlin.random.Random
 
+/**
+ * 原生播放器播放队列。
+ *
+ * 这个类是不可变数据模型：每次上一集、下一集、删除、随机播放都会返回新的 PlaybackQueue。
+ * 不可变模型更容易测试，也避免 UI 和播放器同时修改同一个列表。
+ */
 data class PlaybackQueue(
     val items: List<PlayableMediaItem>,
     val currentIndex: Int = 0,
@@ -16,6 +29,7 @@ data class PlaybackQueue(
     }
 
     fun next(): PlaybackQueue {
+        // repeatMode.ALL 会在最后一项之后回到第一项；NONE 则停在当前队列末尾。
         if (items.isEmpty()) {
             return this
         }
@@ -74,6 +88,7 @@ data class PlaybackQueue(
     }
 
     fun shuffle(reorderTail: (List<PlayableMediaItem>) -> List<PlayableMediaItem>): PlaybackQueue {
+        // 当前正在播放的项目固定在第一位，只打乱后面的队列，避免用户开启随机后立刻跳走。
         if (items.size <= 1) {
             return this
         }

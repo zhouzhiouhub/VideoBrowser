@@ -1,7 +1,21 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 LocalSubtitleMatcher 可以拆开理解为“Local Subtitle Matcher”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import androidx.media3.common.MimeTypes
 
+/**
+ * 本地字幕自动匹配器。
+ *
+ * 支持两种常见命名：
+ * - movie.mp4 对应 movie.srt。
+ * - movie.mp4 对应 movie.zh-CN.srt，后缀会作为字幕语言。
+ */
 object LocalSubtitleMatcher {
     data class Document(
         val uri: String,
@@ -36,6 +50,7 @@ object LocalSubtitleMatcher {
     }
 
     private fun Document.toSubtitleCandidate(mediaStem: String): ExternalSubtitleCandidate? {
+        // 只接受和视频同名或带语言后缀的字幕，避免把目录里无关字幕误挂到当前视频上。
         val normalizedName = name.trim().takeIf { it.isNotEmpty() } ?: return null
         val subtitleStem = normalizedName.substringBeforeLast('.', missingDelimiterValue = normalizedName)
         val language = subtitleLanguage(mediaStem, subtitleStem)

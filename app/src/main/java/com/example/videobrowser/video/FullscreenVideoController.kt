@@ -1,5 +1,12 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 FullscreenVideoController 可以拆开理解为“Fullscreen Video Controller”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import android.app.Activity
 import android.os.SystemClock
 import android.util.Log
@@ -9,6 +16,12 @@ import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.settings.SettingsManager
 
+/**
+ * 网页全屏视频控制器。
+ *
+ * 它服务的是 WebView 页面里的 video 元素，不是原生 PlayerActivity。
+ * 手势层接收用户操作后，这个控制器会发送 WebViewVideoCommand，让网页里的脚本执行播放、暂停、倍速和进度控制。
+ */
 class FullscreenVideoController(
     private val activity: Activity,
     private val rootView: ViewGroup,
@@ -27,6 +40,7 @@ class FullscreenVideoController(
         private set
 
     fun attachOverlay() {
+        // 覆盖层加到主界面根布局上，只有网页视频进入全屏时才显示。
         gestureOverlay = FullscreenVideoGestureOverlay(activity).apply {
             elevation = dp(28).toFloat()
             onSeekBy = ::seekBy
@@ -98,6 +112,7 @@ class FullscreenVideoController(
     }
 
     private fun enterFullscreen() {
+        // 进入全屏时重置时间轴缓存，并把默认倍速同步到网页播放器。
         val defaultSpeed = defaultVideoSpeed()
         Log.d(VIDEO_LOG_TAG, "event=web-enter-fullscreen defaultSpeed=$defaultSpeed")
         resetTimeline()
@@ -224,6 +239,7 @@ class FullscreenVideoController(
     }
 
     private fun evaluateWebVideoCommand(command: WebViewVideoCommand) {
+        // WebViewVideoCommand 负责生成安全的 JavaScript 字符串，避免在这里手写脚本片段。
         browserManager().evaluateJavascript(command.toJavascript())
     }
 

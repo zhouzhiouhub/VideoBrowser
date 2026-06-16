@@ -1,7 +1,19 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 WebViewVideoProtocol 可以拆开理解为“Web View Video Protocol”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import java.util.Locale
 
+/**
+ * 网页播放器时间轴。
+ *
+ * JavaScript 通过原生桥传回 Double，这里把非法值过滤掉，再转换成 Kotlin 侧更好处理的 Long 毫秒。
+ */
 data class WebViewVideoTimeline(
     val positionMs: Long?,
     val durationMs: Long?
@@ -21,6 +33,7 @@ data class WebViewVideoTimeline(
 }
 
 sealed class WebViewVideoCommand {
+    // sealed class 让所有网页视频命令集中在一个类型里，when 分支能覆盖完整命令集合。
     object WakeControls : WebViewVideoCommand()
     object RequestTimeline : WebViewVideoCommand()
     object TogglePlayPause : WebViewVideoCommand()
@@ -32,6 +45,7 @@ sealed class WebViewVideoCommand {
     object StopDirectionalPlayback : WebViewVideoCommand()
 
     fun toJavascript(): String {
+        // 命令只在这里转换成 JavaScript，调用方不需要知道网页增强脚本的函数名细节。
         return when (this) {
             WakeControls -> enhancerCall("wakeControls")
             RequestTimeline -> enhancerCall("reportPlaybackTimeline")

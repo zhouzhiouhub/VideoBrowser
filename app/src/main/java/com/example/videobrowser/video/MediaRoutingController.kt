@@ -1,9 +1,23 @@
 package com.example.videobrowser.video
 
+/**
+ * 初学者阅读提示：
+ * 这个文件属于“视频播放模块”。
+ * 文件名 MediaRoutingController 可以拆开理解为“Media Routing Controller”，表示它只负责视频链路中的一个小职责。
+ * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
+ * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
+ */
 import com.example.videobrowser.utils.MediaUrlUtils
 
+/**
+ * 媒体路由决策器。
+ *
+ * 同一个 URL 可能来自地址栏、WebView 跳转、下载回调或本地文件。
+ * 这里根据来源和 URL 类型决定：交给原生播放器、继续用 WebView 加载、下载、交给系统或直接阻止。
+ */
 object MediaRoutingController {
     fun route(request: MediaRouteRequest): MediaRouteDecision {
+        // route 是纯函数，方便测试；它只返回决策，不直接打开页面或播放器。
         val url = request.url.trim()
         if (url.isEmpty()) {
             return MediaRouteDecision(MediaRouteAction.BLOCK)
@@ -65,6 +79,7 @@ object MediaRoutingController {
     }
 
     private fun MediaRouteRequest.toPlayableMediaItem(): PlayableMediaItem {
+        // 把路由请求转换成播放器需要的媒体项，同时尽量带上标题、类型、UA 和来源页。
         return PlayableMediaItem(
             uri = url.trim(),
             title = displayName?.takeIf { it.isNotBlank() }
