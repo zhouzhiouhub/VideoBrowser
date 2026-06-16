@@ -15,7 +15,6 @@ package com.example.videobrowser
  * 3. 遇到具体业务时跳到对应包，例如 browser、video、download、functioncenter。
  */
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -91,6 +90,7 @@ import com.example.videobrowser.browser.PagePrintController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridge
+import com.example.videobrowser.browser.WebFileChooserController
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.SearchSuggestionClient
 import com.example.videobrowser.browser.search.SearchProviderController
@@ -203,6 +203,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageArchiveController: PageArchiveController
     private lateinit var pagePrintController: PagePrintController
     private lateinit var fullscreenVideoController: FullscreenVideoController
+    private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
@@ -253,13 +254,9 @@ class MainActivity : AppCompatActivity() {
 
     // region Android 系统交互状态
     // 这些字段保存系统弹窗或系统 Activity 返回前的临时状态，例如文件选择、权限申请、证书选择。
-    private var pendingFileChooserCallback: ValueCallback<Array<Uri>>? = null
     private val webFileChooserLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            pendingFileChooserCallback?.onReceiveValue(
-                FileChooserParams.parseResult(result.resultCode, result.data)
-            )
-            pendingFileChooserCallback = null
+            webFileChooserController.handleActivityResult(result.resultCode, result.data)
         }
     private val bookmarkExportLauncher =
         registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
@@ -501,6 +498,10 @@ class MainActivity : AppCompatActivity() {
             setFindResultListener = { listener -> currentBrowserManager().setFindResultListener(listener) },
             closeFunctionCenter = { closeFunctionCenter() },
             dp = ::dp
+        )
+        webFileChooserController = WebFileChooserController(
+            activity = this,
+            launchChooser = webFileChooserLauncher::launch
         )
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
@@ -1469,25 +1470,7 @@ class MainActivity : AppCompatActivity() {
         filePathCallback: ValueCallback<Array<Uri>>?,
         fileChooserParams: FileChooserParams?
     ): Boolean {
-        val callback = filePathCallback ?: return false
-        pendingFileChooserCallback?.onReceiveValue(null)
-        pendingFileChooserCallback = callback
-
-        val pickerIntent = runCatching {
-            fileChooserParams?.createIntent() ?: defaultWebFileChooserIntent()
-        }.getOrDefault(defaultWebFileChooserIntent())
-
-        return try {
-            webFileChooserLauncher.launch(
-                Intent.createChooser(pickerIntent, getString(R.string.action_open_file))
-            )
-            true
-        } catch (_: ActivityNotFoundException) {
-            pendingFileChooserCallback = null
-            callback.onReceiveValue(null)
-            Toast.makeText(this, R.string.toast_file_chooser_unavailable, Toast.LENGTH_SHORT).show()
-            false
-        }
+        return webFileChooserController.showFileChooser(filePathCallback, fileChooserParams)
     }
 
     /**
@@ -1496,8 +1479,9 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun cancelPendingWebFileChooser() {
-        pendingFileChooserCallback?.onReceiveValue(null)
-        pendingFileChooserCallback = null
+        if (::webFileChooserController.isInitialized) {
+            webFileChooserController.cancelPending()
+        }
     }
 
     /**
@@ -1516,20 +1500,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun importBookmarks() {
         bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)
-    }
-
-    /**
-     * 函数 `defaultWebFileChooserIntent`：封装 `default Web File Chooser Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun defaultWebFileChooserIntent(): Intent {
-        return Intent(Intent.ACTION_GET_CONTENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        }
     }
 
     /**
