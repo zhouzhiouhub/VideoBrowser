@@ -354,6 +354,7 @@ class PlayerActivity : AppCompatActivity() {
                                 VIDEO_LOG_TAG,
                                 "event=native-play-when-ready playWhenReady=$playWhenReady reason=$reason"
                             )
+                            savePlaybackHistory(exoPlayer)
                             wakePlayerControls()
                         }
 
@@ -368,6 +369,9 @@ class PlayerActivity : AppCompatActivity() {
                                 VIDEO_LOG_TAG,
                                 "event=native-playback-state state=$playbackState"
                             )
+                            if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
+                                savePlaybackHistory(exoPlayer)
+                            }
                             wakePlayerControls()
                         }
 
@@ -1191,7 +1195,10 @@ class PlayerActivity : AppCompatActivity() {
                 positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
                 durationMs = duration,
                 speed = selectedPlaybackSpeed,
-                updatedAtMillis = System.currentTimeMillis()
+                updatedAtMillis = System.currentTimeMillis(),
+                title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title
+                    ?: intent.getStringExtra(EXTRA_MEDIA_TITLE),
+                source = PlaybackHistorySource.NATIVE_MEDIA
             ),
             privateBrowsing = isPrivateBrowsingPlayback()
         )

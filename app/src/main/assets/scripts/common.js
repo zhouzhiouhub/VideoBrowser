@@ -2514,7 +2514,8 @@
      * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
      */
     const timelineReporter = function () {
-      if (isVideoFullscreen(video) || state.nativeFullscreenVideo === video) {
+      const position = Number(video.currentTime || 0);
+      if (isVideoFullscreen(video) || state.nativeFullscreenVideo === video || !video.paused || position > 0) {
         reportPlaybackTimeline(video);
       }
     };

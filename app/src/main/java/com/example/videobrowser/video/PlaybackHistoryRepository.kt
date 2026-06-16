@@ -17,8 +17,15 @@ data class PlaybackProgress(
     val positionMs: Long,
     val durationMs: Long,
     val speed: Float,
-    val updatedAtMillis: Long
+    val updatedAtMillis: Long,
+    val title: String? = null,
+    val source: PlaybackHistorySource = PlaybackHistorySource.NATIVE_MEDIA
 )
+
+enum class PlaybackHistorySource {
+    NATIVE_MEDIA,
+    WEB_PAGE
+}
 
 class PlaybackHistoryRepository(
     private val preferenceStore: PreferenceStore
@@ -124,7 +131,7 @@ class PlaybackHistoryRepository(
      */
     private fun parseProgress(line: String): PlaybackProgress? {
         val fields = splitEscaped(line)
-        if (fields.size != FIELD_COUNT) {
+        if (fields.size != LEGACY_FIELD_COUNT && fields.size != FIELD_COUNT) {
             return null
         }
         val mediaIdentity = fields[0].takeIf { it.isNotBlank() } ?: return null
@@ -133,7 +140,11 @@ class PlaybackHistoryRepository(
             positionMs = fields[1].toLongOrNull()?.coerceAtLeast(0L) ?: return null,
             durationMs = fields[2].toLongOrNull()?.coerceAtLeast(0L) ?: return null,
             speed = normalizeSpeed(fields[3].toFloatOrNull() ?: 1f),
-            updatedAtMillis = fields[4].toLongOrNull()?.coerceAtLeast(0L) ?: return null
+            updatedAtMillis = fields[4].toLongOrNull()?.coerceAtLeast(0L) ?: return null,
+            title = fields.getOrNull(5)?.takeIf { it.isNotBlank() },
+            source = fields.getOrNull(6)
+                ?.let { value -> runCatching { PlaybackHistorySource.valueOf(value) }.getOrNull() }
+                ?: PlaybackHistorySource.NATIVE_MEDIA
         )
     }
 
@@ -150,7 +161,9 @@ class PlaybackHistoryRepository(
             progress.positionMs.toString(),
             progress.durationMs.toString(),
             progress.speed.toString(),
-            progress.updatedAtMillis.toString()
+            progress.updatedAtMillis.toString(),
+            progress.title.orEmpty(),
+            progress.source.name
         ).joinToString(separator = "\t", transform = ::escape)
     }
 
@@ -169,8 +182,17 @@ class PlaybackHistoryRepository(
             positionMs = progress.positionMs.coerceAtLeast(0L),
             durationMs = progress.durationMs.coerceAtLeast(0L),
             speed = normalizeSpeed(progress.speed),
-            updatedAtMillis = progress.updatedAtMillis.coerceAtLeast(0L)
+            updatedAtMillis = progress.updatedAtMillis.coerceAtLeast(0L),
+            title = normalizeTitle(progress.title)
         )
+    }
+
+    private fun normalizeTitle(title: String?): String? {
+        return title
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+            ?.take(MAX_TITLE_LENGTH)
+            ?.takeIf { it.isNotBlank() }
     }
 
     /**
@@ -251,8 +273,10 @@ class PlaybackHistoryRepository(
 
     private companion object {
         private const val KEY_PLAYBACK_HISTORY = "playback_history"
-        private const val FIELD_COUNT = 5
+        private const val LEGACY_FIELD_COUNT = 5
+        private const val FIELD_COUNT = 7
         private const val RECORD_LIMIT = 100
         private const val RESUME_END_THRESHOLD_MS = 5_000L
+        private const val MAX_TITLE_LENGTH = 200
     }
 }

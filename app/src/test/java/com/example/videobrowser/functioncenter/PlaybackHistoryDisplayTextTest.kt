@@ -24,6 +24,16 @@ class PlaybackHistoryDisplayTextTest {
         assertEquals("My Clip.mp4", PlaybackHistoryDisplayText.title(record))
     }
 
+    @Test
+    fun titlePrefersStoredTitle() {
+        val record = playbackProgress(
+            mediaIdentity = "https://video.example.com/watch/1",
+            title = "Episode 1"
+        )
+
+        assertEquals("Episode 1", PlaybackHistoryDisplayText.title(record))
+    }
+
     /**
      * 测试函数 `summaryShowsUpdatedTimeProgressDurationAndSpeed`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `summary Shows Updated Time Progress Duration And Speed` 这条行为是否成立。
      *
@@ -79,14 +89,16 @@ class PlaybackHistoryDisplayTextTest {
         positionMs: Long = 0L,
         durationMs: Long = 0L,
         speed: Float = 1f,
-        updatedAtMillis: Long = 0L
+        updatedAtMillis: Long = 0L,
+        title: String? = null
     ): PlaybackProgress {
         return PlaybackProgress(
             mediaIdentity = mediaIdentity,
             positionMs = positionMs,
             durationMs = durationMs,
             speed = speed,
-            updatedAtMillis = updatedAtMillis
+            updatedAtMillis = updatedAtMillis,
+            title = title
         )
     }
 }

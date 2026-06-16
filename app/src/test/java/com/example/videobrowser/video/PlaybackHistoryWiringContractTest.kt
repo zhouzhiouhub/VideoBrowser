@@ -24,7 +24,31 @@ class PlaybackHistoryWiringContractTest {
         assertTrue(source.contains("restorePlaybackHistory()"))
         assertTrue(source.contains("resumePositionFor(playbackHistoryIdentity())"))
         assertTrue(source.contains("playbackHistoryRepository.save("))
+        assertTrue(source.contains("source = PlaybackHistorySource.NATIVE_MEDIA"))
         assertTrue(source.contains("EXTRA_PRIVATE_BROWSING"))
+    }
+
+    @Test
+    fun webViewPlaybackTimelineRecordsPlaybackHistory() {
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val script = projectFile("src/main/assets/scripts/common.js").readText()
+
+        assertTrue(mainActivity.contains("updatePlaybackTimeline = ::updateWebViewPlaybackTimeline"))
+        assertTrue(mainActivity.contains("recordWebViewPlaybackHistory(positionMs, durationMs)"))
+        assertTrue(mainActivity.contains("source = PlaybackHistorySource.WEB_PAGE"))
+        assertTrue(mainActivity.contains("WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS"))
+        assertTrue(script.contains("reportPlaybackTimeline(video);"))
+    }
+
+    @Test
+    fun playbackHistoryOpensWebPageRecordsInWebView() {
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+
+        assertTrue(mainActivity.contains("progress.source == PlaybackHistorySource.WEB_PAGE"))
+        assertTrue(mainActivity.contains("loadUrl(progress.mediaIdentity)"))
+        assertTrue(mainActivity.contains("openNativePlayer("))
     }
 
     /**

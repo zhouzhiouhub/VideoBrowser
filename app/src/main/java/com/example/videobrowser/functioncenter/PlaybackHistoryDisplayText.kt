@@ -26,7 +26,8 @@ object PlaybackHistoryDisplayText {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun title(record: PlaybackProgress): String {
-        return decodedLastPathSegment(record.mediaIdentity)
+        return record.title?.takeIf { it.isNotBlank() }
+            ?: decodedLastPathSegment(record.mediaIdentity)
             ?: UrlUtils.displayUrl(record.mediaIdentity).takeIf { it.isNotBlank() }
             ?: record.mediaIdentity
     }

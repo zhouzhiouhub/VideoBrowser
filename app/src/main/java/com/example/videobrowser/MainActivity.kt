@@ -124,6 +124,7 @@ import com.example.videobrowser.video.MediaRouteRequest
 import com.example.videobrowser.video.MediaRouteSource
 import com.example.videobrowser.video.MediaRoutingController
 import com.example.videobrowser.video.PlaybackHistoryRepository
+import com.example.videobrowser.video.PlaybackHistorySource
 import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebViewVideoCommand
@@ -177,6 +178,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var downloadRecordRepository: DownloadRecordRepository
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
+    private var lastWebPlaybackHistoryIdentity: String? = null
+    private var lastWebPlaybackHistorySavedAt = 0L
     private lateinit var ruleEngine: RuleEngine
     private lateinit var standardWebView: WebView
     private lateinit var standardBrowserManager: BrowserManager
@@ -2295,7 +2298,7 @@ class MainActivity : AppCompatActivity() {
                     currentChromeClient().exitPageFullscreen()
                 }
             },
-            updatePlaybackTimeline = fullscreenVideoController::updatePlaybackTimeline,
+            updatePlaybackTimeline = ::updateWebViewPlaybackTimeline,
             requestElementBlock = elementPickerController::handlePickedElement,
             blockSelectedElement = { selector ->
                 elementPickerController.handlePickedElement(selector, "")
@@ -2304,6 +2307,42 @@ class MainActivity : AppCompatActivity() {
             logVideoEvent = { message ->
                 Log.d(VIDEO_LOG_TAG, message)
             }
+        )
+    }
+
+    private fun updateWebViewPlaybackTimeline(positionMs: Double, durationMs: Double) {
+        fullscreenVideoController.updatePlaybackTimeline(positionMs, durationMs)
+        recordWebViewPlaybackHistory(positionMs, durationMs)
+    }
+
+    private fun recordWebViewPlaybackHistory(positionMs: Double, durationMs: Double) {
+        if (isPrivateBrowsingEnabled()) {
+            return
+        }
+        val pageUrl = currentShareableUrl()?.takeIf { it.isNotBlank() } ?: return
+        if (!isShareableUrl(pageUrl)) {
+            return
+        }
+        val nowElapsed = SystemClock.elapsedRealtime()
+        if (lastWebPlaybackHistoryIdentity == pageUrl &&
+            nowElapsed - lastWebPlaybackHistorySavedAt < WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS
+        ) {
+            return
+        }
+        lastWebPlaybackHistoryIdentity = pageUrl
+        lastWebPlaybackHistorySavedAt = nowElapsed
+
+        playbackHistoryRepository.save(
+            PlaybackProgress(
+                mediaIdentity = pageUrl,
+                positionMs = positionMs.toLong().coerceAtLeast(0L),
+                durationMs = durationMs.toLong().coerceAtLeast(0L),
+                speed = settingsManager.defaultVideoSpeed(),
+                updatedAtMillis = System.currentTimeMillis(),
+                title = currentSessionController().currentPageTitle,
+                source = PlaybackHistorySource.WEB_PAGE
+            ),
+            privateBrowsing = false
         )
     }
 
@@ -2641,10 +2680,14 @@ class MainActivity : AppCompatActivity() {
      * @param progress 参数类型为 `PlaybackProgress`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
      */
     private fun openPlaybackHistoryItem(progress: PlaybackProgress) {
-        openNativePlayer(
-            url = progress.mediaIdentity,
-            titleOverride = PlaybackHistoryDisplayText.title(progress)
-        )
+        if (progress.source == PlaybackHistorySource.WEB_PAGE) {
+            loadUrl(progress.mediaIdentity)
+        } else {
+            openNativePlayer(
+                url = progress.mediaIdentity,
+                titleOverride = PlaybackHistoryDisplayText.title(progress)
+            )
+        }
     }
 
     // endregion
@@ -4022,6 +4065,7 @@ class MainActivity : AppCompatActivity() {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
+        private const val WEB_PLAYBACK_HISTORY_SAVE_THROTTLE_MS = 5_000L
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
         private const val BOOKMARK_EXPORT_FILE_NAME = "videobrowser-bookmarks.txt"
         private const val PAGE_ARCHIVE_MIME_TYPE = "multipart/related"

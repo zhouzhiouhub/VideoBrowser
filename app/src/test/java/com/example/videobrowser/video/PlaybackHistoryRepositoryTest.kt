@@ -100,6 +100,36 @@ class PlaybackHistoryRepositoryTest {
         assertNull(repository.progressFor("https://private.example.com/clip.mp4"))
     }
 
+    @Test
+    fun webPageProgressPersistsTitleAndSource() {
+        val repository = PlaybackHistoryRepository(InMemoryPreferenceStore())
+
+        repository.save(
+            PlaybackProgress(
+                mediaIdentity = "https://video.example.com/watch/1",
+                positionMs = 15_000L,
+                durationMs = 90_000L,
+                speed = 1f,
+                updatedAtMillis = 500L,
+                title = " Episode 1 ",
+                source = PlaybackHistorySource.WEB_PAGE
+            )
+        )
+
+        assertEquals(
+            PlaybackProgress(
+                mediaIdentity = "https://video.example.com/watch/1",
+                positionMs = 15_000L,
+                durationMs = 90_000L,
+                speed = 1f,
+                updatedAtMillis = 500L,
+                title = "Episode 1",
+                source = PlaybackHistorySource.WEB_PAGE
+            ),
+            repository.progressFor("https://video.example.com/watch/1")
+        )
+    }
+
     /**
      * 测试函数 `recordsKeepMostRecentHundredEntries`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `records Keep Most Recent Hundred Entries` 这条行为是否成立。
      *
