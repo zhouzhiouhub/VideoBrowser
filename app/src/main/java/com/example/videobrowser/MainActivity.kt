@@ -17,7 +17,6 @@ package com.example.videobrowser
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.GradientDrawable
@@ -60,6 +59,7 @@ import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
+import com.example.videobrowser.browser.BrowserDisplayModeController
 import com.example.videobrowser.browser.BrowserPageError
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
@@ -199,6 +199,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageArchiveController: PageArchiveController
     private lateinit var pagePrintController: PagePrintController
     private lateinit var browserNavigationController: BrowserNavigationController
+    private lateinit var browserDisplayModeController: BrowserDisplayModeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
@@ -446,6 +447,15 @@ class MainActivity : AppCompatActivity() {
             activeStandardTabUrl = { standardTabStore.activeTab().url },
             loadUrl = ::loadUrl,
             isShareableUrl = ::isShareableUrl
+        )
+        browserDisplayModeController = BrowserDisplayModeController(
+            activity = this,
+            browserManager = ::currentBrowserManager,
+            isDesktopModeEnabled = ::isDesktopModeEnabled,
+            isFullscreenModeActive = {
+                areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()
+            },
+            defaultUserAgent = { defaultUserAgent }
         )
 
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
@@ -2266,14 +2276,7 @@ class MainActivity : AppCompatActivity() {
      * @param reload 参数类型为 `Boolean`，表示函数执行 `reload` 相关逻辑时需要读取或处理的输入。
      */
     private fun applyDesktopMode(reload: Boolean) {
-        val desktopModeEnabled = isDesktopModeEnabled()
-        applyBrowserContentOrientation(desktopModeEnabled)
-        currentBrowserManager().applyDesktopMode(
-            enabled = desktopModeEnabled,
-            desktopUserAgent = DESKTOP_USER_AGENT,
-            defaultUserAgent = defaultUserAgent,
-            reload = reload
-        )
+        browserDisplayModeController.applyDesktopMode(reload)
     }
 
     /**
@@ -2283,14 +2286,7 @@ class MainActivity : AppCompatActivity() {
      * @param desktopModeEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     private fun applyBrowserContentOrientation(desktopModeEnabled: Boolean) {
-        if (areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()) {
-            return
-        }
-        requestedOrientation = if (desktopModeEnabled) {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
+        browserDisplayModeController.applyBrowserContentOrientation(desktopModeEnabled)
     }
 
     /**
@@ -2629,8 +2625,5 @@ class MainActivity : AppCompatActivity() {
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
         private const val BACK_EXIT_CONFIRM_WINDOW_MS = 2000L
-        private const val DESKTOP_USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
     }
 }
