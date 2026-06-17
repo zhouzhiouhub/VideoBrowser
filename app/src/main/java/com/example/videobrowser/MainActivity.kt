@@ -43,8 +43,8 @@ import com.example.videobrowser.browser.BrowserPageActionAssemblyController
 import com.example.videobrowser.browser.BrowserPageActionComponents
 import com.example.videobrowser.browser.BrowserPageFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserPageFeatureComponents
-import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
+import com.example.videobrowser.browser.BrowserSessionComponents
 import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellAssemblyController
@@ -53,7 +53,6 @@ import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostAssemblyController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostController
 import com.example.videobrowser.browser.BrowserStartupControllerAssembly
-import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabStateAssemblyController
 import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserWebViewDebugController
@@ -62,7 +61,6 @@ import com.example.videobrowser.browser.BrowserWebViewInteractionComponents
 import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
 import com.example.videobrowser.browser.BrowserWebRequestComponents
 import com.example.videobrowser.browser.BrowsingModeThemeController
-import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.BrowserRuntimeStateController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
@@ -101,8 +99,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserStandardWebViewHostController: BrowserStandardWebViewHostController
     private lateinit var browserControls: BrowserControlsComponents
     private lateinit var browserControlsShellController: BrowserControlsShellController
-    private lateinit var standardSessionController: BrowserSessionController
-    private lateinit var privateSessionController: BrowserSessionController
+    private lateinit var browserSessions: BrowserSessionComponents
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var functionCenterEntryController: FunctionCenterEntryController
     private lateinit var localFilesController: LocalFilesController
@@ -111,8 +108,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserClients: BrowserClientComponents
     private lateinit var browserSearch: BrowserSearchComponents
     private lateinit var browserNavigation: BrowserNavigationComponents
-    private lateinit var browserTabActionsController: BrowserTabActionsController
-    private lateinit var privateBrowsingSwitchController: PrivateBrowsingSwitchController
     private lateinit var siteSecurityController: SiteSecurityController
     private lateinit var browsingModeThemeController: BrowsingModeThemeController
     private lateinit var browserShellUiController: BrowserShellUiController
@@ -234,10 +229,10 @@ class MainActivity : AppCompatActivity() {
         BrowserSessionStateAssemblyController(
             isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
             standardSessionController = {
-                if (::standardSessionController.isInitialized) standardSessionController else null
+                if (::browserSessions.isInitialized) browserSessions.standardSessionController else null
             },
             privateSessionController = {
-                if (::privateSessionController.isInitialized) privateSessionController else null
+                if (::browserSessions.isInitialized) browserSessions.privateSessionController else null
             }
         ).create()
     // endregion
@@ -374,7 +369,7 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             setPrivateBrowsingActive = browserRuntimeStateController::setPrivateBrowsingActive,
             openUrlInNewTab = { url ->
-                browserTabActionsController.openUrlInNewTab(url)
+                browserSessions.browserTabActionsController.openUrlInNewTab(url)
             },
             downloadUrl = { url, userAgent ->
                 pageActions.downloadController.enqueue(
@@ -452,7 +447,7 @@ class MainActivity : AppCompatActivity() {
             localDocumentEntryController = localDocumentEntryController,
             browserFeatureStateController = browserFeatureStateController,
             switchPrivateBrowsing = { enabled ->
-                privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
+                browserSessions.privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
             },
             browserShellUiController = browserShellUiController,
             browsingModeThemeController = browsingModeThemeController,
@@ -488,7 +483,7 @@ class MainActivity : AppCompatActivity() {
             dp = ::dp
         ).create()
 
-        val browserSessionComponents = BrowserSessionAssemblyController(
+        browserSessions = BrowserSessionAssemblyController(
             activity = this,
             standardTabStore = browserTabState.standardTabStore,
             privateTabStore = browserTabState.privateTabStore,
@@ -536,10 +531,6 @@ class MainActivity : AppCompatActivity() {
             onPrivatePageMetadataChanged =
                 browserTabState.privateTabSessionBinding::handlePageMetadataChanged
         ).create()
-        standardSessionController = browserSessionComponents.standardSessionController
-        privateSessionController = browserSessionComponents.privateSessionController
-        privateBrowsingSwitchController = browserSessionComponents.privateBrowsingSwitchController
-        browserTabActionsController = browserSessionComponents.browserTabActionsController
         browserClients = BrowserClientAssemblyController(
             activity = this,
             fullscreenContainer = views.fullscreenContainer,
@@ -548,8 +539,8 @@ class MainActivity : AppCompatActivity() {
             standardTabStore = browserTabState.standardTabStore,
             standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
-            standardSessionController = standardSessionController,
-            privateSessionController = privateSessionController,
+            standardSessionController = browserSessions.standardSessionController,
+            privateSessionController = browserSessions.privateSessionController,
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
@@ -579,7 +570,7 @@ class MainActivity : AppCompatActivity() {
                 requestInterceptionProvider.smartNoImageRequestInterceptor,
             browserNavigationController = browserNavigation.browserNavigationController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
-            closeTab = browserTabActionsController::closeTab,
+            closeTab = browserSessions.browserTabActionsController::closeTab,
             fullscreenChanged = { fullscreen ->
                 browserFullscreen.browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
             },
@@ -620,7 +611,7 @@ class MainActivity : AppCompatActivity() {
             filesDir = filesDir,
             browserUrlStateController = browserUrlStateController,
             browserFeatureStateController = browserFeatureStateController,
-            browserTabActionsController = browserTabActionsController,
+            browserTabActionsController = browserSessions.browserTabActionsController,
             browserLaunchController = browserNavigation.browserLaunchController,
             pageActionsController = pageActions.pageActionsController,
             browserPageToolEntryController = pageActions.browserPageToolEntryController,
