@@ -42,8 +42,9 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(tabStateAssembly.contains("BrowserTabStore()"))
         assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(standardTabStore)"))
         assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(privateTabStore)"))
-        assertTrue(mainActivity.contains("BrowserTabSessionRepository"))
-        assertTrue(mainActivity.contains("BrowserStandardTabSessionController"))
+        assertTrue(mainActivity.contains("BrowserPersistenceComponents"))
+        assertTrue(persistenceAssembly.contains("BrowserTabSessionRepository(preferenceStore)"))
+        assertTrue(persistenceAssembly.contains("BrowserStandardTabSessionController("))
         assertTrue(mainActivity.contains("BrowserSessionStateAssemblyController"))
         assertTrue(mainActivity.contains("browserSessionStateController.currentSessionController()"))
         assertTrue(sessionStateAssembly.contains("BrowserSessionStateController("))
@@ -55,12 +56,13 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(sessionStateController.contains("if (isPrivateBrowsingActive())"))
         assertTrue(mainActivity.contains("browserTabState.standardTabSessionBinding"))
         assertTrue(persistenceAssembly.contains("browserStandardTabSessionController.restoreStandardTabSession()"))
-        assertTrue(mainActivity.contains("browserStandardTabSessionController::saveStandardTabSession"))
+        assertTrue(mainActivity.contains("browserPersistence.browserStandardTabSessionController::saveStandardTabSession"))
         assertTrue(standardTabSessionController.contains("standardTabStore.restore(session.tabs, session.activeTabId)"))
         assertTrue(standardTabSessionController.contains("repository.save("))
         assertTrue(mainActivity.contains("BrowserStartupController"))
         assertTrue(startupController.contains("browserLaunchController.openInitialStandardPage()"))
         assertTrue(mainActivity.contains("browserTabState.standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
+        assertTrue(mainActivity.contains("browserPersistence.browserStandardTabSessionController.saveStandardTabSession()"))
     }
 
     /**

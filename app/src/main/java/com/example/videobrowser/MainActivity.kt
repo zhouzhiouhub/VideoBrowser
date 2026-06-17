@@ -56,12 +56,10 @@ import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellAssemblyController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
-import com.example.videobrowser.browser.BrowserStandardTabSessionController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostAssemblyController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostController
 import com.example.videobrowser.browser.BrowserStartupControllerAssembly
 import com.example.videobrowser.browser.BrowserTabActionsController
-import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabStateAssemblyController
 import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserWebClientController
@@ -89,7 +87,6 @@ import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
 import com.example.videobrowser.browser.search.SearchProviderController
 import com.example.videobrowser.download.DownloadController
-import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterAssemblyController
 import com.example.videobrowser.functioncenter.FunctionCenterController
@@ -101,17 +98,11 @@ import com.example.videobrowser.localfiles.LocalFileAssemblyController
 import com.example.videobrowser.localfiles.LocalDocumentEntryController
 import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
-import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
-import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SessionSitePermissionStore
-import com.example.videobrowser.storage.BookmarkImportExportController
 import com.example.videobrowser.storage.BrowserPersistenceAssemblyController
-import com.example.videobrowser.storage.PreferenceStore
-import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.storage.BrowserPersistenceComponents
 import com.example.videobrowser.video.FullscreenVideoController
 import com.example.videobrowser.video.NativePlayerEntryController
-import com.example.videobrowser.video.PlaybackHistoryRepository
-import com.example.videobrowser.video.WebPlaybackHistoryRecorder
 
 /**
  * VideoBrowser 的主 Activity。
@@ -130,16 +121,9 @@ class MainActivity : AppCompatActivity() {
     // region 应用级控制器和仓库
     // Repository 负责读写本机数据；Controller 负责连接 UI、WebView 和业务动作。
     // 这些 lateinit 属性会在 onCreate() 里按依赖顺序初始化。
-    private lateinit var preferenceStore: PreferenceStore
-    private lateinit var settingsManager: SettingsManager
-    private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
-    private lateinit var savedPageRepository: SavedPageRepository
-    private lateinit var bookmarkImportExportController: BookmarkImportExportController
+    private lateinit var browserPersistence: BrowserPersistenceComponents
     private lateinit var browserFeatureStateController: BrowserFeatureStateController
     private lateinit var browserUrlStateController: BrowserUrlStateController
-    private lateinit var downloadRecordRepository: DownloadRecordRepository
-    private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
-    private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder
     private lateinit var ruleEngine: RuleEngine
     private lateinit var browserStandardWebViewHostController: BrowserStandardWebViewHostController
     private lateinit var browserControlsController: BrowserControlsController
@@ -147,8 +131,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserControlsScrollController: BrowserControlsScrollController
     private lateinit var standardSessionController: BrowserSessionController
     private lateinit var privateSessionController: BrowserSessionController
-    private lateinit var browserTabSessionRepository: BrowserTabSessionRepository
-    private lateinit var browserStandardTabSessionController: BrowserStandardTabSessionController
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var functionCenterEntryController: FunctionCenterEntryController
     private lateinit var localFilesController: LocalFilesController
@@ -226,8 +208,8 @@ class MainActivity : AppCompatActivity() {
         },
         browserChromeClientStateController = browserChromeClientStateController,
         browserStandardTabSessionController = {
-            if (::browserStandardTabSessionController.isInitialized) {
-                browserStandardTabSessionController
+            if (::browserPersistence.isInitialized) {
+                browserPersistence.browserStandardTabSessionController
             } else {
                 null
             }
@@ -257,7 +239,7 @@ class MainActivity : AppCompatActivity() {
     // 请求拦截提供器内部使用 lazy，确保规则引擎和设置管理器完成初始化后才创建拦截对象。
     private val requestInterceptionProvider = BrowserRequestInterceptionProvider(
         browserFeatureStateController = { browserFeatureStateController },
-        settingsManager = { settingsManager },
+        settingsManager = { browserPersistence.settingsManager },
         browserSessionStateController = { browserSessionStateController },
         browserUrlStateController = { browserUrlStateController },
         ruleEngine = { ruleEngine }
@@ -272,7 +254,11 @@ class MainActivity : AppCompatActivity() {
             if (::webFileChooserController.isInitialized) webFileChooserController else null
         },
         bookmarkImportExportController = {
-            if (::bookmarkImportExportController.isInitialized) bookmarkImportExportController else null
+            if (::browserPersistence.isInitialized) {
+                browserPersistence.bookmarkImportExportController
+            } else {
+                null
+            }
         },
         pageArchiveController = {
             if (::pageArchiveController.isInitialized) pageArchiveController else null
@@ -326,7 +312,7 @@ class MainActivity : AppCompatActivity() {
         val browserShellComponents = BrowserShellAssemblyController(
             activity = this,
             views = views,
-            settingsManager = { settingsManager },
+            settingsManager = { browserPersistence.settingsManager },
             pageFeatureCoordinator = { pageFeatureCoordinator },
             optionalPageFeatureCoordinator = {
                 if (::pageFeatureCoordinator.isInitialized) pageFeatureCoordinator else null
@@ -371,7 +357,7 @@ class MainActivity : AppCompatActivity() {
         browserShellUiController = browserShellComponents.browserShellUiController
 
         // 本地持久化层：设置、收藏/历史、标签会话、下载记录和播放历史都放在 SharedPreferences。
-        val persistenceComponents = BrowserPersistenceAssemblyController(
+        browserPersistence = BrowserPersistenceAssemblyController(
             activity = this,
             filesDir = filesDir,
             standardTabStore = browserTabState.standardTabStore,
@@ -380,21 +366,11 @@ class MainActivity : AppCompatActivity() {
             browserUrlStateController = browserUrlStateController,
             browserSessionStateController = browserSessionStateController
         ).create()
-        preferenceStore = persistenceComponents.preferenceStore
-        settingsManager = persistenceComponents.settingsManager
-        savedPageRepository = persistenceComponents.savedPageRepository
-        bookmarkImportExportController = persistenceComponents.bookmarkImportExportController
-        browserTabSessionRepository = persistenceComponents.browserTabSessionRepository
-        browserStandardTabSessionController = persistenceComponents.browserStandardTabSessionController
-        downloadRecordRepository = persistenceComponents.downloadRecordRepository
-        playbackHistoryRepository = persistenceComponents.playbackHistoryRepository
-        webPlaybackHistoryRecorder = persistenceComponents.webPlaybackHistoryRecorder
-        browserDefaultSettingsResetter = persistenceComponents.browserDefaultSettingsResetter
 
         // 本地文件模块负责选择目录、读取文件列表，并把可播放文件交给浏览器或原生播放器。
         val localFileComponents = LocalFileAssemblyController(
             activity = this,
-            preferenceStore = preferenceStore,
+            preferenceStore = browserPersistence.preferenceStore,
             functionCenter = functionCenterController,
             logTag = RULE_LOG_TAG,
             showMainFunctionCenterPage = {
@@ -421,8 +397,8 @@ class MainActivity : AppCompatActivity() {
             addressInput = views.addressInput,
             addressProviderBadge = views.addressProviderBadge,
             addressSuggestionPanel = views.addressSuggestionPanel,
-            settingsManager = settingsManager,
-            savedPageRepository = savedPageRepository,
+            settingsManager = browserPersistence.settingsManager,
+            savedPageRepository = browserPersistence.savedPageRepository,
             siteSecurityController = {
                 if (::siteSecurityController.isInitialized) siteSecurityController else null
             },
@@ -494,7 +470,7 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             assets = assets,
             filesDir = filesDir,
-            settingsManager = settingsManager,
+            settingsManager = browserPersistence.settingsManager,
             addressInput = views.addressInput,
             standardTabStore = browserTabState.standardTabStore,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
@@ -520,10 +496,10 @@ class MainActivity : AppCompatActivity() {
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
         val pageActionComponents = BrowserPageActionAssemblyController(
             activity = this,
-            downloadRecordRepository = downloadRecordRepository,
-            settingsManager = settingsManager,
-            savedPageRepository = savedPageRepository,
-            browserDefaultSettingsResetter = browserDefaultSettingsResetter,
+            downloadRecordRepository = browserPersistence.downloadRecordRepository,
+            settingsManager = browserPersistence.settingsManager,
+            savedPageRepository = browserPersistence.savedPageRepository,
+            browserDefaultSettingsResetter = browserPersistence.browserDefaultSettingsResetter,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             browserSessionStateController = browserSessionStateController,
             browserUrlStateController = browserUrlStateController,
@@ -553,7 +529,7 @@ class MainActivity : AppCompatActivity() {
         browserPageToolEntryController = pageActionComponents.browserPageToolEntryController
         val webRequestComponents = BrowserWebRequestAssemblyController(
             activity = this,
-            settingsManager = settingsManager,
+            settingsManager = browserPersistence.settingsManager,
             sessionSitePermissionStore = sessionSitePermissionStore,
             browserFeatureStateController = browserFeatureStateController,
             activityResultLaunchers = activityResultLaunchers
@@ -565,7 +541,7 @@ class MainActivity : AppCompatActivity() {
         val browserControlsComponents = BrowserControlsAssemblyController(
             activity = this,
             views = views,
-            savedPageRepository = savedPageRepository,
+            savedPageRepository = browserPersistence.savedPageRepository,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             browserUrlStateController = browserUrlStateController,
             browserLaunchController = browserLaunchController,
@@ -620,10 +596,11 @@ class MainActivity : AppCompatActivity() {
                 browserStandardWebViewHostController::hideStandardTabWebView,
             destroyStandardTabWebView =
                 browserStandardWebViewHostController::destroyStandardTabWebView,
-            saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
+            saveStandardTabSession =
+                browserPersistence.browserStandardTabSessionController::saveStandardTabSession,
             onStandardPageMetadataChanged = { url, title ->
                 browserTabState.standardTabSessionBinding.handlePageMetadataChanged(url, title)
-                browserStandardTabSessionController.saveStandardTabSession()
+                browserPersistence.browserStandardTabSessionController.saveStandardTabSession()
             },
             onPrivatePageMetadataChanged =
                 browserTabState.privateTabSessionBinding::handlePageMetadataChanged
@@ -654,7 +631,8 @@ class MainActivity : AppCompatActivity() {
                 browserStandardWebViewHostController::createStandardTabWebView,
             showStandardTabWebView =
                 browserStandardWebViewHostController::showStandardTabWebView,
-            saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
+            saveStandardTabSession =
+                browserPersistence.browserStandardTabSessionController::saveStandardTabSession,
             showBrowserErrorPage = { error ->
                 browserWebClientController.showBrowserErrorPage(error)
             },
@@ -689,7 +667,7 @@ class MainActivity : AppCompatActivity() {
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
-            settingsManager = { settingsManager },
+            settingsManager = { browserPersistence.settingsManager },
             browserChromeClientStateController = browserChromeClientStateController,
             browserControlsShellController = browserControlsShellController,
             browserDisplayModeController = browserDisplayModeController,
@@ -703,16 +681,16 @@ class MainActivity : AppCompatActivity() {
         functionCenterEntryController = FunctionCenterAssemblyController(
             activity = this,
             functionCenter = functionCenterController,
-            settingsManager = settingsManager,
+            settingsManager = browserPersistence.settingsManager,
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
             browserManagers = {
                 browserStandardWebViewHostController.browserManagers()
             },
-            savedPageRepository = savedPageRepository,
-            downloadRecordRepository = downloadRecordRepository,
-            playbackHistoryRepository = playbackHistoryRepository,
+            savedPageRepository = browserPersistence.savedPageRepository,
+            downloadRecordRepository = browserPersistence.downloadRecordRepository,
+            playbackHistoryRepository = browserPersistence.playbackHistoryRepository,
             adBlockLogger = requestInterceptionProvider.adBlockLogger,
             filesDir = filesDir,
             browserUrlStateController = browserUrlStateController,
@@ -736,7 +714,7 @@ class MainActivity : AppCompatActivity() {
         siteSecurityController = BrowserSiteSecurityAssemblyController(
             activity = this,
             siteSecurityIcon = views.siteSecurityIcon,
-            settingsManager = settingsManager,
+            settingsManager = browserPersistence.settingsManager,
             browserSessionStateController = browserSessionStateController,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             browserFeatureStateController = browserFeatureStateController,
@@ -747,7 +725,7 @@ class MainActivity : AppCompatActivity() {
         val browserPageFeatureComponents = BrowserPageFeatureAssemblyController(
             activity = this,
             assets = assets,
-            settingsManager = settingsManager,
+            settingsManager = browserPersistence.settingsManager,
             ruleEngine = ruleEngine,
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
@@ -758,7 +736,7 @@ class MainActivity : AppCompatActivity() {
             pageFeatureInjectionController = pageFeatureInjectionController,
             browserChromeClientStateController = browserChromeClientStateController,
             fullscreenVideoController = fullscreenVideoController,
-            webPlaybackHistoryRecorder = webPlaybackHistoryRecorder,
+            webPlaybackHistoryRecorder = browserPersistence.webPlaybackHistoryRecorder,
             postToUi = { action -> runOnUiThread { action() } },
         ).create()
         jsInjector = browserPageFeatureComponents.jsInjector
@@ -786,7 +764,7 @@ class MainActivity : AppCompatActivity() {
             browserShellUiController = browserShellUiController,
             browserBackNavigationController = browserBackNavigationController,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
-            settingsManager = settingsManager,
+            settingsManager = browserPersistence.settingsManager,
             setDefaultUserAgent = browserRuntimeStateController::setDefaultUserAgent,
             browserDisplayModeController = browserDisplayModeController,
             downloadController = downloadController,

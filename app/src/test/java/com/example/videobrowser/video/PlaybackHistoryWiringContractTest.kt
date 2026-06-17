@@ -45,7 +45,7 @@ class PlaybackHistoryWiringContractTest {
 
         assertTrue(mainActivity.contains("BrowserStartupController"))
         assertTrue(startupController.contains("nativeBridgeController.createNativeBridge()"))
-        assertTrue(mainActivity.contains("private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder"))
+        assertTrue(mainActivity.contains("browserPersistence.webPlaybackHistoryRecorder"))
         assertTrue(nativeBridgeController.contains("updatePlaybackTimeline = ::updateWebViewPlaybackTimeline"))
         assertTrue(nativeBridgeController.contains("webPlaybackHistoryRecorder.record(positionMs, durationMs)"))
         assertTrue(webRecorder.contains("source = PlaybackHistorySource.WEB_PAGE"))
