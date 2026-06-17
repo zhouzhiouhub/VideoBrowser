@@ -74,6 +74,9 @@ class FindInPageWiringContractTest {
         val functionCenterAssembly = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
         ).readText()
+        val startupFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
         val pageActionAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserPageActionAssemblyController.kt"
         ).readText()
@@ -83,7 +86,7 @@ class FindInPageWiringContractTest {
 
         assertTrue(mainActivity.contains("BrowserFindInPageAssemblyController"))
         assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
-        assertTrue(mainActivity.contains("browserPageToolEntryController = pageActions.browserPageToolEntryController"))
+        assertTrue(startupFeatureAssembly.contains("browserPageToolEntryController = pageActions.browserPageToolEntryController"))
         assertTrue(findInPageAssembly.contains("FindInPageController("))
         assertTrue(findInPageAssembly.contains("findAllAsync(query)"))
         assertTrue(findInPageAssembly.contains("findNext(forward)"))

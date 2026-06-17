@@ -35,6 +35,9 @@ class PlaybackHistoryWiringContractTest {
         val startupController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
         ).readText()
+        val startupFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
         val nativeBridgeController = projectFile(
             "src/main/java/com/example/videobrowser/browser/VideoBrowserNativeBridgeController.kt"
         ).readText()
@@ -43,9 +46,10 @@ class PlaybackHistoryWiringContractTest {
         ).readText()
         val script = projectFile("src/main/assets/scripts/common.js").readText()
 
-        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
+        assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
         assertTrue(startupController.contains("nativeBridgeController.createNativeBridge()"))
-        assertTrue(mainActivity.contains("browserPersistence.webPlaybackHistoryRecorder"))
+        assertTrue(startupFeatureAssembly.contains("browserPersistence.webPlaybackHistoryRecorder"))
         assertTrue(nativeBridgeController.contains("updatePlaybackTimeline = ::updateWebViewPlaybackTimeline"))
         assertTrue(nativeBridgeController.contains("webPlaybackHistoryRecorder.record(positionMs, durationMs)"))
         assertTrue(webRecorder.contains("source = PlaybackHistorySource.WEB_PAGE"))

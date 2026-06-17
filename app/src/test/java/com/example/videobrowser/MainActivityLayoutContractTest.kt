@@ -70,6 +70,9 @@ class MainActivityLayoutContractTest {
             .readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val startupFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
         val addressBarStateController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserAddressBarStateController.kt"
         ).readText()
@@ -91,7 +94,8 @@ class MainActivityLayoutContractTest {
         assertEquals("gone", securityIcon.androidAttribute("visibility"))
         assertTrue(viewBinding.contains("val siteSecurityIcon: ImageView"))
         assertTrue(viewBinding.contains("R.id.siteSecurityIcon"))
-        assertTrue(mainActivity.contains("private lateinit var siteSecurityController: SiteSecurityController"))
+        assertTrue(mainActivity.contains("private lateinit var browserStartupFeatures: BrowserStartupFeatureComponents"))
+        assertTrue(startupFeatureAssembly.contains("siteSecurityController = BrowserSiteSecurityAssemblyController"))
         assertTrue(mainActivity.contains("private lateinit var browserShell: BrowserShellComponents"))
         assertTrue(mainActivity.contains("browserShellUiController = browserShell.browserShellUiController"))
         assertTrue(browserShellUiController.contains("siteSecurityController()?.setup()"))
@@ -192,6 +196,9 @@ class MainActivityLayoutContractTest {
         val startupController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
         ).readText()
+        val startupFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
         val keyboardController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserKeyboardController.kt"
         ).readText()
@@ -213,7 +220,8 @@ class MainActivityLayoutContractTest {
         assertTrue(lifecycleController.contains("addressSuggestionController()?.dispose()"))
         assertTrue(mainActivity.contains("private lateinit var browserSearch: BrowserSearchComponents"))
         assertTrue(mainActivity.contains("addressSuggestionController = browserSearch.addressSuggestionController"))
-        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
+        assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
         assertTrue(startupController.contains("addressSuggestionController.setup()"))
         assertTrue(mainActivity.contains("private lateinit var browserShell: BrowserShellComponents"))
         assertTrue(mainActivity.contains("hideKeyboard = browserShell.browserKeyboardController::hideKeyboard"))

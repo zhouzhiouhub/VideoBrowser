@@ -48,6 +48,9 @@ class PrintPageWiringContractTest {
         val functionCenterAssembly = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
         ).readText()
+        val startupFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
         val pageToolEntryController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserPageToolEntryController.kt"
         ).readText()
@@ -57,7 +60,7 @@ class PrintPageWiringContractTest {
         val readme = projectFile("README.md").readText()
 
         assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
-        assertTrue(mainActivity.contains("browserPageToolEntryController = pageActions.browserPageToolEntryController"))
+        assertTrue(startupFeatureAssembly.contains("browserPageToolEntryController = pageActions.browserPageToolEntryController"))
         assertTrue(pageToolEntryController.contains("pagePrintController.printCurrentPage()"))
         assertTrue(pagePrintController.contains("PrintManager"))
         assertTrue(pagePrintController.contains("PrintAttributes.Builder().build()"))

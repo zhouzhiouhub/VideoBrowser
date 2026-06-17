@@ -54,6 +54,9 @@ class WebViewNewWindowContractTest {
     fun mainActivityRoutesNewWindowsIntoStandardTabsAndClosesRequestedPopupTabs() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val startupFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
         val chromeClientController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserChromeClientController.kt"
         ).readText()
@@ -63,7 +66,7 @@ class WebViewNewWindowContractTest {
         val readme = projectFile("README.md").readText()
 
         assertTrue(mainActivity.contains("private lateinit var browserClients: BrowserClientComponents"))
-        assertTrue(mainActivity.contains("browserChromeClientController = browserClients.browserChromeClientController"))
+        assertTrue(startupFeatureAssembly.contains("browserChromeClientController = browserClients.browserChromeClientController"))
         assertTrue(chromeClientController.contains("newWindowRequested = webWindowController::handleCreateWebWindow"))
         assertTrue(chromeClientController.contains("windowClosed = webWindowController::handleCloseWebWindow"))
         assertTrue(chromeClientController.contains("private fun createChromeClient"))

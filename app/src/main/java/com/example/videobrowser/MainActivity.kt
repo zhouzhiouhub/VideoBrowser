@@ -23,8 +23,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
 import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyController
-import com.example.videobrowser.browser.BrowserBackNavigationAssemblyController
-import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientStateAssemblyController
 import com.example.videobrowser.browser.BrowserClientAssemblyController
 import com.example.videobrowser.browser.BrowserClientComponents
@@ -37,16 +35,14 @@ import com.example.videobrowser.browser.BrowserNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserNavigationComponents
 import com.example.videobrowser.browser.BrowserPageActionAssemblyController
 import com.example.videobrowser.browser.BrowserPageActionComponents
-import com.example.videobrowser.browser.BrowserPageFeatureAssemblyController
-import com.example.videobrowser.browser.BrowserPageFeatureComponents
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
 import com.example.videobrowser.browser.BrowserSessionComponents
 import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellAssemblyController
 import com.example.videobrowser.browser.BrowserShellComponents
-import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
-import com.example.videobrowser.browser.BrowserStartupControllerAssembly
+import com.example.videobrowser.browser.BrowserStartupFeatureAssemblyController
+import com.example.videobrowser.browser.BrowserStartupFeatureComponents
 import com.example.videobrowser.browser.BrowserTabStateAssemblyController
 import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserWebViewDebugController
@@ -55,11 +51,8 @@ import com.example.videobrowser.browser.BrowserWebViewSurfaceComponents
 import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
 import com.example.videobrowser.browser.BrowserWebRequestComponents
 import com.example.videobrowser.browser.BrowserRuntimeStateController
-import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
 import com.example.videobrowser.browser.search.BrowserSearchComponents
-import com.example.videobrowser.functioncenter.FunctionCenterAssemblyController
-import com.example.videobrowser.functioncenter.FunctionCenterEntryController
 import com.example.videobrowser.localfiles.LocalFileAssemblyController
 import com.example.videobrowser.localfiles.LocalFileComponents
 import com.example.videobrowser.settings.SessionSitePermissionStore
@@ -88,17 +81,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserControls: BrowserControlsComponents
     private lateinit var browserShell: BrowserShellComponents
     private lateinit var browserSessions: BrowserSessionComponents
-    private lateinit var functionCenterEntryController: FunctionCenterEntryController
     private lateinit var localFiles: LocalFileComponents
     private lateinit var pageActions: BrowserPageActionComponents
     private lateinit var browserClients: BrowserClientComponents
     private lateinit var browserSearch: BrowserSearchComponents
     private lateinit var browserNavigation: BrowserNavigationComponents
-    private lateinit var siteSecurityController: SiteSecurityController
-    private lateinit var browserBackNavigationController: BrowserBackNavigationController
+    private lateinit var browserStartupFeatures: BrowserStartupFeatureComponents
     private lateinit var browserFullscreen: BrowserFullscreenComponents
     private lateinit var webRequests: BrowserWebRequestComponents
-    private lateinit var pageFeatures: BrowserPageFeatureComponents
     private val browserChromeClientStateController = BrowserChromeClientStateAssemblyController(
         browserChromeClientController = {
             if (::browserClients.isInitialized) {
@@ -125,10 +115,18 @@ class MainActivity : AppCompatActivity() {
             if (::pageActions.isInitialized) pageActions.downloadController else null
         },
         elementPickerController = {
-            if (::pageFeatures.isInitialized) pageFeatures.elementPickerController else null
+            if (::browserStartupFeatures.isInitialized) {
+                browserStartupFeatures.pageFeatures.elementPickerController
+            } else {
+                null
+            }
         },
         functionCenterEntryController = {
-            if (::functionCenterEntryController.isInitialized) functionCenterEntryController else null
+            if (::browserStartupFeatures.isInitialized) {
+                browserStartupFeatures.functionCenterEntryController
+            } else {
+                null
+            }
         },
         browserChromeClientStateController = browserChromeClientStateController,
         browserStandardTabSessionController = {
@@ -237,9 +235,13 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             views = views,
             settingsManager = { browserPersistence.settingsManager },
-            pageFeatureCoordinator = { pageFeatures.pageFeatureCoordinator },
+            pageFeatureCoordinator = { browserStartupFeatures.pageFeatures.pageFeatureCoordinator },
             optionalPageFeatureCoordinator = {
-                if (::pageFeatures.isInitialized) pageFeatures.pageFeatureCoordinator else null
+                if (::browserStartupFeatures.isInitialized) {
+                    browserStartupFeatures.pageFeatures.pageFeatureCoordinator
+                } else {
+                    null
+                }
             },
             browserStandardWebViewHostController = {
                 browserSurface.browserStandardWebViewHostController
@@ -266,8 +268,8 @@ class MainActivity : AppCompatActivity() {
                 if (::browserSearch.isInitialized) browserSearch.addressSuggestionController else null
             },
             siteSecurityController = {
-                if (::siteSecurityController.isInitialized) {
-                    siteSecurityController
+                if (::browserStartupFeatures.isInitialized) {
+                    browserStartupFeatures.siteSecurityController
                 } else {
                     null
                 }
@@ -296,10 +298,12 @@ class MainActivity : AppCompatActivity() {
             functionCenter = browserShell.functionCenterController,
             logTag = RULE_LOG_TAG,
             showMainFunctionCenterPage = {
-                functionCenterEntryController.showFunctionCenterRootPage()
+                browserStartupFeatures.functionCenterEntryController.showFunctionCenterRootPage()
             },
             pageActionsController = { pageActions.pageActionsController },
-            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
+            closeFunctionCenter = {
+                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
+            },
             currentSessionController = browserSessionStateController::currentSessionController,
             currentBrowserManager = {
                 browserSurface.browserStandardWebViewHostController.currentBrowserManager()
@@ -322,7 +326,11 @@ class MainActivity : AppCompatActivity() {
             settingsManager = browserPersistence.settingsManager,
             savedPageRepository = browserPersistence.savedPageRepository,
             siteSecurityController = {
-                if (::siteSecurityController.isInitialized) siteSecurityController else null
+                if (::browserStartupFeatures.isInitialized) {
+                    browserStartupFeatures.siteSecurityController
+                } else {
+                    null
+                }
             },
             dp = ::dp,
             isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
@@ -390,7 +398,9 @@ class MainActivity : AppCompatActivity() {
             browserChromeClientStateController = browserChromeClientStateController,
             addressSuggestionController = browserSearch.addressSuggestionController,
             searchProviderController = browserSearch.searchProviderController,
-            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
+            closeFunctionCenter = {
+                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
+            },
             defaultUserAgent = browserRuntimeStateController::defaultUserAgent
         ).create()
 
@@ -416,7 +426,9 @@ class MainActivity : AppCompatActivity() {
             activityResultLaunchers = activityResultLaunchers,
             findInPageController = findInPageController,
             browserNavigationController = browserNavigation.browserNavigationController,
-            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
+            closeFunctionCenter = {
+                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
+            },
             recreateActivity = { recreate() },
             dp = ::dp
         ).create()
@@ -439,9 +451,13 @@ class MainActivity : AppCompatActivity() {
             browserControlsShellController = browserShell.browserControlsShellController,
             isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
             isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
-            onBack = { browserBackNavigationController.handleBrowserBack() },
-            showFunctionCenter = { functionCenterEntryController.showFunctionCenter() },
-            showProfilePage = { functionCenterEntryController.showProfilePage() },
+            onBack = { browserStartupFeatures.browserBackNavigationController.handleBrowserBack() },
+            showFunctionCenter = {
+                browserStartupFeatures.functionCenterEntryController.showFunctionCenter()
+            },
+            showProfilePage = {
+                browserStartupFeatures.functionCenterEntryController.showProfilePage()
+            },
             dp = ::dp
         ).create()
 
@@ -462,19 +478,24 @@ class MainActivity : AppCompatActivity() {
             sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
             clearElementPickerState = {
-                if (::pageFeatures.isInitialized) {
-                    pageFeatures.elementPickerController.clearState()
+                if (::browserStartupFeatures.isInitialized) {
+                    browserStartupFeatures.pageFeatures.elementPickerController.clearState()
                 }
             },
             cancelElementPickerIfActive = {
-                if (::pageFeatures.isInitialized && pageFeatures.elementPickerController.isActive) {
-                    pageFeatures.elementPickerController.cancel()
+                if (
+                    ::browserStartupFeatures.isInitialized &&
+                    browserStartupFeatures.pageFeatures.elementPickerController.isActive
+                ) {
+                    browserStartupFeatures.pageFeatures.elementPickerController.cancel()
                 }
             },
             exitPageFullscreenIfNeeded = {
                 browserFullscreen.browserFullscreenUiController.exitPageFullscreenIfNeeded()
             },
-            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
+            closeFunctionCenter = {
+                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
+            },
             openHomePage = browserNavigation.browserLaunchController::openHomePage,
             loadUrl = browserNavigation.browserNavigationController::loadUrl,
             createStandardTabWebView =
@@ -523,8 +544,8 @@ class MainActivity : AppCompatActivity() {
                 browserClients.browserWebClientController.showBrowserErrorPage(error)
             },
             resetBackExitConfirmation = {
-                if (::browserBackNavigationController.isInitialized) {
-                    browserBackNavigationController.resetBackExitConfirmation()
+                if (::browserStartupFeatures.isInitialized) {
+                    browserStartupFeatures.browserBackNavigationController.resetBackExitConfirmation()
                 }
             },
             clientCertificateController = pageActions.clientCertificateController,
@@ -533,7 +554,9 @@ class MainActivity : AppCompatActivity() {
             smartNoImageRequestInterceptor =
                 requestInterceptionProvider.smartNoImageRequestInterceptor,
             browserNavigationController = browserNavigation.browserNavigationController,
-            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
+            closeFunctionCenter = {
+                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
+            },
             closeTab = browserSessions.browserTabActionsController::closeTab,
             fullscreenChanged = { fullscreen ->
                 browserFullscreen.browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
@@ -557,100 +580,31 @@ class MainActivity : AppCompatActivity() {
             dp = ::dp
         ).create()
 
-        // 功能中心是底部弹出的工具面板。装配类负责把各控制器动作接入页面。
-        functionCenterEntryController = FunctionCenterAssemblyController(
+        browserStartupFeatures = BrowserStartupFeatureAssemblyController(
             activity = this,
-            functionCenter = browserShell.functionCenterController,
-            settingsManager = browserPersistence.settingsManager,
-            browserManager = {
-                browserSurface.browserStandardWebViewHostController.currentBrowserManager()
-            },
-            browserManagers = {
-                browserSurface.browserStandardWebViewHostController.browserManagers()
-            },
-            savedPageRepository = browserPersistence.savedPageRepository,
-            downloadRecordRepository = browserPersistence.downloadRecordRepository,
-            playbackHistoryRepository = browserPersistence.playbackHistoryRepository,
-            adBlockLogger = requestInterceptionProvider.adBlockLogger,
-            filesDir = filesDir,
-            browserUrlStateController = browserShell.browserUrlStateController,
-            browserFeatureStateController = browserShell.browserFeatureStateController,
-            browserTabActionsController = browserSessions.browserTabActionsController,
-            browserLaunchController = browserNavigation.browserLaunchController,
-            pageActionsController = pageActions.pageActionsController,
-            browserPageToolEntryController = pageActions.browserPageToolEntryController,
-            downloadController = pageActions.downloadController,
-            activityResultLaunchers = activityResultLaunchers,
-            searchProviderController = browserSearch.searchProviderController,
-            localDocumentEntryController = localFiles.localDocumentEntryController,
-            startElementPicker = { pageFeatures.elementPickerController.start() },
-            browserDisplayModeController = browserNavigation.browserDisplayModeController,
-            pageFeatureInjectionController = browserShell.pageFeatureInjectionController,
-            browserNavigationController = browserNavigation.browserNavigationController,
-            hideKeyboard = browserShell.browserKeyboardController::hideKeyboard,
-            recreateActivity = { recreate() }
-        ).createEntryController()
-
-        siteSecurityController = BrowserSiteSecurityAssemblyController(
-            activity = this,
-            siteSecurityIcon = views.siteSecurityIcon,
-            settingsManager = browserPersistence.settingsManager,
-            browserSessionStateController = browserSessionStateController,
-            browserStandardWebViewHostController = browserSurface.browserStandardWebViewHostController,
-            browserFeatureStateController = browserShell.browserFeatureStateController,
-            browserUrlStateController = browserShell.browserUrlStateController,
-            showCurrentSiteSettingsPage = functionCenterEntryController::showCurrentSiteSettingsPage
-        ).create()
-
-        pageFeatures = BrowserPageFeatureAssemblyController(
-            activity = this,
+            intent = intent,
             assets = assets,
-            settingsManager = browserPersistence.settingsManager,
-            ruleEngine = browserNavigation.ruleEngine,
-            browserManager = {
-                browserSurface.browserStandardWebViewHostController.currentBrowserManager()
-            },
+            filesDir = filesDir,
+            views = views,
+            browserPersistence = browserPersistence,
+            browserSurface = browserSurface,
+            browserShell = browserShell,
+            browserSessions = browserSessions,
+            browserSearch = browserSearch,
+            browserNavigation = browserNavigation,
+            pageActions = pageActions,
+            browserClients = browserClients,
+            browserFullscreen = browserFullscreen,
+            requestInterceptionProvider = requestInterceptionProvider,
+            activityResultLaunchers = activityResultLaunchers,
+            localFiles = localFiles,
             browserSessionStateController = browserSessionStateController,
-            browserUrlStateController = browserShell.browserUrlStateController,
-            browserFeatureStateController = browserShell.browserFeatureStateController,
-            pageFeatureInjectionController = browserShell.pageFeatureInjectionController,
+            browserRuntimeStateController = browserRuntimeStateController,
             browserChromeClientStateController = browserChromeClientStateController,
-            fullscreenVideoController = browserFullscreen.fullscreenVideoController,
-            webPlaybackHistoryRecorder = browserPersistence.webPlaybackHistoryRecorder,
-            postToUi = { action -> runOnUiThread { action() } },
-        ).create()
-        browserBackNavigationController = BrowserBackNavigationAssemblyController(
-            activity = this,
-            browserManager = {
-                browserSurface.browserStandardWebViewHostController.currentBrowserManager()
-            },
-            currentChromeClient = browserChromeClientStateController::currentChromeClientOrNull,
-            handleFunctionCenterBack = functionCenterEntryController::handleFunctionCenterBack,
-            isElementPickerActive = { pageFeatures.elementPickerController.isActive },
-            cancelElementPicker = pageFeatures.elementPickerController::cancel,
-            updateNavigationButtons = browserShell.browserShellUiController::updateNavigationButtons
-        ).create()
-
-        BrowserStartupControllerAssembly(
-            rootView = views.rootView,
-            isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
-            browserControlsShellController = browserShell.browserControlsShellController,
-            addressSuggestionController = browserSearch.addressSuggestionController,
-            browsingModeThemeController = browserShell.browsingModeThemeController,
-            browserShellUiController = browserShell.browserShellUiController,
-            browserBackNavigationController = browserBackNavigationController,
-            browserStandardWebViewHostController = browserSurface.browserStandardWebViewHostController,
-            settingsManager = browserPersistence.settingsManager,
-            setDefaultUserAgent = browserRuntimeStateController::setDefaultUserAgent,
-            browserDisplayModeController = browserNavigation.browserDisplayModeController,
-            downloadController = pageActions.downloadController,
-            browserChromeClientController = browserClients.browserChromeClientController,
-            browserFullscreenUiController = browserFullscreen.browserFullscreenUiController,
-            nativeBridgeController = pageFeatures.nativeBridgeController,
             nativeBridgeName = NATIVE_BRIDGE_NAME,
-            browserWebClientController = browserClients.browserWebClientController,
-            browserLaunchController = browserNavigation.browserLaunchController
-        ).start(intent)
+            recreateActivity = { recreate() },
+            postToUi = { action -> runOnUiThread { action() } }
+        ).start()
     }
 
     /**

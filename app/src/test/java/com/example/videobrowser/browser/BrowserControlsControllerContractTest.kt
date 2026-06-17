@@ -63,15 +63,19 @@ class BrowserControlsControllerContractTest {
         val startupController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
         ).readText()
+        val startupFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(controller.contains("private val onBack: () -> Unit"))
         assertTrue(controller.contains("backButton.setOnClickListener { onBack() }"))
         assertTrue(controller.contains("backButton.isEnabled = visibility.showBack"))
-        assertTrue(mainActivity.contains("onBack = { browserBackNavigationController.handleBrowserBack() }"))
-        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(mainActivity.contains("onBack = { browserStartupFeatures.browserBackNavigationController.handleBrowserBack() }"))
+        assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
+        assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
         assertTrue(startupController.contains("browserBackNavigationController.setupBackNavigation()"))
-        assertTrue(mainActivity.contains("browserBackNavigationController.handleBrowserBack()"))
+        assertTrue(mainActivity.contains("browserStartupFeatures.browserBackNavigationController.handleBrowserBack()"))
         assertTrue(backNavigationController.contains("override fun handleOnBackPressed()"))
         assertTrue(!mainActivity.contains("private fun handleBrowserBack()"))
         assertTrue(backNavigationController.contains("browserManager().goBack()"))
