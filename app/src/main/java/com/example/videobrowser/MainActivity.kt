@@ -883,7 +883,7 @@ class MainActivity : AppCompatActivity() {
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
             showFileOperationsPage = localDocumentEntryController::showFileOperationsPage,
             startElementPicker = ::startElementPicker,
-            applyDesktopMode = ::applyDesktopMode,
+            applyDesktopMode = browserDisplayModeController::applyDesktopMode,
             injectPageFeatures = ::injectPageFeatures,
             openUrlInNewTab = browserTabActionsController::openUrlInNewTab,
             loadUrl = browserNavigationController::loadUrl,
@@ -989,7 +989,7 @@ class MainActivity : AppCompatActivity() {
         standardBrowserManager.setTextZoomPercent(settingsManager.textZoomPercent())
         standardBrowserManager.setPrivateBrowsingEnabled(false)
         defaultUserAgent = standardBrowserManager.userAgentString()
-        applyDesktopMode(reload = false)
+        browserDisplayModeController.applyDesktopMode(reload = false)
         setupDownloadHandling()
         browserChromeClientController.setupChromeClient()
         setupFullscreenGestureOverlay()
@@ -1361,7 +1361,9 @@ class MainActivity : AppCompatActivity() {
         browserControlsShellController.updatePageProgressVisibility(forceHidden = fullscreen)
         ViewCompat.requestApplyInsets(rootView)
         if (!fullscreen) {
-            applyBrowserContentOrientation(browserFeatureStateController.isDesktopModeEnabled())
+            browserDisplayModeController.applyBrowserContentOrientation(
+                browserFeatureStateController.isDesktopModeEnabled()
+            )
         }
     }
 
@@ -1450,26 +1452,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupDownloadHandling() {
         downloadController.attachTo(browserManagers())
-    }
-
-    /**
-     * 函数 `applyDesktopMode`：根据最新状态刷新 `apply Desktop Mode` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param reload 参数类型为 `Boolean`，表示函数执行 `reload` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun applyDesktopMode(reload: Boolean) {
-        browserDisplayModeController.applyDesktopMode(reload)
-    }
-
-    /**
-     * 函数 `applyBrowserContentOrientation`：根据最新状态刷新 `apply Browser Content Orientation` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param desktopModeEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     */
-    private fun applyBrowserContentOrientation(desktopModeEnabled: Boolean) {
-        browserDisplayModeController.applyBrowserContentOrientation(desktopModeEnabled)
     }
 
     /**
