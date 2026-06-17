@@ -1109,7 +1109,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupBrowserWebViews() {
         standardWebView = views.webView
-        configureLinkContextMenu(standardWebView)
+        linkContextMenuController.configure(standardWebView)
         standardBrowserManager = BrowserManager(standardWebView)
         standardTabWebViews = BrowserTabWebViewRegistry(
             tabs = standardTabStore,
@@ -1296,7 +1296,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode) {
         privateBrowsingActive = mode == BrowserMode.PRIVATE
-        configureLinkContextMenu(activeWebView)
+        linkContextMenuController.configure(activeWebView)
         if (::browserControlsScrollController.isInitialized) {
             browserControlsScrollController.attachToWebView(activeWebView)
         }
@@ -1438,16 +1438,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
         pageFeatureCoordinator.injectPageFeatures()
-    }
-
-    /**
-     * 函数 `configureLinkContextMenu`：封装 `configure Link Context Menu` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun configureLinkContextMenu(targetWebView: WebView) {
-        linkContextMenuController.configure(targetWebView)
     }
 
     // endregion

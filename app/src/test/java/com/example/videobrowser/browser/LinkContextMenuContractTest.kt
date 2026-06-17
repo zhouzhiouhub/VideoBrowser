@@ -25,9 +25,9 @@ class LinkContextMenuContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("configureLinkContextMenu(standardWebView)"))
-        assertTrue(mainActivity.contains("configureLinkContextMenu(activeWebView)"))
-        assertTrue(mainActivity.contains("linkContextMenuController.configure(targetWebView)"))
+        assertTrue(mainActivity.contains("linkContextMenuController.configure(standardWebView)"))
+        assertTrue(mainActivity.contains("linkContextMenuController.configure(activeWebView)"))
+        assertTrue(linkContextMenuController.contains("fun configure(targetWebView: WebView)"))
         assertTrue(mainActivity.contains("private lateinit var linkContextMenuController: LinkContextMenuController"))
         assertTrue(linkContextMenuController.contains("targetWebView.setOnLongClickListener"))
         assertTrue(linkContextMenuController.contains("WebView.HitTestResult.SRC_ANCHOR_TYPE"))
