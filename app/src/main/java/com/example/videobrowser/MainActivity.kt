@@ -17,7 +17,6 @@ package com.example.videobrowser
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -110,11 +109,9 @@ import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.storage.BookmarkImportExportController
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
-import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.FullscreenVideoController
 import com.example.videobrowser.video.NativePlayerEntryController
 import com.example.videobrowser.video.PlaybackHistoryRepository
-import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebPlaybackHistoryRecorder
 
 /**
@@ -464,7 +461,15 @@ class MainActivity : AppCompatActivity() {
             showMainFunctionCenterPage = {
                 functionCenterEntryController.showFunctionCenterRootPage()
             },
-            onOpenDocumentUri = ::openLocalDocumentUri
+            onOpenDocumentUri = { uri, displayName, mimeType, subtitleCandidates, playbackQueue ->
+                localDocumentEntryController.openLocalDocumentUri(
+                    uri,
+                    displayName,
+                    mimeType,
+                    subtitleCandidates,
+                    playbackQueue
+                )
+            }
         )
         localDocumentEntryController = LocalDocumentEntryController(
             localFilesController = localFilesController,
@@ -1349,34 +1354,6 @@ class MainActivity : AppCompatActivity() {
             currentSessionController().renderCurrentState()
         }
     }
-
-    // endregion
-
-    // region 原生桥、功能中心、本地文件和页面工具
-    // 原生桥把网页里的 JavaScript 调用转成 Kotlin 回调；功能中心和本地文件入口复用这些动作。
-    /**
-     * 函数 `openLocalDocumentUri`：启动或加载 `open Local Document Uri` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param displayName 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
-     * @param subtitleCandidates 参数类型为 `List<ExternalSubtitleCandidate>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param playbackQueue 参数类型为 `PlaybackQueue?`，表示函数执行 `playbackQueue` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun openLocalDocumentUri(
-        uri: Uri,
-        displayName: String? = null,
-        mimeType: String? = null,
-        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
-        playbackQueue: PlaybackQueue? = null
-    ) = localDocumentEntryController.openLocalDocumentUri(
-        uri,
-        displayName,
-        mimeType,
-        subtitleCandidates,
-        playbackQueue
-    )
 
     // endregion
 
