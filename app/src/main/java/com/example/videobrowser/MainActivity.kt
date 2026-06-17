@@ -32,8 +32,6 @@ import android.widget.ProgressBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
@@ -67,6 +65,7 @@ import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserWebClientController
+import com.example.videobrowser.browser.BrowserWindowInsetsController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ClientCertificateController
 import com.example.videobrowser.browser.FindInPageController
@@ -1173,20 +1172,10 @@ class MainActivity : AppCompatActivity() {
             updateNavigationButtons = browserShellUiController::updateNavigationButtons
         )
 
-        // 系统栏/刘海安全区变化时，主界面留出边距；视频全屏时则交给全屏容器占满屏幕。
-        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
-            val safeArea = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or
-                    WindowInsetsCompat.Type.displayCutout()
-            )
-            if (isVideoFullscreenUiActive) {
-                view.setPadding(0, 0, 0, 0)
-            } else {
-                view.setPadding(safeArea.left, safeArea.top, safeArea.right, safeArea.bottom)
-            }
-            insets
-        }
-        ViewCompat.requestApplyInsets(rootView)
+        BrowserWindowInsetsController(
+            rootView = rootView,
+            isVideoFullscreenUiActive = { isVideoFullscreenUiActive }
+        ).setupSystemWindowInsets()
 
         browserControlsShellController.setupSearchProviders()
         addressSuggestionController.setup()
