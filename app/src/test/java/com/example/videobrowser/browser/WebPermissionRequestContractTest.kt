@@ -62,6 +62,9 @@ class WebPermissionRequestContractTest {
         val runtimeFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
         ).readText()
+        val activityScaffoldAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityScaffoldAssemblyController.kt"
+        ).readText()
         val activityResultLaunchers = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
         ).readText()
@@ -95,8 +98,8 @@ class WebPermissionRequestContractTest {
         assertTrue(webPermissionController.contains("Manifest.permission.RECORD_AUDIO"))
         assertTrue(webPermissionController.contains("SitePermission.CAMERA"))
         assertTrue(webPermissionController.contains("SitePermission.MICROPHONE"))
-        assertTrue(mainActivity.contains("SessionSitePermissionStore"))
-        assertTrue(mainActivity.contains("private val sessionSitePermissionStore = SessionSitePermissionStore()"))
+        assertTrue(activityScaffoldAssembly.contains("SessionSitePermissionStore"))
+        assertTrue(activityScaffoldAssembly.contains("val sessionSitePermissionStore = SessionSitePermissionStore()"))
         assertTrue(webPermissionController.contains("settingsManager.sitePermissionDecision(hostName, permission)"))
         assertTrue(webPermissionController.contains("settingsManager.setSitePermissionDecision(hostName, permission, decision)"))
         assertTrue(webPermissionController.contains("sessionSitePermissionStore.isAllowed(hostName, permission)"))

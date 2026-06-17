@@ -78,6 +78,9 @@ class WebGeolocationPermissionContractTest {
         val runtimeFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
         ).readText()
+        val activityScaffoldAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityScaffoldAssemblyController.kt"
+        ).readText()
         val activityResultLaunchers = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
         ).readText()
@@ -107,8 +110,8 @@ class WebGeolocationPermissionContractTest {
         assertTrue(geolocationController.contains("Manifest.permission.ACCESS_FINE_LOCATION"))
         assertTrue(geolocationController.contains("Manifest.permission.ACCESS_COARSE_LOCATION"))
         assertTrue(geolocationController.contains("SitePermission.LOCATION"))
-        assertTrue(mainActivity.contains("SessionSitePermissionStore"))
-        assertTrue(mainActivity.contains("private val sessionSitePermissionStore = SessionSitePermissionStore()"))
+        assertTrue(activityScaffoldAssembly.contains("SessionSitePermissionStore"))
+        assertTrue(activityScaffoldAssembly.contains("val sessionSitePermissionStore = SessionSitePermissionStore()"))
         assertTrue(geolocationController.contains("settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)"))
         assertTrue(geolocationController.contains("settingsManager.setSitePermissionDecision("))
         assertTrue(geolocationController.contains("sessionSitePermissionStore.isAllowed(hostName, SitePermission.LOCATION)"))

@@ -83,8 +83,12 @@ class FindInPageWiringContractTest {
         val findInPageAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserFindInPageAssemblyController.kt"
         ).readText()
+        val activityScaffoldAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityScaffoldAssemblyController.kt"
+        ).readText()
 
-        assertTrue(mainActivity.contains("BrowserFindInPageAssemblyController"))
+        assertTrue(mainActivity.contains("BrowserActivityScaffoldComponents"))
+        assertTrue(activityScaffoldAssembly.contains("BrowserFindInPageAssemblyController"))
         assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("browserPageToolEntryController = pageActions.browserPageToolEntryController"))
         assertTrue(findInPageAssembly.contains("FindInPageController("))

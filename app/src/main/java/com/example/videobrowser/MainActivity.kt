@@ -19,23 +19,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
-import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
-import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyController
-import com.example.videobrowser.browser.BrowserChromeClientStateAssemblyController
+import com.example.videobrowser.browser.BrowserActivityScaffoldAssemblyController
+import com.example.videobrowser.browser.BrowserActivityScaffoldComponents
 import com.example.videobrowser.browser.BrowserCoreFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserCoreFeatureComponents
-import com.example.videobrowser.browser.BrowserFindInPageAssemblyController
-import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
-import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserStartupFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserStartupFeatureComponents
-import com.example.videobrowser.browser.BrowserTabStateAssemblyController
-import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserRuntimeFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserRuntimeFeatureComponents
 import com.example.videobrowser.browser.BrowserWebViewDebugController
-import com.example.videobrowser.browser.BrowserRuntimeStateController
-import com.example.videobrowser.settings.SessionSitePermissionStore
 
 /**
  * VideoBrowser 的主 Activity。
@@ -57,182 +49,26 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents
     private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents
     private lateinit var browserStartupFeatures: BrowserStartupFeatureComponents
-    private val browserChromeClientStateController = BrowserChromeClientStateAssemblyController(
-        browserChromeClientController = {
-            if (::browserRuntimeFeatures.isInitialized) {
-                browserRuntimeFeatures.browserClients.browserChromeClientController
-            } else {
-                null
-            }
-        }
-    ).create()
-    private val browserActivityLifecycleController = BrowserActivityLifecycleAssemblyController(
-        browserChromeClientController = {
-            if (::browserRuntimeFeatures.isInitialized) {
-                browserRuntimeFeatures.browserClients.browserChromeClientController
-            } else {
-                null
-            }
-        },
-        browserWebClientController = {
-            if (::browserRuntimeFeatures.isInitialized) {
-                browserRuntimeFeatures.browserClients.browserWebClientController
-            } else {
-                null
-            }
-        },
-        pageArchiveController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.pageActions.pageArchiveController
-            } else {
-                null
-            }
-        },
-        addressSuggestionController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.browserSearch.addressSuggestionController
-            } else {
-                null
-            }
-        },
-        downloadController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.pageActions.downloadController
-            } else {
-                null
-            }
-        },
-        elementPickerController = {
-            if (::browserStartupFeatures.isInitialized) {
-                browserStartupFeatures.pageFeatures.elementPickerController
-            } else {
-                null
-            }
-        },
-        functionCenterEntryController = {
-            if (::browserStartupFeatures.isInitialized) {
-                browserStartupFeatures.functionCenterEntryController
-            } else {
-                null
-            }
-        },
-        browserChromeClientStateController = browserChromeClientStateController,
-        browserStandardTabSessionController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.browserPersistence.browserStandardTabSessionController
-            } else {
-                null
-            }
-        },
-        browserStandardWebViewHostController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.browserSurface.browserStandardWebViewHostController
-            } else {
-                null
-            }
-        },
-        browserLaunchController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.browserNavigation.browserLaunchController
-            } else {
-                null
-            }
-        }
-    ).create()
-    // endregion
-
-    // region 标签页与会话状态
-    // 标准模式和无痕模式各有自己的标签页列表，避免无痕页面写入普通会话。
-    private val browserTabState = BrowserTabStateAssemblyController().create()
-    private val findInPageController = BrowserFindInPageAssemblyController(
-        browserStandardWebViewHostController = {
-            browserCoreFeatures.browserSurface.browserStandardWebViewHostController
-        }
-    ).create()
-    // endregion
-
-    // region 网页内容增强和拦截
-    // 请求拦截提供器内部使用 lazy，确保规则引擎和设置管理器完成初始化后才创建拦截对象。
-    private val requestInterceptionProvider = BrowserRequestInterceptionProvider(
-        browserFeatureStateController = {
-            browserCoreFeatures.browserShell.browserFeatureStateController
-        },
-        settingsManager = { browserCoreFeatures.browserPersistence.settingsManager },
-        browserSessionStateController = { browserSessionStateController },
-        browserUrlStateController = { browserCoreFeatures.browserShell.browserUrlStateController },
-        ruleEngine = { browserCoreFeatures.browserNavigation.ruleEngine }
-    )
-    // endregion
-
-    // region Android 系统交互状态
-    // 这些字段保存系统弹窗或系统 Activity 返回前的临时状态，例如文件选择、权限申请、证书选择。
-    private val activityResultLaunchers = BrowserActivityResultLaunchersAssemblyController(
-        activity = this,
-        webFileChooserController = {
-            if (::browserRuntimeFeatures.isInitialized) {
-                browserRuntimeFeatures.webRequests.webFileChooserController
-            } else {
-                null
-            }
-        },
-        bookmarkImportExportController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.browserPersistence.bookmarkImportExportController
-            } else {
-                null
-            }
-        },
-        pageArchiveController = {
-            if (::browserCoreFeatures.isInitialized) {
-                browserCoreFeatures.pageActions.pageArchiveController
-            } else {
-                null
-            }
-        },
-        webPermissionRequestController = {
-            if (::browserRuntimeFeatures.isInitialized) {
-                browserRuntimeFeatures.webRequests.webPermissionRequestController
-            } else {
-                null
-            }
-        },
-        geolocationPermissionController = {
-            if (::browserRuntimeFeatures.isInitialized) {
-                browserRuntimeFeatures.webRequests.geolocationPermissionController
-            } else {
-                null
-            }
-        }
-    ).create()
-    private val sessionSitePermissionStore = SessionSitePermissionStore()
-    // endregion
-
-    // region 当前页面运行状态
-    private val browserRuntimeStateController = BrowserRuntimeStateController(
-        currentSessionController = {
-            browserSessionStateController.currentSessionController()
-        },
-        fullscreenVideoController = {
-            if (::browserRuntimeFeatures.isInitialized) {
-                browserRuntimeFeatures.browserFullscreen.fullscreenVideoController
-            } else {
-                null
-            }
-        }
-    )
-    private val browserSessionStateController: BrowserSessionStateController =
-        BrowserSessionStateAssemblyController(
-            isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
-            standardSessionController = {
-                if (::browserRuntimeFeatures.isInitialized) {
-                    browserRuntimeFeatures.browserSessions.standardSessionController
+    private val browserActivityScaffold: BrowserActivityScaffoldComponents =
+        BrowserActivityScaffoldAssemblyController(
+            activity = this,
+            browserCoreFeatures = {
+                if (::browserCoreFeatures.isInitialized) {
+                    browserCoreFeatures
                 } else {
                     null
                 }
             },
-            privateSessionController = {
+            browserRuntimeFeatures = {
                 if (::browserRuntimeFeatures.isInitialized) {
-                    browserRuntimeFeatures.browserSessions.privateSessionController
+                    browserRuntimeFeatures
+                } else {
+                    null
+                }
+            },
+            browserStartupFeatures = {
+                if (::browserStartupFeatures.isInitialized) {
+                    browserStartupFeatures
                 } else {
                     null
                 }
@@ -260,13 +96,14 @@ class MainActivity : AppCompatActivity() {
             assets = assets,
             filesDir = filesDir,
             views = views,
-            browserTabState = browserTabState,
-            browserSessionStateController = browserSessionStateController,
-            browserRuntimeStateController = browserRuntimeStateController,
-            browserChromeClientStateController = browserChromeClientStateController,
-            requestInterceptionProvider = requestInterceptionProvider,
-            activityResultLaunchers = activityResultLaunchers,
-            findInPageController = findInPageController,
+            browserTabState = browserActivityScaffold.browserTabState,
+            browserSessionStateController = browserActivityScaffold.browserSessionStateController,
+            browserRuntimeStateController = browserActivityScaffold.browserRuntimeStateController,
+            browserChromeClientStateController =
+                browserActivityScaffold.browserChromeClientStateController,
+            requestInterceptionProvider = browserActivityScaffold.requestInterceptionProvider,
+            activityResultLaunchers = browserActivityScaffold.activityResultLaunchers,
+            findInPageController = browserActivityScaffold.findInPageController,
             browserRuntimeFeatures = {
                 if (::browserRuntimeFeatures.isInitialized) {
                     browserRuntimeFeatures
@@ -296,14 +133,15 @@ class MainActivity : AppCompatActivity() {
             browserSearch = browserCoreFeatures.browserSearch,
             browserNavigation = browserCoreFeatures.browserNavigation,
             pageActions = browserCoreFeatures.pageActions,
-            browserTabState = browserTabState,
-            sessionSitePermissionStore = sessionSitePermissionStore,
-            browserSessionStateController = browserSessionStateController,
-            browserRuntimeStateController = browserRuntimeStateController,
-            browserChromeClientStateController = browserChromeClientStateController,
-            requestInterceptionProvider = requestInterceptionProvider,
-            activityResultLaunchers = activityResultLaunchers,
-            findInPageController = findInPageController,
+            browserTabState = browserActivityScaffold.browserTabState,
+            sessionSitePermissionStore = browserActivityScaffold.sessionSitePermissionStore,
+            browserSessionStateController = browserActivityScaffold.browserSessionStateController,
+            browserRuntimeStateController = browserActivityScaffold.browserRuntimeStateController,
+            browserChromeClientStateController =
+                browserActivityScaffold.browserChromeClientStateController,
+            requestInterceptionProvider = browserActivityScaffold.requestInterceptionProvider,
+            activityResultLaunchers = browserActivityScaffold.activityResultLaunchers,
+            findInPageController = browserActivityScaffold.findInPageController,
             browserStartupFeatures = {
                 if (::browserStartupFeatures.isInitialized) {
                     browserStartupFeatures
@@ -330,12 +168,13 @@ class MainActivity : AppCompatActivity() {
             pageActions = browserCoreFeatures.pageActions,
             browserClients = browserRuntimeFeatures.browserClients,
             browserFullscreen = browserRuntimeFeatures.browserFullscreen,
-            requestInterceptionProvider = requestInterceptionProvider,
-            activityResultLaunchers = activityResultLaunchers,
+            requestInterceptionProvider = browserActivityScaffold.requestInterceptionProvider,
+            activityResultLaunchers = browserActivityScaffold.activityResultLaunchers,
             localFiles = browserCoreFeatures.localFiles,
-            browserSessionStateController = browserSessionStateController,
-            browserRuntimeStateController = browserRuntimeStateController,
-            browserChromeClientStateController = browserChromeClientStateController,
+            browserSessionStateController = browserActivityScaffold.browserSessionStateController,
+            browserRuntimeStateController = browserActivityScaffold.browserRuntimeStateController,
+            browserChromeClientStateController =
+                browserActivityScaffold.browserChromeClientStateController,
             nativeBridgeName = NATIVE_BRIDGE_NAME,
             recreateActivity = { recreate() },
             postToUi = { action -> runOnUiThread { action() } }
@@ -350,7 +189,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        browserActivityLifecycleController.handleNewIntent(
+        browserActivityScaffold.browserActivityLifecycleController.handleNewIntent(
             intent = intent,
             setActivityIntent = { newIntent -> setIntent(newIntent) }
         )
@@ -362,7 +201,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     override fun onPause() {
-        browserActivityLifecycleController.handlePause()
+        browserActivityScaffold.browserActivityLifecycleController.handlePause()
         super.onPause()
     }
 
@@ -373,7 +212,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
-        browserActivityLifecycleController.handleResume()
+        browserActivityScaffold.browserActivityLifecycleController.handleResume()
     }
 
     /**
@@ -385,7 +224,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
-            browserRuntimeStateController.wakeVideoFullscreenControlsIfActive()
+            browserActivityScaffold.browserRuntimeStateController.wakeVideoFullscreenControlsIfActive()
         }
         return super.dispatchKeyEvent(event)
     }
@@ -396,7 +235,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     override fun onDestroy() {
-        browserActivityLifecycleController.handleDestroy()
+        browserActivityScaffold.browserActivityLifecycleController.handleDestroy()
         super.onDestroy()
     }
 

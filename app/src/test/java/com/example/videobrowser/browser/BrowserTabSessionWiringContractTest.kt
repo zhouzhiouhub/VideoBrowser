@@ -43,11 +43,15 @@ class BrowserTabSessionWiringContractTest {
         val coreFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
         ).readText()
+        val activityScaffoldAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityScaffoldAssemblyController.kt"
+        ).readText()
         val persistenceAssembly = projectFile(
             "src/main/java/com/example/videobrowser/storage/BrowserPersistenceAssemblyController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("BrowserTabStateAssemblyController"))
+        assertTrue(mainActivity.contains("BrowserActivityScaffoldComponents"))
+        assertTrue(activityScaffoldAssembly.contains("BrowserTabStateAssemblyController"))
         assertTrue(tabStateAssembly.contains("BrowserTabStore()"))
         assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(standardTabStore)"))
         assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(privateTabStore)"))
@@ -55,8 +59,8 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(coreFeatureAssembly.contains("BrowserPersistenceComponents"))
         assertTrue(persistenceAssembly.contains("BrowserTabSessionRepository(preferenceStore)"))
         assertTrue(persistenceAssembly.contains("BrowserStandardTabSessionController("))
-        assertTrue(mainActivity.contains("BrowserSessionStateAssemblyController"))
-        assertTrue(mainActivity.contains("browserSessionStateController.currentSessionController()"))
+        assertTrue(activityScaffoldAssembly.contains("BrowserSessionStateAssemblyController"))
+        assertTrue(activityScaffoldAssembly.contains("browserSessionStateController.currentSessionController()"))
         assertTrue(sessionStateAssembly.contains("BrowserSessionStateController("))
         assertTrue(sessionStateAssembly.contains("isPrivateBrowsingActive = isPrivateBrowsingActive"))
         assertTrue(sessionStateAssembly.contains("standardSessionController = standardSessionController"))
