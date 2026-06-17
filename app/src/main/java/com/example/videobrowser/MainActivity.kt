@@ -416,13 +416,15 @@ class MainActivity : AppCompatActivity() {
             preferenceStore = preferenceStore,
             functionCenter = functionCenterController,
             logTag = RULE_LOG_TAG,
-            showMainFunctionCenterPage = ::showFunctionCenterRootPage,
+            showMainFunctionCenterPage = {
+                functionCenterEntryController.showFunctionCenterRootPage()
+            },
             onOpenDocumentUri = ::openLocalDocumentUri
         )
         localDocumentEntryController = LocalDocumentEntryController(
             localFilesController = localFilesController,
             pageActionsController = { pageActionsController },
-            closeFunctionCenter = ::closeFunctionCenter,
+            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             currentSessionController = ::currentSessionController,
             currentBrowserManager = ::currentBrowserManager,
             updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
@@ -520,7 +522,7 @@ class MainActivity : AppCompatActivity() {
             browserManager = ::currentBrowserManager,
             sessionController = ::currentSessionController,
             externalNavigator = externalNavigator,
-            closeFunctionCenter = ::closeFunctionCenter,
+            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             openNativePlayer = nativePlayerEntryController::openNativePlayer,
             isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
@@ -607,7 +609,7 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             findInPageController = findInPageController,
             setFindResultListener = { listener -> currentBrowserManager().setFindResultListener(listener) },
-            closeFunctionCenter = { closeFunctionCenter() },
+            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             dp = ::dp
         )
         browserPageToolEntryController = BrowserPageToolEntryController(
@@ -665,8 +667,8 @@ class MainActivity : AppCompatActivity() {
             onLoadAddress = browserLaunchController::loadAddressInput,
             onBack = ::handleBrowserBack,
             onOpenWenxin = browserLaunchController::openWenxinPage,
-            onShowFunctionCenter = ::showFunctionCenter,
-            onShowProfilePage = ::showProfilePage,
+            onShowFunctionCenter = { functionCenterEntryController.showFunctionCenter() },
+            onShowProfilePage = { functionCenterEntryController.showProfilePage() },
             onToggleBookmark = pageActionsController::toggleCurrentBookmark,
             onShowControlsRequested = {
                 browserControlsShellController.setBrowserControlsHidden(false)
@@ -732,7 +734,7 @@ class MainActivity : AppCompatActivity() {
         privateBrowsingSwitchController = PrivateBrowsingSwitchController(
             activity = this,
             isPrivateBrowsingActive = { privateBrowsingActive },
-            closeFunctionCenter = { closeFunctionCenter() },
+            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             cancelElementPickerIfActive = {
                 if (::elementPickerController.isInitialized && elementPickerController.isActive) {
                     elementPickerController.cancel()
@@ -757,7 +759,7 @@ class MainActivity : AppCompatActivity() {
             showStandardTabWebView = ::showStandardTabWebView,
             hideStandardTabWebView = ::hideStandardTabWebView,
             destroyStandardTabWebView = ::destroyStandardTabWebView,
-            closeFunctionCenter = ::closeFunctionCenter,
+            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             saveStandardTabSession = ::saveStandardTabSession,
             loadUrl = browserNavigationController::loadUrl,
             openHomePage = browserLaunchController::openHomePage
@@ -793,7 +795,7 @@ class MainActivity : AppCompatActivity() {
             standardTabStore = standardTabStore,
             standardTabWebViews = standardTabWebViews,
             standardSessionController = standardSessionController,
-            closeFunctionCenter = ::closeFunctionCenter,
+            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             saveStandardTabSession = ::saveStandardTabSession,
             closeTab = browserTabActionsController::closeTab
         )
@@ -893,7 +895,7 @@ class MainActivity : AppCompatActivity() {
             currentWebViewUrl = { currentBrowserManager().currentUrl() },
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             currentSiteHost = browserUrlStateController::currentSiteHost,
-            showCurrentSiteSettingsPage = ::showCurrentSiteSettingsPage
+            showCurrentSiteSettingsPage = functionCenterEntryController::showCurrentSiteSettingsPage
         )
 
         // JS 注入链路：ScriptLoader 读 assets/scripts，JsInjector 组合脚本，PageFeatureCoordinator 判断是否启用。
@@ -946,7 +948,7 @@ class MainActivity : AppCompatActivity() {
                     null
                 }
             },
-            handleFunctionCenterBack = ::handleFunctionCenterBack,
+            handleFunctionCenterBack = functionCenterEntryController::handleFunctionCenterBack,
             isElementPickerActive = { elementPickerController.isActive },
             cancelElementPicker = elementPickerController::cancel,
             updateNavigationButtons = ::updateNavigationButtons
@@ -1069,7 +1071,9 @@ class MainActivity : AppCompatActivity() {
         if (::elementPickerController.isInitialized) {
             elementPickerController.dispose()
         }
-        closeFunctionCenter()
+        if (::functionCenterEntryController.isInitialized) {
+            functionCenterEntryController.closeFunctionCenter()
+        }
         if (areChromeClientsInitialized()) {
             currentChromeClient().hideCustomView()
         }
@@ -1429,43 +1433,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `showFunctionCenter`：控制 `show Function Center` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showFunctionCenter() = functionCenterEntryController.showFunctionCenter()
-
-    /**
-     * 函数 `showFunctionCenterRootPage`：控制 `show Function Center Root Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showFunctionCenterRootPage() = functionCenterEntryController.showFunctionCenterRootPage()
-
-    /**
-     * 函数 `showProfilePage`：控制 `show Profile Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showProfilePage() = functionCenterEntryController.showProfilePage()
-
-    /**
-     * 函数 `handleFunctionCenterBack`：处理 `handle Function Center Back` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun handleFunctionCenterBack(): Boolean = functionCenterEntryController.handleFunctionCenterBack()
-
-    /**
-     * 函数 `closeFunctionCenter`：控制 `close Function Center` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun closeFunctionCenter(): Boolean = functionCenterEntryController.closeFunctionCenter()
-
-    /**
      * 函数 `openLocalDocumentUri`：启动或加载 `open Local Document Uri` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1574,14 +1541,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 地址解析、页面加载和站点安全提示
     // 地址栏输入先被解析为 URL 或搜索词；真正加载前还会经过媒体路由、HTTP 降级确认和规则清理。
-    /**
-     * 函数 `showCurrentSiteSettingsPage`：控制 `show Current Site Settings Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showCurrentSiteSettingsPage() =
-        functionCenterEntryController.showCurrentSiteSettingsPage()
-
     // endregion
 
     // region 小工具函数和 WebView 跳转拦截
