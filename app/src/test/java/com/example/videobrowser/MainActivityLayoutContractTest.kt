@@ -73,6 +73,9 @@ class MainActivityLayoutContractTest {
         val addressBarStateController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserAddressBarStateController.kt"
         ).readText()
+        val browserShellUiController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserShellUiController.kt"
+        ).readText()
         val siteSecurityController = projectFile(
             "src/main/java/com/example/videobrowser/browser/SiteSecurityController.kt"
         ).readText()
@@ -89,7 +92,8 @@ class MainActivityLayoutContractTest {
         assertTrue(viewBinding.contains("val siteSecurityIcon: ImageView"))
         assertTrue(viewBinding.contains("R.id.siteSecurityIcon"))
         assertTrue(mainActivity.contains("private lateinit var siteSecurityController: SiteSecurityController"))
-        assertTrue(mainActivity.contains("siteSecurityController.setup()"))
+        assertTrue(mainActivity.contains("BrowserShellUiController"))
+        assertTrue(browserShellUiController.contains("siteSecurityController()?.setup()"))
         assertTrue(mainActivity.contains("BrowserAddressBarStateController"))
         assertTrue(addressBarStateController.contains("siteSecurityController()?.updateStatus(url)"))
         assertTrue(siteSecurityController.contains("fun updateStatus(url: String?)"))

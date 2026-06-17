@@ -60,6 +60,7 @@ import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
+import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
@@ -131,7 +132,6 @@ class MainActivity : AppCompatActivity() {
     private val rootView: View get() = views.rootView
     private val topBar: View get() = views.topBar
     private val bottomBar: ConstraintLayout get() = views.bottomBar
-    private val webView: WebView get() = currentBrowserManager().activeWebView
     private val addressInput: EditText get() = views.addressInput
     private val pageProgress: ProgressBar get() = views.pageProgress
     private val addressSuggestionPanel: LinearLayout get() = views.addressSuggestionPanel
@@ -199,6 +199,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserPageToolEntryController: BrowserPageToolEntryController
     private lateinit var browserDisplayModeController: BrowserDisplayModeController
     private lateinit var browsingModeThemeController: BrowsingModeThemeController
+    private lateinit var browserShellUiController: BrowserShellUiController
     private lateinit var browserBackNavigationController: BrowserBackNavigationController
     private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
@@ -383,6 +384,24 @@ class MainActivity : AppCompatActivity() {
             },
             dp = ::dp
         )
+        browserShellUiController = BrowserShellUiController(
+            browserControlsController = {
+                if (::browserControlsController.isInitialized) browserControlsController else null
+            },
+            siteSecurityController = {
+                if (::siteSecurityController.isInitialized) siteSecurityController else null
+            },
+            browserControlsScrollController = {
+                if (::browserControlsScrollController.isInitialized) {
+                    browserControlsScrollController
+                } else {
+                    null
+                }
+            },
+            browserControlsShellController = browserControlsShellController,
+            activeWebView = { currentBrowserManager().activeWebView },
+            browsingModeThemeController = browsingModeThemeController
+        )
 
         // 本地持久化层：设置、收藏/历史、标签会话、下载记录和播放历史都放在 SharedPreferences。
         preferenceStore = PreferenceStore.from(this)
@@ -391,7 +410,7 @@ class MainActivity : AppCompatActivity() {
         bookmarkImportExportController = BookmarkImportExportController(
             activity = this,
             savedPageRepository = savedPageRepository,
-            updateBookmarkButton = ::updateBookmarkButton
+            updateBookmarkButton = browserShellUiController::updateBookmarkButton
         )
         browserTabSessionRepository = BrowserTabSessionRepository(preferenceStore)
         restoreStandardTabSession()
@@ -431,7 +450,7 @@ class MainActivity : AppCompatActivity() {
             currentBrowserManager = ::currentBrowserManager,
             updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
             hideKeyboard = ::hideKeyboard,
-            showHomeContent = ::showHomeContent
+            showHomeContent = browserShellUiController::showHomeContent
         )
 
         // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
@@ -529,7 +548,7 @@ class MainActivity : AppCompatActivity() {
             isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
             hideKeyboard = ::hideKeyboard,
-            showHomeContent = ::showHomeContent
+            showHomeContent = browserShellUiController::showHomeContent
         )
         browserLaunchController = BrowserLaunchController(
             addressText = { addressInput.text?.toString().orEmpty() },
@@ -581,8 +600,8 @@ class MainActivity : AppCompatActivity() {
             switchPrivateBrowsing = { enabled ->
                 privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
             },
-            updateBookmarkButton = ::updateBookmarkButton,
-            updateNavigationButtons = ::updateNavigationButtons,
+            updateBookmarkButton = browserShellUiController::updateBookmarkButton,
+            updateNavigationButtons = browserShellUiController::updateNavigationButtons,
             updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
             recreateActivity = { recreate() },
             restoreBrowserDefaults = browserDefaultSettingsResetter::restoreDefaults
@@ -705,10 +724,10 @@ class MainActivity : AppCompatActivity() {
             },
             isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
-            showHomeContent = ::showHomeContent,
+            showHomeContent = browserShellUiController::showHomeContent,
             setPageProgress = browserControlsController::setProgress,
             updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
-            updateNavigationButtons = ::updateNavigationButtons,
+            updateNavigationButtons = browserShellUiController::updateNavigationButtons,
             addHistoryEntry = pageActionsController::addHistoryEntry,
             injectPageFeatures = ::injectPageFeatures,
             onPageMetadataChanged = { url, title ->
@@ -729,10 +748,10 @@ class MainActivity : AppCompatActivity() {
             },
             isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
-            showHomeContent = ::showHomeContent,
+            showHomeContent = browserShellUiController::showHomeContent,
             setPageProgress = browserControlsController::setProgress,
             updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
-            updateNavigationButtons = ::updateNavigationButtons,
+            updateNavigationButtons = browserShellUiController::updateNavigationButtons,
             addHistoryEntry = {},
             injectPageFeatures = ::injectPageFeatures,
             onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
@@ -755,7 +774,7 @@ class MainActivity : AppCompatActivity() {
             standardSessionController = standardSessionController,
             openHomePage = browserLaunchController::openHomePage,
             updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
-            updateNavigationButtons = ::updateNavigationButtons
+            updateNavigationButtons = browserShellUiController::updateNavigationButtons
         )
         browserTabActionsController = BrowserTabActionsController(
             standardTabStore = standardTabStore,
@@ -979,7 +998,7 @@ class MainActivity : AppCompatActivity() {
             handleFunctionCenterBack = functionCenterEntryController::handleFunctionCenterBack,
             isElementPickerActive = { elementPickerController.isActive },
             cancelElementPicker = elementPickerController::cancel,
-            updateNavigationButtons = ::updateNavigationButtons
+            updateNavigationButtons = browserShellUiController::updateNavigationButtons
         )
 
         // 系统栏/刘海安全区变化时，主界面留出边距；视频全屏时则交给全屏容器占满屏幕。
@@ -1000,7 +1019,7 @@ class MainActivity : AppCompatActivity() {
         browserControlsShellController.setupSearchProviders()
         addressSuggestionController.setup()
         browsingModeThemeController.updatePrivateBrowsingUi()
-        setupBrowserControls()
+        browserShellUiController.setupBrowserControls()
         browserControlsShellController.setupWebViewScrollControls()
         browserBackNavigationController.setupBackNavigation()
         standardBrowserManager.setup()
@@ -1331,16 +1350,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * 函数 `setupBrowserControls`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupBrowserControls() {
-        browserControlsController.setup()
-        siteSecurityController.setup()
-    }
-
     // endregion
 
     // region 网页权限、文件选择、书签导入导出和系统认证
@@ -1418,42 +1427,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 小工具函数和 WebView 跳转拦截
     // 这里放跨多个小流程复用的辅助函数，例如 dp 转换、键盘隐藏、URL 类型判断和 shouldOverrideUrlLoading 判断。
-    /**
-     * 函数 `updateNavigationButtons`：根据最新状态刷新 `update Navigation Buttons` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun updateNavigationButtons() {
-        browserControlsController.updateNavigationButtons()
-    }
-
-    /**
-     * 函数 `updateBookmarkButton`：根据最新状态刷新 `update Bookmark Button` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun updateBookmarkButton() {
-        if (::browserControlsController.isInitialized) {
-            browserControlsController.updateBookmarkButton()
-        }
-    }
-
-    /**
-     * 函数 `showHomeContent`：控制 `show Home Content` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param show 参数类型为 `Boolean`，表示函数执行 `show` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showHomeContent(show: Boolean) {
-        browserControlsScrollController.resetTracking()
-        browserControlsShellController.setBrowserControlsHidden(false)
-        browserControlsShellController.syncSearchProviderVisibility()
-        webView.visibility = View.VISIBLE
-        browserControlsShellController.updatePageProgressVisibility(forceHidden = show)
-        updateNavigationButtons()
-        browsingModeThemeController.applyBrowsingModeTheme()
-    }
-
     /**
      * 函数 `hideKeyboard`：控制 `hide Keyboard` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
