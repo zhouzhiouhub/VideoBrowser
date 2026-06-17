@@ -66,7 +66,7 @@ import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostController
-import com.example.videobrowser.browser.BrowserStartupController
+import com.example.videobrowser.browser.BrowserStartupControllerAssembly
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
@@ -75,7 +75,6 @@ import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
 import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
 import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
-import com.example.videobrowser.browser.BrowserWindowInsetsController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ClientCertificateController
 import com.example.videobrowser.browser.FindInPageController
@@ -886,12 +885,9 @@ class MainActivity : AppCompatActivity() {
             updateNavigationButtons = browserShellUiController::updateNavigationButtons
         ).create()
 
-        BrowserWindowInsetsController(
+        BrowserStartupControllerAssembly(
             rootView = rootView,
-            isVideoFullscreenUiActive = { isVideoFullscreenUiActive }
-        ).setupSystemWindowInsets()
-
-        BrowserStartupController(
+            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             browserControlsShellController = browserControlsShellController,
             addressSuggestionController = addressSuggestionController,
             browsingModeThemeController = browsingModeThemeController,
@@ -999,7 +995,5 @@ class MainActivity : AppCompatActivity() {
         // 所有只在 MainActivity 内使用的常量集中放在 companion object，避免魔法数字散落在函数里。
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val RULE_LOG_TAG = "VideoBrowserRules"
-        private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
-        private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
     }
 }
