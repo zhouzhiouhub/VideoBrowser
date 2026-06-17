@@ -882,7 +882,7 @@ class MainActivity : AppCompatActivity() {
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
             showFileOperationsPage = localDocumentEntryController::showFileOperationsPage,
-            startElementPicker = ::startElementPicker,
+            startElementPicker = { elementPickerController.start() },
             applyDesktopMode = browserDisplayModeController::applyDesktopMode,
             injectPageFeatures = ::injectPageFeatures,
             openUrlInNewTab = browserTabActionsController::openUrlInNewTab,
@@ -1382,15 +1382,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 原生桥、功能中心、本地文件和页面工具
     // 原生桥把网页里的 JavaScript 调用转成 Kotlin 回调；功能中心和本地文件入口复用这些动作。
-    /**
-     * 函数 `startElementPicker`：启动或加载 `start Element Picker` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun startElementPicker() {
-        elementPickerController.start()
-    }
-
     /**
      * 函数 `openLocalDocumentUri`：启动或加载 `open Local Document Uri` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
      *
