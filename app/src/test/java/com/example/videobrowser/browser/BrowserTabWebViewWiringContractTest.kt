@@ -20,11 +20,20 @@ class BrowserTabWebViewWiringContractTest {
     fun mainActivityUsesTabWebViewRegistryForStandardTabs() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val standardWebViewHostController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
+        ).readText()
         val tabActionsController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("BrowserTabWebViewRegistry<WebView>"))
+        assertTrue(mainActivity.contains("BrowserStandardWebViewHostController"))
+        assertTrue(mainActivity.contains("browserStandardWebViewHostController.setup()"))
+        assertTrue(standardWebViewHostController.contains("BrowserTabWebViewRegistry<WebView>"))
+        assertTrue(standardWebViewHostController.contains("fun createStandardTabWebView(): WebView"))
+        assertTrue(standardWebViewHostController.contains("fun showStandardTabWebView(tabWebView: WebView, detachCurrent: Boolean)"))
+        assertTrue(standardWebViewHostController.contains("fun hideStandardTabWebView(tabWebView: WebView)"))
+        assertTrue(standardWebViewHostController.contains("fun destroyStandardTabWebView(tabWebView: WebView)"))
         assertTrue(mainActivity.contains("private lateinit var browserTabActionsController: BrowserTabActionsController"))
         assertTrue(tabActionsController.contains("standardTabWebViews.openTab"))
         assertTrue(tabActionsController.contains("standardTabWebViews.switchTo"))
@@ -46,11 +55,15 @@ class BrowserTabWebViewWiringContractTest {
         val activeWebViewController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActiveWebViewController.kt"
         ).readText()
+        val standardWebViewHostController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
+        ).readText()
 
         assertTrue(mainActivity.contains("private lateinit var browserActiveWebViewController: BrowserActiveWebViewController"))
         assertTrue(mainActivity.contains("browserActiveWebViewController = BrowserActiveWebViewController("))
-        assertTrue(mainActivity.contains("onActiveWebViewChanged = browserActiveWebViewController::handleActiveWebViewChanged"))
-        assertTrue(mainActivity.contains("browserActiveWebViewController.handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)"))
+        assertTrue(mainActivity.contains("browserActiveWebViewController::handleActiveWebViewChanged"))
+        assertTrue(standardWebViewHostController.contains("onActiveWebViewChanged = handleActiveWebViewChanged"))
+        assertTrue(standardWebViewHostController.contains("handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)"))
         assertTrue(activeWebViewController.contains("fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode)"))
         assertTrue(activeWebViewController.contains("setPrivateBrowsingActive(mode == BrowserMode.PRIVATE)"))
         assertTrue(activeWebViewController.contains("attachBrowserControlsScrollIfReady(activeWebView)"))

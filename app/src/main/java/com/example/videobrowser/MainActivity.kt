@@ -54,19 +54,17 @@ import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserLaunchController
-import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
-import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
+import com.example.videobrowser.browser.BrowserStandardWebViewHostController
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
-import com.example.videobrowser.browser.BrowserTabWebViewRegistry
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ChromeClient
@@ -163,9 +161,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder
     private lateinit var ruleEngine: RuleEngine
-    private lateinit var standardWebView: WebView
-    private lateinit var standardBrowserManager: BrowserManager
-    private lateinit var browserSessionCoordinator: BrowserSessionCoordinator
+    private lateinit var browserStandardWebViewHostController: BrowserStandardWebViewHostController
     private lateinit var browserControlsController: BrowserControlsController
     private lateinit var browserControlsShellController: BrowserControlsShellController
     private lateinit var browserControlsScrollController: BrowserControlsScrollController
@@ -225,7 +221,6 @@ class MainActivity : AppCompatActivity() {
     // 标准模式和无痕模式各有自己的标签页列表，避免无痕页面写入普通会话。
     private val standardTabStore = BrowserTabStore()
     private val privateTabStore = BrowserTabStore()
-    private lateinit var standardTabWebViews: BrowserTabWebViewRegistry<WebView>
     private val standardTabSessionBinding = BrowserTabSessionBinding(standardTabStore)
     private val privateTabSessionBinding = BrowserTabSessionBinding(privateTabStore)
     private val findInPageController = FindInPageController(
@@ -582,7 +577,16 @@ class MainActivity : AppCompatActivity() {
         )
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
-        setupBrowserWebViews()
+        browserStandardWebViewHostController = BrowserStandardWebViewHostController(
+            activity = this,
+            webViewContainer = webViewContainer,
+            standardTabStore = standardTabStore,
+            initialStandardWebView = views.webView,
+            configureLinkContextMenu = linkContextMenuController::configure,
+            handleActiveWebViewChanged =
+                browserActiveWebViewController::handleActiveWebViewChanged
+        )
+        browserStandardWebViewHostController.setup()
         localDocumentEntryController.setupFileOperationLaunchers()
 
         // 规则引擎读取 assets/rules 和用户订阅缓存，供广告拦截、URL 清理、脚本注入使用。
@@ -773,7 +777,7 @@ class MainActivity : AppCompatActivity() {
 
         // 页面滚动时自动收起/显示顶部与底部工具栏。
         browserControlsScrollController = BrowserControlsScrollController(
-            webView = standardWebView,
+            webView = browserStandardWebViewHostController.standardWebView,
             addressInput = addressInput,
             dp = ::dp,
             areControlsHidden = { browserControlsController.areHidden },
@@ -842,7 +846,7 @@ class MainActivity : AppCompatActivity() {
                 browserFullscreenUiController.exitPageFullscreenIfNeeded()
             },
             sessionSitePermissionStore = sessionSitePermissionStore,
-            browserSessionCoordinator = browserSessionCoordinator,
+            browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
             privateSessionController = privateSessionController,
             standardSessionController = standardSessionController,
             openHomePage = browserLaunchController::openHomePage,
@@ -852,13 +856,17 @@ class MainActivity : AppCompatActivity() {
         browserTabActionsController = BrowserTabActionsController(
             standardTabStore = standardTabStore,
             privateTabStore = privateTabStore,
-            standardTabWebViews = standardTabWebViews,
+            standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             standardSessionController = standardSessionController,
             isPrivateBrowsingActive = { privateBrowsingActive },
-            createStandardTabWebView = ::createStandardTabWebView,
-            showStandardTabWebView = ::showStandardTabWebView,
-            hideStandardTabWebView = ::hideStandardTabWebView,
-            destroyStandardTabWebView = ::destroyStandardTabWebView,
+            createStandardTabWebView =
+                browserStandardWebViewHostController::createStandardTabWebView,
+            showStandardTabWebView =
+                browserStandardWebViewHostController::showStandardTabWebView,
+            hideStandardTabWebView =
+                browserStandardWebViewHostController::hideStandardTabWebView,
+            destroyStandardTabWebView =
+                browserStandardWebViewHostController::destroyStandardTabWebView,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
             loadUrl = browserNavigationController::loadUrl,
@@ -866,16 +874,16 @@ class MainActivity : AppCompatActivity() {
         )
         renderProcessRecoveryController = RenderProcessRecoveryController(
             webViewContainer = webViewContainer,
-            sessionCoordinator = browserSessionCoordinator,
-            standardTabWebViews = standardTabWebViews,
+            sessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
+            standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             currentPageUrl = {
                 browserSessionStateController.currentSessionController().currentPageUrl
             },
             isPrivateBrowsingActive = { privateBrowsingActive },
-            createStandardTabWebView = ::createStandardTabWebView,
-            showStandardTabWebView = { tabWebView, detachCurrent ->
-                showStandardTabWebView(tabWebView, detachCurrent)
-            },
+            createStandardTabWebView =
+                browserStandardWebViewHostController::createStandardTabWebView,
+            showStandardTabWebView =
+                browserStandardWebViewHostController::showStandardTabWebView,
             saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
             showBrowserErrorPage = { error ->
                 browserWebClientController.showBrowserErrorPage(error)
@@ -899,7 +907,7 @@ class MainActivity : AppCompatActivity() {
         webWindowController = WebWindowController(
             isPrivateBrowsingActive = { privateBrowsingActive },
             standardTabStore = standardTabStore,
-            standardTabWebViews = standardTabWebViews,
+            standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             standardSessionController = standardSessionController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
@@ -1101,6 +1109,7 @@ class MainActivity : AppCompatActivity() {
         browserShellUiController.setupBrowserControls()
         browserControlsShellController.setupWebViewScrollControls()
         browserBackNavigationController.setupBackNavigation()
+        val standardBrowserManager = browserStandardWebViewHostController.browserManager
         standardBrowserManager.setup()
         standardBrowserManager.setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())
         standardBrowserManager.setMixedContentBlocked(settingsManager.isMixedContentBlocked())
@@ -1206,13 +1215,8 @@ class MainActivity : AppCompatActivity() {
         if (::browserStandardTabSessionController.isInitialized) {
             browserStandardTabSessionController.saveStandardTabSession()
         }
-        if (::browserSessionCoordinator.isInitialized) {
-            browserSessionCoordinator.destroyPrivateSession()
-        }
-        if (::standardTabWebViews.isInitialized) {
-            standardTabWebViews.destroyAll(::destroyStandardTabWebView)
-        } else if (::standardBrowserManager.isInitialized) {
-            standardBrowserManager.destroy()
+        if (::browserStandardWebViewHostController.isInitialized) {
+            browserStandardWebViewHostController.destroyAll()
         }
         super.onDestroy()
     }
@@ -1223,111 +1227,13 @@ class MainActivity : AppCompatActivity() {
     // 这一组函数负责创建 WebView、绑定 WebChromeClient/WebViewClient，
     // 并处理网页弹窗、新窗口、渲染进程退出、证书和 HTTP 认证等浏览器外壳能力。
     /**
-     * 函数 `setupBrowserWebViews`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupBrowserWebViews() {
-        standardWebView = views.webView
-        linkContextMenuController.configure(standardWebView)
-        standardBrowserManager = BrowserManager(standardWebView)
-        standardTabWebViews = BrowserTabWebViewRegistry(
-            tabs = standardTabStore,
-            initialView = standardWebView,
-            createWebView = ::createStandardTabWebView,
-            showWebView = ::showStandardTabWebView,
-            hideWebView = ::hideStandardTabWebView,
-            destroyWebView = ::destroyStandardTabWebView
-        )
-        browserSessionCoordinator = BrowserSessionCoordinator(
-            activity = this,
-            webViewContainer = webViewContainer,
-            standardWebView = standardWebView,
-            browserManager = standardBrowserManager,
-            onActiveWebViewChanged = browserActiveWebViewController::handleActiveWebViewChanged
-        )
-    }
-
-    /**
-     * 函数 `createStandardTabWebView`：创建 `create Standard Tab Web View` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createStandardTabWebView(): WebView {
-        return WebView(this).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            overScrollMode = standardWebView.overScrollMode
-            setBackgroundColor(0x00000000)
-            visibility = View.GONE
-        }
-    }
-
-    /**
-     * 函数 `showStandardTabWebView`：控制 `show Standard Tab Web View` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun showStandardTabWebView(tabWebView: WebView) {
-        showStandardTabWebView(tabWebView, detachCurrent = true)
-    }
-
-    /**
-     * 函数 `showStandardTabWebView`：控制 `show Standard Tab Web View` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param detachCurrent 参数类型为 `Boolean`，表示函数执行 `detachCurrent` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showStandardTabWebView(tabWebView: WebView, detachCurrent: Boolean) {
-        if (tabWebView.parent == null) {
-            webViewContainer.addView(tabWebView)
-        }
-        tabWebView.visibility = View.VISIBLE
-        browserSessionCoordinator.setStandardWebView(tabWebView)
-        standardBrowserManager.switchWebView(
-            nextWebView = tabWebView,
-            privateBrowsingEnabled = false,
-            detachCurrent = detachCurrent
-        )
-        browserActiveWebViewController.handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)
-    }
-
-    /**
-     * 函数 `hideStandardTabWebView`：控制 `hide Standard Tab Web View` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun hideStandardTabWebView(tabWebView: WebView) {
-        tabWebView.visibility = View.GONE
-    }
-
-    /**
-     * 函数 `destroyStandardTabWebView`：封装 `destroy Standard Tab Web View` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun destroyStandardTabWebView(tabWebView: WebView) {
-        if (tabWebView.parent == webViewContainer) {
-            webViewContainer.removeView(tabWebView)
-        }
-        standardBrowserManager.destroyWebView(tabWebView, clearSharedStores = false)
-    }
-
-    /**
      * 函数 `currentBrowserManager`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun currentBrowserManager(): BrowserManager {
-        return standardBrowserManager
+        return browserStandardWebViewHostController.browserManager
     }
 
     /**
@@ -1337,7 +1243,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun browserManagers(): List<BrowserManager> {
-        return listOf(standardBrowserManager)
+        return listOf(browserStandardWebViewHostController.browserManager)
     }
 
     /**

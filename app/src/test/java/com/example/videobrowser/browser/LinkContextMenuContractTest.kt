@@ -25,10 +25,13 @@ class LinkContextMenuContractTest {
         val activeWebViewController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActiveWebViewController.kt"
         ).readText()
+        val standardWebViewHostController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("linkContextMenuController.configure(standardWebView)"))
+        assertTrue(standardWebViewHostController.contains("configureLinkContextMenu(standardWebView)"))
         assertTrue(mainActivity.contains("configureLinkContextMenu = linkContextMenuController::configure"))
         assertTrue(activeWebViewController.contains("configureLinkContextMenu(activeWebView)"))
         assertTrue(linkContextMenuController.contains("fun configure(targetWebView: WebView)"))
