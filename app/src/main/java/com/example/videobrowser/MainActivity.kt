@@ -17,7 +17,6 @@ package com.example.videobrowser
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
@@ -35,12 +34,12 @@ import android.widget.ProgressBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.browser.AndroidPermissionChecker
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
@@ -209,6 +208,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
     private lateinit var geolocationPermissionController: GeolocationPermissionController
+    private lateinit var androidPermissionChecker: AndroidPermissionChecker
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
@@ -319,6 +319,7 @@ class MainActivity : AppCompatActivity() {
 
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
+        androidPermissionChecker = AndroidPermissionChecker(this)
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
         browserFeatureStateController = BrowserFeatureStateController(
             settingsManager = { settingsManager },
@@ -662,7 +663,7 @@ class MainActivity : AppCompatActivity() {
             settingsManager = settingsManager,
             sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            hasAndroidPermission = ::hasAndroidPermission,
+            hasAndroidPermission = androidPermissionChecker::hasAndroidPermission,
             requestAndroidPermissions = webPermissionLauncher::launch
         )
         geolocationPermissionController = GeolocationPermissionController(
@@ -670,7 +671,7 @@ class MainActivity : AppCompatActivity() {
             settingsManager = settingsManager,
             sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            hasAndroidPermission = ::hasAndroidPermission,
+            hasAndroidPermission = androidPermissionChecker::hasAndroidPermission,
             requestAndroidPermissions = geolocationPermissionLauncher::launch
         )
 
@@ -1332,22 +1333,6 @@ class MainActivity : AppCompatActivity() {
         if (areBrowserSessionsInitialized()) {
             currentSessionController().renderCurrentState()
         }
-    }
-
-    // endregion
-
-    // region 网页权限、文件选择、书签导入导出和系统认证
-    // WebView 的相机、麦克风、定位、文件上传等能力都要经过 Android 系统授权。
-    // 书签导入导出也依赖系统文件选择器，所以放在同一组系统交互逻辑里。
-    /**
-     * 函数 `hasAndroidPermission`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param permission 参数类型为 `String`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun hasAndroidPermission(permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
     }
 
     // endregion
