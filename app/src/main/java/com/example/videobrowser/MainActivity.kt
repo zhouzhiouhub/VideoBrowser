@@ -23,7 +23,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
 import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyController
-import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientStateAssemblyController
@@ -40,7 +39,6 @@ import com.example.videobrowser.browser.BrowserKeyboardController
 import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.BrowserFindInPageAssemblyController
-import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserNavigationAssemblyController
@@ -70,9 +68,8 @@ import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.BrowserRuntimeStateController
 import com.example.videobrowser.browser.SiteSecurityController
-import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
-import com.example.videobrowser.browser.search.SearchProviderController
+import com.example.videobrowser.browser.search.BrowserSearchComponents
 import com.example.videobrowser.functioncenter.FunctionCenterAssemblyController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterEntryController
@@ -118,10 +115,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var localDocumentEntryController: LocalDocumentEntryController
     private lateinit var pageActions: BrowserPageActionComponents
     private lateinit var browserClients: BrowserClientComponents
-    private lateinit var historyRecordPolicy: HistoryRecordPolicy
-    private lateinit var searchProviderController: SearchProviderController
-    private lateinit var browserAddressBarStateController: BrowserAddressBarStateController
-    private lateinit var addressSuggestionController: AddressSuggestionController
+    private lateinit var browserSearch: BrowserSearchComponents
     private lateinit var browserLaunchController: BrowserLaunchController
     private lateinit var browserTabActionsController: BrowserTabActionsController
     private lateinit var privateBrowsingSwitchController: PrivateBrowsingSwitchController
@@ -159,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             if (::pageActions.isInitialized) pageActions.pageArchiveController else null
         },
         addressSuggestionController = {
-            if (::addressSuggestionController.isInitialized) addressSuggestionController else null
+            if (::browserSearch.isInitialized) browserSearch.addressSuggestionController else null
         },
         downloadController = {
             if (::pageActions.isInitialized) pageActions.downloadController else null
@@ -298,10 +292,10 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             searchProviderController = {
-                if (::searchProviderController.isInitialized) searchProviderController else null
+                if (::browserSearch.isInitialized) browserSearch.searchProviderController else null
             },
             addressSuggestionController = {
-                if (::addressSuggestionController.isInitialized) addressSuggestionController else null
+                if (::browserSearch.isInitialized) browserSearch.addressSuggestionController else null
             },
             siteSecurityController = {
                 if (::siteSecurityController.isInitialized) {
@@ -350,7 +344,9 @@ class MainActivity : AppCompatActivity() {
             currentBrowserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
-            updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
+            updateAddressBar = { url ->
+                browserSearch.browserAddressBarStateController.updateAddressBar(url)
+            },
             hideKeyboard = browserKeyboardController::hideKeyboard,
             showHomeContent = browserShellUiController::showHomeContent
         ).create()
@@ -358,7 +354,7 @@ class MainActivity : AppCompatActivity() {
         localDocumentEntryController = localFileComponents.localDocumentEntryController
 
         // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
-        val browserSearchComponents = BrowserSearchAssemblyController(
+        browserSearch = BrowserSearchAssemblyController(
             activity = this,
             providerScroll = views.searchProviderScroll,
             providerList = views.searchProviderList,
@@ -382,10 +378,6 @@ class MainActivity : AppCompatActivity() {
             openUrl = { url -> browserNavigationController.loadUrl(url) },
             searchKeyword = { keyword -> browserLaunchController.searchAddressKeyword(keyword) }
         ).create()
-        searchProviderController = browserSearchComponents.searchProviderController
-        browserAddressBarStateController = browserSearchComponents.browserAddressBarStateController
-        historyRecordPolicy = browserSearchComponents.historyRecordPolicy
-        addressSuggestionController = browserSearchComponents.addressSuggestionController
         webViewInteraction = BrowserWebViewInteractionAssemblyController(
             activity = this,
             setPrivateBrowsingActive = browserRuntimeStateController::setPrivateBrowsingActive,
@@ -443,12 +435,12 @@ class MainActivity : AppCompatActivity() {
             browserSessionStateController = browserSessionStateController,
             browserUrlStateController = browserUrlStateController,
             browserFeatureStateController = browserFeatureStateController,
-            browserAddressBarStateController = browserAddressBarStateController,
+            browserAddressBarStateController = browserSearch.browserAddressBarStateController,
             browserKeyboardController = browserKeyboardController,
             browserShellUiController = browserShellUiController,
             browserChromeClientStateController = browserChromeClientStateController,
-            addressSuggestionController = addressSuggestionController,
-            searchProviderController = searchProviderController,
+            addressSuggestionController = browserSearch.addressSuggestionController,
+            searchProviderController = browserSearch.searchProviderController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             defaultUserAgent = browserRuntimeStateController::defaultUserAgent
         ).create()
@@ -469,7 +461,7 @@ class MainActivity : AppCompatActivity() {
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             browserSessionStateController = browserSessionStateController,
             browserUrlStateController = browserUrlStateController,
-            historyRecordPolicy = historyRecordPolicy,
+            historyRecordPolicy = browserSearch.historyRecordPolicy,
             nativePlayerEntryController = nativePlayerEntryController,
             localDocumentEntryController = localDocumentEntryController,
             browserFeatureStateController = browserFeatureStateController,
@@ -516,7 +508,7 @@ class MainActivity : AppCompatActivity() {
             privateTabStore = browserTabState.privateTabStore,
             standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
-            browserAddressBarStateController = browserAddressBarStateController,
+            browserAddressBarStateController = browserSearch.browserAddressBarStateController,
             browserShellUiController = browserShellUiController,
             browserControlsController = browserControls.browserControlsController,
             browserControlsShellController = browserControlsShellController,
@@ -648,7 +640,7 @@ class MainActivity : AppCompatActivity() {
             browserPageToolEntryController = pageActions.browserPageToolEntryController,
             downloadController = pageActions.downloadController,
             activityResultLaunchers = activityResultLaunchers,
-            searchProviderController = searchProviderController,
+            searchProviderController = browserSearch.searchProviderController,
             localDocumentEntryController = localDocumentEntryController,
             startElementPicker = { pageFeatures.elementPickerController.start() },
             browserDisplayModeController = browserDisplayModeController,
@@ -702,7 +694,7 @@ class MainActivity : AppCompatActivity() {
             rootView = views.rootView,
             isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
             browserControlsShellController = browserControlsShellController,
-            addressSuggestionController = addressSuggestionController,
+            addressSuggestionController = browserSearch.addressSuggestionController,
             browsingModeThemeController = browsingModeThemeController,
             browserShellUiController = browserShellUiController,
             browserBackNavigationController = browserBackNavigationController,
