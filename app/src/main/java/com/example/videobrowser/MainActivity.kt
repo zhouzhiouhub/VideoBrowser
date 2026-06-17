@@ -24,8 +24,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.webkit.ClientCertRequest
-import android.webkit.HttpAuthHandler
 import android.webkit.WebView
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -44,14 +42,12 @@ import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserBackNavigationController
-import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsShellController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
-import com.example.videobrowser.browser.BrowserPageError
 import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
@@ -59,7 +55,6 @@ import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserNavigationController
-import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
@@ -68,6 +63,7 @@ import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserTabWebViewRegistry
+import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.ClientCertificateController
@@ -210,6 +206,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
     private lateinit var browserChromeClientController: BrowserChromeClientController
+    private lateinit var browserWebClientController: BrowserWebClientController
     private lateinit var externalNavigator: BrowserExternalNavigator
     private lateinit var nativePlayerEntryController: NativePlayerEntryController
     // endregion
@@ -767,7 +764,20 @@ class MainActivity : AppCompatActivity() {
                 showStandardTabWebView(tabWebView, detachCurrent)
             },
             saveStandardTabSession = ::saveStandardTabSession,
-            showBrowserErrorPage = ::showBrowserErrorPage
+            showBrowserErrorPage = { error ->
+                browserWebClientController.showBrowserErrorPage(error)
+            }
+        )
+        browserWebClientController = BrowserWebClientController(
+            browserManager = ::currentBrowserManager,
+            sessionController = ::currentSessionController,
+            resetBackExitConfirmation = ::resetBackExitConfirmation,
+            renderProcessRecoveryController = renderProcessRecoveryController,
+            clientCertificateController = clientCertificateController,
+            httpAuthController = httpAuthController,
+            adBlockRequestInterceptor = adBlockRequestInterceptor,
+            smartNoImageRequestInterceptor = smartNoImageRequestInterceptor,
+            shouldBlockUrl = ::shouldBlockUrl
         )
         webWindowController = WebWindowController(
             isPrivateBrowsingActive = { privateBrowsingActive },
@@ -968,7 +978,7 @@ class MainActivity : AppCompatActivity() {
             nativeBridgeController.createNativeBridge(),
             NATIVE_BRIDGE_NAME
         )
-        setupBrowserClient()
+        browserWebClientController.setupBrowserClient()
 
         // 如果外部 Intent 带了 URL 就打开外部 URL，否则恢复标签页或打开主页。
         if (!handleLaunchIntent(intent)) {
@@ -1034,8 +1044,10 @@ class MainActivity : AppCompatActivity() {
             browserChromeClientController.cancelPendingWebPermissionRequest()
             browserChromeClientController.cancelPendingGeolocationPermissionPrompt()
         }
-        cancelPendingHttpAuthRequest()
-        cancelPendingClientCertRequest()
+        if (::browserWebClientController.isInitialized) {
+            browserWebClientController.cancelPendingHttpAuthRequest()
+            browserWebClientController.cancelPendingClientCertRequest()
+        }
         if (::pageArchiveController.isInitialized) {
             pageArchiveController.dispose()
         }
@@ -1288,121 +1300,11 @@ class MainActivity : AppCompatActivity() {
         siteSecurityController.setup()
     }
 
-    /**
-     * 函数 `setupBrowserClient`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupBrowserClient() {
-        currentBrowserManager().setBrowserClient(
-            BrowserClient(
-                pageStarted = { url ->
-                    resetBackExitConfirmation()
-                    currentSessionController().handlePageStarted(url)
-                },
-                pageFinished = { url -> currentSessionController().handlePageFinished(url) },
-                pageLoadFailed = ::showBrowserErrorPage,
-                requestIntercepted = ::interceptBrowserRequest,
-                urlLoadingRequested = ::shouldBlockUrl,
-                clientCertRequested = ::handleClientCertRequest,
-                renderProcessGone = ::handleRenderProcessGone,
-                httpAuthRequested = ::handleHttpAuthRequest
-            )
-        )
-    }
-
-    /**
-     * 函数 `handleRenderProcessGone`：处理 `handle Render Process Gone` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param didCrash 参数类型为 `Boolean`，表示函数执行 `didCrash` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun handleRenderProcessGone(view: WebView?, didCrash: Boolean): Boolean {
-        return renderProcessRecoveryController.handleRenderProcessGone(view, didCrash)
-    }
-
-    /**
-     * 函数 `handleClientCertRequest`：处理 `handle Client Cert Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param request 参数类型为 `ClientCertRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     */
-    private fun handleClientCertRequest(
-        view: WebView?,
-        request: ClientCertRequest?
-    ) {
-        clientCertificateController.handleRequest(request)
-    }
-
-    /**
-     * 函数 `cancelPendingClientCertRequest`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun cancelPendingClientCertRequest() {
-        if (::clientCertificateController.isInitialized) {
-            clientCertificateController.cancelPending()
-        }
-    }
-
-    /**
-     * 函数 `interceptBrowserRequest`：封装 `intercept Browser Request` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `BrowserRequest`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun interceptBrowserRequest(request: BrowserRequest) =
-        adBlockRequestInterceptor.intercept(request) ?: smartNoImageRequestInterceptor.intercept(request)
-
-    /**
-     * 函数 `showBrowserErrorPage`：控制 `show Browser Error Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param error 参数类型为 `BrowserPageError`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showBrowserErrorPage(error: BrowserPageError) {
-        currentSessionController().handlePageFailed(error.url)
-        currentBrowserManager().loadErrorPage(error)
-    }
-
     // endregion
 
     // region 网页权限、文件选择、书签导入导出和系统认证
     // WebView 的相机、麦克风、定位、文件上传等能力都要经过 Android 系统授权。
     // 书签导入导出也依赖系统文件选择器，所以放在同一组系统交互逻辑里。
-    /**
-     * 函数 `handleHttpAuthRequest`：处理 `handle Http Auth Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param handler 参数类型为 `HttpAuthHandler?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
-     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
-     * @param realm 参数类型为 `String?`，表示函数执行 `realm` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleHttpAuthRequest(
-        view: WebView?,
-        handler: HttpAuthHandler?,
-        host: String?,
-        realm: String?
-    ) {
-        httpAuthController.handleRequest(handler, host, realm)
-    }
-
-    /**
-     * 函数 `cancelPendingHttpAuthRequest`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun cancelPendingHttpAuthRequest() {
-        if (::httpAuthController.isInitialized) {
-            httpAuthController.cancelPending()
-        }
-    }
-
     /**
      * 函数 `setupFullscreenGestureOverlay`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
      *
