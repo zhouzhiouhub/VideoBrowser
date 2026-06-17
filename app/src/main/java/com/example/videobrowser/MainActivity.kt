@@ -56,6 +56,7 @@ import com.example.videobrowser.browser.BrowserNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserPageActionAssemblyController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
+import com.example.videobrowser.browser.BrowserSessionAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
@@ -687,56 +688,26 @@ class MainActivity : AppCompatActivity() {
         browserControlsController = browserControlsComponents.browserControlsController
         browserControlsScrollController = browserControlsComponents.browserControlsScrollController
 
-        // 标准会话会写历史；无痕会话不写历史，并使用独立 WebView。
-        standardSessionController = BrowserSessionController(
+        val browserSessionComponents = BrowserSessionAssemblyController(
             activity = this,
-            isActive = { !privateBrowsingActive },
-            clearElementPickerState = {
-                if (::elementPickerController.isInitialized) {
-                    elementPickerController.clearState()
-                }
-            },
-            exitPageFullscreenIfNeeded = {
-                browserFullscreenUiController.exitPageFullscreenIfNeeded()
-            },
-            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
-            updateAddressBar = browserAddressBarStateController::updateAddressBar,
-            showHomeContent = browserShellUiController::showHomeContent,
-            setPageProgress = browserControlsController::setProgress,
-            updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
-            updateNavigationButtons = browserShellUiController::updateNavigationButtons,
-            addHistoryEntry = pageActionsController::addHistoryEntry,
-            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
-            onPageMetadataChanged = { url, title ->
-                standardTabSessionBinding.handlePageMetadataChanged(url, title)
-                browserStandardTabSessionController.saveStandardTabSession()
-            }
-        )
-        privateSessionController = BrowserSessionController(
-            activity = this,
-            isActive = { privateBrowsingActive },
-            clearElementPickerState = {
-                if (::elementPickerController.isInitialized) {
-                    elementPickerController.clearState()
-                }
-            },
-            exitPageFullscreenIfNeeded = {
-                browserFullscreenUiController.exitPageFullscreenIfNeeded()
-            },
-            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
-            updateAddressBar = browserAddressBarStateController::updateAddressBar,
-            showHomeContent = browserShellUiController::showHomeContent,
-            setPageProgress = browserControlsController::setProgress,
-            updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
-            updateNavigationButtons = browserShellUiController::updateNavigationButtons,
-            addHistoryEntry = {},
-            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
-            onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
-        )
-        privateBrowsingSwitchController = PrivateBrowsingSwitchController(
-            activity = this,
+            standardTabStore = standardTabStore,
+            privateTabStore = privateTabStore,
+            standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
+            browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
+            browserAddressBarStateController = browserAddressBarStateController,
+            browserShellUiController = browserShellUiController,
+            browserControlsController = browserControlsController,
+            browserControlsShellController = browserControlsShellController,
+            pageActionsController = pageActionsController,
+            pageFeatureInjectionController = pageFeatureInjectionController,
+            browsingModeThemeController = browsingModeThemeController,
+            sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingActive = { privateBrowsingActive },
-            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
+            clearElementPickerState = {
+                if (::elementPickerController.isInitialized) {
+                    elementPickerController.clearState()
+                }
+            },
             cancelElementPickerIfActive = {
                 if (::elementPickerController.isInitialized && elementPickerController.isActive) {
                     elementPickerController.cancel()
@@ -745,20 +716,9 @@ class MainActivity : AppCompatActivity() {
             exitPageFullscreenIfNeeded = {
                 browserFullscreenUiController.exitPageFullscreenIfNeeded()
             },
-            sessionSitePermissionStore = sessionSitePermissionStore,
-            browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
-            privateSessionController = privateSessionController,
-            standardSessionController = standardSessionController,
+            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             openHomePage = browserLaunchController::openHomePage,
-            updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
-            updateNavigationButtons = browserShellUiController::updateNavigationButtons
-        )
-        browserTabActionsController = BrowserTabActionsController(
-            standardTabStore = standardTabStore,
-            privateTabStore = privateTabStore,
-            standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
-            standardSessionController = standardSessionController,
-            isPrivateBrowsingActive = { privateBrowsingActive },
+            loadUrl = browserNavigationController::loadUrl,
             createStandardTabWebView =
                 browserStandardWebViewHostController::createStandardTabWebView,
             showStandardTabWebView =
@@ -767,11 +727,17 @@ class MainActivity : AppCompatActivity() {
                 browserStandardWebViewHostController::hideStandardTabWebView,
             destroyStandardTabWebView =
                 browserStandardWebViewHostController::destroyStandardTabWebView,
-            closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
-            loadUrl = browserNavigationController::loadUrl,
-            openHomePage = browserLaunchController::openHomePage
-        )
+            onStandardPageMetadataChanged = { url, title ->
+                standardTabSessionBinding.handlePageMetadataChanged(url, title)
+                browserStandardTabSessionController.saveStandardTabSession()
+            },
+            onPrivatePageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
+        ).create()
+        standardSessionController = browserSessionComponents.standardSessionController
+        privateSessionController = browserSessionComponents.privateSessionController
+        privateBrowsingSwitchController = browserSessionComponents.privateBrowsingSwitchController
+        browserTabActionsController = browserSessionComponents.browserTabActionsController
         renderProcessRecoveryController = RenderProcessRecoveryController(
             webViewContainer = webViewContainer,
             sessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
