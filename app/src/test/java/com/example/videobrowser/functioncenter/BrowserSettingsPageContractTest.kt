@@ -90,6 +90,9 @@ class BrowserSettingsPageContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val startupController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
@@ -104,7 +107,8 @@ class BrowserSettingsPageContractTest {
         assertTrue(browserManager.contains("fun setThirdPartyCookiesEnabled(enabled: Boolean)"))
         assertTrue(browserManager.contains("setAcceptThirdPartyCookies("))
         assertTrue(browserManager.contains("!privateBrowsingEnabled && thirdPartyCookiesEnabled"))
-        assertTrue(mainActivity.contains("setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())"))
+        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(startupController.contains("setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())"))
         assertTrue(strings.contains("setting_third_party_cookies"))
         assertTrue(strings.contains("setting_third_party_cookies_summary"))
     }
@@ -124,6 +128,9 @@ class BrowserSettingsPageContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val startupController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
@@ -141,7 +148,8 @@ class BrowserSettingsPageContractTest {
         assertTrue(browserManager.contains("fun setMixedContentBlocked(blocked: Boolean)"))
         assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_NEVER_ALLOW"))
         assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE"))
-        assertTrue(mainActivity.contains("setMixedContentBlocked(settingsManager.isMixedContentBlocked())"))
+        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(startupController.contains("setMixedContentBlocked(settingsManager.isMixedContentBlocked())"))
         assertTrue(strings.contains("setting_mixed_content_blocking"))
         assertTrue(strings.contains("setting_mixed_content_blocking_summary"))
         assertTrue(readme.contains("混合内容"))
@@ -162,6 +170,9 @@ class BrowserSettingsPageContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val startupController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
@@ -180,7 +191,8 @@ class BrowserSettingsPageContractTest {
         assertTrue(page.contains("browserManager().setTextZoomPercent(percent)"))
         assertTrue(browserManager.contains("fun setTextZoomPercent(percent: Int)"))
         assertTrue(browserManager.contains("textZoom = textZoomPercent"))
-        assertTrue(mainActivity.contains("setTextZoomPercent(settingsManager.textZoomPercent())"))
+        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(startupController.contains("setTextZoomPercent(settingsManager.textZoomPercent())"))
         assertTrue(strings.contains("setting_text_zoom"))
         assertTrue(strings.contains("setting_text_zoom_summary"))
         assertTrue(strings.contains("toast_text_zoom_updated"))

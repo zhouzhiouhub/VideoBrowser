@@ -32,6 +32,9 @@ class PlaybackHistoryWiringContractTest {
     fun webViewPlaybackTimelineRecordsPlaybackHistory() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val startupController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
+        ).readText()
         val nativeBridgeController = projectFile(
             "src/main/java/com/example/videobrowser/browser/VideoBrowserNativeBridgeController.kt"
         ).readText()
@@ -40,7 +43,8 @@ class PlaybackHistoryWiringContractTest {
         ).readText()
         val script = projectFile("src/main/assets/scripts/common.js").readText()
 
-        assertTrue(mainActivity.contains("nativeBridgeController.createNativeBridge()"))
+        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(startupController.contains("nativeBridgeController.createNativeBridge()"))
         assertTrue(mainActivity.contains("private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder"))
         assertTrue(nativeBridgeController.contains("updatePlaybackTimeline = ::updateWebViewPlaybackTimeline"))
         assertTrue(nativeBridgeController.contains("webPlaybackHistoryRecorder.record(positionMs, durationMs)"))

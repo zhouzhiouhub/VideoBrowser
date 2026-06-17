@@ -60,6 +60,7 @@ import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostController
+import com.example.videobrowser.browser.BrowserStartupController
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
@@ -1177,33 +1178,24 @@ class MainActivity : AppCompatActivity() {
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive }
         ).setupSystemWindowInsets()
 
-        browserControlsShellController.setupSearchProviders()
-        addressSuggestionController.setup()
-        browsingModeThemeController.updatePrivateBrowsingUi()
-        browserShellUiController.setupBrowserControls()
-        browserControlsShellController.setupWebViewScrollControls()
-        browserBackNavigationController.setupBackNavigation()
-        val standardBrowserManager = browserStandardWebViewHostController.browserManager
-        standardBrowserManager.setup()
-        standardBrowserManager.setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())
-        standardBrowserManager.setMixedContentBlocked(settingsManager.isMixedContentBlocked())
-        standardBrowserManager.setTextZoomPercent(settingsManager.textZoomPercent())
-        standardBrowserManager.setPrivateBrowsingEnabled(false)
-        defaultUserAgent = standardBrowserManager.userAgentString()
-        browserDisplayModeController.applyDesktopMode(reload = false)
-        downloadController.attachTo(browserStandardWebViewHostController.browserManagers())
-        browserChromeClientController.setupChromeClient()
-        browserFullscreenUiController.setupFullscreenGestureOverlay()
-        standardBrowserManager.addJavascriptInterface(
-            nativeBridgeController.createNativeBridge(),
-            NATIVE_BRIDGE_NAME
-        )
-        browserWebClientController.setupBrowserClient()
-
-        // 如果外部 Intent 带了 URL 就打开外部 URL，否则恢复标签页或打开主页。
-        if (!browserLaunchController.handleLaunchIntent(intent)) {
-            browserLaunchController.openInitialStandardPage()
-        }
+        BrowserStartupController(
+            browserControlsShellController = browserControlsShellController,
+            addressSuggestionController = addressSuggestionController,
+            browsingModeThemeController = browsingModeThemeController,
+            browserShellUiController = browserShellUiController,
+            browserBackNavigationController = browserBackNavigationController,
+            browserStandardWebViewHostController = browserStandardWebViewHostController,
+            settingsManager = settingsManager,
+            setDefaultUserAgent = { userAgent -> defaultUserAgent = userAgent },
+            browserDisplayModeController = browserDisplayModeController,
+            downloadController = downloadController,
+            browserChromeClientController = browserChromeClientController,
+            browserFullscreenUiController = browserFullscreenUiController,
+            nativeBridgeController = nativeBridgeController,
+            nativeBridgeName = NATIVE_BRIDGE_NAME,
+            browserWebClientController = browserWebClientController,
+            browserLaunchController = browserLaunchController
+        ).start(intent)
     }
 
     /**

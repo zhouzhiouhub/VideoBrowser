@@ -25,6 +25,9 @@ class BrowserTabSessionWiringContractTest {
         val sessionStateController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSessionStateController.kt"
         ).readText()
+        val startupController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
+        ).readText()
 
         assertTrue(mainActivity.contains("BrowserTabStore"))
         assertTrue(mainActivity.contains("BrowserTabSessionBinding"))
@@ -40,7 +43,8 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(mainActivity.contains("browserStandardTabSessionController::saveStandardTabSession"))
         assertTrue(standardTabSessionController.contains("standardTabStore.restore(session.tabs, session.activeTabId)"))
         assertTrue(standardTabSessionController.contains("repository.save("))
-        assertTrue(mainActivity.contains("browserLaunchController.openInitialStandardPage()"))
+        assertTrue(mainActivity.contains("BrowserStartupController"))
+        assertTrue(startupController.contains("browserLaunchController.openInitialStandardPage()"))
         assertTrue(mainActivity.contains("standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
     }
 
