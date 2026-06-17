@@ -97,6 +97,7 @@ import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterEntryController
 import com.example.videobrowser.functioncenter.FunctionCenterPages
 import com.example.videobrowser.inject.JsInjector
+import com.example.videobrowser.inject.PageFeatureInjectionController
 import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.inject.ScriptLoader
 import com.example.videobrowser.localfiles.LocalDocumentEntryController
@@ -212,6 +213,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var androidPermissionChecker: AndroidPermissionChecker
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
+    private lateinit var pageFeatureInjectionController: PageFeatureInjectionController
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
     private lateinit var browserChromeClientController: BrowserChromeClientController
     private lateinit var browserWebClientController: BrowserWebClientController
@@ -326,6 +328,11 @@ class MainActivity : AppCompatActivity() {
             addressInput = addressInput,
             addressSuggestionController = {
                 if (::addressSuggestionController.isInitialized) addressSuggestionController else null
+            }
+        )
+        pageFeatureInjectionController = PageFeatureInjectionController(
+            pageFeatureCoordinator = {
+                if (::pageFeatureCoordinator.isInitialized) pageFeatureCoordinator else null
             }
         )
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
@@ -746,7 +753,7 @@ class MainActivity : AppCompatActivity() {
             updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
             updateNavigationButtons = browserShellUiController::updateNavigationButtons,
             addHistoryEntry = pageActionsController::addHistoryEntry,
-            injectPageFeatures = ::injectPageFeatures,
+            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
             onPageMetadataChanged = { url, title ->
                 standardTabSessionBinding.handlePageMetadataChanged(url, title)
                 browserStandardTabSessionController.saveStandardTabSession()
@@ -770,7 +777,7 @@ class MainActivity : AppCompatActivity() {
             updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
             updateNavigationButtons = browserShellUiController::updateNavigationButtons,
             addHistoryEntry = {},
-            injectPageFeatures = ::injectPageFeatures,
+            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
             onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
         )
         privateBrowsingSwitchController = PrivateBrowsingSwitchController(
@@ -940,7 +947,7 @@ class MainActivity : AppCompatActivity() {
             showFileOperationsPage = localDocumentEntryController::showFileOperationsPage,
             startElementPicker = { elementPickerController.start() },
             applyDesktopMode = browserDisplayModeController::applyDesktopMode,
-            injectPageFeatures = ::injectPageFeatures,
+            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
             openUrlInNewTab = browserTabActionsController::openUrlInNewTab,
             loadUrl = browserNavigationController::loadUrl,
             recreateActivity = { recreate() }
@@ -983,7 +990,7 @@ class MainActivity : AppCompatActivity() {
             isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
             isCurrentSiteJsInjectionDisabled =
                 browserFeatureStateController::isCurrentSiteJsInjectionDisabled,
-            injectPageFeatures = ::injectPageFeatures
+            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures
         )
         nativeBridgeController = VideoBrowserNativeBridgeController(
             postToUi = { action -> runOnUiThread { action() } },
@@ -1382,18 +1389,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupDownloadHandling() {
         downloadController.attachTo(browserManagers())
-    }
-
-    /**
-     * 函数 `injectPageFeatures`：封装 `inject Page Features` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun injectPageFeatures() {
-        if (!::pageFeatureCoordinator.isInitialized) {
-            return
-        }
-        pageFeatureCoordinator.injectPageFeatures()
     }
 
     // endregion
