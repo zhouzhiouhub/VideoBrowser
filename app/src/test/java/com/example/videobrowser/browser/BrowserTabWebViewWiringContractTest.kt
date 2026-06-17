@@ -23,12 +23,15 @@ class BrowserTabWebViewWiringContractTest {
         val standardWebViewHostController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
         ).readText()
+        val webViewSurfaceAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSurfaceAssemblyController.kt"
+        ).readText()
         val tabActionsController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("BrowserStandardWebViewHostController"))
-        assertTrue(mainActivity.contains("browserStandardWebViewHostController.setup()"))
+        assertTrue(mainActivity.contains("private lateinit var browserSurface: BrowserWebViewSurfaceComponents"))
+        assertTrue(webViewSurfaceAssembly.contains("browserStandardWebViewHostController.setup()"))
         assertTrue(standardWebViewHostController.contains("BrowserTabWebViewRegistry<WebView>"))
         assertTrue(standardWebViewHostController.contains("fun createStandardTabWebView(): WebView"))
         assertTrue(standardWebViewHostController.contains("fun showStandardTabWebView(tabWebView: WebView, detachCurrent: Boolean)"))
@@ -56,6 +59,9 @@ class BrowserTabWebViewWiringContractTest {
         val webViewInteractionAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebViewInteractionAssemblyController.kt"
         ).readText()
+        val webViewSurfaceAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSurfaceAssemblyController.kt"
+        ).readText()
         val activeWebViewController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActiveWebViewController.kt"
         ).readText()
@@ -63,9 +69,9 @@ class BrowserTabWebViewWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("private lateinit var webViewInteraction: BrowserWebViewInteractionComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserSurface: BrowserWebViewSurfaceComponents"))
         assertTrue(webViewInteractionAssembly.contains("val browserActiveWebViewController = BrowserActiveWebViewController("))
-        assertTrue(mainActivity.contains("webViewInteraction.browserActiveWebViewController::handleActiveWebViewChanged"))
+        assertTrue(webViewSurfaceAssembly.contains("webViewInteraction.browserActiveWebViewController::handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("onActiveWebViewChanged = handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)"))
         assertTrue(activeWebViewController.contains("fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode)"))
