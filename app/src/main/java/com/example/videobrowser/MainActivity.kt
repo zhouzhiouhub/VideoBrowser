@@ -117,7 +117,7 @@ import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.FullscreenVideoController
-import com.example.videobrowser.video.MediaRouteDecision
+import com.example.videobrowser.video.NativePlayerEntryController
 import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebPlaybackHistoryRecorder
@@ -217,6 +217,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var standardChromeClient: ChromeClient
     private lateinit var privateChromeClient: ChromeClient
     private lateinit var externalNavigator: BrowserExternalNavigator
+    private lateinit var nativePlayerEntryController: NativePlayerEntryController
     // endregion
 
     // region 标签页与会话状态
@@ -507,6 +508,10 @@ class MainActivity : AppCompatActivity() {
             currentShareableUrl = browserUrlStateController::currentShareableUrl,
             isShareableUrl = browserUrlStateController::isShareableUrl
         )
+        nativePlayerEntryController = NativePlayerEntryController(
+            externalNavigator = externalNavigator,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled
+        )
         browserNavigationController = BrowserNavigationController(
             activity = this,
             ruleEngine = { if (::ruleEngine.isInitialized) ruleEngine else null },
@@ -514,7 +519,7 @@ class MainActivity : AppCompatActivity() {
             sessionController = ::currentSessionController,
             externalNavigator = externalNavigator,
             closeFunctionCenter = ::closeFunctionCenter,
-            openNativePlayer = ::openNativePlayer,
+            openNativePlayer = nativePlayerEntryController::openNativePlayer,
             isProviderHomeUrl = ::isProviderHomeUrl,
             updateAddressBar = ::updateAddressBar,
             hideKeyboard = ::hideKeyboard,
@@ -547,7 +552,7 @@ class MainActivity : AppCompatActivity() {
             browserManager = ::currentBrowserManager,
             downloadRecordRepository = downloadRecordRepository,
             openNativePlayer = { url, mimeType, userAgentOverride, titleOverride ->
-                openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
+                nativePlayerEntryController.openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
             }
         )
 
@@ -564,22 +569,7 @@ class MainActivity : AppCompatActivity() {
             currentPageTitle = { currentSessionController().currentPageTitle },
             isShareableUrl = browserUrlStateController::isShareableUrl,
             shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
-            openNativePlayer = {
-                    url,
-                    mimeType,
-                    userAgentOverride,
-                    titleOverride,
-                    subtitleCandidates,
-                    playbackQueue ->
-                openNativePlayer(
-                    url = url,
-                    mimeType = mimeType,
-                    userAgentOverride = userAgentOverride,
-                    titleOverride = titleOverride,
-                    subtitleCandidates = subtitleCandidates,
-                    playbackQueue = playbackQueue
-                )
-            },
+            openNativePlayer = nativePlayerEntryController::openNativePlayer,
             openLocalArchiveInBrowser = localDocumentEntryController::loadLocalDocumentUrlInBrowser,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             switchPrivateBrowsing = ::setPrivateBrowsingActive,
@@ -622,7 +612,7 @@ class MainActivity : AppCompatActivity() {
             pagePrintController = pagePrintController,
             loadUrl = ::loadUrl,
             openNativePlayer = { url, title ->
-                openNativePlayer(
+                nativePlayerEntryController.openNativePlayer(
                     url = url,
                     titleOverride = title
                 )
@@ -1927,54 +1917,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun configureLinkContextMenu(targetWebView: WebView) {
         linkContextMenuController.configure(targetWebView)
-    }
-
-    /**
-     * 函数 `openNativePlayer`：启动或加载 `open Native Player` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
-     * @param userAgentOverride 参数类型为 `String?`，表示函数执行 `userAgentOverride` 相关逻辑时需要读取或处理的输入。
-     * @param titleOverride 参数类型为 `String?`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param subtitleCandidates 参数类型为 `List<ExternalSubtitleCandidate>`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param playbackQueue 参数类型为 `PlaybackQueue?`，表示函数执行 `playbackQueue` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun openNativePlayer(
-        url: String,
-        mimeType: String? = null,
-        userAgentOverride: String? = null,
-        titleOverride: String? = null,
-        subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
-        playbackQueue: PlaybackQueue? = null
-    ) {
-        externalNavigator.openNativePlayer(
-            url = url,
-            mimeType = mimeType,
-            userAgentOverride = userAgentOverride,
-            titleOverride = titleOverride,
-            privateBrowsing = browserFeatureStateController.isPrivateBrowsingEnabled(),
-            subtitleCandidates = subtitleCandidates,
-            playbackQueue = playbackQueue
-        )
-    }
-
-    /**
-     * 函数 `openNativePlayer`：启动或加载 `open Native Player` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param decision 参数类型为 `MediaRouteDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun openNativePlayer(decision: MediaRouteDecision) {
-        val mediaItem = decision.mediaItem ?: return
-        openNativePlayer(
-            mediaItem.uri,
-            mediaItem.mimeType,
-            mediaItem.userAgent,
-            mediaItem.title,
-            mediaItem.subtitleCandidates,
-            null
-        )
     }
 
     // endregion
