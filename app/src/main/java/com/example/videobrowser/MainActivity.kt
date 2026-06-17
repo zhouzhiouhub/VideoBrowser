@@ -61,6 +61,7 @@ import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.BrowserShellUiController
+import com.example.videobrowser.browser.BrowserStandardTabSessionController
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
@@ -172,6 +173,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var standardSessionController: BrowserSessionController
     private lateinit var privateSessionController: BrowserSessionController
     private lateinit var browserTabSessionRepository: BrowserTabSessionRepository
+    private lateinit var browserStandardTabSessionController: BrowserStandardTabSessionController
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var functionCenterEntryController: FunctionCenterEntryController
@@ -413,7 +415,13 @@ class MainActivity : AppCompatActivity() {
             updateBookmarkButton = browserShellUiController::updateBookmarkButton
         )
         browserTabSessionRepository = BrowserTabSessionRepository(preferenceStore)
-        restoreStandardTabSession()
+        browserStandardTabSessionController = BrowserStandardTabSessionController(
+            browserTabSessionRepository = {
+                if (::browserTabSessionRepository.isInitialized) browserTabSessionRepository else null
+            },
+            standardTabStore = standardTabStore
+        )
+        browserStandardTabSessionController.restoreStandardTabSession()
         downloadRecordRepository = DownloadRecordRepository(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
         webPlaybackHistoryRecorder = WebPlaybackHistoryRecorder(
@@ -732,7 +740,7 @@ class MainActivity : AppCompatActivity() {
             injectPageFeatures = ::injectPageFeatures,
             onPageMetadataChanged = { url, title ->
                 standardTabSessionBinding.handlePageMetadataChanged(url, title)
-                saveStandardTabSession()
+                browserStandardTabSessionController.saveStandardTabSession()
             }
         )
         privateSessionController = BrowserSessionController(
@@ -787,7 +795,7 @@ class MainActivity : AppCompatActivity() {
             hideStandardTabWebView = ::hideStandardTabWebView,
             destroyStandardTabWebView = ::destroyStandardTabWebView,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
-            saveStandardTabSession = ::saveStandardTabSession,
+            saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
             loadUrl = browserNavigationController::loadUrl,
             openHomePage = browserLaunchController::openHomePage
         )
@@ -801,7 +809,7 @@ class MainActivity : AppCompatActivity() {
             showStandardTabWebView = { tabWebView, detachCurrent ->
                 showStandardTabWebView(tabWebView, detachCurrent)
             },
-            saveStandardTabSession = ::saveStandardTabSession,
+            saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
             showBrowserErrorPage = { error ->
                 browserWebClientController.showBrowserErrorPage(error)
             }
@@ -827,7 +835,7 @@ class MainActivity : AppCompatActivity() {
             standardTabWebViews = standardTabWebViews,
             standardSessionController = standardSessionController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
-            saveStandardTabSession = ::saveStandardTabSession,
+            saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
             closeTab = browserTabActionsController::closeTab
         )
         browserChromeClientController = BrowserChromeClientController(
@@ -1062,7 +1070,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     override fun onPause() {
-        saveStandardTabSession()
+        browserStandardTabSessionController.saveStandardTabSession()
         currentBrowserManager().onPause()
         super.onPause()
     }
@@ -1124,7 +1132,9 @@ class MainActivity : AppCompatActivity() {
         if (areChromeClientsInitialized()) {
             currentChromeClient().hideCustomView()
         }
-        saveStandardTabSession()
+        if (::browserStandardTabSessionController.isInitialized) {
+            browserStandardTabSessionController.saveStandardTabSession()
+        }
         if (::browserSessionCoordinator.isInitialized) {
             browserSessionCoordinator.destroyPrivateSession()
         }
@@ -1164,32 +1174,6 @@ class MainActivity : AppCompatActivity() {
             standardWebView = standardWebView,
             browserManager = standardBrowserManager,
             onActiveWebViewChanged = ::handleActiveWebViewChanged
-        )
-    }
-
-    /**
-     * 函数 `restoreStandardTabSession`：封装 `restore Standard Tab Session` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun restoreStandardTabSession() {
-        browserTabSessionRepository.restore()?.let { session ->
-            standardTabStore.restore(session.tabs, session.activeTabId)
-        }
-    }
-
-    /**
-     * 函数 `saveStandardTabSession`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun saveStandardTabSession() {
-        if (!::browserTabSessionRepository.isInitialized) {
-            return
-        }
-        browserTabSessionRepository.save(
-            tabs = standardTabStore.tabs(),
-            activeTabId = standardTabStore.activeTabId
         )
     }
 
