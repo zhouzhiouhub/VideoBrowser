@@ -52,6 +52,7 @@ import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
+import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellAssemblyController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
@@ -78,6 +79,7 @@ import com.example.videobrowser.browser.PageArchiveController
 import com.example.videobrowser.browser.PagePrintController
 import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.RenderProcessRecoveryController
+import com.example.videobrowser.browser.BrowserRuntimeStateController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.VideoBrowserNativeBridgeController
 import com.example.videobrowser.browser.WebFileChooserController
@@ -286,22 +288,24 @@ class MainActivity : AppCompatActivity() {
     // endregion
 
     // region 当前页面运行状态
-    private var privateBrowsingActive = false
-    private val browserSessionStateController = BrowserSessionStateAssemblyController(
-        isPrivateBrowsingActive = { privateBrowsingActive },
-        standardSessionController = {
-            if (::standardSessionController.isInitialized) standardSessionController else null
+    private val browserRuntimeStateController = BrowserRuntimeStateController(
+        currentSessionController = {
+            browserSessionStateController.currentSessionController()
         },
-        privateSessionController = {
-            if (::privateSessionController.isInitialized) privateSessionController else null
+        fullscreenVideoController = {
+            if (::fullscreenVideoController.isInitialized) fullscreenVideoController else null
         }
-    ).create()
-    private val isHomePageVisible: Boolean
-        get() = browserSessionStateController.currentSessionController().isHomePageVisible
-    private val isVideoFullscreenUiActive: Boolean
-        get() = ::fullscreenVideoController.isInitialized &&
-            fullscreenVideoController.isFullscreenUiActive
-    private var defaultUserAgent: String? = null
+    )
+    private val browserSessionStateController: BrowserSessionStateController =
+        BrowserSessionStateAssemblyController(
+            isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
+            standardSessionController = {
+                if (::standardSessionController.isInitialized) standardSessionController else null
+            },
+            privateSessionController = {
+                if (::privateSessionController.isInitialized) privateSessionController else null
+            }
+        ).create()
     // endregion
 
     // region 生命周期
@@ -352,9 +356,9 @@ class MainActivity : AppCompatActivity() {
                     null
                 }
             },
-            isPrivateBrowsingActive = { privateBrowsingActive },
-            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
-            isHomePageVisible = { isHomePageVisible },
+            isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
+            isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
+            isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
             dp = ::dp
         ).create()
         browserKeyboardController = browserShellComponents.browserKeyboardController
@@ -423,12 +427,12 @@ class MainActivity : AppCompatActivity() {
                 if (::siteSecurityController.isInitialized) siteSecurityController else null
             },
             dp = ::dp,
-            isHomePageVisible = { isHomePageVisible },
+            isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             areBrowserControlsHidden = {
                 ::browserControlsController.isInitialized && browserControlsController.areHidden
             },
-            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
             openProviderHome = { browserLaunchController.openHomePage() },
             openCustomShortcut = { url -> browserNavigationController.loadUrl(url) },
             openUrl = { url -> browserNavigationController.loadUrl(url) },
@@ -440,7 +444,7 @@ class MainActivity : AppCompatActivity() {
         addressSuggestionController = browserSearchComponents.addressSuggestionController
         val webViewInteractionComponents = BrowserWebViewInteractionAssemblyController(
             activity = this,
-            setPrivateBrowsingActive = { active -> privateBrowsingActive = active },
+            setPrivateBrowsingActive = browserRuntimeStateController::setPrivateBrowsingActive,
             openUrlInNewTab = { url ->
                 browserTabActionsController.openUrlInNewTab(url)
             },
@@ -504,7 +508,7 @@ class MainActivity : AppCompatActivity() {
             addressSuggestionController = addressSuggestionController,
             searchProviderController = searchProviderController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
-            defaultUserAgent = { defaultUserAgent }
+            defaultUserAgent = browserRuntimeStateController::defaultUserAgent
         ).create()
         ruleEngine = navigationComponents.ruleEngine
         externalNavigator = navigationComponents.externalNavigator
@@ -567,8 +571,8 @@ class MainActivity : AppCompatActivity() {
             browserLaunchController = browserLaunchController,
             pageActionsController = pageActionsController,
             browserControlsShellController = browserControlsShellController,
-            isHomePageVisible = { isHomePageVisible },
-            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
+            isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
             onBack = { browserBackNavigationController.handleBrowserBack() },
             showFunctionCenter = { functionCenterEntryController.showFunctionCenter() },
             showProfilePage = { functionCenterEntryController.showProfilePage() },
@@ -591,7 +595,7 @@ class MainActivity : AppCompatActivity() {
             pageFeatureInjectionController = pageFeatureInjectionController,
             browsingModeThemeController = browsingModeThemeController,
             sessionSitePermissionStore = sessionSitePermissionStore,
-            isPrivateBrowsingActive = { privateBrowsingActive },
+            isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
             clearElementPickerState = {
                 if (::elementPickerController.isInitialized) {
                     elementPickerController.clearState()
@@ -645,7 +649,7 @@ class MainActivity : AppCompatActivity() {
             currentPageUrl = {
                 browserSessionStateController.currentSessionController().currentPageUrl
             },
-            isPrivateBrowsingActive = { privateBrowsingActive },
+            isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
             createStandardTabWebView =
                 browserStandardWebViewHostController::createStandardTabWebView,
             showStandardTabWebView =
@@ -775,7 +779,7 @@ class MainActivity : AppCompatActivity() {
 
         BrowserStartupControllerAssembly(
             rootView = views.rootView,
-            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
             browserControlsShellController = browserControlsShellController,
             addressSuggestionController = addressSuggestionController,
             browsingModeThemeController = browsingModeThemeController,
@@ -783,7 +787,7 @@ class MainActivity : AppCompatActivity() {
             browserBackNavigationController = browserBackNavigationController,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             settingsManager = settingsManager,
-            setDefaultUserAgent = { userAgent -> defaultUserAgent = userAgent },
+            setDefaultUserAgent = browserRuntimeStateController::setDefaultUserAgent,
             browserDisplayModeController = browserDisplayModeController,
             downloadController = downloadController,
             browserChromeClientController = browserChromeClientController,
@@ -837,8 +841,8 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN && isVideoFullscreenUiActive) {
-            fullscreenVideoController.wakeControls()
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            browserRuntimeStateController.wakeVideoFullscreenControlsIfActive()
         }
         return super.dispatchKeyEvent(event)
     }
