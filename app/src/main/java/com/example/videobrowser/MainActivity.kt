@@ -98,6 +98,7 @@ import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureInjectionController
 import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.inject.ScriptLoader
+import com.example.videobrowser.localfiles.LocalFileAssemblyController
 import com.example.videobrowser.localfiles.LocalDocumentEntryController
 import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
@@ -496,7 +497,7 @@ class MainActivity : AppCompatActivity() {
         browserDefaultSettingsResetter = persistenceComponents.browserDefaultSettingsResetter
 
         // 本地文件模块负责选择目录、读取文件列表，并把可播放文件交给浏览器或原生播放器。
-        localFilesController = LocalFilesController(
+        val localFileComponents = LocalFileAssemblyController(
             activity = this,
             preferenceStore = preferenceStore,
             functionCenter = functionCenterController,
@@ -504,18 +505,6 @@ class MainActivity : AppCompatActivity() {
             showMainFunctionCenterPage = {
                 functionCenterEntryController.showFunctionCenterRootPage()
             },
-            onOpenDocumentUri = { uri, displayName, mimeType, subtitleCandidates, playbackQueue ->
-                localDocumentEntryController.openLocalDocumentUri(
-                    uri,
-                    displayName,
-                    mimeType,
-                    subtitleCandidates,
-                    playbackQueue
-                )
-            }
-        )
-        localDocumentEntryController = LocalDocumentEntryController(
-            localFilesController = localFilesController,
             pageActionsController = { pageActionsController },
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             currentSessionController = browserSessionStateController::currentSessionController,
@@ -525,7 +514,9 @@ class MainActivity : AppCompatActivity() {
             updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
             hideKeyboard = browserKeyboardController::hideKeyboard,
             showHomeContent = browserShellUiController::showHomeContent
-        )
+        ).create()
+        localFilesController = localFileComponents.localFilesController
+        localDocumentEntryController = localFileComponents.localDocumentEntryController
 
         // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
         searchProviderController = SearchProviderController(
