@@ -39,6 +39,7 @@ import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserChromeClientStateController
+import com.example.videobrowser.browser.BrowserControlsAssemblyController
 import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsShellController
@@ -667,51 +668,24 @@ class MainActivity : AppCompatActivity() {
         webPermissionRequestController = webRequestComponents.webPermissionRequestController
         geolocationPermissionController = webRequestComponents.geolocationPermissionController
 
-        // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
-        browserControlsController = BrowserControlsController(
+        val browserControlsComponents = BrowserControlsAssemblyController(
             activity = this,
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
-            topBar = topBar,
-            bottomBar = bottomBar,
-            addressInput = addressInput,
-            pageProgress = pageProgress,
-            pageToolsButton = pageToolsButton,
-            wenxinButton = wenxinButton,
-            profileButton = profileButton,
-            backButton = backButton,
-            refreshButton = refreshButton,
-            bookmarkButton = bookmarkButton,
-            loadButton = loadButton,
+            views = views,
             savedPageRepository = savedPageRepository,
-            currentActionableUrl = browserUrlStateController::currentActionableUrl,
+            browserStandardWebViewHostController = browserStandardWebViewHostController,
+            browserUrlStateController = browserUrlStateController,
+            browserLaunchController = browserLaunchController,
+            pageActionsController = pageActionsController,
+            browserControlsShellController = browserControlsShellController,
             isHomePageVisible = { isHomePageVisible },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
-            onLoadAddress = browserLaunchController::loadAddressInput,
             onBack = { browserBackNavigationController.handleBrowserBack() },
-            onOpenWenxin = browserLaunchController::openWenxinPage,
-            onShowFunctionCenter = { functionCenterEntryController.showFunctionCenter() },
-            onShowProfilePage = { functionCenterEntryController.showProfilePage() },
-            onToggleBookmark = pageActionsController::toggleCurrentBookmark,
-            onShowControlsRequested = {
-                browserControlsShellController.setBrowserControlsHidden(false)
-            },
-            onAddressFocusChanged = browserControlsShellController::handleAddressFocusChanged,
-            onVisibilityChanged = browserControlsShellController::syncSearchProviderVisibility
-        )
-
-        // 页面滚动时自动收起/显示顶部与底部工具栏。
-        browserControlsScrollController = BrowserControlsScrollController(
-            webView = browserStandardWebViewHostController.standardWebView,
-            addressInput = addressInput,
-            dp = ::dp,
-            areControlsHidden = { browserControlsController.areHidden },
-            isHomePageVisible = { isHomePageVisible },
-            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
-            applyControlsHidden = browserControlsController::setHidden,
-            updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility
-        )
+            showFunctionCenter = { functionCenterEntryController.showFunctionCenter() },
+            showProfilePage = { functionCenterEntryController.showProfilePage() },
+            dp = ::dp
+        ).create()
+        browserControlsController = browserControlsComponents.browserControlsController
+        browserControlsScrollController = browserControlsComponents.browserControlsScrollController
 
         // 标准会话会写历史；无痕会话不写历史，并使用独立 WebView。
         standardSessionController = BrowserSessionController(
