@@ -871,8 +871,12 @@ class MainActivity : AppCompatActivity() {
             openPlaybackHistoryItem = browserPageToolEntryController::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
             retryDownload = downloadController::retry,
-            exportBookmarks = ::exportBookmarks,
-            importBookmarks = ::importBookmarks,
+            exportBookmarks = {
+                bookmarkExportLauncher.launch(BookmarkImportExportController.EXPORT_FILE_NAME)
+            },
+            importBookmarks = {
+                bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)
+            },
             currentSearchProviderName = { searchProviderController.selectedProvider.name },
             selectSearchProvider = searchProviderController::selectDefaultSearchProvider,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
@@ -1359,24 +1363,6 @@ class MainActivity : AppCompatActivity() {
         if (!fullscreen) {
             applyBrowserContentOrientation(browserFeatureStateController.isDesktopModeEnabled())
         }
-    }
-
-    /**
-     * 函数 `exportBookmarks`：封装 `export Bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun exportBookmarks() {
-        bookmarkExportLauncher.launch(BookmarkImportExportController.EXPORT_FILE_NAME)
-    }
-
-    /**
-     * 函数 `importBookmarks`：封装 `import Bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun importBookmarks() {
-        bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)
     }
 
     /**
