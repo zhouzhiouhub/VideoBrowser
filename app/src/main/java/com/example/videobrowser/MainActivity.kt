@@ -46,6 +46,7 @@ import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsShellController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
+import com.example.videobrowser.browser.BrowserFullscreenAssemblyController
 import com.example.videobrowser.browser.BrowserFullscreenUiController
 import com.example.videobrowser.browser.BrowserKeyboardController
 import com.example.videobrowser.browser.BrowserUrlStateController
@@ -789,25 +790,21 @@ class MainActivity : AppCompatActivity() {
         webWindowController = browserClientComponents.webWindowController
         browserChromeClientController = browserClientComponents.browserChromeClientController
 
-        // 网页全屏视频控制器处理 WebChromeClient 自定义视图和网页视频手势协议。
-        fullscreenVideoController = FullscreenVideoController(
+        val browserFullscreenComponents = BrowserFullscreenAssemblyController(
             activity = this,
             rootView = rootView as ViewGroup,
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
             settingsManager = { settingsManager },
-            chromeClient = browserChromeClientStateController::currentChromeClientOrNull,
-            dp = ::dp
-        )
-        browserFullscreenUiController = BrowserFullscreenUiController(
-            rootView = rootView,
-            fullscreenVideoController = fullscreenVideoController,
+            browserChromeClientStateController = browserChromeClientStateController,
             browserControlsShellController = browserControlsShellController,
             browserDisplayModeController = browserDisplayModeController,
-            currentChromeClient = browserChromeClientStateController::currentChromeClientOrNull,
-            isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled
-        )
+            browserFeatureStateController = browserFeatureStateController,
+            dp = ::dp
+        ).create()
+        fullscreenVideoController = browserFullscreenComponents.fullscreenVideoController
+        browserFullscreenUiController = browserFullscreenComponents.browserFullscreenUiController
 
         // 功能中心是底部弹出的工具面板。装配类负责把各控制器动作接入页面。
         functionCenterEntryController = FunctionCenterAssemblyController(
