@@ -36,6 +36,7 @@ import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
 import com.example.videobrowser.browser.BrowserAddressBarStateController
+import com.example.videobrowser.browser.BrowserBackNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserChromeClientStateController
@@ -873,7 +874,7 @@ class MainActivity : AppCompatActivity() {
         pageFeatureCoordinator = browserPageFeatureComponents.pageFeatureCoordinator
         elementPickerController = browserPageFeatureComponents.elementPickerController
         nativeBridgeController = browserPageFeatureComponents.nativeBridgeController
-        browserBackNavigationController = BrowserBackNavigationController(
+        browserBackNavigationController = BrowserBackNavigationAssemblyController(
             activity = this,
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
@@ -883,7 +884,7 @@ class MainActivity : AppCompatActivity() {
             isElementPickerActive = { elementPickerController.isActive },
             cancelElementPicker = elementPickerController::cancel,
             updateNavigationButtons = browserShellUiController::updateNavigationButtons
-        )
+        ).create()
 
         BrowserWindowInsetsController(
             rootView = rootView,
