@@ -28,7 +28,8 @@ class ExternalProtocolWiringContractTest {
         ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserNavigationController: BrowserNavigationController"))
+        assertTrue(mainActivity.contains("private lateinit var browserNavigation: BrowserNavigationComponents"))
+        assertTrue(mainActivity.contains("browserNavigationController = browserNavigation.browserNavigationController"))
         assertTrue(browserClientAssembly.contains("shouldBlockUrl = browserNavigationController::shouldBlockUrl"))
         assertTrue(navigationController.contains("private fun openExternalProtocolNavigation"))
         assertTrue(navigationController.contains("ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)"))
