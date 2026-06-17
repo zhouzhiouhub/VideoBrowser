@@ -25,7 +25,7 @@ class MediaRoutingWiringContractTest {
         ).readText()
 
         assertTrue(mainActivity.contains("browserNavigationController.loadUrl(url)"))
-        assertTrue(mainActivity.contains("browserNavigationController.shouldBlockUrl(view, uri, openMedia)"))
+        assertTrue(mainActivity.contains("shouldBlockUrl = browserNavigationController::shouldBlockUrl"))
         assertTrue(source.contains("MediaRoutingController.route("))
         assertTrue(source.contains("MediaRouteSource.ADDRESS_BAR"))
         assertTrue(source.contains("MediaRouteSource.WEBVIEW_OVERRIDE"))
