@@ -88,7 +88,7 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("R.string.action_open_in_new_tab"))
         assertTrue(page.contains("openUrlInNewTab(page.url)"))
         assertTrue(pages.contains("openUrlInNewTab = openUrlInNewTab"))
-        assertTrue(mainActivity.contains("openUrlInNewTab = ::openUrlInNewTab"))
+        assertTrue(mainActivity.contains("openUrlInNewTab = browserTabActionsController::openUrlInNewTab"))
         assertTrue(strings.contains("action_open_in_new_tab"))
     }
 

@@ -137,17 +137,17 @@ class BrowserTabsPageWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("currentTabs = ::currentTabs"))
-        assertTrue(mainActivity.contains("activeTabId = ::activeTabId"))
-        assertTrue(mainActivity.contains("openNewTab = ::openNewTab"))
-        assertTrue(mainActivity.contains("canReopenClosedTab = ::canReopenClosedTab"))
-        assertTrue(mainActivity.contains("reopenClosedTab = ::reopenClosedTab"))
-        assertTrue(mainActivity.contains("switchTab = ::switchTab"))
-        assertTrue(mainActivity.contains("closeTab = ::closeTab"))
-        assertTrue(mainActivity.contains("closeOtherTabs = ::closeOtherTabs"))
-        assertTrue(mainActivity.contains("closeAllTabs = ::closeAllTabs"))
+        assertTrue(mainActivity.contains("currentTabs = browserTabActionsController::currentTabs"))
+        assertTrue(mainActivity.contains("activeTabId = browserTabActionsController::activeTabId"))
+        assertTrue(mainActivity.contains("openNewTab = browserTabActionsController::openNewTab"))
+        assertTrue(mainActivity.contains("canReopenClosedTab = browserTabActionsController::canReopenClosedTab"))
+        assertTrue(mainActivity.contains("reopenClosedTab = browserTabActionsController::reopenClosedTab"))
+        assertTrue(mainActivity.contains("switchTab = browserTabActionsController::switchTab"))
+        assertTrue(mainActivity.contains("closeTab = browserTabActionsController::closeTab"))
+        assertTrue(mainActivity.contains("closeOtherTabs = browserTabActionsController::closeOtherTabs"))
+        assertTrue(mainActivity.contains("closeAllTabs = browserTabActionsController::closeAllTabs"))
         assertTrue(tabActionsController.contains("standardTabWebViews.closeAllTabs()"))
-        assertTrue(mainActivity.contains("duplicateTab = ::duplicateTab"))
+        assertTrue(mainActivity.contains("duplicateTab = browserTabActionsController::duplicateTab"))
     }
 
     /**

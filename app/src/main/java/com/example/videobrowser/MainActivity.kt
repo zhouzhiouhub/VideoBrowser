@@ -67,7 +67,6 @@ import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
-import com.example.videobrowser.browser.BrowserTab
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
@@ -476,7 +475,9 @@ class MainActivity : AppCompatActivity() {
         )
         linkContextMenuController = LinkContextMenuController(
             activity = this,
-            openUrlInNewTab = ::openUrlInNewTab,
+            openUrlInNewTab = { url ->
+                browserTabActionsController.openUrlInNewTab(url)
+            },
             downloadUrl = { url, userAgent ->
                 downloadController.enqueue(
                     url = url,
@@ -572,7 +573,9 @@ class MainActivity : AppCompatActivity() {
             openNativePlayer = nativePlayerEntryController::openNativePlayer,
             openLocalArchiveInBrowser = localDocumentEntryController::loadLocalDocumentUrlInBrowser,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            switchPrivateBrowsing = ::setPrivateBrowsingActive,
+            switchPrivateBrowsing = { enabled ->
+                privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
+            },
             updateBookmarkButton = ::updateBookmarkButton,
             updateNavigationButtons = ::updateNavigationButtons,
             updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
@@ -778,7 +781,7 @@ class MainActivity : AppCompatActivity() {
             standardSessionController = standardSessionController,
             closeFunctionCenter = ::closeFunctionCenter,
             saveStandardTabSession = ::saveStandardTabSession,
-            closeTab = ::closeTab
+            closeTab = browserTabActionsController::closeTab
         )
 
         // 网页全屏视频控制器处理 WebChromeClient 自定义视图和网页视频手势协议。
@@ -812,17 +815,17 @@ class MainActivity : AppCompatActivity() {
             isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
             isPageCleanupEnabled = browserFeatureStateController::isPageCleanupEnabled,
             isVideoEnhancementEnabled = browserFeatureStateController::isVideoEnhancementEnabled,
-            currentTabs = ::currentTabs,
-            activeTabId = ::activeTabId,
-            openNewTab = ::openNewTab,
+            currentTabs = browserTabActionsController::currentTabs,
+            activeTabId = browserTabActionsController::activeTabId,
+            openNewTab = browserTabActionsController::openNewTab,
             openHomePage = ::openHomePage,
-            canReopenClosedTab = ::canReopenClosedTab,
-            reopenClosedTab = ::reopenClosedTab,
-            switchTab = ::switchTab,
-            closeTab = ::closeTab,
-            closeOtherTabs = ::closeOtherTabs,
-            closeAllTabs = ::closeAllTabs,
-            duplicateTab = ::duplicateTab,
+            canReopenClosedTab = browserTabActionsController::canReopenClosedTab,
+            reopenClosedTab = browserTabActionsController::reopenClosedTab,
+            switchTab = browserTabActionsController::switchTab,
+            closeTab = browserTabActionsController::closeTab,
+            closeOtherTabs = browserTabActionsController::closeOtherTabs,
+            closeAllTabs = browserTabActionsController::closeAllTabs,
+            duplicateTab = browserTabActionsController::duplicateTab,
             toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
             setCurrentPageAsHomePage = pageActionsController::setCurrentPageAsHomePage,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
@@ -844,7 +847,7 @@ class MainActivity : AppCompatActivity() {
             startElementPicker = ::startElementPicker,
             applyDesktopMode = ::applyDesktopMode,
             injectPageFeatures = ::injectPageFeatures,
-            openUrlInNewTab = ::openUrlInNewTab,
+            openUrlInNewTab = browserTabActionsController::openUrlInNewTab,
             loadUrl = ::loadUrl,
             recreateActivity = { recreate() }
         )
@@ -1745,123 +1748,6 @@ class MainActivity : AppCompatActivity() {
         if (::browsingModeThemeController.isInitialized) {
             browsingModeThemeController.applyBrowsingModeTheme()
         }
-    }
-
-    /**
-     * 函数 `currentTabs`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentTabs(): List<BrowserTab> {
-        return browserTabActionsController.currentTabs()
-    }
-
-    /**
-     * 函数 `activeTabId`：封装 `active Tab Id` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun activeTabId(): Long {
-        return browserTabActionsController.activeTabId()
-    }
-
-    /**
-     * 函数 `openNewTab`：启动或加载 `open New Tab` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun openNewTab() {
-        browserTabActionsController.openNewTab()
-    }
-
-    /**
-     * 函数 `canReopenClosedTab`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun canReopenClosedTab(): Boolean {
-        return browserTabActionsController.canReopenClosedTab()
-    }
-
-    /**
-     * 函数 `reopenClosedTab`：封装 `reopen Closed Tab` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun reopenClosedTab() {
-        browserTabActionsController.reopenClosedTab()
-    }
-
-    /**
-     * 函数 `switchTab`：封装 `switch Tab` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun switchTab(tabId: Long) {
-        browserTabActionsController.switchTab(tabId)
-    }
-
-    /**
-     * 函数 `closeTab`：控制 `close Tab` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun closeTab(tabId: Long) {
-        browserTabActionsController.closeTab(tabId)
-    }
-
-    /**
-     * 函数 `closeOtherTabs`：控制 `close Other Tabs` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun closeOtherTabs(tabId: Long) {
-        browserTabActionsController.closeOtherTabs(tabId)
-    }
-
-    /**
-     * 函数 `closeAllTabs`：控制 `close All Tabs` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun closeAllTabs() {
-        browserTabActionsController.closeAllTabs()
-    }
-
-    /**
-     * 函数 `duplicateTab`：封装 `duplicate Tab` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param tabId 参数类型为 `Long`，表示函数执行 `tabId` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun duplicateTab(tabId: Long) {
-        browserTabActionsController.duplicateTab(tabId)
-    }
-
-    /**
-     * 函数 `openUrlInNewTab`：启动或加载 `open Url In New Tab` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun openUrlInNewTab(url: String) {
-        browserTabActionsController.openUrlInNewTab(url)
-    }
-
-    /**
-     * 函数 `setPrivateBrowsingActive`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     */
-    private fun setPrivateBrowsingActive(enabled: Boolean) {
-        privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
     }
 
     // endregion
