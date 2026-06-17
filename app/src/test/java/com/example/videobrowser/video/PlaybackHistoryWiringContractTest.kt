@@ -82,7 +82,9 @@ class PlaybackHistoryWiringContractTest {
         val nativePlayerEntryController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerEntryController.kt"
         ).readText()
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val navigationAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserNavigationAssemblyController.kt"
+        )
             .readText()
 
         assertTrue(playerActivity.contains("privateBrowsing: Boolean = false"))
@@ -91,9 +93,9 @@ class PlaybackHistoryWiringContractTest {
         assertTrue(externalNavigator.contains("privateBrowsing = privateBrowsing"))
         assertTrue(nativePlayerEntryController.contains("class NativePlayerEntryController"))
         assertTrue(nativePlayerEntryController.contains("privateBrowsing = isPrivateBrowsingEnabled()"))
-        assertTrue(mainActivity.contains("nativePlayerEntryController = NativePlayerEntryController("))
+        assertTrue(navigationAssembly.contains("val nativePlayerEntryController = NativePlayerEntryController("))
         assertTrue(
-            mainActivity.contains("isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled")
+            navigationAssembly.contains("isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled")
         )
     }
 

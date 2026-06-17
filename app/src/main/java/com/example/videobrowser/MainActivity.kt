@@ -52,6 +52,7 @@ import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserNavigationController
+import com.example.videobrowser.browser.BrowserNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionStateController
@@ -102,7 +103,6 @@ import com.example.videobrowser.localfiles.LocalFileAssemblyController
 import com.example.videobrowser.localfiles.LocalDocumentEntryController
 import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
-import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SessionSitePermissionStore
@@ -596,64 +596,32 @@ class MainActivity : AppCompatActivity() {
         localDocumentEntryController.setupFileOperationLaunchers()
 
         // 规则引擎读取 assets/rules 和用户订阅缓存，供广告拦截、URL 清理、脚本注入使用。
-        ruleEngine = RuleEngineFactory.create(assets, filesDir)
-        externalNavigator = BrowserExternalNavigator(
+        val navigationComponents = BrowserNavigationAssemblyController(
             activity = this,
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
-            currentPageTitle = {
-                if (browserSessionStateController.areBrowserSessionsInitialized()) {
-                    browserSessionStateController.currentSessionController().currentPageTitle
-                } else {
-                    ""
-                }
-            },
-            currentShareableUrl = browserUrlStateController::currentShareableUrl,
-            isShareableUrl = browserUrlStateController::isShareableUrl
-        )
-        nativePlayerEntryController = NativePlayerEntryController(
-            externalNavigator = externalNavigator,
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled
-        )
-        browserNavigationController = BrowserNavigationController(
-            activity = this,
-            ruleEngine = { if (::ruleEngine.isInitialized) ruleEngine else null },
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
-            sessionController = browserSessionStateController::currentSessionController,
-            externalNavigator = externalNavigator,
+            assets = assets,
+            filesDir = filesDir,
+            settingsManager = settingsManager,
+            addressInput = addressInput,
+            standardTabStore = standardTabStore,
+            browserStandardWebViewHostController = browserStandardWebViewHostController,
+            browserSessionStateController = browserSessionStateController,
+            browserUrlStateController = browserUrlStateController,
+            browserFeatureStateController = browserFeatureStateController,
+            browserAddressBarStateController = browserAddressBarStateController,
+            browserKeyboardController = browserKeyboardController,
+            browserShellUiController = browserShellUiController,
+            browserChromeClientStateController = browserChromeClientStateController,
+            addressSuggestionController = addressSuggestionController,
+            searchProviderController = searchProviderController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
-            openNativePlayer = nativePlayerEntryController::openNativePlayer,
-            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
-            updateAddressBar = browserAddressBarStateController::updateAddressBar,
-            hideKeyboard = browserKeyboardController::hideKeyboard,
-            showHomeContent = browserShellUiController::showHomeContent
-        )
-        browserLaunchController = BrowserLaunchController(
-            addressText = { addressInput.text?.toString().orEmpty() },
-            runWithSuggestionsSuppressed = addressSuggestionController::runWithSuggestionsSuppressed,
-            searchUrlPrefix = { searchProviderController.selectedProvider.searchUrlPrefix },
-            homeUrl = {
-                settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)
-            },
-            activeStandardTabUrl = { standardTabStore.activeTab().url },
-            loadUrl = browserNavigationController::loadUrl,
-            isShareableUrl = browserUrlStateController::isShareableUrl
-        )
-        browserDisplayModeController = BrowserDisplayModeController(
-            activity = this,
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
-            isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled,
-            isFullscreenModeActive = {
-                browserChromeClientStateController.currentChromeClientOrNull()
-                    ?.isFullscreenModeActive() == true
-            },
             defaultUserAgent = { defaultUserAgent }
-        )
+        ).create()
+        ruleEngine = navigationComponents.ruleEngine
+        externalNavigator = navigationComponents.externalNavigator
+        nativePlayerEntryController = navigationComponents.nativePlayerEntryController
+        browserNavigationController = navigationComponents.browserNavigationController
+        browserLaunchController = navigationComponents.browserLaunchController
+        browserDisplayModeController = navigationComponents.browserDisplayModeController
 
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
         downloadController = DownloadController(
