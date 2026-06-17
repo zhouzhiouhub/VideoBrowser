@@ -106,6 +106,7 @@ import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.storage.BookmarkImportExportController
+import com.example.videobrowser.storage.BrowserPersistenceAssemblyController
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.video.FullscreenVideoController
@@ -474,40 +475,25 @@ class MainActivity : AppCompatActivity() {
         )
 
         // 本地持久化层：设置、收藏/历史、标签会话、下载记录和播放历史都放在 SharedPreferences。
-        preferenceStore = PreferenceStore.from(this)
-        settingsManager = SettingsManager(preferenceStore)
-        savedPageRepository = SavedPageRepository(preferenceStore)
-        bookmarkImportExportController = BookmarkImportExportController(
+        val persistenceComponents = BrowserPersistenceAssemblyController(
             activity = this,
-            savedPageRepository = savedPageRepository,
-            updateBookmarkButton = browserShellUiController::updateBookmarkButton
-        )
-        browserTabSessionRepository = BrowserTabSessionRepository(preferenceStore)
-        browserStandardTabSessionController = BrowserStandardTabSessionController(
-            browserTabSessionRepository = {
-                if (::browserTabSessionRepository.isInitialized) browserTabSessionRepository else null
-            },
-            standardTabStore = standardTabStore
-        )
-        browserStandardTabSessionController.restoreStandardTabSession()
-        downloadRecordRepository = DownloadRecordRepository(preferenceStore)
-        playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
-        webPlaybackHistoryRecorder = WebPlaybackHistoryRecorder(
-            playbackHistoryRepository = playbackHistoryRepository,
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            currentShareableUrl = browserUrlStateController::currentShareableUrl,
-            isShareableUrl = browserUrlStateController::isShareableUrl,
-            defaultVideoSpeed = settingsManager::defaultVideoSpeed,
-            currentPageTitle = {
-                browserSessionStateController.currentSessionController().currentPageTitle
-            }
-        )
-        browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
-            settingsManager = settingsManager,
-            savedPageRepository = savedPageRepository,
-            browserTabSessionRepository = browserTabSessionRepository,
-            filesDir = filesDir
-        )
+            filesDir = filesDir,
+            standardTabStore = standardTabStore,
+            browserShellUiController = browserShellUiController,
+            browserFeatureStateController = browserFeatureStateController,
+            browserUrlStateController = browserUrlStateController,
+            browserSessionStateController = browserSessionStateController
+        ).create()
+        preferenceStore = persistenceComponents.preferenceStore
+        settingsManager = persistenceComponents.settingsManager
+        savedPageRepository = persistenceComponents.savedPageRepository
+        bookmarkImportExportController = persistenceComponents.bookmarkImportExportController
+        browserTabSessionRepository = persistenceComponents.browserTabSessionRepository
+        browserStandardTabSessionController = persistenceComponents.browserStandardTabSessionController
+        downloadRecordRepository = persistenceComponents.downloadRecordRepository
+        playbackHistoryRepository = persistenceComponents.playbackHistoryRepository
+        webPlaybackHistoryRecorder = persistenceComponents.webPlaybackHistoryRecorder
+        browserDefaultSettingsResetter = persistenceComponents.browserDefaultSettingsResetter
 
         // 本地文件模块负责选择目录、读取文件列表，并把可播放文件交给浏览器或原生播放器。
         localFilesController = LocalFilesController(
