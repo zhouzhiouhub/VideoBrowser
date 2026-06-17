@@ -231,13 +231,16 @@ class MainActivityLayoutContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val searchAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
+        ).readText()
 
         assertTrue(pageActions.contains("private val shouldRecordHistoryUrl: (String?) -> Boolean"))
         assertTrue(pageActions.contains("if (!shouldRecordHistoryUrl(page.url))"))
         assertTrue(mainActivity.contains("private lateinit var historyRecordPolicy: HistoryRecordPolicy"))
         assertTrue(mainActivity.contains("shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord"))
-        assertTrue(mainActivity.contains("SearchProviders.defaults.map { provider -> provider.homeUrl }"))
-        assertTrue(mainActivity.contains("settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)"))
+        assertTrue(searchAssembly.contains("SearchProviders.defaults.map { provider -> provider.homeUrl }"))
+        assertTrue(searchAssembly.contains("settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)"))
     }
 
     /**

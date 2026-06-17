@@ -65,6 +65,9 @@ class SearchProviderControllerContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val searchAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
+        ).readText()
         val quickLinkBuilder = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/HomeQuickLinkBuilder.kt"
         ).readText()
@@ -87,7 +90,7 @@ class SearchProviderControllerContractTest {
         assertTrue(controller.contains("R.string.toast_recent_site_removed"))
         assertTrue(controller.contains("R.string.action_open_recent_site"))
         assertTrue(controller.contains("R.drawable.ic_history_24"))
-        assertTrue(mainActivity.contains("savedPageRepository = savedPageRepository"))
+        assertTrue(searchAssembly.contains("savedPageRepository = savedPageRepository"))
         assertTrue(quickLinkBuilder.contains("object HomeQuickLinkBuilder"))
         assertTrue(quickLinkBuilder.contains("excludedUrls: Collection<String>"))
         assertTrue(strings.contains("action_open_recent_site"))

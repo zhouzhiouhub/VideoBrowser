@@ -85,9 +85,8 @@ import com.example.videobrowser.browser.WebFileChooserController
 import com.example.videobrowser.browser.WebWindowController
 import com.example.videobrowser.browser.WebPermissionRequestController
 import com.example.videobrowser.browser.search.AddressSuggestionController
-import com.example.videobrowser.browser.search.SearchSuggestionClient
+import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
 import com.example.videobrowser.browser.search.SearchProviderController
-import com.example.videobrowser.browser.search.SearchProviders
 import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
@@ -519,49 +518,34 @@ class MainActivity : AppCompatActivity() {
         localDocumentEntryController = localFileComponents.localDocumentEntryController
 
         // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
-        searchProviderController = SearchProviderController(
+        val browserSearchComponents = BrowserSearchAssemblyController(
             activity = this,
             providerScroll = searchProviderScroll,
             providerList = searchProviderList,
             addressInput = addressInput,
             addressProviderBadge = views.addressProviderBadge,
+            addressSuggestionPanel = addressSuggestionPanel,
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
-            dp = ::dp,
-            isHomePageVisible = { isHomePageVisible },
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            openProviderHome = { browserLaunchController.openHomePage() },
-            openCustomShortcut = { url -> browserNavigationController.loadUrl(url) }
-        )
-        browserAddressBarStateController = BrowserAddressBarStateController(
-            addressInput = addressInput,
-            searchProviderController = searchProviderController,
             siteSecurityController = {
                 if (::siteSecurityController.isInitialized) siteSecurityController else null
-            }
-        )
-        historyRecordPolicy = HistoryRecordPolicy(
-            homeUrls = {
-                SearchProviders.defaults.map { provider -> provider.homeUrl } +
-                    settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)
-            }
-        )
-        addressSuggestionController = AddressSuggestionController(
-            activity = this,
-            panel = addressSuggestionPanel,
-            addressInput = addressInput,
-            savedPageRepository = savedPageRepository,
-            suggestionClient = SearchSuggestionClient(),
-            selectedProvider = { searchProviderController.selectedProvider },
+            },
+            dp = ::dp,
+            isHomePageVisible = { isHomePageVisible },
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             areBrowserControlsHidden = {
                 ::browserControlsController.isInitialized && browserControlsController.areHidden
             },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            openProviderHome = { browserLaunchController.openHomePage() },
+            openCustomShortcut = { url -> browserNavigationController.loadUrl(url) },
             openUrl = { url -> browserNavigationController.loadUrl(url) },
-            searchKeyword = { keyword -> browserLaunchController.searchAddressKeyword(keyword) },
-            dp = ::dp
-        )
+            searchKeyword = { keyword -> browserLaunchController.searchAddressKeyword(keyword) }
+        ).create()
+        searchProviderController = browserSearchComponents.searchProviderController
+        browserAddressBarStateController = browserSearchComponents.browserAddressBarStateController
+        historyRecordPolicy = browserSearchComponents.historyRecordPolicy
+        addressSuggestionController = browserSearchComponents.addressSuggestionController
         linkContextMenuController = LinkContextMenuController(
             activity = this,
             openUrlInNewTab = { url ->
