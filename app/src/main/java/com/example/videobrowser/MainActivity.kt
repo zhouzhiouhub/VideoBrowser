@@ -21,7 +21,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Message
-import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -85,7 +84,7 @@ import com.example.videobrowser.browser.PagePrintController
 import com.example.videobrowser.browser.RenderProcessRecoveryController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
-import com.example.videobrowser.browser.VideoBrowserNativeBridge
+import com.example.videobrowser.browser.VideoBrowserNativeBridgeController
 import com.example.videobrowser.browser.WebFileChooserController
 import com.example.videobrowser.browser.WebWindowController
 import com.example.videobrowser.browser.WebPermissionRequestController
@@ -198,6 +197,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserDisplayModeController: BrowserDisplayModeController
     private lateinit var browsingModeThemeController: BrowsingModeThemeController
     private lateinit var browserBackNavigationController: BrowserBackNavigationController
+    private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
@@ -793,6 +793,23 @@ class MainActivity : AppCompatActivity() {
             isCurrentSiteJsInjectionDisabled = ::isCurrentSiteJsInjectionDisabled,
             injectPageFeatures = ::injectPageFeatures
         )
+        nativeBridgeController = VideoBrowserNativeBridgeController(
+            postToUi = { action -> runOnUiThread { action() } },
+            currentChromeClient = {
+                if (areChromeClientsInitialized()) {
+                    currentChromeClient()
+                } else {
+                    null
+                }
+            },
+            fullscreenVideoController = fullscreenVideoController,
+            webPlaybackHistoryRecorder = webPlaybackHistoryRecorder,
+            requestElementBlock = elementPickerController::handlePickedElement,
+            blockSelectedElement = { selector ->
+                elementPickerController.handlePickedElement(selector, "")
+            },
+            cancelElementPicker = elementPickerController::handleCancelledFromPage
+        )
         browserBackNavigationController = BrowserBackNavigationController(
             activity = this,
             browserManager = ::currentBrowserManager,
@@ -840,7 +857,10 @@ class MainActivity : AppCompatActivity() {
         setupDownloadHandling()
         setupChromeClient()
         setupFullscreenGestureOverlay()
-        standardBrowserManager.addJavascriptInterface(createNativeBridge(), NATIVE_BRIDGE_NAME)
+        standardBrowserManager.addJavascriptInterface(
+            nativeBridgeController.createNativeBridge(),
+            NATIVE_BRIDGE_NAME
+        )
         setupBrowserClient()
 
         // 如果外部 Intent 带了 URL 就打开外部 URL，否则恢复标签页或打开主页。
@@ -1609,42 +1629,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 原生桥、功能中心、本地文件和页面工具
     // 原生桥把网页里的 JavaScript 调用转成 Kotlin 回调；功能中心和本地文件入口复用这些动作。
-    /**
-     * 函数 `createNativeBridge`：创建 `create Native Bridge` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createNativeBridge(): VideoBrowserNativeBridge {
-        return VideoBrowserNativeBridge(
-            postToUi = { action -> runOnUiThread { action() } },
-            enterFullscreen = {
-                if (areChromeClientsInitialized()) {
-                    currentChromeClient().enterPageFullscreen()
-                }
-            },
-            exitFullscreen = {
-                if (areChromeClientsInitialized()) {
-                    currentChromeClient().exitPageFullscreen()
-                }
-            },
-            updatePlaybackTimeline = ::updateWebViewPlaybackTimeline,
-            requestElementBlock = elementPickerController::handlePickedElement,
-            blockSelectedElement = { selector ->
-                elementPickerController.handlePickedElement(selector, "")
-            },
-            cancelElementPicker = elementPickerController::handleCancelledFromPage,
-            logVideoEvent = { message ->
-                Log.d(VIDEO_LOG_TAG, message)
-            }
-        )
-    }
-
-    private fun updateWebViewPlaybackTimeline(positionMs: Double, durationMs: Double) {
-        fullscreenVideoController.updatePlaybackTimeline(positionMs, durationMs)
-        webPlaybackHistoryRecorder.record(positionMs, durationMs)
-    }
-
     /**
      * 函数 `startElementPicker`：启动或加载 `start Element Picker` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
      *
@@ -2449,7 +2433,6 @@ class MainActivity : AppCompatActivity() {
         // 所有只在 MainActivity 内使用的常量集中放在 companion object，避免魔法数字散落在函数里。
         private const val NATIVE_BRIDGE_NAME = "VideoBrowserNative"
         private const val RULE_LOG_TAG = "VideoBrowserRules"
-        private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val BROWSER_CONTROLS_SCROLL_THRESHOLD_DP = 48
         private const val BROWSER_CONTROLS_SCROLL_COOLDOWN_MS = 500L
     }

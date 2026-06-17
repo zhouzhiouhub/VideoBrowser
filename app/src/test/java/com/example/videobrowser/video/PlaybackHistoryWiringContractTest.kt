@@ -32,14 +32,18 @@ class PlaybackHistoryWiringContractTest {
     fun webViewPlaybackTimelineRecordsPlaybackHistory() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val nativeBridgeController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/VideoBrowserNativeBridgeController.kt"
+        ).readText()
         val webRecorder = projectFile(
             "src/main/java/com/example/videobrowser/video/WebPlaybackHistoryRecorder.kt"
         ).readText()
         val script = projectFile("src/main/assets/scripts/common.js").readText()
 
-        assertTrue(mainActivity.contains("updatePlaybackTimeline = ::updateWebViewPlaybackTimeline"))
+        assertTrue(mainActivity.contains("nativeBridgeController.createNativeBridge()"))
         assertTrue(mainActivity.contains("private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder"))
-        assertTrue(mainActivity.contains("webPlaybackHistoryRecorder.record(positionMs, durationMs)"))
+        assertTrue(nativeBridgeController.contains("updatePlaybackTimeline = ::updateWebViewPlaybackTimeline"))
+        assertTrue(nativeBridgeController.contains("webPlaybackHistoryRecorder.record(positionMs, durationMs)"))
         assertTrue(webRecorder.contains("source = PlaybackHistorySource.WEB_PAGE"))
         assertTrue(webRecorder.contains("private const val SAVE_THROTTLE_MS = 5_000L"))
         assertTrue(webRecorder.contains("playbackHistoryRepository.save("))
