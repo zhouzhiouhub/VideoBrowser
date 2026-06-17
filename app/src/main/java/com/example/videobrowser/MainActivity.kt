@@ -29,7 +29,6 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
@@ -73,7 +72,7 @@ import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
-import com.example.videobrowser.browser.BrowserRequestInterceptionAssemblyController
+import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
 import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
@@ -90,7 +89,6 @@ import com.example.videobrowser.browser.PagePrintController
 import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.RenderProcessRecoveryController
 import com.example.videobrowser.browser.SiteSecurityController
-import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
 import com.example.videobrowser.browser.VideoBrowserNativeBridgeController
 import com.example.videobrowser.browser.WebFileChooserController
 import com.example.videobrowser.browser.WebWindowController
@@ -286,22 +284,14 @@ class MainActivity : AppCompatActivity() {
     // endregion
 
     // region 网页内容增强和拦截
-    // 广告拦截和智能无图请求拦截使用 lazy，确保规则引擎和设置管理器已经完成初始化。
-    private val requestInterceptionComponents by lazy {
-        BrowserRequestInterceptionAssemblyController(
-            browserFeatureStateController = { browserFeatureStateController },
-            settingsManager = { settingsManager },
-            browserSessionStateController = browserSessionStateController,
-            browserUrlStateController = { browserUrlStateController },
-            ruleEngine = { ruleEngine }
-        ).create()
-    }
-    private val adBlockLogger
-        get() = requestInterceptionComponents.adBlockLogger
-    private val adBlockRequestInterceptor: AdBlockRequestInterceptor
-        get() = requestInterceptionComponents.adBlockRequestInterceptor
-    private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor
-        get() = requestInterceptionComponents.smartNoImageRequestInterceptor
+    // 请求拦截提供器内部使用 lazy，确保规则引擎和设置管理器完成初始化后才创建拦截对象。
+    private val requestInterceptionProvider = BrowserRequestInterceptionProvider(
+        browserFeatureStateController = { browserFeatureStateController },
+        settingsManager = { settingsManager },
+        browserSessionStateController = { browserSessionStateController },
+        browserUrlStateController = { browserUrlStateController },
+        ruleEngine = { ruleEngine }
+    )
     // endregion
 
     // region Android 系统交互状态
@@ -702,8 +692,9 @@ class MainActivity : AppCompatActivity() {
             },
             clientCertificateController = clientCertificateController,
             httpAuthController = httpAuthController,
-            adBlockRequestInterceptor = adBlockRequestInterceptor,
-            smartNoImageRequestInterceptor = smartNoImageRequestInterceptor,
+            adBlockRequestInterceptor = requestInterceptionProvider.adBlockRequestInterceptor,
+            smartNoImageRequestInterceptor =
+                requestInterceptionProvider.smartNoImageRequestInterceptor,
             browserNavigationController = browserNavigationController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             closeTab = browserTabActionsController::closeTab,
@@ -749,7 +740,7 @@ class MainActivity : AppCompatActivity() {
             savedPageRepository = savedPageRepository,
             downloadRecordRepository = downloadRecordRepository,
             playbackHistoryRepository = playbackHistoryRepository,
-            adBlockLogger = adBlockLogger,
+            adBlockLogger = requestInterceptionProvider.adBlockLogger,
             filesDir = filesDir,
             browserUrlStateController = browserUrlStateController,
             browserFeatureStateController = browserFeatureStateController,
