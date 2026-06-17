@@ -31,10 +31,9 @@ import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserChromeClientStateAssemblyController
 import com.example.videobrowser.browser.BrowserClientAssemblyController
 import com.example.videobrowser.browser.BrowserControlsAssemblyController
+import com.example.videobrowser.browser.BrowserControlsComponents
 import com.example.videobrowser.browser.BrowserFeatureStateController
-import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsShellController
-import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
 import com.example.videobrowser.browser.BrowserFullscreenAssemblyController
 import com.example.videobrowser.browser.BrowserFullscreenUiController
@@ -126,9 +125,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserUrlStateController: BrowserUrlStateController
     private lateinit var ruleEngine: RuleEngine
     private lateinit var browserStandardWebViewHostController: BrowserStandardWebViewHostController
-    private lateinit var browserControlsController: BrowserControlsController
+    private lateinit var browserControls: BrowserControlsComponents
     private lateinit var browserControlsShellController: BrowserControlsShellController
-    private lateinit var browserControlsScrollController: BrowserControlsScrollController
     private lateinit var standardSessionController: BrowserSessionController
     private lateinit var privateSessionController: BrowserSessionController
     private lateinit var functionCenterController: FunctionCenterController
@@ -320,11 +318,15 @@ class MainActivity : AppCompatActivity() {
             browserStandardWebViewHostController = { browserStandardWebViewHostController },
             browserSessionStateController = browserSessionStateController,
             browserControlsController = {
-                if (::browserControlsController.isInitialized) browserControlsController else null
+                if (::browserControls.isInitialized) {
+                    browserControls.browserControlsController
+                } else {
+                    null
+                }
             },
             browserControlsScrollController = {
-                if (::browserControlsScrollController.isInitialized) {
-                    browserControlsScrollController
+                if (::browserControls.isInitialized) {
+                    browserControls.browserControlsScrollController
                 } else {
                     null
                 }
@@ -406,7 +408,7 @@ class MainActivity : AppCompatActivity() {
             isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             areBrowserControlsHidden = {
-                ::browserControlsController.isInitialized && browserControlsController.areHidden
+                ::browserControls.isInitialized && browserControls.browserControlsController.areHidden
             },
             isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
             openProviderHome = { browserLaunchController.openHomePage() },
@@ -437,8 +439,8 @@ class MainActivity : AppCompatActivity() {
             },
             isShareableUrl = browserUrlStateController::isShareableUrl,
             attachBrowserControlsScrollIfReady = { activeWebView ->
-                if (::browserControlsScrollController.isInitialized) {
-                    browserControlsScrollController.attachToWebView(activeWebView)
+                if (::browserControls.isInitialized) {
+                    browserControls.browserControlsScrollController.attachToWebView(activeWebView)
                 }
             },
             syncCurrentChromeClientIfReady =
@@ -538,7 +540,7 @@ class MainActivity : AppCompatActivity() {
         webPermissionRequestController = webRequestComponents.webPermissionRequestController
         geolocationPermissionController = webRequestComponents.geolocationPermissionController
 
-        val browserControlsComponents = BrowserControlsAssemblyController(
+        browserControls = BrowserControlsAssemblyController(
             activity = this,
             views = views,
             savedPageRepository = browserPersistence.savedPageRepository,
@@ -554,8 +556,6 @@ class MainActivity : AppCompatActivity() {
             showProfilePage = { functionCenterEntryController.showProfilePage() },
             dp = ::dp
         ).create()
-        browserControlsController = browserControlsComponents.browserControlsController
-        browserControlsScrollController = browserControlsComponents.browserControlsScrollController
 
         val browserSessionComponents = BrowserSessionAssemblyController(
             activity = this,
@@ -565,7 +565,7 @@ class MainActivity : AppCompatActivity() {
             browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
             browserAddressBarStateController = browserAddressBarStateController,
             browserShellUiController = browserShellUiController,
-            browserControlsController = browserControlsController,
+            browserControlsController = browserControls.browserControlsController,
             browserControlsShellController = browserControlsShellController,
             pageActionsController = pageActionsController,
             pageFeatureInjectionController = pageFeatureInjectionController,
