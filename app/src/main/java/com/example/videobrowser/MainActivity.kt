@@ -31,7 +31,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserActiveWebViewController
-import com.example.videobrowser.browser.BrowserActivityLifecycleController
+import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
 import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyController
 import com.example.videobrowser.browser.BrowserAddressBarStateController
@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserWebClientController: BrowserWebClientController
     private lateinit var externalNavigator: BrowserExternalNavigator
     private lateinit var nativePlayerEntryController: NativePlayerEntryController
-    private val browserActivityLifecycleController = BrowserActivityLifecycleController(
+    private val browserActivityLifecycleController = BrowserActivityLifecycleAssemblyController(
         browserChromeClientController = {
             if (::browserChromeClientController.isInitialized) browserChromeClientController else null
         },
@@ -271,7 +271,7 @@ class MainActivity : AppCompatActivity() {
         browserLaunchController = {
             if (::browserLaunchController.isInitialized) browserLaunchController else null
         }
-    )
+    ).create()
     // endregion
 
     // region 标签页与会话状态
