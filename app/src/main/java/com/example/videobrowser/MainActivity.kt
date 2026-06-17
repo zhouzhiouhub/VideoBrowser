@@ -56,6 +56,7 @@ import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserPageActionAssemblyController
+import com.example.videobrowser.browser.BrowserPageFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
@@ -103,7 +104,6 @@ import com.example.videobrowser.functioncenter.FunctionCenterEntryController
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureInjectionController
 import com.example.videobrowser.inject.PageFeatureCoordinator
-import com.example.videobrowser.inject.ScriptLoader
 import com.example.videobrowser.localfiles.LocalFileAssemblyController
 import com.example.videobrowser.localfiles.LocalDocumentEntryController
 import com.example.videobrowser.localfiles.LocalFilesController
@@ -856,49 +856,27 @@ class MainActivity : AppCompatActivity() {
             showCurrentSiteSettingsPage = functionCenterEntryController::showCurrentSiteSettingsPage
         )
 
-        // JS 注入链路：ScriptLoader 读 assets/scripts，JsInjector 组合脚本，PageFeatureCoordinator 判断是否启用。
-        jsInjector = JsInjector(
-            scriptLoader = ScriptLoader(assets),
-            evaluateJavascript = { script ->
-                browserStandardWebViewHostController.currentBrowserManager()
-                    .evaluateJavascript(script)
-            },
-            ruleEngine = ruleEngine
-        )
-        pageFeatureCoordinator = PageFeatureCoordinator(
-            settingsManager = settingsManager,
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
-            jsInjector = jsInjector,
-            currentSiteHost = browserUrlStateController::currentSiteHost,
-            currentPageUrl = {
-                browserSessionStateController.currentSessionController().currentPageUrl
-            }
-        )
-        elementPickerController = ElementPickerController(
+        val browserPageFeatureComponents = BrowserPageFeatureAssemblyController(
             activity = this,
+            assets = assets,
+            settingsManager = settingsManager,
+            ruleEngine = ruleEngine,
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
-            settingsManager = settingsManager,
-            currentSiteHost = browserUrlStateController::currentSiteHost,
-            isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
-            isCurrentSiteJsInjectionDisabled =
-                browserFeatureStateController::isCurrentSiteJsInjectionDisabled,
-            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures
-        )
-        nativeBridgeController = VideoBrowserNativeBridgeController(
-            postToUi = { action -> runOnUiThread { action() } },
-            currentChromeClient = browserChromeClientStateController::currentChromeClientOrNull,
+            browserSessionStateController = browserSessionStateController,
+            browserUrlStateController = browserUrlStateController,
+            browserFeatureStateController = browserFeatureStateController,
+            pageFeatureInjectionController = pageFeatureInjectionController,
+            browserChromeClientStateController = browserChromeClientStateController,
             fullscreenVideoController = fullscreenVideoController,
             webPlaybackHistoryRecorder = webPlaybackHistoryRecorder,
-            requestElementBlock = elementPickerController::handlePickedElement,
-            blockSelectedElement = { selector ->
-                elementPickerController.handlePickedElement(selector, "")
-            },
-            cancelElementPicker = elementPickerController::handleCancelledFromPage
-        )
+            postToUi = { action -> runOnUiThread { action() } },
+        ).create()
+        jsInjector = browserPageFeatureComponents.jsInjector
+        pageFeatureCoordinator = browserPageFeatureComponents.pageFeatureCoordinator
+        elementPickerController = browserPageFeatureComponents.elementPickerController
+        nativeBridgeController = browserPageFeatureComponents.nativeBridgeController
         browserBackNavigationController = BrowserBackNavigationController(
             activity = this,
             browserManager = {
