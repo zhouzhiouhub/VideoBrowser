@@ -29,8 +29,6 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.example.videobrowser.adblock.AdBlockManager
-import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleController
@@ -73,6 +71,7 @@ import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
 import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
+import com.example.videobrowser.browser.BrowserRequestInterceptionAssemblyController
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
 import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
@@ -294,34 +293,22 @@ class MainActivity : AppCompatActivity() {
     // endregion
 
     // region 网页内容增强和拦截
-    // 广告拦截、无图模式和 JS 注入都依赖当前站点、用户设置和规则引擎。
-    private val adBlockLogger = AdBlockLogger()
-    private val adBlockManager: AdBlockManager by lazy {
-        AdBlockManager(
-            isEnabled = browserFeatureStateController::isAdBlockEnabled,
-            isDisabledForCurrentSite = browserFeatureStateController::isCurrentSiteAdBlockDisabled,
-            isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
-            currentPageUrl = {
-                browserSessionStateController.currentSessionController().currentPageUrl
-            },
-            currentPageHost = browserUrlStateController::currentSiteHost,
-            logger = adBlockLogger,
-            ruleEngine = ruleEngine
-        )
+    // 广告拦截和智能无图请求拦截使用 lazy，确保规则引擎和设置管理器已经完成初始化。
+    private val requestInterceptionComponents by lazy {
+        BrowserRequestInterceptionAssemblyController(
+            browserFeatureStateController = { browserFeatureStateController },
+            settingsManager = { settingsManager },
+            browserSessionStateController = browserSessionStateController,
+            browserUrlStateController = { browserUrlStateController },
+            ruleEngine = { ruleEngine }
+        ).create()
     }
-    private val adBlockRequestInterceptor: AdBlockRequestInterceptor by lazy {
-        AdBlockRequestInterceptor(adBlockManager)
-    }
-    private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor by lazy {
-        SmartNoImageRequestInterceptor(
-            isEnabled = browserFeatureStateController::isSmartNoImageEnabled,
-            isDisabledForCurrentSite =
-                browserFeatureStateController::isCurrentSiteSmartNoImageDisabled,
-            currentPageUrl = {
-                browserSessionStateController.currentSessionController().currentPageUrl
-            }
-        )
-    }
+    private val adBlockLogger
+        get() = requestInterceptionComponents.adBlockLogger
+    private val adBlockRequestInterceptor: AdBlockRequestInterceptor
+        get() = requestInterceptionComponents.adBlockRequestInterceptor
+    private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor
+        get() = requestInterceptionComponents.smartNoImageRequestInterceptor
     // endregion
 
     // region Android 系统交互状态
