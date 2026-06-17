@@ -20,5 +20,5 @@ local.properties
 keystore.properties
 tmp
 /.worktrees/
-/.codex/
+/.codex/config.toml
 /.superpowers/
