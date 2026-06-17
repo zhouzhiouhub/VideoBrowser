@@ -26,9 +26,9 @@ import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyCo
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserBackNavigationController
-import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserChromeClientStateAssemblyController
 import com.example.videobrowser.browser.BrowserClientAssemblyController
+import com.example.videobrowser.browser.BrowserClientComponents
 import com.example.videobrowser.browser.BrowserControlsAssemblyController
 import com.example.videobrowser.browser.BrowserControlsComponents
 import com.example.videobrowser.browser.BrowserFeatureStateController
@@ -60,7 +60,6 @@ import com.example.videobrowser.browser.BrowserStartupControllerAssembly
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabStateAssemblyController
 import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
-import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
 import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
 import com.example.videobrowser.browser.BrowserWebViewInteractionComponents
@@ -68,12 +67,10 @@ import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.GeolocationPermissionController
 import com.example.videobrowser.browser.PrivateBrowsingSwitchController
-import com.example.videobrowser.browser.RenderProcessRecoveryController
 import com.example.videobrowser.browser.BrowserRuntimeStateController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.VideoBrowserNativeBridgeController
 import com.example.videobrowser.browser.WebFileChooserController
-import com.example.videobrowser.browser.WebWindowController
 import com.example.videobrowser.browser.WebPermissionRequestController
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
@@ -126,8 +123,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var localFilesController: LocalFilesController
     private lateinit var localDocumentEntryController: LocalDocumentEntryController
     private lateinit var pageActions: BrowserPageActionComponents
-    private lateinit var renderProcessRecoveryController: RenderProcessRecoveryController
-    private lateinit var webWindowController: WebWindowController
+    private lateinit var browserClients: BrowserClientComponents
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
     private lateinit var browserAddressBarStateController: BrowserAddressBarStateController
@@ -153,25 +149,23 @@ class MainActivity : AppCompatActivity() {
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureInjectionController: PageFeatureInjectionController
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
-    private lateinit var browserChromeClientController: BrowserChromeClientController
     private val browserChromeClientStateController = BrowserChromeClientStateAssemblyController(
         browserChromeClientController = {
-            if (::browserChromeClientController.isInitialized) {
-                browserChromeClientController
+            if (::browserClients.isInitialized) {
+                browserClients.browserChromeClientController
             } else {
                 null
             }
         }
     ).create()
-    private lateinit var browserWebClientController: BrowserWebClientController
     private lateinit var externalNavigator: BrowserExternalNavigator
     private lateinit var nativePlayerEntryController: NativePlayerEntryController
     private val browserActivityLifecycleController = BrowserActivityLifecycleAssemblyController(
         browserChromeClientController = {
-            if (::browserChromeClientController.isInitialized) browserChromeClientController else null
+            if (::browserClients.isInitialized) browserClients.browserChromeClientController else null
         },
         browserWebClientController = {
-            if (::browserWebClientController.isInitialized) browserWebClientController else null
+            if (::browserClients.isInitialized) browserClients.browserWebClientController else null
         },
         pageArchiveController = {
             if (::pageActions.isInitialized) pageActions.pageArchiveController else null
@@ -583,7 +577,7 @@ class MainActivity : AppCompatActivity() {
         privateSessionController = browserSessionComponents.privateSessionController
         privateBrowsingSwitchController = browserSessionComponents.privateBrowsingSwitchController
         browserTabActionsController = browserSessionComponents.browserTabActionsController
-        val browserClientComponents = BrowserClientAssemblyController(
+        browserClients = BrowserClientAssemblyController(
             activity = this,
             fullscreenContainer = views.fullscreenContainer,
             decorView = window.decorView,
@@ -608,7 +602,7 @@ class MainActivity : AppCompatActivity() {
             saveStandardTabSession =
                 browserPersistence.browserStandardTabSessionController::saveStandardTabSession,
             showBrowserErrorPage = { error ->
-                browserWebClientController.showBrowserErrorPage(error)
+                browserClients.browserWebClientController.showBrowserErrorPage(error)
             },
             resetBackExitConfirmation = {
                 if (::browserBackNavigationController.isInitialized) {
@@ -630,10 +624,6 @@ class MainActivity : AppCompatActivity() {
             webPermissionRequestController = webPermissionRequestController,
             geolocationPermissionController = geolocationPermissionController
         ).create()
-        renderProcessRecoveryController = browserClientComponents.renderProcessRecoveryController
-        browserWebClientController = browserClientComponents.browserWebClientController
-        webWindowController = browserClientComponents.webWindowController
-        browserChromeClientController = browserClientComponents.browserChromeClientController
 
         val browserFullscreenComponents = BrowserFullscreenAssemblyController(
             activity = this,
@@ -742,11 +732,11 @@ class MainActivity : AppCompatActivity() {
             setDefaultUserAgent = browserRuntimeStateController::setDefaultUserAgent,
             browserDisplayModeController = browserDisplayModeController,
             downloadController = pageActions.downloadController,
-            browserChromeClientController = browserChromeClientController,
+            browserChromeClientController = browserClients.browserChromeClientController,
             browserFullscreenUiController = browserFullscreenUiController,
             nativeBridgeController = nativeBridgeController,
             nativeBridgeName = NATIVE_BRIDGE_NAME,
-            browserWebClientController = browserWebClientController,
+            browserWebClientController = browserClients.browserWebClientController,
             browserLaunchController = browserLaunchController
         ).start(intent)
     }

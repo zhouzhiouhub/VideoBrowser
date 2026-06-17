@@ -62,11 +62,11 @@ class WebViewNewWindowContractTest {
         ).readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserChromeClientController: BrowserChromeClientController"))
+        assertTrue(mainActivity.contains("private lateinit var browserClients: BrowserClientComponents"))
+        assertTrue(mainActivity.contains("browserChromeClientController = browserClients.browserChromeClientController"))
         assertTrue(chromeClientController.contains("newWindowRequested = webWindowController::handleCreateWebWindow"))
         assertTrue(chromeClientController.contains("windowClosed = webWindowController::handleCloseWebWindow"))
         assertTrue(chromeClientController.contains("private fun createChromeClient"))
-        assertTrue(mainActivity.contains("private lateinit var webWindowController: WebWindowController"))
         assertTrue(webWindowController.contains("if (isPrivateBrowsingActive() || !isUserGesture)"))
         assertTrue(webWindowController.contains("val tab = standardTabStore.openTab()"))
         assertTrue(webWindowController.contains("val tabWebView = standardTabWebViews.activate(tab.id)"))
