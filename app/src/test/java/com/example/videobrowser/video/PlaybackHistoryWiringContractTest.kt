@@ -80,7 +80,9 @@ class PlaybackHistoryWiringContractTest {
         assertTrue(playerActivity.contains("putExtra(EXTRA_PRIVATE_BROWSING, privateBrowsing)"))
         assertTrue(externalNavigator.contains("privateBrowsing: Boolean = false"))
         assertTrue(externalNavigator.contains("privateBrowsing = privateBrowsing"))
-        assertTrue(mainActivity.contains("privateBrowsing = isPrivateBrowsingEnabled()"))
+        assertTrue(
+            mainActivity.contains("privateBrowsing = browserFeatureStateController.isPrivateBrowsingEnabled()")
+        )
     }
 
     /**

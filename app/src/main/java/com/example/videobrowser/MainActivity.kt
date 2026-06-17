@@ -51,6 +51,7 @@ import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserClient
+import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
@@ -162,6 +163,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserDefaultSettingsResetter: BrowserDefaultSettingsResetter
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var bookmarkImportExportController: BookmarkImportExportController
+    private lateinit var browserFeatureStateController: BrowserFeatureStateController
     private lateinit var downloadRecordRepository: DownloadRecordRepository
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder
@@ -229,8 +231,8 @@ class MainActivity : AppCompatActivity() {
     private val adBlockLogger = AdBlockLogger()
     private val adBlockManager: AdBlockManager by lazy {
         AdBlockManager(
-            isEnabled = { pageFeatureCoordinator.isAdBlockEnabled() },
-            isDisabledForCurrentSite = { pageFeatureCoordinator.isCurrentSiteAdBlockDisabled() },
+            isEnabled = browserFeatureStateController::isAdBlockEnabled,
+            isDisabledForCurrentSite = browserFeatureStateController::isCurrentSiteAdBlockDisabled,
             isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
             currentPageUrl = { currentSessionController().currentPageUrl },
             currentPageHost = ::currentSiteHost,
@@ -243,8 +245,9 @@ class MainActivity : AppCompatActivity() {
     }
     private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor by lazy {
         SmartNoImageRequestInterceptor(
-            isEnabled = { pageFeatureCoordinator.isSmartNoImageEnabled() },
-            isDisabledForCurrentSite = { pageFeatureCoordinator.isCurrentSiteSmartNoImageDisabled() },
+            isEnabled = browserFeatureStateController::isSmartNoImageEnabled,
+            isDisabledForCurrentSite =
+                browserFeatureStateController::isCurrentSiteSmartNoImageDisabled,
             currentPageUrl = { currentSessionController().currentPageUrl }
         )
     }
@@ -311,10 +314,15 @@ class MainActivity : AppCompatActivity() {
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
+        browserFeatureStateController = BrowserFeatureStateController(
+            settingsManager = { settingsManager },
+            pageFeatureCoordinator = { pageFeatureCoordinator },
+            isPrivateBrowsingActive = { privateBrowsingActive }
+        )
         browsingModeThemeController = BrowsingModeThemeController(
             activity = this,
             views = views,
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             currentPageUrl = {
                 if (areBrowserSessionsInitialized()) {
                     currentSessionController().currentPageUrl
@@ -345,7 +353,7 @@ class MainActivity : AppCompatActivity() {
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
         webPlaybackHistoryRecorder = WebPlaybackHistoryRecorder(
             playbackHistoryRepository = playbackHistoryRepository,
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             currentShareableUrl = ::currentShareableUrl,
             isShareableUrl = ::isShareableUrl,
             defaultVideoSpeed = settingsManager::defaultVideoSpeed,
@@ -379,7 +387,7 @@ class MainActivity : AppCompatActivity() {
             savedPageRepository = savedPageRepository,
             dp = ::dp,
             isHomePageVisible = { isHomePageVisible },
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             openProviderHome = ::openHomePage,
             openCustomShortcut = ::loadUrl
         )
@@ -396,7 +404,7 @@ class MainActivity : AppCompatActivity() {
             savedPageRepository = savedPageRepository,
             suggestionClient = SearchSuggestionClient(),
             selectedProvider = { searchProviderController.selectedProvider },
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             areBrowserControlsHidden = {
                 ::browserControlsController.isInitialized && browserControlsController.areHidden
             },
@@ -466,7 +474,7 @@ class MainActivity : AppCompatActivity() {
         browserDisplayModeController = BrowserDisplayModeController(
             activity = this,
             browserManager = ::currentBrowserManager,
-            isDesktopModeEnabled = ::isDesktopModeEnabled,
+            isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled,
             isFullscreenModeActive = {
                 areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()
             },
@@ -513,7 +521,7 @@ class MainActivity : AppCompatActivity() {
                 )
             },
             openLocalArchiveInBrowser = ::loadLocalDocumentUrlInBrowser,
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             switchPrivateBrowsing = ::setPrivateBrowsingActive,
             updateBookmarkButton = ::updateBookmarkButton,
             updateNavigationButtons = ::updateNavigationButtons,
@@ -556,7 +564,7 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             settingsManager = settingsManager,
             sessionSitePermissionStore = sessionSitePermissionStore,
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             hasAndroidPermission = ::hasAndroidPermission,
             requestAndroidPermissions = webPermissionLauncher::launch
         )
@@ -564,7 +572,7 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             settingsManager = settingsManager,
             sessionSitePermissionStore = sessionSitePermissionStore,
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             hasAndroidPermission = ::hasAndroidPermission,
             requestAndroidPermissions = geolocationPermissionLauncher::launch
         )
@@ -715,13 +723,13 @@ class MainActivity : AppCompatActivity() {
             filesDir = filesDir,
             currentSiteHost = ::currentSiteHost,
             currentActionableUrl = ::currentActionableUrl,
-            isDesktopModeEnabled = ::isDesktopModeEnabled,
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
-            isAdBlockEnabled = ::isAdBlockEnabled,
-            isSmartNoImageEnabled = ::isSmartNoImageEnabled,
-            isJsInjectionEnabled = ::isJsInjectionEnabled,
-            isPageCleanupEnabled = ::isPageCleanupEnabled,
-            isVideoEnhancementEnabled = ::isVideoEnhancementEnabled,
+            isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
+            isAdBlockEnabled = browserFeatureStateController::isAdBlockEnabled,
+            isSmartNoImageEnabled = browserFeatureStateController::isSmartNoImageEnabled,
+            isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
+            isPageCleanupEnabled = browserFeatureStateController::isPageCleanupEnabled,
+            isVideoEnhancementEnabled = browserFeatureStateController::isVideoEnhancementEnabled,
             currentTabs = ::currentTabs,
             activeTabId = ::activeTabId,
             openNewTab = ::openNewTab,
@@ -766,7 +774,7 @@ class MainActivity : AppCompatActivity() {
             settingsManager = settingsManager,
             currentPageUrl = { currentSessionController().currentPageUrl },
             currentWebViewUrl = { currentBrowserManager().currentUrl() },
-            isPrivateBrowsingEnabled = ::isPrivateBrowsingEnabled,
+            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             currentSiteHost = ::currentSiteHost,
             showCurrentSiteSettingsPage = ::showCurrentSiteSettingsPage
         )
@@ -789,8 +797,9 @@ class MainActivity : AppCompatActivity() {
             browserManager = ::currentBrowserManager,
             settingsManager = settingsManager,
             currentSiteHost = ::currentSiteHost,
-            isJsInjectionEnabled = ::isJsInjectionEnabled,
-            isCurrentSiteJsInjectionDisabled = ::isCurrentSiteJsInjectionDisabled,
+            isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
+            isCurrentSiteJsInjectionDisabled =
+                browserFeatureStateController::isCurrentSiteJsInjectionDisabled,
             injectPageFeatures = ::injectPageFeatures
         )
         nativeBridgeController = VideoBrowserNativeBridgeController(
@@ -1395,7 +1404,7 @@ class MainActivity : AppCompatActivity() {
         updatePageProgressVisibility(forceHidden = fullscreen)
         ViewCompat.requestApplyInsets(rootView)
         if (!fullscreen) {
-            applyBrowserContentOrientation(isDesktopModeEnabled())
+            applyBrowserContentOrientation(browserFeatureStateController.isDesktopModeEnabled())
         }
     }
 
@@ -1817,116 +1826,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `isAdBlockEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isAdBlockEnabled(): Boolean {
-        return pageFeatureCoordinator.isAdBlockEnabled()
-    }
-
-    /**
-     * 函数 `isCurrentSiteAdBlockDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isCurrentSiteAdBlockDisabled(): Boolean {
-        return pageFeatureCoordinator.isCurrentSiteAdBlockDisabled()
-    }
-
-    /**
-     * 函数 `isSmartNoImageEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isSmartNoImageEnabled(): Boolean {
-        return pageFeatureCoordinator.isSmartNoImageEnabled()
-    }
-
-    /**
-     * 函数 `isJsInjectionEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isJsInjectionEnabled(): Boolean {
-        return pageFeatureCoordinator.isJsInjectionEnabled()
-    }
-
-    /**
-     * 函数 `isCurrentSiteJsInjectionDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isCurrentSiteJsInjectionDisabled(): Boolean {
-        return pageFeatureCoordinator.isCurrentSiteJsInjectionDisabled()
-    }
-
-    /**
-     * 函数 `isPageCleanupEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isPageCleanupEnabled(): Boolean {
-        return pageFeatureCoordinator.isPageCleanupEnabled()
-    }
-
-    /**
-     * 函数 `isCurrentSitePageCleanupDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isCurrentSitePageCleanupDisabled(): Boolean {
-        return pageFeatureCoordinator.isCurrentSitePageCleanupDisabled()
-    }
-
-    /**
-     * 函数 `isVideoEnhancementEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isVideoEnhancementEnabled(): Boolean {
-        return pageFeatureCoordinator.isVideoEnhancementEnabled()
-    }
-
-    /**
-     * 函数 `isCurrentSiteVideoEnhancementDisabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isCurrentSiteVideoEnhancementDisabled(): Boolean {
-        return pageFeatureCoordinator.isCurrentSiteVideoEnhancementDisabled()
-    }
-
-    /**
-     * 函数 `isDesktopModeEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isDesktopModeEnabled(): Boolean {
-        return settingsManager.isDesktopModeEnabled()
-    }
-
-    /**
-     * 函数 `isPrivateBrowsingEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isPrivateBrowsingEnabled(): Boolean {
-        return privateBrowsingActive
-    }
-
-    /**
      * 函数 `currentTabs`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -2191,7 +2090,7 @@ class MainActivity : AppCompatActivity() {
             mimeType = mimeType,
             userAgentOverride = userAgentOverride,
             titleOverride = titleOverride,
-            privateBrowsing = isPrivateBrowsingEnabled(),
+            privateBrowsing = browserFeatureStateController.isPrivateBrowsingEnabled(),
             subtitleCandidates = subtitleCandidates,
             playbackQueue = playbackQueue
         )
