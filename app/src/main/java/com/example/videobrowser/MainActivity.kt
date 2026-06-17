@@ -440,8 +440,8 @@ class MainActivity : AppCompatActivity() {
             dp = ::dp,
             isHomePageVisible = { isHomePageVisible },
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            openProviderHome = ::openHomePage,
-            openCustomShortcut = ::loadUrl
+            openProviderHome = { browserLaunchController.openHomePage() },
+            openCustomShortcut = { url -> browserNavigationController.loadUrl(url) }
         )
         historyRecordPolicy = HistoryRecordPolicy(
             homeUrls = {
@@ -461,8 +461,8 @@ class MainActivity : AppCompatActivity() {
                 ::browserControlsController.isInitialized && browserControlsController.areHidden
             },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
-            openUrl = ::loadUrl,
-            searchKeyword = ::searchAddressKeyword,
+            openUrl = { url -> browserNavigationController.loadUrl(url) },
+            searchKeyword = { keyword -> browserLaunchController.searchAddressKeyword(keyword) },
             dp = ::dp
         )
         linkContextMenuController = LinkContextMenuController(
@@ -526,7 +526,7 @@ class MainActivity : AppCompatActivity() {
                 settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)
             },
             activeStandardTabUrl = { standardTabStore.activeTab().url },
-            loadUrl = ::loadUrl,
+            loadUrl = browserNavigationController::loadUrl,
             isShareableUrl = browserUrlStateController::isShareableUrl
         )
         browserDisplayModeController = BrowserDisplayModeController(
@@ -605,7 +605,7 @@ class MainActivity : AppCompatActivity() {
             findInPageDialogController = findInPageDialogController,
             pageArchiveController = pageArchiveController,
             pagePrintController = pagePrintController,
-            loadUrl = ::loadUrl,
+            loadUrl = browserNavigationController::loadUrl,
             openNativePlayer = { url, title ->
                 nativePlayerEntryController.openNativePlayer(
                     url = url,
@@ -653,9 +653,9 @@ class MainActivity : AppCompatActivity() {
             currentActionableUrl = browserUrlStateController::currentActionableUrl,
             isHomePageVisible = { isHomePageVisible },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
-            onLoadAddress = ::loadAddressInput,
+            onLoadAddress = browserLaunchController::loadAddressInput,
             onBack = ::handleBrowserBack,
-            onOpenWenxin = ::openWenxinPage,
+            onOpenWenxin = browserLaunchController::openWenxinPage,
             onShowFunctionCenter = ::showFunctionCenter,
             onShowProfilePage = ::showProfilePage,
             onToggleBookmark = pageActionsController::toggleCurrentBookmark,
@@ -734,7 +734,7 @@ class MainActivity : AppCompatActivity() {
             browserSessionCoordinator = browserSessionCoordinator,
             privateSessionController = privateSessionController,
             standardSessionController = standardSessionController,
-            openHomePage = ::openHomePage,
+            openHomePage = browserLaunchController::openHomePage,
             updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
             updateNavigationButtons = ::updateNavigationButtons
         )
@@ -750,8 +750,8 @@ class MainActivity : AppCompatActivity() {
             destroyStandardTabWebView = ::destroyStandardTabWebView,
             closeFunctionCenter = ::closeFunctionCenter,
             saveStandardTabSession = ::saveStandardTabSession,
-            loadUrl = ::loadUrl,
-            openHomePage = ::openHomePage
+            loadUrl = browserNavigationController::loadUrl,
+            openHomePage = browserLaunchController::openHomePage
         )
         renderProcessRecoveryController = RenderProcessRecoveryController(
             webViewContainer = webViewContainer,
@@ -837,7 +837,7 @@ class MainActivity : AppCompatActivity() {
             currentTabs = browserTabActionsController::currentTabs,
             activeTabId = browserTabActionsController::activeTabId,
             openNewTab = browserTabActionsController::openNewTab,
-            openHomePage = ::openHomePage,
+            openHomePage = browserLaunchController::openHomePage,
             canReopenClosedTab = browserTabActionsController::canReopenClosedTab,
             reopenClosedTab = browserTabActionsController::reopenClosedTab,
             switchTab = browserTabActionsController::switchTab,
@@ -867,7 +867,7 @@ class MainActivity : AppCompatActivity() {
             applyDesktopMode = ::applyDesktopMode,
             injectPageFeatures = ::injectPageFeatures,
             openUrlInNewTab = browserTabActionsController::openUrlInNewTab,
-            loadUrl = ::loadUrl,
+            loadUrl = browserNavigationController::loadUrl,
             recreateActivity = { recreate() }
         )
         functionCenterEntryController = FunctionCenterEntryController(
@@ -981,8 +981,8 @@ class MainActivity : AppCompatActivity() {
         browserWebClientController.setupBrowserClient()
 
         // 如果外部 Intent 带了 URL 就打开外部 URL，否则恢复标签页或打开主页。
-        if (!handleLaunchIntent(intent)) {
-            openInitialStandardPage()
+        if (!browserLaunchController.handleLaunchIntent(intent)) {
+            browserLaunchController.openInitialStandardPage()
         }
     }
 
@@ -995,7 +995,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleLaunchIntent(intent)
+        browserLaunchController.handleLaunchIntent(intent)
     }
 
     /**
@@ -1565,83 +1565,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 地址解析、页面加载和站点安全提示
     // 地址栏输入先被解析为 URL 或搜索词；真正加载前还会经过媒体路由、HTTP 降级确认和规则清理。
-    /**
-     * 函数 `loadAddressInput`：启动或加载 `load Address Input` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun loadAddressInput() {
-        browserLaunchController.loadAddressInput()
-    }
-
-    /**
-     * 函数 `searchAddressKeyword`：封装 `search Address Keyword` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param keyword 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    private fun searchAddressKeyword(keyword: String) {
-        browserLaunchController.searchAddressKeyword(keyword)
-    }
-
-    /**
-     * 函数 `openHomePage`：启动或加载 `open Home Page` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun openHomePage() {
-        browserLaunchController.openHomePage()
-    }
-
-    /**
-     * 函数 `openInitialStandardPage`：启动或加载 `open Initial Standard Page` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun openInitialStandardPage() {
-        browserLaunchController.openInitialStandardPage()
-    }
-
-    /**
-     * 函数 `openWenxinPage`：启动或加载 `open Wenxin Page` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun openWenxinPage() {
-        browserLaunchController.openWenxinPage()
-    }
-
-    /**
-     * 函数 `handleLaunchIntent`：处理 `handle Launch Intent` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param intent 参数类型为 `Intent?`，表示函数执行 `intent` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun handleLaunchIntent(intent: Intent?): Boolean {
-        return browserLaunchController.handleLaunchIntent(intent)
-    }
-
-    /**
-     * 函数 `loadUrl`：启动或加载 `load Url` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun loadUrl(url: String) {
-        browserNavigationController.loadUrl(url)
-    }
-
-    /**
-     * 函数 `loadUrlAfterInsecureNavigationConfirmation`：启动或加载 `load Url After Insecure Navigation Confirmation` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun loadUrlAfterInsecureNavigationConfirmation(url: String) {
-        browserNavigationController.loadUrlAfterInsecureNavigationConfirmation(url)
-    }
-
     /**
      * 函数 `updateAddressBar`：根据最新状态刷新 `update Address Bar` 相关数据或界面，让调用方看到一致结果。
      *

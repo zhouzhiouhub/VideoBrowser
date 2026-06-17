@@ -27,7 +27,7 @@ class HttpNavigationSafetyWiringContractTest {
         assertTrue(mainActivity.contains("private lateinit var browserNavigationController: BrowserNavigationController"))
         assertTrue(navigationController.contains("HttpNavigationSafetyPolicy.requiresInsecureNavigationConfirmation"))
         assertTrue(navigationController.contains("private fun loadUrlInternal(url: String, allowInsecureNavigation: Boolean)"))
-        assertTrue(mainActivity.contains("private fun loadUrlAfterInsecureNavigationConfirmation(url: String)"))
+        assertTrue(navigationController.contains("fun loadUrlAfterInsecureNavigationConfirmation(url: String)"))
         assertTrue(navigationController.contains("private fun showInsecureNavigationConfirmation(url: String)"))
         assertTrue(navigationController.contains("view?.stopLoading()"))
         assertTrue(navigationController.contains("R.string.title_confirm_insecure_navigation"))

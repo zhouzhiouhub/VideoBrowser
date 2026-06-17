@@ -26,7 +26,7 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(mainActivity.contains("standardTabSessionBinding"))
         assertTrue(mainActivity.contains("restoreStandardTabSession()"))
         assertTrue(mainActivity.contains("saveStandardTabSession()"))
-        assertTrue(mainActivity.contains("openInitialStandardPage()"))
+        assertTrue(mainActivity.contains("browserLaunchController.openInitialStandardPage()"))
         assertTrue(mainActivity.contains("standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
     }
 
