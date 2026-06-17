@@ -83,6 +83,9 @@ class BrowserClientContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
         val browserWebClientController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
         ).readText()
@@ -103,7 +106,8 @@ class BrowserClientContractTest {
         assertTrue(httpAuthController.contains("private var pendingDialog: AlertDialog?"))
         assertTrue(browserWebClientController.contains("httpAuthRequested = { _, handler, host, realm ->"))
         assertTrue(browserWebClientController.contains("httpAuthController.handleRequest(handler, host, realm)"))
-        assertTrue(mainActivity.contains("browserWebClientController.cancelPendingHttpAuthRequest()"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
+        assertTrue(lifecycleController.contains("browserWebClientController()?.cancelPendingHttpAuthRequest()"))
         assertTrue(browserWebClientController.contains("fun cancelPendingHttpAuthRequest()"))
         assertTrue(httpAuthController.contains("pendingDialog = dialog"))
         assertTrue(httpAuthController.contains("dialog?.setOnDismissListener(null)"))
@@ -132,6 +136,9 @@ class BrowserClientContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
         val browserWebClientController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
         ).readText()
@@ -159,7 +166,8 @@ class BrowserClientContractTest {
         assertTrue(clientCertificateController.contains("request.proceed(credential.privateKey, credential.certificateChain)"))
         assertTrue(clientCertificateController.contains("request.cancel()"))
         assertTrue(browserWebClientController.contains("fun cancelPendingClientCertRequest()"))
-        assertTrue(mainActivity.contains("browserWebClientController.cancelPendingClientCertRequest()"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
+        assertTrue(lifecycleController.contains("browserWebClientController()?.cancelPendingClientCertRequest()"))
         assertTrue(clientCertificateController.contains("R.string.toast_client_certificate_unavailable"))
         assertTrue(strings.contains("toast_client_certificate_unavailable"))
         assertTrue(readme.contains("Android 系统证书选择器"))

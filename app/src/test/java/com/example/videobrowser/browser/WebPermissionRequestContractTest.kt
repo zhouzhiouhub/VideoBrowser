@@ -59,6 +59,9 @@ class WebPermissionRequestContractTest {
     fun mainActivityMapsWebCaptureRequestsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
         val chromeClientController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserChromeClientController.kt"
         ).readText()
@@ -111,7 +114,8 @@ class WebPermissionRequestContractTest {
                 "permissionRequestCanceled = webPermissionRequestController::handlePermissionRequestCanceled"
             )
         )
-        assertTrue(mainActivity.contains("browserChromeClientController.cancelPendingWebPermissionRequest()"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
+        assertTrue(lifecycleController.contains("browserChromeClientController()?.cancelPendingWebPermissionRequest()"))
         assertTrue(webPermissionController.contains("if (isPrivateBrowsingEnabled())"))
         assertTrue(privateBrowsingSwitchController.contains("sessionSitePermissionStore.clear()"))
         assertTrue(webPermissionController.contains("return permissions.takeIf { it.isNotEmpty() }"))

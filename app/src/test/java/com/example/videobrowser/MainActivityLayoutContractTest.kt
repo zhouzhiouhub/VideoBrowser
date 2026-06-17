@@ -184,6 +184,9 @@ class MainActivityLayoutContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
         val keyboardController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserKeyboardController.kt"
         ).readText()
@@ -201,7 +204,8 @@ class MainActivityLayoutContractTest {
         assertTrue(controller.contains("disposed = true"))
         assertTrue(controller.contains("!disposed &&"))
         assertTrue(controller.contains("suggestionClient.dispose()"))
-        assertTrue(mainActivity.contains("addressSuggestionController.dispose()"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
+        assertTrue(lifecycleController.contains("addressSuggestionController()?.dispose()"))
         assertTrue(mainActivity.contains("private lateinit var addressSuggestionController: AddressSuggestionController"))
         assertTrue(mainActivity.contains("addressSuggestionController.setup()"))
         assertTrue(mainActivity.contains("BrowserKeyboardController"))

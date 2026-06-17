@@ -39,6 +39,7 @@ import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.AndroidPermissionChecker
 import com.example.videobrowser.browser.BrowserActiveWebViewController
+import com.example.videobrowser.browser.BrowserActivityLifecycleController
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
@@ -223,6 +224,44 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserWebClientController: BrowserWebClientController
     private lateinit var externalNavigator: BrowserExternalNavigator
     private lateinit var nativePlayerEntryController: NativePlayerEntryController
+    private val browserActivityLifecycleController = BrowserActivityLifecycleController(
+        browserChromeClientController = {
+            if (::browserChromeClientController.isInitialized) browserChromeClientController else null
+        },
+        browserWebClientController = {
+            if (::browserWebClientController.isInitialized) browserWebClientController else null
+        },
+        pageArchiveController = {
+            if (::pageArchiveController.isInitialized) pageArchiveController else null
+        },
+        addressSuggestionController = {
+            if (::addressSuggestionController.isInitialized) addressSuggestionController else null
+        },
+        downloadController = {
+            if (::downloadController.isInitialized) downloadController else null
+        },
+        elementPickerController = {
+            if (::elementPickerController.isInitialized) elementPickerController else null
+        },
+        functionCenterEntryController = {
+            if (::functionCenterEntryController.isInitialized) functionCenterEntryController else null
+        },
+        browserChromeClientStateController = browserChromeClientStateController,
+        browserStandardTabSessionController = {
+            if (::browserStandardTabSessionController.isInitialized) {
+                browserStandardTabSessionController
+            } else {
+                null
+            }
+        },
+        browserStandardWebViewHostController = {
+            if (::browserStandardWebViewHostController.isInitialized) {
+                browserStandardWebViewHostController
+            } else {
+                null
+            }
+        }
+    )
     // endregion
 
     // region 标签页与会话状态
@@ -1196,8 +1235,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     override fun onPause() {
-        browserStandardTabSessionController.saveStandardTabSession()
-        browserStandardWebViewHostController.currentBrowserManager().onPause()
+        browserActivityLifecycleController.handlePause()
         super.onPause()
     }
 
@@ -1208,7 +1246,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
-        browserStandardWebViewHostController.currentBrowserManager().onResume()
+        browserActivityLifecycleController.handleResume()
     }
 
     /**
@@ -1231,39 +1269,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     override fun onDestroy() {
-        if (::browserChromeClientController.isInitialized) {
-            browserChromeClientController.cancelPendingWebFileChooser()
-            browserChromeClientController.cancelPendingWebPermissionRequest()
-            browserChromeClientController.cancelPendingGeolocationPermissionPrompt()
-        }
-        if (::browserWebClientController.isInitialized) {
-            browserWebClientController.cancelPendingHttpAuthRequest()
-            browserWebClientController.cancelPendingClientCertRequest()
-        }
-        if (::pageArchiveController.isInitialized) {
-            pageArchiveController.dispose()
-        }
-        if (::addressSuggestionController.isInitialized) {
-            addressSuggestionController.dispose()
-        }
-        if (::downloadController.isInitialized) {
-            downloadController.dispose()
-        }
-        if (::elementPickerController.isInitialized) {
-            elementPickerController.dispose()
-        }
-        if (::functionCenterEntryController.isInitialized) {
-            functionCenterEntryController.closeFunctionCenter()
-        }
-        if (browserChromeClientStateController.areChromeClientsInitialized()) {
-            browserChromeClientStateController.currentChromeClient().hideCustomView()
-        }
-        if (::browserStandardTabSessionController.isInitialized) {
-            browserStandardTabSessionController.saveStandardTabSession()
-        }
-        if (::browserStandardWebViewHostController.isInitialized) {
-            browserStandardWebViewHostController.destroyAll()
-        }
+        browserActivityLifecycleController.handleDestroy()
         super.onDestroy()
     }
 

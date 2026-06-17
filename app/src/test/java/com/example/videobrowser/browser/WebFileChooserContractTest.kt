@@ -37,6 +37,9 @@ class WebFileChooserContractTest {
     fun mainActivityLaunchesSystemPickerAndReturnsChosenFilesToWebView() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
         val chromeClientController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserChromeClientController.kt"
         ).readText()
@@ -53,7 +56,8 @@ class WebFileChooserContractTest {
         assertTrue(chromeClientController.contains("fileChooserRequested = webFileChooserController::showFileChooser"))
         assertTrue(chromeClientController.contains("fun cancelPendingWebFileChooser()"))
         assertTrue(chromeClientController.contains("webFileChooserController.cancelPending()"))
-        assertTrue(mainActivity.contains("browserChromeClientController.cancelPendingWebFileChooser()"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
+        assertTrue(lifecycleController.contains("browserChromeClientController()?.cancelPendingWebFileChooser()"))
         assertTrue(fileChooserController.contains("R.string.toast_file_chooser_unavailable"))
     }
 

@@ -46,8 +46,12 @@ class DownloadStatusWiringContractTest {
     fun mainActivityDisposesDownloadStatusReceiver() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
 
-        assertTrue(mainActivity.contains("downloadController.dispose()"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
+        assertTrue(lifecycleController.contains("downloadController()?.dispose()"))
     }
 
     /**

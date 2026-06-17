@@ -75,6 +75,9 @@ class WebGeolocationPermissionContractTest {
     fun mainActivityMapsWebGeolocationPromptsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
         val chromeClientController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserChromeClientController.kt"
         ).readText()
@@ -120,7 +123,12 @@ class WebGeolocationPermissionContractTest {
         assertTrue(geolocationController.contains("R.string.action_deny"))
         assertTrue(geolocationController.contains("prompt.callback.invoke(prompt.origin, allowed, false)"))
         assertTrue(geolocationController.contains("callback.invoke(origin, false, false)"))
-        assertTrue(mainActivity.contains("browserChromeClientController.cancelPendingGeolocationPermissionPrompt()"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
+        assertTrue(
+            lifecycleController.contains(
+                "browserChromeClientController()?.cancelPendingGeolocationPermissionPrompt()"
+            )
+        )
         assertTrue(geolocationController.contains("if (isPrivateBrowsingEnabled())"))
         assertTrue(privateBrowsingSwitchController.contains("sessionSitePermissionStore.clear()"))
         assertTrue(strings.contains("title_geolocation_permission_request"))
