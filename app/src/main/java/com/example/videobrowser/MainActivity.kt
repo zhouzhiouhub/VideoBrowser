@@ -47,6 +47,7 @@ import com.example.videobrowser.browser.BrowserNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserPageActionAssemblyController
 import com.example.videobrowser.browser.BrowserPageActionComponents
 import com.example.videobrowser.browser.BrowserPageFeatureAssemblyController
+import com.example.videobrowser.browser.BrowserPageFeatureComponents
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
@@ -69,17 +70,13 @@ import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.BrowserRuntimeStateController
 import com.example.videobrowser.browser.SiteSecurityController
-import com.example.videobrowser.browser.VideoBrowserNativeBridgeController
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
 import com.example.videobrowser.browser.search.SearchProviderController
-import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterAssemblyController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterEntryController
-import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureInjectionController
-import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.localfiles.LocalFileAssemblyController
 import com.example.videobrowser.localfiles.LocalDocumentEntryController
 import com.example.videobrowser.localfiles.LocalFilesController
@@ -135,14 +132,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserShellUiController: BrowserShellUiController
     private lateinit var browserBackNavigationController: BrowserBackNavigationController
     private lateinit var browserKeyboardController: BrowserKeyboardController
-    private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
     private lateinit var browserFullscreen: BrowserFullscreenComponents
     private lateinit var webViewInteraction: BrowserWebViewInteractionComponents
     private lateinit var webRequests: BrowserWebRequestComponents
-    private lateinit var elementPickerController: ElementPickerController
-    private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureInjectionController: PageFeatureInjectionController
-    private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
+    private lateinit var pageFeatures: BrowserPageFeatureComponents
     private val browserChromeClientStateController = BrowserChromeClientStateAssemblyController(
         browserChromeClientController = {
             if (::browserClients.isInitialized) {
@@ -171,7 +165,7 @@ class MainActivity : AppCompatActivity() {
             if (::pageActions.isInitialized) pageActions.downloadController else null
         },
         elementPickerController = {
-            if (::elementPickerController.isInitialized) elementPickerController else null
+            if (::pageFeatures.isInitialized) pageFeatures.elementPickerController else null
         },
         functionCenterEntryController = {
             if (::functionCenterEntryController.isInitialized) functionCenterEntryController else null
@@ -283,9 +277,9 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             views = views,
             settingsManager = { browserPersistence.settingsManager },
-            pageFeatureCoordinator = { pageFeatureCoordinator },
+            pageFeatureCoordinator = { pageFeatures.pageFeatureCoordinator },
             optionalPageFeatureCoordinator = {
-                if (::pageFeatureCoordinator.isInitialized) pageFeatureCoordinator else null
+                if (::pageFeatures.isInitialized) pageFeatures.pageFeatureCoordinator else null
             },
             browserStandardWebViewHostController = { browserStandardWebViewHostController },
             browserSessionStateController = browserSessionStateController,
@@ -532,13 +526,13 @@ class MainActivity : AppCompatActivity() {
             sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
             clearElementPickerState = {
-                if (::elementPickerController.isInitialized) {
-                    elementPickerController.clearState()
+                if (::pageFeatures.isInitialized) {
+                    pageFeatures.elementPickerController.clearState()
                 }
             },
             cancelElementPickerIfActive = {
-                if (::elementPickerController.isInitialized && elementPickerController.isActive) {
-                    elementPickerController.cancel()
+                if (::pageFeatures.isInitialized && pageFeatures.elementPickerController.isActive) {
+                    pageFeatures.elementPickerController.cancel()
                 }
             },
             exitPageFullscreenIfNeeded = {
@@ -656,7 +650,7 @@ class MainActivity : AppCompatActivity() {
             activityResultLaunchers = activityResultLaunchers,
             searchProviderController = searchProviderController,
             localDocumentEntryController = localDocumentEntryController,
-            startElementPicker = { elementPickerController.start() },
+            startElementPicker = { pageFeatures.elementPickerController.start() },
             browserDisplayModeController = browserDisplayModeController,
             pageFeatureInjectionController = pageFeatureInjectionController,
             browserNavigationController = browserNavigationController,
@@ -675,7 +669,7 @@ class MainActivity : AppCompatActivity() {
             showCurrentSiteSettingsPage = functionCenterEntryController::showCurrentSiteSettingsPage
         ).create()
 
-        val browserPageFeatureComponents = BrowserPageFeatureAssemblyController(
+        pageFeatures = BrowserPageFeatureAssemblyController(
             activity = this,
             assets = assets,
             settingsManager = browserPersistence.settingsManager,
@@ -692,10 +686,6 @@ class MainActivity : AppCompatActivity() {
             webPlaybackHistoryRecorder = browserPersistence.webPlaybackHistoryRecorder,
             postToUi = { action -> runOnUiThread { action() } },
         ).create()
-        jsInjector = browserPageFeatureComponents.jsInjector
-        pageFeatureCoordinator = browserPageFeatureComponents.pageFeatureCoordinator
-        elementPickerController = browserPageFeatureComponents.elementPickerController
-        nativeBridgeController = browserPageFeatureComponents.nativeBridgeController
         browserBackNavigationController = BrowserBackNavigationAssemblyController(
             activity = this,
             browserManager = {
@@ -703,8 +693,8 @@ class MainActivity : AppCompatActivity() {
             },
             currentChromeClient = browserChromeClientStateController::currentChromeClientOrNull,
             handleFunctionCenterBack = functionCenterEntryController::handleFunctionCenterBack,
-            isElementPickerActive = { elementPickerController.isActive },
-            cancelElementPicker = elementPickerController::cancel,
+            isElementPickerActive = { pageFeatures.elementPickerController.isActive },
+            cancelElementPicker = pageFeatures.elementPickerController::cancel,
             updateNavigationButtons = browserShellUiController::updateNavigationButtons
         ).create()
 
@@ -723,7 +713,7 @@ class MainActivity : AppCompatActivity() {
             downloadController = pageActions.downloadController,
             browserChromeClientController = browserClients.browserChromeClientController,
             browserFullscreenUiController = browserFullscreen.browserFullscreenUiController,
-            nativeBridgeController = nativeBridgeController,
+            nativeBridgeController = pageFeatures.nativeBridgeController,
             nativeBridgeName = NATIVE_BRIDGE_NAME,
             browserWebClientController = browserClients.browserWebClientController,
             browserLaunchController = browserLaunchController
