@@ -100,6 +100,7 @@ import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterController
+import com.example.videobrowser.functioncenter.FunctionCenterEntryController
 import com.example.videobrowser.functioncenter.FunctionCenterPages
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureCoordinator
@@ -179,6 +180,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserTabSessionRepository: BrowserTabSessionRepository
     private lateinit var functionCenterController: FunctionCenterController
     private lateinit var functionCenterPages: FunctionCenterPages
+    private lateinit var functionCenterEntryController: FunctionCenterEntryController
     private lateinit var localFilesController: LocalFilesController
     private lateinit var pageActionsController: PageActionsController
     private lateinit var httpAuthController: HttpAuthController
@@ -843,6 +845,10 @@ class MainActivity : AppCompatActivity() {
             openUrlInNewTab = ::openUrlInNewTab,
             loadUrl = ::loadUrl,
             recreateActivity = { recreate() }
+        )
+        functionCenterEntryController = FunctionCenterEntryController(
+            functionCenterPages = functionCenterPages,
+            hideKeyboard = ::hideKeyboard
         )
 
         // 站点安全控制器负责地址栏锁/警告图标与详情弹窗，MainActivity 只在 URL 或主题变化时通知它刷新。
@@ -1657,29 +1663,21 @@ class MainActivity : AppCompatActivity() {
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
-    private fun showFunctionCenter() {
-        hideKeyboard()
-        functionCenterPages.showRootPage()
-    }
+    private fun showFunctionCenter() = functionCenterEntryController.showFunctionCenter()
 
     /**
      * 函数 `showFunctionCenterRootPage`：控制 `show Function Center Root Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
-    private fun showFunctionCenterRootPage() {
-        functionCenterPages.showRootPage()
-    }
+    private fun showFunctionCenterRootPage() = functionCenterEntryController.showFunctionCenterRootPage()
 
     /**
      * 函数 `showProfilePage`：控制 `show Profile Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
-    private fun showProfilePage() {
-        hideKeyboard()
-        functionCenterPages.showProfilePage()
-    }
+    private fun showProfilePage() = functionCenterEntryController.showProfilePage()
 
     /**
      * 函数 `handleFunctionCenterBack`：处理 `handle Function Center Back` 对应的事件或请求，集中完成校验、状态更新和回调通知。
@@ -1687,9 +1685,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
-    private fun handleFunctionCenterBack(): Boolean {
-        return functionCenterPages.handleBack()
-    }
+    private fun handleFunctionCenterBack(): Boolean = functionCenterEntryController.handleFunctionCenterBack()
 
     /**
      * 函数 `closeFunctionCenter`：控制 `close Function Center` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -1697,9 +1693,7 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
-    private fun closeFunctionCenter(): Boolean {
-        return functionCenterPages.close()
-    }
+    private fun closeFunctionCenter(): Boolean = functionCenterEntryController.closeFunctionCenter()
 
     /**
      * 函数 `setupFileOperationLaunchers`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
@@ -2112,10 +2106,8 @@ class MainActivity : AppCompatActivity() {
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
-    private fun showCurrentSiteSettingsPage() {
-        hideKeyboard()
-        functionCenterPages.showCurrentSiteSettingsPage()
-    }
+    private fun showCurrentSiteSettingsPage() =
+        functionCenterEntryController.showCurrentSiteSettingsPage()
 
     // endregion
 
