@@ -581,7 +581,7 @@ class MainActivity : AppCompatActivity() {
             },
             updateBookmarkButton = ::updateBookmarkButton,
             updateNavigationButtons = ::updateNavigationButtons,
-            updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
+            updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
             recreateActivity = { recreate() },
             restoreBrowserDefaults = browserDefaultSettingsResetter::restoreDefaults
         )
@@ -746,7 +746,7 @@ class MainActivity : AppCompatActivity() {
             privateSessionController = privateSessionController,
             standardSessionController = standardSessionController,
             openHomePage = browserLaunchController::openHomePage,
-            updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
+            updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
             updateNavigationButtons = ::updateNavigationButtons
         )
         browserTabActionsController = BrowserTabActionsController(
@@ -979,7 +979,7 @@ class MainActivity : AppCompatActivity() {
 
         browserControlsShellController.setupSearchProviders()
         addressSuggestionController.setup()
-        updatePrivateBrowsingUi()
+        browsingModeThemeController.updatePrivateBrowsingUi()
         setupBrowserControls()
         browserControlsShellController.setupWebViewScrollControls()
         browserBackNavigationController.setupBackNavigation()
@@ -1303,9 +1303,9 @@ class MainActivity : AppCompatActivity() {
         if (::browserChromeClientController.isInitialized) {
             browserChromeClientController.syncCurrentChromeClient()
         }
-        updatePrivateBrowsingUi()
+        browsingModeThemeController.updatePrivateBrowsingUi()
         browserControlsShellController.syncSearchProviderVisibility()
-        applyBrowsingModeTheme()
+        browsingModeThemeController.applyBrowsingModeTheme()
         if (areBrowserSessionsInitialized()) {
             currentSessionController().renderCurrentState()
         }
@@ -1417,32 +1417,6 @@ class MainActivity : AppCompatActivity() {
 
     // endregion
 
-    // region 浏览模式、站点功能开关和标签页管理
-    // 普通模式和无痕模式共享大部分 UI，但使用不同的标签页存储和 WebView 会话。
-    /**
-     * 函数 `updatePrivateBrowsingUi`：根据最新状态刷新 `update Private Browsing Ui` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun updatePrivateBrowsingUi() {
-        if (::browsingModeThemeController.isInitialized) {
-            browsingModeThemeController.updatePrivateBrowsingUi()
-        }
-    }
-
-    /**
-     * 函数 `applyBrowsingModeTheme`：根据最新状态刷新 `apply Browsing Mode Theme` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun applyBrowsingModeTheme() {
-        if (::browsingModeThemeController.isInitialized) {
-            browsingModeThemeController.applyBrowsingModeTheme()
-        }
-    }
-
-    // endregion
-
     // region 下载、桌面模式、链接菜单和原生播放器入口
     // 这一组函数处理“当前页面之外”的动作：下载资源、切换桌面 UA、长按链接菜单和跳到原生播放器。
     /**
@@ -1517,7 +1491,7 @@ class MainActivity : AppCompatActivity() {
         webView.visibility = View.VISIBLE
         browserControlsShellController.updatePageProgressVisibility(forceHidden = show)
         updateNavigationButtons()
-        applyBrowsingModeTheme()
+        browsingModeThemeController.applyBrowsingModeTheme()
     }
 
     /**
