@@ -55,6 +55,7 @@ import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
 import com.example.videobrowser.browser.BrowserPageError
+import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserManager
@@ -105,7 +106,6 @@ import com.example.videobrowser.inject.ScriptLoader
 import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.rules.RuleEngineFactory
-import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.settings.BrowserDefaultSettingsResetter
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SessionSitePermissionStore
@@ -164,6 +164,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savedPageRepository: SavedPageRepository
     private lateinit var bookmarkImportExportController: BookmarkImportExportController
     private lateinit var browserFeatureStateController: BrowserFeatureStateController
+    private lateinit var browserUrlStateController: BrowserUrlStateController
     private lateinit var downloadRecordRepository: DownloadRecordRepository
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder
@@ -236,7 +237,7 @@ class MainActivity : AppCompatActivity() {
             isDisabledForCurrentSite = browserFeatureStateController::isCurrentSiteAdBlockDisabled,
             isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
             currentPageUrl = { currentSessionController().currentPageUrl },
-            currentPageHost = ::currentSiteHost,
+            currentPageHost = browserUrlStateController::currentSiteHost,
             logger = adBlockLogger,
             ruleEngine = ruleEngine
         )
@@ -320,6 +321,22 @@ class MainActivity : AppCompatActivity() {
             pageFeatureCoordinator = { pageFeatureCoordinator },
             isPrivateBrowsingActive = { privateBrowsingActive }
         )
+        browserUrlStateController = BrowserUrlStateController(
+            currentPageUrl = {
+                if (areBrowserSessionsInitialized()) {
+                    currentSessionController().currentPageUrl
+                } else {
+                    null
+                }
+            },
+            currentWebViewUrl = {
+                if (areBrowserSessionsInitialized()) {
+                    currentBrowserManager().currentUrl()
+                } else {
+                    null
+                }
+            }
+        )
         browsingModeThemeController = BrowsingModeThemeController(
             activity = this,
             views = views,
@@ -355,8 +372,8 @@ class MainActivity : AppCompatActivity() {
         webPlaybackHistoryRecorder = WebPlaybackHistoryRecorder(
             playbackHistoryRepository = playbackHistoryRepository,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            currentShareableUrl = ::currentShareableUrl,
-            isShareableUrl = ::isShareableUrl,
+            currentShareableUrl = browserUrlStateController::currentShareableUrl,
+            isShareableUrl = browserUrlStateController::isShareableUrl,
             defaultVideoSpeed = settingsManager::defaultVideoSpeed,
             currentPageTitle = { currentSessionController().currentPageTitle }
         )
@@ -426,7 +443,7 @@ class MainActivity : AppCompatActivity() {
                 )
             },
             currentUserAgent = { currentBrowserManager().userAgentString() },
-            isShareableUrl = ::isShareableUrl
+            isShareableUrl = browserUrlStateController::isShareableUrl
         )
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
@@ -445,8 +462,8 @@ class MainActivity : AppCompatActivity() {
                     ""
                 }
             },
-            currentShareableUrl = ::currentShareableUrl,
-            isShareableUrl = ::isShareableUrl
+            currentShareableUrl = browserUrlStateController::currentShareableUrl,
+            isShareableUrl = browserUrlStateController::isShareableUrl
         )
         browserNavigationController = BrowserNavigationController(
             activity = this,
@@ -470,7 +487,7 @@ class MainActivity : AppCompatActivity() {
             },
             activeStandardTabUrl = { standardTabStore.activeTab().url },
             loadUrl = ::loadUrl,
-            isShareableUrl = ::isShareableUrl
+            isShareableUrl = browserUrlStateController::isShareableUrl
         )
         browserDisplayModeController = BrowserDisplayModeController(
             activity = this,
@@ -500,10 +517,10 @@ class MainActivity : AppCompatActivity() {
             downloadController = downloadController,
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
-            currentActionableUrl = ::currentActionableUrl,
-            currentShareableUrl = ::currentShareableUrl,
+            currentActionableUrl = browserUrlStateController::currentActionableUrl,
+            currentShareableUrl = browserUrlStateController::currentShareableUrl,
             currentPageTitle = { currentSessionController().currentPageTitle },
-            isShareableUrl = ::isShareableUrl,
+            isShareableUrl = browserUrlStateController::isShareableUrl,
             shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
             openNativePlayer = {
                     url,
@@ -539,14 +556,14 @@ class MainActivity : AppCompatActivity() {
         )
         pageArchiveController = PageArchiveController(
             activity = this,
-            currentActionableUrl = ::currentActionableUrl,
+            currentActionableUrl = browserUrlStateController::currentActionableUrl,
             currentPageTitle = { currentSessionController().currentPageTitle },
             activeWebView = { currentBrowserManager().activeWebView },
             launchArchiveExport = pageArchiveExportLauncher::launch
         )
         pagePrintController = PagePrintController(
             activity = this,
-            currentActionableUrl = ::currentActionableUrl,
+            currentActionableUrl = browserUrlStateController::currentActionableUrl,
             currentPageTitle = { currentSessionController().currentPageTitle },
             activeWebView = { currentBrowserManager().activeWebView }
         )
@@ -594,7 +611,7 @@ class MainActivity : AppCompatActivity() {
             bookmarkButton = bookmarkButton,
             loadButton = loadButton,
             savedPageRepository = savedPageRepository,
-            currentActionableUrl = ::currentActionableUrl,
+            currentActionableUrl = browserUrlStateController::currentActionableUrl,
             isHomePageVisible = { isHomePageVisible },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             onLoadAddress = ::loadAddressInput,
@@ -740,8 +757,8 @@ class MainActivity : AppCompatActivity() {
             playbackHistoryRepository = playbackHistoryRepository,
             adBlockLogger = adBlockLogger,
             filesDir = filesDir,
-            currentSiteHost = ::currentSiteHost,
-            currentActionableUrl = ::currentActionableUrl,
+            currentSiteHost = browserUrlStateController::currentSiteHost,
+            currentActionableUrl = browserUrlStateController::currentActionableUrl,
             isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             isAdBlockEnabled = browserFeatureStateController::isAdBlockEnabled,
@@ -794,7 +811,7 @@ class MainActivity : AppCompatActivity() {
             currentPageUrl = { currentSessionController().currentPageUrl },
             currentWebViewUrl = { currentBrowserManager().currentUrl() },
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            currentSiteHost = ::currentSiteHost,
+            currentSiteHost = browserUrlStateController::currentSiteHost,
             showCurrentSiteSettingsPage = ::showCurrentSiteSettingsPage
         )
 
@@ -808,14 +825,14 @@ class MainActivity : AppCompatActivity() {
             settingsManager = settingsManager,
             browserManager = ::currentBrowserManager,
             jsInjector = jsInjector,
-            currentSiteHost = ::currentSiteHost,
+            currentSiteHost = browserUrlStateController::currentSiteHost,
             currentPageUrl = { currentSessionController().currentPageUrl }
         )
         elementPickerController = ElementPickerController(
             activity = this,
             browserManager = ::currentBrowserManager,
             settingsManager = settingsManager,
-            currentSiteHost = ::currentSiteHost,
+            currentSiteHost = browserUrlStateController::currentSiteHost,
             isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
             isCurrentSiteJsInjectionDisabled =
                 browserFeatureStateController::isCurrentSiteJsInjectionDisabled,
@@ -2004,50 +2021,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
         pageFeatureCoordinator.injectPageFeatures()
-    }
-
-    /**
-     * 函数 `currentShareableUrl`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentShareableUrl(): String? {
-        return currentActionableUrl()
-    }
-
-    /**
-     * 函数 `currentActionableUrl`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentActionableUrl(): String? {
-        return listOf(currentSessionController().currentPageUrl, currentBrowserManager().currentUrl())
-            .firstOrNull { url -> !url.isNullOrBlank() && isShareableUrl(url) }
-    }
-
-    /**
-     * 函数 `currentSiteHost`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSiteHost(): String? {
-        return SiteHost.fromUrl(currentSessionController().currentPageUrl)
-    }
-
-    /**
-     * 函数 `isShareableUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isShareableUrl(url: String): Boolean {
-        val scheme = Uri.parse(url).scheme
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true)
     }
 
     /**
