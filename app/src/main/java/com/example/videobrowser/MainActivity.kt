@@ -63,8 +63,7 @@ import com.example.videobrowser.browser.search.BrowserSearchComponents
 import com.example.videobrowser.functioncenter.FunctionCenterAssemblyController
 import com.example.videobrowser.functioncenter.FunctionCenterEntryController
 import com.example.videobrowser.localfiles.LocalFileAssemblyController
-import com.example.videobrowser.localfiles.LocalDocumentEntryController
-import com.example.videobrowser.localfiles.LocalFilesController
+import com.example.videobrowser.localfiles.LocalFileComponents
 import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.storage.BrowserPersistenceAssemblyController
 import com.example.videobrowser.storage.BrowserPersistenceComponents
@@ -92,8 +91,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserShell: BrowserShellComponents
     private lateinit var browserSessions: BrowserSessionComponents
     private lateinit var functionCenterEntryController: FunctionCenterEntryController
-    private lateinit var localFilesController: LocalFilesController
-    private lateinit var localDocumentEntryController: LocalDocumentEntryController
+    private lateinit var localFiles: LocalFileComponents
     private lateinit var pageActions: BrowserPageActionComponents
     private lateinit var browserClients: BrowserClientComponents
     private lateinit var browserSearch: BrowserSearchComponents
@@ -293,7 +291,7 @@ class MainActivity : AppCompatActivity() {
         ).create()
 
         // 本地文件模块负责选择目录、读取文件列表，并把可播放文件交给浏览器或原生播放器。
-        val localFileComponents = LocalFileAssemblyController(
+        localFiles = LocalFileAssemblyController(
             activity = this,
             preferenceStore = browserPersistence.preferenceStore,
             functionCenter = browserShell.functionCenterController,
@@ -313,8 +311,6 @@ class MainActivity : AppCompatActivity() {
             hideKeyboard = browserShell.browserKeyboardController::hideKeyboard,
             showHomeContent = browserShell.browserShellUiController::showHomeContent
         ).create()
-        localFilesController = localFileComponents.localFilesController
-        localDocumentEntryController = localFileComponents.localDocumentEntryController
 
         // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
         browserSearch = BrowserSearchAssemblyController(
@@ -387,7 +383,7 @@ class MainActivity : AppCompatActivity() {
                 webViewInteraction.browserActiveWebViewController::handleActiveWebViewChanged
         ).create()
         browserStandardWebViewHostController.setup()
-        localDocumentEntryController.setupFileOperationLaunchers()
+        localFiles.localDocumentEntryController.setupFileOperationLaunchers()
 
         // 规则引擎读取 assets/rules 和用户订阅缓存，供广告拦截、URL 清理、脚本注入使用。
         browserNavigation = BrowserNavigationAssemblyController(
@@ -423,7 +419,7 @@ class MainActivity : AppCompatActivity() {
             browserUrlStateController = browserShell.browserUrlStateController,
             historyRecordPolicy = browserSearch.historyRecordPolicy,
             nativePlayerEntryController = browserNavigation.nativePlayerEntryController,
-            localDocumentEntryController = localDocumentEntryController,
+            localDocumentEntryController = localFiles.localDocumentEntryController,
             browserFeatureStateController = browserShell.browserFeatureStateController,
             switchPrivateBrowsing = { enabled ->
                 browserSessions.privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
@@ -597,7 +593,7 @@ class MainActivity : AppCompatActivity() {
             downloadController = pageActions.downloadController,
             activityResultLaunchers = activityResultLaunchers,
             searchProviderController = browserSearch.searchProviderController,
-            localDocumentEntryController = localDocumentEntryController,
+            localDocumentEntryController = localFiles.localDocumentEntryController,
             startElementPicker = { pageFeatures.elementPickerController.start() },
             browserDisplayModeController = browserNavigation.browserDisplayModeController,
             pageFeatureInjectionController = browserShell.pageFeatureInjectionController,
