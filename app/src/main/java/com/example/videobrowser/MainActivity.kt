@@ -52,6 +52,7 @@ import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserClient
 import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsController
+import com.example.videobrowser.browser.BrowserControlsShellController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
 import com.example.videobrowser.browser.BrowserPageError
@@ -173,6 +174,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var standardBrowserManager: BrowserManager
     private lateinit var browserSessionCoordinator: BrowserSessionCoordinator
     private lateinit var browserControlsController: BrowserControlsController
+    private lateinit var browserControlsShellController: BrowserControlsShellController
     private lateinit var browserControlsScrollController: BrowserControlsScrollController
     private lateinit var standardSessionController: BrowserSessionController
     private lateinit var privateSessionController: BrowserSessionController
@@ -336,6 +338,33 @@ class MainActivity : AppCompatActivity() {
                     null
                 }
             }
+        )
+        browserControlsShellController = BrowserControlsShellController(
+            browserControlsController = {
+                if (::browserControlsController.isInitialized) browserControlsController else null
+            },
+            browserControlsScrollController = {
+                if (::browserControlsScrollController.isInitialized) {
+                    browserControlsScrollController
+                } else {
+                    null
+                }
+            },
+            searchProviderController = {
+                if (::searchProviderController.isInitialized) searchProviderController else null
+            },
+            addressSuggestionController = {
+                if (::addressSuggestionController.isInitialized) addressSuggestionController else null
+            },
+            isPageLoading = {
+                if (areBrowserSessionsInitialized()) {
+                    currentSessionController().isPageLoading
+                } else {
+                    false
+                }
+            },
+            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            isHomePageVisible = { isHomePageVisible }
         )
         browsingModeThemeController = BrowsingModeThemeController(
             activity = this,
@@ -620,9 +649,11 @@ class MainActivity : AppCompatActivity() {
             onShowFunctionCenter = ::showFunctionCenter,
             onShowProfilePage = ::showProfilePage,
             onToggleBookmark = pageActionsController::toggleCurrentBookmark,
-            onShowControlsRequested = { setBrowserControlsHidden(false) },
-            onAddressFocusChanged = ::handleAddressFocusChanged,
-            onVisibilityChanged = ::syncSearchProviderVisibility
+            onShowControlsRequested = {
+                browserControlsShellController.setBrowserControlsHidden(false)
+            },
+            onAddressFocusChanged = browserControlsShellController::handleAddressFocusChanged,
+            onVisibilityChanged = browserControlsShellController::syncSearchProviderVisibility
         )
 
         // 页面滚动时自动收起/显示顶部与底部工具栏。
@@ -634,7 +665,7 @@ class MainActivity : AppCompatActivity() {
             isHomePageVisible = { isHomePageVisible },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             applyControlsHidden = browserControlsController::setHidden,
-            updatePageProgressVisibility = ::updatePageProgressVisibility
+            updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility
         )
 
         // 标准会话会写历史；无痕会话不写历史，并使用独立 WebView。
@@ -651,7 +682,7 @@ class MainActivity : AppCompatActivity() {
             updateAddressBar = ::updateAddressBar,
             showHomeContent = ::showHomeContent,
             setPageProgress = browserControlsController::setProgress,
-            updatePageProgressVisibility = ::updatePageProgressVisibility,
+            updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
             updateNavigationButtons = ::updateNavigationButtons,
             addHistoryEntry = pageActionsController::addHistoryEntry,
             injectPageFeatures = ::injectPageFeatures,
@@ -673,7 +704,7 @@ class MainActivity : AppCompatActivity() {
             updateAddressBar = ::updateAddressBar,
             showHomeContent = ::showHomeContent,
             setPageProgress = browserControlsController::setProgress,
-            updatePageProgressVisibility = ::updatePageProgressVisibility,
+            updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
             updateNavigationButtons = ::updateNavigationButtons,
             addHistoryEntry = {},
             injectPageFeatures = ::injectPageFeatures,
@@ -886,11 +917,11 @@ class MainActivity : AppCompatActivity() {
         }
         ViewCompat.requestApplyInsets(rootView)
 
-        setupSearchProviders()
+        browserControlsShellController.setupSearchProviders()
         addressSuggestionController.setup()
         updatePrivateBrowsingUi()
         setupBrowserControls()
-        setupWebViewScrollControls()
+        browserControlsShellController.setupWebViewScrollControls()
         setupBackNavigation()
         standardBrowserManager.setup()
         standardBrowserManager.setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())
@@ -1206,7 +1237,7 @@ class MainActivity : AppCompatActivity() {
             currentBrowserManager().setChromeClient(currentChromeClient())
         }
         updatePrivateBrowsingUi()
-        syncSearchProviderVisibility()
+        browserControlsShellController.syncSearchProviderVisibility()
         applyBrowsingModeTheme()
         if (areBrowserSessionsInitialized()) {
             currentSessionController().renderCurrentState()
@@ -1436,8 +1467,8 @@ class MainActivity : AppCompatActivity() {
      */
     private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
         fullscreenVideoController.handleFullscreenChanged(fullscreen)
-        setBrowserControlsHidden(fullscreen)
-        updatePageProgressVisibility(forceHidden = fullscreen)
+        browserControlsShellController.setBrowserControlsHidden(fullscreen)
+        browserControlsShellController.updatePageProgressVisibility(forceHidden = fullscreen)
         ViewCompat.requestApplyInsets(rootView)
         if (!fullscreen) {
             applyBrowserContentOrientation(browserFeatureStateController.isDesktopModeEnabled())
@@ -1568,79 +1599,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 地址栏、顶部/底部工具栏和返回键
     // 这一组函数只处理用户正在看的浏览器外壳：进度条、搜索入口、滚动隐藏工具栏和返回键行为。
-    /**
-     * 函数 `updatePageProgressVisibility`：根据最新状态刷新 `update Page Progress Visibility` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param forceHidden 参数类型为 `Boolean`，表示函数执行 `forceHidden` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun updatePageProgressVisibility(forceHidden: Boolean = false) {
-        browserControlsController.updatePageProgressVisibility(
-            currentSessionController().isPageLoading,
-            forceHidden
-        )
-    }
-
-    /**
-     * 函数 `setupWebViewScrollControls`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupWebViewScrollControls() {
-        browserControlsScrollController.setup()
-    }
-
-    /**
-     * 函数 `setBrowserControlsHidden`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param hidden 参数类型为 `Boolean`，表示函数执行 `hidden` 相关逻辑时需要读取或处理的输入。
-     * @param allowDefer 参数类型为 `Boolean`，表示函数执行 `allowDefer` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun setBrowserControlsHidden(hidden: Boolean, allowDefer: Boolean = true) {
-        browserControlsScrollController.setControlsHidden(hidden, allowDefer)
-    }
-
-    /**
-     * 函数 `syncSearchProviderVisibility`：根据最新状态刷新 `sync Search Provider Visibility` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun syncSearchProviderVisibility() {
-        if (!::searchProviderController.isInitialized) {
-            return
-        }
-        searchProviderController.syncVisibility(
-            areBrowserControlsHidden = browserControlsController.areHidden,
-            isVideoFullscreenUiActive = isVideoFullscreenUiActive,
-            isHomePageVisible = isHomePageVisible
-        )
-        if (::addressSuggestionController.isInitialized) {
-            addressSuggestionController.syncVisibility()
-        }
-    }
-
-    /**
-     * 函数 `handleAddressFocusChanged`：处理 `handle Address Focus Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param hasFocus 参数类型为 `Boolean`，表示函数执行 `hasFocus` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleAddressFocusChanged(hasFocus: Boolean) {
-        if (::addressSuggestionController.isInitialized) {
-            addressSuggestionController.handleAddressFocusChanged(hasFocus)
-        }
-    }
-
-    /**
-     * 函数 `setupSearchProviders`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupSearchProviders() {
-        searchProviderController.setup()
-    }
-
     /**
      * 函数 `setupBackNavigation`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
      *
@@ -2235,10 +2193,10 @@ class MainActivity : AppCompatActivity() {
      */
     private fun showHomeContent(show: Boolean) {
         browserControlsScrollController.resetTracking()
-        setBrowserControlsHidden(false)
-        syncSearchProviderVisibility()
+        browserControlsShellController.setBrowserControlsHidden(false)
+        browserControlsShellController.syncSearchProviderVisibility()
         webView.visibility = View.VISIBLE
-        updatePageProgressVisibility(forceHidden = show)
+        browserControlsShellController.updatePageProgressVisibility(forceHidden = show)
         updateNavigationButtons()
         applyBrowsingModeTheme()
     }
