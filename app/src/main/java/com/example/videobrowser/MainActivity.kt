@@ -38,6 +38,7 @@ import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.AndroidPermissionChecker
+import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
@@ -204,6 +205,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var browserFullscreenUiController: BrowserFullscreenUiController
+    private lateinit var browserActiveWebViewController: BrowserActiveWebViewController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
     private lateinit var geolocationPermissionController: GeolocationPermissionController
@@ -541,6 +543,25 @@ class MainActivity : AppCompatActivity() {
             },
             currentUserAgent = { currentBrowserManager().userAgentString() },
             isShareableUrl = browserUrlStateController::isShareableUrl
+        )
+        browserActiveWebViewController = BrowserActiveWebViewController(
+            setPrivateBrowsingActive = { active -> privateBrowsingActive = active },
+            configureLinkContextMenu = linkContextMenuController::configure,
+            attachBrowserControlsScrollIfReady = { activeWebView ->
+                if (::browserControlsScrollController.isInitialized) {
+                    browserControlsScrollController.attachToWebView(activeWebView)
+                }
+            },
+            syncCurrentChromeClientIfReady = {
+                if (::browserChromeClientController.isInitialized) {
+                    browserChromeClientController.syncCurrentChromeClient()
+                }
+            },
+            updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
+            syncSearchProviderVisibility = browserControlsShellController::syncSearchProviderVisibility,
+            applyBrowsingModeTheme = browsingModeThemeController::applyBrowsingModeTheme,
+            areBrowserSessionsInitialized = ::areBrowserSessionsInitialized,
+            currentSessionController = ::currentSessionController
         )
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
@@ -1194,7 +1215,7 @@ class MainActivity : AppCompatActivity() {
             webViewContainer = webViewContainer,
             standardWebView = standardWebView,
             browserManager = standardBrowserManager,
-            onActiveWebViewChanged = ::handleActiveWebViewChanged
+            onActiveWebViewChanged = browserActiveWebViewController::handleActiveWebViewChanged
         )
     }
 
@@ -1244,7 +1265,7 @@ class MainActivity : AppCompatActivity() {
             privateBrowsingEnabled = false,
             detachCurrent = detachCurrent
         )
-        handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)
+        browserActiveWebViewController.handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)
     }
 
     /**
@@ -1329,30 +1350,6 @@ class MainActivity : AppCompatActivity() {
     private fun areChromeClientsInitialized(): Boolean {
         return ::browserChromeClientController.isInitialized &&
             browserChromeClientController.areChromeClientsInitialized()
-    }
-
-    /**
-     * 函数 `handleActiveWebViewChanged`：处理 `handle Active Web View Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param activeWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param mode 参数类型为 `BrowserMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode) {
-        privateBrowsingActive = mode == BrowserMode.PRIVATE
-        linkContextMenuController.configure(activeWebView)
-        if (::browserControlsScrollController.isInitialized) {
-            browserControlsScrollController.attachToWebView(activeWebView)
-        }
-        if (::browserChromeClientController.isInitialized) {
-            browserChromeClientController.syncCurrentChromeClient()
-        }
-        browsingModeThemeController.updatePrivateBrowsingUi()
-        browserControlsShellController.syncSearchProviderVisibility()
-        browsingModeThemeController.applyBrowsingModeTheme()
-        if (areBrowserSessionsInitialized()) {
-            currentSessionController().renderCurrentState()
-        }
     }
 
     // endregion

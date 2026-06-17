@@ -35,6 +35,29 @@ class BrowserTabWebViewWiringContractTest {
     }
 
     /**
+     * 测试函数 `activeWebViewChangesAreDelegatedToController`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `active Web View Changes Are Delegated To Controller` 这条行为是否成立。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     */
+    @Test
+    fun activeWebViewChangesAreDelegatedToController() {
+        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+            .readText()
+        val activeWebViewController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActiveWebViewController.kt"
+        ).readText()
+
+        assertTrue(mainActivity.contains("private lateinit var browserActiveWebViewController: BrowserActiveWebViewController"))
+        assertTrue(mainActivity.contains("browserActiveWebViewController = BrowserActiveWebViewController("))
+        assertTrue(mainActivity.contains("onActiveWebViewChanged = browserActiveWebViewController::handleActiveWebViewChanged"))
+        assertTrue(mainActivity.contains("browserActiveWebViewController.handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)"))
+        assertTrue(activeWebViewController.contains("fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode)"))
+        assertTrue(activeWebViewController.contains("setPrivateBrowsingActive(mode == BrowserMode.PRIVATE)"))
+        assertTrue(activeWebViewController.contains("attachBrowserControlsScrollIfReady(activeWebView)"))
+        assertTrue(activeWebViewController.contains("currentSessionController().renderCurrentState()"))
+    }
+
+    /**
      * 测试函数 `switchTabDoesNotReloadExistingTabUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `switch Tab Does Not Reload Existing Tab Url` 这条行为是否成立。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。

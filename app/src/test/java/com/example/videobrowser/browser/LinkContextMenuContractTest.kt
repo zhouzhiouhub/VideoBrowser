@@ -22,11 +22,15 @@ class LinkContextMenuContractTest {
         val linkContextMenuController = projectFile(
             "src/main/java/com/example/videobrowser/browser/LinkContextMenuController.kt"
         ).readText()
+        val activeWebViewController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActiveWebViewController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
         assertTrue(mainActivity.contains("linkContextMenuController.configure(standardWebView)"))
-        assertTrue(mainActivity.contains("linkContextMenuController.configure(activeWebView)"))
+        assertTrue(mainActivity.contains("configureLinkContextMenu = linkContextMenuController::configure"))
+        assertTrue(activeWebViewController.contains("configureLinkContextMenu(activeWebView)"))
         assertTrue(linkContextMenuController.contains("fun configure(targetWebView: WebView)"))
         assertTrue(mainActivity.contains("private lateinit var linkContextMenuController: LinkContextMenuController"))
         assertTrue(linkContextMenuController.contains("targetWebView.setOnLongClickListener"))
