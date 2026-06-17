@@ -37,6 +37,9 @@ class WebFileChooserContractTest {
     fun mainActivityLaunchesSystemPickerAndReturnsChosenFilesToWebView() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val activityResultLaunchers = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
+        ).readText()
         val lifecycleController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
         ).readText()
@@ -47,9 +50,10 @@ class WebFileChooserContractTest {
             "src/main/java/com/example/videobrowser/browser/WebFileChooserController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("ActivityResultContracts.StartActivityForResult()"))
-        assertTrue(mainActivity.contains("webFileChooserController.handleActivityResult(result.resultCode, result.data)"))
+        assertTrue(activityResultLaunchers.contains("ActivityResultContracts.StartActivityForResult()"))
+        assertTrue(activityResultLaunchers.contains("webFileChooserController()?.handleActivityResult(result.resultCode, result.data)"))
         assertTrue(mainActivity.contains("private lateinit var webFileChooserController: WebFileChooserController"))
+        assertTrue(mainActivity.contains("launchChooser = activityResultLaunchers::launchWebFileChooser"))
         assertTrue(fileChooserController.contains("pendingFileChooserCallback: ValueCallback<Array<Uri>>?"))
         assertTrue(fileChooserController.contains("FileChooserParams.parseResult"))
         assertTrue(fileChooserController.contains("pendingFileChooserCallback?.onReceiveValue"))

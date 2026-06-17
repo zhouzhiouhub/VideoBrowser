@@ -47,6 +47,9 @@ class SavePageArchiveWiringContractTest {
     fun mainActivitySavesCurrentWebViewAsMhtmlArchive() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val activityResultLaunchers = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
+        ).readText()
         val pageToolEntryController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserPageToolEntryController.kt"
         ).readText()
@@ -56,15 +59,16 @@ class SavePageArchiveWiringContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("ActivityResultContracts.CreateDocument(PageArchiveController.MIME_TYPE)"))
+        assertTrue(activityResultLaunchers.contains("ActivityResultContracts.CreateDocument(PageArchiveController.MIME_TYPE)"))
         assertTrue(pageToolEntryController.contains("fun saveCurrentPageArchive()"))
         assertTrue(pageToolEntryController.contains("pageArchiveController.saveCurrentPageArchive()"))
-        assertTrue(mainActivity.contains("pageArchiveController.handleExportResult(uri)"))
+        assertTrue(activityResultLaunchers.contains("pageArchiveController()?.handleExportResult(uri)"))
         assertTrue(pageArchiveController.contains("activeWebView().saveWebArchive("))
         assertTrue(pageArchiveController.contains("launchArchiveExport(archiveFileName(pageUrl))"))
         assertTrue(pageArchiveController.contains("PageArchiveFileName.create("))
         assertTrue(pageArchiveController.contains("private fun exportArchiveFileToUri(archiveFile: File, uri: Uri)"))
         assertTrue(pageArchiveController.contains("const val MIME_TYPE = \"multipart/related\""))
+        assertTrue(mainActivity.contains("launchArchiveExport = activityResultLaunchers::launchPageArchiveExport"))
         assertTrue(mainActivity.contains("saveCurrentPageArchive = browserPageToolEntryController::saveCurrentPageArchive"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_saved"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_failed"))

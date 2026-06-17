@@ -29,7 +29,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.adblock.AdBlockManager
@@ -38,6 +37,7 @@ import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.AndroidPermissionChecker
 import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleController
+import com.example.videobrowser.browser.BrowserActivityResultLaunchers
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
@@ -316,35 +316,25 @@ class MainActivity : AppCompatActivity() {
 
     // region Android 系统交互状态
     // 这些字段保存系统弹窗或系统 Activity 返回前的临时状态，例如文件选择、权限申请、证书选择。
-    private val webFileChooserLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            webFileChooserController.handleActivityResult(result.resultCode, result.data)
+    private val activityResultLaunchers = BrowserActivityResultLaunchers(
+        activity = this,
+        webFileChooserController = {
+            if (::webFileChooserController.isInitialized) webFileChooserController else null
+        },
+        bookmarkImportExportController = {
+            if (::bookmarkImportExportController.isInitialized) bookmarkImportExportController else null
+        },
+        pageArchiveController = {
+            if (::pageArchiveController.isInitialized) pageArchiveController else null
+        },
+        webPermissionRequestController = {
+            if (::webPermissionRequestController.isInitialized) webPermissionRequestController else null
+        },
+        geolocationPermissionController = {
+            if (::geolocationPermissionController.isInitialized) geolocationPermissionController else null
         }
-    private val bookmarkExportLauncher =
-        registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
-            if (uri != null) {
-                bookmarkImportExportController.exportToUri(uri)
-            }
-        }
-    private val bookmarkImportLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
-                bookmarkImportExportController.importFromUri(uri)
-            }
-        }
-    private val pageArchiveExportLauncher =
-        registerForActivityResult(ActivityResultContracts.CreateDocument(PageArchiveController.MIME_TYPE)) { uri ->
-            pageArchiveController.handleExportResult(uri)
-        }
-    private val webPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-            webPermissionRequestController.handleAndroidPermissionResult(grants)
-        }
+    )
     private val sessionSitePermissionStore = SessionSitePermissionStore()
-    private val geolocationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-            geolocationPermissionController.handleAndroidPermissionResult(grants)
-        }
     // endregion
 
     // region 当前页面运行状态
@@ -764,7 +754,7 @@ class MainActivity : AppCompatActivity() {
             activeWebView = {
                 browserStandardWebViewHostController.currentBrowserManager().activeWebView
             },
-            launchArchiveExport = pageArchiveExportLauncher::launch
+            launchArchiveExport = activityResultLaunchers::launchPageArchiveExport
         )
         pagePrintController = PagePrintController(
             activity = this,
@@ -800,7 +790,7 @@ class MainActivity : AppCompatActivity() {
         )
         webFileChooserController = WebFileChooserController(
             activity = this,
-            launchChooser = webFileChooserLauncher::launch
+            launchChooser = activityResultLaunchers::launchWebFileChooser
         )
         webPermissionRequestController = WebPermissionRequestController(
             activity = this,
@@ -808,7 +798,7 @@ class MainActivity : AppCompatActivity() {
             sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             hasAndroidPermission = androidPermissionChecker::hasAndroidPermission,
-            requestAndroidPermissions = webPermissionLauncher::launch
+            requestAndroidPermissions = activityResultLaunchers::requestWebPermissions
         )
         geolocationPermissionController = GeolocationPermissionController(
             activity = this,
@@ -816,7 +806,7 @@ class MainActivity : AppCompatActivity() {
             sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             hasAndroidPermission = androidPermissionChecker::hasAndroidPermission,
-            requestAndroidPermissions = geolocationPermissionLauncher::launch
+            requestAndroidPermissions = activityResultLaunchers::requestGeolocationPermissions
         )
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
@@ -1079,12 +1069,8 @@ class MainActivity : AppCompatActivity() {
             openPlaybackHistoryItem = browserPageToolEntryController::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
             retryDownload = downloadController::retry,
-            exportBookmarks = {
-                bookmarkExportLauncher.launch(BookmarkImportExportController.EXPORT_FILE_NAME)
-            },
-            importBookmarks = {
-                bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)
-            },
+            exportBookmarks = activityResultLaunchers::launchBookmarkExport,
+            importBookmarks = activityResultLaunchers::launchBookmarkImport,
             currentSearchProviderName = { searchProviderController.selectedProvider.name },
             selectSearchProvider = searchProviderController::selectDefaultSearchProvider,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,

@@ -18,6 +18,9 @@ class BookmarkImportExportWiringContractTest {
     @Test
     fun mainActivityWiresBookmarkImportExportThroughSaf() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val activityResultLaunchers = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
+        ).readText()
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/storage/BookmarkImportExportController.kt"
         ).readText()
@@ -27,12 +30,12 @@ class BookmarkImportExportWiringContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("ActivityResultContracts.CreateDocument(\"text/plain\")"))
-        assertTrue(mainActivity.contains("ActivityResultContracts.OpenDocument()"))
-        assertTrue(mainActivity.contains("bookmarkImportExportController.exportToUri(uri)"))
-        assertTrue(mainActivity.contains("bookmarkImportExportController.importFromUri(uri)"))
-        assertTrue(mainActivity.contains("bookmarkExportLauncher.launch(BookmarkImportExportController.EXPORT_FILE_NAME)"))
-        assertTrue(mainActivity.contains("bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)"))
+        assertTrue(activityResultLaunchers.contains("ActivityResultContracts.CreateDocument(\"text/plain\")"))
+        assertTrue(activityResultLaunchers.contains("ActivityResultContracts.OpenDocument()"))
+        assertTrue(activityResultLaunchers.contains("bookmarkImportExportController()?.exportToUri(uri)"))
+        assertTrue(activityResultLaunchers.contains("bookmarkImportExportController()?.importFromUri(uri)"))
+        assertTrue(activityResultLaunchers.contains("bookmarkExportLauncher.launch(BookmarkImportExportController.EXPORT_FILE_NAME)"))
+        assertTrue(activityResultLaunchers.contains("bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)"))
         assertTrue(controller.contains("const val EXPORT_FILE_NAME = \"videobrowser-bookmarks.txt\""))
         assertTrue(controller.contains("val IMPORT_MIME_TYPES = arrayOf(\"text/plain\", \"application/json\", \"*/*\")"))
         assertTrue(controller.contains("savedPageRepository.exportBookmarks()"))
@@ -40,8 +43,8 @@ class BookmarkImportExportWiringContractTest {
         assertTrue(controller.contains("contentResolver.openInputStream(uri)"))
         assertTrue(controller.contains("savedPageRepository.importBookmarks(payload)"))
         assertTrue(controller.contains("updateBookmarkButton()"))
-        assertTrue(mainActivity.contains("exportBookmarks = {"))
-        assertTrue(mainActivity.contains("importBookmarks = {"))
+        assertTrue(mainActivity.contains("exportBookmarks = activityResultLaunchers::launchBookmarkExport"))
+        assertTrue(mainActivity.contains("importBookmarks = activityResultLaunchers::launchBookmarkImport"))
         assertTrue(pages.contains("exportBookmarks: () -> Unit"))
         assertTrue(pages.contains("importBookmarks: () -> Unit"))
         assertTrue(strings.contains("toast_bookmarks_exported"))
