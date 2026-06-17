@@ -62,9 +62,9 @@ class BrowserTabWebViewWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserActiveWebViewController: BrowserActiveWebViewController"))
+        assertTrue(mainActivity.contains("private lateinit var webViewInteraction: BrowserWebViewInteractionComponents"))
         assertTrue(webViewInteractionAssembly.contains("val browserActiveWebViewController = BrowserActiveWebViewController("))
-        assertTrue(mainActivity.contains("browserActiveWebViewController::handleActiveWebViewChanged"))
+        assertTrue(mainActivity.contains("webViewInteraction.browserActiveWebViewController::handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("onActiveWebViewChanged = handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)"))
         assertTrue(activeWebViewController.contains("fun handleActiveWebViewChanged(activeWebView: WebView, mode: BrowserMode)"))

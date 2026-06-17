@@ -20,7 +20,6 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
 import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyController
@@ -64,13 +63,13 @@ import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
 import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
+import com.example.videobrowser.browser.BrowserWebViewInteractionComponents
 import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ClientCertificateController
 import com.example.videobrowser.browser.FindInPageDialogController
 import com.example.videobrowser.browser.GeolocationPermissionController
 import com.example.videobrowser.browser.HttpAuthController
-import com.example.videobrowser.browser.LinkContextMenuController
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveController
 import com.example.videobrowser.browser.PagePrintController
@@ -138,7 +137,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var clientCertificateController: ClientCertificateController
     private lateinit var renderProcessRecoveryController: RenderProcessRecoveryController
     private lateinit var webWindowController: WebWindowController
-    private lateinit var linkContextMenuController: LinkContextMenuController
     private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
@@ -161,7 +159,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var browserFullscreenUiController: BrowserFullscreenUiController
-    private lateinit var browserActiveWebViewController: BrowserActiveWebViewController
+    private lateinit var webViewInteraction: BrowserWebViewInteractionComponents
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
     private lateinit var geolocationPermissionController: GeolocationPermissionController
@@ -420,7 +418,7 @@ class MainActivity : AppCompatActivity() {
         browserAddressBarStateController = browserSearchComponents.browserAddressBarStateController
         historyRecordPolicy = browserSearchComponents.historyRecordPolicy
         addressSuggestionController = browserSearchComponents.addressSuggestionController
-        val webViewInteractionComponents = BrowserWebViewInteractionAssemblyController(
+        webViewInteraction = BrowserWebViewInteractionAssemblyController(
             activity = this,
             setPrivateBrowsingActive = browserRuntimeStateController::setPrivateBrowsingActive,
             openUrlInNewTab = { url ->
@@ -452,17 +450,15 @@ class MainActivity : AppCompatActivity() {
                 browserSessionStateController::areBrowserSessionsInitialized,
             currentSessionController = browserSessionStateController::currentSessionController
         ).create()
-        linkContextMenuController = webViewInteractionComponents.linkContextMenuController
-        browserActiveWebViewController = webViewInteractionComponents.browserActiveWebViewController
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
         browserStandardWebViewHostController = BrowserStandardWebViewHostAssemblyController(
             activity = this,
             views = views,
             standardTabStore = browserTabState.standardTabStore,
-            configureLinkContextMenu = linkContextMenuController::configure,
+            configureLinkContextMenu = webViewInteraction.linkContextMenuController::configure,
             handleActiveWebViewChanged =
-                browserActiveWebViewController::handleActiveWebViewChanged
+                webViewInteraction.browserActiveWebViewController::handleActiveWebViewChanged
         ).create()
         browserStandardWebViewHostController.setup()
         localDocumentEntryController.setupFileOperationLaunchers()
