@@ -35,7 +35,7 @@ import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsShellController
 import com.example.videobrowser.browser.BrowserDisplayModeController
 import com.example.videobrowser.browser.BrowserFullscreenAssemblyController
-import com.example.videobrowser.browser.BrowserFullscreenUiController
+import com.example.videobrowser.browser.BrowserFullscreenComponents
 import com.example.videobrowser.browser.BrowserKeyboardController
 import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
@@ -87,7 +87,6 @@ import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.storage.BrowserPersistenceAssemblyController
 import com.example.videobrowser.storage.BrowserPersistenceComponents
-import com.example.videobrowser.video.FullscreenVideoController
 import com.example.videobrowser.video.NativePlayerEntryController
 
 /**
@@ -137,8 +136,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserBackNavigationController: BrowserBackNavigationController
     private lateinit var browserKeyboardController: BrowserKeyboardController
     private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
-    private lateinit var fullscreenVideoController: FullscreenVideoController
-    private lateinit var browserFullscreenUiController: BrowserFullscreenUiController
+    private lateinit var browserFullscreen: BrowserFullscreenComponents
     private lateinit var webViewInteraction: BrowserWebViewInteractionComponents
     private lateinit var webRequests: BrowserWebRequestComponents
     private lateinit var elementPickerController: ElementPickerController
@@ -251,7 +249,7 @@ class MainActivity : AppCompatActivity() {
             browserSessionStateController.currentSessionController()
         },
         fullscreenVideoController = {
-            if (::fullscreenVideoController.isInitialized) fullscreenVideoController else null
+            if (::browserFullscreen.isInitialized) browserFullscreen.fullscreenVideoController else null
         }
     )
     private val browserSessionStateController: BrowserSessionStateController =
@@ -544,7 +542,7 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             exitPageFullscreenIfNeeded = {
-                browserFullscreenUiController.exitPageFullscreenIfNeeded()
+                browserFullscreen.browserFullscreenUiController.exitPageFullscreenIfNeeded()
             },
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             openHomePage = browserLaunchController::openHomePage,
@@ -611,14 +609,14 @@ class MainActivity : AppCompatActivity() {
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             closeTab = browserTabActionsController::closeTab,
             fullscreenChanged = { fullscreen ->
-                browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
+                browserFullscreen.browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
             },
             webFileChooserController = webRequests.webFileChooserController,
             webPermissionRequestController = webRequests.webPermissionRequestController,
             geolocationPermissionController = webRequests.geolocationPermissionController
         ).create()
 
-        val browserFullscreenComponents = BrowserFullscreenAssemblyController(
+        browserFullscreen = BrowserFullscreenAssemblyController(
             activity = this,
             rootView = views.rootView as ViewGroup,
             browserManager = {
@@ -631,8 +629,6 @@ class MainActivity : AppCompatActivity() {
             browserFeatureStateController = browserFeatureStateController,
             dp = ::dp
         ).create()
-        fullscreenVideoController = browserFullscreenComponents.fullscreenVideoController
-        browserFullscreenUiController = browserFullscreenComponents.browserFullscreenUiController
 
         // 功能中心是底部弹出的工具面板。装配类负责把各控制器动作接入页面。
         functionCenterEntryController = FunctionCenterAssemblyController(
@@ -692,7 +688,7 @@ class MainActivity : AppCompatActivity() {
             browserFeatureStateController = browserFeatureStateController,
             pageFeatureInjectionController = pageFeatureInjectionController,
             browserChromeClientStateController = browserChromeClientStateController,
-            fullscreenVideoController = fullscreenVideoController,
+            fullscreenVideoController = browserFullscreen.fullscreenVideoController,
             webPlaybackHistoryRecorder = browserPersistence.webPlaybackHistoryRecorder,
             postToUi = { action -> runOnUiThread { action() } },
         ).create()
@@ -726,7 +722,7 @@ class MainActivity : AppCompatActivity() {
             browserDisplayModeController = browserDisplayModeController,
             downloadController = pageActions.downloadController,
             browserChromeClientController = browserClients.browserChromeClientController,
-            browserFullscreenUiController = browserFullscreenUiController,
+            browserFullscreenUiController = browserFullscreen.browserFullscreenUiController,
             nativeBridgeController = nativeBridgeController,
             nativeBridgeName = NATIVE_BRIDGE_NAME,
             browserWebClientController = browserClients.browserWebClientController,
