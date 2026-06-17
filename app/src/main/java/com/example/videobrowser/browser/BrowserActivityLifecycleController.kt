@@ -8,6 +8,7 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数了解它会管理哪些控制器，再看 handlePause()/handleResume()/handleDestroy()
  * 对应 Android 生命周期的三个阶段。
  */
+import android.content.Intent
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.element.ElementPickerController
@@ -29,6 +30,7 @@ import com.example.videobrowser.functioncenter.FunctionCenterEntryController
  * @param browserChromeClientStateController ChromeClient 状态控制器，用于安全读取当前 ChromeClient。
  * @param browserStandardTabSessionController 返回标准标签页会话控制器的函数，尚未初始化时返回 null。
  * @param browserStandardWebViewHostController 返回标准 WebView 宿主控制器的函数，尚未初始化时返回 null。
+ * @param browserLaunchController 返回浏览器启动控制器的函数，尚未初始化时返回 null。
  */
 class BrowserActivityLifecycleController(
     private val browserChromeClientController: () -> BrowserChromeClientController?,
@@ -40,8 +42,21 @@ class BrowserActivityLifecycleController(
     private val functionCenterEntryController: () -> FunctionCenterEntryController?,
     private val browserChromeClientStateController: BrowserChromeClientStateController,
     private val browserStandardTabSessionController: () -> BrowserStandardTabSessionController?,
-    private val browserStandardWebViewHostController: () -> BrowserStandardWebViewHostController?
+    private val browserStandardWebViewHostController: () -> BrowserStandardWebViewHostController?,
+    private val browserLaunchController: () -> BrowserLaunchController?
 ) {
+    /**
+     * 处理 Activity 收到的新启动 Intent。
+     *
+     * @param intent 参数类型为 `Intent`，表示 Android 系统新送达的网页打开请求或应用启动请求。
+     * @param setActivityIntent 参数类型为 `(Intent) -> Unit`，表示把新 Intent 保存回 Activity 的回调。
+     * @return 无返回值；函数会更新 Activity 当前 Intent，并把可处理的网页链接交给 BrowserLaunchController。
+     */
+    fun handleNewIntent(intent: Intent, setActivityIntent: (Intent) -> Unit) {
+        setActivityIntent(intent)
+        browserLaunchController()?.handleLaunchIntent(intent)
+    }
+
     /**
      * 处理 Activity 暂停。
      *

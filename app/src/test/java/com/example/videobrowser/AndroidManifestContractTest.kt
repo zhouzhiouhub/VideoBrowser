@@ -52,13 +52,17 @@ class AndroidManifestContractTest {
         val mainActivity = projectFile(
             "src/main/java/com/example/videobrowser/MainActivity.kt"
         ).readText()
+        val lifecycleController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
+        ).readText()
         val launchController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserLaunchController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("handleLaunchIntent(intent)"))
         assertTrue(mainActivity.contains("override fun onNewIntent(intent: Intent)"))
-        assertTrue(mainActivity.contains("browserLaunchController.handleLaunchIntent(intent)"))
+        assertTrue(mainActivity.contains("browserActivityLifecycleController.handleNewIntent("))
+        assertTrue(lifecycleController.contains("setActivityIntent(intent)"))
+        assertTrue(lifecycleController.contains("browserLaunchController()?.handleLaunchIntent(intent)"))
         assertTrue(launchController.contains("Intent.ACTION_VIEW"))
         assertTrue(launchController.contains("intent.dataString"))
     }

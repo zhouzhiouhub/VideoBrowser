@@ -259,6 +259,9 @@ class MainActivity : AppCompatActivity() {
             } else {
                 null
             }
+        },
+        browserLaunchController = {
+            if (::browserLaunchController.isInitialized) browserLaunchController else null
         }
     )
     // endregion
@@ -1189,8 +1192,10 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
-        browserLaunchController.handleLaunchIntent(intent)
+        browserActivityLifecycleController.handleNewIntent(
+            intent = intent,
+            setActivityIntent = { newIntent -> setIntent(newIntent) }
+        )
     }
 
     /**
