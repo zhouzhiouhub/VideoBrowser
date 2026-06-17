@@ -163,4 +163,22 @@ class BrowserStandardWebViewHostController(
             browserManager.destroy()
         }
     }
+
+    /**
+     * 返回当前标准浏览 BrowserManager。
+     *
+     * @return 当前负责 active WebView 的 BrowserManager。
+     */
+    fun currentBrowserManager(): BrowserManager {
+        return browserManager
+    }
+
+    /**
+     * 返回当前需要统一执行浏览器数据操作的 BrowserManager 列表。
+     *
+     * @return 包含标准浏览 BrowserManager 的列表；调用方按列表批量执行缓存清理等操作。
+     */
+    fun browserManagers(): List<BrowserManager> {
+        return listOf(browserManager)
+    }
 }

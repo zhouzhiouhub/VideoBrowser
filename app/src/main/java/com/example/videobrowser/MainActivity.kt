@@ -52,7 +52,6 @@ import com.example.videobrowser.browser.BrowserKeyboardController
 import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
-import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
@@ -224,9 +223,15 @@ class MainActivity : AppCompatActivity() {
     private val standardTabSessionBinding = BrowserTabSessionBinding(standardTabStore)
     private val privateTabSessionBinding = BrowserTabSessionBinding(privateTabStore)
     private val findInPageController = FindInPageController(
-        findAll = { query -> currentBrowserManager().findAllAsync(query) },
-        findNext = { forward -> currentBrowserManager().findNext(forward) },
-        clearMatches = { currentBrowserManager().clearFindMatches() }
+        findAll = { query ->
+            browserStandardWebViewHostController.currentBrowserManager().findAllAsync(query)
+        },
+        findNext = { forward ->
+            browserStandardWebViewHostController.currentBrowserManager().findNext(forward)
+        },
+        clearMatches = {
+            browserStandardWebViewHostController.currentBrowserManager().clearFindMatches()
+        }
     )
     // endregion
 
@@ -359,7 +364,7 @@ class MainActivity : AppCompatActivity() {
             },
             currentWebViewUrl = {
                 if (browserSessionStateController.areBrowserSessionsInitialized()) {
-                    currentBrowserManager().currentUrl()
+                    browserStandardWebViewHostController.currentBrowserManager().currentUrl()
                 } else {
                     null
                 }
@@ -425,7 +430,9 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             browserControlsShellController = browserControlsShellController,
-            activeWebView = { currentBrowserManager().activeWebView },
+            activeWebView = {
+                browserStandardWebViewHostController.currentBrowserManager().activeWebView
+            },
             browsingModeThemeController = browsingModeThemeController
         )
 
@@ -489,7 +496,9 @@ class MainActivity : AppCompatActivity() {
             pageActionsController = { pageActionsController },
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             currentSessionController = browserSessionStateController::currentSessionController,
-            currentBrowserManager = ::currentBrowserManager,
+            currentBrowserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
             hideKeyboard = browserKeyboardController::hideKeyboard,
             showHomeContent = browserShellUiController::showHomeContent
@@ -552,7 +561,9 @@ class MainActivity : AppCompatActivity() {
                     mimeType = null
                 )
             },
-            currentUserAgent = { currentBrowserManager().userAgentString() },
+            currentUserAgent = {
+                browserStandardWebViewHostController.currentBrowserManager().userAgentString()
+            },
             isShareableUrl = browserUrlStateController::isShareableUrl
         )
         browserActiveWebViewController = BrowserActiveWebViewController(
@@ -593,7 +604,9 @@ class MainActivity : AppCompatActivity() {
         ruleEngine = RuleEngineFactory.create(assets, filesDir)
         externalNavigator = BrowserExternalNavigator(
             activity = this,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             currentPageTitle = {
                 if (browserSessionStateController.areBrowserSessionsInitialized()) {
                     browserSessionStateController.currentSessionController().currentPageTitle
@@ -611,7 +624,9 @@ class MainActivity : AppCompatActivity() {
         browserNavigationController = BrowserNavigationController(
             activity = this,
             ruleEngine = { if (::ruleEngine.isInitialized) ruleEngine else null },
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             sessionController = browserSessionStateController::currentSessionController,
             externalNavigator = externalNavigator,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
@@ -634,7 +649,9 @@ class MainActivity : AppCompatActivity() {
         )
         browserDisplayModeController = BrowserDisplayModeController(
             activity = this,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled,
             isFullscreenModeActive = {
                 areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()
@@ -645,7 +662,9 @@ class MainActivity : AppCompatActivity() {
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
         downloadController = DownloadController(
             activity = this,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             downloadRecordRepository = downloadRecordRepository,
             openNativePlayer = { url, mimeType, userAgentOverride, titleOverride ->
                 nativePlayerEntryController.openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
@@ -655,8 +674,12 @@ class MainActivity : AppCompatActivity() {
         // 页面动作控制器收拢收藏、分享、保存归档、打开原生播放器等“当前页面动作”。
         pageActionsController = PageActionsController(
             activity = this,
-            browserManager = ::currentBrowserManager,
-            browserManagers = ::browserManagers,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
+            browserManagers = {
+                browserStandardWebViewHostController.browserManagers()
+            },
             downloadController = downloadController,
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
@@ -692,7 +715,9 @@ class MainActivity : AppCompatActivity() {
             currentPageTitle = {
                 browserSessionStateController.currentSessionController().currentPageTitle
             },
-            activeWebView = { currentBrowserManager().activeWebView },
+            activeWebView = {
+                browserStandardWebViewHostController.currentBrowserManager().activeWebView
+            },
             launchArchiveExport = pageArchiveExportLauncher::launch
         )
         pagePrintController = PagePrintController(
@@ -701,12 +726,17 @@ class MainActivity : AppCompatActivity() {
             currentPageTitle = {
                 browserSessionStateController.currentSessionController().currentPageTitle
             },
-            activeWebView = { currentBrowserManager().activeWebView }
+            activeWebView = {
+                browserStandardWebViewHostController.currentBrowserManager().activeWebView
+            }
         )
         findInPageDialogController = FindInPageDialogController(
             activity = this,
             findInPageController = findInPageController,
-            setFindResultListener = { listener -> currentBrowserManager().setFindResultListener(listener) },
+            setFindResultListener = { listener ->
+                browserStandardWebViewHostController.currentBrowserManager()
+                    .setFindResultListener(listener)
+            },
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             dp = ::dp
         )
@@ -746,7 +776,9 @@ class MainActivity : AppCompatActivity() {
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
         browserControlsController = BrowserControlsController(
             activity = this,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             topBar = topBar,
             bottomBar = bottomBar,
             addressInput = addressInput,
@@ -890,7 +922,9 @@ class MainActivity : AppCompatActivity() {
             }
         )
         browserWebClientController = BrowserWebClientController(
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             sessionController = browserSessionStateController::currentSessionController,
             resetBackExitConfirmation = {
                 if (::browserBackNavigationController.isInitialized) {
@@ -919,7 +953,9 @@ class MainActivity : AppCompatActivity() {
             decorView = window.decorView,
             standardSessionController = standardSessionController,
             privateSessionController = privateSessionController,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             isPrivateBrowsingActive = { privateBrowsingActive },
             fullscreenChanged = { fullscreen ->
                 browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
@@ -934,7 +970,9 @@ class MainActivity : AppCompatActivity() {
         fullscreenVideoController = FullscreenVideoController(
             activity = this,
             rootView = rootView as ViewGroup,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             settingsManager = { settingsManager },
             chromeClient = { if (areChromeClientsInitialized()) currentChromeClient() else null },
             dp = ::dp
@@ -955,8 +993,12 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             functionCenter = functionCenterController,
             settingsManager = settingsManager,
-            browserManager = ::currentBrowserManager,
-            browserManagers = ::browserManagers,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
+            browserManagers = {
+                browserStandardWebViewHostController.browserManagers()
+            },
             savedPageRepository = savedPageRepository,
             downloadRecordRepository = downloadRecordRepository,
             playbackHistoryRepository = playbackHistoryRepository,
@@ -1024,7 +1066,9 @@ class MainActivity : AppCompatActivity() {
             currentPageUrl = {
                 browserSessionStateController.currentSessionController().currentPageUrl
             },
-            currentWebViewUrl = { currentBrowserManager().currentUrl() },
+            currentWebViewUrl = {
+                browserStandardWebViewHostController.currentBrowserManager().currentUrl()
+            },
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             currentSiteHost = browserUrlStateController::currentSiteHost,
             showCurrentSiteSettingsPage = functionCenterEntryController::showCurrentSiteSettingsPage
@@ -1033,12 +1077,17 @@ class MainActivity : AppCompatActivity() {
         // JS 注入链路：ScriptLoader 读 assets/scripts，JsInjector 组合脚本，PageFeatureCoordinator 判断是否启用。
         jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
-            evaluateJavascript = { script -> currentBrowserManager().evaluateJavascript(script) },
+            evaluateJavascript = { script ->
+                browserStandardWebViewHostController.currentBrowserManager()
+                    .evaluateJavascript(script)
+            },
             ruleEngine = ruleEngine
         )
         pageFeatureCoordinator = PageFeatureCoordinator(
             settingsManager = settingsManager,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             jsInjector = jsInjector,
             currentSiteHost = browserUrlStateController::currentSiteHost,
             currentPageUrl = {
@@ -1047,7 +1096,9 @@ class MainActivity : AppCompatActivity() {
         )
         elementPickerController = ElementPickerController(
             activity = this,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             settingsManager = settingsManager,
             currentSiteHost = browserUrlStateController::currentSiteHost,
             isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
@@ -1074,7 +1125,9 @@ class MainActivity : AppCompatActivity() {
         )
         browserBackNavigationController = BrowserBackNavigationController(
             activity = this,
-            browserManager = ::currentBrowserManager,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
             currentChromeClient = {
                 if (areChromeClientsInitialized()) {
                     currentChromeClient()
@@ -1117,7 +1170,7 @@ class MainActivity : AppCompatActivity() {
         standardBrowserManager.setPrivateBrowsingEnabled(false)
         defaultUserAgent = standardBrowserManager.userAgentString()
         browserDisplayModeController.applyDesktopMode(reload = false)
-        downloadController.attachTo(browserManagers())
+        downloadController.attachTo(browserStandardWebViewHostController.browserManagers())
         browserChromeClientController.setupChromeClient()
         browserFullscreenUiController.setupFullscreenGestureOverlay()
         standardBrowserManager.addJavascriptInterface(
@@ -1151,7 +1204,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onPause() {
         browserStandardTabSessionController.saveStandardTabSession()
-        currentBrowserManager().onPause()
+        browserStandardWebViewHostController.currentBrowserManager().onPause()
         super.onPause()
     }
 
@@ -1162,7 +1215,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
-        currentBrowserManager().onResume()
+        browserStandardWebViewHostController.currentBrowserManager().onResume()
     }
 
     /**
@@ -1226,26 +1279,6 @@ class MainActivity : AppCompatActivity() {
     // region WebView、ChromeClient 和 BrowserClient 组装
     // 这一组函数负责创建 WebView、绑定 WebChromeClient/WebViewClient，
     // 并处理网页弹窗、新窗口、渲染进程退出、证书和 HTTP 认证等浏览器外壳能力。
-    /**
-     * 函数 `currentBrowserManager`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentBrowserManager(): BrowserManager {
-        return browserStandardWebViewHostController.browserManager
-    }
-
-    /**
-     * 函数 `browserManagers`：封装 `browser Managers` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun browserManagers(): List<BrowserManager> {
-        return listOf(browserStandardWebViewHostController.browserManager)
-    }
-
     /**
      * 函数 `currentChromeClient`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
      *
