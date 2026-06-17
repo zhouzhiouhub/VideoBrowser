@@ -27,6 +27,7 @@ description: Project engineering guardrails for VideoBrowser. Use when modifying
 - Read the current file and related modules before editing. Use `rg` or `rg --files` first when searching.
 - Check `git status --short` before edits and preserve unrelated user changes.
 - Make the smallest coherent extraction that reduces file responsibility while keeping behavior unchanged.
+- If the right module boundary, abstraction level, or optimization direction is ambiguous, pause before broad changes and present 2-3 concrete options with tradeoffs. Let the engineer choose the direction before implementing.
 - Add or update focused contract/unit tests when wiring, lifecycle behavior, permissions, request handling, or user-visible flows change.
 - Run relevant verification after changes. For this Android project, prefer `.\gradlew.bat testDebugUnitTest` when Kotlin wiring or behavior changes.
 - Run `git diff --check` before finishing if files were edited.
@@ -42,4 +43,5 @@ description: Project engineering guardrails for VideoBrowser. Use when modifying
 
 - If the direct implementation path keeps growing one large file, stop and modularize first.
 - If there is no clear target module, create a small focused module with explicit responsibilities rather than appending to an entry file.
+- If several reasonable optimization directions exist and choosing one would shape future architecture, stop after explaining the options and wait for the engineer's decision.
 - If modularization could change behavior in a risky way, preserve the old behavior with tests before moving code.
