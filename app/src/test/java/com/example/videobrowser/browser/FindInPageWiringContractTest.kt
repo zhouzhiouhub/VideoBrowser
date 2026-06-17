@@ -85,7 +85,7 @@ class FindInPageWiringContractTest {
         ).readText()
 
         assertTrue(mainActivity.contains("BrowserFindInPageAssemblyController"))
-        assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("browserPageToolEntryController = pageActions.browserPageToolEntryController"))
         assertTrue(findInPageAssembly.contains("FindInPageController("))
         assertTrue(findInPageAssembly.contains("findAllAsync(query)"))

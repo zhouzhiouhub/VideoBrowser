@@ -20,6 +20,9 @@ class MediaRoutingWiringContractTest {
     fun mainActivityRoutesAddressBarAndWebViewOverridesThroughMediaRoutingController() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val source = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"
         ).readText()
@@ -27,7 +30,8 @@ class MediaRoutingWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserClientAssemblyController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("browserNavigationController.loadUrl(url)"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(coreFeatureAssembly.contains("browserNavigationController.loadUrl(url)"))
         assertTrue(browserClientAssembly.contains("shouldBlockUrl = browserNavigationController::shouldBlockUrl"))
         assertTrue(source.contains("MediaRoutingController.route("))
         assertTrue(source.contains("MediaRouteSource.ADDRESS_BAR"))

@@ -73,6 +73,9 @@ class MainActivityLayoutContractTest {
         val startupFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
         ).readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val addressBarStateController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserAddressBarStateController.kt"
         ).readText()
@@ -96,11 +99,10 @@ class MainActivityLayoutContractTest {
         assertTrue(viewBinding.contains("R.id.siteSecurityIcon"))
         assertTrue(mainActivity.contains("private lateinit var browserStartupFeatures: BrowserStartupFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("siteSecurityController = BrowserSiteSecurityAssemblyController"))
-        assertTrue(mainActivity.contains("private lateinit var browserShell: BrowserShellComponents"))
-        assertTrue(mainActivity.contains("browserShellUiController = browserShell.browserShellUiController"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(coreFeatureAssembly.contains("browserShellUiController = browserShell.browserShellUiController"))
         assertTrue(browserShellUiController.contains("siteSecurityController()?.setup()"))
-        assertTrue(mainActivity.contains("private lateinit var browserSearch: BrowserSearchComponents"))
-        assertTrue(mainActivity.contains("browserAddressBarStateController = browserSearch.browserAddressBarStateController"))
+        assertTrue(coreFeatureAssembly.contains("browserAddressBarStateController = browserSearch.browserAddressBarStateController"))
         assertTrue(addressBarStateController.contains("siteSecurityController()?.updateStatus(url)"))
         assertTrue(siteSecurityController.contains("fun updateStatus(url: String?)"))
         assertTrue(siteSecurityController.contains("SiteSecurityStatus.fromUrl(url)"))
@@ -199,6 +201,9 @@ class MainActivityLayoutContractTest {
         val startupFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
         ).readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val keyboardController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserKeyboardController.kt"
         ).readText()
@@ -218,13 +223,12 @@ class MainActivityLayoutContractTest {
         assertTrue(controller.contains("suggestionClient.dispose()"))
         assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
         assertTrue(lifecycleController.contains("addressSuggestionController()?.dispose()"))
-        assertTrue(mainActivity.contains("private lateinit var browserSearch: BrowserSearchComponents"))
-        assertTrue(mainActivity.contains("addressSuggestionController = browserSearch.addressSuggestionController"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(coreFeatureAssembly.contains("addressSuggestionController = browserSearch.addressSuggestionController"))
         assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
         assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
         assertTrue(startupController.contains("addressSuggestionController.setup()"))
-        assertTrue(mainActivity.contains("private lateinit var browserShell: BrowserShellComponents"))
-        assertTrue(mainActivity.contains("hideKeyboard = browserShell.browserKeyboardController::hideKeyboard"))
+        assertTrue(coreFeatureAssembly.contains("hideKeyboard = browserShell.browserKeyboardController::hideKeyboard"))
         assertTrue(keyboardController.contains("addressSuggestionController()?.hide()"))
         assertTrue(strings.contains("address_suggestion_bookmark"))
         assertTrue(readme.contains("收藏夹匹配"))
@@ -249,11 +253,14 @@ class MainActivityLayoutContractTest {
         val pageActionAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserPageActionAssemblyController.kt"
         ).readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
 
         assertTrue(pageActions.contains("private val shouldRecordHistoryUrl: (String?) -> Boolean"))
         assertTrue(pageActions.contains("if (!shouldRecordHistoryUrl(page.url))"))
-        assertTrue(mainActivity.contains("private lateinit var browserSearch: BrowserSearchComponents"))
-        assertTrue(mainActivity.contains("historyRecordPolicy = browserSearch.historyRecordPolicy"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(coreFeatureAssembly.contains("historyRecordPolicy = browserSearch.historyRecordPolicy"))
         assertTrue(pageActionAssembly.contains("shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord"))
         assertTrue(searchAssembly.contains("SearchProviders.defaults.map { provider -> provider.homeUrl }"))
         assertTrue(searchAssembly.contains("settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)"))

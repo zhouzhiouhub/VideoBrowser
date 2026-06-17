@@ -40,6 +40,9 @@ class BrowserTabSessionWiringContractTest {
         val runtimeFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
         ).readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val persistenceAssembly = projectFile(
             "src/main/java/com/example/videobrowser/storage/BrowserPersistenceAssemblyController.kt"
         ).readText()
@@ -48,7 +51,8 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(tabStateAssembly.contains("BrowserTabStore()"))
         assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(standardTabStore)"))
         assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(privateTabStore)"))
-        assertTrue(mainActivity.contains("BrowserPersistenceComponents"))
+        assertTrue(mainActivity.contains("BrowserCoreFeatureComponents"))
+        assertTrue(coreFeatureAssembly.contains("BrowserPersistenceComponents"))
         assertTrue(persistenceAssembly.contains("BrowserTabSessionRepository(preferenceStore)"))
         assertTrue(persistenceAssembly.contains("BrowserStandardTabSessionController("))
         assertTrue(mainActivity.contains("BrowserSessionStateAssemblyController"))

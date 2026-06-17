@@ -36,7 +36,7 @@ class BrowserTabWebViewWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserSurface: BrowserWebViewSurfaceComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
         assertTrue(webViewSurfaceAssembly.contains("browserStandardWebViewHostController.setup()"))
         assertTrue(standardWebViewHostController.contains("BrowserTabWebViewRegistry<WebView>"))
         assertTrue(standardWebViewHostController.contains("fun createStandardTabWebView(): WebView"))
@@ -75,7 +75,7 @@ class BrowserTabWebViewWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserSurface: BrowserWebViewSurfaceComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
         assertTrue(webViewInteractionAssembly.contains("val browserActiveWebViewController = BrowserActiveWebViewController("))
         assertTrue(webViewSurfaceAssembly.contains("webViewInteraction.browserActiveWebViewController::handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("onActiveWebViewChanged = handleActiveWebViewChanged"))

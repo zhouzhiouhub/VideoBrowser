@@ -20,6 +20,9 @@ class ExternalProtocolWiringContractTest {
     fun mainActivityRoutesExternalSchemesDirectlyToExternalNavigator() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val navigationController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"
         ).readText()
@@ -28,8 +31,8 @@ class ExternalProtocolWiringContractTest {
         ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserNavigation: BrowserNavigationComponents"))
-        assertTrue(mainActivity.contains("browserNavigationController = browserNavigation.browserNavigationController"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(coreFeatureAssembly.contains("browserNavigationController = browserNavigation.browserNavigationController"))
         assertTrue(browserClientAssembly.contains("shouldBlockUrl = browserNavigationController::shouldBlockUrl"))
         assertTrue(navigationController.contains("private fun openExternalProtocolNavigation"))
         assertTrue(navigationController.contains("ExternalProtocolPolicy.shouldOpenExternally(uri.scheme)"))

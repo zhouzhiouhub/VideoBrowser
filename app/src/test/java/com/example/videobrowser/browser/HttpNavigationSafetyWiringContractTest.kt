@@ -18,14 +18,17 @@ class HttpNavigationSafetyWiringContractTest {
     @Test
     fun mainActivityConfirmsHttpsToHttpTopLevelNavigation() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val navigationController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"
         ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserNavigation: BrowserNavigationComponents"))
-        assertTrue(mainActivity.contains("browserNavigationController = browserNavigation.browserNavigationController"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(coreFeatureAssembly.contains("browserNavigationController = browserNavigation.browserNavigationController"))
         assertTrue(navigationController.contains("HttpNavigationSafetyPolicy.requiresInsecureNavigationConfirmation"))
         assertTrue(navigationController.contains("private fun loadUrlInternal(url: String, allowInsecureNavigation: Boolean)"))
         assertTrue(navigationController.contains("fun loadUrlAfterInsecureNavigationConfirmation(url: String)"))

@@ -25,6 +25,9 @@ class LinkContextMenuContractTest {
         val webViewSurfaceAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebViewSurfaceAssemblyController.kt"
         ).readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val linkContextMenuController = projectFile(
             "src/main/java/com/example/videobrowser/browser/LinkContextMenuController.kt"
         ).readText()
@@ -41,7 +44,7 @@ class LinkContextMenuContractTest {
         assertTrue(webViewInteractionAssembly.contains("configureLinkContextMenu = linkContextMenuController::configure"))
         assertTrue(activeWebViewController.contains("configureLinkContextMenu(activeWebView)"))
         assertTrue(linkContextMenuController.contains("fun configure(targetWebView: WebView)"))
-        assertTrue(mainActivity.contains("private lateinit var browserSurface: BrowserWebViewSurfaceComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
         assertTrue(webViewSurfaceAssembly.contains("webViewInteraction.linkContextMenuController::configure"))
         assertTrue(linkContextMenuController.contains("targetWebView.setOnLongClickListener"))
         assertTrue(linkContextMenuController.contains("WebView.HitTestResult.SRC_ANCHOR_TYPE"))
@@ -59,7 +62,7 @@ class LinkContextMenuContractTest {
         assertTrue(linkContextMenuController.contains("private fun downloadLinkUrl(url: String)"))
         assertTrue(linkContextMenuController.contains("downloadUrl(url, currentUserAgent())"))
         assertTrue(webViewInteractionAssembly.contains("downloadUrl = downloadUrl"))
-        assertTrue(mainActivity.contains("downloadController.enqueue("))
+        assertTrue(coreFeatureAssembly.contains("downloadController.enqueue("))
         assertTrue(webViewSurfaceAssembly.contains("currentUserAgent = {"))
         assertTrue(webViewSurfaceAssembly.contains("browserStandardWebViewHostController.currentBrowserManager().userAgentString()"))
         assertTrue(linkContextMenuController.contains("ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)"))

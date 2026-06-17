@@ -22,15 +22,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyController
 import com.example.videobrowser.browser.BrowserChromeClientStateAssemblyController
+import com.example.videobrowser.browser.BrowserCoreFeatureAssemblyController
+import com.example.videobrowser.browser.BrowserCoreFeatureComponents
 import com.example.videobrowser.browser.BrowserFindInPageAssemblyController
-import com.example.videobrowser.browser.BrowserNavigationAssemblyController
-import com.example.videobrowser.browser.BrowserNavigationComponents
-import com.example.videobrowser.browser.BrowserPageActionAssemblyController
-import com.example.videobrowser.browser.BrowserPageActionComponents
 import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateController
-import com.example.videobrowser.browser.BrowserShellAssemblyController
-import com.example.videobrowser.browser.BrowserShellComponents
 import com.example.videobrowser.browser.BrowserStartupFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserStartupFeatureComponents
 import com.example.videobrowser.browser.BrowserTabStateAssemblyController
@@ -38,16 +34,8 @@ import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserRuntimeFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserRuntimeFeatureComponents
 import com.example.videobrowser.browser.BrowserWebViewDebugController
-import com.example.videobrowser.browser.BrowserWebViewSurfaceAssemblyController
-import com.example.videobrowser.browser.BrowserWebViewSurfaceComponents
 import com.example.videobrowser.browser.BrowserRuntimeStateController
-import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
-import com.example.videobrowser.browser.search.BrowserSearchComponents
-import com.example.videobrowser.localfiles.LocalFileAssemblyController
-import com.example.videobrowser.localfiles.LocalFileComponents
 import com.example.videobrowser.settings.SessionSitePermissionStore
-import com.example.videobrowser.storage.BrowserPersistenceAssemblyController
-import com.example.videobrowser.storage.BrowserPersistenceComponents
 
 /**
  * VideoBrowser 的主 Activity。
@@ -66,13 +54,7 @@ class MainActivity : AppCompatActivity() {
     // region 应用级控制器和仓库
     // Repository 负责读写本机数据；Controller 负责连接 UI、WebView 和业务动作。
     // 这些 lateinit 属性会在 onCreate() 里按依赖顺序初始化。
-    private lateinit var browserPersistence: BrowserPersistenceComponents
-    private lateinit var browserSurface: BrowserWebViewSurfaceComponents
-    private lateinit var browserShell: BrowserShellComponents
-    private lateinit var localFiles: LocalFileComponents
-    private lateinit var pageActions: BrowserPageActionComponents
-    private lateinit var browserSearch: BrowserSearchComponents
-    private lateinit var browserNavigation: BrowserNavigationComponents
+    private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents
     private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents
     private lateinit var browserStartupFeatures: BrowserStartupFeatureComponents
     private val browserChromeClientStateController = BrowserChromeClientStateAssemblyController(
@@ -100,13 +82,25 @@ class MainActivity : AppCompatActivity() {
             }
         },
         pageArchiveController = {
-            if (::pageActions.isInitialized) pageActions.pageArchiveController else null
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.pageActions.pageArchiveController
+            } else {
+                null
+            }
         },
         addressSuggestionController = {
-            if (::browserSearch.isInitialized) browserSearch.addressSuggestionController else null
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.browserSearch.addressSuggestionController
+            } else {
+                null
+            }
         },
         downloadController = {
-            if (::pageActions.isInitialized) pageActions.downloadController else null
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.pageActions.downloadController
+            } else {
+                null
+            }
         },
         elementPickerController = {
             if (::browserStartupFeatures.isInitialized) {
@@ -124,21 +118,25 @@ class MainActivity : AppCompatActivity() {
         },
         browserChromeClientStateController = browserChromeClientStateController,
         browserStandardTabSessionController = {
-            if (::browserPersistence.isInitialized) {
-                browserPersistence.browserStandardTabSessionController
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.browserPersistence.browserStandardTabSessionController
             } else {
                 null
             }
         },
         browserStandardWebViewHostController = {
-            if (::browserSurface.isInitialized) {
-                browserSurface.browserStandardWebViewHostController
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.browserSurface.browserStandardWebViewHostController
             } else {
                 null
             }
         },
         browserLaunchController = {
-            if (::browserNavigation.isInitialized) browserNavigation.browserLaunchController else null
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.browserNavigation.browserLaunchController
+            } else {
+                null
+            }
         }
     ).create()
     // endregion
@@ -147,18 +145,22 @@ class MainActivity : AppCompatActivity() {
     // 标准模式和无痕模式各有自己的标签页列表，避免无痕页面写入普通会话。
     private val browserTabState = BrowserTabStateAssemblyController().create()
     private val findInPageController = BrowserFindInPageAssemblyController(
-        browserStandardWebViewHostController = { browserSurface.browserStandardWebViewHostController }
+        browserStandardWebViewHostController = {
+            browserCoreFeatures.browserSurface.browserStandardWebViewHostController
+        }
     ).create()
     // endregion
 
     // region 网页内容增强和拦截
     // 请求拦截提供器内部使用 lazy，确保规则引擎和设置管理器完成初始化后才创建拦截对象。
     private val requestInterceptionProvider = BrowserRequestInterceptionProvider(
-        browserFeatureStateController = { browserShell.browserFeatureStateController },
-        settingsManager = { browserPersistence.settingsManager },
+        browserFeatureStateController = {
+            browserCoreFeatures.browserShell.browserFeatureStateController
+        },
+        settingsManager = { browserCoreFeatures.browserPersistence.settingsManager },
         browserSessionStateController = { browserSessionStateController },
-        browserUrlStateController = { browserShell.browserUrlStateController },
-        ruleEngine = { browserNavigation.ruleEngine }
+        browserUrlStateController = { browserCoreFeatures.browserShell.browserUrlStateController },
+        ruleEngine = { browserCoreFeatures.browserNavigation.ruleEngine }
     )
     // endregion
 
@@ -174,14 +176,18 @@ class MainActivity : AppCompatActivity() {
             }
         },
         bookmarkImportExportController = {
-            if (::browserPersistence.isInitialized) {
-                browserPersistence.bookmarkImportExportController
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.browserPersistence.bookmarkImportExportController
             } else {
                 null
             }
         },
         pageArchiveController = {
-            if (::pageActions.isInitialized) pageActions.pageArchiveController else null
+            if (::browserCoreFeatures.isInitialized) {
+                browserCoreFeatures.pageActions.pageArchiveController
+            } else {
+                null
+            }
         },
         webPermissionRequestController = {
             if (::browserRuntimeFeatures.isInitialized) {
@@ -249,220 +255,47 @@ class MainActivity : AppCompatActivity() {
 
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
-        browserShell = BrowserShellAssemblyController(
-            activity = this,
-            views = views,
-            settingsManager = { browserPersistence.settingsManager },
-            pageFeatureCoordinator = { browserStartupFeatures.pageFeatures.pageFeatureCoordinator },
-            optionalPageFeatureCoordinator = {
-                if (::browserStartupFeatures.isInitialized) {
-                    browserStartupFeatures.pageFeatures.pageFeatureCoordinator
-                } else {
-                    null
-                }
-            },
-            browserStandardWebViewHostController = {
-                browserSurface.browserStandardWebViewHostController
-            },
-            browserSessionStateController = browserSessionStateController,
-            browserControlsController = {
-                if (::browserRuntimeFeatures.isInitialized) {
-                    browserRuntimeFeatures.browserControls.browserControlsController
-                } else {
-                    null
-                }
-            },
-            browserControlsScrollController = {
-                if (::browserRuntimeFeatures.isInitialized) {
-                    browserRuntimeFeatures.browserControls.browserControlsScrollController
-                } else {
-                    null
-                }
-            },
-            searchProviderController = {
-                if (::browserSearch.isInitialized) browserSearch.searchProviderController else null
-            },
-            addressSuggestionController = {
-                if (::browserSearch.isInitialized) browserSearch.addressSuggestionController else null
-            },
-            siteSecurityController = {
-                if (::browserStartupFeatures.isInitialized) {
-                    browserStartupFeatures.siteSecurityController
-                } else {
-                    null
-                }
-            },
-            isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
-            isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
-            isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
-            dp = ::dp
-        ).create()
-
-        // 本地持久化层：设置、收藏/历史、标签会话、下载记录和播放历史都放在 SharedPreferences。
-        browserPersistence = BrowserPersistenceAssemblyController(
-            activity = this,
-            filesDir = filesDir,
-            standardTabStore = browserTabState.standardTabStore,
-            browserShellUiController = browserShell.browserShellUiController,
-            browserFeatureStateController = browserShell.browserFeatureStateController,
-            browserUrlStateController = browserShell.browserUrlStateController,
-            browserSessionStateController = browserSessionStateController
-        ).create()
-
-        // 本地文件模块负责选择目录、读取文件列表，并把可播放文件交给浏览器或原生播放器。
-        localFiles = LocalFileAssemblyController(
-            activity = this,
-            preferenceStore = browserPersistence.preferenceStore,
-            functionCenter = browserShell.functionCenterController,
-            logTag = RULE_LOG_TAG,
-            showMainFunctionCenterPage = {
-                browserStartupFeatures.functionCenterEntryController.showFunctionCenterRootPage()
-            },
-            pageActionsController = { pageActions.pageActionsController },
-            closeFunctionCenter = {
-                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
-            },
-            currentSessionController = browserSessionStateController::currentSessionController,
-            currentBrowserManager = {
-                browserSurface.browserStandardWebViewHostController.currentBrowserManager()
-            },
-            updateAddressBar = { url ->
-                browserSearch.browserAddressBarStateController.updateAddressBar(url)
-            },
-            hideKeyboard = browserShell.browserKeyboardController::hideKeyboard,
-            showHomeContent = browserShell.browserShellUiController::showHomeContent
-        ).create()
-
-        // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
-        browserSearch = BrowserSearchAssemblyController(
-            activity = this,
-            providerScroll = views.searchProviderScroll,
-            providerList = views.searchProviderList,
-            addressInput = views.addressInput,
-            addressProviderBadge = views.addressProviderBadge,
-            addressSuggestionPanel = views.addressSuggestionPanel,
-            settingsManager = browserPersistence.settingsManager,
-            savedPageRepository = browserPersistence.savedPageRepository,
-            siteSecurityController = {
-                if (::browserStartupFeatures.isInitialized) {
-                    browserStartupFeatures.siteSecurityController
-                } else {
-                    null
-                }
-            },
-            dp = ::dp,
-            isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
-            isPrivateBrowsingEnabled = browserShell.browserFeatureStateController::isPrivateBrowsingEnabled,
-            areBrowserControlsHidden = {
-                ::browserRuntimeFeatures.isInitialized &&
-                    browserRuntimeFeatures.browserControls.browserControlsController.areHidden
-            },
-            isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
-            openProviderHome = { browserNavigation.browserLaunchController.openHomePage() },
-            openCustomShortcut = { url -> browserNavigation.browserNavigationController.loadUrl(url) },
-            openUrl = { url -> browserNavigation.browserNavigationController.loadUrl(url) },
-            searchKeyword = { keyword ->
-                browserNavigation.browserLaunchController.searchAddressKeyword(keyword)
-            }
-        ).create()
-        browserSurface = BrowserWebViewSurfaceAssemblyController(
-            activity = this,
-            views = views,
-            standardTabStore = browserTabState.standardTabStore,
-            setPrivateBrowsingActive = browserRuntimeStateController::setPrivateBrowsingActive,
-            openUrlInNewTab = { url ->
-                browserRuntimeFeatures.browserSessions.browserTabActionsController.openUrlInNewTab(url)
-            },
-            downloadUrl = { url, userAgent ->
-                pageActions.downloadController.enqueue(
-                    url = url,
-                    userAgent = userAgent,
-                    contentDisposition = null,
-                    mimeType = null
-                )
-            },
-            isShareableUrl = browserShell.browserUrlStateController::isShareableUrl,
-            attachBrowserControlsScrollIfReady = { activeWebView ->
-                if (::browserRuntimeFeatures.isInitialized) {
-                    browserRuntimeFeatures.browserControls.browserControlsScrollController
-                        .attachToWebView(activeWebView)
-                }
-            },
-            syncCurrentChromeClientIfReady =
-                browserChromeClientStateController::syncCurrentChromeClientIfReady,
-            updatePrivateBrowsingUi = browserShell.browsingModeThemeController::updatePrivateBrowsingUi,
-            syncSearchProviderVisibility =
-                browserShell.browserControlsShellController::syncSearchProviderVisibility,
-            applyBrowsingModeTheme = browserShell.browsingModeThemeController::applyBrowsingModeTheme,
-            areBrowserSessionsInitialized =
-                browserSessionStateController::areBrowserSessionsInitialized,
-            currentSessionController = browserSessionStateController::currentSessionController
-        ).create()
-        localFiles.localDocumentEntryController.setupFileOperationLaunchers()
-
-        // 规则引擎读取 assets/rules 和用户订阅缓存，供广告拦截、URL 清理、脚本注入使用。
-        browserNavigation = BrowserNavigationAssemblyController(
+        browserCoreFeatures = BrowserCoreFeatureAssemblyController(
             activity = this,
             assets = assets,
             filesDir = filesDir,
-            settingsManager = browserPersistence.settingsManager,
-            addressInput = views.addressInput,
-            standardTabStore = browserTabState.standardTabStore,
-            browserStandardWebViewHostController = browserSurface.browserStandardWebViewHostController,
+            views = views,
+            browserTabState = browserTabState,
             browserSessionStateController = browserSessionStateController,
-            browserUrlStateController = browserShell.browserUrlStateController,
-            browserFeatureStateController = browserShell.browserFeatureStateController,
-            browserAddressBarStateController = browserSearch.browserAddressBarStateController,
-            browserKeyboardController = browserShell.browserKeyboardController,
-            browserShellUiController = browserShell.browserShellUiController,
+            browserRuntimeStateController = browserRuntimeStateController,
             browserChromeClientStateController = browserChromeClientStateController,
-            addressSuggestionController = browserSearch.addressSuggestionController,
-            searchProviderController = browserSearch.searchProviderController,
-            closeFunctionCenter = {
-                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
-            },
-            defaultUserAgent = browserRuntimeStateController::defaultUserAgent
-        ).create()
-
-        // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
-        pageActions = BrowserPageActionAssemblyController(
-            activity = this,
-            downloadRecordRepository = browserPersistence.downloadRecordRepository,
-            settingsManager = browserPersistence.settingsManager,
-            savedPageRepository = browserPersistence.savedPageRepository,
-            browserDefaultSettingsResetter = browserPersistence.browserDefaultSettingsResetter,
-            browserStandardWebViewHostController = browserSurface.browserStandardWebViewHostController,
-            browserSessionStateController = browserSessionStateController,
-            browserUrlStateController = browserShell.browserUrlStateController,
-            historyRecordPolicy = browserSearch.historyRecordPolicy,
-            nativePlayerEntryController = browserNavigation.nativePlayerEntryController,
-            localDocumentEntryController = localFiles.localDocumentEntryController,
-            browserFeatureStateController = browserShell.browserFeatureStateController,
-            switchPrivateBrowsing = { enabled ->
-                browserRuntimeFeatures.browserSessions.privateBrowsingSwitchController
-                    .setPrivateBrowsingActive(enabled)
-            },
-            browserShellUiController = browserShell.browserShellUiController,
-            browsingModeThemeController = browserShell.browsingModeThemeController,
+            requestInterceptionProvider = requestInterceptionProvider,
             activityResultLaunchers = activityResultLaunchers,
             findInPageController = findInPageController,
-            browserNavigationController = browserNavigation.browserNavigationController,
-            closeFunctionCenter = {
-                browserStartupFeatures.functionCenterEntryController.closeFunctionCenter()
+            browserRuntimeFeatures = {
+                if (::browserRuntimeFeatures.isInitialized) {
+                    browserRuntimeFeatures
+                } else {
+                    null
+                }
             },
+            browserStartupFeatures = {
+                if (::browserStartupFeatures.isInitialized) {
+                    browserStartupFeatures
+                } else {
+                    null
+                }
+            },
+            logTag = RULE_LOG_TAG,
             recreateActivity = { recreate() },
             dp = ::dp
         ).create()
+
         browserRuntimeFeatures = BrowserRuntimeFeatureAssemblyController(
             activity = this,
             views = views,
             decorView = window.decorView,
-            browserPersistence = browserPersistence,
-            browserSurface = browserSurface,
-            browserShell = browserShell,
-            browserSearch = browserSearch,
-            browserNavigation = browserNavigation,
-            pageActions = pageActions,
+            browserPersistence = browserCoreFeatures.browserPersistence,
+            browserSurface = browserCoreFeatures.browserSurface,
+            browserShell = browserCoreFeatures.browserShell,
+            browserSearch = browserCoreFeatures.browserSearch,
+            browserNavigation = browserCoreFeatures.browserNavigation,
+            pageActions = browserCoreFeatures.pageActions,
             browserTabState = browserTabState,
             sessionSitePermissionStore = sessionSitePermissionStore,
             browserSessionStateController = browserSessionStateController,
@@ -488,18 +321,18 @@ class MainActivity : AppCompatActivity() {
             assets = assets,
             filesDir = filesDir,
             views = views,
-            browserPersistence = browserPersistence,
-            browserSurface = browserSurface,
-            browserShell = browserShell,
+            browserPersistence = browserCoreFeatures.browserPersistence,
+            browserSurface = browserCoreFeatures.browserSurface,
+            browserShell = browserCoreFeatures.browserShell,
             browserSessions = browserRuntimeFeatures.browserSessions,
-            browserSearch = browserSearch,
-            browserNavigation = browserNavigation,
-            pageActions = pageActions,
+            browserSearch = browserCoreFeatures.browserSearch,
+            browserNavigation = browserCoreFeatures.browserNavigation,
+            pageActions = browserCoreFeatures.pageActions,
             browserClients = browserRuntimeFeatures.browserClients,
             browserFullscreen = browserRuntimeFeatures.browserFullscreen,
             requestInterceptionProvider = requestInterceptionProvider,
             activityResultLaunchers = activityResultLaunchers,
-            localFiles = localFiles,
+            localFiles = browserCoreFeatures.localFiles,
             browserSessionStateController = browserSessionStateController,
             browserRuntimeStateController = browserRuntimeStateController,
             browserChromeClientStateController = browserChromeClientStateController,

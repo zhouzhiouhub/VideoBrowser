@@ -59,7 +59,7 @@ class PrintPageWiringContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("browserPageToolEntryController = pageActions.browserPageToolEntryController"))
         assertTrue(pageToolEntryController.contains("pagePrintController.printCurrentPage()"))
         assertTrue(pagePrintController.contains("PrintManager"))
