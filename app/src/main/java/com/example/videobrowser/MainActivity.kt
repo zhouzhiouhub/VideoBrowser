@@ -18,17 +18,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.HorizontalScrollView
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleAssemblyController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
@@ -132,26 +123,7 @@ class MainActivity : AppCompatActivity() {
 
     // region 视图引用
     // views 来自 MainActivityViews.bind(this)，集中保存 activity_main.xml 中的控件。
-    // 下面这些只读属性是为了让主流程代码更短，例如直接写 addressInput 而不是 views.addressInput。
     private lateinit var views: MainActivityViews
-    private val rootView: View get() = views.rootView
-    private val topBar: View get() = views.topBar
-    private val bottomBar: ConstraintLayout get() = views.bottomBar
-    private val addressInput: EditText get() = views.addressInput
-    private val pageProgress: ProgressBar get() = views.pageProgress
-    private val addressSuggestionPanel: LinearLayout get() = views.addressSuggestionPanel
-    private val searchProviderScroll: HorizontalScrollView get() = views.searchProviderScroll
-    private val searchProviderList: LinearLayout get() = views.searchProviderList
-    private val webViewContainer: FrameLayout get() = views.webViewContainer
-    private val pageToolsButton: ImageButton get() = views.pageToolsButton
-    private val wenxinButton: ImageButton get() = views.wenxinButton
-    private val profileButton: ImageButton get() = views.profileButton
-    private val backButton: ImageButton get() = views.backButton
-    private val refreshButton: ImageButton get() = views.refreshButton
-    private val bookmarkButton: ImageButton get() = views.bookmarkButton
-    private val loadButton: ImageButton get() = views.loadButton
-    private val siteSecurityIcon: ImageView get() = views.siteSecurityIcon
-    private val fullscreenContainer: FrameLayout get() = views.fullscreenContainer
     // endregion
 
     // region 应用级控制器和仓库
@@ -444,11 +416,11 @@ class MainActivity : AppCompatActivity() {
         // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
         val browserSearchComponents = BrowserSearchAssemblyController(
             activity = this,
-            providerScroll = searchProviderScroll,
-            providerList = searchProviderList,
-            addressInput = addressInput,
+            providerScroll = views.searchProviderScroll,
+            providerList = views.searchProviderList,
+            addressInput = views.addressInput,
             addressProviderBadge = views.addressProviderBadge,
-            addressSuggestionPanel = addressSuggestionPanel,
+            addressSuggestionPanel = views.addressSuggestionPanel,
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
             siteSecurityController = {
@@ -523,7 +495,7 @@ class MainActivity : AppCompatActivity() {
             assets = assets,
             filesDir = filesDir,
             settingsManager = settingsManager,
-            addressInput = addressInput,
+            addressInput = views.addressInput,
             standardTabStore = standardTabStore,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             browserSessionStateController = browserSessionStateController,
@@ -661,9 +633,9 @@ class MainActivity : AppCompatActivity() {
         browserTabActionsController = browserSessionComponents.browserTabActionsController
         val browserClientComponents = BrowserClientAssemblyController(
             activity = this,
-            fullscreenContainer = fullscreenContainer,
+            fullscreenContainer = views.fullscreenContainer,
             decorView = window.decorView,
-            webViewContainer = webViewContainer,
+            webViewContainer = views.webViewContainer,
             standardTabStore = standardTabStore,
             standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
@@ -712,7 +684,7 @@ class MainActivity : AppCompatActivity() {
 
         val browserFullscreenComponents = BrowserFullscreenAssemblyController(
             activity = this,
-            rootView = rootView as ViewGroup,
+            rootView = views.rootView as ViewGroup,
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
@@ -762,7 +734,7 @@ class MainActivity : AppCompatActivity() {
 
         siteSecurityController = BrowserSiteSecurityAssemblyController(
             activity = this,
-            siteSecurityIcon = siteSecurityIcon,
+            siteSecurityIcon = views.siteSecurityIcon,
             settingsManager = settingsManager,
             browserSessionStateController = browserSessionStateController,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
@@ -805,7 +777,7 @@ class MainActivity : AppCompatActivity() {
         ).create()
 
         BrowserStartupControllerAssembly(
-            rootView = rootView,
+            rootView = views.rootView,
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             browserControlsShellController = browserControlsShellController,
             addressSuggestionController = addressSuggestionController,
