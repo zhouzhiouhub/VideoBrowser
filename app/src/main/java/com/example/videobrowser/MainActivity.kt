@@ -62,6 +62,7 @@ import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateController
+import com.example.videobrowser.browser.BrowserShellAssemblyController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
@@ -379,41 +380,16 @@ class MainActivity : AppCompatActivity() {
 
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
-        browserKeyboardController = BrowserKeyboardController(
-            context = this,
-            addressInput = addressInput,
-            addressSuggestionController = {
-                if (::addressSuggestionController.isInitialized) addressSuggestionController else null
-            }
-        )
-        pageFeatureInjectionController = PageFeatureInjectionController(
-            pageFeatureCoordinator = {
-                if (::pageFeatureCoordinator.isInitialized) pageFeatureCoordinator else null
-            }
-        )
-        functionCenterController = FunctionCenterController(this, rootView, ::dp)
-        browserFeatureStateController = BrowserFeatureStateController(
+        val browserShellComponents = BrowserShellAssemblyController(
+            activity = this,
+            views = views,
             settingsManager = { settingsManager },
             pageFeatureCoordinator = { pageFeatureCoordinator },
-            isPrivateBrowsingActive = { privateBrowsingActive }
-        )
-        browserUrlStateController = BrowserUrlStateController(
-            currentPageUrl = {
-                if (browserSessionStateController.areBrowserSessionsInitialized()) {
-                    browserSessionStateController.currentSessionController().currentPageUrl
-                } else {
-                    null
-                }
+            optionalPageFeatureCoordinator = {
+                if (::pageFeatureCoordinator.isInitialized) pageFeatureCoordinator else null
             },
-            currentWebViewUrl = {
-                if (browserSessionStateController.areBrowserSessionsInitialized()) {
-                    browserStandardWebViewHostController.currentBrowserManager().currentUrl()
-                } else {
-                    null
-                }
-            }
-        )
-        browserControlsShellController = BrowserControlsShellController(
+            browserStandardWebViewHostController = { browserStandardWebViewHostController },
+            browserSessionStateController = browserSessionStateController,
             browserControlsController = {
                 if (::browserControlsController.isInitialized) browserControlsController else null
             },
@@ -430,54 +406,26 @@ class MainActivity : AppCompatActivity() {
             addressSuggestionController = {
                 if (::addressSuggestionController.isInitialized) addressSuggestionController else null
             },
-            isPageLoading = {
-                if (browserSessionStateController.areBrowserSessionsInitialized()) {
-                    browserSessionStateController.currentSessionController().isPageLoading
-                } else {
-                    false
-                }
-            },
-            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
-            isHomePageVisible = { isHomePageVisible }
-        )
-        browsingModeThemeController = BrowsingModeThemeController(
-            activity = this,
-            views = views,
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            currentPageUrl = {
-                if (browserSessionStateController.areBrowserSessionsInitialized()) {
-                    browserSessionStateController.currentSessionController().currentPageUrl
-                } else {
-                    null
-                }
-            },
-            updateSiteSecurityStatus = { url ->
-                if (::siteSecurityController.isInitialized) {
-                    siteSecurityController.updateStatus(url)
-                }
-            },
-            dp = ::dp
-        )
-        browserShellUiController = BrowserShellUiController(
-            browserControlsController = {
-                if (::browserControlsController.isInitialized) browserControlsController else null
-            },
             siteSecurityController = {
-                if (::siteSecurityController.isInitialized) siteSecurityController else null
-            },
-            browserControlsScrollController = {
-                if (::browserControlsScrollController.isInitialized) {
-                    browserControlsScrollController
+                if (::siteSecurityController.isInitialized) {
+                    siteSecurityController
                 } else {
                     null
                 }
             },
-            browserControlsShellController = browserControlsShellController,
-            activeWebView = {
-                browserStandardWebViewHostController.currentBrowserManager().activeWebView
-            },
-            browsingModeThemeController = browsingModeThemeController
-        )
+            isPrivateBrowsingActive = { privateBrowsingActive },
+            isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
+            isHomePageVisible = { isHomePageVisible },
+            dp = ::dp
+        ).create()
+        browserKeyboardController = browserShellComponents.browserKeyboardController
+        pageFeatureInjectionController = browserShellComponents.pageFeatureInjectionController
+        functionCenterController = browserShellComponents.functionCenterController
+        browserFeatureStateController = browserShellComponents.browserFeatureStateController
+        browserUrlStateController = browserShellComponents.browserUrlStateController
+        browserControlsShellController = browserShellComponents.browserControlsShellController
+        browsingModeThemeController = browserShellComponents.browsingModeThemeController
+        browserShellUiController = browserShellComponents.browserShellUiController
 
         // 本地持久化层：设置、收藏/历史、标签会话、下载记录和播放历史都放在 SharedPreferences。
         val persistenceComponents = BrowserPersistenceAssemblyController(
