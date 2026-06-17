@@ -54,24 +54,25 @@ class WebViewNewWindowContractTest {
     fun mainActivityRoutesNewWindowsIntoStandardTabsAndClosesRequestedPopupTabs() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val chromeClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserChromeClientController.kt"
+        ).readText()
         val webWindowController = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebWindowController.kt"
         ).readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("import android.os.Message"))
-        assertTrue(mainActivity.contains("newWindowRequested = ::handleCreateWebWindow"))
-        assertTrue(mainActivity.contains("windowClosed = ::handleCloseWebWindow"))
-        assertTrue(mainActivity.contains("private fun handleCreateWebWindow"))
+        assertTrue(mainActivity.contains("private lateinit var browserChromeClientController: BrowserChromeClientController"))
+        assertTrue(chromeClientController.contains("newWindowRequested = webWindowController::handleCreateWebWindow"))
+        assertTrue(chromeClientController.contains("windowClosed = webWindowController::handleCloseWebWindow"))
+        assertTrue(chromeClientController.contains("private fun createChromeClient"))
         assertTrue(mainActivity.contains("private lateinit var webWindowController: WebWindowController"))
-        assertTrue(mainActivity.contains("webWindowController.handleCreateWebWindow(view, isDialog, isUserGesture, resultMsg)"))
         assertTrue(webWindowController.contains("if (isPrivateBrowsingActive() || !isUserGesture)"))
         assertTrue(webWindowController.contains("val tab = standardTabStore.openTab()"))
         assertTrue(webWindowController.contains("val tabWebView = standardTabWebViews.activate(tab.id)"))
         assertTrue(webWindowController.contains("as? WebView.WebViewTransport"))
         assertTrue(webWindowController.contains("transport.webView = tabWebView"))
         assertTrue(webWindowController.contains("resultMsg.sendToTarget()"))
-        assertTrue(mainActivity.contains("private fun handleCloseWebWindow(window: WebView?)"))
         assertTrue(webWindowController.contains("standardTabWebViews.tabIdFor(window)"))
         assertTrue(webWindowController.contains("closeTab(tabId)"))
         assertTrue(readme.contains("网页弹窗标签可响应关闭请求"))

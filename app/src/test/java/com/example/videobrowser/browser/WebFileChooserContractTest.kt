@@ -37,6 +37,9 @@ class WebFileChooserContractTest {
     fun mainActivityLaunchesSystemPickerAndReturnsChosenFilesToWebView() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val chromeClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserChromeClientController.kt"
+        ).readText()
         val fileChooserController = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebFileChooserController.kt"
         ).readText()
@@ -47,10 +50,10 @@ class WebFileChooserContractTest {
         assertTrue(fileChooserController.contains("pendingFileChooserCallback: ValueCallback<Array<Uri>>?"))
         assertTrue(fileChooserController.contains("FileChooserParams.parseResult"))
         assertTrue(fileChooserController.contains("pendingFileChooserCallback?.onReceiveValue"))
-        assertTrue(mainActivity.contains("showWebFileChooser"))
-        assertTrue(mainActivity.contains("webFileChooserController.showFileChooser(filePathCallback, fileChooserParams)"))
-        assertTrue(mainActivity.contains("fileChooserRequested = ::showWebFileChooser"))
-        assertTrue(mainActivity.contains("cancelPendingWebFileChooser()"))
+        assertTrue(chromeClientController.contains("fileChooserRequested = webFileChooserController::showFileChooser"))
+        assertTrue(chromeClientController.contains("fun cancelPendingWebFileChooser()"))
+        assertTrue(chromeClientController.contains("webFileChooserController.cancelPending()"))
+        assertTrue(mainActivity.contains("browserChromeClientController.cancelPendingWebFileChooser()"))
         assertTrue(fileChooserController.contains("R.string.toast_file_chooser_unavailable"))
     }
 

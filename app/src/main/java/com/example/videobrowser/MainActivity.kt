@@ -20,18 +20,13 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.Message
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.webkit.ClientCertRequest
-import android.webkit.GeolocationPermissions
 import android.webkit.HttpAuthHandler
-import android.webkit.PermissionRequest
-import android.webkit.ValueCallback
 import android.webkit.WebView
-import android.webkit.WebChromeClient.FileChooserParams
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
@@ -50,6 +45,7 @@ import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserClient
+import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsShellController
@@ -213,8 +209,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
-    private lateinit var standardChromeClient: ChromeClient
-    private lateinit var privateChromeClient: ChromeClient
+    private lateinit var browserChromeClientController: BrowserChromeClientController
     private lateinit var externalNavigator: BrowserExternalNavigator
     private lateinit var nativePlayerEntryController: NativePlayerEntryController
     // endregion
@@ -783,6 +778,20 @@ class MainActivity : AppCompatActivity() {
             saveStandardTabSession = ::saveStandardTabSession,
             closeTab = browserTabActionsController::closeTab
         )
+        browserChromeClientController = BrowserChromeClientController(
+            activity = this,
+            fullscreenContainer = fullscreenContainer,
+            decorView = window.decorView,
+            standardSessionController = standardSessionController,
+            privateSessionController = privateSessionController,
+            browserManager = ::currentBrowserManager,
+            isPrivateBrowsingActive = { privateBrowsingActive },
+            fullscreenChanged = ::handleVideoFullscreenChanged,
+            webFileChooserController = webFileChooserController,
+            webPermissionRequestController = webPermissionRequestController,
+            geolocationPermissionController = geolocationPermissionController,
+            webWindowController = webWindowController
+        )
 
         // 网页全屏视频控制器处理 WebChromeClient 自定义视图和网页视频手势协议。
         fullscreenVideoController = FullscreenVideoController(
@@ -953,7 +962,7 @@ class MainActivity : AppCompatActivity() {
         defaultUserAgent = standardBrowserManager.userAgentString()
         applyDesktopMode(reload = false)
         setupDownloadHandling()
-        setupChromeClient()
+        browserChromeClientController.setupChromeClient()
         setupFullscreenGestureOverlay()
         standardBrowserManager.addJavascriptInterface(
             nativeBridgeController.createNativeBridge(),
@@ -1020,9 +1029,11 @@ class MainActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     override fun onDestroy() {
-        cancelPendingWebFileChooser()
-        cancelPendingWebPermissionRequest()
-        cancelPendingGeolocationPermissionPrompt()
+        if (::browserChromeClientController.isInitialized) {
+            browserChromeClientController.cancelPendingWebFileChooser()
+            browserChromeClientController.cancelPendingWebPermissionRequest()
+            browserChromeClientController.cancelPendingGeolocationPermissionPrompt()
+        }
         cancelPendingHttpAuthRequest()
         cancelPendingClientCertRequest()
         if (::pageArchiveController.isInitialized) {
@@ -1229,7 +1240,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun currentChromeClient(): ChromeClient {
-        return if (privateBrowsingActive) privateChromeClient else standardChromeClient
+        return browserChromeClientController.currentChromeClient()
     }
 
     /**
@@ -1239,7 +1250,8 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun areChromeClientsInitialized(): Boolean {
-        return ::standardChromeClient.isInitialized && ::privateChromeClient.isInitialized
+        return ::browserChromeClientController.isInitialized &&
+            browserChromeClientController.areChromeClientsInitialized()
     }
 
     /**
@@ -1255,8 +1267,8 @@ class MainActivity : AppCompatActivity() {
         if (::browserControlsScrollController.isInitialized) {
             browserControlsScrollController.attachToWebView(activeWebView)
         }
-        if (areChromeClientsInitialized()) {
-            currentBrowserManager().setChromeClient(currentChromeClient())
+        if (::browserChromeClientController.isInitialized) {
+            browserChromeClientController.syncCurrentChromeClient()
         }
         updatePrivateBrowsingUi()
         browserControlsShellController.syncSearchProviderVisibility()
@@ -1274,73 +1286,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupBrowserControls() {
         browserControlsController.setup()
         siteSecurityController.setup()
-    }
-
-    /**
-     * 函数 `setupChromeClient`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupChromeClient() {
-        standardChromeClient = createChromeClient(standardSessionController)
-        privateChromeClient = createChromeClient(privateSessionController)
-        currentBrowserManager().setChromeClient(currentChromeClient())
-    }
-
-    /**
-     * 函数 `createChromeClient`：创建 `create Chrome Client` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param sessionController 参数类型为 `BrowserSessionController`，表示函数执行 `sessionController` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createChromeClient(sessionController: BrowserSessionController): ChromeClient {
-        return ChromeClient(
-            activity = this,
-            fullscreenContainer = fullscreenContainer,
-            decorView = window.decorView,
-            progressChanged = sessionController::handlePageProgressChanged,
-            titleReceived = sessionController::handlePageTitleReceived,
-            fullscreenChanged = ::handleVideoFullscreenChanged,
-            fileChooserRequested = ::showWebFileChooser,
-            permissionRequested = ::handleWebPermissionRequest,
-            permissionRequestCanceled = ::handleWebPermissionRequestCanceled,
-            geolocationPermissionRequested = ::handleGeolocationPermissionRequest,
-            geolocationPermissionHidden = ::handleGeolocationPermissionHidden,
-            newWindowRequested = ::handleCreateWebWindow,
-            windowClosed = ::handleCloseWebWindow
-        )
-    }
-
-    /**
-     * 函数 `handleCreateWebWindow`：处理 `handle Create Web Window` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param isDialog 参数类型为 `Boolean`，表示函数执行 `isDialog` 相关逻辑时需要读取或处理的输入。
-     * @param isUserGesture 参数类型为 `Boolean`，表示函数执行 `isUserGesture` 相关逻辑时需要读取或处理的输入。
-     * @param resultMsg 参数类型为 `Message?`，表示函数执行 `resultMsg` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun handleCreateWebWindow(
-        view: WebView?,
-        isDialog: Boolean,
-        isUserGesture: Boolean,
-        resultMsg: Message?
-    ): Boolean {
-        return webWindowController.handleCreateWebWindow(view, isDialog, isUserGesture, resultMsg)
-    }
-
-    /**
-     * 函数 `handleCloseWebWindow`：处理 `handle Close Web Window` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param window 参数类型为 `WebView?`，表示函数执行 `window` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleCloseWebWindow(window: WebView?) {
-        if (::webWindowController.isInitialized) {
-            webWindowController.handleCloseWebWindow(window)
-        }
     }
 
     /**
@@ -1498,32 +1443,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `showWebFileChooser`：控制 `show Web File Chooser` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param filePathCallback 参数类型为 `ValueCallback<Array<Uri>>?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
-     * @param fileChooserParams 参数类型为 `FileChooserParams?`，表示函数执行 `fileChooserParams` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun showWebFileChooser(
-        filePathCallback: ValueCallback<Array<Uri>>?,
-        fileChooserParams: FileChooserParams?
-    ): Boolean {
-        return webFileChooserController.showFileChooser(filePathCallback, fileChooserParams)
-    }
-
-    /**
-     * 函数 `cancelPendingWebFileChooser`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun cancelPendingWebFileChooser() {
-        if (::webFileChooserController.isInitialized) {
-            webFileChooserController.cancelPending()
-        }
-    }
-
-    /**
      * 函数 `exportBookmarks`：封装 `export Bookmarks` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1539,71 +1458,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun importBookmarks() {
         bookmarkImportLauncher.launch(BookmarkImportExportController.IMPORT_MIME_TYPES)
-    }
-
-    /**
-     * 函数 `handleWebPermissionRequest`：处理 `handle Web Permission Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     */
-    private fun handleWebPermissionRequest(request: PermissionRequest?) {
-        webPermissionRequestController.handlePermissionRequest(request)
-    }
-
-    /**
-     * 函数 `handleWebPermissionRequestCanceled`：处理 `handle Web Permission Request Canceled` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param request 参数类型为 `PermissionRequest?`，表示一次请求或响应，函数会检查它的内容并决定如何继续处理。
-     */
-    private fun handleWebPermissionRequestCanceled(request: PermissionRequest?) {
-        webPermissionRequestController.handlePermissionRequestCanceled(request)
-    }
-
-    /**
-     * 函数 `cancelPendingWebPermissionRequest`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun cancelPendingWebPermissionRequest() {
-        if (::webPermissionRequestController.isInitialized) {
-            webPermissionRequestController.cancelPendingRequest()
-        }
-    }
-
-    /**
-     * 函数 `handleGeolocationPermissionRequest`：处理 `handle Geolocation Permission Request` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param origin 参数类型为 `String?`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
-     * @param callback 参数类型为 `GeolocationPermissions.Callback?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
-     */
-    private fun handleGeolocationPermissionRequest(
-        origin: String?,
-        callback: GeolocationPermissions.Callback?
-    ) {
-        geolocationPermissionController.handlePermissionRequest(origin, callback)
-    }
-
-    /**
-     * 函数 `handleGeolocationPermissionHidden`：处理 `handle Geolocation Permission Hidden` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun handleGeolocationPermissionHidden() {
-        geolocationPermissionController.handlePermissionHidden()
-    }
-
-    /**
-     * 函数 `cancelPendingGeolocationPermissionPrompt`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun cancelPendingGeolocationPermissionPrompt() {
-        if (::geolocationPermissionController.isInitialized) {
-            geolocationPermissionController.cancelPending()
-        }
     }
 
     /**

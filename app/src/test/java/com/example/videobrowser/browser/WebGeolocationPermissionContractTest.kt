@@ -75,6 +75,9 @@ class WebGeolocationPermissionContractTest {
     fun mainActivityMapsWebGeolocationPromptsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val chromeClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserChromeClientController.kt"
+        ).readText()
         val geolocationController = projectFile(
             "src/main/java/com/example/videobrowser/browser/GeolocationPermissionController.kt"
         ).readText()
@@ -98,8 +101,16 @@ class WebGeolocationPermissionContractTest {
         assertTrue(geolocationController.contains("allowGeolocationPermissionForSession(prompt.origin)"))
         assertTrue(geolocationController.contains("SitePermissionDecision.ALLOW -> prompt.callback.invoke(prompt.origin, true, false)"))
         assertTrue(geolocationController.contains("SitePermissionDecision.BLOCK -> denyPermissionPrompt"))
-        assertTrue(mainActivity.contains("geolocationPermissionRequested = ::handleGeolocationPermissionRequest"))
-        assertTrue(mainActivity.contains("geolocationPermissionHidden = ::handleGeolocationPermissionHidden"))
+        assertTrue(
+            chromeClientController.contains(
+                "geolocationPermissionRequested = geolocationPermissionController::handlePermissionRequest"
+            )
+        )
+        assertTrue(
+            chromeClientController.contains(
+                "geolocationPermissionHidden = geolocationPermissionController::handlePermissionHidden"
+            )
+        )
         assertTrue(geolocationController.contains("showPermissionPrompt"))
         assertTrue(geolocationController.contains("R.string.title_geolocation_permission_request"))
         assertTrue(geolocationController.contains("R.string.dialog_geolocation_permission_request_message"))
@@ -109,7 +120,7 @@ class WebGeolocationPermissionContractTest {
         assertTrue(geolocationController.contains("R.string.action_deny"))
         assertTrue(geolocationController.contains("prompt.callback.invoke(prompt.origin, allowed, false)"))
         assertTrue(geolocationController.contains("callback.invoke(origin, false, false)"))
-        assertTrue(mainActivity.contains("cancelPendingGeolocationPermissionPrompt()"))
+        assertTrue(mainActivity.contains("browserChromeClientController.cancelPendingGeolocationPermissionPrompt()"))
         assertTrue(geolocationController.contains("if (isPrivateBrowsingEnabled())"))
         assertTrue(privateBrowsingSwitchController.contains("sessionSitePermissionStore.clear()"))
         assertTrue(strings.contains("title_geolocation_permission_request"))
