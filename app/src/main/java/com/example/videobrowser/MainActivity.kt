@@ -42,6 +42,7 @@ import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
+import com.example.videobrowser.browser.BrowserChromeClientStateController
 import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsShellController
@@ -66,7 +67,6 @@ import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowsingModeThemeController
-import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.browser.ClientCertificateController
 import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.FindInPageDialogController
@@ -211,6 +211,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageFeatureInjectionController: PageFeatureInjectionController
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
     private lateinit var browserChromeClientController: BrowserChromeClientController
+    private val browserChromeClientStateController = BrowserChromeClientStateController(
+        browserChromeClientController = {
+            if (::browserChromeClientController.isInitialized) {
+                browserChromeClientController
+            } else {
+                null
+            }
+        }
+    )
     private lateinit var browserWebClientController: BrowserWebClientController
     private lateinit var externalNavigator: BrowserExternalNavigator
     private lateinit var nativePlayerEntryController: NativePlayerEntryController
@@ -574,11 +583,8 @@ class MainActivity : AppCompatActivity() {
                     browserControlsScrollController.attachToWebView(activeWebView)
                 }
             },
-            syncCurrentChromeClientIfReady = {
-                if (::browserChromeClientController.isInitialized) {
-                    browserChromeClientController.syncCurrentChromeClient()
-                }
-            },
+            syncCurrentChromeClientIfReady =
+                browserChromeClientStateController::syncCurrentChromeClientIfReady,
             updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
             syncSearchProviderVisibility = browserControlsShellController::syncSearchProviderVisibility,
             applyBrowsingModeTheme = browsingModeThemeController::applyBrowsingModeTheme,
@@ -654,7 +660,8 @@ class MainActivity : AppCompatActivity() {
             },
             isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled,
             isFullscreenModeActive = {
-                areChromeClientsInitialized() && currentChromeClient().isFullscreenModeActive()
+                browserChromeClientStateController.currentChromeClientOrNull()
+                    ?.isFullscreenModeActive() == true
             },
             defaultUserAgent = { defaultUserAgent }
         )
@@ -974,7 +981,7 @@ class MainActivity : AppCompatActivity() {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
             settingsManager = { settingsManager },
-            chromeClient = { if (areChromeClientsInitialized()) currentChromeClient() else null },
+            chromeClient = browserChromeClientStateController::currentChromeClientOrNull,
             dp = ::dp
         )
         browserFullscreenUiController = BrowserFullscreenUiController(
@@ -982,9 +989,7 @@ class MainActivity : AppCompatActivity() {
             fullscreenVideoController = fullscreenVideoController,
             browserControlsShellController = browserControlsShellController,
             browserDisplayModeController = browserDisplayModeController,
-            currentChromeClient = {
-                if (areChromeClientsInitialized()) currentChromeClient() else null
-            },
+            currentChromeClient = browserChromeClientStateController::currentChromeClientOrNull,
             isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled
         )
 
@@ -1108,13 +1113,7 @@ class MainActivity : AppCompatActivity() {
         )
         nativeBridgeController = VideoBrowserNativeBridgeController(
             postToUi = { action -> runOnUiThread { action() } },
-            currentChromeClient = {
-                if (areChromeClientsInitialized()) {
-                    currentChromeClient()
-                } else {
-                    null
-                }
-            },
+            currentChromeClient = browserChromeClientStateController::currentChromeClientOrNull,
             fullscreenVideoController = fullscreenVideoController,
             webPlaybackHistoryRecorder = webPlaybackHistoryRecorder,
             requestElementBlock = elementPickerController::handlePickedElement,
@@ -1128,13 +1127,7 @@ class MainActivity : AppCompatActivity() {
             browserManager = {
                 browserStandardWebViewHostController.currentBrowserManager()
             },
-            currentChromeClient = {
-                if (areChromeClientsInitialized()) {
-                    currentChromeClient()
-                } else {
-                    null
-                }
-            },
+            currentChromeClient = browserChromeClientStateController::currentChromeClientOrNull,
             handleFunctionCenterBack = functionCenterEntryController::handleFunctionCenterBack,
             isElementPickerActive = { elementPickerController.isActive },
             cancelElementPicker = elementPickerController::cancel,
@@ -1262,8 +1255,8 @@ class MainActivity : AppCompatActivity() {
         if (::functionCenterEntryController.isInitialized) {
             functionCenterEntryController.closeFunctionCenter()
         }
-        if (areChromeClientsInitialized()) {
-            currentChromeClient().hideCustomView()
+        if (browserChromeClientStateController.areChromeClientsInitialized()) {
+            browserChromeClientStateController.currentChromeClient().hideCustomView()
         }
         if (::browserStandardTabSessionController.isInitialized) {
             browserStandardTabSessionController.saveStandardTabSession()
@@ -1279,27 +1272,6 @@ class MainActivity : AppCompatActivity() {
     // region WebView、ChromeClient 和 BrowserClient 组装
     // 这一组函数负责创建 WebView、绑定 WebChromeClient/WebViewClient，
     // 并处理网页弹窗、新窗口、渲染进程退出、证书和 HTTP 认证等浏览器外壳能力。
-    /**
-     * 函数 `currentChromeClient`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentChromeClient(): ChromeClient {
-        return browserChromeClientController.currentChromeClient()
-    }
-
-    /**
-     * 函数 `areChromeClientsInitialized`：封装 `are Chrome Clients Initialized` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun areChromeClientsInitialized(): Boolean {
-        return ::browserChromeClientController.isInitialized &&
-            browserChromeClientController.areChromeClientsInitialized()
-    }
-
     // endregion
 
     // region 地址解析、页面加载和站点安全提示
