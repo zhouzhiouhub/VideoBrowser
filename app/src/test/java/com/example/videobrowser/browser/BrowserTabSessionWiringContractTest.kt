@@ -22,11 +22,19 @@ class BrowserTabSessionWiringContractTest {
         val standardTabSessionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStandardTabSessionController.kt"
         ).readText()
+        val sessionStateController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserSessionStateController.kt"
+        ).readText()
 
         assertTrue(mainActivity.contains("BrowserTabStore"))
         assertTrue(mainActivity.contains("BrowserTabSessionBinding"))
         assertTrue(mainActivity.contains("BrowserTabSessionRepository"))
         assertTrue(mainActivity.contains("BrowserStandardTabSessionController"))
+        assertTrue(mainActivity.contains("private val browserSessionStateController = BrowserSessionStateController("))
+        assertTrue(mainActivity.contains("browserSessionStateController.currentSessionController()"))
+        assertTrue(sessionStateController.contains("fun currentSessionController(): BrowserSessionController"))
+        assertTrue(sessionStateController.contains("fun areBrowserSessionsInitialized(): Boolean"))
+        assertTrue(sessionStateController.contains("if (isPrivateBrowsingActive())"))
         assertTrue(mainActivity.contains("standardTabSessionBinding"))
         assertTrue(mainActivity.contains("browserStandardTabSessionController.restoreStandardTabSession()"))
         assertTrue(mainActivity.contains("browserStandardTabSessionController::saveStandardTabSession"))

@@ -59,6 +59,7 @@ import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
+import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
 import com.example.videobrowser.browser.BrowserTabActionsController
@@ -242,7 +243,9 @@ class MainActivity : AppCompatActivity() {
             isEnabled = browserFeatureStateController::isAdBlockEnabled,
             isDisabledForCurrentSite = browserFeatureStateController::isCurrentSiteAdBlockDisabled,
             isUserWhitelistedRequestHost = settingsManager::isUserWhitelistedSite,
-            currentPageUrl = { currentSessionController().currentPageUrl },
+            currentPageUrl = {
+                browserSessionStateController.currentSessionController().currentPageUrl
+            },
             currentPageHost = browserUrlStateController::currentSiteHost,
             logger = adBlockLogger,
             ruleEngine = ruleEngine
@@ -256,7 +259,9 @@ class MainActivity : AppCompatActivity() {
             isEnabled = browserFeatureStateController::isSmartNoImageEnabled,
             isDisabledForCurrentSite =
                 browserFeatureStateController::isCurrentSiteSmartNoImageDisabled,
-            currentPageUrl = { currentSessionController().currentPageUrl }
+            currentPageUrl = {
+                browserSessionStateController.currentSessionController().currentPageUrl
+            }
         )
     }
     // endregion
@@ -296,8 +301,17 @@ class MainActivity : AppCompatActivity() {
 
     // region 当前页面运行状态
     private var privateBrowsingActive = false
+    private val browserSessionStateController = BrowserSessionStateController(
+        isPrivateBrowsingActive = { privateBrowsingActive },
+        standardSessionController = {
+            if (::standardSessionController.isInitialized) standardSessionController else null
+        },
+        privateSessionController = {
+            if (::privateSessionController.isInitialized) privateSessionController else null
+        }
+    )
     private val isHomePageVisible: Boolean
-        get() = currentSessionController().isHomePageVisible
+        get() = browserSessionStateController.currentSessionController().isHomePageVisible
     private val isVideoFullscreenUiActive: Boolean
         get() = ::fullscreenVideoController.isInitialized &&
             fullscreenVideoController.isFullscreenUiActive
@@ -342,14 +356,14 @@ class MainActivity : AppCompatActivity() {
         )
         browserUrlStateController = BrowserUrlStateController(
             currentPageUrl = {
-                if (areBrowserSessionsInitialized()) {
-                    currentSessionController().currentPageUrl
+                if (browserSessionStateController.areBrowserSessionsInitialized()) {
+                    browserSessionStateController.currentSessionController().currentPageUrl
                 } else {
                     null
                 }
             },
             currentWebViewUrl = {
-                if (areBrowserSessionsInitialized()) {
+                if (browserSessionStateController.areBrowserSessionsInitialized()) {
                     currentBrowserManager().currentUrl()
                 } else {
                     null
@@ -374,8 +388,8 @@ class MainActivity : AppCompatActivity() {
                 if (::addressSuggestionController.isInitialized) addressSuggestionController else null
             },
             isPageLoading = {
-                if (areBrowserSessionsInitialized()) {
-                    currentSessionController().isPageLoading
+                if (browserSessionStateController.areBrowserSessionsInitialized()) {
+                    browserSessionStateController.currentSessionController().isPageLoading
                 } else {
                     false
                 }
@@ -388,8 +402,8 @@ class MainActivity : AppCompatActivity() {
             views = views,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             currentPageUrl = {
-                if (areBrowserSessionsInitialized()) {
-                    currentSessionController().currentPageUrl
+                if (browserSessionStateController.areBrowserSessionsInitialized()) {
+                    browserSessionStateController.currentSessionController().currentPageUrl
                 } else {
                     null
                 }
@@ -445,7 +459,9 @@ class MainActivity : AppCompatActivity() {
             currentShareableUrl = browserUrlStateController::currentShareableUrl,
             isShareableUrl = browserUrlStateController::isShareableUrl,
             defaultVideoSpeed = settingsManager::defaultVideoSpeed,
-            currentPageTitle = { currentSessionController().currentPageTitle }
+            currentPageTitle = {
+                browserSessionStateController.currentSessionController().currentPageTitle
+            }
         )
         browserDefaultSettingsResetter = BrowserDefaultSettingsResetter(
             settingsManager = settingsManager,
@@ -477,7 +493,7 @@ class MainActivity : AppCompatActivity() {
             localFilesController = localFilesController,
             pageActionsController = { pageActionsController },
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
-            currentSessionController = ::currentSessionController,
+            currentSessionController = browserSessionStateController::currentSessionController,
             currentBrowserManager = ::currentBrowserManager,
             updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
             hideKeyboard = browserKeyboardController::hideKeyboard,
@@ -560,8 +576,9 @@ class MainActivity : AppCompatActivity() {
             updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
             syncSearchProviderVisibility = browserControlsShellController::syncSearchProviderVisibility,
             applyBrowsingModeTheme = browsingModeThemeController::applyBrowsingModeTheme,
-            areBrowserSessionsInitialized = ::areBrowserSessionsInitialized,
-            currentSessionController = ::currentSessionController
+            areBrowserSessionsInitialized =
+                browserSessionStateController::areBrowserSessionsInitialized,
+            currentSessionController = browserSessionStateController::currentSessionController
         )
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
@@ -574,8 +591,8 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             browserManager = ::currentBrowserManager,
             currentPageTitle = {
-                if (areBrowserSessionsInitialized()) {
-                    currentSessionController().currentPageTitle
+                if (browserSessionStateController.areBrowserSessionsInitialized()) {
+                    browserSessionStateController.currentSessionController().currentPageTitle
                 } else {
                     ""
                 }
@@ -591,7 +608,7 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             ruleEngine = { if (::ruleEngine.isInitialized) ruleEngine else null },
             browserManager = ::currentBrowserManager,
-            sessionController = ::currentSessionController,
+            sessionController = browserSessionStateController::currentSessionController,
             externalNavigator = externalNavigator,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             openNativePlayer = nativePlayerEntryController::openNativePlayer,
@@ -641,7 +658,9 @@ class MainActivity : AppCompatActivity() {
             savedPageRepository = savedPageRepository,
             currentActionableUrl = browserUrlStateController::currentActionableUrl,
             currentShareableUrl = browserUrlStateController::currentShareableUrl,
-            currentPageTitle = { currentSessionController().currentPageTitle },
+            currentPageTitle = {
+                browserSessionStateController.currentSessionController().currentPageTitle
+            },
             isShareableUrl = browserUrlStateController::isShareableUrl,
             shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
             openNativePlayer = nativePlayerEntryController::openNativePlayer,
@@ -666,14 +685,18 @@ class MainActivity : AppCompatActivity() {
         pageArchiveController = PageArchiveController(
             activity = this,
             currentActionableUrl = browserUrlStateController::currentActionableUrl,
-            currentPageTitle = { currentSessionController().currentPageTitle },
+            currentPageTitle = {
+                browserSessionStateController.currentSessionController().currentPageTitle
+            },
             activeWebView = { currentBrowserManager().activeWebView },
             launchArchiveExport = pageArchiveExportLauncher::launch
         )
         pagePrintController = PagePrintController(
             activity = this,
             currentActionableUrl = browserUrlStateController::currentActionableUrl,
-            currentPageTitle = { currentSessionController().currentPageTitle },
+            currentPageTitle = {
+                browserSessionStateController.currentSessionController().currentPageTitle
+            },
             activeWebView = { currentBrowserManager().activeWebView }
         )
         findInPageDialogController = FindInPageDialogController(
@@ -845,7 +868,9 @@ class MainActivity : AppCompatActivity() {
             webViewContainer = webViewContainer,
             sessionCoordinator = browserSessionCoordinator,
             standardTabWebViews = standardTabWebViews,
-            currentPageUrl = { currentSessionController().currentPageUrl },
+            currentPageUrl = {
+                browserSessionStateController.currentSessionController().currentPageUrl
+            },
             isPrivateBrowsingActive = { privateBrowsingActive },
             createStandardTabWebView = ::createStandardTabWebView,
             showStandardTabWebView = { tabWebView, detachCurrent ->
@@ -858,7 +883,7 @@ class MainActivity : AppCompatActivity() {
         )
         browserWebClientController = BrowserWebClientController(
             browserManager = ::currentBrowserManager,
-            sessionController = ::currentSessionController,
+            sessionController = browserSessionStateController::currentSessionController,
             resetBackExitConfirmation = {
                 if (::browserBackNavigationController.isInitialized) {
                     browserBackNavigationController.resetBackExitConfirmation()
@@ -988,7 +1013,9 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             siteSecurityIcon = siteSecurityIcon,
             settingsManager = settingsManager,
-            currentPageUrl = { currentSessionController().currentPageUrl },
+            currentPageUrl = {
+                browserSessionStateController.currentSessionController().currentPageUrl
+            },
             currentWebViewUrl = { currentBrowserManager().currentUrl() },
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             currentSiteHost = browserUrlStateController::currentSiteHost,
@@ -1006,7 +1033,9 @@ class MainActivity : AppCompatActivity() {
             browserManager = ::currentBrowserManager,
             jsInjector = jsInjector,
             currentSiteHost = browserUrlStateController::currentSiteHost,
-            currentPageUrl = { currentSessionController().currentPageUrl }
+            currentPageUrl = {
+                browserSessionStateController.currentSessionController().currentPageUrl
+            }
         )
         elementPickerController = ElementPickerController(
             activity = this,
@@ -1309,26 +1338,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun browserManagers(): List<BrowserManager> {
         return listOf(standardBrowserManager)
-    }
-
-    /**
-     * 函数 `currentSessionController`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSessionController(): BrowserSessionController {
-        return if (privateBrowsingActive) privateSessionController else standardSessionController
-    }
-
-    /**
-     * 函数 `areBrowserSessionsInitialized`：封装 `are Browser Sessions Initialized` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun areBrowserSessionsInitialized(): Boolean {
-        return ::standardSessionController.isInitialized && ::privateSessionController.isInitialized
     }
 
     /**
