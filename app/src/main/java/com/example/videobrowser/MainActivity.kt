@@ -39,7 +39,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -82,6 +81,7 @@ import com.example.videobrowser.browser.LinkContextMenuController
 import com.example.videobrowser.browser.PageActionsController
 import com.example.videobrowser.browser.PageArchiveController
 import com.example.videobrowser.browser.PagePrintController
+import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.RenderProcessRecoveryController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.SmartNoImageRequestInterceptor
@@ -191,6 +191,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var addressSuggestionController: AddressSuggestionController
     private lateinit var browserLaunchController: BrowserLaunchController
     private lateinit var browserTabActionsController: BrowserTabActionsController
+    private lateinit var privateBrowsingSwitchController: PrivateBrowsingSwitchController
     private lateinit var downloadController: DownloadController
     private lateinit var siteSecurityController: SiteSecurityController
     private lateinit var pageArchiveController: PageArchiveController
@@ -660,6 +661,24 @@ class MainActivity : AppCompatActivity() {
             addHistoryEntry = {},
             injectPageFeatures = ::injectPageFeatures,
             onPageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
+        )
+        privateBrowsingSwitchController = PrivateBrowsingSwitchController(
+            activity = this,
+            isPrivateBrowsingActive = { privateBrowsingActive },
+            closeFunctionCenter = { closeFunctionCenter() },
+            cancelElementPickerIfActive = {
+                if (::elementPickerController.isInitialized && elementPickerController.isActive) {
+                    elementPickerController.cancel()
+                }
+            },
+            exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
+            sessionSitePermissionStore = sessionSitePermissionStore,
+            browserSessionCoordinator = browserSessionCoordinator,
+            privateSessionController = privateSessionController,
+            standardSessionController = standardSessionController,
+            openHomePage = ::openHomePage,
+            updatePrivateBrowsingUi = ::updatePrivateBrowsingUi,
+            updateNavigationButtons = ::updateNavigationButtons
         )
         browserTabActionsController = BrowserTabActionsController(
             standardTabStore = standardTabStore,
@@ -1939,32 +1958,7 @@ class MainActivity : AppCompatActivity() {
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     private fun setPrivateBrowsingActive(enabled: Boolean) {
-        if (enabled == privateBrowsingActive) {
-            updatePrivateBrowsingUi()
-            return
-        }
-
-        closeFunctionCenter()
-        if (::elementPickerController.isInitialized && elementPickerController.isActive) {
-            elementPickerController.cancel()
-        }
-        exitPageFullscreenIfNeeded()
-        sessionSitePermissionStore.clear()
-
-        if (enabled) {
-            val started = browserSessionCoordinator.enterPrivate()
-            if (!started) {
-                Toast.makeText(this, R.string.toast_private_browsing_failed, Toast.LENGTH_SHORT).show()
-                return
-            }
-            privateSessionController.reset()
-            openHomePage()
-        } else {
-            browserSessionCoordinator.exitPrivate()
-            standardSessionController.renderCurrentState(forceProgressHidden = true)
-        }
-        updatePrivateBrowsingUi()
-        updateNavigationButtons()
+        privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
     }
 
     // endregion

@@ -78,6 +78,9 @@ class WebGeolocationPermissionContractTest {
         val geolocationController = projectFile(
             "src/main/java/com/example/videobrowser/browser/GeolocationPermissionController.kt"
         ).readText()
+        val privateBrowsingSwitchController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/PrivateBrowsingSwitchController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(mainActivity.contains("geolocationPermissionController.handleAndroidPermissionResult(grants)"))
@@ -108,7 +111,7 @@ class WebGeolocationPermissionContractTest {
         assertTrue(geolocationController.contains("callback.invoke(origin, false, false)"))
         assertTrue(mainActivity.contains("cancelPendingGeolocationPermissionPrompt()"))
         assertTrue(geolocationController.contains("if (isPrivateBrowsingEnabled())"))
-        assertTrue(mainActivity.contains("sessionSitePermissionStore.clear()"))
+        assertTrue(privateBrowsingSwitchController.contains("sessionSitePermissionStore.clear()"))
         assertTrue(strings.contains("title_geolocation_permission_request"))
         assertTrue(strings.contains("dialog_geolocation_permission_request_message"))
         assertTrue(strings.contains("action_allow_once"))

@@ -62,6 +62,9 @@ class WebPermissionRequestContractTest {
         val webPermissionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionRequestController.kt"
         ).readText()
+        val privateBrowsingSwitchController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/PrivateBrowsingSwitchController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(mainActivity.contains("ActivityResultContracts.RequestMultiplePermissions()"))
@@ -98,7 +101,7 @@ class WebPermissionRequestContractTest {
         assertTrue(mainActivity.contains("permissionRequested = ::handleWebPermissionRequest"))
         assertTrue(mainActivity.contains("permissionRequestCanceled = ::handleWebPermissionRequestCanceled"))
         assertTrue(webPermissionController.contains("if (isPrivateBrowsingEnabled())"))
-        assertTrue(mainActivity.contains("sessionSitePermissionStore.clear()"))
+        assertTrue(privateBrowsingSwitchController.contains("sessionSitePermissionStore.clear()"))
         assertTrue(webPermissionController.contains("return permissions.takeIf { it.isNotEmpty() }"))
         assertTrue(strings.contains("title_web_permission_request"))
         assertTrue(strings.contains("dialog_web_permission_request_message"))
