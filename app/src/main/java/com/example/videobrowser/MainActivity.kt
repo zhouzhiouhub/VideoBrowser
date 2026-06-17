@@ -53,6 +53,7 @@ import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserNavigationAssemblyController
+import com.example.videobrowser.browser.BrowserPageActionAssemblyController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionStateController
@@ -624,98 +625,39 @@ class MainActivity : AppCompatActivity() {
         browserDisplayModeController = navigationComponents.browserDisplayModeController
 
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
-        downloadController = DownloadController(
+        val pageActionComponents = BrowserPageActionAssemblyController(
             activity = this,
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
             downloadRecordRepository = downloadRecordRepository,
-            openNativePlayer = { url, mimeType, userAgentOverride, titleOverride ->
-                nativePlayerEntryController.openNativePlayer(url, mimeType, userAgentOverride, titleOverride)
-            }
-        )
-
-        // 页面动作控制器收拢收藏、分享、保存归档、打开原生播放器等“当前页面动作”。
-        pageActionsController = PageActionsController(
-            activity = this,
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
-            browserManagers = {
-                browserStandardWebViewHostController.browserManagers()
-            },
-            downloadController = downloadController,
             settingsManager = settingsManager,
             savedPageRepository = savedPageRepository,
-            currentActionableUrl = browserUrlStateController::currentActionableUrl,
-            currentShareableUrl = browserUrlStateController::currentShareableUrl,
-            currentPageTitle = {
-                browserSessionStateController.currentSessionController().currentPageTitle
-            },
-            isShareableUrl = browserUrlStateController::isShareableUrl,
-            shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord,
-            openNativePlayer = nativePlayerEntryController::openNativePlayer,
-            openLocalArchiveInBrowser = localDocumentEntryController::loadLocalDocumentUrlInBrowser,
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
+            browserDefaultSettingsResetter = browserDefaultSettingsResetter,
+            browserStandardWebViewHostController = browserStandardWebViewHostController,
+            browserSessionStateController = browserSessionStateController,
+            browserUrlStateController = browserUrlStateController,
+            historyRecordPolicy = historyRecordPolicy,
+            nativePlayerEntryController = nativePlayerEntryController,
+            localDocumentEntryController = localDocumentEntryController,
+            browserFeatureStateController = browserFeatureStateController,
             switchPrivateBrowsing = { enabled ->
                 privateBrowsingSwitchController.setPrivateBrowsingActive(enabled)
             },
-            updateBookmarkButton = browserShellUiController::updateBookmarkButton,
-            updateNavigationButtons = browserShellUiController::updateNavigationButtons,
-            updatePrivateBrowsingUi = browsingModeThemeController::updatePrivateBrowsingUi,
-            recreateActivity = { recreate() },
-            restoreBrowserDefaults = browserDefaultSettingsResetter::restoreDefaults
-        )
-        httpAuthController = HttpAuthController(
-            activity = this,
-            dp = ::dp
-        )
-        clientCertificateController = ClientCertificateController(
-            activity = this
-        )
-        pageArchiveController = PageArchiveController(
-            activity = this,
-            currentActionableUrl = browserUrlStateController::currentActionableUrl,
-            currentPageTitle = {
-                browserSessionStateController.currentSessionController().currentPageTitle
-            },
-            activeWebView = {
-                browserStandardWebViewHostController.currentBrowserManager().activeWebView
-            },
-            launchArchiveExport = activityResultLaunchers::launchPageArchiveExport
-        )
-        pagePrintController = PagePrintController(
-            activity = this,
-            currentActionableUrl = browserUrlStateController::currentActionableUrl,
-            currentPageTitle = {
-                browserSessionStateController.currentSessionController().currentPageTitle
-            },
-            activeWebView = {
-                browserStandardWebViewHostController.currentBrowserManager().activeWebView
-            }
-        )
-        findInPageDialogController = FindInPageDialogController(
-            activity = this,
+            browserShellUiController = browserShellUiController,
+            browsingModeThemeController = browsingModeThemeController,
+            activityResultLaunchers = activityResultLaunchers,
             findInPageController = findInPageController,
-            setFindResultListener = { listener ->
-                browserStandardWebViewHostController.currentBrowserManager()
-                    .setFindResultListener(listener)
-            },
+            browserNavigationController = browserNavigationController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
+            recreateActivity = { recreate() },
             dp = ::dp
-        )
-        browserPageToolEntryController = BrowserPageToolEntryController(
-            findInPageDialogController = findInPageDialogController,
-            pageArchiveController = pageArchiveController,
-            pagePrintController = pagePrintController,
-            loadUrl = browserNavigationController::loadUrl,
-            openNativePlayer = { url, title ->
-                nativePlayerEntryController.openNativePlayer(
-                    url = url,
-                    titleOverride = title
-                )
-            }
-        )
+        ).create()
+        downloadController = pageActionComponents.downloadController
+        pageActionsController = pageActionComponents.pageActionsController
+        httpAuthController = pageActionComponents.httpAuthController
+        clientCertificateController = pageActionComponents.clientCertificateController
+        pageArchiveController = pageActionComponents.pageArchiveController
+        pagePrintController = pageActionComponents.pagePrintController
+        findInPageDialogController = pageActionComponents.findInPageDialogController
+        browserPageToolEntryController = pageActionComponents.browserPageToolEntryController
         webFileChooserController = WebFileChooserController(
             activity = this,
             launchChooser = activityResultLaunchers::launchWebFileChooser

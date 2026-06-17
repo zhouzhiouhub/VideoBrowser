@@ -50,6 +50,9 @@ class SavePageArchiveWiringContractTest {
         val functionCenterAssembly = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
         ).readText()
+        val pageActionAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageActionAssemblyController.kt"
+        ).readText()
         val activityResultLaunchers = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
         ).readText()
@@ -71,7 +74,7 @@ class SavePageArchiveWiringContractTest {
         assertTrue(pageArchiveController.contains("PageArchiveFileName.create("))
         assertTrue(pageArchiveController.contains("private fun exportArchiveFileToUri(archiveFile: File, uri: Uri)"))
         assertTrue(pageArchiveController.contains("const val MIME_TYPE = \"multipart/related\""))
-        assertTrue(mainActivity.contains("launchArchiveExport = activityResultLaunchers::launchPageArchiveExport"))
+        assertTrue(pageActionAssembly.contains("launchArchiveExport = activityResultLaunchers::launchPageArchiveExport"))
         assertTrue(functionCenterAssembly.contains("saveCurrentPageArchive = browserPageToolEntryController::saveCurrentPageArchive"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_saved"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_failed"))

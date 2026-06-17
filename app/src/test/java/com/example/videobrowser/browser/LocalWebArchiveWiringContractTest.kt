@@ -23,14 +23,16 @@ class LocalWebArchiveWiringContractTest {
         val localDocumentEntryController = projectFile(
             "src/main/java/com/example/videobrowser/localfiles/LocalDocumentEntryController.kt"
         ).readText()
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val pageActionAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageActionAssemblyController.kt"
+        )
             .readText()
         val readme = projectFile("README.md").readText()
 
         assertTrue(pageActionsController.contains("openLocalArchiveInBrowser: (String) -> Unit"))
         assertTrue(pageActionsController.contains("LocalWebArchivePolicy.isWebArchive(title, resolvedMimeType)"))
         assertTrue(pageActionsController.contains("openLocalArchiveInBrowser(uri.toString())"))
-        assertTrue(mainActivity.contains("openLocalArchiveInBrowser = localDocumentEntryController::loadLocalDocumentUrlInBrowser"))
+        assertTrue(pageActionAssembly.contains("openLocalArchiveInBrowser = localDocumentEntryController::loadLocalDocumentUrlInBrowser"))
         assertTrue(localDocumentEntryController.contains("fun loadLocalDocumentUrlInBrowser(url: String)"))
         assertTrue(localDocumentEntryController.contains("currentBrowserManager().load(url)"))
         assertTrue(readme.contains("MHTML/MHT 网页归档会在浏览器中打开"))

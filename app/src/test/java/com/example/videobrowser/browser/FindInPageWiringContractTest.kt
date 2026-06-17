@@ -74,13 +74,16 @@ class FindInPageWiringContractTest {
         val functionCenterAssembly = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
         ).readText()
+        val pageActionAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageActionAssemblyController.kt"
+        ).readText()
 
         assertTrue(mainActivity.contains("FindInPageController"))
         assertTrue(mainActivity.contains("private lateinit var findInPageDialogController: FindInPageDialogController"))
         assertTrue(pageToolEntryController.contains("findInPageDialogController.showDialog()"))
-        assertTrue(mainActivity.contains("setFindResultListener = { listener ->"))
-        assertTrue(mainActivity.contains("browserStandardWebViewHostController.currentBrowserManager()"))
-        assertTrue(mainActivity.contains(".setFindResultListener(listener)"))
+        assertTrue(pageActionAssembly.contains("setFindResultListener = { listener ->"))
+        assertTrue(pageActionAssembly.contains("browserStandardWebViewHostController.currentBrowserManager()"))
+        assertTrue(pageActionAssembly.contains(".setFindResultListener(listener)"))
         assertTrue(findDialogController.contains("findInPageController.search"))
         assertTrue(findDialogController.contains("findInPageController.findNext"))
         assertTrue(findDialogController.contains("findInPageController.findPrevious"))
