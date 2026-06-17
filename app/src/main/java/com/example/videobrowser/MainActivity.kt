@@ -61,8 +61,7 @@ import com.example.videobrowser.browser.BrowserStandardWebViewHostController
 import com.example.videobrowser.browser.BrowserStartupControllerAssembly
 import com.example.videobrowser.browser.BrowserTabActionsController
 import com.example.videobrowser.browser.BrowserTabSessionRepository
-import com.example.videobrowser.browser.BrowserTabSessionBinding
-import com.example.videobrowser.browser.BrowserTabStore
+import com.example.videobrowser.browser.BrowserTabStateAssemblyController
 import com.example.videobrowser.browser.BrowserRequestInterceptionProvider
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
@@ -246,10 +245,7 @@ class MainActivity : AppCompatActivity() {
 
     // region 标签页与会话状态
     // 标准模式和无痕模式各有自己的标签页列表，避免无痕页面写入普通会话。
-    private val standardTabStore = BrowserTabStore()
-    private val privateTabStore = BrowserTabStore()
-    private val standardTabSessionBinding = BrowserTabSessionBinding(standardTabStore)
-    private val privateTabSessionBinding = BrowserTabSessionBinding(privateTabStore)
+    private val browserTabState = BrowserTabStateAssemblyController().create()
     private val findInPageController = BrowserFindInPageAssemblyController(
         browserStandardWebViewHostController = { browserStandardWebViewHostController }
     ).create()
@@ -374,7 +370,7 @@ class MainActivity : AppCompatActivity() {
         val persistenceComponents = BrowserPersistenceAssemblyController(
             activity = this,
             filesDir = filesDir,
-            standardTabStore = standardTabStore,
+            standardTabStore = browserTabState.standardTabStore,
             browserShellUiController = browserShellUiController,
             browserFeatureStateController = browserFeatureStateController,
             browserUrlStateController = browserUrlStateController,
@@ -481,7 +477,7 @@ class MainActivity : AppCompatActivity() {
         browserStandardWebViewHostController = BrowserStandardWebViewHostAssemblyController(
             activity = this,
             views = views,
-            standardTabStore = standardTabStore,
+            standardTabStore = browserTabState.standardTabStore,
             configureLinkContextMenu = linkContextMenuController::configure,
             handleActiveWebViewChanged =
                 browserActiveWebViewController::handleActiveWebViewChanged
@@ -496,7 +492,7 @@ class MainActivity : AppCompatActivity() {
             filesDir = filesDir,
             settingsManager = settingsManager,
             addressInput = views.addressInput,
-            standardTabStore = standardTabStore,
+            standardTabStore = browserTabState.standardTabStore,
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             browserSessionStateController = browserSessionStateController,
             browserUrlStateController = browserUrlStateController,
@@ -583,8 +579,8 @@ class MainActivity : AppCompatActivity() {
 
         val browserSessionComponents = BrowserSessionAssemblyController(
             activity = this,
-            standardTabStore = standardTabStore,
-            privateTabStore = privateTabStore,
+            standardTabStore = browserTabState.standardTabStore,
+            privateTabStore = browserTabState.privateTabStore,
             standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
             browserAddressBarStateController = browserAddressBarStateController,
@@ -622,10 +618,11 @@ class MainActivity : AppCompatActivity() {
                 browserStandardWebViewHostController::destroyStandardTabWebView,
             saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
             onStandardPageMetadataChanged = { url, title ->
-                standardTabSessionBinding.handlePageMetadataChanged(url, title)
+                browserTabState.standardTabSessionBinding.handlePageMetadataChanged(url, title)
                 browserStandardTabSessionController.saveStandardTabSession()
             },
-            onPrivatePageMetadataChanged = privateTabSessionBinding::handlePageMetadataChanged
+            onPrivatePageMetadataChanged =
+                browserTabState.privateTabSessionBinding::handlePageMetadataChanged
         ).create()
         standardSessionController = browserSessionComponents.standardSessionController
         privateSessionController = browserSessionComponents.privateSessionController
@@ -636,7 +633,7 @@ class MainActivity : AppCompatActivity() {
             fullscreenContainer = views.fullscreenContainer,
             decorView = window.decorView,
             webViewContainer = views.webViewContainer,
-            standardTabStore = standardTabStore,
+            standardTabStore = browserTabState.standardTabStore,
             standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
             browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
             standardSessionController = standardSessionController,

@@ -28,6 +28,9 @@ class BrowserTabSessionWiringContractTest {
         val sessionStateAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSessionStateAssemblyController.kt"
         ).readText()
+        val tabStateAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabStateAssemblyController.kt"
+        ).readText()
         val startupController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupController.kt"
         ).readText()
@@ -35,8 +38,10 @@ class BrowserTabSessionWiringContractTest {
             "src/main/java/com/example/videobrowser/storage/BrowserPersistenceAssemblyController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("BrowserTabStore"))
-        assertTrue(mainActivity.contains("BrowserTabSessionBinding"))
+        assertTrue(mainActivity.contains("BrowserTabStateAssemblyController"))
+        assertTrue(tabStateAssembly.contains("BrowserTabStore()"))
+        assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(standardTabStore)"))
+        assertTrue(tabStateAssembly.contains("BrowserTabSessionBinding(privateTabStore)"))
         assertTrue(mainActivity.contains("BrowserTabSessionRepository"))
         assertTrue(mainActivity.contains("BrowserStandardTabSessionController"))
         assertTrue(mainActivity.contains("BrowserSessionStateAssemblyController"))
@@ -48,14 +53,14 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(sessionStateController.contains("fun currentSessionController(): BrowserSessionController"))
         assertTrue(sessionStateController.contains("fun areBrowserSessionsInitialized(): Boolean"))
         assertTrue(sessionStateController.contains("if (isPrivateBrowsingActive())"))
-        assertTrue(mainActivity.contains("standardTabSessionBinding"))
+        assertTrue(mainActivity.contains("browserTabState.standardTabSessionBinding"))
         assertTrue(persistenceAssembly.contains("browserStandardTabSessionController.restoreStandardTabSession()"))
         assertTrue(mainActivity.contains("browserStandardTabSessionController::saveStandardTabSession"))
         assertTrue(standardTabSessionController.contains("standardTabStore.restore(session.tabs, session.activeTabId)"))
         assertTrue(standardTabSessionController.contains("repository.save("))
         assertTrue(mainActivity.contains("BrowserStartupController"))
         assertTrue(startupController.contains("browserLaunchController.openInitialStandardPage()"))
-        assertTrue(mainActivity.contains("standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
+        assertTrue(mainActivity.contains("browserTabState.standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
     }
 
     /**
