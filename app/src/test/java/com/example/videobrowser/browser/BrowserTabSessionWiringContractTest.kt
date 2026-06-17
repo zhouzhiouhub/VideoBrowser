@@ -37,6 +37,9 @@ class BrowserTabSessionWiringContractTest {
         val startupFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
         ).readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
         val persistenceAssembly = projectFile(
             "src/main/java/com/example/videobrowser/storage/BrowserPersistenceAssemblyController.kt"
         ).readText()
@@ -57,16 +60,16 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(sessionStateController.contains("fun currentSessionController(): BrowserSessionController"))
         assertTrue(sessionStateController.contains("fun areBrowserSessionsInitialized(): Boolean"))
         assertTrue(sessionStateController.contains("if (isPrivateBrowsingActive())"))
-        assertTrue(mainActivity.contains("browserTabState.standardTabSessionBinding"))
+        assertTrue(runtimeFeatureAssembly.contains("browserTabState.standardTabSessionBinding"))
         assertTrue(persistenceAssembly.contains("browserStandardTabSessionController.restoreStandardTabSession()"))
-        assertTrue(mainActivity.contains("browserPersistence.browserStandardTabSessionController::saveStandardTabSession"))
+        assertTrue(runtimeFeatureAssembly.contains("browserPersistence.browserStandardTabSessionController::saveStandardTabSession"))
         assertTrue(standardTabSessionController.contains("standardTabStore.restore(session.tabs, session.activeTabId)"))
         assertTrue(standardTabSessionController.contains("repository.save("))
         assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
         assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
         assertTrue(startupController.contains("browserLaunchController.openInitialStandardPage()"))
-        assertTrue(mainActivity.contains("browserTabState.standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
-        assertTrue(mainActivity.contains("browserPersistence.browserStandardTabSessionController.saveStandardTabSession()"))
+        assertTrue(runtimeFeatureAssembly.contains("browserTabState.standardTabSessionBinding.handlePageMetadataChanged(url, title)"))
+        assertTrue(runtimeFeatureAssembly.contains("browserPersistence.browserStandardTabSessionController.saveStandardTabSession()"))
     }
 
     /**

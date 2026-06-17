@@ -83,6 +83,9 @@ class BrowserClientContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
         val lifecycleController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
         ).readText()
@@ -100,9 +103,9 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("handler?.cancel()"))
         assertTrue(browserClient.contains("override fun onReceivedHttpAuthRequest"))
         assertTrue(browserClient.contains("httpAuthRequested(view, handler, host, realm)"))
-        assertTrue(mainActivity.contains("private lateinit var browserClients: BrowserClientComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
         assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
-        assertTrue(mainActivity.contains("httpAuthController = pageActions.httpAuthController"))
+        assertTrue(runtimeFeatureAssembly.contains("httpAuthController = pageActions.httpAuthController"))
         assertTrue(httpAuthController.contains("private var pendingHandler: HttpAuthHandler?"))
         assertTrue(httpAuthController.contains("private var pendingDialog: AlertDialog?"))
         assertTrue(browserWebClientController.contains("httpAuthRequested = { _, handler, host, realm ->"))
@@ -137,6 +140,9 @@ class BrowserClientContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
         val lifecycleController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityLifecycleController.kt"
         ).readText()
@@ -155,7 +161,7 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("override fun onReceivedClientCertRequest"))
         assertTrue(browserClient.contains("clientCertRequested(view, request)"))
         assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
-        assertTrue(mainActivity.contains("clientCertificateController = pageActions.clientCertificateController"))
+        assertTrue(runtimeFeatureAssembly.contains("clientCertificateController = pageActions.clientCertificateController"))
         assertTrue(
             browserWebClientController.contains(
                 "clientCertRequested = { _, request -> clientCertificateController.handleRequest(request) }"
@@ -187,6 +193,9 @@ class BrowserClientContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
         val browserWebClientController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
         ).readText()
@@ -209,10 +218,10 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("override fun onRenderProcessGone"))
         assertTrue(browserClient.contains("detail?.didCrash() == true"))
         assertTrue(browserClient.contains("return renderProcessGone(view, detail?.didCrash() == true)"))
-        assertTrue(mainActivity.contains("private lateinit var browserClients: BrowserClientComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
         assertTrue(browserWebClientController.contains("renderProcessGone = renderProcessRecoveryController::handleRenderProcessGone"))
         assertTrue(browserWebClientController.contains("fun showBrowserErrorPage(error: BrowserPageError)"))
-        assertTrue(mainActivity.contains("browserClients.browserWebClientController.showBrowserErrorPage(error)"))
+        assertTrue(runtimeFeatureAssembly.contains("browserClients.browserWebClientController.showBrowserErrorPage(error)"))
         assertTrue(renderProcessRecoveryController.contains("BrowserPageError.RenderProcessGone"))
         assertTrue(renderProcessRecoveryController.contains("standardTabWebViews.replaceView(tabId, replacementWebView)"))
         assertTrue(renderProcessRecoveryController.contains("sessionCoordinator.replacePrivateWebView()"))

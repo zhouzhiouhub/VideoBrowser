@@ -59,6 +59,9 @@ class WebPermissionRequestContractTest {
     fun mainActivityMapsWebCaptureRequestsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
         val activityResultLaunchers = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
         ).readText()
@@ -81,8 +84,8 @@ class WebPermissionRequestContractTest {
 
         assertTrue(activityResultLaunchers.contains("ActivityResultContracts.RequestMultiplePermissions()"))
         assertTrue(activityResultLaunchers.contains("webPermissionRequestController()?.handleAndroidPermissionResult(grants)"))
-        assertTrue(mainActivity.contains("private lateinit var webRequests: BrowserWebRequestComponents"))
-        assertTrue(mainActivity.contains("webPermissionRequestController = webRequests.webPermissionRequestController"))
+        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
+        assertTrue(runtimeFeatureAssembly.contains("webPermissionRequestController = webRequests.webPermissionRequestController"))
         assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestWebPermissions"))
         assertTrue(webPermissionController.contains("pendingWebPermissionRequest: PermissionRequest?"))
         assertTrue(webPermissionController.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))

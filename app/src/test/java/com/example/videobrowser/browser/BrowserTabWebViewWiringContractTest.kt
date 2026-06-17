@@ -29,6 +29,9 @@ class BrowserTabWebViewWiringContractTest {
         val startupFeatureAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
         ).readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
         val tabActionsController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
         ).readText()
@@ -40,14 +43,14 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(standardWebViewHostController.contains("fun showStandardTabWebView(tabWebView: WebView, detachCurrent: Boolean)"))
         assertTrue(standardWebViewHostController.contains("fun hideStandardTabWebView(tabWebView: WebView)"))
         assertTrue(standardWebViewHostController.contains("fun destroyStandardTabWebView(tabWebView: WebView)"))
-        assertTrue(mainActivity.contains("private lateinit var browserSessions: BrowserSessionComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("browserTabActionsController = browserSessions.browserTabActionsController"))
         assertTrue(tabActionsController.contains("standardTabWebViews.openTab"))
         assertTrue(tabActionsController.contains("standardTabWebViews.switchTo"))
         assertTrue(tabActionsController.contains("standardTabWebViews.closeTab"))
         assertTrue(tabActionsController.contains("standardTabWebViews.closeOtherTabs"))
         assertTrue(tabActionsController.contains("standardTabWebViews.openTab("))
-        assertTrue(mainActivity.contains("createStandardTabWebView"))
+        assertTrue(runtimeFeatureAssembly.contains("createStandardTabWebView"))
     }
 
     /**

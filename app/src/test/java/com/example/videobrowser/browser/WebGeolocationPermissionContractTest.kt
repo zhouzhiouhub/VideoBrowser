@@ -75,6 +75,9 @@ class WebGeolocationPermissionContractTest {
     fun mainActivityMapsWebGeolocationPromptsThroughRuntimePermissions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
         val activityResultLaunchers = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
         ).readText()
@@ -96,8 +99,8 @@ class WebGeolocationPermissionContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(activityResultLaunchers.contains("geolocationPermissionController()?.handleAndroidPermissionResult(grants)"))
-        assertTrue(mainActivity.contains("private lateinit var webRequests: BrowserWebRequestComponents"))
-        assertTrue(mainActivity.contains("geolocationPermissionController = webRequests.geolocationPermissionController"))
+        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
+        assertTrue(runtimeFeatureAssembly.contains("geolocationPermissionController = webRequests.geolocationPermissionController"))
         assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestGeolocationPermissions"))
         assertTrue(geolocationController.contains("pendingPermissionPrompt"))
         assertTrue(geolocationController.contains("pendingSitePrompt"))
