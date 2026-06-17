@@ -51,6 +51,7 @@ import com.example.videobrowser.browser.BrowserFullscreenUiController
 import com.example.videobrowser.browser.BrowserKeyboardController
 import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
+import com.example.videobrowser.browser.BrowserFindInPageAssemblyController
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserNavigationController
@@ -79,7 +80,6 @@ import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyControl
 import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ClientCertificateController
-import com.example.videobrowser.browser.FindInPageController
 import com.example.videobrowser.browser.FindInPageDialogController
 import com.example.videobrowser.browser.GeolocationPermissionController
 import com.example.videobrowser.browser.HttpAuthController
@@ -280,17 +280,9 @@ class MainActivity : AppCompatActivity() {
     private val privateTabStore = BrowserTabStore()
     private val standardTabSessionBinding = BrowserTabSessionBinding(standardTabStore)
     private val privateTabSessionBinding = BrowserTabSessionBinding(privateTabStore)
-    private val findInPageController = FindInPageController(
-        findAll = { query ->
-            browserStandardWebViewHostController.currentBrowserManager().findAllAsync(query)
-        },
-        findNext = { forward ->
-            browserStandardWebViewHostController.currentBrowserManager().findNext(forward)
-        },
-        clearMatches = {
-            browserStandardWebViewHostController.currentBrowserManager().clearFindMatches()
-        }
-    )
+    private val findInPageController = BrowserFindInPageAssemblyController(
+        browserStandardWebViewHostController = { browserStandardWebViewHostController }
+    ).create()
     // endregion
 
     // region 网页内容增强和拦截
