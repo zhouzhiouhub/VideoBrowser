@@ -184,6 +184,9 @@ class MainActivityLayoutContractTest {
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val keyboardController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserKeyboardController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
@@ -201,7 +204,8 @@ class MainActivityLayoutContractTest {
         assertTrue(mainActivity.contains("addressSuggestionController.dispose()"))
         assertTrue(mainActivity.contains("private lateinit var addressSuggestionController: AddressSuggestionController"))
         assertTrue(mainActivity.contains("addressSuggestionController.setup()"))
-        assertTrue(mainActivity.contains("addressSuggestionController.hide()"))
+        assertTrue(mainActivity.contains("BrowserKeyboardController"))
+        assertTrue(keyboardController.contains("addressSuggestionController()?.hide()"))
         assertTrue(strings.contains("address_suggestion_bookmark"))
         assertTrue(readme.contains("收藏夹匹配"))
         assertTrue(readme.contains("Activity 销毁时会关闭远程建议线程"))

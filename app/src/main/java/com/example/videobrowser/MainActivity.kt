@@ -22,7 +22,6 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.webkit.WebView
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -49,6 +48,7 @@ import com.example.videobrowser.browser.BrowserControlsShellController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
 import com.example.videobrowser.browser.BrowserFullscreenUiController
+import com.example.videobrowser.browser.BrowserKeyboardController
 import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
@@ -202,6 +202,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browsingModeThemeController: BrowsingModeThemeController
     private lateinit var browserShellUiController: BrowserShellUiController
     private lateinit var browserBackNavigationController: BrowserBackNavigationController
+    private lateinit var browserKeyboardController: BrowserKeyboardController
     private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var browserFullscreenUiController: BrowserFullscreenUiController
@@ -320,6 +321,13 @@ class MainActivity : AppCompatActivity() {
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
         androidPermissionChecker = AndroidPermissionChecker(this)
+        browserKeyboardController = BrowserKeyboardController(
+            context = this,
+            addressInput = addressInput,
+            addressSuggestionController = {
+                if (::addressSuggestionController.isInitialized) addressSuggestionController else null
+            }
+        )
         functionCenterController = FunctionCenterController(this, rootView, ::dp)
         browserFeatureStateController = BrowserFeatureStateController(
             settingsManager = { settingsManager },
@@ -458,7 +466,7 @@ class MainActivity : AppCompatActivity() {
             currentSessionController = ::currentSessionController,
             currentBrowserManager = ::currentBrowserManager,
             updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
-            hideKeyboard = ::hideKeyboard,
+            hideKeyboard = browserKeyboardController::hideKeyboard,
             showHomeContent = browserShellUiController::showHomeContent
         )
 
@@ -556,7 +564,7 @@ class MainActivity : AppCompatActivity() {
             openNativePlayer = nativePlayerEntryController::openNativePlayer,
             isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
-            hideKeyboard = ::hideKeyboard,
+            hideKeyboard = browserKeyboardController::hideKeyboard,
             showHomeContent = browserShellUiController::showHomeContent
         )
         browserLaunchController = BrowserLaunchController(
@@ -939,7 +947,7 @@ class MainActivity : AppCompatActivity() {
         )
         functionCenterEntryController = FunctionCenterEntryController(
             functionCenterPages = functionCenterPages,
-            hideKeyboard = ::hideKeyboard
+            hideKeyboard = browserKeyboardController::hideKeyboard
         )
 
         // 站点安全控制器负责地址栏锁/警告图标与详情弹窗，MainActivity 只在 URL 或主题变化时通知它刷新。
@@ -1396,21 +1404,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 小工具函数和 WebView 跳转拦截
     // 这里放跨多个小流程复用的辅助函数，例如 dp 转换、键盘隐藏、URL 类型判断和 shouldOverrideUrlLoading 判断。
-    /**
-     * 函数 `hideKeyboard`：控制 `hide Keyboard` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun hideKeyboard() {
-        if (::addressSuggestionController.isInitialized) {
-            addressSuggestionController.hide()
-        }
-        addressInput.clearFocus()
-        val inputMethodManager =
-            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(addressInput.windowToken, 0)
-    }
-
     /**
      * 函数 `dp`：封装 `dp` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
