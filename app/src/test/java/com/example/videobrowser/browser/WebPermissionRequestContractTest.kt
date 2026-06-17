@@ -81,7 +81,8 @@ class WebPermissionRequestContractTest {
 
         assertTrue(activityResultLaunchers.contains("ActivityResultContracts.RequestMultiplePermissions()"))
         assertTrue(activityResultLaunchers.contains("webPermissionRequestController()?.handleAndroidPermissionResult(grants)"))
-        assertTrue(mainActivity.contains("private lateinit var webPermissionRequestController: WebPermissionRequestController"))
+        assertTrue(mainActivity.contains("private lateinit var webRequests: BrowserWebRequestComponents"))
+        assertTrue(mainActivity.contains("webPermissionRequestController = webRequests.webPermissionRequestController"))
         assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestWebPermissions"))
         assertTrue(webPermissionController.contains("pendingWebPermissionRequest: PermissionRequest?"))
         assertTrue(webPermissionController.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))

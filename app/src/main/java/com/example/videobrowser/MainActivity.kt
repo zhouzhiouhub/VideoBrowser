@@ -64,14 +64,12 @@ import com.example.videobrowser.browser.BrowserWebViewDebugController
 import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
 import com.example.videobrowser.browser.BrowserWebViewInteractionComponents
 import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
+import com.example.videobrowser.browser.BrowserWebRequestComponents
 import com.example.videobrowser.browser.BrowsingModeThemeController
-import com.example.videobrowser.browser.GeolocationPermissionController
 import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.BrowserRuntimeStateController
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.browser.VideoBrowserNativeBridgeController
-import com.example.videobrowser.browser.WebFileChooserController
-import com.example.videobrowser.browser.WebPermissionRequestController
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
 import com.example.videobrowser.browser.search.SearchProviderController
@@ -142,9 +140,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fullscreenVideoController: FullscreenVideoController
     private lateinit var browserFullscreenUiController: BrowserFullscreenUiController
     private lateinit var webViewInteraction: BrowserWebViewInteractionComponents
-    private lateinit var webFileChooserController: WebFileChooserController
-    private lateinit var webPermissionRequestController: WebPermissionRequestController
-    private lateinit var geolocationPermissionController: GeolocationPermissionController
+    private lateinit var webRequests: BrowserWebRequestComponents
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureInjectionController: PageFeatureInjectionController
@@ -227,7 +223,7 @@ class MainActivity : AppCompatActivity() {
     private val activityResultLaunchers = BrowserActivityResultLaunchersAssemblyController(
         activity = this,
         webFileChooserController = {
-            if (::webFileChooserController.isInitialized) webFileChooserController else null
+            if (::webRequests.isInitialized) webRequests.webFileChooserController else null
         },
         bookmarkImportExportController = {
             if (::browserPersistence.isInitialized) {
@@ -240,10 +236,10 @@ class MainActivity : AppCompatActivity() {
             if (::pageActions.isInitialized) pageActions.pageArchiveController else null
         },
         webPermissionRequestController = {
-            if (::webPermissionRequestController.isInitialized) webPermissionRequestController else null
+            if (::webRequests.isInitialized) webRequests.webPermissionRequestController else null
         },
         geolocationPermissionController = {
-            if (::geolocationPermissionController.isInitialized) geolocationPermissionController else null
+            if (::webRequests.isInitialized) webRequests.geolocationPermissionController else null
         }
     ).create()
     private val sessionSitePermissionStore = SessionSitePermissionStore()
@@ -497,16 +493,13 @@ class MainActivity : AppCompatActivity() {
             recreateActivity = { recreate() },
             dp = ::dp
         ).create()
-        val webRequestComponents = BrowserWebRequestAssemblyController(
+        webRequests = BrowserWebRequestAssemblyController(
             activity = this,
             settingsManager = browserPersistence.settingsManager,
             sessionSitePermissionStore = sessionSitePermissionStore,
             browserFeatureStateController = browserFeatureStateController,
             activityResultLaunchers = activityResultLaunchers
         ).create()
-        webFileChooserController = webRequestComponents.webFileChooserController
-        webPermissionRequestController = webRequestComponents.webPermissionRequestController
-        geolocationPermissionController = webRequestComponents.geolocationPermissionController
 
         browserControls = BrowserControlsAssemblyController(
             activity = this,
@@ -620,9 +613,9 @@ class MainActivity : AppCompatActivity() {
             fullscreenChanged = { fullscreen ->
                 browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
             },
-            webFileChooserController = webFileChooserController,
-            webPermissionRequestController = webPermissionRequestController,
-            geolocationPermissionController = geolocationPermissionController
+            webFileChooserController = webRequests.webFileChooserController,
+            webPermissionRequestController = webRequests.webPermissionRequestController,
+            geolocationPermissionController = webRequests.geolocationPermissionController
         ).create()
 
         val browserFullscreenComponents = BrowserFullscreenAssemblyController(

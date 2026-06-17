@@ -96,7 +96,8 @@ class WebGeolocationPermissionContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(activityResultLaunchers.contains("geolocationPermissionController()?.handleAndroidPermissionResult(grants)"))
-        assertTrue(mainActivity.contains("private lateinit var geolocationPermissionController: GeolocationPermissionController"))
+        assertTrue(mainActivity.contains("private lateinit var webRequests: BrowserWebRequestComponents"))
+        assertTrue(mainActivity.contains("geolocationPermissionController = webRequests.geolocationPermissionController"))
         assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestGeolocationPermissions"))
         assertTrue(geolocationController.contains("pendingPermissionPrompt"))
         assertTrue(geolocationController.contains("pendingSitePrompt"))
