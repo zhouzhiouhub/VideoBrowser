@@ -46,7 +46,7 @@ class PlaybackHistoryWiringContractTest {
         ).readText()
         val script = projectFile("src/main/assets/scripts/common.js").readText()
 
-        assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
+        assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
         assertTrue(startupController.contains("nativeBridgeController.createNativeBridge()"))
         assertTrue(startupFeatureAssembly.contains("browserPersistence.webPlaybackHistoryRecorder"))

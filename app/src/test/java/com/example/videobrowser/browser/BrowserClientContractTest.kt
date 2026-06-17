@@ -103,8 +103,7 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("handler?.cancel()"))
         assertTrue(browserClient.contains("override fun onReceivedHttpAuthRequest"))
         assertTrue(browserClient.contains("httpAuthRequested(view, handler, host, realm)"))
-        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
-        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(runtimeFeatureAssembly.contains("httpAuthController = pageActions.httpAuthController"))
         assertTrue(httpAuthController.contains("private var pendingHandler: HttpAuthHandler?"))
         assertTrue(httpAuthController.contains("private var pendingDialog: AlertDialog?"))
@@ -160,7 +159,7 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("request?.cancel()"))
         assertTrue(browserClient.contains("override fun onReceivedClientCertRequest"))
         assertTrue(browserClient.contains("clientCertRequested(view, request)"))
-        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(runtimeFeatureAssembly.contains("clientCertificateController = pageActions.clientCertificateController"))
         assertTrue(
             browserWebClientController.contains(
@@ -218,7 +217,7 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("override fun onRenderProcessGone"))
         assertTrue(browserClient.contains("detail?.didCrash() == true"))
         assertTrue(browserClient.contains("return renderProcessGone(view, detail?.didCrash() == true)"))
-        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(browserWebClientController.contains("renderProcessGone = renderProcessRecoveryController::handleRenderProcessGone"))
         assertTrue(browserWebClientController.contains("fun showBrowserErrorPage(error: BrowserPageError)"))
         assertTrue(runtimeFeatureAssembly.contains("browserClients.browserWebClientController.showBrowserErrorPage(error)"))

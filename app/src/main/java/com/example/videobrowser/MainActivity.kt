@@ -19,14 +19,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
+import com.example.videobrowser.browser.BrowserActivityFeatureAssemblyController
+import com.example.videobrowser.browser.BrowserActivityFeatureComponents
 import com.example.videobrowser.browser.BrowserActivityScaffoldAssemblyController
 import com.example.videobrowser.browser.BrowserActivityScaffoldComponents
-import com.example.videobrowser.browser.BrowserCoreFeatureAssemblyController
-import com.example.videobrowser.browser.BrowserCoreFeatureComponents
-import com.example.videobrowser.browser.BrowserStartupFeatureAssemblyController
-import com.example.videobrowser.browser.BrowserStartupFeatureComponents
-import com.example.videobrowser.browser.BrowserRuntimeFeatureAssemblyController
-import com.example.videobrowser.browser.BrowserRuntimeFeatureComponents
 import com.example.videobrowser.browser.BrowserWebViewDebugController
 
 /**
@@ -46,29 +42,27 @@ class MainActivity : AppCompatActivity() {
     // region 应用级控制器和仓库
     // Repository 负责读写本机数据；Controller 负责连接 UI、WebView 和业务动作。
     // 这些 lateinit 属性会在 onCreate() 里按依赖顺序初始化。
-    private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents
-    private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents
-    private lateinit var browserStartupFeatures: BrowserStartupFeatureComponents
+    private lateinit var browserFeatures: BrowserActivityFeatureComponents
     private val browserActivityScaffold: BrowserActivityScaffoldComponents =
         BrowserActivityScaffoldAssemblyController(
             activity = this,
             browserCoreFeatures = {
-                if (::browserCoreFeatures.isInitialized) {
-                    browserCoreFeatures
+                if (::browserFeatures.isInitialized) {
+                    browserFeatures.browserCoreFeatures
                 } else {
                     null
                 }
             },
             browserRuntimeFeatures = {
-                if (::browserRuntimeFeatures.isInitialized) {
-                    browserRuntimeFeatures
+                if (::browserFeatures.isInitialized) {
+                    browserFeatures.browserRuntimeFeatures
                 } else {
                     null
                 }
             },
             browserStartupFeatures = {
-                if (::browserStartupFeatures.isInitialized) {
-                    browserStartupFeatures
+                if (::browserFeatures.isInitialized) {
+                    browserFeatures.browserStartupFeatures
                 } else {
                     null
                 }
@@ -91,94 +85,20 @@ class MainActivity : AppCompatActivity() {
 
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
-        browserCoreFeatures = BrowserCoreFeatureAssemblyController(
-            activity = this,
-            assets = assets,
-            filesDir = filesDir,
-            views = views,
-            browserTabState = browserActivityScaffold.browserTabState,
-            browserSessionStateController = browserActivityScaffold.browserSessionStateController,
-            browserRuntimeStateController = browserActivityScaffold.browserRuntimeStateController,
-            browserChromeClientStateController =
-                browserActivityScaffold.browserChromeClientStateController,
-            requestInterceptionProvider = browserActivityScaffold.requestInterceptionProvider,
-            activityResultLaunchers = browserActivityScaffold.activityResultLaunchers,
-            findInPageController = browserActivityScaffold.findInPageController,
-            browserRuntimeFeatures = {
-                if (::browserRuntimeFeatures.isInitialized) {
-                    browserRuntimeFeatures
-                } else {
-                    null
-                }
-            },
-            browserStartupFeatures = {
-                if (::browserStartupFeatures.isInitialized) {
-                    browserStartupFeatures
-                } else {
-                    null
-                }
-            },
-            logTag = RULE_LOG_TAG,
-            recreateActivity = { recreate() },
-            dp = ::dp
-        ).create()
-
-        browserRuntimeFeatures = BrowserRuntimeFeatureAssemblyController(
-            activity = this,
-            views = views,
-            decorView = window.decorView,
-            browserPersistence = browserCoreFeatures.browserPersistence,
-            browserSurface = browserCoreFeatures.browserSurface,
-            browserShell = browserCoreFeatures.browserShell,
-            browserSearch = browserCoreFeatures.browserSearch,
-            browserNavigation = browserCoreFeatures.browserNavigation,
-            pageActions = browserCoreFeatures.pageActions,
-            browserTabState = browserActivityScaffold.browserTabState,
-            sessionSitePermissionStore = browserActivityScaffold.sessionSitePermissionStore,
-            browserSessionStateController = browserActivityScaffold.browserSessionStateController,
-            browserRuntimeStateController = browserActivityScaffold.browserRuntimeStateController,
-            browserChromeClientStateController =
-                browserActivityScaffold.browserChromeClientStateController,
-            requestInterceptionProvider = browserActivityScaffold.requestInterceptionProvider,
-            activityResultLaunchers = browserActivityScaffold.activityResultLaunchers,
-            findInPageController = browserActivityScaffold.findInPageController,
-            browserStartupFeatures = {
-                if (::browserStartupFeatures.isInitialized) {
-                    browserStartupFeatures
-                } else {
-                    null
-                }
-            },
-            recreateActivity = { recreate() },
-            dp = ::dp
-        ).create()
-
-        browserStartupFeatures = BrowserStartupFeatureAssemblyController(
+        browserFeatures = BrowserActivityFeatureAssemblyController(
             activity = this,
             intent = intent,
             assets = assets,
             filesDir = filesDir,
             views = views,
-            browserPersistence = browserCoreFeatures.browserPersistence,
-            browserSurface = browserCoreFeatures.browserSurface,
-            browserShell = browserCoreFeatures.browserShell,
-            browserSessions = browserRuntimeFeatures.browserSessions,
-            browserSearch = browserCoreFeatures.browserSearch,
-            browserNavigation = browserCoreFeatures.browserNavigation,
-            pageActions = browserCoreFeatures.pageActions,
-            browserClients = browserRuntimeFeatures.browserClients,
-            browserFullscreen = browserRuntimeFeatures.browserFullscreen,
-            requestInterceptionProvider = browserActivityScaffold.requestInterceptionProvider,
-            activityResultLaunchers = browserActivityScaffold.activityResultLaunchers,
-            localFiles = browserCoreFeatures.localFiles,
-            browserSessionStateController = browserActivityScaffold.browserSessionStateController,
-            browserRuntimeStateController = browserActivityScaffold.browserRuntimeStateController,
-            browserChromeClientStateController =
-                browserActivityScaffold.browserChromeClientStateController,
+            decorView = window.decorView,
+            activityScaffold = browserActivityScaffold,
             nativeBridgeName = NATIVE_BRIDGE_NAME,
+            logTag = RULE_LOG_TAG,
             recreateActivity = { recreate() },
-            postToUi = { action -> runOnUiThread { action() } }
-        ).start()
+            postToUi = { action -> runOnUiThread { action() } },
+            dp = ::dp
+        ).create()
     }
 
     /**

@@ -58,7 +58,7 @@ class WebFileChooserContractTest {
 
         assertTrue(activityResultLaunchers.contains("ActivityResultContracts.StartActivityForResult()"))
         assertTrue(activityResultLaunchers.contains("webFileChooserController()?.handleActivityResult(result.resultCode, result.data)"))
-        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(runtimeFeatureAssembly.contains("webFileChooserController = webRequests.webFileChooserController"))
         assertTrue(webRequestAssembly.contains("launchChooser = activityResultLaunchers::launchWebFileChooser"))
         assertTrue(fileChooserController.contains("pendingFileChooserCallback: ValueCallback<Array<Uri>>?"))

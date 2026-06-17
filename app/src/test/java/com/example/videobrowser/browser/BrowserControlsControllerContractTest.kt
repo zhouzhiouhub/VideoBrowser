@@ -75,7 +75,7 @@ class BrowserControlsControllerContractTest {
         assertTrue(controller.contains("backButton.setOnClickListener { onBack() }"))
         assertTrue(controller.contains("backButton.isEnabled = visibility.showBack"))
         assertTrue(runtimeFeatureAssembly.contains("requireStartupFeatures().browserBackNavigationController.handleBrowserBack()"))
-        assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
+        assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
         assertTrue(startupController.contains("browserBackNavigationController.setupBackNavigation()"))
         assertTrue(runtimeFeatureAssembly.contains("browserBackNavigationController.handleBrowserBack()"))

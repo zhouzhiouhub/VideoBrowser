@@ -27,7 +27,7 @@ class HttpNavigationSafetyWiringContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(coreFeatureAssembly.contains("browserNavigationController = browserNavigation.browserNavigationController"))
         assertTrue(navigationController.contains("HttpNavigationSafetyPolicy.requiresInsecureNavigationConfirmation"))
         assertTrue(navigationController.contains("private fun loadUrlInternal(url: String, allowInsecureNavigation: Boolean)"))

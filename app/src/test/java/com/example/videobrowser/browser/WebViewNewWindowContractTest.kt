@@ -65,7 +65,7 @@ class WebViewNewWindowContractTest {
         ).readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("browserChromeClientController = browserClients.browserChromeClientController"))
         assertTrue(chromeClientController.contains("newWindowRequested = webWindowController::handleCreateWebWindow"))
         assertTrue(chromeClientController.contains("windowClosed = webWindowController::handleCloseWebWindow"))

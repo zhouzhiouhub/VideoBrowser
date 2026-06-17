@@ -30,7 +30,7 @@ class MediaRoutingWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserClientAssemblyController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(coreFeatureAssembly.contains("browserNavigationController.loadUrl(url)"))
         assertTrue(browserClientAssembly.contains("shouldBlockUrl = browserNavigationController::shouldBlockUrl"))
         assertTrue(source.contains("MediaRoutingController.route("))

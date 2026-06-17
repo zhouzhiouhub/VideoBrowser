@@ -68,7 +68,7 @@ class PlaybackHistoryPageWiringContractTest {
         ).readText()
 
         assertTrue(persistenceAssembly.contains("playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)"))
-        assertTrue(mainActivity.contains("BrowserStartupFeatureAssemblyController"))
+        assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupFeatureAssembly.contains("browserPersistence.playbackHistoryRepository"))
         assertTrue(functionCenterAssembly.contains("playbackHistoryRepository = playbackHistoryRepository"))
         assertTrue(functionCenterAssembly.contains("openPlaybackHistoryItem = browserPageToolEntryController::openPlaybackHistoryItem"))

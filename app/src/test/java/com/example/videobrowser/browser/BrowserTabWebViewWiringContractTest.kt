@@ -36,14 +36,14 @@ class BrowserTabWebViewWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(webViewSurfaceAssembly.contains("browserStandardWebViewHostController.setup()"))
         assertTrue(standardWebViewHostController.contains("BrowserTabWebViewRegistry<WebView>"))
         assertTrue(standardWebViewHostController.contains("fun createStandardTabWebView(): WebView"))
         assertTrue(standardWebViewHostController.contains("fun showStandardTabWebView(tabWebView: WebView, detachCurrent: Boolean)"))
         assertTrue(standardWebViewHostController.contains("fun hideStandardTabWebView(tabWebView: WebView)"))
         assertTrue(standardWebViewHostController.contains("fun destroyStandardTabWebView(tabWebView: WebView)"))
-        assertTrue(mainActivity.contains("private lateinit var browserRuntimeFeatures: BrowserRuntimeFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("browserTabActionsController = browserSessions.browserTabActionsController"))
         assertTrue(tabActionsController.contains("standardTabWebViews.openTab"))
         assertTrue(tabActionsController.contains("standardTabWebViews.switchTo"))
@@ -75,7 +75,7 @@ class BrowserTabWebViewWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserStandardWebViewHostController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(webViewInteractionAssembly.contains("val browserActiveWebViewController = BrowserActiveWebViewController("))
         assertTrue(webViewSurfaceAssembly.contains("webViewInteraction.browserActiveWebViewController::handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("onActiveWebViewChanged = handleActiveWebViewChanged"))

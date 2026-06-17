@@ -44,7 +44,7 @@ class LinkContextMenuContractTest {
         assertTrue(webViewInteractionAssembly.contains("configureLinkContextMenu = linkContextMenuController::configure"))
         assertTrue(activeWebViewController.contains("configureLinkContextMenu(activeWebView)"))
         assertTrue(linkContextMenuController.contains("fun configure(targetWebView: WebView)"))
-        assertTrue(mainActivity.contains("private lateinit var browserCoreFeatures: BrowserCoreFeatureComponents"))
+        assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(webViewSurfaceAssembly.contains("webViewInteraction.linkContextMenuController::configure"))
         assertTrue(linkContextMenuController.contains("targetWebView.setOnLongClickListener"))
         assertTrue(linkContextMenuController.contains("WebView.HitTestResult.SRC_ANCHOR_TYPE"))
