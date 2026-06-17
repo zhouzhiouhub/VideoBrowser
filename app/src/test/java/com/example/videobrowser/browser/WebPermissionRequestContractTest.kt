@@ -71,6 +71,9 @@ class WebPermissionRequestContractTest {
         val webPermissionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionRequestController.kt"
         ).readText()
+        val webRequestAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebRequestAssemblyController.kt"
+        ).readText()
         val privateBrowsingSwitchController = projectFile(
             "src/main/java/com/example/videobrowser/browser/PrivateBrowsingSwitchController.kt"
         ).readText()
@@ -79,7 +82,7 @@ class WebPermissionRequestContractTest {
         assertTrue(activityResultLaunchers.contains("ActivityResultContracts.RequestMultiplePermissions()"))
         assertTrue(activityResultLaunchers.contains("webPermissionRequestController()?.handleAndroidPermissionResult(grants)"))
         assertTrue(mainActivity.contains("private lateinit var webPermissionRequestController: WebPermissionRequestController"))
-        assertTrue(mainActivity.contains("requestAndroidPermissions = activityResultLaunchers::requestWebPermissions"))
+        assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestWebPermissions"))
         assertTrue(webPermissionController.contains("pendingWebPermissionRequest: PermissionRequest?"))
         assertTrue(webPermissionController.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))
         assertTrue(webPermissionController.contains("PermissionRequest.RESOURCE_VIDEO_CAPTURE"))

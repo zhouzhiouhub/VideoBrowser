@@ -32,7 +32,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
-import com.example.videobrowser.browser.AndroidPermissionChecker
 import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
@@ -68,6 +67,7 @@ import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
 import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
+import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
 import com.example.videobrowser.browser.BrowserWindowInsetsController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ClientCertificateController
@@ -207,7 +207,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
     private lateinit var geolocationPermissionController: GeolocationPermissionController
-    private lateinit var androidPermissionChecker: AndroidPermissionChecker
     private lateinit var elementPickerController: ElementPickerController
     private lateinit var jsInjector: JsInjector
     private lateinit var pageFeatureInjectionController: PageFeatureInjectionController
@@ -375,7 +374,6 @@ class MainActivity : AppCompatActivity() {
 
         // 先绑定界面控件，再创建依赖这些控件的控制器。
         views = MainActivityViews.bind(this)
-        androidPermissionChecker = AndroidPermissionChecker(this)
         browserKeyboardController = BrowserKeyboardController(
             context = this,
             addressInput = addressInput,
@@ -658,26 +656,16 @@ class MainActivity : AppCompatActivity() {
         pagePrintController = pageActionComponents.pagePrintController
         findInPageDialogController = pageActionComponents.findInPageDialogController
         browserPageToolEntryController = pageActionComponents.browserPageToolEntryController
-        webFileChooserController = WebFileChooserController(
-            activity = this,
-            launchChooser = activityResultLaunchers::launchWebFileChooser
-        )
-        webPermissionRequestController = WebPermissionRequestController(
+        val webRequestComponents = BrowserWebRequestAssemblyController(
             activity = this,
             settingsManager = settingsManager,
             sessionSitePermissionStore = sessionSitePermissionStore,
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            hasAndroidPermission = androidPermissionChecker::hasAndroidPermission,
-            requestAndroidPermissions = activityResultLaunchers::requestWebPermissions
-        )
-        geolocationPermissionController = GeolocationPermissionController(
-            activity = this,
-            settingsManager = settingsManager,
-            sessionSitePermissionStore = sessionSitePermissionStore,
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            hasAndroidPermission = androidPermissionChecker::hasAndroidPermission,
-            requestAndroidPermissions = activityResultLaunchers::requestGeolocationPermissions
-        )
+            browserFeatureStateController = browserFeatureStateController,
+            activityResultLaunchers = activityResultLaunchers
+        ).create()
+        webFileChooserController = webRequestComponents.webFileChooserController
+        webPermissionRequestController = webRequestComponents.webPermissionRequestController
+        geolocationPermissionController = webRequestComponents.geolocationPermissionController
 
         // 浏览器控件控制器只关心按钮、地址栏和进度条，不直接了解规则或下载细节。
         browserControlsController = BrowserControlsController(

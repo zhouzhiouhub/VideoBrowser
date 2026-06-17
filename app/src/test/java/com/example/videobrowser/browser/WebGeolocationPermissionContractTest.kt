@@ -87,6 +87,9 @@ class WebGeolocationPermissionContractTest {
         val geolocationController = projectFile(
             "src/main/java/com/example/videobrowser/browser/GeolocationPermissionController.kt"
         ).readText()
+        val webRequestAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebRequestAssemblyController.kt"
+        ).readText()
         val privateBrowsingSwitchController = projectFile(
             "src/main/java/com/example/videobrowser/browser/PrivateBrowsingSwitchController.kt"
         ).readText()
@@ -94,7 +97,7 @@ class WebGeolocationPermissionContractTest {
 
         assertTrue(activityResultLaunchers.contains("geolocationPermissionController()?.handleAndroidPermissionResult(grants)"))
         assertTrue(mainActivity.contains("private lateinit var geolocationPermissionController: GeolocationPermissionController"))
-        assertTrue(mainActivity.contains("requestAndroidPermissions = activityResultLaunchers::requestGeolocationPermissions"))
+        assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestGeolocationPermissions"))
         assertTrue(geolocationController.contains("pendingPermissionPrompt"))
         assertTrue(geolocationController.contains("pendingSitePrompt"))
         assertTrue(geolocationController.contains("Manifest.permission.ACCESS_FINE_LOCATION"))
