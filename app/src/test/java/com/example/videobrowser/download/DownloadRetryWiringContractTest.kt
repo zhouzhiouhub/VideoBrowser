@@ -52,7 +52,9 @@ class DownloadRetryWiringContractTest {
      */
     @Test
     fun mainActivityPassesDownloadControllerRetryIntoFunctionCenter() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        )
             .readText()
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
@@ -60,7 +62,7 @@ class DownloadRetryWiringContractTest {
 
         assertTrue(functionCenterPages.contains("retryDownload: (DownloadRecord) -> Unit"))
         assertTrue(functionCenterPages.contains("retryDownload = retryDownload"))
-        assertTrue(mainActivity.contains("retryDownload = downloadController::retry"))
+        assertTrue(functionCenterAssembly.contains("retryDownload = downloadController::retry"))
     }
 
     /**

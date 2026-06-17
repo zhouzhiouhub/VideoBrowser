@@ -23,7 +23,9 @@ class HomePageActionContractTest {
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        )
             .readText()
         val launchController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserLaunchController.kt"
@@ -37,7 +39,7 @@ class HomePageActionContractTest {
         assertTrue(pages.contains("FunctionCenterRootAction.HOME"))
         assertTrue(pages.contains("R.drawable.ic_home_24"))
         assertTrue(pages.contains("runPageAction(openHomePage)"))
-        assertTrue(mainActivity.contains("openHomePage = browserLaunchController::openHomePage"))
+        assertTrue(functionCenterAssembly.contains("openHomePage = browserLaunchController::openHomePage"))
         assertTrue(launchController.contains("fun openHomePage()"))
         assertTrue(strings.contains("action_open_home_page_summary"))
         assertTrue(readme.contains("页面工具可直接回到已配置主页"))

@@ -131,23 +131,25 @@ class BrowserTabsPageWiringContractTest {
      */
     @Test
     fun mainActivityPassesTabActionsIntoFunctionCenter() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        )
             .readText()
         val tabActionsController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
         ).readText()
 
-        assertTrue(mainActivity.contains("currentTabs = browserTabActionsController::currentTabs"))
-        assertTrue(mainActivity.contains("activeTabId = browserTabActionsController::activeTabId"))
-        assertTrue(mainActivity.contains("openNewTab = browserTabActionsController::openNewTab"))
-        assertTrue(mainActivity.contains("canReopenClosedTab = browserTabActionsController::canReopenClosedTab"))
-        assertTrue(mainActivity.contains("reopenClosedTab = browserTabActionsController::reopenClosedTab"))
-        assertTrue(mainActivity.contains("switchTab = browserTabActionsController::switchTab"))
-        assertTrue(mainActivity.contains("closeTab = browserTabActionsController::closeTab"))
-        assertTrue(mainActivity.contains("closeOtherTabs = browserTabActionsController::closeOtherTabs"))
-        assertTrue(mainActivity.contains("closeAllTabs = browserTabActionsController::closeAllTabs"))
+        assertTrue(functionCenterAssembly.contains("currentTabs = browserTabActionsController::currentTabs"))
+        assertTrue(functionCenterAssembly.contains("activeTabId = browserTabActionsController::activeTabId"))
+        assertTrue(functionCenterAssembly.contains("openNewTab = browserTabActionsController::openNewTab"))
+        assertTrue(functionCenterAssembly.contains("canReopenClosedTab = browserTabActionsController::canReopenClosedTab"))
+        assertTrue(functionCenterAssembly.contains("reopenClosedTab = browserTabActionsController::reopenClosedTab"))
+        assertTrue(functionCenterAssembly.contains("switchTab = browserTabActionsController::switchTab"))
+        assertTrue(functionCenterAssembly.contains("closeTab = browserTabActionsController::closeTab"))
+        assertTrue(functionCenterAssembly.contains("closeOtherTabs = browserTabActionsController::closeOtherTabs"))
+        assertTrue(functionCenterAssembly.contains("closeAllTabs = browserTabActionsController::closeAllTabs"))
         assertTrue(tabActionsController.contains("standardTabWebViews.closeAllTabs()"))
-        assertTrue(mainActivity.contains("duplicateTab = browserTabActionsController::duplicateTab"))
+        assertTrue(functionCenterAssembly.contains("duplicateTab = browserTabActionsController::duplicateTab"))
     }
 
     /**

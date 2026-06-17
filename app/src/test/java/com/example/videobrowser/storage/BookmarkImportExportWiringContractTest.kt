@@ -17,7 +17,9 @@ class BookmarkImportExportWiringContractTest {
      */
     @Test
     fun mainActivityWiresBookmarkImportExportThroughSaf() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        ).readText()
         val activityResultLaunchers = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
         ).readText()
@@ -43,8 +45,8 @@ class BookmarkImportExportWiringContractTest {
         assertTrue(controller.contains("contentResolver.openInputStream(uri)"))
         assertTrue(controller.contains("savedPageRepository.importBookmarks(payload)"))
         assertTrue(controller.contains("updateBookmarkButton()"))
-        assertTrue(mainActivity.contains("exportBookmarks = activityResultLaunchers::launchBookmarkExport"))
-        assertTrue(mainActivity.contains("importBookmarks = activityResultLaunchers::launchBookmarkImport"))
+        assertTrue(functionCenterAssembly.contains("exportBookmarks = activityResultLaunchers::launchBookmarkExport"))
+        assertTrue(functionCenterAssembly.contains("importBookmarks = activityResultLaunchers::launchBookmarkImport"))
         assertTrue(pages.contains("exportBookmarks: () -> Unit"))
         assertTrue(pages.contains("importBookmarks: () -> Unit"))
         assertTrue(strings.contains("toast_bookmarks_exported"))

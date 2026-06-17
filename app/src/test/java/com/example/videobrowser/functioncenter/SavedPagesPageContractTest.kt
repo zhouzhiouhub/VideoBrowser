@@ -80,7 +80,9 @@ class SavedPagesPageContractTest {
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        )
             .readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
@@ -88,7 +90,7 @@ class SavedPagesPageContractTest {
         assertTrue(page.contains("R.string.action_open_in_new_tab"))
         assertTrue(page.contains("openUrlInNewTab(page.url)"))
         assertTrue(pages.contains("openUrlInNewTab = openUrlInNewTab"))
-        assertTrue(mainActivity.contains("openUrlInNewTab = browserTabActionsController::openUrlInNewTab"))
+        assertTrue(functionCenterAssembly.contains("openUrlInNewTab = browserTabActionsController::openUrlInNewTab"))
         assertTrue(strings.contains("action_open_in_new_tab"))
     }
 

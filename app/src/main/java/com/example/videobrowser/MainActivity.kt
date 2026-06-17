@@ -91,9 +91,9 @@ import com.example.videobrowser.browser.search.SearchProviders
 import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
+import com.example.videobrowser.functioncenter.FunctionCenterAssemblyController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterEntryController
-import com.example.videobrowser.functioncenter.FunctionCenterPages
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureInjectionController
 import com.example.videobrowser.inject.PageFeatureCoordinator
@@ -169,7 +169,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserTabSessionRepository: BrowserTabSessionRepository
     private lateinit var browserStandardTabSessionController: BrowserStandardTabSessionController
     private lateinit var functionCenterController: FunctionCenterController
-    private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var functionCenterEntryController: FunctionCenterEntryController
     private lateinit var localFilesController: LocalFilesController
     private lateinit var localDocumentEntryController: LocalDocumentEntryController
@@ -1022,8 +1021,8 @@ class MainActivity : AppCompatActivity() {
             isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled
         )
 
-        // 功能中心是底部弹出的工具面板。这里把 MainActivity 能提供的动作注入进去。
-        functionCenterPages = FunctionCenterPages(
+        // 功能中心是底部弹出的工具面板。装配类负责把各控制器动作接入页面。
+        functionCenterEntryController = FunctionCenterAssemblyController(
             activity = this,
             functionCenter = functionCenterController,
             settingsManager = settingsManager,
@@ -1038,55 +1037,23 @@ class MainActivity : AppCompatActivity() {
             playbackHistoryRepository = playbackHistoryRepository,
             adBlockLogger = adBlockLogger,
             filesDir = filesDir,
-            currentSiteHost = browserUrlStateController::currentSiteHost,
-            currentActionableUrl = browserUrlStateController::currentActionableUrl,
-            isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled,
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            isAdBlockEnabled = browserFeatureStateController::isAdBlockEnabled,
-            isSmartNoImageEnabled = browserFeatureStateController::isSmartNoImageEnabled,
-            isJsInjectionEnabled = browserFeatureStateController::isJsInjectionEnabled,
-            isPageCleanupEnabled = browserFeatureStateController::isPageCleanupEnabled,
-            isVideoEnhancementEnabled = browserFeatureStateController::isVideoEnhancementEnabled,
-            currentTabs = browserTabActionsController::currentTabs,
-            activeTabId = browserTabActionsController::activeTabId,
-            openNewTab = browserTabActionsController::openNewTab,
-            openHomePage = browserLaunchController::openHomePage,
-            canReopenClosedTab = browserTabActionsController::canReopenClosedTab,
-            reopenClosedTab = browserTabActionsController::reopenClosedTab,
-            switchTab = browserTabActionsController::switchTab,
-            closeTab = browserTabActionsController::closeTab,
-            closeOtherTabs = browserTabActionsController::closeOtherTabs,
-            closeAllTabs = browserTabActionsController::closeAllTabs,
-            duplicateTab = browserTabActionsController::duplicateTab,
-            toggleCurrentBookmark = pageActionsController::toggleCurrentBookmark,
-            setCurrentPageAsHomePage = pageActionsController::setCurrentPageAsHomePage,
-            copyCurrentUrl = pageActionsController::copyCurrentUrl,
-            shareCurrentUrl = pageActionsController::shareCurrentUrl,
-            saveCurrentPageArchive = browserPageToolEntryController::saveCurrentPageArchive,
-            printCurrentPage = browserPageToolEntryController::printCurrentPage,
-            findInPage = browserPageToolEntryController::showFindInPageDialog,
-            openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
-            openPlaybackHistoryItem = browserPageToolEntryController::openPlaybackHistoryItem,
-            downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
-            retryDownload = downloadController::retry,
-            exportBookmarks = activityResultLaunchers::launchBookmarkExport,
-            importBookmarks = activityResultLaunchers::launchBookmarkImport,
-            currentSearchProviderName = { searchProviderController.selectedProvider.name },
-            selectSearchProvider = searchProviderController::selectDefaultSearchProvider,
-            setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
-            restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
-            showFileOperationsPage = localDocumentEntryController::showFileOperationsPage,
+            browserUrlStateController = browserUrlStateController,
+            browserFeatureStateController = browserFeatureStateController,
+            browserTabActionsController = browserTabActionsController,
+            browserLaunchController = browserLaunchController,
+            pageActionsController = pageActionsController,
+            browserPageToolEntryController = browserPageToolEntryController,
+            downloadController = downloadController,
+            activityResultLaunchers = activityResultLaunchers,
+            searchProviderController = searchProviderController,
+            localDocumentEntryController = localDocumentEntryController,
             startElementPicker = { elementPickerController.start() },
-            applyDesktopMode = browserDisplayModeController::applyDesktopMode,
-            injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
-            openUrlInNewTab = browserTabActionsController::openUrlInNewTab,
-            loadUrl = browserNavigationController::loadUrl,
+            browserDisplayModeController = browserDisplayModeController,
+            pageFeatureInjectionController = pageFeatureInjectionController,
+            browserNavigationController = browserNavigationController,
+            hideKeyboard = browserKeyboardController::hideKeyboard,
             recreateActivity = { recreate() }
-        )
-        functionCenterEntryController = FunctionCenterEntryController(
-            functionCenterPages = functionCenterPages,
-            hideKeyboard = browserKeyboardController::hideKeyboard
-        )
+        ).createEntryController()
 
         // 站点安全控制器负责地址栏锁/警告图标与详情弹窗，MainActivity 只在 URL 或主题变化时通知它刷新。
         siteSecurityController = SiteSecurityController(

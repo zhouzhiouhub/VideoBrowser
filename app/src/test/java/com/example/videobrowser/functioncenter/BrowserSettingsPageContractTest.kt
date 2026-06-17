@@ -46,7 +46,9 @@ class BrowserSettingsPageContractTest {
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        )
             .readText()
         val searchProviderController = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
@@ -69,8 +71,8 @@ class BrowserSettingsPageContractTest {
         )
         assertTrue(functionCenterPages.contains("currentSearchProviderName: () -> String"))
         assertTrue(functionCenterPages.contains("selectSearchProvider: (String) -> Boolean"))
-        assertTrue(mainActivity.contains("currentSearchProviderName = { searchProviderController.selectedProvider.name }"))
-        assertTrue(mainActivity.contains("selectSearchProvider = searchProviderController::selectDefaultSearchProvider"))
+        assertTrue(functionCenterAssembly.contains("currentSearchProviderName = { searchProviderController.selectedProvider.name }"))
+        assertTrue(functionCenterAssembly.contains("selectSearchProvider = searchProviderController::selectDefaultSearchProvider"))
         assertTrue(strings.contains("setting_search_engine"))
         assertTrue(strings.contains("toast_search_engine_updated"))
     }

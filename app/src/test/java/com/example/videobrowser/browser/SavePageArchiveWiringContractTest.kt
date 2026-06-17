@@ -47,6 +47,9 @@ class SavePageArchiveWiringContractTest {
     fun mainActivitySavesCurrentWebViewAsMhtmlArchive() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        ).readText()
         val activityResultLaunchers = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActivityResultLaunchers.kt"
         ).readText()
@@ -69,7 +72,7 @@ class SavePageArchiveWiringContractTest {
         assertTrue(pageArchiveController.contains("private fun exportArchiveFileToUri(archiveFile: File, uri: Uri)"))
         assertTrue(pageArchiveController.contains("const val MIME_TYPE = \"multipart/related\""))
         assertTrue(mainActivity.contains("launchArchiveExport = activityResultLaunchers::launchPageArchiveExport"))
-        assertTrue(mainActivity.contains("saveCurrentPageArchive = browserPageToolEntryController::saveCurrentPageArchive"))
+        assertTrue(functionCenterAssembly.contains("saveCurrentPageArchive = browserPageToolEntryController::saveCurrentPageArchive"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_saved"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_failed"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_unavailable"))

@@ -23,7 +23,9 @@ class SetCurrentPageAsHomeContractTest {
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        )
             .readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
@@ -38,7 +40,7 @@ class SetCurrentPageAsHomeContractTest {
         assertTrue(functionCenterPages.contains("R.string.action_set_current_page_as_home_summary"))
         assertTrue(functionCenterPages.contains("R.drawable.ic_home_24"))
         assertTrue(functionCenterPages.contains("runPageAction(setCurrentPageAsHomePage)"))
-        assertTrue(mainActivity.contains("setCurrentPageAsHomePage = pageActionsController::setCurrentPageAsHomePage"))
+        assertTrue(functionCenterAssembly.contains("setCurrentPageAsHomePage = pageActionsController::setCurrentPageAsHomePage"))
         assertTrue(strings.contains("action_set_current_page_as_home"))
         assertTrue(strings.contains("action_set_current_page_as_home_summary"))
         assertTrue(readme.contains("也可将当前页面设为主页"))
