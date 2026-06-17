@@ -60,7 +60,7 @@ import com.example.videobrowser.browser.BrowserPageFeatureAssemblyController
 import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
-import com.example.videobrowser.browser.BrowserSessionStateController
+import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
 import com.example.videobrowser.browser.BrowserShellAssemblyController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity() {
 
     // region 当前页面运行状态
     private var privateBrowsingActive = false
-    private val browserSessionStateController = BrowserSessionStateController(
+    private val browserSessionStateController = BrowserSessionStateAssemblyController(
         isPrivateBrowsingActive = { privateBrowsingActive },
         standardSessionController = {
             if (::standardSessionController.isInitialized) standardSessionController else null
@@ -327,7 +327,7 @@ class MainActivity : AppCompatActivity() {
         privateSessionController = {
             if (::privateSessionController.isInitialized) privateSessionController else null
         }
-    )
+    ).create()
     private val isHomePageVisible: Boolean
         get() = browserSessionStateController.currentSessionController().isHomePageVisible
     private val isVideoFullscreenUiActive: Boolean
