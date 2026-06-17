@@ -23,9 +23,12 @@ class MediaRoutingWiringContractTest {
         val source = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"
         ).readText()
+        val browserClientAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserClientAssemblyController.kt"
+        ).readText()
 
         assertTrue(mainActivity.contains("browserNavigationController.loadUrl(url)"))
-        assertTrue(mainActivity.contains("shouldBlockUrl = browserNavigationController::shouldBlockUrl"))
+        assertTrue(browserClientAssembly.contains("shouldBlockUrl = browserNavigationController::shouldBlockUrl"))
         assertTrue(source.contains("MediaRoutingController.route("))
         assertTrue(source.contains("MediaRouteSource.ADDRESS_BAR"))
         assertTrue(source.contains("MediaRouteSource.WEBVIEW_OVERRIDE"))

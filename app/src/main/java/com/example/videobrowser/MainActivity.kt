@@ -39,6 +39,7 @@ import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserChromeClientStateController
+import com.example.videobrowser.browser.BrowserClientAssemblyController
 import com.example.videobrowser.browser.BrowserControlsAssemblyController
 import com.example.videobrowser.browser.BrowserFeatureStateController
 import com.example.videobrowser.browser.BrowserControlsController
@@ -738,10 +739,20 @@ class MainActivity : AppCompatActivity() {
         privateSessionController = browserSessionComponents.privateSessionController
         privateBrowsingSwitchController = browserSessionComponents.privateBrowsingSwitchController
         browserTabActionsController = browserSessionComponents.browserTabActionsController
-        renderProcessRecoveryController = RenderProcessRecoveryController(
+        val browserClientComponents = BrowserClientAssemblyController(
+            activity = this,
+            fullscreenContainer = fullscreenContainer,
+            decorView = window.decorView,
             webViewContainer = webViewContainer,
-            sessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
+            standardTabStore = standardTabStore,
             standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
+            browserSessionCoordinator = browserStandardWebViewHostController.sessionCoordinator,
+            standardSessionController = standardSessionController,
+            privateSessionController = privateSessionController,
+            browserManager = {
+                browserStandardWebViewHostController.currentBrowserManager()
+            },
+            sessionController = browserSessionStateController::currentSessionController,
             currentPageUrl = {
                 browserSessionStateController.currentSessionController().currentPageUrl
             },
@@ -753,52 +764,30 @@ class MainActivity : AppCompatActivity() {
             saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
             showBrowserErrorPage = { error ->
                 browserWebClientController.showBrowserErrorPage(error)
-            }
-        )
-        browserWebClientController = BrowserWebClientController(
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
             },
-            sessionController = browserSessionStateController::currentSessionController,
             resetBackExitConfirmation = {
                 if (::browserBackNavigationController.isInitialized) {
                     browserBackNavigationController.resetBackExitConfirmation()
                 }
             },
-            renderProcessRecoveryController = renderProcessRecoveryController,
             clientCertificateController = clientCertificateController,
             httpAuthController = httpAuthController,
             adBlockRequestInterceptor = adBlockRequestInterceptor,
             smartNoImageRequestInterceptor = smartNoImageRequestInterceptor,
-            shouldBlockUrl = browserNavigationController::shouldBlockUrl
-        )
-        webWindowController = WebWindowController(
-            isPrivateBrowsingActive = { privateBrowsingActive },
-            standardTabStore = standardTabStore,
-            standardTabWebViews = browserStandardWebViewHostController.standardTabWebViews,
-            standardSessionController = standardSessionController,
+            browserNavigationController = browserNavigationController,
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
-            saveStandardTabSession = browserStandardTabSessionController::saveStandardTabSession,
-            closeTab = browserTabActionsController::closeTab
-        )
-        browserChromeClientController = BrowserChromeClientController(
-            activity = this,
-            fullscreenContainer = fullscreenContainer,
-            decorView = window.decorView,
-            standardSessionController = standardSessionController,
-            privateSessionController = privateSessionController,
-            browserManager = {
-                browserStandardWebViewHostController.currentBrowserManager()
-            },
-            isPrivateBrowsingActive = { privateBrowsingActive },
+            closeTab = browserTabActionsController::closeTab,
             fullscreenChanged = { fullscreen ->
                 browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
             },
             webFileChooserController = webFileChooserController,
             webPermissionRequestController = webPermissionRequestController,
-            geolocationPermissionController = geolocationPermissionController,
-            webWindowController = webWindowController
-        )
+            geolocationPermissionController = geolocationPermissionController
+        ).create()
+        renderProcessRecoveryController = browserClientComponents.renderProcessRecoveryController
+        browserWebClientController = browserClientComponents.browserWebClientController
+        webWindowController = browserClientComponents.webWindowController
+        browserChromeClientController = browserClientComponents.browserChromeClientController
 
         // 网页全屏视频控制器处理 WebChromeClient 自定义视图和网页视频手势协议。
         fullscreenVideoController = FullscreenVideoController(
