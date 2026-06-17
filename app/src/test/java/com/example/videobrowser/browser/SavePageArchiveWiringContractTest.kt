@@ -47,6 +47,9 @@ class SavePageArchiveWiringContractTest {
     fun mainActivitySavesCurrentWebViewAsMhtmlArchive() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val pageToolEntryController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageToolEntryController.kt"
+        ).readText()
         val pageArchiveController = projectFile(
             "src/main/java/com/example/videobrowser/browser/PageArchiveController.kt"
         ).readText()
@@ -54,15 +57,15 @@ class SavePageArchiveWiringContractTest {
         val readme = projectFile("README.md").readText()
 
         assertTrue(mainActivity.contains("ActivityResultContracts.CreateDocument(PageArchiveController.MIME_TYPE)"))
-        assertTrue(mainActivity.contains("private fun saveCurrentPageArchive()"))
-        assertTrue(mainActivity.contains("pageArchiveController.saveCurrentPageArchive()"))
+        assertTrue(pageToolEntryController.contains("fun saveCurrentPageArchive()"))
+        assertTrue(pageToolEntryController.contains("pageArchiveController.saveCurrentPageArchive()"))
         assertTrue(mainActivity.contains("pageArchiveController.handleExportResult(uri)"))
         assertTrue(pageArchiveController.contains("activeWebView().saveWebArchive("))
         assertTrue(pageArchiveController.contains("launchArchiveExport(archiveFileName(pageUrl))"))
         assertTrue(pageArchiveController.contains("PageArchiveFileName.create("))
         assertTrue(pageArchiveController.contains("private fun exportArchiveFileToUri(archiveFile: File, uri: Uri)"))
         assertTrue(pageArchiveController.contains("const val MIME_TYPE = \"multipart/related\""))
-        assertTrue(mainActivity.contains("saveCurrentPageArchive = ::saveCurrentPageArchive"))
+        assertTrue(mainActivity.contains("saveCurrentPageArchive = browserPageToolEntryController::saveCurrentPageArchive"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_saved"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_failed"))
         assertTrue(pageArchiveController.contains("R.string.toast_page_archive_unavailable"))

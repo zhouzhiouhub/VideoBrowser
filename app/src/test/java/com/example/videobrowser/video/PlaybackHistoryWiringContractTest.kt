@@ -52,12 +52,14 @@ class PlaybackHistoryWiringContractTest {
 
     @Test
     fun playbackHistoryOpensWebPageRecordsInWebView() {
-        val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
+        val pageToolEntryController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageToolEntryController.kt"
+        )
             .readText()
 
-        assertTrue(mainActivity.contains("progress.source == PlaybackHistorySource.WEB_PAGE"))
-        assertTrue(mainActivity.contains("loadUrl(progress.mediaIdentity)"))
-        assertTrue(mainActivity.contains("openNativePlayer("))
+        assertTrue(pageToolEntryController.contains("progress.source == PlaybackHistorySource.WEB_PAGE"))
+        assertTrue(pageToolEntryController.contains("loadUrl(progress.mediaIdentity)"))
+        assertTrue(pageToolEntryController.contains("openNativePlayer("))
     }
 
     /**

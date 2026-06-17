@@ -64,6 +64,7 @@ import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserMode
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserRequest
+import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionCoordinator
 import com.example.videobrowser.browser.BrowserTab
@@ -100,7 +101,6 @@ import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterPages
-import com.example.videobrowser.functioncenter.PlaybackHistoryDisplayText
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.inject.ScriptLoader
@@ -117,8 +117,6 @@ import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.FullscreenVideoController
 import com.example.videobrowser.video.MediaRouteDecision
 import com.example.videobrowser.video.PlaybackHistoryRepository
-import com.example.videobrowser.video.PlaybackHistorySource
-import com.example.videobrowser.video.PlaybackProgress
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.WebPlaybackHistoryRecorder
 
@@ -200,6 +198,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageArchiveController: PageArchiveController
     private lateinit var pagePrintController: PagePrintController
     private lateinit var browserNavigationController: BrowserNavigationController
+    private lateinit var browserPageToolEntryController: BrowserPageToolEntryController
     private lateinit var browserDisplayModeController: BrowserDisplayModeController
     private lateinit var browsingModeThemeController: BrowsingModeThemeController
     private lateinit var browserBackNavigationController: BrowserBackNavigationController
@@ -603,6 +602,18 @@ class MainActivity : AppCompatActivity() {
             closeFunctionCenter = { closeFunctionCenter() },
             dp = ::dp
         )
+        browserPageToolEntryController = BrowserPageToolEntryController(
+            findInPageDialogController = findInPageDialogController,
+            pageArchiveController = pageArchiveController,
+            pagePrintController = pagePrintController,
+            loadUrl = ::loadUrl,
+            openNativePlayer = { url, title ->
+                openNativePlayer(
+                    url = url,
+                    titleOverride = title
+                )
+            }
+        )
         webFileChooserController = WebFileChooserController(
             activity = this,
             launchChooser = webFileChooserLauncher::launch
@@ -812,11 +823,11 @@ class MainActivity : AppCompatActivity() {
             setCurrentPageAsHomePage = pageActionsController::setCurrentPageAsHomePage,
             copyCurrentUrl = pageActionsController::copyCurrentUrl,
             shareCurrentUrl = pageActionsController::shareCurrentUrl,
-            saveCurrentPageArchive = ::saveCurrentPageArchive,
-            printCurrentPage = ::printCurrentPage,
-            findInPage = ::showFindInPageDialog,
+            saveCurrentPageArchive = browserPageToolEntryController::saveCurrentPageArchive,
+            printCurrentPage = browserPageToolEntryController::printCurrentPage,
+            findInPage = browserPageToolEntryController::showFindInPageDialog,
             openCurrentUrlInNativePlayer = pageActionsController::openCurrentUrlInNativePlayer,
-            openPlaybackHistoryItem = ::openPlaybackHistoryItem,
+            openPlaybackHistoryItem = browserPageToolEntryController::openPlaybackHistoryItem,
             downloadCurrentUrl = pageActionsController::downloadCurrentUrl,
             retryDownload = downloadController::retry,
             exportBookmarks = ::exportBookmarks,
@@ -1661,33 +1672,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `showFindInPageDialog`：控制 `show Find In Page Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showFindInPageDialog() {
-        findInPageDialogController.showDialog()
-    }
-
-    /**
-     * 函数 `saveCurrentPageArchive`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun saveCurrentPageArchive() {
-        pageArchiveController.saveCurrentPageArchive()
-    }
-
-    /**
-     * 函数 `printCurrentPage`：封装 `print Current Page` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun printCurrentPage() {
-        pagePrintController.printCurrentPage()
-    }
-
-    /**
      * 函数 `showProfilePage`：控制 `show Profile Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1774,23 +1758,6 @@ class MainActivity : AppCompatActivity() {
         hideKeyboard()
         showHomeContent(false)
         currentBrowserManager().load(url)
-    }
-
-    /**
-     * 函数 `openPlaybackHistoryItem`：启动或加载 `open Playback History Item` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param progress 参数类型为 `PlaybackProgress`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     */
-    private fun openPlaybackHistoryItem(progress: PlaybackProgress) {
-        if (progress.source == PlaybackHistorySource.WEB_PAGE) {
-            loadUrl(progress.mediaIdentity)
-        } else {
-            openNativePlayer(
-                url = progress.mediaIdentity,
-                titleOverride = PlaybackHistoryDisplayText.title(progress)
-            )
-        }
     }
 
     // endregion

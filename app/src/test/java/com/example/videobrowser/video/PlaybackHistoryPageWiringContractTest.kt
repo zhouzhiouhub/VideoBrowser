@@ -53,14 +53,17 @@ class PlaybackHistoryPageWiringContractTest {
      */
     @Test
     fun mainActivityPassesPlaybackHistoryRepositoryAndNativeOpenCallback() {
-        val source = File("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val mainActivity = File("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val pageToolEntryController = File(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageToolEntryController.kt"
+        ).readText()
 
-        assertTrue(source.contains("playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)"))
-        assertTrue(source.contains("playbackHistoryRepository = playbackHistoryRepository"))
-        assertTrue(source.contains("openPlaybackHistoryItem = ::openPlaybackHistoryItem"))
-        assertTrue(source.contains("private fun openPlaybackHistoryItem(progress: PlaybackProgress)"))
-        assertTrue(source.contains("openNativePlayer("))
-        assertTrue(source.contains("url = progress.mediaIdentity"))
+        assertTrue(mainActivity.contains("playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)"))
+        assertTrue(mainActivity.contains("playbackHistoryRepository = playbackHistoryRepository"))
+        assertTrue(mainActivity.contains("openPlaybackHistoryItem = browserPageToolEntryController::openPlaybackHistoryItem"))
+        assertTrue(pageToolEntryController.contains("fun openPlaybackHistoryItem(progress: PlaybackProgress)"))
+        assertTrue(pageToolEntryController.contains("openNativePlayer("))
+        assertTrue(pageToolEntryController.contains("progress.mediaIdentity"))
     }
 
     /**

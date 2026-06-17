@@ -45,18 +45,21 @@ class PrintPageWiringContractTest {
     fun mainActivityPrintsCurrentWebViewThroughAndroidPrintFramework() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val pageToolEntryController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageToolEntryController.kt"
+        ).readText()
         val pagePrintController = projectFile("src/main/java/com/example/videobrowser/browser/PagePrintController.kt")
             .readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
         assertTrue(mainActivity.contains("private lateinit var pagePrintController: PagePrintController"))
-        assertTrue(mainActivity.contains("pagePrintController.printCurrentPage()"))
+        assertTrue(pageToolEntryController.contains("pagePrintController.printCurrentPage()"))
         assertTrue(pagePrintController.contains("PrintManager"))
         assertTrue(pagePrintController.contains("PrintAttributes.Builder().build()"))
         assertTrue(pagePrintController.contains("createPrintDocumentAdapter(jobName)"))
         assertTrue(pagePrintController.contains("printManager.print(jobName, printAdapter"))
-        assertTrue(mainActivity.contains("printCurrentPage = ::printCurrentPage"))
+        assertTrue(mainActivity.contains("printCurrentPage = browserPageToolEntryController::printCurrentPage"))
         assertTrue(pagePrintController.contains("R.string.toast_print_page_unavailable"))
         assertTrue(strings.contains("print_job_name"))
         assertTrue(readme.contains("打印或另存为 PDF"))
