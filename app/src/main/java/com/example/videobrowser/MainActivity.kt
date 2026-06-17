@@ -41,6 +41,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
 import com.example.videobrowser.browser.BrowserFeatureStateController
@@ -184,6 +185,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
+    private lateinit var browserAddressBarStateController: BrowserAddressBarStateController
     private lateinit var addressSuggestionController: AddressSuggestionController
     private lateinit var browserLaunchController: BrowserLaunchController
     private lateinit var browserTabActionsController: BrowserTabActionsController
@@ -423,7 +425,7 @@ class MainActivity : AppCompatActivity() {
             closeFunctionCenter = ::closeFunctionCenter,
             currentSessionController = ::currentSessionController,
             currentBrowserManager = ::currentBrowserManager,
-            updateAddressBar = ::updateAddressBar,
+            updateAddressBar = { url -> browserAddressBarStateController.updateAddressBar(url) },
             hideKeyboard = ::hideKeyboard,
             showHomeContent = ::showHomeContent
         )
@@ -442,6 +444,13 @@ class MainActivity : AppCompatActivity() {
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             openProviderHome = { browserLaunchController.openHomePage() },
             openCustomShortcut = { url -> browserNavigationController.loadUrl(url) }
+        )
+        browserAddressBarStateController = BrowserAddressBarStateController(
+            addressInput = addressInput,
+            searchProviderController = searchProviderController,
+            siteSecurityController = {
+                if (::siteSecurityController.isInitialized) siteSecurityController else null
+            }
         )
         historyRecordPolicy = HistoryRecordPolicy(
             homeUrls = {
@@ -513,8 +522,8 @@ class MainActivity : AppCompatActivity() {
             externalNavigator = externalNavigator,
             closeFunctionCenter = ::closeFunctionCenter,
             openNativePlayer = nativePlayerEntryController::openNativePlayer,
-            isProviderHomeUrl = ::isProviderHomeUrl,
-            updateAddressBar = ::updateAddressBar,
+            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
+            updateAddressBar = browserAddressBarStateController::updateAddressBar,
             hideKeyboard = ::hideKeyboard,
             showHomeContent = ::showHomeContent
         )
@@ -688,8 +697,8 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
-            isProviderHomeUrl = ::isProviderHomeUrl,
-            updateAddressBar = ::updateAddressBar,
+            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
+            updateAddressBar = browserAddressBarStateController::updateAddressBar,
             showHomeContent = ::showHomeContent,
             setPageProgress = browserControlsController::setProgress,
             updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
@@ -710,8 +719,8 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
-            isProviderHomeUrl = ::isProviderHomeUrl,
-            updateAddressBar = ::updateAddressBar,
+            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
+            updateAddressBar = browserAddressBarStateController::updateAddressBar,
             showHomeContent = ::showHomeContent,
             setPageProgress = browserControlsController::setProgress,
             updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility,
@@ -1566,26 +1575,6 @@ class MainActivity : AppCompatActivity() {
     // region 地址解析、页面加载和站点安全提示
     // 地址栏输入先被解析为 URL 或搜索词；真正加载前还会经过媒体路由、HTTP 降级确认和规则清理。
     /**
-     * 函数 `updateAddressBar`：根据最新状态刷新 `update Address Bar` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun updateAddressBar(url: String?) {
-        siteSecurityController.updateStatus(url)
-        if (url.isNullOrBlank()) {
-            return
-        }
-
-        val displayUrl = addressBarDisplayText(url)
-        if (addressInput.text?.toString() == displayUrl) {
-            return
-        }
-        addressInput.setText(displayUrl)
-        addressInput.setSelection(addressInput.text?.length ?: 0)
-    }
-
-    /**
      * 函数 `showCurrentSiteSettingsPage`：控制 `show Current Site Settings Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1597,17 +1586,6 @@ class MainActivity : AppCompatActivity() {
 
     // region 小工具函数和 WebView 跳转拦截
     // 这里放跨多个小流程复用的辅助函数，例如 dp 转换、键盘隐藏、URL 类型判断和 shouldOverrideUrlLoading 判断。
-    /**
-     * 函数 `addressBarDisplayText`：封装 `address Bar Display Text` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun addressBarDisplayText(url: String): String {
-        return searchProviderController.addressBarDisplayText(url)
-    }
-
     /**
      * 函数 `updateNavigationButtons`：根据最新状态刷新 `update Navigation Buttons` 相关数据或界面，让调用方看到一致结果。
      *
@@ -1681,17 +1659,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun shouldBlockUrl(view: WebView?, uri: Uri, openMedia: Boolean = true): Boolean {
         return browserNavigationController.shouldBlockUrl(view, uri, openMedia)
-    }
-
-    /**
-     * 函数 `isProviderHomeUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isProviderHomeUrl(url: String?): Boolean {
-        return searchProviderController.isProviderHomeUrl(url)
     }
 
     // endregion
