@@ -1058,7 +1058,7 @@ class MainActivity : AppCompatActivity() {
         standardBrowserManager.setPrivateBrowsingEnabled(false)
         defaultUserAgent = standardBrowserManager.userAgentString()
         browserDisplayModeController.applyDesktopMode(reload = false)
-        setupDownloadHandling()
+        downloadController.attachTo(browserManagers())
         browserChromeClientController.setupChromeClient()
         browserFullscreenUiController.setupFullscreenGestureOverlay()
         standardBrowserManager.addJavascriptInterface(
@@ -1353,19 +1353,6 @@ class MainActivity : AppCompatActivity() {
         if (areBrowserSessionsInitialized()) {
             currentSessionController().renderCurrentState()
         }
-    }
-
-    // endregion
-
-    // region 下载、桌面模式、链接菜单和原生播放器入口
-    // 这一组函数处理“当前页面之外”的动作：下载资源、切换桌面 UA、长按链接菜单和跳到原生播放器。
-    /**
-     * 函数 `setupDownloadHandling`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupDownloadHandling() {
-        downloadController.attachTo(browserManagers())
     }
 
     // endregion
