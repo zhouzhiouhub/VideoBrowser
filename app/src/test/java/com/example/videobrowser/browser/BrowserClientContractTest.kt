@@ -101,7 +101,8 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("override fun onReceivedHttpAuthRequest"))
         assertTrue(browserClient.contains("httpAuthRequested(view, handler, host, realm)"))
         assertTrue(mainActivity.contains("private lateinit var browserWebClientController: BrowserWebClientController"))
-        assertTrue(mainActivity.contains("private lateinit var httpAuthController: HttpAuthController"))
+        assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
+        assertTrue(mainActivity.contains("httpAuthController = pageActions.httpAuthController"))
         assertTrue(httpAuthController.contains("private var pendingHandler: HttpAuthHandler?"))
         assertTrue(httpAuthController.contains("private var pendingDialog: AlertDialog?"))
         assertTrue(browserWebClientController.contains("httpAuthRequested = { _, handler, host, realm ->"))
@@ -153,7 +154,8 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("request?.cancel()"))
         assertTrue(browserClient.contains("override fun onReceivedClientCertRequest"))
         assertTrue(browserClient.contains("clientCertRequested(view, request)"))
-        assertTrue(mainActivity.contains("private lateinit var clientCertificateController: ClientCertificateController"))
+        assertTrue(mainActivity.contains("private lateinit var pageActions: BrowserPageActionComponents"))
+        assertTrue(mainActivity.contains("clientCertificateController = pageActions.clientCertificateController"))
         assertTrue(
             browserWebClientController.contains(
                 "clientCertRequested = { _, request -> clientCertificateController.handleRequest(request) }"

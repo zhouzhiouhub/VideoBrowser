@@ -45,8 +45,8 @@ import com.example.videobrowser.browser.BrowserLaunchController
 import com.example.videobrowser.browser.BrowserNavigationController
 import com.example.videobrowser.browser.BrowserNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserPageActionAssemblyController
+import com.example.videobrowser.browser.BrowserPageActionComponents
 import com.example.videobrowser.browser.BrowserPageFeatureAssemblyController
-import com.example.videobrowser.browser.BrowserPageToolEntryController
 import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateAssemblyController
@@ -66,13 +66,7 @@ import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyControl
 import com.example.videobrowser.browser.BrowserWebViewInteractionComponents
 import com.example.videobrowser.browser.BrowserWebRequestAssemblyController
 import com.example.videobrowser.browser.BrowsingModeThemeController
-import com.example.videobrowser.browser.ClientCertificateController
-import com.example.videobrowser.browser.FindInPageDialogController
 import com.example.videobrowser.browser.GeolocationPermissionController
-import com.example.videobrowser.browser.HttpAuthController
-import com.example.videobrowser.browser.PageActionsController
-import com.example.videobrowser.browser.PageArchiveController
-import com.example.videobrowser.browser.PagePrintController
 import com.example.videobrowser.browser.PrivateBrowsingSwitchController
 import com.example.videobrowser.browser.RenderProcessRecoveryController
 import com.example.videobrowser.browser.BrowserRuntimeStateController
@@ -84,7 +78,6 @@ import com.example.videobrowser.browser.WebPermissionRequestController
 import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.BrowserSearchAssemblyController
 import com.example.videobrowser.browser.search.SearchProviderController
-import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.element.ElementPickerController
 import com.example.videobrowser.functioncenter.FunctionCenterAssemblyController
 import com.example.videobrowser.functioncenter.FunctionCenterController
@@ -132,12 +125,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var functionCenterEntryController: FunctionCenterEntryController
     private lateinit var localFilesController: LocalFilesController
     private lateinit var localDocumentEntryController: LocalDocumentEntryController
-    private lateinit var pageActionsController: PageActionsController
-    private lateinit var httpAuthController: HttpAuthController
-    private lateinit var clientCertificateController: ClientCertificateController
+    private lateinit var pageActions: BrowserPageActionComponents
     private lateinit var renderProcessRecoveryController: RenderProcessRecoveryController
     private lateinit var webWindowController: WebWindowController
-    private lateinit var findInPageDialogController: FindInPageDialogController
     private lateinit var historyRecordPolicy: HistoryRecordPolicy
     private lateinit var searchProviderController: SearchProviderController
     private lateinit var browserAddressBarStateController: BrowserAddressBarStateController
@@ -145,12 +135,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserLaunchController: BrowserLaunchController
     private lateinit var browserTabActionsController: BrowserTabActionsController
     private lateinit var privateBrowsingSwitchController: PrivateBrowsingSwitchController
-    private lateinit var downloadController: DownloadController
     private lateinit var siteSecurityController: SiteSecurityController
-    private lateinit var pageArchiveController: PageArchiveController
-    private lateinit var pagePrintController: PagePrintController
     private lateinit var browserNavigationController: BrowserNavigationController
-    private lateinit var browserPageToolEntryController: BrowserPageToolEntryController
     private lateinit var browserDisplayModeController: BrowserDisplayModeController
     private lateinit var browsingModeThemeController: BrowsingModeThemeController
     private lateinit var browserShellUiController: BrowserShellUiController
@@ -188,13 +174,13 @@ class MainActivity : AppCompatActivity() {
             if (::browserWebClientController.isInitialized) browserWebClientController else null
         },
         pageArchiveController = {
-            if (::pageArchiveController.isInitialized) pageArchiveController else null
+            if (::pageActions.isInitialized) pageActions.pageArchiveController else null
         },
         addressSuggestionController = {
             if (::addressSuggestionController.isInitialized) addressSuggestionController else null
         },
         downloadController = {
-            if (::downloadController.isInitialized) downloadController else null
+            if (::pageActions.isInitialized) pageActions.downloadController else null
         },
         elementPickerController = {
             if (::elementPickerController.isInitialized) elementPickerController else null
@@ -257,7 +243,7 @@ class MainActivity : AppCompatActivity() {
             }
         },
         pageArchiveController = {
-            if (::pageArchiveController.isInitialized) pageArchiveController else null
+            if (::pageActions.isInitialized) pageActions.pageArchiveController else null
         },
         webPermissionRequestController = {
             if (::webPermissionRequestController.isInitialized) webPermissionRequestController else null
@@ -376,7 +362,7 @@ class MainActivity : AppCompatActivity() {
             showMainFunctionCenterPage = {
                 functionCenterEntryController.showFunctionCenterRootPage()
             },
-            pageActionsController = { pageActionsController },
+            pageActionsController = { pageActions.pageActionsController },
             closeFunctionCenter = { functionCenterEntryController.closeFunctionCenter() },
             currentSessionController = browserSessionStateController::currentSessionController,
             currentBrowserManager = {
@@ -425,7 +411,7 @@ class MainActivity : AppCompatActivity() {
                 browserTabActionsController.openUrlInNewTab(url)
             },
             downloadUrl = { url, userAgent ->
-                downloadController.enqueue(
+                pageActions.downloadController.enqueue(
                     url = url,
                     userAgent = userAgent,
                     contentDisposition = null,
@@ -492,7 +478,7 @@ class MainActivity : AppCompatActivity() {
         browserDisplayModeController = navigationComponents.browserDisplayModeController
 
         // 下载控制器负责接收 WebView 下载回调，并把记录写入本地仓库。
-        val pageActionComponents = BrowserPageActionAssemblyController(
+        pageActions = BrowserPageActionAssemblyController(
             activity = this,
             downloadRecordRepository = browserPersistence.downloadRecordRepository,
             settingsManager = browserPersistence.settingsManager,
@@ -517,14 +503,6 @@ class MainActivity : AppCompatActivity() {
             recreateActivity = { recreate() },
             dp = ::dp
         ).create()
-        downloadController = pageActionComponents.downloadController
-        pageActionsController = pageActionComponents.pageActionsController
-        httpAuthController = pageActionComponents.httpAuthController
-        clientCertificateController = pageActionComponents.clientCertificateController
-        pageArchiveController = pageActionComponents.pageArchiveController
-        pagePrintController = pageActionComponents.pagePrintController
-        findInPageDialogController = pageActionComponents.findInPageDialogController
-        browserPageToolEntryController = pageActionComponents.browserPageToolEntryController
         val webRequestComponents = BrowserWebRequestAssemblyController(
             activity = this,
             settingsManager = browserPersistence.settingsManager,
@@ -543,7 +521,7 @@ class MainActivity : AppCompatActivity() {
             browserStandardWebViewHostController = browserStandardWebViewHostController,
             browserUrlStateController = browserUrlStateController,
             browserLaunchController = browserLaunchController,
-            pageActionsController = pageActionsController,
+            pageActionsController = pageActions.pageActionsController,
             browserControlsShellController = browserControlsShellController,
             isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
             isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
@@ -563,7 +541,7 @@ class MainActivity : AppCompatActivity() {
             browserShellUiController = browserShellUiController,
             browserControlsController = browserControls.browserControlsController,
             browserControlsShellController = browserControlsShellController,
-            pageActionsController = pageActionsController,
+            pageActionsController = pageActions.pageActionsController,
             pageFeatureInjectionController = pageFeatureInjectionController,
             browsingModeThemeController = browsingModeThemeController,
             sessionSitePermissionStore = sessionSitePermissionStore,
@@ -637,8 +615,8 @@ class MainActivity : AppCompatActivity() {
                     browserBackNavigationController.resetBackExitConfirmation()
                 }
             },
-            clientCertificateController = clientCertificateController,
-            httpAuthController = httpAuthController,
+            clientCertificateController = pageActions.clientCertificateController,
+            httpAuthController = pageActions.httpAuthController,
             adBlockRequestInterceptor = requestInterceptionProvider.adBlockRequestInterceptor,
             smartNoImageRequestInterceptor =
                 requestInterceptionProvider.smartNoImageRequestInterceptor,
@@ -693,9 +671,9 @@ class MainActivity : AppCompatActivity() {
             browserFeatureStateController = browserFeatureStateController,
             browserTabActionsController = browserTabActionsController,
             browserLaunchController = browserLaunchController,
-            pageActionsController = pageActionsController,
-            browserPageToolEntryController = browserPageToolEntryController,
-            downloadController = downloadController,
+            pageActionsController = pageActions.pageActionsController,
+            browserPageToolEntryController = pageActions.browserPageToolEntryController,
+            downloadController = pageActions.downloadController,
             activityResultLaunchers = activityResultLaunchers,
             searchProviderController = searchProviderController,
             localDocumentEntryController = localDocumentEntryController,
@@ -763,7 +741,7 @@ class MainActivity : AppCompatActivity() {
             settingsManager = browserPersistence.settingsManager,
             setDefaultUserAgent = browserRuntimeStateController::setDefaultUserAgent,
             browserDisplayModeController = browserDisplayModeController,
-            downloadController = downloadController,
+            downloadController = pageActions.downloadController,
             browserChromeClientController = browserChromeClientController,
             browserFullscreenUiController = browserFullscreenUiController,
             nativeBridgeController = nativeBridgeController,
