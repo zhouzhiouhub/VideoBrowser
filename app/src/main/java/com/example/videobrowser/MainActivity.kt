@@ -38,7 +38,7 @@ import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserBackNavigationController
 import com.example.videobrowser.browser.BrowserChromeClientController
-import com.example.videobrowser.browser.BrowserChromeClientStateController
+import com.example.videobrowser.browser.BrowserChromeClientStateAssemblyController
 import com.example.videobrowser.browser.BrowserClientAssemblyController
 import com.example.videobrowser.browser.BrowserControlsAssemblyController
 import com.example.videobrowser.browser.BrowserFeatureStateController
@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pageFeatureInjectionController: PageFeatureInjectionController
     private lateinit var pageFeatureCoordinator: PageFeatureCoordinator
     private lateinit var browserChromeClientController: BrowserChromeClientController
-    private val browserChromeClientStateController = BrowserChromeClientStateController(
+    private val browserChromeClientStateController = BrowserChromeClientStateAssemblyController(
         browserChromeClientController = {
             if (::browserChromeClientController.isInitialized) {
                 browserChromeClientController
@@ -227,7 +227,7 @@ class MainActivity : AppCompatActivity() {
                 null
             }
         }
-    )
+    ).create()
     private lateinit var browserWebClientController: BrowserWebClientController
     private lateinit var externalNavigator: BrowserExternalNavigator
     private lateinit var nativePlayerEntryController: NativePlayerEntryController
