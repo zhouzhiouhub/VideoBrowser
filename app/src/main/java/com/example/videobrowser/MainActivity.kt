@@ -62,6 +62,7 @@ import com.example.videobrowser.browser.BrowserSessionController
 import com.example.videobrowser.browser.BrowserSessionAssemblyController
 import com.example.videobrowser.browser.BrowserSessionStateController
 import com.example.videobrowser.browser.BrowserShellUiController
+import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostController
 import com.example.videobrowser.browser.BrowserStartupController
@@ -840,21 +841,16 @@ class MainActivity : AppCompatActivity() {
             recreateActivity = { recreate() }
         ).createEntryController()
 
-        // 站点安全控制器负责地址栏锁/警告图标与详情弹窗，MainActivity 只在 URL 或主题变化时通知它刷新。
-        siteSecurityController = SiteSecurityController(
+        siteSecurityController = BrowserSiteSecurityAssemblyController(
             activity = this,
             siteSecurityIcon = siteSecurityIcon,
             settingsManager = settingsManager,
-            currentPageUrl = {
-                browserSessionStateController.currentSessionController().currentPageUrl
-            },
-            currentWebViewUrl = {
-                browserStandardWebViewHostController.currentBrowserManager().currentUrl()
-            },
-            isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
-            currentSiteHost = browserUrlStateController::currentSiteHost,
+            browserSessionStateController = browserSessionStateController,
+            browserStandardWebViewHostController = browserStandardWebViewHostController,
+            browserFeatureStateController = browserFeatureStateController,
+            browserUrlStateController = browserUrlStateController,
             showCurrentSiteSettingsPage = functionCenterEntryController::showCurrentSiteSettingsPage
-        )
+        ).create()
 
         val browserPageFeatureComponents = BrowserPageFeatureAssemblyController(
             activity = this,
