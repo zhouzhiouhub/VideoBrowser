@@ -52,6 +52,9 @@ class BrowserTabWebViewWiringContractTest {
     fun activeWebViewChangesAreDelegatedToController() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val webViewInteractionAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewInteractionAssemblyController.kt"
+        ).readText()
         val activeWebViewController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserActiveWebViewController.kt"
         ).readText()
@@ -60,7 +63,7 @@ class BrowserTabWebViewWiringContractTest {
         ).readText()
 
         assertTrue(mainActivity.contains("private lateinit var browserActiveWebViewController: BrowserActiveWebViewController"))
-        assertTrue(mainActivity.contains("browserActiveWebViewController = BrowserActiveWebViewController("))
+        assertTrue(webViewInteractionAssembly.contains("val browserActiveWebViewController = BrowserActiveWebViewController("))
         assertTrue(mainActivity.contains("browserActiveWebViewController::handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("onActiveWebViewChanged = handleActiveWebViewChanged"))
         assertTrue(standardWebViewHostController.contains("handleActiveWebViewChanged(tabWebView, BrowserMode.STANDARD)"))

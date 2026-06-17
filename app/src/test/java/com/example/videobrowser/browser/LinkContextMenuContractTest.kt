@@ -19,6 +19,9 @@ class LinkContextMenuContractTest {
     @Test
     fun webViewLongPressShowsLinkActions() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt").readText()
+        val webViewInteractionAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewInteractionAssemblyController.kt"
+        ).readText()
         val linkContextMenuController = projectFile(
             "src/main/java/com/example/videobrowser/browser/LinkContextMenuController.kt"
         ).readText()
@@ -32,7 +35,7 @@ class LinkContextMenuContractTest {
         val readme = projectFile("README.md").readText()
 
         assertTrue(standardWebViewHostController.contains("configureLinkContextMenu(standardWebView)"))
-        assertTrue(mainActivity.contains("configureLinkContextMenu = linkContextMenuController::configure"))
+        assertTrue(webViewInteractionAssembly.contains("configureLinkContextMenu = linkContextMenuController::configure"))
         assertTrue(activeWebViewController.contains("configureLinkContextMenu(activeWebView)"))
         assertTrue(linkContextMenuController.contains("fun configure(targetWebView: WebView)"))
         assertTrue(mainActivity.contains("private lateinit var linkContextMenuController: LinkContextMenuController"))
@@ -51,6 +54,7 @@ class LinkContextMenuContractTest {
         assertFalse(linkContextMenuController.contains("R.string.action_open_external"))
         assertTrue(linkContextMenuController.contains("private fun downloadLinkUrl(url: String)"))
         assertTrue(linkContextMenuController.contains("downloadUrl(url, currentUserAgent())"))
+        assertTrue(webViewInteractionAssembly.contains("downloadUrl = downloadUrl"))
         assertTrue(mainActivity.contains("downloadController.enqueue("))
         assertTrue(mainActivity.contains("currentUserAgent = {"))
         assertTrue(mainActivity.contains("browserStandardWebViewHostController.currentBrowserManager().userAgentString()"))

@@ -65,6 +65,7 @@ import com.example.videobrowser.browser.BrowserTabSessionBinding
 import com.example.videobrowser.browser.BrowserTabStore
 import com.example.videobrowser.browser.BrowserWebClientController
 import com.example.videobrowser.browser.BrowserWebViewDebugController
+import com.example.videobrowser.browser.BrowserWebViewInteractionAssemblyController
 import com.example.videobrowser.browser.BrowserWindowInsetsController
 import com.example.videobrowser.browser.BrowsingModeThemeController
 import com.example.videobrowser.browser.ClientCertificateController
@@ -546,8 +547,9 @@ class MainActivity : AppCompatActivity() {
         browserAddressBarStateController = browserSearchComponents.browserAddressBarStateController
         historyRecordPolicy = browserSearchComponents.historyRecordPolicy
         addressSuggestionController = browserSearchComponents.addressSuggestionController
-        linkContextMenuController = LinkContextMenuController(
+        val webViewInteractionComponents = BrowserWebViewInteractionAssemblyController(
             activity = this,
+            setPrivateBrowsingActive = { active -> privateBrowsingActive = active },
             openUrlInNewTab = { url ->
                 browserTabActionsController.openUrlInNewTab(url)
             },
@@ -562,11 +564,7 @@ class MainActivity : AppCompatActivity() {
             currentUserAgent = {
                 browserStandardWebViewHostController.currentBrowserManager().userAgentString()
             },
-            isShareableUrl = browserUrlStateController::isShareableUrl
-        )
-        browserActiveWebViewController = BrowserActiveWebViewController(
-            setPrivateBrowsingActive = { active -> privateBrowsingActive = active },
-            configureLinkContextMenu = linkContextMenuController::configure,
+            isShareableUrl = browserUrlStateController::isShareableUrl,
             attachBrowserControlsScrollIfReady = { activeWebView ->
                 if (::browserControlsScrollController.isInitialized) {
                     browserControlsScrollController.attachToWebView(activeWebView)
@@ -580,7 +578,9 @@ class MainActivity : AppCompatActivity() {
             areBrowserSessionsInitialized =
                 browserSessionStateController::areBrowserSessionsInitialized,
             currentSessionController = browserSessionStateController::currentSessionController
-        )
+        ).create()
+        linkContextMenuController = webViewInteractionComponents.linkContextMenuController
+        browserActiveWebViewController = webViewInteractionComponents.browserActiveWebViewController
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
         browserStandardWebViewHostController = BrowserStandardWebViewHostController(
