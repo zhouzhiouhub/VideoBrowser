@@ -49,6 +49,7 @@ import com.example.videobrowser.browser.BrowserControlsController
 import com.example.videobrowser.browser.BrowserControlsShellController
 import com.example.videobrowser.browser.BrowserControlsScrollController
 import com.example.videobrowser.browser.BrowserDisplayModeController
+import com.example.videobrowser.browser.BrowserFullscreenUiController
 import com.example.videobrowser.browser.BrowserUrlStateController
 import com.example.videobrowser.browser.BrowserExternalNavigator
 import com.example.videobrowser.browser.HistoryRecordPolicy
@@ -201,6 +202,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserBackNavigationController: BrowserBackNavigationController
     private lateinit var nativeBridgeController: VideoBrowserNativeBridgeController
     private lateinit var fullscreenVideoController: FullscreenVideoController
+    private lateinit var browserFullscreenUiController: BrowserFullscreenUiController
     private lateinit var webFileChooserController: WebFileChooserController
     private lateinit var webPermissionRequestController: WebPermissionRequestController
     private lateinit var geolocationPermissionController: GeolocationPermissionController
@@ -698,7 +700,9 @@ class MainActivity : AppCompatActivity() {
                     elementPickerController.clearState()
                 }
             },
-            exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
+            exitPageFullscreenIfNeeded = {
+                browserFullscreenUiController.exitPageFullscreenIfNeeded()
+            },
             isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
             showHomeContent = ::showHomeContent,
@@ -720,7 +724,9 @@ class MainActivity : AppCompatActivity() {
                     elementPickerController.clearState()
                 }
             },
-            exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
+            exitPageFullscreenIfNeeded = {
+                browserFullscreenUiController.exitPageFullscreenIfNeeded()
+            },
             isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
             showHomeContent = ::showHomeContent,
@@ -740,7 +746,9 @@ class MainActivity : AppCompatActivity() {
                     elementPickerController.cancel()
                 }
             },
-            exitPageFullscreenIfNeeded = ::exitPageFullscreenIfNeeded,
+            exitPageFullscreenIfNeeded = {
+                browserFullscreenUiController.exitPageFullscreenIfNeeded()
+            },
             sessionSitePermissionStore = sessionSitePermissionStore,
             browserSessionCoordinator = browserSessionCoordinator,
             privateSessionController = privateSessionController,
@@ -811,7 +819,9 @@ class MainActivity : AppCompatActivity() {
             privateSessionController = privateSessionController,
             browserManager = ::currentBrowserManager,
             isPrivateBrowsingActive = { privateBrowsingActive },
-            fullscreenChanged = ::handleVideoFullscreenChanged,
+            fullscreenChanged = { fullscreen ->
+                browserFullscreenUiController.handleVideoFullscreenChanged(fullscreen)
+            },
             webFileChooserController = webFileChooserController,
             webPermissionRequestController = webPermissionRequestController,
             geolocationPermissionController = geolocationPermissionController,
@@ -826,6 +836,16 @@ class MainActivity : AppCompatActivity() {
             settingsManager = { settingsManager },
             chromeClient = { if (areChromeClientsInitialized()) currentChromeClient() else null },
             dp = ::dp
+        )
+        browserFullscreenUiController = BrowserFullscreenUiController(
+            rootView = rootView,
+            fullscreenVideoController = fullscreenVideoController,
+            browserControlsShellController = browserControlsShellController,
+            browserDisplayModeController = browserDisplayModeController,
+            currentChromeClient = {
+                if (areChromeClientsInitialized()) currentChromeClient() else null
+            },
+            isDesktopModeEnabled = browserFeatureStateController::isDesktopModeEnabled
         )
 
         // 功能中心是底部弹出的工具面板。这里把 MainActivity 能提供的动作注入进去。
@@ -992,7 +1012,7 @@ class MainActivity : AppCompatActivity() {
         browserDisplayModeController.applyDesktopMode(reload = false)
         setupDownloadHandling()
         browserChromeClientController.setupChromeClient()
-        setupFullscreenGestureOverlay()
+        browserFullscreenUiController.setupFullscreenGestureOverlay()
         standardBrowserManager.addJavascriptInterface(
             nativeBridgeController.createNativeBridge(),
             NATIVE_BRIDGE_NAME
@@ -1326,47 +1346,6 @@ class MainActivity : AppCompatActivity() {
     // region 网页权限、文件选择、书签导入导出和系统认证
     // WebView 的相机、麦克风、定位、文件上传等能力都要经过 Android 系统授权。
     // 书签导入导出也依赖系统文件选择器，所以放在同一组系统交互逻辑里。
-    /**
-     * 函数 `setupFullscreenGestureOverlay`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupFullscreenGestureOverlay() {
-        fullscreenVideoController.attachOverlay()
-    }
-
-    /**
-     * 函数 `exitPageFullscreenIfNeeded`：封装 `exit Page Fullscreen If Needed` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun exitPageFullscreenIfNeeded() {
-        if (areChromeClientsInitialized() &&
-            currentChromeClient().isFullscreenModeActive() &&
-            !currentChromeClient().isShowingCustomView()
-        ) {
-            currentChromeClient().exitPageFullscreen()
-        }
-    }
-
-    /**
-     * 函数 `handleVideoFullscreenChanged`：处理 `handle Video Fullscreen Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param fullscreen 参数类型为 `Boolean`，表示函数执行 `fullscreen` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleVideoFullscreenChanged(fullscreen: Boolean) {
-        fullscreenVideoController.handleFullscreenChanged(fullscreen)
-        browserControlsShellController.setBrowserControlsHidden(fullscreen)
-        browserControlsShellController.updatePageProgressVisibility(forceHidden = fullscreen)
-        ViewCompat.requestApplyInsets(rootView)
-        if (!fullscreen) {
-            browserDisplayModeController.applyBrowserContentOrientation(
-                browserFeatureStateController.isDesktopModeEnabled()
-            )
-        }
-    }
-
     /**
      * 函数 `hasAndroidPermission`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
      *
