@@ -665,7 +665,7 @@ class MainActivity : AppCompatActivity() {
             isHomePageVisible = { isHomePageVisible },
             isVideoFullscreenUiActive = { isVideoFullscreenUiActive },
             onLoadAddress = browserLaunchController::loadAddressInput,
-            onBack = ::handleBrowserBack,
+            onBack = { browserBackNavigationController.handleBrowserBack() },
             onOpenWenxin = browserLaunchController::openWenxinPage,
             onShowFunctionCenter = { functionCenterEntryController.showFunctionCenter() },
             onShowProfilePage = { functionCenterEntryController.showProfilePage() },
@@ -782,7 +782,11 @@ class MainActivity : AppCompatActivity() {
         browserWebClientController = BrowserWebClientController(
             browserManager = ::currentBrowserManager,
             sessionController = ::currentSessionController,
-            resetBackExitConfirmation = ::resetBackExitConfirmation,
+            resetBackExitConfirmation = {
+                if (::browserBackNavigationController.isInitialized) {
+                    browserBackNavigationController.resetBackExitConfirmation()
+                }
+            },
             renderProcessRecoveryController = renderProcessRecoveryController,
             clientCertificateController = clientCertificateController,
             httpAuthController = httpAuthController,
@@ -974,7 +978,7 @@ class MainActivity : AppCompatActivity() {
         updatePrivateBrowsingUi()
         setupBrowserControls()
         browserControlsShellController.setupWebViewScrollControls()
-        setupBackNavigation()
+        browserBackNavigationController.setupBackNavigation()
         standardBrowserManager.setup()
         standardBrowserManager.setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())
         standardBrowserManager.setMixedContentBlocked(settingsManager.isMixedContentBlocked())
@@ -1384,39 +1388,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun hasAndroidPermission(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
-    }
-
-    // endregion
-
-    // region 地址栏、顶部/底部工具栏和返回键
-    // 这一组函数只处理用户正在看的浏览器外壳：进度条、搜索入口、滚动隐藏工具栏和返回键行为。
-    /**
-     * 函数 `setupBackNavigation`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupBackNavigation() {
-        browserBackNavigationController.setupBackNavigation()
-    }
-
-    /**
-     * 函数 `handleBrowserBack`：处理 `handle Browser Back` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun handleBrowserBack() {
-        browserBackNavigationController.handleBrowserBack()
-    }
-
-    /**
-     * 函数 `resetBackExitConfirmation`：封装 `reset Back Exit Confirmation` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun resetBackExitConfirmation() {
-        if (::browserBackNavigationController.isInitialized) {
-            browserBackNavigationController.resetBackExitConfirmation()
-        }
     }
 
     // endregion
