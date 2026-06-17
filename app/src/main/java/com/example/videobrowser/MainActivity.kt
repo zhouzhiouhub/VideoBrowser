@@ -105,6 +105,7 @@ import com.example.videobrowser.functioncenter.FunctionCenterPages
 import com.example.videobrowser.inject.JsInjector
 import com.example.videobrowser.inject.PageFeatureCoordinator
 import com.example.videobrowser.inject.ScriptLoader
+import com.example.videobrowser.localfiles.LocalDocumentEntryController
 import com.example.videobrowser.localfiles.LocalFilesController
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.rules.RuleEngineFactory
@@ -182,6 +183,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var functionCenterPages: FunctionCenterPages
     private lateinit var functionCenterEntryController: FunctionCenterEntryController
     private lateinit var localFilesController: LocalFilesController
+    private lateinit var localDocumentEntryController: LocalDocumentEntryController
     private lateinit var pageActionsController: PageActionsController
     private lateinit var httpAuthController: HttpAuthController
     private lateinit var clientCertificateController: ClientCertificateController
@@ -423,6 +425,16 @@ class MainActivity : AppCompatActivity() {
             showMainFunctionCenterPage = ::showFunctionCenterRootPage,
             onOpenDocumentUri = ::openLocalDocumentUri
         )
+        localDocumentEntryController = LocalDocumentEntryController(
+            localFilesController = localFilesController,
+            pageActionsController = { pageActionsController },
+            closeFunctionCenter = ::closeFunctionCenter,
+            currentSessionController = ::currentSessionController,
+            currentBrowserManager = ::currentBrowserManager,
+            updateAddressBar = ::updateAddressBar,
+            hideKeyboard = ::hideKeyboard,
+            showHomeContent = ::showHomeContent
+        )
 
         // 搜索入口和地址建议拆成两个控制器：前者管理搜索引擎，后者管理输入提示列表。
         searchProviderController = SearchProviderController(
@@ -478,7 +490,7 @@ class MainActivity : AppCompatActivity() {
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
         setupBrowserWebViews()
-        setupFileOperationLaunchers()
+        localDocumentEntryController.setupFileOperationLaunchers()
 
         // 规则引擎读取 assets/rules 和用户订阅缓存，供广告拦截、URL 清理、脚本注入使用。
         ruleEngine = RuleEngineFactory.create(assets, filesDir)
@@ -568,7 +580,7 @@ class MainActivity : AppCompatActivity() {
                     playbackQueue = playbackQueue
                 )
             },
-            openLocalArchiveInBrowser = ::loadLocalDocumentUrlInBrowser,
+            openLocalArchiveInBrowser = localDocumentEntryController::loadLocalDocumentUrlInBrowser,
             isPrivateBrowsingEnabled = browserFeatureStateController::isPrivateBrowsingEnabled,
             switchPrivateBrowsing = ::setPrivateBrowsingActive,
             updateBookmarkButton = ::updateBookmarkButton,
@@ -838,7 +850,7 @@ class MainActivity : AppCompatActivity() {
             selectSearchProvider = searchProviderController::selectDefaultSearchProvider,
             setPrivateBrowsingEnabled = pageActionsController::setPrivateBrowsingEnabled,
             restoreDefaultSettings = pageActionsController::restoreDefaultSettings,
-            showFileOperationsPage = ::showFileOperationsPage,
+            showFileOperationsPage = localDocumentEntryController::showFileOperationsPage,
             startElementPicker = ::startElementPicker,
             applyDesktopMode = ::applyDesktopMode,
             injectPageFeatures = ::injectPageFeatures,
@@ -1696,24 +1708,6 @@ class MainActivity : AppCompatActivity() {
     private fun closeFunctionCenter(): Boolean = functionCenterEntryController.closeFunctionCenter()
 
     /**
-     * 函数 `setupFileOperationLaunchers`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupFileOperationLaunchers() {
-        localFilesController.setupLaunchers()
-    }
-
-    /**
-     * 函数 `showFileOperationsPage`：控制 `show File Operations Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showFileOperationsPage() {
-        localFilesController.showFileOperationsPage()
-    }
-
-    /**
      * 函数 `openLocalDocumentUri`：启动或加载 `open Local Document Uri` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1729,30 +1723,13 @@ class MainActivity : AppCompatActivity() {
         mimeType: String? = null,
         subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
         playbackQueue: PlaybackQueue? = null
-    ) {
-        pageActionsController.openLocalDocumentUri(
-            uri,
-            displayName,
-            mimeType,
-            subtitleCandidates,
-            playbackQueue
-        )
-    }
-
-    /**
-     * 函数 `loadLocalDocumentUrlInBrowser`：启动或加载 `load Local Document Url In Browser` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun loadLocalDocumentUrlInBrowser(url: String) {
-        closeFunctionCenter()
-        currentSessionController().currentPageUrl = url
-        updateAddressBar(url)
-        hideKeyboard()
-        showHomeContent(false)
-        currentBrowserManager().load(url)
-    }
+    ) = localDocumentEntryController.openLocalDocumentUri(
+        uri,
+        displayName,
+        mimeType,
+        subtitleCandidates,
+        playbackQueue
+    )
 
     // endregion
 
