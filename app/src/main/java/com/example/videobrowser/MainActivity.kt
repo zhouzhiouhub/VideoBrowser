@@ -66,6 +66,7 @@ import com.example.videobrowser.browser.BrowserShellAssemblyController
 import com.example.videobrowser.browser.BrowserShellUiController
 import com.example.videobrowser.browser.BrowserSiteSecurityAssemblyController
 import com.example.videobrowser.browser.BrowserStandardTabSessionController
+import com.example.videobrowser.browser.BrowserStandardWebViewHostAssemblyController
 import com.example.videobrowser.browser.BrowserStandardWebViewHostController
 import com.example.videobrowser.browser.BrowserStartupControllerAssembly
 import com.example.videobrowser.browser.BrowserTabActionsController
@@ -535,15 +536,14 @@ class MainActivity : AppCompatActivity() {
         browserActiveWebViewController = webViewInteractionComponents.browserActiveWebViewController
 
         // WebView 和标签页要先建好，后面的浏览器控制器才能拿到当前 activeWebView。
-        browserStandardWebViewHostController = BrowserStandardWebViewHostController(
+        browserStandardWebViewHostController = BrowserStandardWebViewHostAssemblyController(
             activity = this,
-            webViewContainer = webViewContainer,
+            views = views,
             standardTabStore = standardTabStore,
-            initialStandardWebView = views.webView,
             configureLinkContextMenu = linkContextMenuController::configure,
             handleActiveWebViewChanged =
                 browserActiveWebViewController::handleActiveWebViewChanged
-        )
+        ).create()
         browserStandardWebViewHostController.setup()
         localDocumentEntryController.setupFileOperationLaunchers()
 
