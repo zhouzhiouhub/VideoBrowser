@@ -33,6 +33,7 @@ import com.example.videobrowser.adblock.AdBlockRequestInterceptor
 import com.example.videobrowser.browser.BrowserActiveWebViewController
 import com.example.videobrowser.browser.BrowserActivityLifecycleController
 import com.example.videobrowser.browser.BrowserActivityResultLaunchers
+import com.example.videobrowser.browser.BrowserActivityResultLaunchersAssemblyController
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserBackNavigationAssemblyController
 import com.example.videobrowser.browser.BrowserBackNavigationController
@@ -313,7 +314,7 @@ class MainActivity : AppCompatActivity() {
 
     // region Android 系统交互状态
     // 这些字段保存系统弹窗或系统 Activity 返回前的临时状态，例如文件选择、权限申请、证书选择。
-    private val activityResultLaunchers = BrowserActivityResultLaunchers(
+    private val activityResultLaunchers = BrowserActivityResultLaunchersAssemblyController(
         activity = this,
         webFileChooserController = {
             if (::webFileChooserController.isInitialized) webFileChooserController else null
@@ -330,7 +331,7 @@ class MainActivity : AppCompatActivity() {
         geolocationPermissionController = {
             if (::geolocationPermissionController.isInitialized) geolocationPermissionController else null
         }
-    )
+    ).create()
     private val sessionSitePermissionStore = SessionSitePermissionStore()
     // endregion
 
