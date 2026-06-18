@@ -20,7 +20,6 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
@@ -36,6 +35,7 @@ class FunctionCenterViewFactory(
     private val dp: (Int) -> Int
 ) {
     private val surfaceFactory = FunctionCenterSurfaceFactory(activity, dp)
+    private val rowFactory = FunctionCenterRowFactory(activity, dp, surfaceFactory)
 
     /**
      * 函数 `createPage`：创建 `create Page` 需要的对象、视图或配置，并返回给后续流程使用。
@@ -222,7 +222,7 @@ class FunctionCenterViewFactory(
             LinearLayout.LayoutParams(dp(44), dp(44))
         )
         row.addView(
-            createRowText(title, summary),
+            rowFactory.createRowText(title, summary),
             LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
                 marginStart = dp(12)
             }
@@ -255,7 +255,7 @@ class FunctionCenterViewFactory(
             setPadding(dp(14), dp(10), dp(14), dp(10))
             background = surfaceFactory.createRoundedBackground(Color.parseColor("#FFF8DF"), dp(12).toFloat())
         }
-        strip.addView(createRowText(leftTitle, leftSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        strip.addView(rowFactory.createRowText(leftTitle, leftSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         strip.addView(
             View(activity).apply {
                 setBackgroundColor(Color.parseColor("#F1E3B8"))
@@ -265,7 +265,7 @@ class FunctionCenterViewFactory(
                 marginEnd = dp(10)
             }
         )
-        strip.addView(createRowText(rightTitle, rightSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        strip.addView(rowFactory.createRowText(rightTitle, rightSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         parent.addView(
             strip,
             LinearLayout.LayoutParams(
@@ -326,7 +326,7 @@ class FunctionCenterViewFactory(
             )
         } else {
             pages.take(2).forEach { page ->
-                card.addView(createHistoryPreviewRow(page, onOpenPage))
+                card.addView(rowFactory.createHistoryPreviewRow(page, onOpenPage))
             }
         }
         parent.addView(
@@ -386,7 +386,7 @@ class FunctionCenterViewFactory(
         title: String,
         summary: String
     ) {
-        val row = createRowText(title, summary).apply {
+        val row = rowFactory.createRowText(title, summary).apply {
             minimumHeight = dp(58)
             setPadding(0, dp(9), 0, dp(9))
         }
@@ -557,43 +557,14 @@ class FunctionCenterViewFactory(
         enabled: Boolean = true,
         onChanged: (Boolean) -> Unit
     ) {
-        val row = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            isClickable = enabled
-            isFocusable = enabled
-            isEnabled = enabled
-            minimumHeight = dp(62)
-            setPadding(0, dp(8), 0, dp(8))
-            setBoundedSelectableItemBackground()
-        }
-        val labels = createRowText(title, summary).apply {
-            isEnabled = enabled
-            alpha = if (enabled) 1f else 0.48f
-        }
-        row.addView(
-            labels,
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        )
-        val switchView = SwitchCompat(activity).apply {
-            isChecked = checked
-            isEnabled = enabled
-        }
-        row.addView(
-            switchView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-        switchView.setOnCheckedChangeListener { _, isChecked -> onChanged(isChecked) }
-        row.setOnClickListener {
-            if (enabled) {
-                switchView.isChecked = !switchView.isChecked
-            }
-        }
         parent.addView(
-            row,
+            rowFactory.createSwitchRow(
+                title = title,
+                summary = summary,
+                checked = checked,
+                enabled = enabled,
+                onChanged = onChanged
+            ),
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -618,20 +589,13 @@ class FunctionCenterViewFactory(
         enabled: Boolean = true,
         onClick: () -> Unit
     ) {
-        val row = createRowText(title, summary).apply {
-            isClickable = enabled
-            isFocusable = enabled
-            isEnabled = enabled
-            alpha = if (enabled) 1f else 0.48f
-            minimumHeight = dp(58)
-            setPadding(0, dp(9), 0, dp(9))
-            setBoundedSelectableItemBackground()
-            if (enabled) {
-                setOnClickListener { onClick() }
-            }
-        }
         parent.addView(
-            row,
+            rowFactory.createActionRow(
+                title = title,
+                summary = summary,
+                enabled = enabled,
+                onClick = onClick
+            ),
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -737,97 +701,6 @@ class FunctionCenterViewFactory(
                 marginEnd = dp(4)
             }
         )
-    }
-
-    /**
-     * 函数 `createRowText`：创建 `create Row Text` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param summary 参数类型为 `String`，表示函数执行 `summary` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createRowText(title: String, summary: String): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            val titleView = TextView(activity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                textSize = 15f
-                typeface = Typeface.DEFAULT_BOLD
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
-            }
-            val summaryView = TextView(activity).apply {
-                text = summary
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
-                textSize = 12f
-                maxLines = 2
-                ellipsize = TextUtils.TruncateAt.END
-            }
-            addView(titleView)
-            if (summary.isNotBlank()) {
-                addView(summaryView)
-            }
-        }
-    }
-
-    /**
-     * 函数 `createHistoryPreviewRow`：创建 `create History Preview Row` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     * @param onOpenPage 参数类型为 `(SavedPage) -> Unit`，表示函数执行 `onOpenPage` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createHistoryPreviewRow(
-        page: SavedPage,
-        onOpenPage: (SavedPage) -> Unit
-    ): View {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            isClickable = true
-            isFocusable = true
-            setPadding(0, dp(10), 0, dp(8))
-            setBoundedSelectableItemBackground()
-            setOnClickListener { onOpenPage(page) }
-
-            addView(
-                ImageView(activity).apply {
-                    setImageResource(R.drawable.ic_history_24)
-                    setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-                    background = surfaceFactory.createRoundedBackground(
-                        ContextCompat.getColor(activity, R.color.browser_soft_blue),
-                        dp(10).toFloat()
-                    )
-                    setPadding(dp(8), dp(8), dp(8), dp(8))
-                },
-                LinearLayout.LayoutParams(dp(42), dp(42))
-            )
-            addView(
-                createRowText(page.title.ifBlank { page.url }, page.url),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = dp(10)
-                }
-            )
-            addView(
-                TextView(activity).apply {
-                    text = activity.getString(R.string.action_open_history_item)
-                    gravity = Gravity.CENTER
-                    includeFontPadding = false
-                    setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
-                    textSize = 12f
-                    background = surfaceFactory.createRoundedBackground(
-                        ContextCompat.getColor(activity, R.color.browser_background),
-                        dp(14).toFloat()
-                    )
-                    setPadding(dp(12), 0, dp(12), 0)
-                },
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(28))
-            )
-        }
     }
 
     /**
