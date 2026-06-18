@@ -28,14 +28,6 @@ import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
 
-data class FunctionCenterGridAction(
-    val title: String,
-    val summary: String,
-    val iconResId: Int,
-    val enabled: Boolean = true,
-    val onClick: () -> Unit
-)
-
 /**
  * 功能中心 View 工厂。
  *
