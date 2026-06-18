@@ -32,6 +32,9 @@ class PlaybackSpeedNormalizerContractTest {
         val settingsValueNormalizer = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsValueNormalizer.kt"
         ).readText()
+        val displayFormatter = projectFile(
+            "src/main/java/com/example/videobrowser/utils/PlaybackSpeedDisplayFormatter.kt"
+        ).readText()
         val playbackHistoryDisplayText = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/PlaybackHistoryDisplayText.kt"
         ).readText()
@@ -45,7 +48,8 @@ class PlaybackSpeedNormalizerContractTest {
         assertTrue(playerActivity.contains("PlaybackSpeedNormalizer.normalize("))
         assertTrue(webViewVideoProtocol.contains("PlaybackSpeedNormalizer.normalize(speed, DEFAULT_PLAYBACK_SPEED)"))
         assertTrue(settingsValueNormalizer.contains("PlaybackSpeedNormalizer.normalize("))
-        assertTrue(playbackHistoryDisplayText.contains("PlaybackSpeedNormalizer.normalize(speed)"))
+        assertTrue(displayFormatter.contains("PlaybackSpeedNormalizer.normalize(speed)"))
+        assertTrue(playbackHistoryDisplayText.contains("PlaybackSpeedDisplayFormatter.format(record.speed)"))
         assertFalse(gestureMath.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
         assertFalse(sessionState.contains("private fun normalizeSpeed"))
         assertFalse(historyRepository.contains("private fun normalizeSpeed"))
@@ -53,6 +57,7 @@ class PlaybackSpeedNormalizerContractTest {
         assertFalse(fullscreenController.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
         assertFalse(webViewVideoProtocol.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
         assertFalse(settingsValueNormalizer.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
+        assertFalse(playbackHistoryDisplayText.contains("PlaybackSpeedNormalizer.normalize(speed)"))
         assertFalse(playbackHistoryDisplayText.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
     }
 

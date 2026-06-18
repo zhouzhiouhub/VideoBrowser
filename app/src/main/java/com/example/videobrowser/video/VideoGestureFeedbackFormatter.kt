@@ -7,6 +7,7 @@ package com.example.videobrowser.video
  * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
+import com.example.videobrowser.utils.PlaybackSpeedDisplayFormatter
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -21,11 +22,7 @@ object VideoGestureFeedbackFormatter {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun formatSpeed(speed: Float): String {
-        return if (speed == speed.toInt().toFloat()) {
-            "${speed.toInt()}x"
-        } else {
-            "${speed}x"
-        }
+        return PlaybackSpeedDisplayFormatter.format(speed)
     }
 
     /**

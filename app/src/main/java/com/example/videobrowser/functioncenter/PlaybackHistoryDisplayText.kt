@@ -7,7 +7,7 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import com.example.videobrowser.utils.PlaybackSpeedNormalizer
+import com.example.videobrowser.utils.PlaybackSpeedDisplayFormatter
 import com.example.videobrowser.utils.ShortDateTimeFormatter
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.PlaybackProgress
@@ -49,7 +49,8 @@ object PlaybackHistoryDisplayText {
         } else {
             formatDuration(record.positionMs)
         }
-        return "${updatedAtFormatter(record.updatedAtMillis)} | $progress | ${formatSpeed(record.speed)}"
+        val speedText = PlaybackSpeedDisplayFormatter.format(record.speed)
+        return "${updatedAtFormatter(record.updatedAtMillis)} | $progress | $speedText"
     }
 
     /**
@@ -98,23 +99,6 @@ object PlaybackHistoryDisplayText {
         } else {
             String.format(Locale.US, "%d:%02d", minutes, seconds)
         }
-    }
-
-    /**
-     * 函数 `formatSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun formatSpeed(speed: Float): String {
-        val normalized = PlaybackSpeedNormalizer.normalize(speed)
-        val numeric = if (normalized % 1f == 0f) {
-            normalized.toInt().toString()
-        } else {
-            String.format(Locale.US, "%.2f", normalized).trimEnd('0').trimEnd('.')
-        }
-        return "${numeric}x"
     }
 
     private const val SECONDS_PER_MINUTE = 60L
