@@ -7,7 +7,7 @@ package com.example.videobrowser.download
  * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import java.util.Locale
+import com.example.videobrowser.utils.SearchQueryTerms
 
 object DownloadRecordSearch {
     /**
@@ -19,12 +19,7 @@ object DownloadRecordSearch {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun filter(records: List<DownloadRecord>, query: String?): List<DownloadRecord> {
-        val terms = query
-            ?.trim()
-            ?.lowercase(Locale.ROOT)
-            ?.split(Regex("\\s+"))
-            ?.filter { term -> term.isNotBlank() }
-            ?: emptyList()
+        val terms = SearchQueryTerms.parse(query)
         if (terms.isEmpty()) {
             return records
         }
@@ -35,8 +30,8 @@ object DownloadRecordSearch {
                 record.fileName,
                 record.sourceUrl,
                 record.mimeType.orEmpty()
-            ).joinToString(separator = "\n").lowercase(Locale.ROOT)
-            terms.all { term -> haystack.contains(term) }
+            ).joinToString(separator = "\n")
+            SearchQueryTerms.containsAll(haystack, terms)
         }
     }
 }

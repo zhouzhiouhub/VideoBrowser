@@ -1,7 +1,7 @@
 package com.example.videobrowser.functioncenter
 
+import com.example.videobrowser.utils.SearchQueryTerms
 import java.net.URI
-import java.util.Locale
 
 object BrowserSiteDataOriginSearch {
     fun filterOriginNames(origins: List<String>, query: String?): List<String> {
@@ -9,23 +9,13 @@ object BrowserSiteDataOriginSearch {
     }
 
     fun matches(origin: String, query: String?): Boolean {
-        val terms = queryTerms(query)
+        val terms = SearchQueryTerms.parse(query)
         if (terms.isEmpty()) {
             return true
         }
         val searchableText = listOf(origin, originHost(origin))
             .joinToString(" ")
-            .lowercase(Locale.ROOT)
-        return terms.all { term -> searchableText.contains(term) }
-    }
-
-    private fun queryTerms(query: String?): List<String> {
-        return query
-            ?.trim()
-            ?.lowercase(Locale.ROOT)
-            ?.split(Regex("\\s+"))
-            ?.filter { term -> term.isNotBlank() }
-            ?: emptyList()
+        return SearchQueryTerms.containsAll(searchableText, terms)
     }
 
     private fun originHost(origin: String): String {

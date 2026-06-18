@@ -7,7 +7,7 @@ package com.example.videobrowser.storage
  * 主要职责：读写收藏夹、浏览历史、导入导出数据，并提供搜索和过滤能力。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import java.util.Locale
+import com.example.videobrowser.utils.SearchQueryTerms
 
 object SavedPageSearch {
     /**
@@ -19,19 +19,14 @@ object SavedPageSearch {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun filter(pages: List<SavedPage>, query: String?): List<SavedPage> {
-        val terms = query
-            ?.trim()
-            ?.lowercase(Locale.ROOT)
-            ?.split(Regex("\\s+"))
-            ?.filter { term -> term.isNotBlank() }
-            ?: emptyList()
+        val terms = SearchQueryTerms.parse(query)
         if (terms.isEmpty()) {
             return pages
         }
 
         return pages.filter { page ->
-            val haystack = "${page.title}\n${page.url}\n${page.folder}".lowercase(Locale.ROOT)
-            terms.all { term -> haystack.contains(term) }
+            val haystack = "${page.title}\n${page.url}\n${page.folder}"
+            SearchQueryTerms.containsAll(haystack, terms)
         }
     }
 }
