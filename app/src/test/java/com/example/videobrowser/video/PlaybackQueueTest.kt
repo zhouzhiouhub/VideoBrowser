@@ -152,6 +152,21 @@ class PlaybackQueueTest {
         assertEquals(queue, queue.removeAt(0))
     }
 
+    @Test
+    fun `can remove requires a valid index and multiple items`() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val single = PlaybackQueue.single(first)
+        val multiple = PlaybackQueue(items = listOf(first, second))
+
+        assertFalse(single.hasMultipleItems)
+        assertFalse(single.canRemoveAt(0))
+        assertTrue(multiple.hasMultipleItems)
+        assertTrue(multiple.canRemoveAt(0))
+        assertFalse(multiple.canRemoveAt(-1))
+        assertFalse(multiple.canRemoveAt(2))
+    }
+
     /**
      * 测试函数 `shuffleKeepsCurrentItemFirstAndCanRestoreOriginalOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `shuffle Keeps Current Item First And Can Restore Original Order` 这条行为是否成立。
      *

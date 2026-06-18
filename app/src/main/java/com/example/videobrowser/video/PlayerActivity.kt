@@ -465,7 +465,7 @@ class PlayerActivity : AppCompatActivity() {
             }
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(isLandscape)
-            setQueueControlsVisible(playbackQueue.items.size > 1)
+            setQueueControlsVisible(playbackQueue.hasMultipleItems)
             setRepeatMode(repeatMode)
             setVideoZoomMode(videoZoomMode)
         }
@@ -776,7 +776,7 @@ class PlayerActivity : AppCompatActivity() {
         if (!::gestureOverlay.isInitialized) {
             return
         }
-        gestureOverlay.setQueueControlsVisible(playbackQueue.items.size > 1)
+        gestureOverlay.setQueueControlsVisible(playbackQueue.hasMultipleItems)
         gestureOverlay.setRepeatMode(repeatMode)
     }
 
@@ -814,7 +814,7 @@ class PlayerActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun toggleShuffleMode(): Boolean {
-        if (playbackQueue.items.size <= 1) {
+        if (!playbackQueue.hasMultipleItems) {
             wakePlayerControls()
             return playbackQueue.isShuffled
         }
@@ -851,7 +851,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showPlaybackQueueMenu() {
-        if (playbackQueue.items.size <= 1) {
+        if (!playbackQueue.hasMultipleItems) {
             wakePlayerControls()
             return
         }
@@ -891,7 +891,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showPlaybackQueueRemoveMenu() {
-        if (playbackQueue.items.size <= 1) {
+        if (!playbackQueue.hasMultipleItems) {
             wakePlayerControls()
             return
         }
@@ -911,7 +911,7 @@ class PlayerActivity : AppCompatActivity() {
      * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
      */
     private fun removeMediaFromQueue(index: Int) {
-        if (index !in playbackQueue.items.indices || playbackQueue.items.size <= 1) {
+        if (!playbackQueue.canRemoveAt(index)) {
             wakePlayerControls()
             return
         }

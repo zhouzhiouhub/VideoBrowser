@@ -24,6 +24,9 @@ data class PlaybackQueue(
     val isShuffled: Boolean
         get() = originalItems != null
 
+    val hasMultipleItems: Boolean
+        get() = items.size > 1
+
     /**
      * 函数 `currentItem`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
      *
@@ -94,7 +97,7 @@ data class PlaybackQueue(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun removeAt(index: Int): PlaybackQueue {
-        if (index !in items.indices || items.size <= 1) {
+        if (!canRemoveAt(index)) {
             return this
         }
         val removedItem = items[index]
@@ -113,6 +116,10 @@ data class PlaybackQueue(
                 ?.filterNot { it == removedItem }
                 ?.takeIf { updatedItems.size > 1 }
         )
+    }
+
+    fun canRemoveAt(index: Int): Boolean {
+        return hasMultipleItems && index in items.indices
     }
 
     /**

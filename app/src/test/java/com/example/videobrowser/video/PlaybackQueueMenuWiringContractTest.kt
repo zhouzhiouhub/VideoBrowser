@@ -32,10 +32,14 @@ class PlaybackQueueMenuWiringContractTest {
         assertTrue(source.contains("PlaybackCommand.ToggleShuffle"))
         assertTrue(source.contains("playbackQueue = playbackQueue.select(index)"))
         assertTrue(source.contains("playbackQueue = playbackQueue.removeAt(index)"))
+        assertTrue(source.contains("playbackQueue.hasMultipleItems"))
+        assertTrue(source.contains("playbackQueue.canRemoveAt(index)"))
         assertTrue(source.contains("showPlaybackQueueMenu()"))
         assertTrue(source.contains("PlaybackQueueLabelFormatter.labels("))
         assertTrue(formatter.contains("object PlaybackQueueLabelFormatter"))
         assertTrue(formatter.contains("fun labels(queue: PlaybackQueue, nowPlayingLabel: String)"))
+        assertFalse(source.contains("playbackQueue.items.size <= 1"))
+        assertFalse(source.contains("playbackQueue.items.size > 1"))
         assertFalse(source.contains("item.uri.substringAfterLast('/')"))
     }
 
