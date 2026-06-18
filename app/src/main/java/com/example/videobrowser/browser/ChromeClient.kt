@@ -11,7 +11,6 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Message
-import android.text.InputType
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.GeolocationPermissions
@@ -23,10 +22,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebChromeClient.CustomViewCallback
 import android.webkit.WebChromeClient.FileChooserParams
 import android.webkit.WebView
-import android.widget.EditText
 import android.widget.FrameLayout
-import androidx.appcompat.app.AlertDialog
-import com.example.videobrowser.R
 
 /**
  * WebChromeClient 的应用适配层。
@@ -53,6 +49,7 @@ class ChromeClient(
         { _, _, _, _ -> false },
     private val windowClosed: (WebView?) -> Unit = {}
 ) : WebChromeClient() {
+    private val javaScriptDialogs = ChromeJavaScriptDialogController(activity)
     private var customView: View? = null
     private var customViewCallback: CustomViewCallback? = null
     private var previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -253,20 +250,7 @@ class ChromeClient(
         message: String?,
         result: JsResult?
     ): Boolean {
-        // 网页弹窗必须调用 confirm/cancel 结束，否则网页里的 JavaScript 会一直等待。
-        val jsResult = result ?: return false
-        if (!canShowDialog()) {
-            jsResult.cancel()
-            return true
-        }
-
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_dialog))
-            .setMessage(javascriptDialogMessage(message))
-            .setPositiveButton(android.R.string.ok) { _, _ -> jsResult.confirm() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
-        return true
+        return javaScriptDialogs.showAlert(view, url, message, result)
     }
 
     /**
@@ -285,20 +269,7 @@ class ChromeClient(
         message: String?,
         result: JsResult?
     ): Boolean {
-        val jsResult = result ?: return false
-        if (!canShowDialog()) {
-            jsResult.cancel()
-            return true
-        }
-
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_confirm))
-            .setMessage(javascriptDialogMessage(message))
-            .setPositiveButton(android.R.string.ok) { _, _ -> jsResult.confirm() }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> jsResult.cancel() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
-        return true
+        return javaScriptDialogs.showConfirm(view, url, message, result)
     }
 
     /**
@@ -319,29 +290,7 @@ class ChromeClient(
         defaultValue: String?,
         result: JsPromptResult?
     ): Boolean {
-        val jsResult = result ?: return false
-        if (!canShowDialog()) {
-            jsResult.cancel()
-            return true
-        }
-
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
-            setSingleLine(false)
-            setText(defaultValue.orEmpty())
-            selectAll()
-        }
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_prompt))
-            .setMessage(javascriptDialogMessage(message))
-            .setView(input)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                jsResult.confirm(input.text?.toString().orEmpty())
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> jsResult.cancel() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
-        return true
+        return javaScriptDialogs.showPrompt(view, url, message, defaultValue, result)
     }
 
     /**
@@ -360,20 +309,7 @@ class ChromeClient(
         message: String?,
         result: JsResult?
     ): Boolean {
-        val jsResult = result ?: return false
-        if (!canShowDialog()) {
-            jsResult.cancel()
-            return true
-        }
-
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_before_unload))
-            .setMessage(R.string.dialog_javascript_before_unload_message)
-            .setPositiveButton(R.string.action_leave_page) { _, _ -> jsResult.confirm() }
-            .setNegativeButton(R.string.action_stay_on_page) { _, _ -> jsResult.cancel() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
-        return true
+        return javaScriptDialogs.showBeforeUnload(view, url, message, result)
     }
 
     /**
@@ -443,60 +379,6 @@ class ChromeClient(
         fullscreenContainer.clearFocus()
         exitFullscreenMode()
         callback?.onCustomViewHidden()
-    }
-
-    /**
-     * 函数 `canShowDialog`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun canShowDialog(): Boolean {
-        return !activity.isFinishing && !activity.isDestroyed
-    }
-
-    /**
-     * 函数 `javascriptDialogTitle`：封装 `javascript Dialog Title` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param fallbackTitleRes 参数类型为 `Int`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun javascriptDialogTitle(
-        view: WebView?,
-        url: String?,
-        fallbackTitleRes: Int
-    ): String {
-        val origin = javascriptDialogOrigin(view?.url ?: url)
-        return origin ?: activity.getString(fallbackTitleRes)
-    }
-
-    /**
-     * 函数 `javascriptDialogOrigin`：封装 `javascript Dialog Origin` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun javascriptDialogOrigin(url: String?): String? {
-        return runCatching { Uri.parse(url).host }
-            .getOrNull()
-            ?.takeIf { host -> host.isNotBlank() }
-    }
-
-    /**
-     * 函数 `javascriptDialogMessage`：封装 `javascript Dialog Message` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param message 参数类型为 `String?`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun javascriptDialogMessage(message: String?): String {
-        return message
-            ?.takeIf { value -> value.isNotBlank() }
-            ?: activity.getString(R.string.dialog_javascript_message_empty)
     }
 
     /**

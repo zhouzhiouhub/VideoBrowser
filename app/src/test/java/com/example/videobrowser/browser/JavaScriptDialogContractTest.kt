@@ -20,19 +20,31 @@ class JavaScriptDialogContractTest {
         val chromeClient = projectFile(
             "src/main/java/com/example/videobrowser/browser/ChromeClient.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/ChromeJavaScriptDialogController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
+        assertTrue(chromeClient.contains("ChromeJavaScriptDialogController(activity)"))
         assertTrue(chromeClient.contains("override fun onJsAlert("))
         assertTrue(chromeClient.contains("override fun onJsConfirm("))
         assertTrue(chromeClient.contains("override fun onJsPrompt("))
         assertTrue(chromeClient.contains("override fun onJsBeforeUnload("))
-        assertTrue(chromeClient.contains("AlertDialog.Builder(activity)"))
-        assertTrue(chromeClient.contains("jsResult.confirm(input.text?.toString().orEmpty())"))
-        assertTrue(chromeClient.contains("R.string.action_leave_page"))
-        assertTrue(chromeClient.contains("R.string.action_stay_on_page"))
-        assertTrue(chromeClient.contains("private fun javascriptDialogOrigin(url: String?): String?"))
-        assertTrue(chromeClient.contains("activity.isDestroyed"))
+        assertTrue(chromeClient.contains("javaScriptDialogs.showAlert(view, url, message, result)"))
+        assertTrue(chromeClient.contains("javaScriptDialogs.showConfirm(view, url, message, result)"))
+        assertTrue(
+            chromeClient.contains(
+                "javaScriptDialogs.showPrompt(view, url, message, defaultValue, result)"
+            )
+        )
+        assertTrue(chromeClient.contains("javaScriptDialogs.showBeforeUnload(view, url, message, result)"))
+        assertTrue(dialogController.contains("AlertDialog.Builder(activity)"))
+        assertTrue(dialogController.contains("jsResult.confirm(input.text?.toString().orEmpty())"))
+        assertTrue(dialogController.contains("R.string.action_leave_page"))
+        assertTrue(dialogController.contains("R.string.action_stay_on_page"))
+        assertTrue(dialogController.contains("private fun javascriptDialogOrigin(url: String?): String?"))
+        assertTrue(dialogController.contains("activity.isDestroyed"))
 
         assertTrue(strings.contains("title_javascript_dialog"))
         assertTrue(strings.contains("title_javascript_confirm"))
