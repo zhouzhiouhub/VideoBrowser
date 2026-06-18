@@ -20,6 +20,9 @@ class PrintPageWiringContractTest {
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
+        val rootActionSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionSection.kt"
+        ).readText()
         val rootActionCatalog = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionCatalog.kt"
         ).readText()
@@ -28,9 +31,10 @@ class PrintPageWiringContractTest {
 
         assertTrue(rootActionCatalog.contains("PRINT_PAGE"))
         assertTrue(functionCenterPages.contains("printCurrentPage: () -> Unit"))
-        assertTrue(functionCenterPages.contains("R.string.action_print_page"))
-        assertTrue(functionCenterPages.contains("R.drawable.ic_print_24"))
-        assertTrue(functionCenterPages.contains("runPageAction(printCurrentPage)"))
+        assertTrue(functionCenterPages.contains("printCurrentPage = printCurrentPage"))
+        assertTrue(rootActionSection.contains("R.string.action_print_page"))
+        assertTrue(rootActionSection.contains("R.drawable.ic_print_24"))
+        assertTrue(rootActionSection.contains("runPageAction(printCurrentPage)"))
         assertTrue(strings.contains("action_print_page"))
         assertTrue(strings.contains("action_print_page_summary"))
         assertTrue(printIcon.contains("<vector"))

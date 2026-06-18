@@ -7,7 +7,9 @@ package com.example.videobrowser.functioncenter
  */
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class FunctionCenterRootSheetLayoutTest {
     /**
@@ -28,5 +30,29 @@ class FunctionCenterRootSheetLayoutTest {
         assertFalse(blocks.contains(FunctionCenterRootSheetBlock.HISTORY_PREVIEW))
         assertFalse(blocks.contains(FunctionCenterRootSheetBlock.EXPANDED_BROWSER_SETTINGS))
         assertFalse(blocks.contains(FunctionCenterRootSheetBlock.EXPANDED_DATA_MANAGEMENT))
+    }
+
+    @Test
+    fun functionCenterPagesDelegatesRootActionGridToSection() {
+        val pages = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
+        ).readText()
+        val rootActionSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionSection.kt"
+        ).readText()
+
+        assertTrue(pages.contains("FunctionCenterRootActionSection("))
+        assertTrue(pages.contains("rootActionSection.add(content, pageUrl, siteHost)"))
+        assertTrue(rootActionSection.contains("FunctionCenterRootActionCatalog.actions("))
+        assertTrue(rootActionSection.contains("private fun createAction("))
+    }
+
+    private fun projectFile(path: String): File {
+        val workingDirectory = File("").absoluteFile
+        return listOfNotNull(
+            File(workingDirectory, path),
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
+        ).first { it.exists() }
     }
 }

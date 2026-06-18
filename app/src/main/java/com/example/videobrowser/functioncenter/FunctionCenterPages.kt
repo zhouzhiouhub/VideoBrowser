@@ -230,6 +230,28 @@ class FunctionCenterPages(
         selectSearchProvider = selectSearchProvider,
         showRootPage = ::showRootPage
     )
+    private val rootActionSection = FunctionCenterRootActionSection(
+        host = host,
+        settingsManager = settingsManager,
+        browserManager = browserManager,
+        isDesktopModeEnabled = isDesktopModeEnabled,
+        isPrivateBrowsingEnabled = isPrivateBrowsingEnabled,
+        openHomePage = openHomePage,
+        shareCurrentUrl = shareCurrentUrl,
+        saveCurrentPageArchive = saveCurrentPageArchive,
+        printCurrentPage = printCurrentPage,
+        toggleCurrentBookmark = toggleCurrentBookmark,
+        startElementPicker = startElementPicker,
+        applyDesktopMode = applyDesktopMode,
+        showFeatureToggleToast = ::showFeatureToggleToast,
+        showBrowserTabs = { browserTabsPage.show() },
+        showBookmarks = ::showBookmarks,
+        showHistory = ::showHistory,
+        showPlaybackHistory = { playbackHistoryPage.show() },
+        showDownloads = { downloadsPage.show() },
+        showFileOperationsPage = showFileOperationsPage,
+        showCurrentSiteSettings = { currentSiteSettingsPage.show() }
+    )
 
     private val activity = host.activity
 
@@ -249,7 +271,7 @@ class FunctionCenterPages(
             FunctionCenterRootSheetLayout.blocks().forEach { block ->
                 when (block) {
                     FunctionCenterRootSheetBlock.ACTION_GRID -> {
-                        addBaiduBrowserActionGrid(content, pageUrl, siteHost)
+                        rootActionSection.add(content, pageUrl, siteHost)
                     }
 
                     FunctionCenterRootSheetBlock.HISTORY_PREVIEW -> {
@@ -364,223 +386,6 @@ class FunctionCenterPages(
                 summary = activity.getString(R.string.action_browser_settings_summary)
             ) {
                 browserSettingsPage.show()
-            }
-        }
-    }
-
-    /**
-     * 函数 `addBaiduBrowserActionGrid`：封装 `add Baidu Browser Action Grid` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
-     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addBaiduBrowserActionGrid(
-        parent: LinearLayout,
-        pageUrl: String?,
-        siteHost: String?
-    ) {
-        val pageSummary = pageUrl
-            ?.let(UrlUtils::displayUrl)
-            ?: activity.getString(R.string.function_center_page_action_unavailable)
-        val siteSummary = siteHost
-            ?: activity.getString(R.string.function_center_site_action_unavailable)
-        val hasPage = pageUrl != null
-
-        host.addFunctionSection(parent, "") { section ->
-            host.addActionGrid(
-                section,
-                FunctionCenterRootActionCatalog.actions(
-                    hasPage = hasPage,
-                    hasSite = siteHost != null,
-                    isPrivateBrowsing = isPrivateBrowsingEnabled()
-                ).map { action ->
-                    createRootGridAction(action, pageSummary, siteSummary, hasPage)
-                }
-            )
-        }
-    }
-
-    /**
-     * 函数 `createRootGridAction`：创建 `create Root Grid Action` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param action 参数类型为 `FunctionCenterRootAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
-     * @param pageSummary 参数类型为 `String`，表示函数执行 `pageSummary` 相关逻辑时需要读取或处理的输入。
-     * @param siteSummary 参数类型为 `String`，表示函数执行 `siteSummary` 相关逻辑时需要读取或处理的输入。
-     * @param hasPage 参数类型为 `Boolean`，表示函数执行 `hasPage` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createRootGridAction(
-        action: FunctionCenterRootAction,
-        pageSummary: String,
-        siteSummary: String,
-        hasPage: Boolean
-    ): FunctionCenterGridAction {
-        return when (action) {
-            FunctionCenterRootAction.TABS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_show_tabs),
-                    summary = activity.getString(R.string.action_show_tabs_summary),
-                    iconResId = R.drawable.ic_tabs_24
-                ) {
-                    browserTabsPage.show()
-                }
-            }
-
-            FunctionCenterRootAction.HOME -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.setting_home_page),
-                    summary = activity.getString(R.string.action_open_home_page_summary),
-                    iconResId = R.drawable.ic_home_24,
-                    enabled = hasPage
-                ) {
-                    runPageAction(openHomePage)
-                }
-            }
-
-            FunctionCenterRootAction.SHARE_PAGE -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_share_page),
-                    summary = activity.getString(R.string.action_share_page_summary),
-                    iconResId = R.drawable.ic_share_24,
-                    enabled = hasPage
-                ) {
-                    runPageAction(shareCurrentUrl)
-                }
-            }
-
-            FunctionCenterRootAction.SAVE_PAGE_ARCHIVE -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_save_page_archive),
-                    summary = activity.getString(R.string.action_save_page_archive_summary),
-                    iconResId = R.drawable.ic_file_24,
-                    enabled = hasPage
-                ) {
-                    runPageAction(saveCurrentPageArchive)
-                }
-            }
-
-            FunctionCenterRootAction.PRINT_PAGE -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_print_page),
-                    summary = activity.getString(R.string.action_print_page_summary),
-                    iconResId = R.drawable.ic_print_24,
-                    enabled = hasPage
-                ) {
-                    runPageAction(printCurrentPage)
-                }
-            }
-
-            FunctionCenterRootAction.BOOKMARKS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_bookmarks),
-                    summary = activity.getString(R.string.action_show_bookmarks_summary),
-                    iconResId = R.drawable.ic_star_24
-                ) {
-                    showBookmarks()
-                }
-            }
-
-            FunctionCenterRootAction.HISTORY -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_history),
-                    summary = activity.getString(R.string.action_show_history_summary),
-                    iconResId = R.drawable.ic_history_24
-                ) {
-                    showHistory()
-                }
-            }
-
-            FunctionCenterRootAction.PLAYBACK_HISTORY -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_playback_history),
-                    summary = activity.getString(R.string.action_show_playback_history_summary),
-                    iconResId = R.drawable.ic_history_24
-                ) {
-                    playbackHistoryPage.show()
-                }
-            }
-
-            FunctionCenterRootAction.DOWNLOADS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_downloads),
-                    summary = activity.getString(R.string.action_show_downloads_summary),
-                    iconResId = R.drawable.ic_download_24
-                ) {
-                    downloadsPage.show()
-                }
-            }
-
-            FunctionCenterRootAction.FILE_OPERATIONS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_file_operations),
-                    summary = activity.getString(R.string.action_file_operations_summary),
-                    iconResId = R.drawable.ic_file_24
-                ) {
-                    showFileOperationsPage()
-                }
-            }
-
-            FunctionCenterRootAction.REFRESH -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_refresh),
-                    summary = pageSummary,
-                    iconResId = R.drawable.ic_refresh_24,
-                    enabled = hasPage
-                ) {
-                    browserManager().reload()
-                    close()
-                }
-            }
-
-            FunctionCenterRootAction.DESKTOP_MODE -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.setting_desktop_mode),
-                    summary = activity.getString(R.string.setting_desktop_mode_summary),
-                    iconResId = R.drawable.ic_tabs_24,
-                    enabled = hasPage
-                ) {
-                    val enabled = !isDesktopModeEnabled()
-                    settingsManager.setDesktopModeEnabled(enabled)
-                    applyDesktopMode(true)
-                    showFeatureToggleToast(activity.getString(R.string.setting_desktop_mode), enabled)
-                    close()
-                }
-            }
-
-            FunctionCenterRootAction.ADD_BOOKMARK -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_add_bookmark),
-                    summary = pageSummary,
-                    iconResId = R.drawable.ic_star_filled_24,
-                    enabled = hasPage
-                ) {
-                    runPageAction(toggleCurrentBookmark)
-                }
-            }
-
-            FunctionCenterRootAction.PICK_ELEMENT -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_pick_element),
-                    summary = siteSummary,
-                    iconResId = R.drawable.ic_search_24,
-                    enabled = hasPage
-                ) {
-                    close()
-                    startElementPicker()
-                }
-            }
-
-            FunctionCenterRootAction.MORE -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.function_center_section_more),
-                    summary = siteSummary,
-                    iconResId = R.drawable.ic_more_vert_24
-                ) {
-                    currentSiteSettingsPage.show()
-                }
             }
         }
     }

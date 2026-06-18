@@ -20,6 +20,9 @@ class SavePageArchiveWiringContractTest {
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
+        val rootActionSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionSection.kt"
+        ).readText()
         val rootActionCatalog = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionCatalog.kt"
         ).readText()
@@ -29,10 +32,11 @@ class SavePageArchiveWiringContractTest {
         assertTrue(rootActionCatalog.contains("SAVE_PAGE_ARCHIVE"))
         assertTrue(rootActionCatalog.contains("FunctionCenterRootAction.SAVE_PAGE_ARCHIVE.takeIf { hasPage }"))
         assertTrue(functionCenterPages.contains("saveCurrentPageArchive: () -> Unit"))
-        assertTrue(functionCenterPages.contains("R.string.action_save_page_archive"))
-        assertTrue(functionCenterPages.contains("R.string.action_save_page_archive_summary"))
-        assertTrue(functionCenterPages.contains("R.drawable.ic_file_24"))
-        assertTrue(functionCenterPages.contains("runPageAction(saveCurrentPageArchive)"))
+        assertTrue(functionCenterPages.contains("saveCurrentPageArchive = saveCurrentPageArchive"))
+        assertTrue(rootActionSection.contains("R.string.action_save_page_archive"))
+        assertTrue(rootActionSection.contains("R.string.action_save_page_archive_summary"))
+        assertTrue(rootActionSection.contains("R.drawable.ic_file_24"))
+        assertTrue(rootActionSection.contains("runPageAction(saveCurrentPageArchive)"))
         assertTrue(strings.contains("action_save_page_archive"))
         assertTrue(strings.contains("action_save_page_archive_summary"))
         assertTrue(fileIcon.contains("<vector"))

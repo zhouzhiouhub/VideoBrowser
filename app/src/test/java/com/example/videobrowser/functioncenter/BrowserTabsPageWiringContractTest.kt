@@ -35,6 +35,9 @@ class BrowserTabsPageWiringContractTest {
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
+        val rootActionSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionSection.kt"
+        ).readText()
 
         assertTrue(pages.contains("BrowserTabsPage"))
         assertTrue(pages.contains("currentTabs: () -> List<BrowserTab>"))
@@ -45,8 +48,9 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(pages.contains("closeOtherTabs: (Long) -> Unit"))
         assertTrue(pages.contains("closeAllTabs: () -> Unit"))
         assertTrue(pages.contains("duplicateTab: (Long) -> Unit"))
-        assertTrue(pages.contains("FunctionCenterRootAction.TABS"))
-        assertTrue(pages.contains("browserTabsPage.show()"))
+        assertTrue(pages.contains("showBrowserTabs = { browserTabsPage.show() }"))
+        assertTrue(rootActionSection.contains("FunctionCenterRootAction.TABS"))
+        assertTrue(rootActionSection.contains("showBrowserTabs()"))
     }
 
     /**

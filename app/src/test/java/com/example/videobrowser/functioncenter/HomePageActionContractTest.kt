@@ -23,6 +23,9 @@ class HomePageActionContractTest {
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
+        val rootActionSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionSection.kt"
+        ).readText()
         val functionCenterAssembly = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
         )
@@ -36,9 +39,10 @@ class HomePageActionContractTest {
         assertTrue(catalog.contains("HOME"))
         assertTrue(catalog.contains("FunctionCenterRootAction.HOME.takeIf { hasPage }"))
         assertTrue(pages.contains("openHomePage: () -> Unit"))
-        assertTrue(pages.contains("FunctionCenterRootAction.HOME"))
-        assertTrue(pages.contains("R.drawable.ic_home_24"))
-        assertTrue(pages.contains("runPageAction(openHomePage)"))
+        assertTrue(pages.contains("openHomePage = openHomePage"))
+        assertTrue(rootActionSection.contains("FunctionCenterRootAction.HOME"))
+        assertTrue(rootActionSection.contains("R.drawable.ic_home_24"))
+        assertTrue(rootActionSection.contains("runPageAction(openHomePage)"))
         assertTrue(functionCenterAssembly.contains("openHomePage = browserLaunchController::openHomePage"))
         assertTrue(launchController.contains("fun openHomePage()"))
         assertTrue(strings.contains("action_open_home_page_summary"))
