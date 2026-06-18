@@ -20,6 +20,7 @@ class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
     private val hostSets = SettingsHostSetStore(preferenceStore)
+    private val globalPreferences = SettingsGlobalPreferenceStore(preferenceStore)
     private val siteFeatureHosts = SiteFeatureHostSettings(preferenceStore, hostSets)
     private val sitePermissions = PersistentSitePermissionStore(preferenceStore, hostSets)
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
@@ -32,7 +33,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isAdBlockEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_AD_BLOCK, DEFAULT_AD_BLOCK_ENABLED)
+        return globalPreferences.isAdBlockEnabled()
     }
 
     /**
@@ -42,7 +43,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setAdBlockEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_AD_BLOCK, enabled)
+        globalPreferences.setAdBlockEnabled(enabled)
     }
 
     /**
@@ -389,7 +390,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isJsInjectionEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_JS_INJECTION, DEFAULT_JS_INJECTION_ENABLED)
+        return globalPreferences.isJsInjectionEnabled()
     }
 
     /**
@@ -399,7 +400,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setJsInjectionEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_JS_INJECTION, enabled)
+        globalPreferences.setJsInjectionEnabled(enabled)
     }
 
     /**
@@ -409,7 +410,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isDomAdBlockEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_DOM_AD_BLOCK, DEFAULT_DOM_AD_BLOCK_ENABLED)
+        return globalPreferences.isDomAdBlockEnabled()
     }
 
     /**
@@ -419,7 +420,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setDomAdBlockEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_DOM_AD_BLOCK, enabled)
+        globalPreferences.setDomAdBlockEnabled(enabled)
     }
 
     /**
@@ -429,7 +430,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isVideoEnhancementEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_VIDEO_ENHANCEMENT, DEFAULT_VIDEO_ENHANCEMENT_ENABLED)
+        return globalPreferences.isVideoEnhancementEnabled()
     }
 
     /**
@@ -439,7 +440,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setVideoEnhancementEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_VIDEO_ENHANCEMENT, enabled)
+        globalPreferences.setVideoEnhancementEnabled(enabled)
     }
 
     /**
@@ -449,10 +450,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun alwaysStartVideosFromBeginning(): Boolean {
-        return preferenceStore.getBoolean(
-            KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING,
-            DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING
-        )
+        return globalPreferences.alwaysStartVideosFromBeginning()
     }
 
     /**
@@ -462,7 +460,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setAlwaysStartVideosFromBeginning(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING, enabled)
+        globalPreferences.setAlwaysStartVideosFromBeginning(enabled)
     }
 
     /**
@@ -472,7 +470,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isSmartNoImageEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_SMART_NO_IMAGE, DEFAULT_SMART_NO_IMAGE_ENABLED)
+        return globalPreferences.isSmartNoImageEnabled()
     }
 
     /**
@@ -482,7 +480,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setSmartNoImageEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_SMART_NO_IMAGE, enabled)
+        globalPreferences.setSmartNoImageEnabled(enabled)
     }
 
     /**
@@ -492,10 +490,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun areThirdPartyCookiesEnabled(): Boolean {
-        return preferenceStore.getBoolean(
-            KEY_THIRD_PARTY_COOKIES,
-            DEFAULT_THIRD_PARTY_COOKIES_ENABLED
-        )
+        return globalPreferences.areThirdPartyCookiesEnabled()
     }
 
     /**
@@ -505,7 +500,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setThirdPartyCookiesEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_THIRD_PARTY_COOKIES, enabled)
+        globalPreferences.setThirdPartyCookiesEnabled(enabled)
     }
 
     /**
@@ -515,7 +510,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isMixedContentBlocked(): Boolean {
-        return preferenceStore.getBoolean(KEY_MIXED_CONTENT_BLOCKED, DEFAULT_MIXED_CONTENT_BLOCKED)
+        return globalPreferences.isMixedContentBlocked()
     }
 
     /**
@@ -525,7 +520,7 @@ class SettingsManager(
      * @param blocked 参数类型为 `Boolean`，表示函数执行 `blocked` 相关逻辑时需要读取或处理的输入。
      */
     fun setMixedContentBlocked(blocked: Boolean) {
-        preferenceStore.putBoolean(KEY_MIXED_CONTENT_BLOCKED, blocked)
+        globalPreferences.setMixedContentBlocked(blocked)
     }
 
     /**
@@ -535,9 +530,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun defaultVideoSpeed(): Float {
-        return SettingsValueNormalizer.videoSpeed(
-            preferenceStore.getFloat(KEY_DEFAULT_VIDEO_SPEED, DEFAULT_VIDEO_SPEED)
-        )
+        return globalPreferences.defaultVideoSpeed()
     }
 
     /**
@@ -547,7 +540,7 @@ class SettingsManager(
      * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
      */
     fun setDefaultVideoSpeed(speed: Float) {
-        preferenceStore.putFloat(KEY_DEFAULT_VIDEO_SPEED, SettingsValueNormalizer.videoSpeed(speed))
+        globalPreferences.setDefaultVideoSpeed(speed)
     }
 
     /**
@@ -557,12 +550,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun textZoomPercent(): Int {
-        return SettingsValueNormalizer.textZoomPercent(
-            preferenceStore.getFloat(
-                KEY_TEXT_ZOOM_PERCENT,
-                DEFAULT_TEXT_ZOOM_PERCENT.toFloat()
-            ).toInt()
-        )
+        return globalPreferences.textZoomPercent()
     }
 
     /**
@@ -572,10 +560,7 @@ class SettingsManager(
      * @param percent 参数类型为 `Int`，表示函数执行 `percent` 相关逻辑时需要读取或处理的输入。
      */
     fun setTextZoomPercent(percent: Int) {
-        preferenceStore.putFloat(
-            KEY_TEXT_ZOOM_PERCENT,
-            SettingsValueNormalizer.textZoomPercent(percent).toFloat()
-        )
+        globalPreferences.setTextZoomPercent(percent)
     }
 
     /**
@@ -585,10 +570,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun homeUrl(): String {
-        return SettingsValueNormalizer.homeUrl(
-            preferenceStore.getString(KEY_HOME_URL, null),
-            DEFAULT_HOME_URL
-        )
+        return globalPreferences.homeUrl()
     }
 
     /**
@@ -599,10 +581,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun homeUrlOr(defaultValue: String): String {
-        return SettingsValueNormalizer.homeUrl(
-            preferenceStore.getString(KEY_HOME_URL, null),
-            defaultValue
-        )
+        return globalPreferences.homeUrlOr(defaultValue)
     }
 
     /**
@@ -612,7 +591,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun hasHomeUrl(): Boolean {
-        return preferenceStore.contains(KEY_HOME_URL)
+        return globalPreferences.hasHomeUrl()
     }
 
     /**
@@ -623,7 +602,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isValidHomeUrl(url: String): Boolean {
-        return SettingsValueNormalizer.homeUrlOrNull(url) != null
+        return globalPreferences.isValidHomeUrl(url)
     }
 
     /**
@@ -633,7 +612,7 @@ class SettingsManager(
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     fun setHomeUrl(url: String) {
-        preferenceStore.putString(KEY_HOME_URL, SettingsValueNormalizer.homeUrl(url, DEFAULT_HOME_URL))
+        globalPreferences.setHomeUrl(url)
     }
 
     /**
@@ -643,10 +622,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun searchEngineId(): String {
-        return preferenceStore.getString(KEY_SEARCH_ENGINE, DEFAULT_SEARCH_ENGINE_ID)
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-            ?: DEFAULT_SEARCH_ENGINE_ID
+        return globalPreferences.searchEngineId()
     }
 
     /**
@@ -656,8 +632,7 @@ class SettingsManager(
      * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
      */
     fun setSearchEngineId(id: String) {
-        val normalizedId = id.trim().takeIf { it.isNotEmpty() } ?: DEFAULT_SEARCH_ENGINE_ID
-        preferenceStore.putString(KEY_SEARCH_ENGINE, normalizedId)
+        globalPreferences.setSearchEngineId(id)
     }
 
     /**
@@ -713,7 +688,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isDesktopModeEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_DESKTOP_MODE, DEFAULT_DESKTOP_MODE_ENABLED)
+        return globalPreferences.isDesktopModeEnabled()
     }
 
     /**
@@ -723,7 +698,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setDesktopModeEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_DESKTOP_MODE, enabled)
+        globalPreferences.setDesktopModeEnabled(enabled)
     }
 
     /**
@@ -733,8 +708,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isPrivateBrowsingEnabled(): Boolean {
-        preferenceStore.remove(KEY_PRIVATE_BROWSING)
-        return DEFAULT_PRIVATE_BROWSING_ENABLED
+        return globalPreferences.isPrivateBrowsingEnabled()
     }
 
     /**
@@ -744,7 +718,7 @@ class SettingsManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
-        preferenceStore.remove(KEY_PRIVATE_BROWSING)
+        globalPreferences.setPrivateBrowsingEnabled(enabled)
     }
 
     /**
