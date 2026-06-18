@@ -27,7 +27,7 @@ class NativePlaybackShuffleWiringContractTest {
         assertTrue(source.contains("private fun syncPlayerQueueToPlaybackQueue()"))
         assertTrue(source.contains("exoPlayer.setMediaItems(playbackQueue.items.map(::toMediaItem), currentMediaItemIndex, playbackPosition)"))
         assertTrue(source.contains(".setPositiveButton(shuffleActionLabel())"))
-        assertTrue(source.contains("outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJson.encode(playbackQueue))"))
+        assertTrue(source.contains("outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(playbackQueue))"))
         assertTrue(source.contains("savedInstanceState.getString(STATE_PLAYBACK_QUEUE)"))
     }
 
@@ -39,7 +39,7 @@ class NativePlaybackShuffleWiringContractTest {
     @Test
     fun playbackQueueJsonPersistsOriginalOrderForShuffleRestore() {
         val source = File(
-            "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+            "src/main/java/com/example/videobrowser/video/PlaybackQueueJsonCodec.kt"
         ).readText()
 
         assertTrue(source.contains("\"originalItems\""))

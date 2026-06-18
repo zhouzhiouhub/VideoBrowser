@@ -41,8 +41,6 @@ import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
-import org.json.JSONArray
-import org.json.JSONObject
 
 /**
  * 原生视频播放器界面。
@@ -104,7 +102,7 @@ class PlayerActivity : AppCompatActivity() {
         settingsManager = SettingsManager(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
         val savedPlaybackQueue = if (savedInstanceState != null) {
-            savedInstanceState.getString(STATE_PLAYBACK_QUEUE)?.let(::decodePlaybackQueue)
+            savedInstanceState.getString(STATE_PLAYBACK_QUEUE)?.let(PlaybackQueueJsonCodec::decode)
         } else {
             null
         }
@@ -245,7 +243,7 @@ class PlayerActivity : AppCompatActivity() {
         outState.putBoolean(STATE_LANDSCAPE, isLandscape)
         outState.putFloat(STATE_PLAYBACK_SPEED, sessionState.speed)
         outState.putString(STATE_REPEAT_MODE, sessionState.repeatMode.name)
-        outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJson.encode(playbackQueue))
+        outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(playbackQueue))
         outState.putString(STATE_VIDEO_ZOOM_MODE, sessionState.zoomMode.name)
         outState.putBoolean(STATE_VIDEO_EFFECTS_ENABLED, videoEffectsEnabled)
         outState.putBoolean(
@@ -1387,100 +1385,8 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun playbackQueueFromIntent(): PlaybackQueue {
         val encodedQueue = intent.getStringExtra(EXTRA_PLAYBACK_QUEUE)
-        return encodedQueue?.let(::decodePlaybackQueue)
+        return encodedQueue?.let(PlaybackQueueJsonCodec::decode)
             ?: PlaybackQueue.single(currentPlayableMediaItem())
-    }
-
-    /**
-     * 函数 `decodePlaybackQueue`：封装 `decode Playback Queue` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param encodedQueue 参数类型为 `String`，表示函数执行 `encodedQueue` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun decodePlaybackQueue(encodedQueue: String): PlaybackQueue? {
-        return runCatching {
-            val root = JSONObject(encodedQueue)
-            val itemArray = root.getJSONArray("items")
-            val items = (0 until itemArray.length()).mapNotNull { index ->
-                itemArray.optJSONObject(index)?.toPlayableMediaItem()
-            }
-            if (items.isEmpty()) {
-                return@runCatching null
-            }
-            val index = root.optInt("currentIndex", 0).coerceIn(0, items.lastIndex)
-            val repeat = root.optString("repeatMode")
-                .takeIf { it.isNotBlank() }
-                ?.let { runCatching { PlaybackRepeatMode.valueOf(it) }.getOrNull() }
-                ?: PlaybackRepeatMode.NONE
-            val originalItems = playableItemsFromJson(root.optJSONArray("originalItems"))
-                .takeIf { it.isNotEmpty() }
-            PlaybackQueue(
-                items = items,
-                currentIndex = index,
-                repeatMode = repeat,
-                originalItems = originalItems
-            )
-        }.getOrNull()
-    }
-
-    /**
-     * 函数 `playableItemsFromJson`：封装 `playable Items From Json` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param array 参数类型为 `JSONArray?`，表示函数执行 `array` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun playableItemsFromJson(array: JSONArray?): List<PlayableMediaItem> {
-        if (array == null) {
-            return emptyList()
-        }
-        return (0 until array.length()).mapNotNull { index ->
-            array.optJSONObject(index)?.toPlayableMediaItem()
-        }
-    }
-
-    /**
-     * 函数 `toPlayableMediaItem`：封装 `to Playable Media Item` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun JSONObject.toPlayableMediaItem(): PlayableMediaItem? {
-        val uri = optString("uri").takeIf { it.isNotBlank() } ?: return null
-        return PlayableMediaItem(
-            uri = uri,
-            title = optString("title").takeIf { it.isNotBlank() },
-            mimeType = optString("mimeType").takeIf { it.isNotBlank() },
-            source = PlaybackQueueJson.sourceFromName(optString("source")),
-            userAgent = optString("userAgent").takeIf { it.isNotBlank() },
-            referer = optString("referer").takeIf { it.isNotBlank() },
-            subtitleCandidates = subtitleArrayFromJson(optJSONArray("subtitles"))
-        )
-    }
-
-    /**
-     * 函数 `subtitleArrayFromJson`：封装 `subtitle Array From Json` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param array 参数类型为 `JSONArray?`，表示函数执行 `array` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun subtitleArrayFromJson(array: JSONArray?): List<ExternalSubtitleCandidate> {
-        if (array == null) {
-            return emptyList()
-        }
-        return (0 until array.length()).mapNotNull { index ->
-            val subtitle = array.optJSONObject(index) ?: return@mapNotNull null
-            val uri = subtitle.optString("uri").takeIf { it.isNotBlank() }
-                ?: return@mapNotNull null
-            ExternalSubtitleCandidate(
-                uri = uri,
-                label = subtitle.optString("label").takeIf { it.isNotBlank() },
-                mimeType = subtitle.optString("mimeType").takeIf { it.isNotBlank() },
-                language = subtitle.optString("language").takeIf { it.isNotBlank() }
-            )
-        }
     }
 
     /**
@@ -1588,88 +1494,8 @@ class PlayerActivity : AppCompatActivity() {
                     )
                 }
                 playbackQueue?.let {
-                    putExtra(EXTRA_PLAYBACK_QUEUE, PlaybackQueueJson.encode(it))
+                    putExtra(EXTRA_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(it))
                 }
-            }
-        }
-
-        private object PlaybackQueueJson {
-            /**
-             * 函数 `encode`：封装 `encode` 这一段业务步骤，让调用方不用关心内部实现细节。
-             *
-             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-             * @param queue 参数类型为 `PlaybackQueue`，表示函数执行 `queue` 相关逻辑时需要读取或处理的输入。
-             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-             */
-            fun encode(queue: PlaybackQueue): String {
-                return JSONObject()
-                    .put("currentIndex", queue.currentIndex)
-                    .put("repeatMode", queue.repeatMode.name)
-                    .put(
-                        "items",
-                        JSONArray().apply {
-                            queue.items.forEach { item -> put(item.toJson()) }
-                        }
-                    )
-                    .apply {
-                        queue.originalItems?.let { originalItems ->
-                            put(
-                                "originalItems",
-                                JSONArray().apply {
-                                    originalItems.forEach { item -> put(item.toJson()) }
-                                }
-                            )
-                        }
-                    }
-                    .toString()
-            }
-
-            /**
-             * 函数 `sourceFromName`：封装 `source From Name` 这一段业务步骤，让调用方不用关心内部实现细节。
-             *
-             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-             * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-             */
-            fun sourceFromName(name: String): PlayableMediaSource {
-                return runCatching { PlayableMediaSource.valueOf(name) }
-                    .getOrDefault(PlayableMediaSource.REMOTE_URL)
-            }
-
-            /**
-             * 函数 `toJson`：封装 `to Json` 这一段业务步骤，让调用方不用关心内部实现细节。
-             *
-             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-             */
-            private fun PlayableMediaItem.toJson(): JSONObject {
-                return JSONObject()
-                    .put("uri", uri)
-                    .put("title", title.orEmpty())
-                    .put("mimeType", mimeType.orEmpty())
-                    .put("source", source.name)
-                    .put("userAgent", userAgent.orEmpty())
-                    .put("referer", referer.orEmpty())
-                    .put(
-                        "subtitles",
-                        JSONArray().apply {
-                            subtitleCandidates.forEach { put(it.toJson()) }
-                        }
-                    )
-            }
-
-            /**
-             * 函数 `toJson`：封装 `to Json` 这一段业务步骤，让调用方不用关心内部实现细节。
-             *
-             * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-             * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-             */
-            private fun ExternalSubtitleCandidate.toJson(): JSONObject {
-                return JSONObject()
-                    .put("uri", uri)
-                    .put("label", label.orEmpty())
-                    .put("mimeType", mimeType.orEmpty())
-                    .put("language", language.orEmpty())
             }
         }
     }
