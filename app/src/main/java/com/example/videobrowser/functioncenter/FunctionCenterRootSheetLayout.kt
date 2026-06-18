@@ -8,10 +8,7 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 enum class FunctionCenterRootSheetBlock {
-    ACTION_GRID,
-    HISTORY_PREVIEW,
-    EXPANDED_BROWSER_SETTINGS,
-    EXPANDED_DATA_MANAGEMENT
+    ACTION_GRID
 }
 
 object FunctionCenterRootSheetLayout {

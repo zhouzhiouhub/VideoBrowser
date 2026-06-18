@@ -267,28 +267,6 @@ class FunctionCenterPages(
                     FunctionCenterRootSheetBlock.ACTION_GRID -> {
                         rootActionSection.add(content, pageUrl, siteHost)
                     }
-
-                    FunctionCenterRootSheetBlock.HISTORY_PREVIEW -> {
-                        host.addHistoryPreview(
-                            parent = content,
-                            title = activity.getString(R.string.menu_history_title),
-                            emptyMessage = activity.getString(R.string.menu_history_empty),
-                            pages = savedPageRepository.history(),
-                            onOpenPage = { page ->
-                                close()
-                                loadUrl(page.url)
-                            },
-                            onShowHistory = ::showHistory
-                        )
-                    }
-
-                    FunctionCenterRootSheetBlock.EXPANDED_BROWSER_SETTINGS -> {
-                        browserSettingsPage.addExpandedBrowserSettings(content)
-                    }
-
-                    FunctionCenterRootSheetBlock.EXPANDED_DATA_MANAGEMENT -> {
-                        browserSettingsPage.addExpandedDataManagement(content)
-                    }
                 }
             }
         }
@@ -350,38 +328,6 @@ class FunctionCenterPages(
      */
     fun close(): Boolean {
         return host.close()
-    }
-
-    /**
-     * 函数 `addFunctionNavigationSection`：封装 `add Function Navigation Section` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
-     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addFunctionNavigationSection(parent: LinearLayout, siteHost: String?) {
-        host.addFunctionSection(
-            parent,
-            activity.getString(R.string.function_center_section_more)
-        ) { section ->
-            if (!isPrivateBrowsingEnabled()) {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_site_settings),
-                    summary = siteHost ?: activity.getString(R.string.function_center_site_action_unavailable),
-                    enabled = siteHost != null
-                ) {
-                    currentSiteSettingsPage.show()
-                }
-            }
-            host.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.action_browser_settings),
-                summary = activity.getString(R.string.action_browser_settings_summary)
-            ) {
-                browserSettingsPage.show()
-            }
-        }
     }
 
     /**

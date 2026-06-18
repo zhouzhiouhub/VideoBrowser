@@ -27,9 +27,12 @@ class FunctionCenterRootSheetLayoutTest {
             ),
             blocks
         )
-        assertFalse(blocks.contains(FunctionCenterRootSheetBlock.HISTORY_PREVIEW))
-        assertFalse(blocks.contains(FunctionCenterRootSheetBlock.EXPANDED_BROWSER_SETTINGS))
-        assertFalse(blocks.contains(FunctionCenterRootSheetBlock.EXPANDED_DATA_MANAGEMENT))
+        assertEquals(
+            listOf(
+                FunctionCenterRootSheetBlock.ACTION_GRID
+            ),
+            FunctionCenterRootSheetBlock.values().toList()
+        )
     }
 
     @Test
@@ -45,6 +48,10 @@ class FunctionCenterRootSheetLayoutTest {
         assertTrue(pages.contains("rootActionSection.add(content, pageUrl, siteHost)"))
         assertTrue(rootActionSection.contains("FunctionCenterRootActionCatalog.actions("))
         assertTrue(rootActionSection.contains("private fun createAction("))
+        assertFalse(pages.contains("FunctionCenterRootSheetBlock.HISTORY_PREVIEW"))
+        assertFalse(pages.contains("FunctionCenterRootSheetBlock.EXPANDED_BROWSER_SETTINGS"))
+        assertFalse(pages.contains("FunctionCenterRootSheetBlock.EXPANDED_DATA_MANAGEMENT"))
+        assertFalse(pages.contains("addFunctionNavigationSection"))
     }
 
     private fun projectFile(path: String): File {
