@@ -7,6 +7,8 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
+import com.example.videobrowser.utils.MimeTypeNormalizer
+
 object LocalWebArchivePolicy {
     private val webArchiveExtensions = setOf("mht", "mhtml")
     private val webArchiveMimeTypes = setOf(
@@ -30,11 +32,7 @@ object LocalWebArchivePolicy {
             ?.substringAfterLast('.', missingDelimiterValue = "")
             ?.lowercase()
             .orEmpty()
-        val normalizedMimeType = mimeType
-            ?.substringBefore(';')
-            ?.trim()
-            ?.lowercase()
-            .orEmpty()
+        val normalizedMimeType = MimeTypeNormalizer.normalize(mimeType).orEmpty()
 
         return extension in webArchiveExtensions || normalizedMimeType in webArchiveMimeTypes
     }

@@ -12,7 +12,8 @@ class MimeTypeNormalizerContractTest {
             projectFile("src/main/java/com/example/videobrowser/download/DownloadCategory.kt"),
             projectFile("src/main/java/com/example/videobrowser/utils/MediaUrlUtils.kt"),
             projectFile("src/main/java/com/example/videobrowser/video/PlayableMediaItemMedia3Converter.kt"),
-            projectFile("src/main/java/com/example/videobrowser/video/LocalSubtitleMatcher.kt")
+            projectFile("src/main/java/com/example/videobrowser/video/LocalSubtitleMatcher.kt"),
+            projectFile("src/main/java/com/example/videobrowser/browser/LocalWebArchivePolicy.kt")
         ).map { file -> file.readText() }
 
         sources.forEach { source ->
