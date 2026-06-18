@@ -20,6 +20,9 @@ class SitePermissionsPageContractTest {
         val settingsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
+        val dataSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDataManagementSection.kt"
+        ).readText()
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
@@ -31,8 +34,9 @@ class SitePermissionsPageContractTest {
 
         assertTrue(catalog.contains("SITE_PERMISSIONS"))
         assertTrue(settingsPage.contains("showSitePermissionsManager: () -> Unit"))
-        assertTrue(settingsPage.contains("R.string.action_manage_site_permissions"))
-        assertTrue(settingsPage.contains("showSitePermissionsManager()"))
+        assertTrue(settingsPage.contains("BrowserSettingsDataManagementSection("))
+        assertTrue(dataSection.contains("R.string.action_manage_site_permissions"))
+        assertTrue(dataSection.contains("showSitePermissionsManager()"))
         assertTrue(pages.contains("private val sitePermissionsPage = SitePermissionsPage"))
         assertTrue(pages.contains("showSitePermissionsManager = { sitePermissionsPage.show() }"))
         assertTrue(strings.contains("action_manage_site_permissions"))

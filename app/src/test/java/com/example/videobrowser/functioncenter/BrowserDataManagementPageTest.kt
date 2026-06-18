@@ -129,6 +129,9 @@ class BrowserDataManagementPageTest {
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
+        val dataSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDataManagementSection.kt"
+        ).readText()
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
@@ -144,8 +147,9 @@ class BrowserDataManagementPageTest {
         assertTrue(page.contains("R.string.action_import_bookmarks"))
         assertTrue(dialogs.contains("R.string.dialog_clear_bookmarks_message"))
         assertTrue(settings.contains("showBookmarkManager: () -> Unit"))
-        assertTrue(settings.contains("showBookmarkManager()"))
-        assertTrue(settings.contains("R.string.action_manage_bookmarks_summary"))
+        assertTrue(settings.contains("BrowserSettingsDataManagementSection("))
+        assertTrue(dataSection.contains("showBookmarkManager()"))
+        assertTrue(dataSection.contains("R.string.action_manage_bookmarks_summary"))
         assertTrue(pages.contains("showBookmarkManager = { browserDataManagementPage.showBookmarkData() }"))
         assertTrue(pages.contains("exportBookmarks = exportBookmarks"))
         assertTrue(pages.contains("importBookmarks = importBookmarks"))
@@ -177,6 +181,9 @@ class BrowserDataManagementPageTest {
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
+        val dataSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDataManagementSection.kt"
+        ).readText()
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
@@ -192,8 +199,8 @@ class BrowserDataManagementPageTest {
         assertTrue(clearActions.contains("downloadManager.remove(*downloadIds)"))
         assertTrue(page.contains("R.string.download_record_count"))
         assertTrue(settings.contains("showDownloadManager: () -> Unit"))
-        assertTrue(settings.contains("showDownloadManager()"))
-        assertTrue(settings.contains("R.string.action_manage_download_records_summary"))
+        assertTrue(dataSection.contains("showDownloadManager()"))
+        assertTrue(dataSection.contains("R.string.action_manage_download_records_summary"))
         assertTrue(pages.contains("showDownloadManager = { browserDataManagementPage.showDownloadData() }"))
         assertTrue(pages.contains("showDownloadList = { downloadsPage.show() }"))
         assertTrue(catalog.contains("FunctionCenterDataManagementAction.DOWNLOADS"))
@@ -221,6 +228,9 @@ class BrowserDataManagementPageTest {
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
+        val dataSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDataManagementSection.kt"
+        ).readText()
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
@@ -237,8 +247,8 @@ class BrowserDataManagementPageTest {
         assertTrue(dialogs.contains("R.string.toast_history_range_cleared"))
         assertTrue(page.contains("R.string.history_record_count"))
         assertTrue(settings.contains("showHistoryManager: () -> Unit"))
-        assertTrue(settings.contains("showHistoryManager()"))
-        assertTrue(settings.contains("R.string.action_manage_history_summary"))
+        assertTrue(dataSection.contains("showHistoryManager()"))
+        assertTrue(dataSection.contains("R.string.action_manage_history_summary"))
         assertTrue(pages.contains("showHistoryManager = { browserDataManagementPage.showBrowsingHistoryData() }"))
         assertTrue(strings.contains("title_history_data_management"))
         assertTrue(strings.contains("action_manage_history_summary"))

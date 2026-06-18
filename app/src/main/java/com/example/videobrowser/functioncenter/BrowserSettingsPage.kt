@@ -51,6 +51,22 @@ class BrowserSettingsPage(
         selectSearchProvider = selectSearchProvider,
         onSettingsChanged = { show() }
     )
+    private val dataManagementSection = BrowserSettingsDataManagementSection(
+        host = host,
+        isPrivateBrowsingEnabled = isPrivateBrowsingEnabled,
+        showBookmarkManager = showBookmarkManager,
+        showHistoryManager = showHistoryManager,
+        showDownloadManager = showDownloadManager,
+        showAdBlockLog = showAdBlockLog,
+        showUserWhitelistManager = showUserWhitelistManager,
+        showUserManualRulesManager = showUserManualRulesManager,
+        showSitePermissionsManager = showSitePermissionsManager,
+        showRuleSubscriptionsManager = showRuleSubscriptionsManager,
+        showCookieManager = showCookieManager,
+        showCacheManager = showCacheManager,
+        showSiteDataManager = showSiteDataManager,
+        showRestoreDefaultSettingsPage = showRestoreDefaultSettingsPage
+    )
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -89,7 +105,7 @@ class BrowserSettingsPage(
             parent,
             activity.getString(R.string.function_center_section_data)
         ) { section ->
-            addDataManagementActions(section, includeSavedPages = true)
+            dataManagementSection.addActions(section, includeSavedPages = true)
         }
     }
 
@@ -104,8 +120,7 @@ class BrowserSettingsPage(
             parent,
             activity.getString(R.string.function_center_section_data)
         ) { section ->
-            FunctionCenterDataManagementActionCatalog.profileActions()
-                .forEach { action -> addDataManagementActionRow(section, action) }
+            dataManagementSection.addProfileActions(section)
         }
     }
 
@@ -155,7 +170,7 @@ class BrowserSettingsPage(
      * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
      */
     private fun addDataManagementRows(section: LinearLayout) {
-        addDataManagementActions(section, includeSavedPages = false)
+        dataManagementSection.addActions(section, includeSavedPages = false)
     }
 
     /**
@@ -182,162 +197,6 @@ class BrowserSettingsPage(
                 summary = currentSearchProviderName()
             ) {
                 dialogController.showSearchEngineDialog()
-            }
-        }
-    }
-
-    /**
-     * 函数 `addDataManagementActions`：封装 `add Data Management Actions` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
-     * @param includeSavedPages 参数类型为 `Boolean`，表示函数执行 `includeSavedPages` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addDataManagementActions(section: LinearLayout, includeSavedPages: Boolean) {
-        FunctionCenterDataManagementActionCatalog.actions(isPrivateBrowsingEnabled())
-            .filter { action ->
-                includeSavedPages ||
-                    action != FunctionCenterDataManagementAction.BOOKMARKS &&
-                    action != FunctionCenterDataManagementAction.HISTORY
-            }
-            .forEachIndexed { index, action ->
-                if (index > 0 && action == FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS) {
-                    host.addDivider(section)
-                }
-                addDataManagementActionRow(section, action)
-            }
-    }
-
-    /**
-     * 函数 `addDataManagementActionRow`：封装 `add Data Management Action Row` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
-     * @param action 参数类型为 `FunctionCenterDataManagementAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addDataManagementActionRow(
-        section: LinearLayout,
-        action: FunctionCenterDataManagementAction
-    ) {
-        when (action) {
-            FunctionCenterDataManagementAction.AD_BLOCK_LOG -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_show_ad_block_log),
-                    summary = activity.getString(R.string.action_show_ad_block_log_summary)
-                ) {
-                    showAdBlockLog()
-                }
-            }
-
-            FunctionCenterDataManagementAction.USER_WHITELIST -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_user_whitelist),
-                    summary = activity.getString(R.string.action_manage_user_whitelist_summary)
-                ) {
-                    showUserWhitelistManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.USER_MANUAL_RULES -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_user_manual_rules),
-                    summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
-                ) {
-                    showUserManualRulesManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.SITE_PERMISSIONS -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_site_permissions),
-                    summary = activity.getString(R.string.action_manage_site_permissions_summary)
-                ) {
-                    showSitePermissionsManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.RULE_SUBSCRIPTIONS -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_rule_subscriptions),
-                    summary = activity.getString(R.string.action_manage_rule_subscriptions_summary)
-                ) {
-                    showRuleSubscriptionsManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.BOOKMARKS -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.title_bookmarks),
-                    summary = activity.getString(R.string.action_manage_bookmarks_summary)
-                ) {
-                    showBookmarkManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.HISTORY -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.title_history),
-                    summary = activity.getString(R.string.action_manage_history_summary)
-                ) {
-                    showHistoryManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.DOWNLOADS -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.title_downloads),
-                    summary = activity.getString(R.string.action_manage_download_records_summary)
-                ) {
-                    showDownloadManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.COOKIES -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_cookies),
-                    summary = activity.getString(R.string.action_manage_cookies_summary)
-                ) {
-                    showCookieManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.CACHE -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_cache),
-                    summary = activity.getString(R.string.action_manage_cache_summary)
-                ) {
-                    showCacheManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.SITE_DATA -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_manage_site_data),
-                    summary = activity.getString(R.string.action_manage_site_data_summary)
-                ) {
-                    showSiteDataManager()
-                }
-            }
-
-            FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS -> {
-                host.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_restore_default_settings),
-                    summary = activity.getString(R.string.action_restore_default_settings_summary)
-                ) {
-                    showRestoreDefaultSettingsPage()
-                }
             }
         }
     }
