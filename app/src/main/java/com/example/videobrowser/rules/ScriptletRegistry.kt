@@ -35,7 +35,7 @@ object ScriptletRegistry {
         source: String
     ): ScriptletParseResult {
         val trimmed = text.trim()
-        if (shouldIgnoreRuleLine(trimmed)) {
+        if (RuleLinePolicy.shouldIgnore(trimmed)) {
             return ScriptletParseResult.Ignored
         }
 
@@ -188,20 +188,6 @@ object ScriptletRegistry {
      */
     private fun normalizeArgument(argument: String): String {
         return argument.trim()
-    }
-
-    /**
-     * 函数 `shouldIgnoreRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun shouldIgnoreRuleLine(trimmed: String): Boolean {
-        return trimmed.isEmpty() ||
-            trimmed.startsWith("!") ||
-            trimmed.startsWith("# ") ||
-            trimmed == "#"
     }
 
     /**

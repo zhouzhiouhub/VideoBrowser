@@ -1,13 +1,12 @@
 package com.example.videobrowser.rules
 
 import com.example.videobrowser.adguard.AdGuardRuleParser
-import java.util.Locale
 
 internal class RuleLineParser(
     private val adGuardRuleParser: AdGuardRuleParser = AdGuardRuleParser()
 ) {
     fun parseRequestRule(line: String, source: String, lineNumber: Int): ParsedRule<Rule> {
-        if (shouldIgnoreRuleLine(line)) {
+        if (RuleLinePolicy.shouldIgnore(line)) {
             return ParsedRule.Ignored
         }
         val rule = Rule.fromRequestRuleText(
@@ -23,11 +22,11 @@ internal class RuleLineParser(
     }
 
     fun parseCssRule(line: String, source: String, lineNumber: Int): ParsedRule<ElementRule> {
-        if (shouldIgnoreRuleLine(line)) {
+        if (RuleLinePolicy.shouldIgnore(line)) {
             return ParsedRule.Ignored
         }
         val trimmed = line.trim()
-        if (isScriptletRuleLine(trimmed)) {
+        if (RuleLinePolicy.isScriptletRuleLine(trimmed)) {
             return ParsedRule.Ignored
         }
         if (trimmed.contains("#?#")) {
@@ -49,7 +48,7 @@ internal class RuleLineParser(
             skipped(source, lineNumber, line, "invalid css rule domain")
         )
         val selector = trimmed.substring(markerIndex + markerLength).trim()
-        if (!isSafeSelector(selector)) {
+        if (!RuleLinePolicy.isSafeSelector(selector)) {
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported css selector"))
         }
 
@@ -84,7 +83,7 @@ internal class RuleLineParser(
         source: String,
         lineNumber: Int
     ): ParsedRule<RemoveParamRule> {
-        if (shouldIgnoreRuleLine(line)) {
+        if (RuleLinePolicy.shouldIgnore(line)) {
             return ParsedRule.Ignored
         }
         val rule = adGuardRuleParser.parseRemoveParamRule(line, "$source:$lineNumber", source)
@@ -96,7 +95,7 @@ internal class RuleLineParser(
     }
 
     fun parseDomRule(line: String, source: String, lineNumber: Int): ParsedRule<ElementRule> {
-        if (shouldIgnoreRuleLine(line)) {
+        if (RuleLinePolicy.shouldIgnore(line)) {
             return ParsedRule.Ignored
         }
         val trimmed = line.trim()
@@ -104,7 +103,7 @@ internal class RuleLineParser(
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "missing dom remove prefix"))
         }
         val selector = trimmed.substring(DOM_REMOVE_PREFIX.length).trim()
-        if (!isSafeSelector(selector)) {
+        if (!RuleLinePolicy.isSafeSelector(selector)) {
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported dom selector"))
         }
 
@@ -118,31 +117,6 @@ internal class RuleLineParser(
         )
     }
 
-    private fun shouldIgnoreRuleLine(line: String): Boolean {
-        val trimmed = line.trim()
-        return trimmed.isEmpty() ||
-            trimmed.startsWith("!") ||
-            trimmed.startsWith("# ") ||
-            trimmed == "#"
-    }
-
-    private fun isSafeSelector(selector: String): Boolean {
-        val value = selector.trim()
-        if (value.isEmpty() || value.length > MAX_SELECTOR_LENGTH) {
-            return false
-        }
-        if (value.any { char -> char == '{' || char == '}' || char == ';' || char == '<' || char == '>' }) {
-            return false
-        }
-        val lowered = value.lowercase(Locale.US)
-        return !UNSUPPORTED_SELECTOR_TOKENS.any { token -> lowered.contains(token) }
-    }
-
-    private fun isScriptletRuleLine(trimmed: String): Boolean {
-        return trimmed.contains("##+js(") ||
-            trimmed.contains("#%#")
-    }
-
     private fun skipped(source: String, lineNumber: Int, text: String, reason: String): SkippedRule {
         return SkippedRule(
             source = source,
@@ -154,15 +128,5 @@ internal class RuleLineParser(
 
     private companion object {
         const val DOM_REMOVE_PREFIX = "remove:"
-        const val MAX_SELECTOR_LENGTH = 200
-
-        val UNSUPPORTED_SELECTOR_TOKENS = listOf(
-            ":has(",
-            ":contains(",
-            ":matches(",
-            ":xpath(",
-            "javascript:",
-            "expression("
-        )
     }
 }

@@ -12,11 +12,11 @@ import com.example.videobrowser.rules.ElementRule
 import com.example.videobrowser.rules.ElementRuleType
 import com.example.videobrowser.rules.RemoveParamRule
 import com.example.videobrowser.rules.Rule
+import com.example.videobrowser.rules.RuleLinePolicy
 import com.example.videobrowser.rules.ScriptletParseResult
 import com.example.videobrowser.rules.ScriptletRegistry
 import com.example.videobrowser.rules.ScriptletRule
 import com.example.videobrowser.rules.SkippedRule
-import java.util.Locale
 
 /**
  * AdGuard 订阅解析器。
@@ -119,7 +119,11 @@ class AdGuardRuleParser {
      */
     fun parseElementRule(text: String, id: String, source: String): ElementRule? {
         val trimmed = text.trim()
-        if (isIgnored(trimmed) || isScriptletRuleLine(trimmed) || trimmed.contains("#?#")) {
+        if (
+            RuleLinePolicy.shouldIgnore(trimmed) ||
+            RuleLinePolicy.isScriptletRuleLine(trimmed) ||
+            trimmed.contains("#?#")
+        ) {
             return null
         }
 
@@ -134,7 +138,7 @@ class AdGuardRuleParser {
 
         val domainScope = DomainScopeParser.parseCommaSeparated(trimmed.substring(0, markerIndex)) ?: return null
         val selector = trimmed.substring(markerIndex + markerLength).trim()
-        if (!isSafeSelector(selector)) {
+        if (!RuleLinePolicy.isSafeSelector(selector)) {
             return null
         }
 
@@ -175,7 +179,7 @@ class AdGuardRuleParser {
      */
     private fun parseLine(line: String, source: String, lineNumber: Int): ParsedAdGuardLine {
         val trimmed = line.trim()
-        if (isIgnored(trimmed)) {
+        if (RuleLinePolicy.shouldIgnore(trimmed)) {
             return ParsedAdGuardLine.Ignored
         }
 
@@ -185,7 +189,7 @@ class AdGuardRuleParser {
             return parseRemoveParamRule(trimmed, id, source)?.let(ParsedAdGuardLine::RemoveParam)
                 ?: skipped(source, lineNumber, line)
         }
-        if (isScriptletRuleLine(trimmed)) {
+        if (RuleLinePolicy.isScriptletRuleLine(trimmed)) {
             return when (val result = ScriptletRegistry.parse(trimmed, id, source)) {
                 ScriptletParseResult.Ignored -> ParsedAdGuardLine.Ignored
                 is ScriptletParseResult.Rule -> ParsedAdGuardLine.Scriptlet(result.value)
@@ -222,52 +226,6 @@ class AdGuardRuleParser {
         )
     }
 
-    /**
-     * 函数 `isIgnored`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isIgnored(trimmed: String): Boolean {
-        return trimmed.isEmpty() ||
-            trimmed.startsWith("!") ||
-            trimmed.startsWith("# ") ||
-            trimmed == "#"
-    }
-
-    /**
-     * 函数 `isSafeSelector`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isSafeSelector(selector: String): Boolean {
-        // CSS selector 会被注入网页执行，所以只接受简单、安全、长度可控的 selector。
-        val value = selector.trim()
-        if (value.isEmpty() || value.length > MAX_SELECTOR_LENGTH) {
-            return false
-        }
-        if (value.any { char -> char == '{' || char == '}' || char == ';' || char == '<' || char == '>' }) {
-            return false
-        }
-        val lowered = value.lowercase(Locale.US)
-        return !UNSUPPORTED_SELECTOR_TOKENS.any { token -> lowered.contains(token) }
-    }
-
-    /**
-     * 函数 `isScriptletRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isScriptletRuleLine(trimmed: String): Boolean {
-        return trimmed.contains("##+js(") ||
-            trimmed.contains("#%#")
-    }
-
     private sealed class ParsedAdGuardLine {
         data class Request(val rule: Rule) : ParsedAdGuardLine()
         data class Element(val rule: ElementRule) : ParsedAdGuardLine()
@@ -277,17 +235,6 @@ class AdGuardRuleParser {
         object Ignored : ParsedAdGuardLine()
     }
 
-    private companion object {
-        const val MAX_SELECTOR_LENGTH = 200
-        val UNSUPPORTED_SELECTOR_TOKENS = listOf(
-            ":has(",
-            ":contains(",
-            ":matches(",
-            ":xpath(",
-            "javascript:",
-            "expression("
-        )
-    }
 }
 
 data class AdGuardParseResult(
