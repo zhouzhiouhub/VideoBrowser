@@ -13,7 +13,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -35,6 +34,7 @@ class FunctionCenterViewFactory(
     private val surfaceFactory = FunctionCenterSurfaceFactory(activity, dp)
     private val rowFactory = FunctionCenterRowFactory(activity, dp, surfaceFactory)
     private val gridFactory = FunctionCenterGridFactory(activity, dp)
+    private val headerFactory = FunctionCenterHeaderFactory(activity, dp, surfaceFactory, rowFactory)
 
     /**
      * 函数 `createPage`：创建 `create Page` 需要的对象、视图或配置，并返回给后续流程使用。
@@ -199,42 +199,7 @@ class FunctionCenterViewFactory(
         summary: String,
         onClick: () -> Unit
     ) {
-        val row = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            isClickable = true
-            isFocusable = true
-            setPadding(dp(14), dp(12), dp(14), dp(12))
-            background = surfaceFactory.createRoundedBackground(
-                ContextCompat.getColor(activity, R.color.browser_card_surface),
-                dp(12).toFloat()
-            )
-            setOnClickListener { onClick() }
-        }
-        row.addView(
-            ImageView(activity).apply {
-                setImageResource(R.drawable.ic_settings_24)
-                setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-                background = ContextCompat.getDrawable(activity, R.drawable.bg_profile_avatar)
-                setPadding(dp(9), dp(9), dp(9), dp(9))
-            },
-            LinearLayout.LayoutParams(dp(44), dp(44))
-        )
-        row.addView(
-            rowFactory.createRowText(title, summary),
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                marginStart = dp(12)
-            }
-        )
-        parent.addView(
-            row,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(8)
-            }
-        )
+        headerFactory.addProfileHeader(parent, title, summary, onClick)
     }
 
     /**
@@ -248,32 +213,7 @@ class FunctionCenterViewFactory(
      * @param rightSummary 参数类型为 `String`，表示函数执行 `rightSummary` 相关逻辑时需要读取或处理的输入。
      */
     fun addBenefitStrip(parent: LinearLayout, leftTitle: String, leftSummary: String, rightTitle: String, rightSummary: String) {
-        val strip = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            background = surfaceFactory.createRoundedBackground(Color.parseColor("#FFF8DF"), dp(12).toFloat())
-        }
-        strip.addView(rowFactory.createRowText(leftTitle, leftSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        strip.addView(
-            View(activity).apply {
-                setBackgroundColor(Color.parseColor("#F1E3B8"))
-            },
-            LinearLayout.LayoutParams(dp(1), dp(36)).apply {
-                marginStart = dp(10)
-                marginEnd = dp(10)
-            }
-        )
-        strip.addView(rowFactory.createRowText(rightTitle, rightSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        parent.addView(
-            strip,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(10)
-            }
-        )
+        headerFactory.addBenefitStrip(parent, leftTitle, leftSummary, rightTitle, rightSummary)
     }
 
     /**
@@ -295,48 +235,7 @@ class FunctionCenterViewFactory(
         onOpenPage: (SavedPage) -> Unit,
         onShowHistory: () -> Unit
     ) {
-        val card = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(12), dp(14), dp(8))
-            background = surfaceFactory.createRoundedBackground(
-                ContextCompat.getColor(activity, R.color.browser_card_surface),
-                dp(12).toFloat()
-            )
-        }
-        val header = TextView(activity).apply {
-            text = title
-            setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-            textSize = 15f
-            typeface = Typeface.DEFAULT_BOLD
-            includeFontPadding = false
-            isClickable = true
-            isFocusable = true
-            setOnClickListener { onShowHistory() }
-        }
-        card.addView(header)
-        if (pages.isEmpty()) {
-            card.addView(
-                TextView(activity).apply {
-                    text = emptyMessage
-                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
-                    textSize = 13f
-                    setPadding(0, dp(14), 0, dp(10))
-                }
-            )
-        } else {
-            pages.take(2).forEach { page ->
-                card.addView(rowFactory.createHistoryPreviewRow(page, onOpenPage))
-            }
-        }
-        parent.addView(
-            card,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(12)
-            }
-        )
+        headerFactory.addHistoryPreview(parent, title, emptyMessage, pages, onOpenPage, onShowHistory)
     }
 
     /**
