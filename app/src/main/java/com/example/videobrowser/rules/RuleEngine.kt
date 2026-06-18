@@ -11,9 +11,6 @@ import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.RequestContext
 import com.example.videobrowser.browser.ResourceType
 import com.example.videobrowser.site.SiteHost
-import java.net.URI
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 /**
  * 页面净化规则的统一查询入口。
@@ -215,43 +212,12 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun cleanNavigationUrl(url: String, pageUrl: String? = null): String {
-        // 导航清理只处理 http/https URL，其他 scheme 不应该被当成普通网页参数改写。
-        val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return url
-        val scheme = uri.scheme?.lowercase().orEmpty()
-        if (scheme != "http" && scheme != "https") {
-            return url
-        }
-        val rawQuery = uri.rawQuery ?: return url
-        if (rawQuery.isEmpty()) {
-            return url
-        }
-
-        val requestHost = SiteHost.fromUrl(url)
-        val pageHost = SiteHost.fromUrl(pageUrl)
-        val parametersToRemove = compiledRules.removeParamCapabilities
-            .filter { capability ->
-                ruleMatcher.matches(
-                    rule = capability.rule.toRequestMatcherRule(),
-                    url = url,
-                    host = requestHost,
-                    pageHost = pageHost,
-                    resourceType = ResourceType.DOCUMENT
-                )
-            }
-            .map { capability -> capability.rule.parameterName }
-            .toSet()
-        if (parametersToRemove.isEmpty()) {
-            return url
-        }
-
-        val queryParts = rawQuery.split("&")
-        val keptQueryParts = queryParts.filterNot { part ->
-            decodedQueryName(part.substringBefore("=")) in parametersToRemove
-        }
-        if (keptQueryParts.size == queryParts.size) {
-            return url
-        }
-        return renderUriWithQuery(uri, keptQueryParts.joinToString("&").takeIf { it.isNotEmpty() })
+        return RuleNavigationUrlCleaner.clean(
+            url = url,
+            pageUrl = pageUrl,
+            removeParamCapabilities = compiledRules.removeParamCapabilities,
+            ruleMatcher = ruleMatcher
+        )
     }
 
     /**
@@ -370,47 +336,6 @@ class RuleEngine(
             }
             .map { rule -> rule.pattern }
             .distinct()
-    }
-
-    /**
-     * 函数 `decodedQueryName`：封装 `decoded Query Name` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param rawName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun decodedQueryName(rawName: String): String {
-        return runCatching {
-            URLDecoder.decode(rawName, StandardCharsets.UTF_8.name())
-        }.getOrDefault(rawName)
-    }
-
-    /**
-     * 函数 `renderUriWithQuery`：封装 `render Uri With Query` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param rawQuery 参数类型为 `String?`，表示函数执行 `rawQuery` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun renderUriWithQuery(uri: URI, rawQuery: String?): String {
-        return buildString {
-            append(uri.scheme)
-            append(":")
-            uri.rawAuthority?.let { authority ->
-                append("//")
-                append(authority)
-            }
-            append(uri.rawPath.orEmpty())
-            rawQuery?.let { query ->
-                append("?")
-                append(query)
-            }
-            uri.rawFragment?.let { fragment ->
-                append("#")
-                append(fragment)
-            }
-        }
     }
 
     /**
