@@ -7,16 +7,10 @@ package com.example.videobrowser.localfiles
  * 主要职责：管理目录授权、读取本地文档列表，并把本地媒体交给浏览器或播放器打开。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
-import android.text.InputType
 import android.util.Log
-import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.functioncenter.FunctionCenterController
@@ -48,6 +42,11 @@ class LocalFilesController(
         LocalDirectoryPermissionManager(activity, preferenceStore, logTag)
     private val documentRepository = LocalDocumentRepository(activity)
     private val documentFormatter = LocalDocumentFormatter(activity)
+    private val documentOperations = LocalDocumentOperationController(
+        activity = activity,
+        documentRepository = documentRepository,
+        showLocalDirectoryPage = { uri, path -> showLocalDirectoryPage(uri, path) }
+    )
     private val fileLaunchers = LocalFileLaunchers(
         activity = activity,
         directoryPermissions = directoryPermissions,
@@ -194,7 +193,7 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_new_folder),
                     summary = activity.getString(R.string.action_new_folder_summary)
                 ) {
-                    promptCreateLocalDocument(
+                    documentOperations.promptCreate(
                         treeUri = treeUri,
                         path = path,
                         mimeType = DocumentsContract.Document.MIME_TYPE_DIR,
@@ -208,7 +207,7 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_new_text_file),
                     summary = activity.getString(R.string.action_new_text_file_summary)
                 ) {
-                    promptCreateLocalDocument(
+                    documentOperations.promptCreate(
                         treeUri = treeUri,
                         path = path,
                         mimeType = "text/plain",
@@ -301,7 +300,7 @@ class LocalFilesController(
                     title = activity.getString(R.string.action_share_file),
                     summary = activity.getString(R.string.action_share_file_summary)
                 ) {
-                    shareLocalDocument(document)
+                    documentOperations.share(document)
                 }
 
                 if (document.canRename) {
@@ -310,7 +309,7 @@ class LocalFilesController(
                         title = activity.getString(R.string.action_rename_file),
                         summary = activity.getString(R.string.action_rename_file_summary)
                     ) {
-                        promptRenameLocalDocument(document, treeUri, path)
+                        documentOperations.promptRename(document, treeUri, path)
                     }
                 }
 
@@ -320,173 +319,10 @@ class LocalFilesController(
                         title = activity.getString(R.string.action_delete_file),
                         summary = activity.getString(R.string.action_delete_file_summary)
                     ) {
-                        confirmDeleteLocalDocument(document, treeUri, path)
+                        documentOperations.confirmDelete(document, treeUri, path)
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * 函数 `promptCreateLocalDocument`：封装 `prompt Create Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
-     * @param mimeType 参数类型为 `String`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
-     * @param defaultName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param dialogTitle 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    private fun promptCreateLocalDocument(
-        treeUri: Uri,
-        path: List<LocalDirectoryPathItem>,
-        mimeType: String,
-        defaultName: String,
-        dialogTitle: String
-    ) {
-        showNameInputDialog(
-            title = dialogTitle,
-            initialValue = defaultName,
-            positiveButtonText = activity.getString(R.string.action_create)
-        ) { name ->
-            val parent = path.lastOrNull() ?: return@showNameInputDialog
-            val createdUri = documentRepository.createDocument(
-                treeUri = treeUri,
-                parentDocumentId = parent.documentId,
-                mimeType = mimeType,
-                name = name
-            )
-
-            if (createdUri == null) {
-                Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
-                return@showNameInputDialog
-            }
-
-            Toast.makeText(activity, R.string.toast_local_file_created, Toast.LENGTH_SHORT).show()
-            showLocalDirectoryPage(treeUri, path)
-        }
-    }
-
-    /**
-     * 函数 `promptRenameLocalDocument`：封装 `prompt Rename Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param document 参数类型为 `LocalDocument`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
-     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun promptRenameLocalDocument(
-        document: LocalDocument,
-        treeUri: Uri,
-        path: List<LocalDirectoryPathItem>
-    ) {
-        showNameInputDialog(
-            title = activity.getString(R.string.title_rename_file),
-            initialValue = document.name,
-            positiveButtonText = activity.getString(R.string.action_rename)
-        ) { name ->
-            val renamedUri = documentRepository.renameDocument(document, name)
-
-            if (renamedUri == null) {
-                Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
-                return@showNameInputDialog
-            }
-
-            Toast.makeText(activity, R.string.toast_local_file_renamed, Toast.LENGTH_SHORT).show()
-            showLocalDirectoryPage(treeUri, path)
-        }
-    }
-
-    /**
-     * 函数 `confirmDeleteLocalDocument`：封装 `confirm Delete Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param document 参数类型为 `LocalDocument`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
-     * @param treeUri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param path 参数类型为 `List<LocalDirectoryPathItem>`，表示函数执行 `path` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun confirmDeleteLocalDocument(
-        document: LocalDocument,
-        treeUri: Uri,
-        path: List<LocalDirectoryPathItem>
-    ) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_delete_file)
-            .setMessage(activity.getString(R.string.dialog_delete_local_file_message, document.name))
-            .setPositiveButton(R.string.action_delete_file) { _, _ ->
-                val deleted = documentRepository.deleteDocument(document)
-
-                if (!deleted) {
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_local_file_operation_failed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@setPositiveButton
-                }
-
-                Toast.makeText(activity, R.string.toast_local_file_deleted, Toast.LENGTH_SHORT).show()
-                showLocalDirectoryPage(treeUri, path)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showNameInputDialog`：控制 `show Name Input Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param initialValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @param positiveButtonText 参数类型为 `String`，表示函数执行 `positiveButtonText` 相关逻辑时需要读取或处理的输入。
-     * @param onConfirm 参数类型为 `(String) -> Unit`，表示函数执行 `onConfirm` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showNameInputDialog(
-        title: String,
-        initialValue: String,
-        positiveButtonText: String,
-        onConfirm: (String) -> Unit
-    ) {
-        val input = EditText(activity).apply {
-            setText(initialValue)
-            setSelectAllOnFocus(true)
-            selectAll()
-            setSingleLine(true)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-        }
-
-        AlertDialog.Builder(activity)
-            .setTitle(title)
-            .setView(input)
-            .setPositiveButton(positiveButtonText) { _, _ ->
-                val name = input.text?.toString()?.trim().orEmpty()
-                if (name.isBlank()) {
-                    Toast.makeText(activity, R.string.toast_local_file_name_invalid, Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                onConfirm(name)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `shareLocalDocument`：封装 `share Local Document` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param document 参数类型为 `LocalDocument`，表示函数执行 `document` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun shareLocalDocument(document: LocalDocument) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = document.mimeType?.takeUnless { document.isDirectory } ?: "*/*"
-            putExtra(Intent.EXTRA_STREAM, document.uri)
-            clipData = ClipData.newUri(activity.contentResolver, document.name, document.uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        try {
-            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_file)))
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
         }
     }
 }
