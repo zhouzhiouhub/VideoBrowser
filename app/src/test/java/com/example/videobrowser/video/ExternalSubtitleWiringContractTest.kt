@@ -53,11 +53,15 @@ class ExternalSubtitleWiringContractTest {
         val localFiles = projectFile(
             "src/main/java/com/example/videobrowser/localfiles/LocalFilesController.kt"
         ).readText()
+        val localOpenRequestBuilder = projectFile(
+            "src/main/java/com/example/videobrowser/localfiles/LocalDocumentOpenRequestBuilder.kt"
+        ).readText()
         val pageActions = projectFile(
             "src/main/java/com/example/videobrowser/browser/PageActionsController.kt"
         ).readText().replace("\r\n", "\n")
 
-        assertTrue(localFiles.contains("LocalSubtitleMatcher.findSubtitleCandidates"))
+        assertTrue(localOpenRequestBuilder.contains("LocalSubtitleMatcher.findSubtitleCandidates"))
+        assertTrue(localFiles.contains("LocalDocumentOpenRequestBuilder.from("))
         assertTrue(localFiles.contains("onOpenDocumentUri("))
         assertTrue(localFiles.contains("subtitleCandidates"))
         assertTrue(pageActions.contains("subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList()"))

@@ -20,6 +20,9 @@ class LocalPlaybackQueueWiringContractTest {
         val localFiles = projectFile(
             "src/main/java/com/example/videobrowser/localfiles/LocalFilesController.kt"
         ).readText()
+        val localOpenRequestBuilder = projectFile(
+            "src/main/java/com/example/videobrowser/localfiles/LocalDocumentOpenRequestBuilder.kt"
+        ).readText()
         val pageActions = projectFile(
             "src/main/java/com/example/videobrowser/browser/PageActionsController.kt"
         ).readText()
@@ -27,7 +30,8 @@ class LocalPlaybackQueueWiringContractTest {
             "src/main/java/com/example/videobrowser/browser/BrowserExternalNavigator.kt"
         ).readText()
 
-        assertTrue(localFiles.contains("LocalPlaybackQueueBuilder.fromDocuments"))
+        assertTrue(localOpenRequestBuilder.contains("LocalPlaybackQueueBuilder.fromDocuments"))
+        assertTrue(localFiles.contains("LocalDocumentOpenRequestBuilder.from("))
         assertTrue(localFiles.contains("playbackQueue"))
         assertTrue(pageActions.contains("playbackQueue: PlaybackQueue? = null"))
         assertTrue(navigator.contains("playbackQueue: PlaybackQueue? = null"))

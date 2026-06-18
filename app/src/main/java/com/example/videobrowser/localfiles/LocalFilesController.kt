@@ -22,8 +22,6 @@ import com.example.videobrowser.R
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.video.ExternalSubtitleCandidate
-import com.example.videobrowser.video.LocalPlaybackQueueBuilder
-import com.example.videobrowser.video.LocalSubtitleMatcher
 import com.example.videobrowser.video.PlaybackQueue
 
 /**
@@ -288,38 +286,13 @@ class LocalFilesController(
                     summary = activity.getString(R.string.action_open_file_summary)
                 ) {
                     // 打开本地媒体时，把同目录媒体和字幕一起传给播放层，播放器就能上一集/下一集和挂字幕。
-                    val queueDocuments = siblingDocuments.map {
-                        LocalPlaybackQueueBuilder.Document(
-                            uri = it.uri.toString(),
-                            name = it.name,
-                            mimeType = it.mimeType,
-                            isDirectory = it.isDirectory
-                        )
-                    }
-                    val playbackQueue = LocalPlaybackQueueBuilder.fromDocuments(
-                        currentUri = document.uri.toString(),
-                        currentName = document.name,
-                        currentMimeType = document.mimeType,
-                        documents = queueDocuments
-                    )
-                    val subtitleCandidates = LocalSubtitleMatcher.findSubtitleCandidates(
-                        mediaName = document.name,
-                        documents = siblingDocuments
-                            .filterNot { it.isDirectory }
-                            .map {
-                                LocalSubtitleMatcher.Document(
-                                    uri = it.uri.toString(),
-                                    name = it.name,
-                                    mimeType = it.mimeType
-                                )
-                            }
-                    )
+                    val openRequest = LocalDocumentOpenRequestBuilder.from(document, siblingDocuments)
                     onOpenDocumentUri(
                         document.uri,
                         document.name,
                         document.mimeType,
-                        subtitleCandidates,
-                        playbackQueue
+                        openRequest.subtitleCandidates,
+                        openRequest.playbackQueue
                     )
                 }
 
