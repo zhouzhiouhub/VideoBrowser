@@ -75,6 +75,7 @@ class ScriptLoader(
         const val SELECTOR_TOOLS_SCRIPT_ASSET = "scripts/selector_tools.js"
         const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
         const val VIDEO_CONTROL_TOOLS_SCRIPT_ASSET = "scripts/video_control_tools.js"
+        const val VIDEO_QUERY_TOOLS_SCRIPT_ASSET = "scripts/video_query_tools.js"
         const val ELEMENT_PICKER_SCRIPT_ASSET = "scripts/element_picker.js"
         const val SCRIPTLET_HOOKS_SCRIPT_ASSET = "scripts/scriptlet_hooks.js"
         const val STYLE_MANAGER_SCRIPT_ASSET = "scripts/style_manager.js"
@@ -87,6 +88,7 @@ class ScriptLoader(
             SELECTOR_TOOLS_SCRIPT_ASSET,
             NATIVE_BRIDGE_SCRIPT_ASSET,
             VIDEO_CONTROL_TOOLS_SCRIPT_ASSET,
+            VIDEO_QUERY_TOOLS_SCRIPT_ASSET,
             ELEMENT_PICKER_SCRIPT_ASSET,
             SCRIPTLET_HOOKS_SCRIPT_ASSET,
             STYLE_MANAGER_SCRIPT_ASSET,

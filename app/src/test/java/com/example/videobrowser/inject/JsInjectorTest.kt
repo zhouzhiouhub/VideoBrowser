@@ -401,6 +401,7 @@ class JsInjectorTest {
             ScriptLoader.SELECTOR_TOOLS_SCRIPT_ASSET -> "window.__selectorToolsLoaded = true;"
             ScriptLoader.NATIVE_BRIDGE_SCRIPT_ASSET -> "window.__nativeBridgeLoaded = true;"
             ScriptLoader.VIDEO_CONTROL_TOOLS_SCRIPT_ASSET -> "window.__videoControlToolsLoaded = true;"
+            ScriptLoader.VIDEO_QUERY_TOOLS_SCRIPT_ASSET -> "window.__videoQueryToolsLoaded = true;"
             ScriptLoader.ELEMENT_PICKER_SCRIPT_ASSET -> "window.__elementPickerLoaded = true;"
             ScriptLoader.SCRIPTLET_HOOKS_SCRIPT_ASSET -> "window.__scriptletHooksLoaded = true;"
             ScriptLoader.STYLE_MANAGER_SCRIPT_ASSET -> "window.__styleManagerLoaded = true;"

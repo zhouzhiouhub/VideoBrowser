@@ -48,6 +48,7 @@
   const selectorTools = window.VideoBrowserSelectorTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
   const videoControlTools = window.VideoBrowserVideoControlTools;
+  const videoQueryTools = window.VideoBrowserVideoQueryTools;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
   const styleManager = window.VideoBrowserStyleManager;
@@ -1632,7 +1633,7 @@
      * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
      * @param video 表示当前回调正在检查或操作的页面元素。
      */
-    document.querySelectorAll('video').forEach(function (video) {
+    videoQueryTools.forEach(function (video) {
       if (state.config.videoEnabled || state.config.scriptletVideoControlsEnabled) {
         enableVideoControls(video);
       }
@@ -2346,7 +2347,7 @@
         if (video) return video;
       }
     }
-    const videos = Array.prototype.slice.call(document.querySelectorAll('video'));
+    const videos = videoQueryTools.all();
     /*
      * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
      * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
@@ -2405,7 +2406,7 @@
     state.nativeFullscreenVideo = null;
     state.documentFullscreenActive = false;
     state.fullscreenPlaybackSpeed = 1;
-    document.querySelectorAll('video').forEach(applyVideoSpeed);
+    videoQueryTools.forEach(applyVideoSpeed);
     if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
       try { document.exitFullscreen(); } catch (_) {}
     } else if (document.webkitFullscreenElement && typeof document.webkitExitFullscreen === 'function') {
@@ -2504,7 +2505,7 @@
      * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
      * @param video 表示当前回调正在检查或操作的页面元素。
      */
-    return Array.prototype.some.call(document.querySelectorAll('video'), function (video) {
+    return videoQueryTools.some(function (video) {
       return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
     });
   }
@@ -2546,7 +2547,7 @@
       state.documentFullscreenActive = true;
       state.nativeFullscreenVideo = activeFullscreenVideo();
       reportPlaybackTimeline(state.nativeFullscreenVideo);
-      document.querySelectorAll('video').forEach(applyVideoSpeed);
+      videoQueryTools.forEach(applyVideoSpeed);
       enterNativeFullscreen();
       return;
     }
@@ -2556,7 +2557,7 @@
       state.nativeFullscreenVideo.isConnected
     ) {
       reportPlaybackTimeline(state.nativeFullscreenVideo);
-      document.querySelectorAll('video').forEach(applyVideoSpeed);
+      videoQueryTools.forEach(applyVideoSpeed);
       return;
     }
 
@@ -2564,7 +2565,7 @@
     stopDirectionalPlayback();
     state.nativeFullscreenVideo = null;
     state.fullscreenPlaybackSpeed = 1;
-    document.querySelectorAll('video').forEach(applyVideoSpeed);
+    videoQueryTools.forEach(applyVideoSpeed);
     exitNativeFullscreen();
   }
 
@@ -2635,7 +2636,7 @@
      * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
      * @param video 表示当前回调正在检查或操作的页面元素。
      */
-    document.querySelectorAll('video').forEach(function (video) {
+    videoQueryTools.forEach(function (video) {
       try { video.pause(); } catch (_) {}
     });
   }
@@ -2742,7 +2743,7 @@
         try { video.play().catch(function () {}); } catch (__) {}
       }
     }
-    document.querySelectorAll('video').forEach(applyVideoSpeed);
+    videoQueryTools.forEach(applyVideoSpeed);
   }
 
   /**
@@ -2904,7 +2905,7 @@
       }
       const siteResult = invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed]);
       if (siteResult.handled) return;
-      document.querySelectorAll('video').forEach(applyVideoSpeed);
+      videoQueryTools.forEach(applyVideoSpeed);
     },
     /**
      * 函数 `startDirectionalPlayback`：封装 `start Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
