@@ -6,13 +6,10 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.BrowserDrawableFactory
 
@@ -20,6 +17,8 @@ internal class FunctionCenterSurfaceFactory(
     private val activity: AppCompatActivity,
     private val dp: (Int) -> Int
 ) {
+    private val toolbarButtonFactory = FunctionCenterToolbarButtonFactory(activity, dp)
+
     fun createToolbar(title: String, onBack: () -> Unit): View {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -28,19 +27,14 @@ internal class FunctionCenterSurfaceFactory(
             setPadding(dp(4), 0, dp(12), 0)
             setBackgroundColor(ContextCompat.getColor(activity, R.color.browser_surface))
 
-            val pageBackButton = ImageButton(activity).apply {
-                setImageResource(R.drawable.ic_arrow_back_24)
-                setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
-                background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
-                contentDescription = activity.getString(R.string.action_back)
-                scaleType = ImageView.ScaleType.CENTER
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-                setOnClickListener { onBack() }
-            }
-            ViewCompat.setTooltipText(pageBackButton, activity.getString(R.string.action_back))
+            val pageBackButton = toolbarButtonFactory.createButton(
+                iconRes = R.drawable.ic_arrow_back_24,
+                labelRes = R.string.action_back,
+                onClick = onBack
+            )
             addView(
                 pageBackButton,
-                LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
+                toolbarButtonFactory.layoutParams()
             )
 
             val titleView = TextView(activity).apply {
@@ -69,19 +63,14 @@ internal class FunctionCenterSurfaceFactory(
             setPadding(if (onBack == null) dp(18) else dp(4), 0, dp(4), 0)
 
             if (onBack != null) {
-                val backButton = ImageButton(activity).apply {
-                    setImageResource(R.drawable.ic_arrow_back_24)
-                    setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
-                    background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
-                    contentDescription = activity.getString(R.string.action_back)
-                    scaleType = ImageView.ScaleType.CENTER
-                    setPadding(dp(16), dp(16), dp(16), dp(16))
-                    setOnClickListener { onBack() }
-                }
-                ViewCompat.setTooltipText(backButton, activity.getString(R.string.action_back))
+                val backButton = toolbarButtonFactory.createButton(
+                    iconRes = R.drawable.ic_arrow_back_24,
+                    labelRes = R.string.action_back,
+                    onClick = onBack
+                )
                 addView(
                     backButton,
-                    LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
+                    toolbarButtonFactory.layoutParams()
                 )
             }
 
@@ -98,19 +87,14 @@ internal class FunctionCenterSurfaceFactory(
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
             )
 
-            val closeButton = ImageButton(activity).apply {
-                setImageResource(R.drawable.ic_close_24)
-                setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
-                background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
-                contentDescription = activity.getString(R.string.action_close)
-                scaleType = ImageView.ScaleType.CENTER
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-                setOnClickListener { onClose() }
-            }
-            ViewCompat.setTooltipText(closeButton, activity.getString(R.string.action_close))
+            val closeButton = toolbarButtonFactory.createButton(
+                iconRes = R.drawable.ic_close_24,
+                labelRes = R.string.action_close,
+                onClick = onClose
+            )
             addView(
                 closeButton,
-                LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
+                toolbarButtonFactory.layoutParams()
             )
         }
     }
