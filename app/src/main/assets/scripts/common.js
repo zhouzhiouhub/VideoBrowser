@@ -2218,14 +2218,11 @@
     const timeline = videoTimeline(target);
     const position = Number(target.currentTime || 0);
     const duration = timeline.canSeek ? timeline.end : Number(target.duration || -1);
-    const bridge = window.VideoBrowserNative;
-    if (bridge && typeof bridge.updatePlaybackTimeline === 'function') {
-      try {
-        bridge.updatePlaybackTimeline(
-          Number.isFinite(position) && position >= 0 ? position * 1000 : -1,
-          Number.isFinite(duration) && duration > 0 ? duration * 1000 : -1
-        );
-      } catch (_) {}
+    if (nativeBridge && typeof nativeBridge.updatePlaybackTimeline === 'function') {
+      nativeBridge.updatePlaybackTimeline(
+        Number.isFinite(position) && position >= 0 ? position * 1000 : -1,
+        Number.isFinite(duration) && duration > 0 ? duration * 1000 : -1
+      );
     }
   }
 
@@ -2436,9 +2433,8 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function enterNativeFullscreen() {
-    const bridge = window.VideoBrowserNative;
-    if (bridge && typeof bridge.enterFullscreen === 'function') {
-      try { bridge.enterFullscreen(); } catch (_) {}
+    if (nativeBridge && typeof nativeBridge.enterFullscreen === 'function') {
+      nativeBridge.enterFullscreen();
     }
   }
 
@@ -2448,9 +2444,8 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function exitNativeFullscreen() {
-    const bridge = window.VideoBrowserNative;
-    if (bridge && typeof bridge.exitFullscreen === 'function') {
-      try { bridge.exitFullscreen(); } catch (_) {}
+    if (nativeBridge && typeof nativeBridge.exitFullscreen === 'function') {
+      nativeBridge.exitFullscreen();
     }
   }
 

@@ -5,6 +5,21 @@
   const bridgeTools = window.VideoBrowserNativeBridge || {};
   window.VideoBrowserNativeBridge = bridgeTools;
 
+  bridgeTools.nativeBridge = bridgeTools.nativeBridge || function () {
+    return window.VideoBrowserNative;
+  };
+
+  bridgeTools.callNative = bridgeTools.callNative || function (methodName, args) {
+    const bridge = bridgeTools.nativeBridge();
+    if (bridge && typeof bridge[methodName] === 'function') {
+      try {
+        bridge[methodName].apply(bridge, args || []);
+        return true;
+      } catch (_) {}
+    }
+    return false;
+  };
+
   bridgeTools.safeLogValue = bridgeTools.safeLogValue || function (value) {
     return String(value === null || typeof value === 'undefined' ? '' : value)
       .replace(/\s+/g, ' ')
@@ -13,7 +28,7 @@
   };
 
   bridgeTools.logVideoMessage = bridgeTools.logVideoMessage || function (message) {
-    const bridge = window.VideoBrowserNative;
+    const bridge = bridgeTools.nativeBridge();
     if (bridge && typeof bridge.logVideoEvent === 'function') {
       try {
         bridge.logVideoEvent(message);
@@ -52,5 +67,21 @@
 
   bridgeTools.videoSource = bridgeTools.videoSource || function (video) {
     return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
+  };
+
+  bridgeTools.updatePlaybackTimeline = bridgeTools.updatePlaybackTimeline || function (positionMs, durationMs) {
+    return bridgeTools.callNative('updatePlaybackTimeline', [positionMs, durationMs]);
+  };
+
+  bridgeTools.enterFullscreen = bridgeTools.enterFullscreen || function () {
+    return bridgeTools.callNative('enterFullscreen');
+  };
+
+  bridgeTools.exitFullscreen = bridgeTools.exitFullscreen || function () {
+    return bridgeTools.callNative('exitFullscreen');
+  };
+
+  bridgeTools.requestElementBlock = bridgeTools.requestElementBlock || function (selector, description) {
+    return bridgeTools.callNative('requestElementBlock', [selector, description]);
   };
 })();

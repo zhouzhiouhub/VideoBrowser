@@ -5,6 +5,7 @@
   const pickerModule = window.VideoBrowserElementPicker || {};
   const domActions = window.VideoBrowserDomActions || {};
   const selectorTools = window.VideoBrowserSelectorTools || {};
+  const nativeBridge = window.VideoBrowserNativeBridge || {};
   window.VideoBrowserElementPicker = pickerModule;
 
   pickerModule.start = function (state) {
@@ -101,12 +102,11 @@
     picker.waitingForNative = true;
     highlightPickedElement(state, element);
 
-    const bridge = window.VideoBrowserNative;
-    if (bridge && typeof bridge.requestElementBlock === 'function') {
-      try {
-        bridge.requestElementBlock(selector, describePickedElement(element));
-        return;
-      } catch (_) {}
+    if (
+      typeof nativeBridge.requestElementBlock === 'function' &&
+      nativeBridge.requestElementBlock(selector, describePickedElement(element))
+    ) {
+      return;
     }
     stopElementPicker(state);
   }

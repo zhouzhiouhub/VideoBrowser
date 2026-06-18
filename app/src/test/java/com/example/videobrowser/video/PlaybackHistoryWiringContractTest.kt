@@ -45,6 +45,7 @@ class PlaybackHistoryWiringContractTest {
             "src/main/java/com/example/videobrowser/video/WebPlaybackHistoryRecorder.kt"
         ).readText()
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val nativeBridgeScript = projectFile("src/main/assets/scripts/native_bridge.js").readText()
 
         assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))
@@ -56,6 +57,13 @@ class PlaybackHistoryWiringContractTest {
         assertTrue(webRecorder.contains("private const val SAVE_THROTTLE_MS = 5_000L"))
         assertTrue(webRecorder.contains("playbackHistoryRepository.save("))
         assertTrue(script.contains("reportPlaybackTimeline(video);"))
+        assertTrue(script.contains("nativeBridge.updatePlaybackTimeline("))
+        assertTrue(
+            nativeBridgeScript.contains(
+                "bridgeTools.updatePlaybackTimeline = bridgeTools.updatePlaybackTimeline || function (positionMs, durationMs)"
+            )
+        )
+        assertTrue(nativeBridgeScript.contains("bridgeTools.callNative('updatePlaybackTimeline', [positionMs, durationMs])"))
     }
 
     @Test

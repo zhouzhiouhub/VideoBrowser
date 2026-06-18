@@ -20,6 +20,7 @@ class ElementPickerScriptContractTest {
     fun elementPickerKeepsPageClickSuppressionUntilNativeConfirmFinishes() {
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val pickerScript = projectFile("src/main/assets/scripts/element_picker.js").readText()
+        val nativeBridgeScript = projectFile("src/main/assets/scripts/native_bridge.js").readText()
         val selectionBody = functionBody(pickerScript, "handleElementPickerSelection")
         val stopBody = functionBody(pickerScript, "stopElementPicker")
 
@@ -29,6 +30,15 @@ class ElementPickerScriptContractTest {
         assertTrue(commonScript.contains("elementPicker.stop(state);"))
         assertFalse(commonScript.contains("function handleElementPickerSelection(state, event)"))
         assertTrue(selectionBody.contains("picker.waitingForNative = true;"))
+        assertTrue(pickerScript.contains("const nativeBridge = window.VideoBrowserNativeBridge || {};"))
+        assertTrue(selectionBody.contains("nativeBridge.requestElementBlock(selector, describePickedElement(element))"))
+        assertTrue(
+            nativeBridgeScript.contains(
+                "bridgeTools.requestElementBlock = bridgeTools.requestElementBlock || function (selector, description)"
+            )
+        )
+        assertTrue(nativeBridgeScript.contains("bridgeTools.callNative('requestElementBlock', [selector, description])"))
+        assertFalse(selectionBody.contains("window.VideoBrowserNative"))
         assertFalse(
             "Element picker must keep capture listeners after a page element is selected so delayed clicks cannot navigate.",
             selectionBody.contains("detachElementPickerListeners(picker);")
