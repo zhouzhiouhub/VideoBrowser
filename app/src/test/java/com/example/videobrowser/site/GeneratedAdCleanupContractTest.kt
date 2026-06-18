@@ -9,6 +9,7 @@ class GeneratedAdCleanupContractTest {
     @Test
     fun `generated ad cleanup is owned by shared generated cleanup module`() {
         val generatedScript = projectFile("src/main/assets/scripts/generated_ad_cleanup.js").readText()
+        val overlayScript = projectFile("src/main/assets/scripts/generic_ad_overlay_cleanup.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val geometryScript = projectFile("src/main/assets/scripts/geometry.js").readText()
         val domToolsScript = projectFile("src/main/assets/scripts/dom_tools.js").readText()
@@ -25,7 +26,7 @@ class GeneratedAdCleanupContractTest {
         assertTrue(generatedScript.contains("domTools.parseZIndex(style.zIndex)"))
         assertTrue(generatedScript.contains("domTools.elementDescriptor(element)"))
         assertTrue(commonScript.contains("const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup"))
-        assertTrue(commonScript.contains("generatedAdCleanup.run(state, { now: Date.now(), force: true });"))
+        assertTrue(overlayScript.contains("generatedAdCleanup.run(state, {"))
         assertTrue(commonScript.contains("generatedAdCleanup.run(state, { now: now, force: false });"))
         assertTrue(geometryScript.contains("geometry.visibleRectInViewport = geometry.visibleRectInViewport || function"))
         assertTrue(domToolsScript.contains("domTools.elementDescriptor = domTools.elementDescriptor || function"))

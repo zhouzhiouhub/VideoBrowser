@@ -75,6 +75,7 @@ class ScriptLoader(
         const val SELECTOR_TOOLS_SCRIPT_ASSET = "scripts/selector_tools.js"
         const val GENERIC_CLEANUP_SELECTORS_SCRIPT_ASSET = "scripts/generic_cleanup_selectors.js"
         const val GENERATED_AD_CLEANUP_SCRIPT_ASSET = "scripts/generated_ad_cleanup.js"
+        const val GENERIC_AD_OVERLAY_CLEANUP_SCRIPT_ASSET = "scripts/generic_ad_overlay_cleanup.js"
         const val SEARCH_RESULT_CLEANUP_SCRIPT_ASSET = "scripts/search_result_cleanup.js"
         const val SKIP_BUTTON_TOOLS_SCRIPT_ASSET = "scripts/skip_button_tools.js"
         const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
@@ -93,6 +94,7 @@ class ScriptLoader(
             SELECTOR_TOOLS_SCRIPT_ASSET,
             GENERIC_CLEANUP_SELECTORS_SCRIPT_ASSET,
             GENERATED_AD_CLEANUP_SCRIPT_ASSET,
+            GENERIC_AD_OVERLAY_CLEANUP_SCRIPT_ASSET,
             SEARCH_RESULT_CLEANUP_SCRIPT_ASSET,
             SKIP_BUTTON_TOOLS_SCRIPT_ASSET,
             NATIVE_BRIDGE_SCRIPT_ASSET,

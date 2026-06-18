@@ -401,6 +401,7 @@ class JsInjectorTest {
             ScriptLoader.SELECTOR_TOOLS_SCRIPT_ASSET -> "window.__selectorToolsLoaded = true;"
             ScriptLoader.GENERIC_CLEANUP_SELECTORS_SCRIPT_ASSET -> "window.__genericCleanupSelectorsLoaded = true;"
             ScriptLoader.GENERATED_AD_CLEANUP_SCRIPT_ASSET -> "window.__generatedAdCleanupLoaded = true;"
+            ScriptLoader.GENERIC_AD_OVERLAY_CLEANUP_SCRIPT_ASSET -> "window.__genericAdOverlayCleanupLoaded = true;"
             ScriptLoader.SEARCH_RESULT_CLEANUP_SCRIPT_ASSET -> "window.__searchResultCleanupLoaded = true;"
             ScriptLoader.SKIP_BUTTON_TOOLS_SCRIPT_ASSET -> "window.__skipButtonToolsLoaded = true;"
             ScriptLoader.NATIVE_BRIDGE_SCRIPT_ASSET -> "window.__nativeBridgeLoaded = true;"
