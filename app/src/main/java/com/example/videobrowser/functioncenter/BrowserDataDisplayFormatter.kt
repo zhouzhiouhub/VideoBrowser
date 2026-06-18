@@ -1,5 +1,6 @@
 package com.example.videobrowser.functioncenter
 
+import com.example.videobrowser.utils.ByteSizeFormatter
 import java.util.Locale
 
 object BrowserDataDisplayFormatter {
@@ -11,13 +12,11 @@ object BrowserDataDisplayFormatter {
         if (bytes <= 0L) {
             return "0 B"
         }
-        val units = arrayOf("B", "KB", "MB", "GB")
-        var value = bytes.toDouble()
-        var unitIndex = 0
-        while (value >= 1024.0 && unitIndex < units.lastIndex) {
-            value /= 1024.0
-            unitIndex += 1
-        }
-        return String.format(Locale.US, "%.1f %s", value, units[unitIndex])
+        return ByteSizeFormatter.format(
+            bytes,
+            maxUnit = ByteSizeFormatter.MaxUnit.GB,
+            locale = Locale.US,
+            decimalBytes = true
+        )
     }
 }

@@ -9,6 +9,7 @@ package com.example.videobrowser.localfiles
  */
 import android.content.Context
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ByteSizeFormatter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,19 +50,7 @@ class LocalDocumentFormatter(
         if (size == null || size < 0) {
             return context.getString(R.string.local_file_size_unknown)
         }
-
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        var value = size.toDouble()
-        var unitIndex = 0
-        while (value >= 1024 && unitIndex < units.lastIndex) {
-            value /= 1024
-            unitIndex++
-        }
-        return if (unitIndex == 0) {
-            "$size ${units[unitIndex]}"
-        } else {
-            String.format(Locale.getDefault(), "%.1f %s", value, units[unitIndex])
-        }
+        return ByteSizeFormatter.format(size, locale = Locale.getDefault())
     }
 
     /**
