@@ -96,6 +96,9 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
         val search = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadRecordSearch.kt"
         ).readText()
@@ -103,7 +106,8 @@ class DownloadStatusWiringContractTest {
 
         assertTrue(downloadsPage.contains("DownloadRecordSearch.filter(allRecords, query)"))
         assertTrue(downloadsPage.contains("R.string.action_search_download_records"))
-        assertTrue(downloadsPage.contains("private fun showSearchDialog"))
+        assertTrue(downloadsPage.contains("dialogController.showSearchDialog(query, statusFilter, categoryFilter)"))
+        assertTrue(dialogController.contains("fun showSearchDialog"))
         assertTrue(downloadsPage.contains("R.string.action_clear_search"))
         assertTrue(downloadsPage.contains("R.string.dialog_download_records_search_empty"))
         assertTrue(search.contains("record.fileName"))
@@ -124,6 +128,9 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
         val filter = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadRecordFilter.kt"
         ).readText()
@@ -135,11 +142,13 @@ class DownloadStatusWiringContractTest {
         assertTrue(downloadsPage.contains("R.string.action_filter_download_status"))
         assertTrue(downloadsPage.contains("R.string.action_filter_download_category"))
         assertTrue(downloadsPage.contains("R.string.action_clear_download_filters"))
-        assertTrue(downloadsPage.contains("private fun showStatusFilterDialog"))
-        assertTrue(downloadsPage.contains("private fun showCategoryFilterDialog"))
-        assertTrue(downloadsPage.contains("setSingleChoiceItems(labels.toTypedArray(), checkedIndex)"))
-        assertTrue(downloadsPage.contains("DownloadStatus.entries"))
-        assertTrue(downloadsPage.contains("DownloadCategory.entries"))
+        assertTrue(downloadsPage.contains("dialogController.showStatusFilterDialog(query, statusFilter, categoryFilter)"))
+        assertTrue(downloadsPage.contains("dialogController.showCategoryFilterDialog(query, statusFilter, categoryFilter)"))
+        assertTrue(dialogController.contains("fun showStatusFilterDialog"))
+        assertTrue(dialogController.contains("fun showCategoryFilterDialog"))
+        assertTrue(dialogController.contains("setSingleChoiceItems(labels.toTypedArray(), checkedIndex)"))
+        assertTrue(dialogController.contains("DownloadStatus.entries"))
+        assertTrue(dialogController.contains("DownloadCategory.entries"))
         assertTrue(filter.contains("DownloadCategory.from(record.mimeType, record.fileName)"))
         assertTrue(filter.contains("record.status == status"))
         assertTrue(strings.contains("action_filter_download_status"))
@@ -159,16 +168,19 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
         val operations = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadRecordPageOperations.kt"
         ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(downloadsPage.contains("DownloadCancellationPolicy.canCancel(record)"))
-        assertTrue(downloadsPage.contains("confirmCancelDownload(record)"))
+        assertTrue(dialogController.contains("confirmCancelDownload(record)"))
         assertTrue(operations.contains("DownloadCanceller(downloadRecordRepository)"))
         assertTrue(operations.contains("downloadManager.remove(*downloadIds)"))
-        assertTrue(downloadsPage.contains("R.string.action_cancel_download"))
+        assertTrue(dialogController.contains("R.string.action_cancel_download"))
         assertTrue(strings.contains("action_cancel_download"))
         assertTrue(strings.contains("download_status_canceled"))
         assertTrue(strings.contains("dialog_cancel_download_message"))
@@ -185,6 +197,9 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
         val operations = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadRecordPageOperations.kt"
         ).readText()
@@ -196,7 +211,7 @@ class DownloadStatusWiringContractTest {
         assertTrue(repository.contains("fun remove(downloadId: Long): Boolean"))
         assertTrue(downloadsPage.contains("showDownloadActionsDialog(record, retryable, cancelable)"))
         assertTrue(operations.contains("DownloadRecordRemover(downloadRecordRepository)"))
-        assertTrue(downloadsPage.contains("confirmRemoveDownloadRecord(record)"))
+        assertTrue(dialogController.contains("confirmRemoveDownloadRecord(record)"))
         assertTrue(operations.contains("downloadManager.remove(*downloadIds)"))
         assertTrue(strings.contains("action_remove_download_record"))
         assertTrue(strings.contains("dialog_remove_download_record_message"))
@@ -213,6 +228,9 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
         val operations = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadRecordPageOperations.kt"
         ).readText()
@@ -220,7 +238,7 @@ class DownloadStatusWiringContractTest {
 
         assertTrue(operations.contains("ClipData.newPlainText"))
         assertTrue(operations.contains("Context.CLIPBOARD_SERVICE"))
-        assertTrue(downloadsPage.contains("recordOperations.copyDownloadSourceUrl(record)"))
+        assertTrue(dialogController.contains("recordOperations.copyDownloadSourceUrl(record)"))
         assertTrue(operations.contains("record.sourceUrl"))
         assertTrue(strings.contains("action_copy_download_source"))
         assertTrue(strings.contains("clipboard_download_source_url"))
@@ -237,12 +255,15 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
         val launcher = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadedFileLauncher.kt"
         ).readText()
 
-        assertTrue(downloadsPage.contains("record.status == DownloadStatus.COMPLETED"))
-        assertTrue(downloadsPage.contains("shareDownloadedFile(record)"))
+        assertTrue(dialogController.contains("record.status == DownloadStatus.COMPLETED"))
+        assertTrue(dialogController.contains("shareDownloadedFile(record)"))
         assertTrue(launcher.contains("Intent(Intent.ACTION_SEND)"))
         assertTrue(launcher.contains("putExtra(Intent.EXTRA_STREAM, uri)"))
         assertTrue(launcher.contains("ClipData.newUri(activity.contentResolver, record.fileName, uri)"))

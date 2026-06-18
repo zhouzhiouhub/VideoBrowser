@@ -36,12 +36,16 @@ class DownloadRetryWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(downloadsPage.contains("retryDownload: (DownloadRecord) -> Unit"))
         assertTrue(downloadsPage.contains("DownloadRetryPolicy.canRetry(record)"))
-        assertTrue(downloadsPage.contains("retryDownload(record)"))
-        assertTrue(downloadsPage.contains("R.string.action_retry_download"))
+        assertTrue(downloadsPage.contains("DownloadsPageDialogController("))
+        assertTrue(dialogController.contains("retryDownload(record)"))
+        assertTrue(dialogController.contains("R.string.action_retry_download"))
         assertTrue(strings.contains("action_retry_download"))
     }
 
