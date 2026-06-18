@@ -43,4 +43,16 @@
     const dy = geometry.rectCenterY(first) - geometry.rectCenterY(second);
     return Math.sqrt(dx * dx + dy * dy);
   };
+
+  geometry.visibleRectInViewport = geometry.visibleRectInViewport || function (rect, viewportWidth, viewportHeight) {
+    return Boolean(
+      rect &&
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < viewportHeight &&
+      rect.left < viewportWidth
+    );
+  };
 })();

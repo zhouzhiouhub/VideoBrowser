@@ -19,8 +19,6 @@
   state.suppressMutationWork = false;
   state.lastCleanupAt = Number(state.lastCleanupAt || 0);
   if (!Number.isFinite(state.lastCleanupAt)) state.lastCleanupAt = 0;
-  state.lastGeneratedAdCleanupAt = Number(state.lastGeneratedAdCleanupAt || 0);
-  if (!Number.isFinite(state.lastGeneratedAdCleanupAt)) state.lastGeneratedAdCleanupAt = 0;
   if (!state.fullscreenHookedVideos || typeof state.fullscreenHookedVideos.add !== 'function') {
     state.fullscreenHookedVideos = new WeakSet();
   }
@@ -44,9 +42,12 @@
   const rectsOverlap = geometry.rectsOverlap;
 
   const domTools = window.VideoBrowserDomTools;
+  const elementDescriptor = domTools.elementDescriptor;
+  const parseZIndex = domTools.parseZIndex;
   const domActions = window.VideoBrowserDomActions;
   const selectorTools = window.VideoBrowserSelectorTools;
   const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors;
+  const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup;
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
   const skipButtonTools = window.VideoBrowserSkipButtonTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
@@ -59,7 +60,6 @@
 
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
-  const generatedAdCleanupIntervalMs = 100;
   const bestQualityAttemptIntervalMs = 30000;
   const normalWorkDelayMs = 250;
   const activeVideoWorkDelayMs = 750;
@@ -327,176 +327,7 @@
       clearOverlayScrollLocks();
     });
 
-    runGeneratedAdScaffoldCleanup(Date.now(), true);
-  }
-
-  /**
-   * 函数 `runGeneratedAdScaffoldCleanup`：封装 `run Generated Ad Scaffold Cleanup` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} now 表示函数执行 `now` 相关逻辑时需要读取或处理的输入。
-   * @param {*} force 表示函数执行 `force` 相关逻辑时需要读取或处理的输入。
-   */
-  function runGeneratedAdScaffoldCleanup(now, force) {
-    const timestamp = Number(now || Date.now());
-    if (!force && timestamp - Number(state.lastGeneratedAdCleanupAt || 0) < generatedAdCleanupIntervalMs) {
-      return;
-    }
-    state.lastGeneratedAdCleanupAt = timestamp;
-    removeGeneratedAdScaffolds();
-  }
-
-  /**
-   * 函数 `removeGeneratedAdScaffolds`：封装 `remove Generated Ad Scaffolds` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeGeneratedAdScaffolds() {
-    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-    if (!viewportWidth || !viewportHeight) return;
-
-    const imageSlices = [];
-    const clickGridCells = [];
-    const adjunctControls = [];
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param element 表示当前回调正在检查或操作的页面元素。
-     */
-    querySelectorAllSafe('body *').forEach(function (element) {
-      if (!element || isProtectedAppContainer(element)) return;
-
-      const style = getComputedStyle(element);
-      if (style.position !== 'fixed') return;
-
-      const rect = element.getBoundingClientRect();
-      if (!isVisibleRectInViewport(rect, viewportWidth, viewportHeight)) return;
-
-      if (isGeneratedImageSlice(element, style, rect, viewportWidth, viewportHeight)) {
-        imageSlices.push(element);
-        return;
-      }
-      if (isGeneratedClickGridCell(element, style, rect, viewportWidth, viewportHeight)) {
-        clickGridCells.push(element);
-        return;
-      }
-      if (isGeneratedAdAdjunctControl(element, style, rect)) {
-        adjunctControls.push(element);
-      }
-    });
-
-    if (imageSlices.length >= 12) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      imageSlices.forEach(function (element) {
-        hideElement(element, 'generated-sliced-ad');
-      });
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      adjunctControls.forEach(function (element) {
-        hideElement(element, 'generated-sliced-ad');
-      });
-    }
-
-    if (clickGridCells.length >= 20) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      clickGridCells.forEach(function (element) {
-        hideElement(element, 'generated-click-grid');
-      });
-    }
-  }
-
-  /**
-   * 函数 `isVisibleRectInViewport`：封装 `is Visible Rect In Viewport` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} viewportWidth 表示函数执行 `viewportWidth` 相关逻辑时需要读取或处理的输入。
-   * @param {*} viewportHeight 表示函数执行 `viewportHeight` 相关逻辑时需要读取或处理的输入。
-   */
-  function isVisibleRectInViewport(rect, viewportWidth, viewportHeight) {
-    return Boolean(
-      rect &&
-      rect.width > 0 &&
-      rect.height > 0 &&
-      rect.bottom > 0 &&
-      rect.right > 0 &&
-      rect.top < viewportHeight &&
-      rect.left < viewportWidth
-    );
-  }
-
-  /**
-   * 函数 `isGeneratedImageSlice`：封装 `is Generated Image Slice` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} style 表示函数执行 `style` 相关逻辑时需要读取或处理的输入。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} viewportWidth 表示函数执行 `viewportWidth` 相关逻辑时需要读取或处理的输入。
-   * @param {*} viewportHeight 表示函数执行 `viewportHeight` 相关逻辑时需要读取或处理的输入。
-   */
-  function isGeneratedImageSlice(element, style, rect, viewportWidth, viewportHeight) {
-    if (parseZIndex(style.zIndex) < 1000000) return false;
-    if (!/^url\(["']?data:image\//i.test(String(style.backgroundImage || ''))) return false;
-    if (normalizeText(element.innerText || element.textContent).length > 40) return false;
-    if (element.querySelector('video,form,input,textarea,select')) return false;
-    if (rect.width < Math.max(8, viewportWidth * 0.035)) return false;
-    if (rect.width > Math.min(140, viewportWidth * 0.34)) return false;
-    if (rect.height < 8 || rect.height > Math.min(180, viewportHeight * 0.3)) return false;
-    return true;
-  }
-
-  /**
-   * 函数 `isGeneratedClickGridCell`：封装 `is Generated Click Grid Cell` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} style 表示函数执行 `style` 相关逻辑时需要读取或处理的输入。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} viewportWidth 表示函数执行 `viewportWidth` 相关逻辑时需要读取或处理的输入。
-   * @param {*} viewportHeight 表示函数执行 `viewportHeight` 相关逻辑时需要读取或处理的输入。
-   */
-  function isGeneratedClickGridCell(element, style, rect, viewportWidth, viewportHeight) {
-    const opacity = Number.parseFloat(style.opacity);
-    if (!Number.isFinite(opacity) || opacity > 0.02) return false;
-    const zIndex = parseZIndex(style.zIndex);
-    if (zIndex < 10 || zIndex > 999999) return false;
-    if (normalizeText(element.innerText || element.textContent).length > 0) return false;
-    if (element.querySelector('video,form,input,textarea,select,img,svg,canvas')) return false;
-    if (rect.width < Math.max(16, viewportWidth * 0.035)) return false;
-    if (rect.width > Math.min(120, viewportWidth * 0.3)) return false;
-    if (rect.height < 16 || rect.height > Math.min(120, viewportHeight * 0.22)) return false;
-    return true;
-  }
-
-  /**
-   * 函数 `isGeneratedAdAdjunctControl`：封装 `is Generated Ad Adjunct Control` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} style 表示函数执行 `style` 相关逻辑时需要读取或处理的输入。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function isGeneratedAdAdjunctControl(element, style, rect) {
-    if (parseZIndex(style.zIndex) < 1000000) return false;
-    if (normalizeText(element.innerText || element.textContent).length > 20) return false;
-    if (rect.width > 56 || rect.height > 56) return false;
-    const tagName = String(element.tagName || '').toLowerCase();
-    const descriptor = elementDescriptor(element);
-    return /^[a-z]{5,10}$/.test(tagName) ||
-      (!descriptor.trim() && !String(style.backgroundImage || '').match(/^url\(/i));
+    generatedAdCleanup.run(state, { now: Date.now(), force: true });
   }
 
   /**
@@ -1029,33 +860,6 @@
     return /(^|[-_])(overflow-hidden|no-scroll|noscroll|scroll-lock|lock-scroll)([-_]|$)/i
       .test(String(className || '')) ||
       /^adm-overflow-hidden$/i.test(String(className || ''));
-  }
-
-  /**
-   * 函数 `elementDescriptor`：封装 `element Descriptor` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function elementDescriptor(element) {
-    return (
-      String(element.id || '') + ' ' +
-      String(element.className || '') + ' ' +
-      String(element.getAttribute('role') || '') + ' ' +
-      String(element.getAttribute('aria-label') || '') + ' ' +
-      String(element.getAttribute('title') || '')
-    );
-  }
-
-  /**
-   * 函数 `parseZIndex`：封装 `parse ZIndex` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function parseZIndex(value) {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
   }
 
   /**
@@ -2109,7 +1913,7 @@
     state.lastWorkAt = now;
     if (state.config.cleanupEnabled) {
       if (!isBilibiliHost()) {
-        runGeneratedAdScaffoldCleanup(now, false);
+        generatedAdCleanup.run(state, { now: now, force: false });
       }
       if (now - Number(state.lastCleanupAt || 0) >= cleanupInterval) {
         state.lastCleanupAt = now;

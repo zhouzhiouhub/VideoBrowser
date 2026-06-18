@@ -21,4 +21,19 @@
       return [];
     }
   };
+
+  domTools.elementDescriptor = domTools.elementDescriptor || function (element) {
+    return (
+      String(element && element.id || '') + ' ' +
+      String(element && element.className || '') + ' ' +
+      String(element && element.getAttribute && element.getAttribute('role') || '') + ' ' +
+      String(element && element.getAttribute && element.getAttribute('aria-label') || '') + ' ' +
+      String(element && element.getAttribute && element.getAttribute('title') || '')
+    );
+  };
+
+  domTools.parseZIndex = domTools.parseZIndex || function (value) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
 })();
