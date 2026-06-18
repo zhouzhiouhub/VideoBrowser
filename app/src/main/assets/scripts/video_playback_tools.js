@@ -39,6 +39,36 @@
     }
   };
 
+  tools.play = tools.play || function (video) {
+    if (!video || typeof video.play !== 'function') return false;
+    try {
+      const result = video.play();
+      if (result && typeof result.catch === 'function') {
+        result.catch(function () {});
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  tools.pause = tools.pause || function (video) {
+    if (!video || typeof video.pause !== 'function') return false;
+    try {
+      video.pause();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  tools.pauseAll = tools.pauseAll || function (videoQueryTools) {
+    if (!videoQueryTools || typeof videoQueryTools.forEach !== 'function') return;
+    videoQueryTools.forEach(function (video) {
+      tools.pause(video);
+    });
+  };
+
   tools.seek = tools.seek || function (video, sliderValue, options) {
     if (!video) return false;
     const timeline = tools.timeline(video);
@@ -93,10 +123,10 @@
       try {
         if (video.ended) video.currentTime = 0;
       } catch (_) {}
-      try { video.play().catch(function () {}); } catch (__) {}
+      tools.play(video);
       return true;
     }
-    try { video.pause(); } catch (_) {}
+    tools.pause(video);
     return false;
   };
 

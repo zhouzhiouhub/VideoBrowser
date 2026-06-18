@@ -1949,14 +1949,7 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function pausePageVideos() {
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param video 表示当前回调正在检查或操作的页面元素。
-     */
-    videoQueryTools.forEach(function (video) {
-      try { video.pause(); } catch (_) {}
-    });
+    videoPlaybackTools.pauseAll(videoQueryTools);
   }
 
   /**
@@ -1995,15 +1988,11 @@
     if (normalizedDirection > 0) {
       state.fullscreenPlaybackSpeed = 2;
       applyVideoSpeed(video);
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       */
-      try { video.play().catch(function () {}); } catch (_) {}
+      videoPlaybackTools.play(video);
       return;
     }
 
-    try { video.pause(); } catch (_) {}
+    videoPlaybackTools.pause(video);
     seekVideoBy(video, -0.5);
     /*
      * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
@@ -2039,13 +2028,9 @@
     if (video) {
       applyVideoSpeed(video);
       if (scan.wasPaused) {
-        try { video.pause(); } catch (_) {}
+        videoPlaybackTools.pause(video);
       } else {
-        /*
-         * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-         * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-         */
-        try { video.play().catch(function () {}); } catch (__) {}
+        videoPlaybackTools.play(video);
       }
     }
     videoQueryTools.forEach(applyVideoSpeed);
