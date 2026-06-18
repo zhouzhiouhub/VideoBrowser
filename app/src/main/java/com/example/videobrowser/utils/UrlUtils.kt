@@ -11,7 +11,6 @@ import java.net.IDN
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.URI
-import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.Locale
@@ -54,18 +53,7 @@ object UrlUtils {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun searchQueryFromUrl(url: String, searchUrlPrefix: String): String? {
-        val prefixUri = parseUri(searchUrlPrefix) ?: return null
-        val currentUri = parseUri(url) ?: return null
-        if (!isSameSearchEndpoint(currentUri, prefixUri)) {
-            return null
-        }
-
-        val queryParameterName = searchQueryParameterName(prefixUri) ?: return null
-        val rawValue = rawQueryParameter(currentUri.rawQuery, queryParameterName) ?: return null
-        return decodeFormComponent(rawValue)
-            ?.replace(WHITESPACE_SEQUENCE, " ")
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
+        return SearchUrlQueryParser.searchQueryFromUrl(url, searchUrlPrefix)
     }
 
     /**
@@ -474,83 +462,6 @@ object UrlUtils {
      */
     private fun parseUri(value: String): URI? {
         return runCatching { URI(value.trim()) }.getOrNull()
-    }
-
-    /**
-     * 函数 `isSameSearchEndpoint`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param currentUri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param prefixUri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isSameSearchEndpoint(currentUri: URI, prefixUri: URI): Boolean {
-        return currentUri.scheme.equals(prefixUri.scheme, ignoreCase = true) &&
-            currentUri.host.equals(prefixUri.host, ignoreCase = true) &&
-            normalizedUriPath(currentUri) == normalizedUriPath(prefixUri)
-    }
-
-    /**
-     * 函数 `normalizedUriPath`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizedUriPath(uri: URI): String {
-        return uri.rawPath.orEmpty().ifEmpty { "/" }.trimEnd('/')
-    }
-
-    /**
-     * 函数 `searchQueryParameterName`：封装 `search Query Parameter Name` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param prefixUri 参数类型为 `URI`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun searchQueryParameterName(prefixUri: URI): String? {
-        val rawQuery = prefixUri.rawQuery ?: return null
-        return rawQuery
-            .split("&")
-            .lastOrNull()
-            ?.substringBefore("=")
-            ?.takeIf { it.isNotBlank() }
-            ?.let { decodeFormComponent(it) }
-    }
-
-    /**
-     * 函数 `rawQueryParameter`：封装 `raw Query Parameter` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param rawQuery 参数类型为 `String?`，表示函数执行 `rawQuery` 相关逻辑时需要读取或处理的输入。
-     * @param queryParameterName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun rawQueryParameter(rawQuery: String?, queryParameterName: String): String? {
-        return rawQuery
-            ?.split("&")
-            ?.firstNotNullOfOrNull { part ->
-                val rawName = part.substringBefore("=")
-                val decodedName = decodeFormComponent(rawName)
-                if (decodedName == queryParameterName && part.contains("=")) {
-                    part.substringAfter("=")
-                } else {
-                    null
-                }
-            }
-    }
-
-    /**
-     * 函数 `decodeFormComponent`：封装 `decode Form Component` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun decodeFormComponent(value: String): String? {
-        return runCatching {
-            URLDecoder.decode(value, StandardCharsets.UTF_8.name())
-        }.getOrNull()
     }
 
     /**
