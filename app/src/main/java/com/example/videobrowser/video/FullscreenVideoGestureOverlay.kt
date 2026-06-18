@@ -104,7 +104,7 @@ class FullscreenVideoGestureOverlay(
     private var activeGesture = VerticalGesture.NONE
     private var tapCandidate = false
     private var longPressActive = false
-    private var downZone = ScreenZone.CENTER
+    private var downZone = VideoGestureScreenZone.CENTER
     private var seekStartPositionMs: Long? = null
     private var seekDurationMs: Long? = null
     private var pendingHorizontalSeekMs = 0L
@@ -114,7 +114,7 @@ class FullscreenVideoGestureOverlay(
     private var downTime = 0L
     private var initialBrightness = DEFAULT_BRIGHTNESS
     private var initialVolume = 0
-    private var pendingTapZone = ScreenZone.NONE
+    private var pendingTapZone = VideoGestureScreenZone.NONE
     private var pendingTapTime = 0L
     private var seekAccumulatorDirection = 0
     private var seekAccumulatorCount = 0
@@ -124,7 +124,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private val clearPendingTapRunnable = Runnable {
-        pendingTapZone = ScreenZone.NONE
+        pendingTapZone = VideoGestureScreenZone.NONE
         pendingTapTime = 0L
     }
 
@@ -193,7 +193,7 @@ class FullscreenVideoGestureOverlay(
      * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
      */
     fun setPlaybackSpeed(speed: Float) {
-        playbackSpeed = normalizeSpeed(speed)
+        playbackSpeed = FullscreenVideoGestureMath.normalizeSpeed(speed, DEFAULT_PLAYBACK_SPEED)
         speedButton.text = VideoGestureFeedbackFormatter.formatSpeed(playbackSpeed)
         speedButton.contentDescription = context.getString(
             R.string.video_control_speed,
@@ -665,7 +665,7 @@ class FullscreenVideoGestureOverlay(
                     abs(deltaY) >= swipeStartDistance &&
                     abs(deltaY) > abs(deltaX) * VERTICAL_GESTURE_RATIO
                 ) {
-                    activeGesture = if (downZone == ScreenZone.LEFT) {
+                    activeGesture = if (downZone == VideoGestureScreenZone.LEFT) {
                         VerticalGesture.BRIGHTNESS
                     } else {
                         VerticalGesture.VOLUME
@@ -823,7 +823,7 @@ class FullscreenVideoGestureOverlay(
             .coerceIn(minVolume, maxVolume)
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, nextVolume, 0)
         showFeedback(
-            "$VOLUME_ICON ${volumePercent(nextVolume, minVolume, maxVolume)}%"
+            "$VOLUME_ICON ${FullscreenVideoGestureMath.volumePercent(nextVolume, minVolume, maxVolume)}%"
         )
     }
 
@@ -837,15 +837,15 @@ class FullscreenVideoGestureOverlay(
     private fun handleTap(upX: Float, eventTime: Long) {
         notifyUserInteraction()
         when (val zone = screenZoneFor(upX)) {
-            ScreenZone.CENTER -> {
+            VideoGestureScreenZone.CENTER -> {
                 clearPendingSideTap()
                 if (playbackControlsVisibleOnTouchStart) {
                     onTogglePlayPause?.invoke()
                 }
             }
-            ScreenZone.LEFT,
-            ScreenZone.RIGHT -> registerSideTap(zone, eventTime)
-            ScreenZone.NONE -> Unit
+            VideoGestureScreenZone.LEFT,
+            VideoGestureScreenZone.RIGHT -> registerSideTap(zone, eventTime)
+            VideoGestureScreenZone.NONE -> Unit
         }
     }
 
@@ -853,10 +853,10 @@ class FullscreenVideoGestureOverlay(
      * 函数 `registerSideTap`：封装 `register Side Tap` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param zone 参数类型为 `ScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
+     * @param zone 参数类型为 `VideoGestureScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
      * @param eventTime 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
      */
-    private fun registerSideTap(zone: ScreenZone, eventTime: Long) {
+    private fun registerSideTap(zone: VideoGestureScreenZone, eventTime: Long) {
         if (pendingTapZone == zone && eventTime - pendingTapTime <= DOUBLE_TAP_TIMEOUT_MS) {
             clearPendingSideTap()
             handleDoubleTap(zone)
@@ -872,10 +872,10 @@ class FullscreenVideoGestureOverlay(
      * 函数 `handleDoubleTap`：处理 `handle Double Tap` 对应的事件或请求，集中完成校验、状态更新和回调通知。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param zone 参数类型为 `ScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
+     * @param zone 参数类型为 `VideoGestureScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
      */
-    private fun handleDoubleTap(zone: ScreenZone) {
-        val direction = if (zone == ScreenZone.LEFT) -1 else 1
+    private fun handleDoubleTap(zone: VideoGestureScreenZone) {
+        val direction = if (zone == VideoGestureScreenZone.LEFT) -1 else 1
         onSeekBy?.invoke(direction * SEEK_STEP_MS)
         if (seekAccumulatorDirection != direction) {
             seekAccumulatorDirection = direction
@@ -902,7 +902,7 @@ class FullscreenVideoGestureOverlay(
         tapCandidate = false
         clearPendingSideTap()
         clearSeekAccumulator()
-        val direction = if (downZone == ScreenZone.LEFT) -1 else 1
+        val direction = if (downZone == VideoGestureScreenZone.LEFT) -1 else 1
         onDirectionalLongPressStart?.invoke(direction)
         showFeedback(
             VideoGestureFeedbackFormatter.formatSpeed(VideoSpeedOptions.longPressSpeed),
@@ -1097,21 +1097,6 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `volumePercent`：封装 `volume Percent` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param volume 参数类型为 `Int`，表示函数执行 `volume` 相关逻辑时需要读取或处理的输入。
-     * @param minVolume 参数类型为 `Int`，表示函数执行 `minVolume` 相关逻辑时需要读取或处理的输入。
-     * @param maxVolume 参数类型为 `Int`，表示函数执行 `maxVolume` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun volumePercent(volume: Int, minVolume: Int, maxVolume: Int): Int {
-        return (((volume - minVolume).toFloat() / (maxVolume - minVolume)) * 100)
-            .roundToInt()
-            .coerceIn(0, 100)
-    }
-
-    /**
      * 函数 `showFeedback`：控制 `show Feedback` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1148,7 +1133,7 @@ class FullscreenVideoGestureOverlay(
         touchStartedOnControl = false
         touchStartedInBottomPassthrough = false
         playbackControlsVisibleOnTouchStart = true
-        downZone = ScreenZone.CENTER
+        downZone = VideoGestureScreenZone.CENTER
     }
 
     /**
@@ -1157,7 +1142,7 @@ class FullscreenVideoGestureOverlay(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun clearPendingSideTap() {
-        pendingTapZone = ScreenZone.NONE
+        pendingTapZone = VideoGestureScreenZone.NONE
         pendingTapTime = 0L
         feedbackHandler.removeCallbacks(clearPendingTapRunnable)
     }
@@ -1189,34 +1174,14 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `normalizeSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeSpeed(speed: Float): Float {
-        return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            DEFAULT_PLAYBACK_SPEED
-        }
-    }
-
-    /**
      * 函数 `screenZoneFor`：封装 `screen Zone For` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      * @param x 参数类型为 `Float`，表示函数执行 `x` 相关逻辑时需要读取或处理的输入。
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
-    private fun screenZoneFor(x: Float): ScreenZone {
-        return when {
-            x < 0f || width <= 0 -> ScreenZone.NONE
-            x < width * LEFT_ZONE_RATIO -> ScreenZone.LEFT
-            x >= width * (1f - RIGHT_ZONE_RATIO) -> ScreenZone.RIGHT
-            else -> ScreenZone.CENTER
-        }
+    private fun screenZoneFor(x: Float): VideoGestureScreenZone {
+        return FullscreenVideoGestureMath.screenZoneFor(x, width)
     }
 
     /**
@@ -1255,16 +1220,6 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `isSide`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun ScreenZone.isSide(): Boolean {
-        return this == ScreenZone.LEFT || this == ScreenZone.RIGHT
-    }
-
-    /**
      * 函数 `dp`：封装 `dp` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1273,13 +1228,6 @@ class FullscreenVideoGestureOverlay(
      */
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).roundToInt()
-    }
-
-    private enum class ScreenZone {
-        LEFT,
-        CENTER,
-        RIGHT,
-        NONE
     }
 
     private enum class VerticalGesture {
@@ -1303,8 +1251,6 @@ class FullscreenVideoGestureOverlay(
         private const val FEEDBACK_DURATION_MS = 900L
         private const val BOTTOM_PASSTHROUGH_DP = 92
         private const val MIN_SWIPE_DISTANCE_DP = 10
-        private const val LEFT_ZONE_RATIO = 0.3f
-        private const val RIGHT_ZONE_RATIO = 0.3f
         private const val VERTICAL_GESTURE_RATIO = 1.15f
         private const val LOCKED_ICON = "\ud83d\udd12"
         private const val UNLOCKED_ICON = "\ud83d\udd13"
