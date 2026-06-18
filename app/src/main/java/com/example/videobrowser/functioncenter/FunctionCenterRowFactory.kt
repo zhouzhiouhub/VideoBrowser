@@ -2,7 +2,6 @@ package com.example.videobrowser.functioncenter
 
 import android.graphics.Typeface
 import android.text.TextUtils
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +13,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
+import com.example.videobrowser.utils.setBoundedSelectableItemBackground
 
 internal class FunctionCenterRowFactory(
     private val activity: AppCompatActivity,
@@ -160,13 +160,4 @@ internal class FunctionCenterRowFactory(
         }
     }
 
-    private fun View.setBoundedSelectableItemBackground() {
-        val outValue = TypedValue()
-        activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackground,
-            outValue,
-            true
-        )
-        setBackgroundResource(outValue.resourceId)
-    }
 }

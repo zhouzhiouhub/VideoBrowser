@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.setBoundedSelectableItemBackground
 
 internal class AddressSuggestionRowFactory(
     private val activity: AppCompatActivity,
@@ -131,13 +132,4 @@ internal class AddressSuggestionRowFactory(
         }
     }
 
-    private fun View.setBoundedSelectableItemBackground() {
-        val outValue = TypedValue()
-        activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackground,
-            outValue,
-            true
-        )
-        setBackgroundResource(outValue.resourceId)
-    }
 }

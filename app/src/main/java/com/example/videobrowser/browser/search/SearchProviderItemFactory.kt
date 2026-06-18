@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
 import com.example.videobrowser.utils.BrowserDrawableFactory
+import com.example.videobrowser.utils.setBoundedSelectableItemBackground
 
 internal class SearchProviderItemFactory(
     private val activity: AppCompatActivity,
@@ -171,13 +172,4 @@ internal class SearchProviderItemFactory(
         return name.trim().take(2).ifBlank { "+" }
     }
 
-    private fun View.setBoundedSelectableItemBackground() {
-        val outValue = TypedValue()
-        activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackground,
-            outValue,
-            true
-        )
-        setBackgroundResource(outValue.resourceId)
-    }
 }
