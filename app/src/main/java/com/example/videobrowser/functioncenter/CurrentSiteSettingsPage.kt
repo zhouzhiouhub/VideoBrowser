@@ -9,12 +9,10 @@ package com.example.videobrowser.functioncenter
  */
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermission
-import com.example.videobrowser.settings.SitePermissionDecision
 
 class CurrentSiteSettingsPage(
     private val host: FunctionCenterPageHost,
@@ -32,7 +30,12 @@ class CurrentSiteSettingsPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
-    private val sitePermissionTextFormatter = SitePermissionTextFormatter(activity)
+    private val sitePermissionSection = CurrentSitePermissionSection(
+        host = host,
+        settingsManager = settingsManager,
+        currentSiteHost = currentSiteHost,
+        onPermissionChanged = { show(replaceCurrent = true) }
+    )
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -178,9 +181,7 @@ class CurrentSiteSettingsPage(
 
             host.addDivider(section)
 
-            addSitePermissionRow(section, siteHost, hasSite, SitePermission.CAMERA)
-            addSitePermissionRow(section, siteHost, hasSite, SitePermission.MICROPHONE)
-            addSitePermissionRow(section, siteHost, hasSite, SitePermission.LOCATION)
+            sitePermissionSection.addRows(section, siteHost, hasSite)
 
             host.addDivider(section)
 
@@ -339,18 +340,18 @@ class CurrentSiteSettingsPage(
                 )
                 host.addInfoRow(
                     parent = section,
-                    title = sitePermissionTextFormatter.title(SitePermission.CAMERA),
-                    summary = currentSitePermissionSummary(siteHost, SitePermission.CAMERA)
+                    title = sitePermissionSection.title(SitePermission.CAMERA),
+                    summary = sitePermissionSection.summary(siteHost, SitePermission.CAMERA)
                 )
                 host.addInfoRow(
                     parent = section,
-                    title = sitePermissionTextFormatter.title(SitePermission.MICROPHONE),
-                    summary = currentSitePermissionSummary(siteHost, SitePermission.MICROPHONE)
+                    title = sitePermissionSection.title(SitePermission.MICROPHONE),
+                    summary = sitePermissionSection.summary(siteHost, SitePermission.MICROPHONE)
                 )
                 host.addInfoRow(
                     parent = section,
-                    title = sitePermissionTextFormatter.title(SitePermission.LOCATION),
-                    summary = currentSitePermissionSummary(siteHost, SitePermission.LOCATION)
+                    title = sitePermissionSection.title(SitePermission.LOCATION),
+                    summary = sitePermissionSection.summary(siteHost, SitePermission.LOCATION)
                 )
                 host.addInfoRow(
                     parent = section,
@@ -362,83 +363,6 @@ class CurrentSiteSettingsPage(
                 )
             }
         }
-    }
-
-    /**
-     * 函数 `addSitePermissionRow`：封装 `add Site Permission Row` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param section 参数类型为 `LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
-     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
-     * @param hasSite 参数类型为 `Boolean`，表示函数执行 `hasSite` 相关逻辑时需要读取或处理的输入。
-     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addSitePermissionRow(
-        section: LinearLayout,
-        siteHost: String?,
-        hasSite: Boolean,
-        permission: SitePermission
-    ) {
-        host.addActionRow(
-            parent = section,
-            title = sitePermissionTextFormatter.title(permission),
-            summary = currentSitePermissionSummary(siteHost, permission),
-            enabled = hasSite
-        ) {
-            showSitePermissionDialog(permission)
-        }
-    }
-
-    /**
-     * 函数 `showSitePermissionDialog`：控制 `show Site Permission Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showSitePermissionDialog(permission: SitePermission) {
-        val hostName = currentSiteHost() ?: return
-        val decisions = SitePermissionDecision.entries
-        val labels = decisions
-            .map { decision -> sitePermissionTextFormatter.decisionText(decision) }
-            .toTypedArray()
-        val checkedIndex = decisions.indexOf(settingsManager.sitePermissionDecision(hostName, permission))
-
-        AlertDialog.Builder(activity)
-            .setTitle(sitePermissionTextFormatter.title(permission))
-            .setSingleChoiceItems(labels, checkedIndex) { dialog, index ->
-                val decision = decisions[index]
-                settingsManager.setSitePermissionDecision(hostName, permission, decision)
-                Toast.makeText(
-                    activity,
-                    activity.getString(
-                        R.string.toast_site_permission_updated,
-                        sitePermissionTextFormatter.title(permission),
-                        hostName
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-                dialog.dismiss()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `currentSitePermissionSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
-     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSitePermissionSummary(siteHost: String?, permission: SitePermission): String {
-        return sitePermissionTextFormatter.currentSitePermissionSummary(
-            siteHost = siteHost,
-            decision = siteHost?.let { hostName ->
-                settingsManager.sitePermissionDecision(hostName, permission)
-            }
-        )
     }
 
     /**

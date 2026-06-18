@@ -20,6 +20,9 @@ class CurrentSiteSettingsPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/CurrentSiteSettingsPage.kt"
         ).readText()
+        val permissionSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CurrentSitePermissionSection.kt"
+        ).readText()
         val formatter = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SitePermissionTextFormatter.kt"
         ).readText()
@@ -28,10 +31,12 @@ class CurrentSiteSettingsPageContractTest {
         assertTrue(page.contains("SitePermission.CAMERA"))
         assertTrue(page.contains("SitePermission.MICROPHONE"))
         assertTrue(page.contains("SitePermission.LOCATION"))
-        assertTrue(page.contains("SitePermissionDecision.entries"))
-        assertTrue(page.contains("settingsManager.sitePermissionDecision(hostName, permission)"))
-        assertTrue(page.contains("settingsManager.setSitePermissionDecision(hostName, permission, decision)"))
-        assertTrue(page.contains("fun showSitePermissionDialog"))
+        assertTrue(page.contains("CurrentSitePermissionSection("))
+        assertTrue(page.contains("sitePermissionSection.addRows(section, siteHost, hasSite)"))
+        assertTrue(permissionSection.contains("SitePermissionDecision.entries"))
+        assertTrue(permissionSection.contains("settingsManager.sitePermissionDecision(hostName, permission)"))
+        assertTrue(permissionSection.contains("settingsManager.setSitePermissionDecision(hostName, permission, decision)"))
+        assertTrue(permissionSection.contains("fun showSitePermissionDialog"))
         assertTrue(formatter.contains("R.string.site_permission_ask"))
         assertTrue(formatter.contains("R.string.site_permission_allowed"))
         assertTrue(formatter.contains("R.string.site_permission_blocked"))
