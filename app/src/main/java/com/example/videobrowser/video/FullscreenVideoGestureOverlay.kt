@@ -12,7 +12,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
@@ -32,6 +31,7 @@ import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.BrowserDrawableFactory
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -359,7 +359,10 @@ class FullscreenVideoGestureOverlay(
     private fun setupExitButton() {
         val label = context.getString(R.string.video_control_exit_fullscreen)
         exitButton.apply {
-            background = roundedBackground(Color.argb(178, 0, 0, 0), dp(20))
+            background = BrowserDrawableFactory.roundedBackground(
+                Color.argb(178, 0, 0, 0),
+                dp(20)
+            )
             contentDescription = label
             isClickable = true
             isFocusable = true
@@ -583,7 +586,10 @@ class FullscreenVideoGestureOverlay(
             setTypeface(typeface, Typeface.BOLD)
             textSize = 18f
             setPadding(dp(20), dp(8), dp(20), dp(8))
-            background = roundedBackground(Color.argb(196, 0, 0, 0), dp(20))
+            background = BrowserDrawableFactory.roundedBackground(
+                Color.argb(196, 0, 0, 0),
+                dp(20)
+            )
         }
         addView(
             feedbackView,
@@ -615,7 +621,10 @@ class FullscreenVideoGestureOverlay(
             setTextColor(Color.WHITE)
             setTypeface(typeface, Typeface.BOLD)
             textSize = 18f
-            background = roundedBackground(Color.argb(178, 0, 0, 0), dp(20))
+            background = BrowserDrawableFactory.roundedBackground(
+                Color.argb(178, 0, 0, 0),
+                dp(20)
+            )
         }
     }
 
@@ -933,7 +942,10 @@ class FullscreenVideoGestureOverlay(
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, dp(6), 0, dp(6))
-            background = roundedBackground(Color.argb(235, 18, 18, 18), dp(8))
+            background = BrowserDrawableFactory.roundedBackground(
+                Color.argb(235, 18, 18, 18),
+                dp(8)
+            )
         }
 
         speedOptions.forEach { speed ->
@@ -1156,21 +1168,6 @@ class FullscreenVideoGestureOverlay(
         seekAccumulatorDirection = 0
         seekAccumulatorCount = 0
         feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
-    }
-
-    /**
-     * 函数 `roundedBackground`：封装 `rounded Background` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param color 参数类型为 `Int`，表示函数执行 `color` 相关逻辑时需要读取或处理的输入。
-     * @param radius 参数类型为 `Int`，表示函数执行 `radius` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun roundedBackground(color: Int, radius: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            cornerRadius = radius.toFloat()
-        }
     }
 
     /**

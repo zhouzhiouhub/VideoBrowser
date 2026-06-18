@@ -1,7 +1,6 @@
 package com.example.videobrowser.browser.search
 
 import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
@@ -14,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
+import com.example.videobrowser.utils.BrowserDrawableFactory
 
 internal class SearchProviderItemFactory(
     private val activity: AppCompatActivity,
@@ -98,7 +98,7 @@ internal class SearchProviderItemFactory(
         return ImageView(activity).apply {
             setImageResource(R.drawable.ic_history_24)
             setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-            background = createCircleBackground(
+            background = BrowserDrawableFactory.circleBackground(
                 ContextCompat.getColor(activity, R.color.browser_provider_circle)
             )
             setPadding(dp(12), dp(12), dp(12), dp(12))
@@ -124,7 +124,7 @@ internal class SearchProviderItemFactory(
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, if (badgeText.length > 1) 12f else 16f)
-            background = createCircleBackground(
+            background = BrowserDrawableFactory.circleBackground(
                 ContextCompat.getColor(activity, R.color.browser_provider_circle)
             )
         }
@@ -134,7 +134,7 @@ internal class SearchProviderItemFactory(
         return ImageView(activity).apply {
             setImageResource(R.drawable.ic_add_24)
             setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-            background = createCircleBackground(
+            background = BrowserDrawableFactory.circleBackground(
                 ContextCompat.getColor(activity, R.color.browser_provider_circle)
             )
             setPadding(dp(12), dp(12), dp(12), dp(12))
@@ -169,13 +169,6 @@ internal class SearchProviderItemFactory(
 
     private fun shortcutBadgeText(name: String): String {
         return name.trim().take(2).ifBlank { "+" }
-    }
-
-    private fun createCircleBackground(color: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(color)
-        }
     }
 
     private fun View.setBoundedSelectableItemBackground() {

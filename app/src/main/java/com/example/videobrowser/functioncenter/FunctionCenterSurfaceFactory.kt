@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.BrowserDrawableFactory
 
 internal class FunctionCenterSurfaceFactory(
     private val activity: AppCompatActivity,
@@ -130,27 +131,10 @@ internal class FunctionCenterSurfaceFactory(
     }
 
     fun createRoundedBackground(color: Int, radius: Float = dp(8).toFloat()): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            cornerRadius = radius
-        }
+        return BrowserDrawableFactory.roundedBackground(color, radius)
     }
 
     fun createBottomSheetBackground(color: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            setCornerRadii(
-                floatArrayOf(
-                    dp(18).toFloat(),
-                    dp(18).toFloat(),
-                    dp(18).toFloat(),
-                    dp(18).toFloat(),
-                    0f,
-                    0f,
-                    0f,
-                    0f
-                )
-            )
-        }
+        return BrowserDrawableFactory.topRoundedBackground(color, dp(18).toFloat())
     }
 }

@@ -22,6 +22,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.utils.BrowserDrawableFactory
 import com.example.videobrowser.utils.UrlUtils
 
 /**
@@ -329,17 +330,19 @@ class SearchProviderController(
         provider: SearchProvider,
         selected: Boolean
     ): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            if (selected) {
-                setColor(provider.accentColor)
-                setStroke(
-                    dp(2),
-                    ContextCompat.getColor(activity, R.color.browser_provider_selected_stroke)
+        return if (selected) {
+            BrowserDrawableFactory.circleBackground(
+                color = provider.accentColor,
+                strokeWidth = dp(2),
+                strokeColor = ContextCompat.getColor(
+                    activity,
+                    R.color.browser_provider_selected_stroke
                 )
-            } else {
-                setColor(ContextCompat.getColor(activity, R.color.browser_provider_circle))
-            }
+            )
+        } else {
+            BrowserDrawableFactory.circleBackground(
+                ContextCompat.getColor(activity, R.color.browser_provider_circle)
+            )
         }
     }
 

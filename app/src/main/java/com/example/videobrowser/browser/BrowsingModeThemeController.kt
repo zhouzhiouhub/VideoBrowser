@@ -8,12 +8,12 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看 updatePrivateBrowsingUi，再看 applyBrowsingModeTheme。
  */
 import android.content.res.ColorStateList
-import android.graphics.drawable.GradientDrawable
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.videobrowser.MainActivityBrowsingModeTheme
 import com.example.videobrowser.MainActivityViews
+import com.example.videobrowser.utils.BrowserDrawableFactory
 
 /**
  * 浏览模式主题控制器。
@@ -62,11 +62,12 @@ class BrowsingModeThemeController(
         views.webViewContainer.setBackgroundColor(colors.webViewBackground)
         views.addressInput.setTextColor(colors.text)
         views.addressInput.setHintTextColor(colors.hint)
-        views.addressBar.background = GradientDrawable().apply {
-            cornerRadius = dp(22).toFloat()
-            setColor(colors.addressBackground)
-            setStroke(dp(1), colors.addressStroke)
-        }
+        views.addressBar.background = BrowserDrawableFactory.roundedBackground(
+            color = colors.addressBackground,
+            radius = dp(22),
+            strokeWidth = dp(1),
+            strokeColor = colors.addressStroke
+        )
         updateSiteSecurityStatus(currentPageUrl())
         listOf(
             views.backButton,
