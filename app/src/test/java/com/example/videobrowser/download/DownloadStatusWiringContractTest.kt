@@ -156,12 +156,15 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val operations = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadRecordPageOperations.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(downloadsPage.contains("DownloadCancellationPolicy.canCancel(record)"))
         assertTrue(downloadsPage.contains("confirmCancelDownload(record)"))
-        assertTrue(downloadsPage.contains("DownloadCanceller(downloadRecordRepository)"))
-        assertTrue(downloadsPage.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(operations.contains("DownloadCanceller(downloadRecordRepository)"))
+        assertTrue(operations.contains("downloadManager.remove(*downloadIds)"))
         assertTrue(downloadsPage.contains("R.string.action_cancel_download"))
         assertTrue(strings.contains("action_cancel_download"))
         assertTrue(strings.contains("download_status_canceled"))
@@ -179,6 +182,9 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val operations = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadRecordPageOperations.kt"
+        ).readText()
         val repository = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadRecordRepository.kt"
         ).readText()
@@ -186,9 +192,9 @@ class DownloadStatusWiringContractTest {
 
         assertTrue(repository.contains("fun remove(downloadId: Long): Boolean"))
         assertTrue(downloadsPage.contains("showDownloadActionsDialog(record, retryable, cancelable)"))
-        assertTrue(downloadsPage.contains("DownloadRecordRemover(downloadRecordRepository)"))
+        assertTrue(operations.contains("DownloadRecordRemover(downloadRecordRepository)"))
         assertTrue(downloadsPage.contains("confirmRemoveDownloadRecord(record)"))
-        assertTrue(downloadsPage.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(operations.contains("downloadManager.remove(*downloadIds)"))
         assertTrue(strings.contains("action_remove_download_record"))
         assertTrue(strings.contains("dialog_remove_download_record_message"))
         assertTrue(strings.contains("toast_download_record_removed"))
@@ -204,12 +210,15 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val operations = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadRecordPageOperations.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(downloadsPage.contains("ClipData.newPlainText"))
-        assertTrue(downloadsPage.contains("Context.CLIPBOARD_SERVICE"))
-        assertTrue(downloadsPage.contains("copyDownloadSourceUrl(record)"))
-        assertTrue(downloadsPage.contains("record.sourceUrl"))
+        assertTrue(operations.contains("ClipData.newPlainText"))
+        assertTrue(operations.contains("Context.CLIPBOARD_SERVICE"))
+        assertTrue(downloadsPage.contains("recordOperations.copyDownloadSourceUrl(record)"))
+        assertTrue(operations.contains("record.sourceUrl"))
         assertTrue(strings.contains("action_copy_download_source"))
         assertTrue(strings.contains("clipboard_download_source_url"))
         assertTrue(strings.contains("toast_download_source_copied"))

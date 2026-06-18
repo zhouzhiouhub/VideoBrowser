@@ -7,10 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.app.DownloadManager
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
@@ -18,15 +14,10 @@ import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.download.AndroidDownloadStatusSnapshotReader
 import com.example.videobrowser.download.DownloadCancellationPolicy
-import com.example.videobrowser.download.DownloadCancellationResult
-import com.example.videobrowser.download.DownloadCanceller
 import com.example.videobrowser.download.DownloadCategory
 import com.example.videobrowser.download.DownloadCategoryGroup
 import com.example.videobrowser.download.DownloadRecord
-import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordFilter
-import com.example.videobrowser.download.DownloadRecordRemoveResult
-import com.example.videobrowser.download.DownloadRecordRemover
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.download.DownloadRecordSearch
 import com.example.videobrowser.download.DownloadRetryPolicy
@@ -44,6 +35,7 @@ class DownloadsPage(
     private val textFormatter = DownloadsPageTextFormatter(activity)
     private val statusSnapshotReader = AndroidDownloadStatusSnapshotReader(activity)
     private val downloadedFileLauncher = DownloadedFileLauncher(activity)
+    private val recordOperations = DownloadRecordPageOperations(activity, downloadRecordRepository)
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -361,7 +353,7 @@ class DownloadsPage(
             }
             add(
                 DownloadRecordAction(activity.getString(R.string.action_copy_download_source)) {
-                    copyDownloadSourceUrl(record)
+                    recordOperations.copyDownloadSourceUrl(record)
                 }
             )
             add(
@@ -388,7 +380,7 @@ class DownloadsPage(
                 )
             )
             .setPositiveButton(R.string.action_cancel_download) { _, _ ->
-                val result = cancelDownload(record)
+                val result = recordOperations.cancelDownload(record)
                 val toastResId = if (result.canceled) {
                     R.string.toast_download_canceled
                 } else {
@@ -417,7 +409,7 @@ class DownloadsPage(
                 )
             )
             .setPositiveButton(R.string.action_remove) { _, _ ->
-                val result = removeDownloadRecord(record)
+                val result = recordOperations.removeDownloadRecord(record)
                 val toastResId = if (result.recordRemoved) {
                     R.string.toast_download_record_removed
                 } else {
@@ -431,51 +423,6 @@ class DownloadsPage(
     }
 
     /**
-     * 函数 `copyDownloadSourceUrl`：封装 `copy Download Source Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun copyDownloadSourceUrl(record: DownloadRecord) {
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(
-            ClipData.newPlainText(
-                activity.getString(R.string.clipboard_download_source_url),
-                record.sourceUrl
-            )
-        )
-        Toast.makeText(activity, R.string.toast_download_source_copied, Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * 函数 `cancelDownload`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun cancelDownload(record: DownloadRecord): DownloadCancellationResult {
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        return DownloadCanceller(downloadRecordRepository) { downloadIds ->
-            downloadManager.remove(*downloadIds)
-        }.cancel(record)
-    }
-
-    /**
-     * 函数 `removeDownloadRecord`：封装 `remove Download Record` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun removeDownloadRecord(record: DownloadRecord): DownloadRecordRemoveResult {
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        return DownloadRecordRemover(downloadRecordRepository) { downloadIds ->
-            downloadManager.remove(*downloadIds)
-        }.remove(record)
-    }
-
-    /**
      * 函数 `confirmClearRecords`：封装 `confirm Clear Records` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -485,24 +432,12 @@ class DownloadsPage(
             .setTitle(R.string.action_clear)
             .setMessage(R.string.dialog_clear_download_records_message)
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearRecordsAndFiles()
+                recordOperations.clearRecordsAndFiles()
                 Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
                 show(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    /**
-     * 函数 `clearRecordsAndFiles`：封装 `clear Records And Files` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun clearRecordsAndFiles() {
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
-            downloadManager.remove(*downloadIds)
-        }.clearRecordsAndFiles()
     }
 
     /**
