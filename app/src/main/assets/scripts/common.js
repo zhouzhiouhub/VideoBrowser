@@ -39,6 +39,44 @@
     state.fullscreenPlaybackSpeed = 1;
   }
 
+  const geometry = window.VideoBrowserGeometry || {};
+  window.VideoBrowserGeometry = geometry;
+  geometry.safeRect = geometry.safeRect || function (element) {
+    if (!element || typeof element.getBoundingClientRect !== 'function') return null;
+    const rect = element.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return null;
+    return rect;
+  };
+  geometry.expandedRect = geometry.expandedRect || function (rect, amount) {
+    return {
+      left: rect.left - amount,
+      right: rect.right + amount,
+      top: rect.top - amount,
+      bottom: rect.bottom + amount,
+      width: rect.width + amount * 2,
+      height: rect.height + amount * 2
+    };
+  };
+  geometry.rectsOverlap = geometry.rectsOverlap || function (first, second) {
+    return first.left < second.right &&
+      first.right > second.left &&
+      first.top < second.bottom &&
+      first.bottom > second.top;
+  };
+  geometry.rectCenterX = geometry.rectCenterX || function (rect) {
+    return rect.left + rect.width / 2;
+  };
+  geometry.rectCenterY = geometry.rectCenterY || function (rect) {
+    return rect.top + rect.height / 2;
+  };
+  geometry.centerDistance = geometry.centerDistance || function (first, second) {
+    const dx = geometry.rectCenterX(first) - geometry.rectCenterX(second);
+    const dy = geometry.rectCenterY(first) - geometry.rectCenterY(second);
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+  const expandedRect = geometry.expandedRect;
+  const rectsOverlap = geometry.rectsOverlap;
+
   const styleId = '__videobrowser_css_filter__';
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
@@ -2444,38 +2482,6 @@
       return true;
     }
     return rectsOverlap(rect, expandedRect(videoRect, 12));
-  }
-
-  /**
-   * 函数 `expandedRect`：封装 `expanded Rect` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} amount 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function expandedRect(rect, amount) {
-    return {
-      left: rect.left - amount,
-      right: rect.right + amount,
-      top: rect.top - amount,
-      bottom: rect.bottom + amount,
-      width: rect.width + amount * 2,
-      height: rect.height + amount * 2
-    };
-  }
-
-  /**
-   * 函数 `rectsOverlap`：封装 `rects Overlap` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} first 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} second 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function rectsOverlap(first, second) {
-    return first.left < second.right &&
-      first.right > second.left &&
-      first.top < second.bottom &&
-      first.bottom > second.top;
   }
 
   /**

@@ -136,8 +136,10 @@ class VideoCapabilityDelegationContractTest {
 
         assertTrue(script.contains("function hasLikelyCustomPlayerControls(video)"))
         assertTrue(script.contains("function removeNativeVideoControls(video, reason)"))
-        assertTrue(script.contains("function expandedRect(rect, amount)"))
-        assertTrue(script.contains("function rectsOverlap(first, second)"))
+        assertTrue(script.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
+        assertTrue(script.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
+        assertTrue(script.contains("const expandedRect = geometry.expandedRect"))
+        assertTrue(script.contains("const rectsOverlap = geometry.rectsOverlap"))
         assertTrue(script.contains("'.xgplayer-controls'"))
         assertTrue(script.contains("'.dplayer-controller'"))
         assertTrue(script.contains("'.art-controls'"))

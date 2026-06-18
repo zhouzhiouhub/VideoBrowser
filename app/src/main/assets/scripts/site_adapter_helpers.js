@@ -6,6 +6,7 @@
  */
 (function () {
   var tools = window.VideoBrowserSiteAdapterTools || {};
+  var geometry = window.VideoBrowserGeometry || {};
   window.VideoBrowserSiteAdapterTools = tools;
 
   tools.query = function (selector) {
@@ -84,6 +85,13 @@
     return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
   };
 
+  tools.safeRect = geometry.safeRect;
+  tools.expandedRect = geometry.expandedRect;
+  tools.rectsOverlap = geometry.rectsOverlap;
+  tools.rectCenterX = geometry.rectCenterX;
+  tools.rectCenterY = geometry.rectCenterY;
+  tools.centerDistance = geometry.centerDistance;
+
   tools.removeNativeVideoControls = function (video, adapterId) {
     if (!video) return;
     var hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
@@ -123,7 +131,13 @@
       },
       removeNativeVideoControls: function (video) {
         tools.removeNativeVideoControls(video, adapterId);
-      }
+      },
+      safeRect: tools.safeRect,
+      expandedRect: tools.expandedRect,
+      rectsOverlap: tools.rectsOverlap,
+      rectCenterX: tools.rectCenterX,
+      rectCenterY: tools.rectCenterY,
+      centerDistance: tools.centerDistance
     };
   };
 

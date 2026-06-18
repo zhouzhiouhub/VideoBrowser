@@ -19,6 +19,12 @@
   var clickTextButtons = adapterTools.clickTextButtons;
   var logVideoDiagnostic = adapterTools.logVideoDiagnostic;
   var removeNativeVideoControls = adapterTools.removeNativeVideoControls;
+  var safeRect = adapterTools.safeRect;
+  var expandedRect = adapterTools.expandedRect;
+  var rectsOverlap = adapterTools.rectsOverlap;
+  var rectCenterX = adapterTools.rectCenterX;
+  var rectCenterY = adapterTools.rectCenterY;
+  var centerDistance = adapterTools.centerDistance;
 
   var playbackOverlaySelectors = [
     '.mplayer-play-icon',
@@ -156,84 +162,6 @@
       root = parent;
     }
     return root;
-  }
-
-  /**
-   * 函数 `safeRect`：封装 `safe Rect` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function safeRect(element) {
-    if (!element || typeof element.getBoundingClientRect !== 'function') return null;
-    var rect = element.getBoundingClientRect();
-    if (!rect || rect.width <= 0 || rect.height <= 0) return null;
-    return rect;
-  }
-
-  /**
-   * 函数 `expandedRect`：封装 `expanded Rect` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} amount 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function expandedRect(rect, amount) {
-    return {
-      left: rect.left - amount,
-      right: rect.right + amount,
-      top: rect.top - amount,
-      bottom: rect.bottom + amount,
-      width: rect.width + amount * 2,
-      height: rect.height + amount * 2
-    };
-  }
-
-  /**
-   * 函数 `rectsOverlap`：封装 `rects Overlap` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} first 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} second 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function rectsOverlap(first, second) {
-    return first.left < second.right &&
-      first.right > second.left &&
-      first.top < second.bottom &&
-      first.bottom > second.top;
-  }
-
-  /**
-   * 函数 `rectCenterX`：封装 `rect Center X` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function rectCenterX(rect) {
-    return rect.left + rect.width / 2;
-  }
-
-  /**
-   * 函数 `rectCenterY`：封装 `rect Center Y` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} rect 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function rectCenterY(rect) {
-    return rect.top + rect.height / 2;
-  }
-
-  /**
-   * 函数 `centerDistance`：封装 `center Distance` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} first 表示参与几何计算、播放控制或列表定位的数值。
-   * @param {*} second 表示参与几何计算、播放控制或列表定位的数值。
-   */
-  function centerDistance(first, second) {
-    var dx = rectCenterX(first) - rectCenterX(second);
-    var dy = rectCenterY(first) - rectCenterY(second);
-    return Math.sqrt(dx * dx + dy * dy);
   }
 
   /**
