@@ -9,14 +9,12 @@ package com.example.videobrowser.functioncenter
  */
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -24,7 +22,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
 
@@ -38,6 +35,8 @@ class FunctionCenterViewFactory(
     private val activity: AppCompatActivity,
     private val dp: (Int) -> Int
 ) {
+    private val surfaceFactory = FunctionCenterSurfaceFactory(activity, dp)
+
     /**
      * 函数 `createPage`：创建 `create Page` 需要的对象、视图或配置，并返回给后续流程使用。
      *
@@ -61,7 +60,7 @@ class FunctionCenterViewFactory(
             )
         }
         page.addView(
-            createToolbar(title, onBack),
+            surfaceFactory.createToolbar(title, onBack),
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 dp(56)
@@ -124,20 +123,20 @@ class FunctionCenterViewFactory(
             isClickable = true
             isFocusable = true
             elevation = dp(12).toFloat()
-            background = createBottomSheetBackground(
+            background = surfaceFactory.createBottomSheetBackground(
                 ContextCompat.getColor(activity, R.color.browser_surface)
             )
         }
 
         sheet.addView(
-            createSheetHandle(),
+            surfaceFactory.createSheetHandle(),
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 dp(18)
             )
         )
         sheet.addView(
-            createSheetToolbar(title, onBack, onClose),
+            surfaceFactory.createSheetToolbar(title, onBack, onClose),
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 dp(50)
@@ -207,7 +206,7 @@ class FunctionCenterViewFactory(
             isClickable = true
             isFocusable = true
             setPadding(dp(14), dp(12), dp(14), dp(12))
-            background = createRoundedBackground(
+            background = surfaceFactory.createRoundedBackground(
                 ContextCompat.getColor(activity, R.color.browser_card_surface),
                 dp(12).toFloat()
             )
@@ -254,7 +253,7 @@ class FunctionCenterViewFactory(
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(14), dp(10), dp(14), dp(10))
-            background = createRoundedBackground(Color.parseColor("#FFF8DF"), dp(12).toFloat())
+            background = surfaceFactory.createRoundedBackground(Color.parseColor("#FFF8DF"), dp(12).toFloat())
         }
         strip.addView(createRowText(leftTitle, leftSummary), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         strip.addView(
@@ -300,7 +299,7 @@ class FunctionCenterViewFactory(
         val card = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(12), dp(14), dp(8))
-            background = createRoundedBackground(
+            background = surfaceFactory.createRoundedBackground(
                 ContextCompat.getColor(activity, R.color.browser_card_surface),
                 dp(12).toFloat()
             )
@@ -360,7 +359,7 @@ class FunctionCenterViewFactory(
         val section = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(4), dp(14), dp(4))
-            background = createRoundedBackground(
+            background = surfaceFactory.createRoundedBackground(
                 ContextCompat.getColor(activity, R.color.browser_surface)
             )
         }
@@ -415,7 +414,7 @@ class FunctionCenterViewFactory(
                 textSize = 15f
                 setLineSpacing(dp(2).toFloat(), 1f)
                 setPadding(dp(16), dp(16), dp(16), dp(16))
-                background = createRoundedBackground(
+                background = surfaceFactory.createRoundedBackground(
                     ContextCompat.getColor(activity, R.color.browser_surface)
                 )
             },
@@ -443,7 +442,7 @@ class FunctionCenterViewFactory(
                 setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
                 textSize = 14f
                 setPadding(dp(16), dp(28), dp(16), dp(28))
-                background = createRoundedBackground(
+                background = surfaceFactory.createRoundedBackground(
                     ContextCompat.getColor(activity, R.color.browser_surface)
                 )
             },
@@ -483,7 +482,7 @@ class FunctionCenterViewFactory(
                 textSize = 15f
                 isClickable = true
                 isFocusable = true
-                background = createRoundedBackground(resolvedBackgroundColor)
+                background = surfaceFactory.createRoundedBackground(resolvedBackgroundColor)
                 setOnClickListener { onClick() }
             },
             LinearLayout.LayoutParams(
@@ -664,118 +663,6 @@ class FunctionCenterViewFactory(
     }
 
     /**
-     * 函数 `createToolbar`：创建 `create Toolbar` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param onBack 参数类型为 `() -> Unit`，表示函数执行 `onBack` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createToolbar(title: String, onBack: () -> Unit): View {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            elevation = dp(4).toFloat()
-            setPadding(dp(4), 0, dp(12), 0)
-            setBackgroundColor(ContextCompat.getColor(activity, R.color.browser_surface))
-
-            val pageBackButton = ImageButton(activity).apply {
-                setImageResource(R.drawable.ic_arrow_back_24)
-                setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
-                background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
-                contentDescription = activity.getString(R.string.action_back)
-                scaleType = ImageView.ScaleType.CENTER
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-                setOnClickListener { onBack() }
-            }
-            ViewCompat.setTooltipText(pageBackButton, activity.getString(R.string.action_back))
-            addView(
-                pageBackButton,
-                LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
-            )
-
-            val titleView = TextView(activity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                textSize = 18f
-                typeface = Typeface.DEFAULT_BOLD
-                gravity = Gravity.CENTER_VERTICAL
-                includeFontPadding = false
-            }
-            addView(
-                titleView,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
-            )
-        }
-    }
-
-    /**
-     * 函数 `createSheetToolbar`：创建 `create Sheet Toolbar` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param onBack 参数类型为 `(() -> Unit)?`，表示函数执行 `onBack` 相关逻辑时需要读取或处理的输入。
-     * @param onClose 参数类型为 `() -> Unit`，表示函数执行 `onClose` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createSheetToolbar(
-        title: String,
-        onBack: (() -> Unit)?,
-        onClose: () -> Unit
-    ): View {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(if (onBack == null) dp(18) else dp(4), 0, dp(4), 0)
-
-            if (onBack != null) {
-                val backButton = ImageButton(activity).apply {
-                    setImageResource(R.drawable.ic_arrow_back_24)
-                    setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
-                    background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
-                    contentDescription = activity.getString(R.string.action_back)
-                    scaleType = ImageView.ScaleType.CENTER
-                    setPadding(dp(16), dp(16), dp(16), dp(16))
-                    setOnClickListener { onBack() }
-                }
-                ViewCompat.setTooltipText(backButton, activity.getString(R.string.action_back))
-                addView(
-                    backButton,
-                    LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
-                )
-            }
-
-            val titleView = TextView(activity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                textSize = 18f
-                typeface = Typeface.DEFAULT_BOLD
-                gravity = Gravity.CENTER_VERTICAL
-                includeFontPadding = false
-            }
-            addView(
-                titleView,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
-            )
-
-            val closeButton = ImageButton(activity).apply {
-                setImageResource(R.drawable.ic_close_24)
-                setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
-                background = ContextCompat.getDrawable(activity, R.drawable.bg_icon_button)
-                contentDescription = activity.getString(R.string.action_close)
-                scaleType = ImageView.ScaleType.CENTER
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-                setOnClickListener { onClose() }
-            }
-            ViewCompat.setTooltipText(closeButton, activity.getString(R.string.action_close))
-            addView(
-                closeButton,
-                LinearLayout.LayoutParams(dp(52), ViewGroup.LayoutParams.MATCH_PARENT)
-            )
-        }
-    }
-
-    /**
      * 函数 `createGridActionView`：创建 `create Grid Action View` 需要的对象、视图或配置，并返回给后续流程使用。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -825,27 +712,6 @@ class FunctionCenterViewFactory(
     }
 
     /**
-     * 函数 `createSheetHandle`：创建 `create Sheet Handle` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createSheetHandle(): View {
-        return FrameLayout(activity).apply {
-            addView(
-                View(activity).apply {
-                    background = createRoundedBackground(
-                        ContextCompat.getColor(activity, R.color.browser_control_pressed)
-                    )
-                },
-                FrameLayout.LayoutParams(dp(36), dp(4)).apply {
-                    gravity = Gravity.CENTER
-                }
-            )
-        }
-    }
-
-    /**
      * 函数 `addSectionTitle`：封装 `add Section Title` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -871,46 +737,6 @@ class FunctionCenterViewFactory(
                 marginEnd = dp(4)
             }
         )
-    }
-
-    /**
-     * 函数 `createRoundedBackground`：创建 `create Rounded Background` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param color 参数类型为 `Int`，表示函数执行 `color` 相关逻辑时需要读取或处理的输入。
-     * @param radius 参数类型为 `Float`，表示函数执行 `radius` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createRoundedBackground(color: Int, radius: Float = dp(8).toFloat()): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            cornerRadius = radius
-        }
-    }
-
-    /**
-     * 函数 `createBottomSheetBackground`：创建 `create Bottom Sheet Background` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param color 参数类型为 `Int`，表示函数执行 `color` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createBottomSheetBackground(color: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            setCornerRadii(
-                floatArrayOf(
-                    dp(18).toFloat(),
-                    dp(18).toFloat(),
-                    dp(18).toFloat(),
-                    dp(18).toFloat(),
-                    0f,
-                    0f,
-                    0f,
-                    0f
-                )
-            )
-        }
     }
 
     /**
@@ -972,7 +798,7 @@ class FunctionCenterViewFactory(
                 ImageView(activity).apply {
                     setImageResource(R.drawable.ic_history_24)
                     setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-                    background = createRoundedBackground(
+                    background = surfaceFactory.createRoundedBackground(
                         ContextCompat.getColor(activity, R.color.browser_soft_blue),
                         dp(10).toFloat()
                     )
@@ -993,7 +819,7 @@ class FunctionCenterViewFactory(
                     includeFontPadding = false
                     setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
                     textSize = 12f
-                    background = createRoundedBackground(
+                    background = surfaceFactory.createRoundedBackground(
                         ContextCompat.getColor(activity, R.color.browser_background),
                         dp(14).toFloat()
                     )
