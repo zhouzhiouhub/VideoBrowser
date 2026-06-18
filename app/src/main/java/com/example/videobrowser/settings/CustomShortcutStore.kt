@@ -51,13 +51,10 @@ internal class CustomShortcutStore(
     }
 
     private fun parseLine(line: String): CustomShortcut? {
-        val separatorIndex = line.indexOf('\t')
-        if (separatorIndex <= 0 || separatorIndex >= line.lastIndex) {
-            return null
-        }
+        val fields = TabSeparatedLineCodec.splitPair(line) ?: return null
         return normalize(
-            line.substring(0, separatorIndex),
-            line.substring(separatorIndex + 1)
+            fields.first,
+            fields.second
         )
     }
 
@@ -66,7 +63,7 @@ internal class CustomShortcutStore(
             .mapNotNull { shortcut -> normalize(shortcut.name, shortcut.url) }
             .distinct()
             .takeLast(MAX_CUSTOM_SHORTCUTS)
-            .map { shortcut -> "${shortcut.name}\t${shortcut.url}" }
+            .map { shortcut -> TabSeparatedLineCodec.joinPair(shortcut.name, shortcut.url) }
 
         if (lines.isEmpty()) {
             preferenceStore.remove(KEY_CUSTOM_SHORTCUTS)
@@ -91,4 +88,3 @@ internal class CustomShortcutStore(
         private val WHITESPACE_SEQUENCE = Regex("\\s+")
     }
 }
-

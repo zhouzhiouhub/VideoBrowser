@@ -63,12 +63,9 @@ internal class UserElementHideRuleStore(
     }
 
     private fun parseLine(line: String): UserElementHideRule? {
-        val separatorIndex = line.indexOf('\t')
-        if (separatorIndex <= 0 || separatorIndex >= line.lastIndex) {
-            return null
-        }
-        val host = SiteHost.normalize(line.substring(0, separatorIndex)) ?: return null
-        val selector = normalizeSelector(line.substring(separatorIndex + 1)) ?: return null
+        val fields = TabSeparatedLineCodec.splitPair(line) ?: return null
+        val host = SiteHost.normalize(fields.first) ?: return null
+        val selector = normalizeSelector(fields.second) ?: return null
         return UserElementHideRule(host = host, selector = selector)
     }
 
@@ -81,7 +78,7 @@ internal class UserElementHideRuleStore(
             }
             .distinct()
             .sortedWith(compareBy<UserElementHideRule> { it.host }.thenBy { it.selector })
-            .map { rule -> "${rule.host}\t${rule.selector}" }
+            .map { rule -> TabSeparatedLineCodec.joinPair(rule.host, rule.selector) }
 
         if (lines.isEmpty()) {
             preferenceStore.remove(KEY_USER_ELEMENT_HIDE_RULES)
