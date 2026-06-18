@@ -48,12 +48,19 @@ class LocalPlaybackQueueWiringContractTest {
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val intentReader = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt"
+        ).readText()
+        val intentExtras = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerIntentExtras.kt"
+        ).readText()
         val overlay = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
         ).readText()
 
-        assertTrue(playerActivity.contains("playbackQueueFromIntent()"))
-        assertTrue(playerActivity.contains("EXTRA_PLAYBACK_QUEUE"))
+        assertTrue(playerActivity.contains("intentReader.playbackQueue()"))
+        assertTrue(intentReader.contains("PlaybackQueueJsonCodec::decode"))
+        assertTrue(intentExtras.contains("PLAYBACK_QUEUE"))
         assertTrue(playerActivity.contains("PlaybackCommand.Previous"))
         assertTrue(playerActivity.contains("PlaybackCommand.Next"))
         assertTrue(playerActivity.contains("PlaybackCommand.ToggleRepeat"))

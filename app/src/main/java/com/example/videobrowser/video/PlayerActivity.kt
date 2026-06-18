@@ -70,6 +70,7 @@ class PlayerActivity : AppCompatActivity() {
     private var retriedPlaybackWithoutVideoEffects = false
     private var repeatMode = PlaybackRepeatMode.NONE
     private var videoZoomMode = VideoZoomMode.FIT
+    private val intentReader: PlayerIntentReader by lazy { PlayerIntentReader(intent) }
 
     private val reverseScanRunnable = object : Runnable {
         /**
@@ -107,7 +108,7 @@ class PlayerActivity : AppCompatActivity() {
             null
         }
         // 横竖屏切换或系统重建 Activity 时优先恢复队列；首次进入则从 Intent 解析队列。
-        playbackQueue = savedPlaybackQueue ?: playbackQueueFromIntent()
+        playbackQueue = savedPlaybackQueue ?: intentReader.playbackQueue()
         currentMediaItemIndex = playbackQueue.currentIndex
         repeatMode = playbackQueue.repeatMode
         selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
@@ -155,13 +156,13 @@ class PlayerActivity : AppCompatActivity() {
         applyVideoZoomMode()
         setupGestureOverlay()
 
-        if (mediaUri().isBlank()) {
+        if (intentReader.mediaUri().isBlank()) {
             Toast.makeText(this, R.string.toast_media_url_invalid, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        title = intent.getStringExtra(EXTRA_MEDIA_TITLE).orEmpty()
+        title = intentReader.mediaTitle().orEmpty()
         hideSystemBars()
     }
 
@@ -275,14 +276,14 @@ class PlayerActivity : AppCompatActivity() {
         }
         Log.d(
             VIDEO_LOG_TAG,
-            "event=native-initialize uri=${mediaUri().take(180)} mime=${intent.getStringExtra(EXTRA_MIME_TYPE)}"
+            "event=native-initialize uri=${intentReader.mediaUri().take(180)} mime=${intentReader.mimeType()}"
         )
 
         val dataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
-            .setDefaultRequestProperties(requestHeaders())
+            .setDefaultRequestProperties(intentReader.requestHeaders())
         // WebView 传来的 User-Agent、Cookie、Referer 会放进请求头，减少站点防盗链导致的播放失败。
-        intent.getStringExtra(EXTRA_USER_AGENT)
+        intentReader.userAgent()
             ?.takeIf { it.isNotBlank() }
             ?.let { dataSourceFactory.setUserAgent(it) }
 
@@ -1195,51 +1196,10 @@ class PlayerActivity : AppCompatActivity() {
                 speed = selectedPlaybackSpeed,
                 updatedAtMillis = System.currentTimeMillis(),
                 title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title
-                    ?: intent.getStringExtra(EXTRA_MEDIA_TITLE),
+                    ?: intentReader.mediaTitle(),
                 source = PlaybackHistorySource.NATIVE_MEDIA
             ),
-            privateBrowsing = isPrivateBrowsingPlayback()
-        )
-    }
-
-    /**
-     * 函数 `requestHeaders`：处理 `request Headers` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun requestHeaders(): Map<String, String> {
-        val headers = mutableMapOf<String, String>()
-        intent.getStringExtra(EXTRA_COOKIE)
-            ?.takeIf { it.isNotBlank() }
-            ?.let { headers["Cookie"] = it }
-        intent.getStringExtra(EXTRA_REFERER)
-            ?.takeIf { it.isNotBlank() }
-            ?.let { headers["Referer"] = it }
-        return headers
-    }
-
-    /**
-     * 函数 `currentPlayableMediaItem`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentPlayableMediaItem(): PlayableMediaItem {
-        val uri = mediaUri()
-        return PlayableMediaItem(
-            uri = uri,
-            title = intent.getStringExtra(EXTRA_MEDIA_TITLE),
-            mimeType = intent.getStringExtra(EXTRA_MIME_TYPE),
-            source = if (isLocalMediaUri(uri)) {
-                PlayableMediaSource.LOCAL_DOCUMENT
-            } else {
-                PlayableMediaSource.REMOTE_URL
-            },
-            userAgent = intent.getStringExtra(EXTRA_USER_AGENT),
-            referer = intent.getStringExtra(EXTRA_REFERER),
-            headers = requestHeaders(),
-            subtitleCandidates = subtitleCandidatesFromIntent()
+            privateBrowsing = intentReader.isPrivateBrowsing()
         )
     }
 
@@ -1278,18 +1238,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `isLocalMediaUri`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isLocalMediaUri(uri: String): Boolean {
-        return uri.startsWith("content:", ignoreCase = true) ||
-            uri.startsWith("file:", ignoreCase = true)
-    }
-
-    /**
      * 函数 `normalizedMimeType`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1324,16 +1272,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `mediaUri`：封装 `media Uri` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun mediaUri(): String {
-        return intent.getStringExtra(EXTRA_MEDIA_URI).orEmpty()
-    }
-
-    /**
      * 函数 `playbackHistoryIdentity`：封装 `playback History Identity` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1341,52 +1279,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun playbackHistoryIdentity(): String {
         return playbackQueue.items.getOrNull(currentMediaItemIndex)?.uri?.trim()
-            ?: mediaUri().trim()
-    }
-
-    /**
-     * 函数 `isPrivateBrowsingPlayback`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isPrivateBrowsingPlayback(): Boolean {
-        return intent.getBooleanExtra(EXTRA_PRIVATE_BROWSING, false)
-    }
-
-    /**
-     * 函数 `subtitleCandidatesFromIntent`：封装 `subtitle Candidates From Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun subtitleCandidatesFromIntent(): List<ExternalSubtitleCandidate> {
-        val uris = intent.getStringArrayListExtra(EXTRA_SUBTITLE_URIS).orEmpty()
-        val labels = intent.getStringArrayListExtra(EXTRA_SUBTITLE_LABELS).orEmpty()
-        val mimeTypes = intent.getStringArrayListExtra(EXTRA_SUBTITLE_MIME_TYPES).orEmpty()
-        val languages = intent.getStringArrayListExtra(EXTRA_SUBTITLE_LANGUAGES).orEmpty()
-
-        return uris.mapIndexedNotNull { index, uri ->
-            val normalizedUri = uri.takeIf { it.isNotBlank() } ?: return@mapIndexedNotNull null
-            ExternalSubtitleCandidate(
-                uri = normalizedUri,
-                label = labels.getOrNull(index)?.takeIf { it.isNotBlank() },
-                mimeType = mimeTypes.getOrNull(index)?.takeIf { it.isNotBlank() },
-                language = languages.getOrNull(index)?.takeIf { it.isNotBlank() }
-            )
-        }
-    }
-
-    /**
-     * 函数 `playbackQueueFromIntent`：封装 `playback Queue From Intent` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun playbackQueueFromIntent(): PlaybackQueue {
-        val encodedQueue = intent.getStringExtra(EXTRA_PLAYBACK_QUEUE)
-        return encodedQueue?.let(PlaybackQueueJsonCodec::decode)
-            ?: PlaybackQueue.single(currentPlayableMediaItem())
+            ?: intentReader.mediaUri().trim()
     }
 
     /**
@@ -1405,21 +1298,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val EXTRA_MEDIA_URI = "com.example.videobrowser.extra.MEDIA_URI"
-        private const val EXTRA_MEDIA_TITLE = "com.example.videobrowser.extra.MEDIA_TITLE"
-        private const val EXTRA_MIME_TYPE = "com.example.videobrowser.extra.MIME_TYPE"
-        private const val EXTRA_USER_AGENT = "com.example.videobrowser.extra.USER_AGENT"
-        private const val EXTRA_COOKIE = "com.example.videobrowser.extra.COOKIE"
-        private const val EXTRA_REFERER = "com.example.videobrowser.extra.REFERER"
-        private const val EXTRA_PRIVATE_BROWSING =
-            "com.example.videobrowser.extra.PRIVATE_BROWSING"
-        private const val EXTRA_SUBTITLE_URIS = "com.example.videobrowser.extra.SUBTITLE_URIS"
-        private const val EXTRA_SUBTITLE_LABELS = "com.example.videobrowser.extra.SUBTITLE_LABELS"
-        private const val EXTRA_SUBTITLE_MIME_TYPES =
-            "com.example.videobrowser.extra.SUBTITLE_MIME_TYPES"
-        private const val EXTRA_SUBTITLE_LANGUAGES =
-            "com.example.videobrowser.extra.SUBTITLE_LANGUAGES"
-        private const val EXTRA_PLAYBACK_QUEUE = "com.example.videobrowser.extra.PLAYBACK_QUEUE"
         private const val STATE_PLAYBACK_POSITION = "playback_position"
         private const val STATE_PLAY_WHEN_READY = "play_when_ready"
         private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
@@ -1468,33 +1346,33 @@ class PlayerActivity : AppCompatActivity() {
             playbackQueue: PlaybackQueue? = null
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
-                putExtra(EXTRA_MEDIA_URI, mediaUri)
-                putExtra(EXTRA_MEDIA_TITLE, title)
-                putExtra(EXTRA_MIME_TYPE, mimeType)
-                putExtra(EXTRA_USER_AGENT, userAgent)
-                putExtra(EXTRA_COOKIE, cookie)
-                putExtra(EXTRA_REFERER, referer)
-                putExtra(EXTRA_PRIVATE_BROWSING, privateBrowsing)
+                putExtra(PlayerIntentExtras.MEDIA_URI, mediaUri)
+                putExtra(PlayerIntentExtras.MEDIA_TITLE, title)
+                putExtra(PlayerIntentExtras.MIME_TYPE, mimeType)
+                putExtra(PlayerIntentExtras.USER_AGENT, userAgent)
+                putExtra(PlayerIntentExtras.COOKIE, cookie)
+                putExtra(PlayerIntentExtras.REFERER, referer)
+                putExtra(PlayerIntentExtras.PRIVATE_BROWSING, privateBrowsing)
                 if (subtitleCandidates.isNotEmpty()) {
                     putStringArrayListExtra(
-                        EXTRA_SUBTITLE_URIS,
+                        PlayerIntentExtras.SUBTITLE_URIS,
                         ArrayList(subtitleCandidates.map { it.uri })
                     )
                     putStringArrayListExtra(
-                        EXTRA_SUBTITLE_LABELS,
+                        PlayerIntentExtras.SUBTITLE_LABELS,
                         ArrayList(subtitleCandidates.map { it.label.orEmpty() })
                     )
                     putStringArrayListExtra(
-                        EXTRA_SUBTITLE_MIME_TYPES,
+                        PlayerIntentExtras.SUBTITLE_MIME_TYPES,
                         ArrayList(subtitleCandidates.map { it.mimeType.orEmpty() })
                     )
                     putStringArrayListExtra(
-                        EXTRA_SUBTITLE_LANGUAGES,
+                        PlayerIntentExtras.SUBTITLE_LANGUAGES,
                         ArrayList(subtitleCandidates.map { it.language.orEmpty() })
                     )
                 }
                 playbackQueue?.let {
-                    putExtra(EXTRA_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(it))
+                    putExtra(PlayerIntentExtras.PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(it))
                 }
             }
         }

@@ -25,7 +25,7 @@ class PlaybackHistoryWiringContractTest {
         assertTrue(source.contains("resumePositionFor(playbackHistoryIdentity())"))
         assertTrue(source.contains("playbackHistoryRepository.save("))
         assertTrue(source.contains("source = PlaybackHistorySource.NATIVE_MEDIA"))
-        assertTrue(source.contains("EXTRA_PRIVATE_BROWSING"))
+        assertTrue(source.contains("intentReader.isPrivateBrowsing()"))
     }
 
     @Test
@@ -92,7 +92,7 @@ class PlaybackHistoryWiringContractTest {
             .readText()
 
         assertTrue(playerActivity.contains("privateBrowsing: Boolean = false"))
-        assertTrue(playerActivity.contains("putExtra(EXTRA_PRIVATE_BROWSING, privateBrowsing)"))
+        assertTrue(playerActivity.contains("putExtra(PlayerIntentExtras.PRIVATE_BROWSING, privateBrowsing)"))
         assertTrue(externalNavigator.contains("privateBrowsing: Boolean = false"))
         assertTrue(externalNavigator.contains("privateBrowsing = privateBrowsing"))
         assertTrue(nativePlayerEntryController.contains("class NativePlayerEntryController"))
