@@ -10,11 +10,9 @@ package com.example.videobrowser.browser
 import android.os.Build
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
-import android.webkit.WebStorage
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
-import android.webkit.WebViewDatabase
 import android.webkit.WebViewClient
 import java.util.Collections
 import java.util.WeakHashMap
@@ -433,7 +431,7 @@ class BrowserManager(
     fun clearBrowsingData(clearSharedStores: Boolean = true) {
         // clearSharedStores 为 true 时会清理 Cookie/WebStorage 等 WebView 全局数据。
         // 无痕退出时可按需要只清当前 WebView，避免影响普通模式的登录状态。
-        clearBrowsingData(webView, clearSharedStores)
+        BrowserWebViewDataCleaner.clear(webView, clearSharedStores)
     }
 
     /**
@@ -459,34 +457,10 @@ class BrowserManager(
         }
         targetWebView.stopLoading()
         targetWebView.loadUrl("about:blank")
-        clearBrowsingData(targetWebView, clearSharedStores)
+        BrowserWebViewDataCleaner.clear(targetWebView, clearSharedStores)
         targetWebView.removeAllViews()
         configuredWebViews.remove(targetWebView)
         targetWebView.destroy()
-    }
-
-    /**
-     * 函数 `clearBrowsingData`：封装 `clear Browsing Data` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param clearSharedStores 参数类型为 `Boolean`，表示函数执行 `clearSharedStores` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun clearBrowsingData(targetWebView: WebView, clearSharedStores: Boolean) {
-        targetWebView.clearCache(true)
-        targetWebView.clearHistory()
-        targetWebView.clearFormData()
-        targetWebView.clearSslPreferences()
-        if (clearSharedStores) {
-            WebStorage.getInstance().deleteAllData()
-            WebViewDatabase.getInstance(targetWebView.context).apply {
-                clearHttpAuthUsernamePassword()
-            }
-            CookieManager.getInstance().apply {
-                removeAllCookies(null)
-                flush()
-            }
-        }
     }
 
     /**
