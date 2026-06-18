@@ -810,9 +810,7 @@ class FullscreenVideoGestureOverlay(
         val attributes = activity.window.attributes
         attributes.screenBrightness = brightness
         activity.window.attributes = attributes
-        showFeedback(
-            "$BRIGHTNESS_ICON ${(brightness * 100).roundToInt()}%"
-        )
+        showFeedback(VideoGestureFeedbackFormatter.formatBrightness(brightness))
     }
 
     /**
@@ -831,9 +829,7 @@ class FullscreenVideoGestureOverlay(
             .roundToInt()
             .coerceIn(minVolume, maxVolume)
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, nextVolume, 0)
-        showFeedback(
-            "$VOLUME_ICON ${FullscreenVideoGestureMath.volumePercent(nextVolume, minVolume, maxVolume)}%"
-        )
+        showFeedback(VideoGestureFeedbackFormatter.formatVolume(nextVolume, minVolume, maxVolume))
     }
 
     /**
@@ -1262,7 +1258,5 @@ class FullscreenVideoGestureOverlay(
         private const val ZOOM_FIT_ICON = "\u9002"
         private const val ZOOM_STRETCH_ICON = "\u62c9"
         private const val ZOOM_CROP_ICON = "\u88c1"
-        private const val BRIGHTNESS_ICON = "\u2600"
-        private const val VOLUME_ICON = "\ud83d\udd0a"
     }
 }

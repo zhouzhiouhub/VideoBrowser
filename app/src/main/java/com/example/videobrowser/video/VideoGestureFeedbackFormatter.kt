@@ -9,6 +9,7 @@ package com.example.videobrowser.video
  */
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 object VideoGestureFeedbackFormatter {
@@ -40,6 +41,14 @@ object VideoGestureFeedbackFormatter {
         } else {
             "${seconds}s"
         }
+    }
+
+    fun formatBrightness(brightness: Float): String {
+        return "$BRIGHTNESS_ICON ${(brightness.coerceIn(0f, 1f) * 100).roundToInt()}%"
+    }
+
+    fun formatVolume(volume: Int, minVolume: Int, maxVolume: Int): String {
+        return "$VOLUME_ICON ${FullscreenVideoGestureMath.volumePercent(volume, minVolume, maxVolume)}%"
     }
 
     /**
@@ -98,4 +107,7 @@ object VideoGestureFeedbackFormatter {
             "%02d:%02d".format(minutes, seconds)
         }
     }
+
+    private const val BRIGHTNESS_ICON = "\u2600"
+    private const val VOLUME_ICON = "\ud83d\udd0a"
 }
