@@ -16,7 +16,10 @@ class HostNameNormalizerContractTest {
             projectFile("src/main/java/com/example/videobrowser/rules/DomainScope.kt"),
             projectFile("src/main/java/com/example/videobrowser/rules/RuleSubscriptionFetcher.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/HistoryRecordPolicy.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/search/HomeQuickLinkBuilder.kt")
+            projectFile("src/main/java/com/example/videobrowser/browser/search/HomeQuickLinkBuilder.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/BrowserSiteDataOriginSearch.kt"),
+            projectFile("src/main/java/com/example/videobrowser/browser/PageArchiveFileName.kt"),
+            projectFile("src/main/java/com/example/videobrowser/utils/UrlLoadableAddressResolver.kt")
         ).map { file -> file.readText() }
 
         sources.forEach { source ->

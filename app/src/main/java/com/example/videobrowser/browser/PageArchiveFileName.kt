@@ -8,8 +8,8 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import com.example.videobrowser.utils.FileNameSanitizer
+import com.example.videobrowser.utils.HostNameNormalizer
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
-import java.net.URI
 
 object PageArchiveFileName {
     private const val MAX_BASE_NAME_LENGTH = 80
@@ -27,7 +27,7 @@ object PageArchiveFileName {
     fun create(pageTitle: String, pageUrl: String?, fallbackName: String): String {
         val baseName = listOf(
             sanitize(pageTitle),
-            sanitize(hostFromUrl(pageUrl)),
+            sanitize(HostNameNormalizer.fromUrl(pageUrl).orEmpty()),
             sanitize(fallbackName)
         ).firstOrNull { value -> value.isNotBlank() } ?: "page"
 
@@ -35,19 +35,6 @@ object PageArchiveFileName {
             .take(MAX_BASE_NAME_LENGTH)
             .trimEnd('.', ' ')
             .ifBlank { "page" } + EXTENSION
-    }
-
-    /**
-     * 函数 `hostFromUrl`：封装 `host From Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun hostFromUrl(pageUrl: String?): String {
-        return runCatching {
-            URI(pageUrl.orEmpty()).host.orEmpty()
-        }.getOrDefault("")
     }
 
     /**

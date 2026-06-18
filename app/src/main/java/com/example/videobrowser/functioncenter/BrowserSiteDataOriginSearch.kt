@@ -1,7 +1,7 @@
 package com.example.videobrowser.functioncenter
 
 import com.example.videobrowser.utils.SearchQueryTerms
-import java.net.URI
+import com.example.videobrowser.utils.HostNameNormalizer
 
 object BrowserSiteDataOriginSearch {
     fun filterOriginNames(origins: List<String>, query: String?): List<String> {
@@ -19,8 +19,6 @@ object BrowserSiteDataOriginSearch {
     }
 
     private fun originHost(origin: String): String {
-        return runCatching { URI(origin).host }
-            .getOrNull()
-            .orEmpty()
+        return HostNameNormalizer.fromUrl(origin).orEmpty()
     }
 }

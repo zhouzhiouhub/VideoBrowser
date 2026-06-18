@@ -48,8 +48,8 @@ object MediaUrlUtils {
             .takeIf { it.matches(SCHEME_PATTERN) }
             ?.lowercase()
             .orEmpty()
-        val path = runCatching { java.net.URI(rawUrl).path }
-            .getOrNull()
+        val path = SafeUriParser.parse(rawUrl)
+            ?.path
             .orEmpty()
             .lowercase()
         return isPlayableMedia(
@@ -100,7 +100,7 @@ object MediaUrlUtils {
         if (scheme == "rtsp" || scheme == "rtspt") {
             return true
         }
-        if (scheme != "http" && scheme != "https" && scheme != "content" && scheme != "file") {
+        if (!WebSchemePolicy.isHttpOrHttpsScheme(scheme) && scheme != "content" && scheme != "file") {
             return false
         }
 

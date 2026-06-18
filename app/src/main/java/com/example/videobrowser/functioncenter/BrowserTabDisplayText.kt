@@ -8,8 +8,8 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import com.example.videobrowser.browser.BrowserTab
+import com.example.videobrowser.utils.SafeUriParser
 import com.example.videobrowser.utils.UrlUtils
-import java.net.URI
 
 object BrowserTabDisplayText {
     /**
@@ -35,7 +35,7 @@ object BrowserTabDisplayText {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun compactUrlTitle(url: String): String {
-        val parsed = runCatching { URI(url.trim()) }.getOrNull()
+        val parsed = SafeUriParser.parse(url)
         return parsed?.rawAuthority
             ?.takeIf { it.isNotBlank() }
             ?: UrlUtils.displayUrl(url)

@@ -8,7 +8,7 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import com.example.videobrowser.utils.HostNameNormalizer
-import java.net.URI
+import com.example.videobrowser.utils.SafeUriParser
 
 /**
  * 规则匹配使用的请求上下文，集中保存请求、页面和轻量资源类型信息。
@@ -80,8 +80,7 @@ private fun schemeFromUrl(url: String?): String? {
     if (value.isEmpty()) {
         return null
     }
-    return runCatching { URI(value).scheme }
-        .getOrNull()
+    return SafeUriParser.scheme(value)
         ?: value.substringBefore(':', missingDelimiterValue = "")
             .takeIf { it.isNotBlank() && it != value }
 }

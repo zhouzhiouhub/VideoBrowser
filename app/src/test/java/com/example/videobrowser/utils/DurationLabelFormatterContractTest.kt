@@ -16,7 +16,7 @@ class DurationLabelFormatterContractTest {
         ).readText()
 
         assertTrue(gestureFormatter.contains("DurationLabelFormatter.formatMillis("))
-        assertTrue(playbackHistoryDisplayText.contains("DurationLabelFormatter.formatMillis(durationMs)"))
+        assertTrue(playbackHistoryDisplayText.contains("DurationLabelFormatter.formatMillis("))
         assertFalse(gestureFormatter.contains("val totalSeconds = (timeMs / 1000L)"))
         assertFalse(playbackHistoryDisplayText.contains("TimeUnit.MILLISECONDS.toSeconds"))
         assertFalse(playbackHistoryDisplayText.contains("SECONDS_PER_MINUTE"))

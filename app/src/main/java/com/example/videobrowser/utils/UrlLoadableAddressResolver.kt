@@ -134,7 +134,7 @@ internal object UrlLoadableAddressResolver {
             return null
         }
 
-        val host = normalizeHost(rawHost) ?: return null
+        val host = normalizeLoadableHost(rawHost) ?: return null
         return ParsedAuthority(
             userInfo = userInfo,
             host = host,
@@ -177,14 +177,18 @@ internal object UrlLoadableAddressResolver {
         return value.toIntOrNull()?.takeIf { it in 0..65535 } ?: INVALID_PORT
     }
 
-    private fun normalizeHost(rawHost: String): String? {
+    private fun normalizeLoadableHost(rawHost: String): String? {
         val trimmedHost = rawHost.trimEnd('.')
-        if (trimmedHost.isEmpty() || trimmedHost.hasUnsafeCharacter()) {
+        if (trimmedHost.startsWith(".")) {
+            return null
+        }
+        val normalizedHost = HostNameNormalizer.normalize(trimmedHost)
+        if (normalizedHost == null || normalizedHost.hasUnsafeCharacter()) {
             return null
         }
 
         return runCatching {
-            IDN.toASCII(trimmedHost.lowercase(Locale.ROOT))
+            IDN.toASCII(normalizedHost)
                 .trimEnd('.')
                 .lowercase(Locale.ROOT)
         }.getOrNull()?.takeIf { it.isNotEmpty() }

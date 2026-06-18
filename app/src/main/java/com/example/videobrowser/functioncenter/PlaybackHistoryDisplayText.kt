@@ -11,8 +11,8 @@ import com.example.videobrowser.utils.PlaybackSpeedDisplayFormatter
 import com.example.videobrowser.utils.ShortDateTimeFormatter
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.utils.DurationLabelFormatter
+import com.example.videobrowser.utils.SafeUriParser
 import com.example.videobrowser.video.PlaybackProgress
-import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -44,9 +44,10 @@ object PlaybackHistoryDisplayText {
         updatedAtFormatter: (Long) -> String = ::formatUpdatedAt
     ): String {
         val progress = if (record.durationMs > 0L) {
-            "${formatDuration(record.positionMs)} / ${formatDuration(record.durationMs)}"
+            "${DurationLabelFormatter.formatMillis(record.positionMs)} / " +
+                DurationLabelFormatter.formatMillis(record.durationMs)
         } else {
-            formatDuration(record.positionMs)
+            DurationLabelFormatter.formatMillis(record.positionMs)
         }
         val speedText = PlaybackSpeedDisplayFormatter.format(record.speed)
         return "${updatedAtFormatter(record.updatedAtMillis)} | $progress | $speedText"
@@ -60,7 +61,7 @@ object PlaybackHistoryDisplayText {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun decodedLastPathSegment(value: String): String? {
-        val rawPath = runCatching { URI(value.trim()).rawPath }.getOrNull() ?: return null
+        val rawPath = SafeUriParser.parse(value)?.rawPath ?: return null
         val rawSegment = rawPath.substringAfterLast('/').takeIf { it.isNotBlank() } ?: return null
         return runCatching {
             URLDecoder.decode(rawSegment, StandardCharsets.UTF_8.name())
@@ -78,16 +79,5 @@ object PlaybackHistoryDisplayText {
      */
     private fun formatUpdatedAt(updatedAtMillis: Long): String {
         return ShortDateTimeFormatter.format(updatedAtMillis)
-    }
-
-    /**
-     * 函数 `formatDuration`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param durationMs 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun formatDuration(durationMs: Long): String {
-        return DurationLabelFormatter.formatMillis(durationMs)
     }
 }
