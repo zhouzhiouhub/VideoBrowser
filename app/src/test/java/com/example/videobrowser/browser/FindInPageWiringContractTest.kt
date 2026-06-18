@@ -6,6 +6,7 @@ package com.example.videobrowser.browser
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -47,15 +48,19 @@ class FindInPageWiringContractTest {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     @Test
-    fun functionCenterHasFindInPageAction() {
+    fun functionCenterDoesNotKeepUnusedFindInPageAction() {
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
+        val functionCenterAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterAssemblyController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(functionCenterPages.contains("findInPage: () -> Unit"))
-        assertTrue(functionCenterPages.contains("R.string.action_find_in_page"))
-        assertTrue(functionCenterPages.contains("runPageAction(findInPage)"))
+        assertFalse(functionCenterPages.contains("findInPage: () -> Unit"))
+        assertFalse(functionCenterPages.contains("R.string.action_find_in_page"))
+        assertFalse(functionCenterPages.contains("runPageAction(findInPage)"))
+        assertFalse(functionCenterAssembly.contains("findInPage = browserPageToolEntryController::showFindInPageDialog"))
         assertTrue(strings.contains("action_find_in_page"))
         assertTrue(strings.contains("action_find_in_page_summary"))
     }
@@ -113,13 +118,13 @@ class FindInPageWiringContractTest {
         assertTrue(findDialogController.contains("setFindResultListener(null)"))
         assertTrue(findDialogController.contains("dialog.getButton(AlertDialog.BUTTON_NEGATIVE)"))
         assertTrue(findDialogController.contains("dialog.setOnDismissListener"))
-        assertTrue(functionCenterAssembly.contains("findInPage = browserPageToolEntryController::showFindInPageDialog"))
+        assertFalse(functionCenterAssembly.contains("findInPage = browserPageToolEntryController::showFindInPageDialog"))
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
         assertTrue(strings.contains("action_find_previous"))
         assertTrue(strings.contains("find_in_page_status_matches"))
         assertTrue(strings.contains("find_in_page_status_no_matches"))
-        assertTrue(readme.contains("上一处或下一处匹配，并显示匹配数量"))
+        assertFalse(readme.contains("上一处或下一处匹配，并显示匹配数量"))
     }
 
     /**

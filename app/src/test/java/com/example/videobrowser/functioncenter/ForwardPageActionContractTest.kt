@@ -6,6 +6,7 @@ package com.example.videobrowser.functioncenter
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -16,7 +17,7 @@ class ForwardPageActionContractTest {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     @Test
-    fun pageToolsCanNavigateForwardWhenAvailable() {
+    fun browserManagerCanNavigateForwardWithoutUnusedFunctionCenterPageAction() {
         val pages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
@@ -28,13 +29,13 @@ class ForwardPageActionContractTest {
 
         assertTrue(browserManager.contains("fun goForward(): Boolean"))
         assertTrue(browserManager.contains("fun canGoForward(): Boolean"))
-        assertTrue(pages.contains("R.string.action_forward"))
-        assertTrue(pages.contains("R.string.action_forward_summary"))
-        assertTrue(pages.contains("R.drawable.ic_arrow_forward_24"))
-        assertTrue(pages.contains("enabled = hasPage && browserManager().canGoForward()"))
-        assertTrue(pages.contains("runPageAction { browserManager().goForward() }"))
+        assertFalse(pages.contains("R.string.action_forward"))
+        assertFalse(pages.contains("R.string.action_forward_summary"))
+        assertFalse(pages.contains("R.drawable.ic_arrow_forward_24"))
+        assertFalse(pages.contains("enabled = hasPage && browserManager().canGoForward()"))
+        assertFalse(pages.contains("runPageAction { browserManager().goForward() }"))
         assertTrue(strings.contains("action_forward_summary"))
-        assertTrue(readme.contains("页面工具可执行前进"))
+        assertFalse(readme.contains("页面工具可执行前进"))
     }
 
     /**

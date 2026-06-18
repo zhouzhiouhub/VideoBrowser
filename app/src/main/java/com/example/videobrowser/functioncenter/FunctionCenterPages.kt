@@ -19,7 +19,6 @@ import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
-import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackProgress
 import java.io.File
@@ -62,15 +61,10 @@ class FunctionCenterPages(
     private val closeAllTabs: () -> Unit,
     private val duplicateTab: (Long) -> Unit,
     private val toggleCurrentBookmark: () -> Unit,
-    private val setCurrentPageAsHomePage: () -> Unit,
-    private val copyCurrentUrl: () -> Unit,
     private val shareCurrentUrl: () -> Unit,
     private val saveCurrentPageArchive: () -> Unit,
     private val printCurrentPage: () -> Unit,
-    private val findInPage: () -> Unit,
-    private val openCurrentUrlInNativePlayer: () -> Unit,
     private val openPlaybackHistoryItem: (PlaybackProgress) -> Unit,
-    private val downloadCurrentUrl: () -> Unit,
     private val retryDownload: (DownloadRecord) -> Unit,
     private val exportBookmarks: () -> Unit,
     private val importBookmarks: () -> Unit,
@@ -409,196 +403,6 @@ class FunctionCenterPages(
     private fun addProfileFeatureSection(parent: LinearLayout) {
         browserSettingsPage.addExpandedBrowserSettings(parent)
         browserSettingsPage.addProfileDataManagement(parent)
-    }
-
-    /**
-     * 函数 `addCurrentPageActionSection`：封装 `add Current Page Action Section` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
-     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addCurrentPageActionSection(
-        parent: LinearLayout,
-        pageUrl: String?,
-        siteHost: String?
-    ) {
-        val pageSummary = pageUrl
-            ?.let(UrlUtils::displayUrl)
-            ?: activity.getString(R.string.function_center_page_action_unavailable)
-        val siteSummary = siteHost
-            ?: activity.getString(R.string.function_center_site_action_unavailable)
-        val hasPage = pageUrl != null
-        val bookmarkTitle = if (pageUrl?.let(savedPageRepository::isBookmarked) == true) {
-            activity.getString(R.string.action_remove_bookmark)
-        } else {
-            activity.getString(R.string.action_add_bookmark)
-        }
-
-        host.addFunctionSection(
-            parent,
-            activity.getString(R.string.function_center_section_page_actions)
-        ) { section ->
-            val actions = mutableListOf(
-                FunctionCenterGridAction(
-                    title = bookmarkTitle,
-                    summary = pageSummary,
-                    iconResId = R.drawable.ic_star_24,
-                    enabled = hasPage
-                ) {
-                    runPageAction(toggleCurrentBookmark)
-                },
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_set_current_page_as_home),
-                    summary = activity.getString(R.string.action_set_current_page_as_home_summary),
-                    iconResId = R.drawable.ic_home_24,
-                    enabled = hasPage
-                ) {
-                    runPageAction(setCurrentPageAsHomePage)
-                },
-            )
-            if (!isPrivateBrowsingEnabled()) {
-                actions.add(
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_pick_element),
-                        summary = siteSummary,
-                        iconResId = R.drawable.ic_search_24,
-                        enabled = siteHost != null
-                    ) {
-                        close()
-                        startElementPicker()
-                    },
-                )
-            }
-            actions.addAll(
-                listOf(
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_forward),
-                        summary = activity.getString(R.string.action_forward_summary),
-                        iconResId = R.drawable.ic_arrow_forward_24,
-                        enabled = hasPage && browserManager().canGoForward()
-                    ) {
-                        runPageAction { browserManager().goForward() }
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_find_in_page),
-                        summary = activity.getString(R.string.action_find_in_page_summary),
-                        iconResId = R.drawable.ic_search_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(findInPage)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_copy_link),
-                        summary = activity.getString(R.string.action_copy_link_summary),
-                        iconResId = R.drawable.ic_file_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(copyCurrentUrl)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_share_page),
-                        summary = activity.getString(R.string.action_share_page_summary),
-                        iconResId = R.drawable.ic_share_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(shareCurrentUrl)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_save_page_archive),
-                        summary = activity.getString(R.string.action_save_page_archive_summary),
-                        iconResId = R.drawable.ic_file_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(saveCurrentPageArchive)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_print_page),
-                        summary = activity.getString(R.string.action_print_page_summary),
-                        iconResId = R.drawable.ic_print_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(printCurrentPage)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_download_current_url),
-                        summary = activity.getString(R.string.action_download_current_url_summary),
-                        iconResId = R.drawable.ic_download_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(downloadCurrentUrl)
-                    },
-                    FunctionCenterGridAction(
-                        title = activity.getString(R.string.action_open_native_player),
-                        summary = activity.getString(R.string.action_open_native_player_summary),
-                        iconResId = R.drawable.ic_wenxin_wave_24,
-                        enabled = hasPage
-                    ) {
-                        runPageAction(openCurrentUrlInNativePlayer)
-                    }
-                )
-            )
-            host.addActionGrid(section, actions)
-            if (isPrivateBrowsingEnabled()) {
-                return@addFunctionSection
-            }
-            host.addDivider(section)
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_desktop_mode),
-                summary = activity.getString(R.string.setting_desktop_mode_summary),
-                checked = isDesktopModeEnabled(),
-                enabled = hasPage
-            ) { enabled ->
-                settingsManager.setDesktopModeEnabled(enabled)
-                applyDesktopMode(true)
-            }
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_smart_no_image),
-                summary = activity.getString(R.string.setting_smart_no_image_summary),
-                checked = isSmartNoImageEnabled(),
-                enabled = hasPage
-            ) { enabled ->
-                settingsManager.setSmartNoImageEnabled(enabled)
-                browserManager().reload()
-                showFeatureToggleToast(activity.getString(R.string.setting_smart_no_image), enabled)
-            }
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_page_cleanup),
-                summary = activity.getString(R.string.setting_page_cleanup_summary),
-                checked = isPageCleanupEnabled(),
-                enabled = hasPage
-            ) { enabled ->
-                settingsManager.setDomAdBlockEnabled(enabled)
-                injectPageFeatures()
-                showFeatureToggleToast(activity.getString(R.string.setting_page_cleanup), enabled)
-            }
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_video_enhancement),
-                summary = activity.getString(R.string.setting_video_enhancement_summary),
-                checked = isVideoEnhancementEnabled(),
-                enabled = hasPage
-            ) { enabled ->
-                settingsManager.setVideoEnhancementEnabled(enabled)
-                injectPageFeatures()
-                showFeatureToggleToast(activity.getString(R.string.setting_video_enhancement), enabled)
-            }
-        }
-    }
-
-    /**
-     * 函数 `runPageAction`：封装 `run Page Action` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param action 参数类型为 `() -> Unit`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun runPageAction(action: () -> Unit) {
-        action()
-        close()
     }
 
     /**
