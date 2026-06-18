@@ -12,6 +12,7 @@
     config: {}
   };
   window.__videobrowserYoukuState = state;
+  var siteTools = window.VideoBrowserSiteAdapterTools;
 
   /**
    * 函数 `query`：封装 `query` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -20,42 +21,7 @@
    * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function query(selector) {
-    try {
-      return document.querySelectorAll(selector);
-    } catch (_) {
-      return [];
-    }
-  }
-
-  /**
-   * 函数 `textOf`：封装 `text Of` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function textOf(element) {
-    return String(
-      element.innerText ||
-      element.textContent ||
-      element.getAttribute('aria-label') ||
-      element.getAttribute('title') ||
-      ''
-    );
-  }
-
-  /**
-   * 函数 `hideElement`：封装 `hide Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-   */
-  function hideElement(element, reason) {
-    if (!element || element === document.body || element === document.documentElement) return;
-    element.setAttribute('data-videobrowser-site-dismissed', reason || 'youku');
-    element.style.setProperty('display', 'none', 'important');
-    element.style.setProperty('visibility', 'hidden', 'important');
-    element.style.setProperty('pointer-events', 'none', 'important');
+    return siteTools.query(selector);
   }
 
   /**
@@ -65,21 +31,7 @@
    * @param {*} selectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function hideSelectors(selectors) {
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    selectors.forEach(function (selector) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      query(selector).forEach(function (element) {
-        hideElement(element, 'youku-ad');
-      });
-    });
+    siteTools.hideSelectors(selectors, 'youku-ad', 'youku');
   }
 
   /**
@@ -89,16 +41,7 @@
    * @param {*} pattern 表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
    */
   function clickTextButtons(pattern) {
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param element 表示当前回调正在检查或操作的页面元素。
-     */
-    query('button,a,[role="button"],.close,.skip,.youku-ad-skip,.h5player-skip').forEach(function (element) {
-      if (pattern.test(textOf(element)) && typeof element.click === 'function') {
-        element.click();
-      }
-    });
+    siteTools.clickTextButtons('button,a,[role="button"],.close,.skip,.youku-ad-skip,.h5player-skip', pattern);
   }
 
   /**
@@ -109,29 +52,7 @@
    * @param {*} details 表示本次脚本运行的配置或上下文数据。
    */
   function logVideoDiagnostic(event, details) {
-    var bridge = window.VideoBrowserNative;
-    var message = 'event=' + event + ' adapter=youku host=' + location.hostname + ' ' + (details || '');
-    if (bridge && typeof bridge.logVideoEvent === 'function') {
-      try {
-        bridge.logVideoEvent(message);
-        return;
-      } catch (_) {}
-    }
-    try {
-      if (window.console && typeof window.console.log === 'function') {
-        window.console.log('[VideoBrowserVideo] ' + message);
-      }
-    } catch (_) {}
-  }
-
-  /**
-   * 函数 `videoSource`：封装 `video Source` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function videoSource(video) {
-    return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
+    siteTools.logVideoDiagnostic('youku', event, details);
   }
 
   /**
@@ -141,13 +62,7 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function removeNativeVideoControls(video) {
-    if (!video) return;
-    var hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
-    try { video.controls = false; } catch (_) {}
-    try { video.removeAttribute('controls'); } catch (_) {}
-    if (hadNativeControls) {
-      logVideoDiagnostic('remove-native-controls', 'src=' + videoSource(video));
-    }
+    siteTools.removeNativeVideoControls(video, 'youku');
   }
 
   /**

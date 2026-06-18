@@ -198,6 +198,13 @@ class VideoCapabilityDelegationContractTest {
      */
     @Test
     fun platformSiteAdaptersHandleControlEnablementWithoutForcingNativeControls() {
+        val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
+
+        assertTrue(helperScript.contains("tools.removeNativeVideoControls = function (video, adapterId)"))
+        assertTrue(helperScript.contains("video.controls = false"))
+        assertTrue(helperScript.contains("video.removeAttribute('controls')"))
+        assertTrue(helperScript.contains("tools.logVideoDiagnostic(adapterId, 'remove-native-controls'"))
+
         listOf(
             "youtube" to "src/main/assets/scripts/youtube.js",
             "bilibili" to "src/main/assets/scripts/bilibili.js",
@@ -210,10 +217,8 @@ class VideoCapabilityDelegationContractTest {
             assertTrue(script.contains("adapters.$adapterId.videoCapabilities"))
             assertTrue(script.contains("enableControls: function (video)"))
             assertTrue(script.contains("function removeNativeVideoControls(video)"))
+            assertTrue(script.contains("siteTools.removeNativeVideoControls(video, '$adapterId')"))
             assertTrue(script.contains("query('video').forEach(removeNativeVideoControls);"))
-            assertTrue(script.contains("logVideoDiagnostic('remove-native-controls'"))
-            assertTrue(script.contains("video.controls = false"))
-            assertTrue(script.contains("video.removeAttribute('controls')"))
             assertFalse(script.contains("video.controls = true"))
             assertFalse(script.contains("setAttribute('controls', 'controls')"))
         }

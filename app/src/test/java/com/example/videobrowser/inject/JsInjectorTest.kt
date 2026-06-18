@@ -141,12 +141,22 @@ class JsInjectorTest {
 
         val script = evaluatedScripts.single()
         assertEquals(
-            listOf(ScriptLoader.COMMON_SCRIPT_ASSET, "scripts/youtube.js"),
+            listOf(
+                ScriptLoader.COMMON_SCRIPT_ASSET,
+                ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET,
+                "scripts/youtube.js"
+            ),
             requestedPaths
         )
         assertTrue(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__"))
+        assertTrue(script.contains("window.__siteHelpersLoaded = true;"))
         assertTrue(script.contains("window.__siteYoutubeLoaded = true;"))
+        assertTrue(script.indexOf("window.__siteHelpersLoaded = true;") < script.indexOf("window.__siteYoutubeLoaded = true;"))
         assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"youtube\"].apply(config);"))
+        assertEquals(
+            1,
+            script.split("window.VideoBrowserSiteAdapters[\"youtube\"].apply(config);").size - 1
+        )
         assertFalse(script.contains("__siteBilibiliLoaded"))
     }
 
@@ -199,6 +209,11 @@ class JsInjectorTest {
         )
 
         val script = evaluatedScripts.single()
+        assertTrue(
+            script.contains(
+                "if (!window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/site_adapter_helpers.js\"]) {"
+            )
+        )
         assertTrue(script.contains("if (!window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili.js\"]) {"))
         assertTrue(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili.js\"] = true;"))
         assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"bilibili\"].apply(config);"))
@@ -382,6 +397,7 @@ class JsInjectorTest {
     private fun scriptContentFor(path: String): String {
         return when (path) {
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
+            ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET -> "window.__siteHelpersLoaded = true;"
             "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"
             "scripts/bilibili.js" -> "window.__siteBilibiliLoaded = true;"
             else -> error("Unexpected script path: $path")

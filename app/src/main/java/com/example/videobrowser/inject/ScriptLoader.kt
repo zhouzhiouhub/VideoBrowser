@@ -68,6 +68,7 @@ class ScriptLoader(
 
     companion object {
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
+        const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
         private const val SCRIPT_ASSET_DIRECTORY = "scripts/"
         private const val SCRIPT_EXTENSION = ".js"
     }

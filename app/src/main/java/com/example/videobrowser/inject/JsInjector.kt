@@ -70,8 +70,19 @@ class JsInjector(
                 ruleEngine.isScriptletVideoControlsEnabledFor(pageUrl)
         )
         val commonScriptContent = commonScript
+        val matchingAdapters = siteAdapterRegistry.matchingAdapters(pageUrl)
+        val siteDependencyScripts = if (matchingAdapters.isEmpty()) {
+            emptyList()
+        } else {
+            listOf(
+                ScriptAsset(
+                    path = ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET,
+                    content = loadSiteScript(ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET)
+                )
+            )
+        }
         // 不同站点可能需要额外脚本；相同脚本 path 去重，避免重复注入。
-        val siteScripts = siteAdapterRegistry.matchingAdapters(pageUrl).flatMap { adapter ->
+        val siteScripts = matchingAdapters.flatMap { adapter ->
             adapter.scriptFiles().map { path ->
                 SiteScript(
                     adapterId = adapter.profile.id,
@@ -80,7 +91,14 @@ class JsInjector(
                 )
             }
         }.distinctBy { script -> script.path }
-        evaluateJavascript(buildInjectionScript(commonScriptContent, effectiveConfig, siteScripts))
+        evaluateJavascript(
+            buildInjectionScript(
+                commonScript = commonScriptContent,
+                config = effectiveConfig,
+                siteDependencyScripts = siteDependencyScripts,
+                siteScripts = siteScripts
+            )
+        )
     }
 
     /**
@@ -91,7 +109,7 @@ class JsInjector(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     internal fun buildInjectionScript(config: PageFeatureConfig): String {
-        return buildInjectionScript(commonScript, config, emptyList())
+        return buildInjectionScript(commonScript, config)
     }
 
     /**
@@ -117,12 +135,14 @@ class JsInjector(
          * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
          * @param commonScript 参数类型为 `String`，表示函数执行 `commonScript` 相关逻辑时需要读取或处理的输入。
          * @param config 参数类型为 `PageFeatureConfig`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
+         * @param siteDependencyScripts 参数类型为 `List<ScriptAsset>`，表示站点脚本运行前必须存在、但自身不触发 adapter apply 的共享依赖脚本。
          * @param siteScripts 参数类型为 `List<SiteScript>`，表示函数执行 `siteScripts` 相关逻辑时需要读取或处理的输入。
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         fun buildInjectionScript(
             commonScript: String,
             config: PageFeatureConfig,
+            siteDependencyScripts: List<ScriptAsset> = emptyList(),
             siteScripts: List<SiteScript> = emptyList()
         ): String {
             // 这里生成一个自执行函数，确保变量只存在于这一段脚本内部，不污染网页全局作用域。
@@ -140,25 +160,17 @@ class JsInjector(
                 append(COMMON_SCRIPT_INSTALLED_FLAG)
                 appendLine(" = true;")
                 appendLine("  }")
-                if (siteScripts.isNotEmpty()) {
+                if (siteDependencyScripts.isNotEmpty() || siteScripts.isNotEmpty()) {
                     append("  window.")
                     append(SITE_SCRIPT_FLAGS)
                     append(" = window.")
                     append(SITE_SCRIPT_FLAGS)
                     appendLine(" || {};")
+                    siteDependencyScripts.forEach { dependencyScript ->
+                        appendScriptGuard(dependencyScript)
+                    }
                     siteScripts.forEach { siteScript ->
-                        append("  if (!window.")
-                        append(SITE_SCRIPT_FLAGS)
-                        append("[")
-                        append(siteScript.path.toJsonStringLiteral())
-                        appendLine("]) {")
-                        appendLine(siteScript.content)
-                        append("    window.")
-                        append(SITE_SCRIPT_FLAGS)
-                        append("[")
-                        append(siteScript.path.toJsonStringLiteral())
-                        appendLine("] = true;")
-                        appendLine("  }")
+                        appendScriptGuard(siteScript)
                         appendLine(siteScript.buildApplyCall())
                     }
                 }
@@ -170,6 +182,27 @@ class JsInjector(
                 appendLine("  }")
                 appendLine("})();")
             }
+        }
+
+        /**
+         * 函数 `appendScriptGuard`：把一个脚本放进页面注入脚本，并保证同一路径只安装一次。
+         *
+         * 站点共享依赖和站点专属脚本使用同一个 guard map，但只有 SiteScript 会在后续触发
+         * adapter.apply(config)，避免共享 helper 被误认为站点入口。
+         */
+        private fun StringBuilder.appendScriptGuard(script: ScriptAsset) {
+            append("  if (!window.")
+            append(SITE_SCRIPT_FLAGS)
+            append("[")
+            append(script.path.toJsonStringLiteral())
+            appendLine("]) {")
+            appendLine(script.content)
+            append("    window.")
+            append(SITE_SCRIPT_FLAGS)
+            append("[")
+            append(script.path.toJsonStringLiteral())
+            appendLine("] = true;")
+            appendLine("  }")
         }
 
         /**
@@ -270,8 +303,13 @@ class JsInjector(
     }
 }
 
-internal data class SiteScript(
-    val adapterId: String,
+internal open class ScriptAsset(
     val path: String,
     val content: String
 )
+
+internal class SiteScript(
+    val adapterId: String,
+    path: String,
+    content: String
+) : ScriptAsset(path, content)
