@@ -9,17 +9,10 @@ package com.example.videobrowser.browser.search
  */
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPageRepository
 
 /**
@@ -46,6 +39,12 @@ class AddressSuggestionController(
     private var requestSequence = 0
     private var suppressTextChanges = false
     private var disposed = false
+    private val rowFactory = AddressSuggestionRowFactory(
+        activity = activity,
+        addressInput = addressInput,
+        dp = dp,
+        onSuggestionSelected = ::selectSuggestion
+    )
 
     /**
      * 函数 `setup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
@@ -225,140 +224,9 @@ class AddressSuggestionController(
 
         panel.removeAllViews()
         suggestions.forEach { suggestion ->
-            panel.addView(createSuggestionRow(suggestion))
+            panel.addView(rowFactory.create(suggestion))
         }
         panel.visibility = View.VISIBLE
-    }
-
-    /**
-     * 函数 `createSuggestionRow`：创建 `create Suggestion Row` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createSuggestionRow(suggestion: AddressSuggestion): View {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            isClickable = true
-            isFocusable = true
-            setPadding(dp(18), 0, dp(18), 0)
-            setBoundedSelectableItemBackground()
-            addView(createIcon(suggestion), LinearLayout.LayoutParams(dp(28), dp(28)))
-            addView(
-                createTextContainer(suggestion),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = dp(12)
-                }
-            )
-            minimumHeight = when (suggestion) {
-                is AddressSuggestion.Bookmark,
-                is AddressSuggestion.History -> dp(58)
-                is AddressSuggestion.Remote,
-                is AddressSuggestion.Fallback -> dp(48)
-            }
-            contentDescription = contentDescriptionFor(suggestion)
-            setOnClickListener {
-                selectSuggestion(suggestion)
-            }
-        }
-    }
-
-    /**
-     * 函数 `createIcon`：创建 `create Icon` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createIcon(suggestion: AddressSuggestion): ImageView {
-        return ImageView(activity).apply {
-            setImageResource(
-                when (suggestion) {
-                    is AddressSuggestion.Bookmark -> R.drawable.ic_star_24
-                    is AddressSuggestion.History -> R.drawable.ic_history_24
-                    is AddressSuggestion.Remote,
-                    is AddressSuggestion.Fallback -> R.drawable.ic_search_24
-                }
-            )
-            setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-            setPadding(dp(2), dp(2), dp(2), dp(2))
-        }
-    }
-
-    /**
-     * 函数 `createTextContainer`：创建 `create Text Container` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createTextContainer(suggestion: AddressSuggestion): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            when (suggestion) {
-                is AddressSuggestion.Bookmark -> {
-                    addView(createPrimaryText(suggestion.title))
-                    addView(createSecondaryText(suggestion.displayUrl))
-                }
-                is AddressSuggestion.History -> {
-                    addView(createPrimaryText(suggestion.title))
-                    addView(createSecondaryText(suggestion.displayUrl))
-                }
-                is AddressSuggestion.Remote -> addView(createPrimaryText(suggestion.keyword))
-                is AddressSuggestion.Fallback -> {
-                    addView(
-                        createPrimaryText(
-                            activity.getString(R.string.address_suggestion_search, suggestion.keyword)
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    /**
-     * 函数 `createPrimaryText`：创建 `create Primary Text` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param textValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createPrimaryText(textValue: String): TextView {
-        return TextView(activity).apply {
-            text = textValue
-            includeFontPadding = false
-            maxLines = 1
-            ellipsize = android.text.TextUtils.TruncateAt.END
-            setTextColor(addressInput.currentTextColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
-        }
-    }
-
-    /**
-     * 函数 `createSecondaryText`：创建 `create Secondary Text` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param textValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createSecondaryText(textValue: String): TextView {
-        return TextView(activity).apply {
-            text = textValue
-            includeFontPadding = false
-            maxLines = 1
-            ellipsize = android.text.TextUtils.TruncateAt.END
-            setTextColor(addressInput.currentHintTextColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(5)
-            }
-        }
     }
 
     /**
@@ -374,30 +242,6 @@ class AddressSuggestionController(
                 is AddressSuggestion.History -> openUrl(suggestion.url)
                 is AddressSuggestion.Remote -> searchKeyword(suggestion.keyword)
                 is AddressSuggestion.Fallback -> searchKeyword(suggestion.keyword)
-            }
-        }
-    }
-
-    /**
-     * 函数 `contentDescriptionFor`：封装 `content Description For` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param suggestion 参数类型为 `AddressSuggestion`，表示函数执行 `suggestion` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun contentDescriptionFor(suggestion: AddressSuggestion): String {
-        return when (suggestion) {
-            is AddressSuggestion.Bookmark -> {
-                activity.getString(R.string.address_suggestion_bookmark, suggestion.title)
-            }
-            is AddressSuggestion.History -> {
-                activity.getString(R.string.address_suggestion_history, suggestion.title)
-            }
-            is AddressSuggestion.Remote -> {
-                activity.getString(R.string.address_suggestion_keyword, suggestion.keyword)
-            }
-            is AddressSuggestion.Fallback -> {
-                activity.getString(R.string.address_suggestion_search, suggestion.keyword)
             }
         }
     }
@@ -424,21 +268,6 @@ class AddressSuggestionController(
      */
     private fun currentQuery(): String {
         return addressInput.text?.toString()?.trim().orEmpty()
-    }
-
-    /**
-     * 函数 `setBoundedSelectableItemBackground`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun View.setBoundedSelectableItemBackground() {
-        val outValue = TypedValue()
-        activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackground,
-            outValue,
-            true
-        )
-        setBackgroundResource(outValue.resourceId)
     }
 
     private companion object {

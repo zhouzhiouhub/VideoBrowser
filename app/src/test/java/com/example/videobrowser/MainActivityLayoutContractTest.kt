@@ -190,6 +190,9 @@ class MainActivityLayoutContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/AddressSuggestionController.kt"
         ).readText()
+        val rowFactory = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/AddressSuggestionRowFactory.kt"
+        ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
         val lifecycleController = projectFile(
@@ -216,6 +219,10 @@ class MainActivityLayoutContractTest {
         assertTrue(controller.contains("suggestionClient.fetch"))
         assertTrue(controller.contains("AddressSuggestionRanker.build"))
         assertTrue(controller.contains("AddressSuggestion.Bookmark"))
+        assertTrue(controller.contains("AddressSuggestionRowFactory("))
+        assertTrue(controller.contains("rowFactory.create(suggestion)"))
+        assertTrue(rowFactory.contains("AddressSuggestion.Bookmark"))
+        assertTrue(rowFactory.contains("R.string.address_suggestion_bookmark"))
         assertTrue(controller.contains("val includePrivateSources = !isPrivateBrowsingEnabled()"))
         assertTrue(controller.contains("fun dispose()"))
         assertTrue(controller.contains("disposed = true"))
