@@ -10,6 +10,7 @@
   var domTools = window.VideoBrowserDomTools || {};
   var domActions = window.VideoBrowserDomActions || {};
   var nativeBridge = window.VideoBrowserNativeBridge || {};
+  var videoControlTools = window.VideoBrowserVideoControlTools || {};
   window.VideoBrowserSiteAdapterTools = tools;
 
   tools.query = function (selector) {
@@ -78,10 +79,7 @@
   tools.centerDistance = geometry.centerDistance;
 
   tools.removeNativeVideoControls = function (video, adapterId) {
-    if (!video) return;
-    var hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
-    try { video.controls = false; } catch (_) {}
-    try { video.removeAttribute('controls'); } catch (_) {}
+    var hadNativeControls = videoControlTools.removeNativeControls(video);
     if (hadNativeControls) {
       tools.logVideoDiagnostic(adapterId, 'remove-native-controls', 'src=' + tools.videoSource(video));
     }

@@ -47,6 +47,7 @@
   const domActions = window.VideoBrowserDomActions;
   const selectorTools = window.VideoBrowserSelectorTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
+  const videoControlTools = window.VideoBrowserVideoControlTools;
 
   const styleId = '__videobrowser_css_filter__';
   const normalCleanupIntervalMs = 3000;
@@ -2249,13 +2250,7 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function enableNativeVideoControls(video) {
-    if (!video.controls) video.controls = true;
-    if (video.getAttribute('controls') !== 'controls') {
-      video.setAttribute('controls', 'controls');
-    }
-    if (video.hasAttribute('playsinline')) video.removeAttribute('playsinline');
-    if (video.hasAttribute('webkit-playsinline')) video.removeAttribute('webkit-playsinline');
-    if (video.style.maxWidth !== '100%') video.style.maxWidth = '100%';
+    videoControlTools.enableNativeControls(video);
   }
 
   /**
@@ -2266,10 +2261,7 @@
    * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
    */
   function removeNativeVideoControls(video, reason) {
-    if (!video) return false;
-    const hadNativeControls = Boolean(video.controls || video.hasAttribute('controls'));
-    try { video.controls = false; } catch (_) {}
-    try { video.removeAttribute('controls'); } catch (_) {}
+    const hadNativeControls = videoControlTools.removeNativeControls(video);
     if (hadNativeControls) {
       logVideoDiagnostic('remove-native-controls-generic', videoLogDetails(video, {
         reason: reason || 'custom-player'

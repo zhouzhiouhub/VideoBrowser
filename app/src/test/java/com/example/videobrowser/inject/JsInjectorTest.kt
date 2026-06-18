@@ -400,6 +400,7 @@ class JsInjectorTest {
             ScriptLoader.DOM_ACTIONS_SCRIPT_ASSET -> "window.__domActionsLoaded = true;"
             ScriptLoader.SELECTOR_TOOLS_SCRIPT_ASSET -> "window.__selectorToolsLoaded = true;"
             ScriptLoader.NATIVE_BRIDGE_SCRIPT_ASSET -> "window.__nativeBridgeLoaded = true;"
+            ScriptLoader.VIDEO_CONTROL_TOOLS_SCRIPT_ASSET -> "window.__videoControlToolsLoaded = true;"
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
             ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET -> "window.__siteHelpersLoaded = true;"
             "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"
