@@ -18,10 +18,16 @@ class ElementPickerScriptContractTest {
      */
     @Test
     fun elementPickerKeepsPageClickSuppressionUntilNativeConfirmFinishes() {
-        val script = projectFile("src/main/assets/scripts/common.js").readText()
-        val selectionBody = functionBody(script, "handleElementPickerSelection")
-        val stopBody = functionBody(script, "stopElementPicker")
+        val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val pickerScript = projectFile("src/main/assets/scripts/element_picker.js").readText()
+        val selectionBody = functionBody(pickerScript, "handleElementPickerSelection")
+        val stopBody = functionBody(pickerScript, "stopElementPicker")
 
+        assertTrue(pickerScript.contains("window.VideoBrowserElementPicker = pickerModule"))
+        assertTrue(commonScript.contains("const elementPicker = window.VideoBrowserElementPicker"))
+        assertTrue(commonScript.contains("return elementPicker.start(state);"))
+        assertTrue(commonScript.contains("elementPicker.stop(state);"))
+        assertFalse(commonScript.contains("function handleElementPickerSelection(state, event)"))
         assertTrue(selectionBody.contains("picker.waitingForNative = true;"))
         assertFalse(
             "Element picker must keep capture listeners after a page element is selected so delayed clicks cannot navigate.",
@@ -37,9 +43,9 @@ class ElementPickerScriptContractTest {
      */
     @Test
     fun elementPickerSuppressesPageEventsWhileWaitingForNativeConfirm() {
-        val script = projectFile("src/main/assets/scripts/common.js").readText()
-        val moveBody = functionBody(script, "handleElementPickerMove")
-        val selectionBody = functionBody(script, "handleElementPickerSelection")
+        val pickerScript = projectFile("src/main/assets/scripts/element_picker.js").readText()
+        val moveBody = functionBody(pickerScript, "handleElementPickerMove")
+        val selectionBody = functionBody(pickerScript, "handleElementPickerSelection")
 
         assertTrue(moveBody.contains("if (picker.waitingForNative) {"))
         assertTrue(moveBody.contains("preventElementPickerEvent(event);"))

@@ -10,6 +10,7 @@ class SelectorToolsContractTest {
     fun `selector helpers are owned by shared selector module`() {
         val selectorToolsScript = projectFile("src/main/assets/scripts/selector_tools.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val elementPickerScript = projectFile("src/main/assets/scripts/element_picker.js").readText()
 
         assertTrue(selectorToolsScript.contains("window.VideoBrowserSelectorTools = selectorTools"))
         assertTrue(selectorToolsScript.contains("selectorTools.isSafeSelector = selectorTools.isSafeSelector || function (selector)"))
@@ -20,10 +21,13 @@ class SelectorToolsContractTest {
         assertTrue(commonScript.contains("return selectorTools.safeSelectorList(value);"))
         assertTrue(commonScript.contains("return selectorTools.isSafeSelector(selector);"))
         assertTrue(commonScript.contains("return selectorTools.queryAll(selector);"))
-        assertTrue(commonScript.contains("return selectorTools.cssIdentifier(value);"))
+        assertTrue(elementPickerScript.contains("selectorTools.cssIdentifier(id)"))
+        assertTrue(elementPickerScript.contains("selectorTools.cssIdentifier(className)"))
+        assertTrue(elementPickerScript.contains("const matches = selectorTools.queryAll(selector);"))
         assertFalse(commonScript.contains("if (!selector || selector.length > 200) return false;"))
         assertFalse(commonScript.contains("document.querySelectorAll(selector)"))
         assertFalse(commonScript.contains("window.CSS.escape(String(value))"))
+        assertFalse(elementPickerScript.contains("window.CSS.escape(String(value))"))
     }
 
     private fun projectFile(path: String): File {
