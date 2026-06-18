@@ -8,7 +8,6 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.webkit.CookieManager
-import android.webkit.WebStorage
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.download.DownloadRecordRepository
@@ -40,6 +39,11 @@ class BrowserDataManagementPage(
         activity = activity,
         clearActions = clearActions,
         reloadBrowser = { browserManager().reload() }
+    )
+    private val siteDataPage = BrowserSiteDataManagementPage(
+        host = host,
+        dialogController = dialogController,
+        showRootPage = showRootPage
     )
 
     /**
@@ -303,118 +307,7 @@ class BrowserDataManagementPage(
      * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
      */
     fun showSiteData(replaceCurrent: Boolean = false, query: String? = null) {
-        WebStorage.getInstance().getOrigins { origins ->
-            activity.runOnUiThread {
-                val siteDataOrigins = origins
-                    ?.values
-                    ?.filterIsInstance<WebStorage.Origin>()
-                    ?.sortedBy { origin -> origin.origin }
-                    ?: emptyList()
-                showSiteDataOrigins(siteDataOrigins, replaceCurrent, query)
-            }
-        }
-    }
-
-    /**
-     * 函数 `showSiteDataOrigins`：控制 `show Site Data Origins` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param origins 参数类型为 `List<WebStorage.Origin>`，表示函数执行 `origins` 相关逻辑时需要读取或处理的输入。
-     * @param replaceCurrent 参数类型为 `Boolean`，表示函数执行 `replaceCurrent` 相关逻辑时需要读取或处理的输入。
-     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showSiteDataOrigins(
-        origins: List<WebStorage.Origin>,
-        replaceCurrent: Boolean,
-        query: String?
-    ) {
-        val filteredOrigins = origins.filter { origin ->
-            BrowserSiteDataOriginSearch.matches(origin.origin, query)
-        }
-        host.showPage(
-            title = activity.getString(R.string.title_site_data_management),
-            onBack = showRootPage,
-            replaceCurrent = replaceCurrent
-        ) { content ->
-            if (origins.isNotEmpty()) {
-                host.addFunctionSection(
-                    content,
-                    activity.getString(R.string.function_center_section_actions)
-                ) { section ->
-                    host.addActionRow(
-                        parent = section,
-                        title = activity.getString(R.string.action_search_site_data),
-                        summary = currentSiteDataSearchSummary(query)
-                    ) {
-                        dialogController.showSiteDataSearchDialog(query) { searchQuery ->
-                            showSiteData(
-                                replaceCurrent = true,
-                                query = searchQuery
-                            )
-                        }
-                    }
-                    if (!query.isNullOrBlank()) {
-                        host.addActionRow(
-                            parent = section,
-                            title = activity.getString(R.string.action_clear_search),
-                            summary = query
-                        ) {
-                            showSiteData(replaceCurrent = true)
-                        }
-                    }
-                    host.addActionRow(
-                        parent = section,
-                        title = activity.getString(R.string.action_clear),
-                        summary = activity.getString(R.string.action_clear_site_data_summary)
-                    ) {
-                        dialogController.showClearSiteDataDialog {
-                            showSiteData(replaceCurrent = true)
-                        }
-                    }
-                }
-            }
-
-            if (origins.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_site_data_empty))
-            } else {
-                host.addFunctionSection(
-                    content,
-                    activity.getString(R.string.function_center_section_records)
-                ) { section ->
-                    if (filteredOrigins.isEmpty()) {
-                        host.addEmptyState(section, activity.getString(R.string.dialog_site_data_search_empty))
-                        return@addFunctionSection
-                    }
-                    filteredOrigins.forEach { origin ->
-                        host.addActionRow(
-                            parent = section,
-                            title = origin.origin,
-                            summary = activity.getString(
-                                R.string.site_data_usage_summary,
-                                BrowserDataDisplayFormatter.siteDataUsageSummary(origin.usage)
-                            )
-                        ) {
-                            dialogController.showRemoveSiteDataDialog(origin.origin) {
-                                showSiteData(replaceCurrent = true, query = query)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * 函数 `currentSiteDataSearchSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSiteDataSearchSummary(query: String?): String {
-        return query
-            ?.takeIf { it.isNotBlank() }
-            ?: activity.getString(R.string.action_search_site_data_summary)
+        siteDataPage.show(replaceCurrent, query)
     }
 
 }

@@ -88,6 +88,9 @@ class BrowserDataManagementPageTest {
         val originSearch = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSiteDataOriginSearch.kt"
         ).readText()
+        val siteDataPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSiteDataManagementPage.kt"
+        ).readText()
         val dialogs = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementDialogController.kt"
         ).readText()
@@ -96,13 +99,15 @@ class BrowserDataManagementPageTest {
 
         assertTrue(originSearch.contains("object BrowserSiteDataOriginSearch"))
         assertTrue(page.contains("fun showSiteData(replaceCurrent: Boolean = false, query: String? = null)"))
-        assertTrue(page.contains("BrowserSiteDataOriginSearch.matches(origin.origin, query)"))
+        assertTrue(page.contains("private val siteDataPage = BrowserSiteDataManagementPage("))
+        assertTrue(page.contains("siteDataPage.show(replaceCurrent, query)"))
+        assertTrue(siteDataPage.contains("BrowserSiteDataOriginSearch.matches(origin.origin, query)"))
         assertTrue(dialogs.contains("fun showSiteDataSearchDialog"))
-        assertTrue(page.contains("dialogController.showRemoveSiteDataDialog(origin.origin)"))
-        assertTrue(page.contains("showSiteData(replaceCurrent = true, query = query)"))
-        assertTrue(page.contains("R.string.action_search_site_data"))
-        assertTrue(page.contains("R.string.action_clear_search"))
-        assertTrue(page.contains("R.string.dialog_site_data_search_empty"))
+        assertTrue(siteDataPage.contains("dialogController.showRemoveSiteDataDialog(origin.origin)"))
+        assertTrue(siteDataPage.contains("show(replaceCurrent = true, query = query)"))
+        assertTrue(siteDataPage.contains("R.string.action_search_site_data"))
+        assertTrue(siteDataPage.contains("R.string.action_clear_search"))
+        assertTrue(siteDataPage.contains("R.string.dialog_site_data_search_empty"))
         assertTrue(strings.contains("action_search_site_data"))
         assertTrue(strings.contains("action_search_site_data_summary"))
         assertTrue(strings.contains("hint_site_data_search"))
