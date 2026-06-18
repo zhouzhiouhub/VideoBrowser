@@ -88,12 +88,12 @@ internal class UserElementHideRuleStore(
     }
 
     private fun normalizeSelector(selector: String): String? {
-        val collapsed = selector.trim().replace(WHITESPACE_SEQUENCE, " ")
+        val collapsed = SettingsTextNormalizer.collapseWhitespace(selector)
         val normalized = stabilizeSelector(collapsed)
         if (normalized.isEmpty() || normalized.length > MAX_USER_ELEMENT_SELECTOR_LENGTH) {
             return null
         }
-        if (normalized.any { char -> char == '\t' || char == '\n' || char == '\r' }) {
+        if (SettingsTextNormalizer.hasTabOrLineBreak(normalized)) {
             return null
         }
         if (UNSAFE_SELECTOR_PATTERN.containsMatchIn(normalized)) {
@@ -113,12 +113,10 @@ internal class UserElementHideRuleStore(
         }
         return POSITIONAL_SEGMENT_PATTERN
             .replace(selector, "")
-            .replace(WHITESPACE_SEQUENCE, " ")
-            .trim()
+            .let(SettingsTextNormalizer::collapseWhitespace)
     }
 
     private companion object {
-        private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private val UNSAFE_SELECTOR_PATTERN = Regex("[{};<>]")
         private val UNSUPPORTED_SELECTOR_PATTERN =
             Regex(":has\\(|:contains\\(|:matches\\(|:xpath\\(|javascript:|expression\\(", RegexOption.IGNORE_CASE)

@@ -73,18 +73,14 @@ internal class CustomShortcutStore(
     }
 
     private fun normalize(name: String, url: String): CustomShortcut? {
-        val normalizedName = name.trim().replace(WHITESPACE_SEQUENCE, " ")
+        val normalizedName = SettingsTextNormalizer.collapseWhitespace(name)
         val normalizedUrl = url.trim()
-        if (normalizedName.isEmpty() || normalizedName.any { it == '\t' || it == '\n' || it == '\r' }) {
+        if (normalizedName.isEmpty() || SettingsTextNormalizer.hasTabOrLineBreak(normalizedName)) {
             return null
         }
         if (!SettingsHttpUrlValidator.isHttpUrl(normalizedUrl)) {
             return null
         }
         return CustomShortcut(name = normalizedName, url = normalizedUrl)
-    }
-
-    private companion object {
-        private val WHITESPACE_SEQUENCE = Regex("\\s+")
     }
 }
