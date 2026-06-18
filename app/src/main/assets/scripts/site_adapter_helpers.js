@@ -7,14 +7,11 @@
 (function () {
   var tools = window.VideoBrowserSiteAdapterTools || {};
   var geometry = window.VideoBrowserGeometry || {};
+  var domTools = window.VideoBrowserDomTools || {};
   window.VideoBrowserSiteAdapterTools = tools;
 
   tools.query = function (selector) {
-    try {
-      return document.querySelectorAll(selector);
-    } catch (_) {
-      return [];
-    }
+    return domTools.queryAll ? domTools.queryAll(selector) : [];
   };
 
   tools.textOf = function (element) {

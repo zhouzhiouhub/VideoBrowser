@@ -77,6 +77,24 @@
   const expandedRect = geometry.expandedRect;
   const rectsOverlap = geometry.rectsOverlap;
 
+  const domTools = window.VideoBrowserDomTools || {};
+  window.VideoBrowserDomTools = domTools;
+  domTools.queryAll = domTools.queryAll || function (selector) {
+    try {
+      return document.querySelectorAll(selector);
+    } catch (_) {
+      return [];
+    }
+  };
+  domTools.queryAllWithin = domTools.queryAllWithin || function (root, selector) {
+    if (!root || typeof root.querySelectorAll !== 'function') return [];
+    try {
+      return Array.prototype.slice.call(root.querySelectorAll(selector));
+    } catch (_) {
+      return [];
+    }
+  };
+
   const styleId = '__videobrowser_css_filter__';
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
@@ -327,11 +345,7 @@
    * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function querySelectorAllSafe(selector) {
-    try {
-      return document.querySelectorAll(selector);
-    } catch (_) {
-      return [];
-    }
+    return domTools.queryAll(selector);
   }
 
   /**
@@ -2452,12 +2466,7 @@
    * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function querySelectorAllSafeWithin(root, selector) {
-    if (!root || typeof root.querySelectorAll !== 'function') return [];
-    try {
-      return Array.prototype.slice.call(root.querySelectorAll(selector));
-    } catch (_) {
-      return [];
-    }
+    return domTools.queryAllWithin(root, selector);
   }
 
   /**
