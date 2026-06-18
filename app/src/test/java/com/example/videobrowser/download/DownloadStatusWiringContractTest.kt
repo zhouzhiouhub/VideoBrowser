@@ -64,13 +64,17 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val formatter = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageTextFormatter.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(downloadsPage.contains("downloadStatusTitleResId(record.status)"))
+        assertTrue(downloadsPage.contains("textFormatter.recordSummary(record, retryable, cancelable)"))
+        assertTrue(formatter.contains("downloadStatusTitleResId(record.status)"))
         assertTrue(downloadsPage.contains("DownloadStatusSynchronizer"))
         assertTrue(downloadsPage.contains("queryDownloadStatusSnapshot"))
-        assertTrue(downloadsPage.contains("progressSummary(record)"))
-        assertTrue(downloadsPage.contains("downloadFailureReasonText(record.statusReason)"))
+        assertTrue(formatter.contains("progressSummary(record)"))
+        assertTrue(formatter.contains("downloadFailureReasonText(record.statusReason)"))
         assertTrue(strings.contains("download_status_in_progress"))
         assertTrue(strings.contains("download_status_completed"))
         assertTrue(strings.contains("download_status_failed"))

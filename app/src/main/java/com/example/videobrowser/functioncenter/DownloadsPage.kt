@@ -35,9 +35,6 @@ import com.example.videobrowser.download.DownloadRetryPolicy
 import com.example.videobrowser.download.DownloadStatus
 import com.example.videobrowser.download.DownloadStatusSnapshot
 import com.example.videobrowser.download.DownloadStatusSynchronizer
-import com.example.videobrowser.utils.UrlUtils
-import java.text.DateFormat
-import java.util.Date
 
 class DownloadsPage(
     private val host: FunctionCenterPageHost,
@@ -46,6 +43,7 @@ class DownloadsPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val textFormatter = DownloadsPageTextFormatter(activity)
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -80,27 +78,27 @@ class DownloadsPage(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
-                    host.addActionRow(
-                        parent = section,
-                        title = activity.getString(R.string.action_search_download_records),
-                        summary = currentSearchSummary(query)
-                    ) {
-                        showSearchDialog(query, statusFilter, categoryFilter)
-                    }
-                    host.addActionRow(
-                        parent = section,
-                        title = activity.getString(R.string.action_filter_download_status),
-                        summary = statusFilterSummary(statusFilter)
-                    ) {
-                        showStatusFilterDialog(query, statusFilter, categoryFilter)
-                    }
-                    host.addActionRow(
-                        parent = section,
-                        title = activity.getString(R.string.action_filter_download_category),
-                        summary = categoryFilterSummary(categoryFilter)
-                    ) {
-                        showCategoryFilterDialog(query, statusFilter, categoryFilter)
-                    }
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_search_download_records),
+                            summary = textFormatter.currentSearchSummary(query)
+                        ) {
+                            showSearchDialog(query, statusFilter, categoryFilter)
+                        }
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_filter_download_status),
+                            summary = textFormatter.statusFilterSummary(statusFilter)
+                        ) {
+                            showStatusFilterDialog(query, statusFilter, categoryFilter)
+                        }
+                        host.addActionRow(
+                            parent = section,
+                            title = activity.getString(R.string.action_filter_download_category),
+                            summary = textFormatter.categoryFilterSummary(categoryFilter)
+                        ) {
+                            showCategoryFilterDialog(query, statusFilter, categoryFilter)
+                        }
                     if (!query.isNullOrBlank()) {
                         host.addActionRow(
                             parent = section,
@@ -118,7 +116,7 @@ class DownloadsPage(
                         host.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_clear_download_filters),
-                            summary = currentFilterSummary(statusFilter, categoryFilter)
+                            summary = textFormatter.currentFilterSummary(statusFilter, categoryFilter)
                         ) {
                             show(replaceCurrent = true, query = query)
                         }
@@ -157,7 +155,7 @@ class DownloadsPage(
             DownloadCategoryGroup.from(records).forEach { group ->
                 host.addFunctionSection(
                     content,
-                    activity.getString(categoryTitleResId(group.category))
+                    activity.getString(textFormatter.categoryTitleResId(group.category))
                 ) { section ->
                     group.records.forEach { record ->
                         val retryable = DownloadRetryPolicy.canRetry(record)
@@ -165,7 +163,7 @@ class DownloadsPage(
                         host.addActionRow(
                             parent = section,
                             title = record.title.ifBlank { record.fileName },
-                            summary = recordSummary(record, retryable, cancelable)
+                            summary = textFormatter.recordSummary(record, retryable, cancelable)
                         ) {
                             showDownloadActionsDialog(record, retryable, cancelable)
                         }
@@ -225,7 +223,7 @@ class DownloadsPage(
     ) {
         val statuses = DownloadStatus.entries
         val labels = listOf(activity.getString(R.string.download_filter_all_status)) +
-            statuses.map { status -> activity.getString(downloadStatusTitleResId(status)) }
+            statuses.map { status -> activity.getString(textFormatter.downloadStatusTitleResId(status)) }
         val checkedIndex = currentStatus?.let { status -> statuses.indexOf(status) + 1 } ?: 0
 
         AlertDialog.Builder(activity)
@@ -258,7 +256,7 @@ class DownloadsPage(
     ) {
         val categories = DownloadCategory.entries
         val labels = listOf(activity.getString(R.string.download_filter_all_categories)) +
-            categories.map { category -> activity.getString(categoryTitleResId(category)) }
+            categories.map { category -> activity.getString(textFormatter.categoryTitleResId(category)) }
         val checkedIndex = currentCategory?.let { category -> categories.indexOf(category) + 1 } ?: 0
 
         AlertDialog.Builder(activity)
@@ -570,186 +568,6 @@ class DownloadsPage(
             Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
         } catch (_: SecurityException) {
             Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * 函数 `recordSummary`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
-     * @param retryable 参数类型为 `Boolean`，表示函数执行 `retryable` 相关逻辑时需要读取或处理的输入。
-     * @param cancelable 参数类型为 `Boolean`，表示函数执行 `cancelable` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun recordSummary(
-        record: DownloadRecord,
-        retryable: Boolean = false,
-        cancelable: Boolean = false
-    ): String {
-        val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-            .format(Date(record.createdAtMillis))
-        val status = activity.getString(downloadStatusTitleResId(record.status))
-        val progress = progressSummary(record)
-        val failureReason = if (record.status == DownloadStatus.FAILED) {
-            downloadFailureReasonText(record.statusReason)
-        } else {
-            null
-        }
-        val retryAction = if (retryable) {
-            activity.getString(R.string.action_retry_download)
-        } else {
-            null
-        }
-        val cancelAction = if (cancelable) {
-            activity.getString(R.string.action_cancel_download)
-        } else {
-            null
-        }
-        return listOfNotNull(
-            status,
-            progress,
-            failureReason,
-            retryAction,
-            cancelAction,
-            createdAt,
-            UrlUtils.displayUrl(record.sourceUrl)
-        ).joinToString(" | ")
-    }
-
-    /**
-     * 函数 `currentSearchSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSearchSummary(query: String?): String {
-        return query
-            ?.takeIf { it.isNotBlank() }
-            ?: activity.getString(R.string.action_search_download_records_summary)
-    }
-
-    /**
-     * 函数 `statusFilterSummary`：封装 `status Filter Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param statusFilter 参数类型为 `DownloadStatus?`，表示函数执行 `statusFilter` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun statusFilterSummary(statusFilter: DownloadStatus?): String {
-        return statusFilter
-            ?.let { status -> activity.getString(downloadStatusTitleResId(status)) }
-            ?: activity.getString(R.string.download_filter_all_status)
-    }
-
-    /**
-     * 函数 `categoryFilterSummary`：封装 `category Filter Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param categoryFilter 参数类型为 `DownloadCategory?`，表示函数执行 `categoryFilter` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun categoryFilterSummary(categoryFilter: DownloadCategory?): String {
-        return categoryFilter
-            ?.let { category -> activity.getString(categoryTitleResId(category)) }
-            ?: activity.getString(R.string.download_filter_all_categories)
-    }
-
-    /**
-     * 函数 `currentFilterSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param statusFilter 参数类型为 `DownloadStatus?`，表示函数执行 `statusFilter` 相关逻辑时需要读取或处理的输入。
-     * @param categoryFilter 参数类型为 `DownloadCategory?`，表示函数执行 `categoryFilter` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentFilterSummary(
-        statusFilter: DownloadStatus?,
-        categoryFilter: DownloadCategory?
-    ): String {
-        return listOfNotNull(
-            statusFilter?.let(::statusFilterSummary),
-            categoryFilter?.let(::categoryFilterSummary)
-        ).joinToString(" | ")
-    }
-
-    /**
-     * 函数 `progressSummary`：封装 `progress Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun progressSummary(record: DownloadRecord): String? {
-        val progress = record.progress
-        val downloaded = record.bytesDownloaded
-        val total = record.totalBytes
-        val percent = progress.percent()
-        return when {
-            percent != null && downloaded != null && total != null -> {
-                activity.getString(
-                    R.string.download_progress_percent,
-                    percent,
-                    BrowserDataDisplayFormatter.formatBytes(downloaded),
-                    BrowserDataDisplayFormatter.formatBytes(total)
-                )
-            }
-            progress.hasDownloadedBytes && downloaded != null -> {
-                activity.getString(
-                    R.string.download_progress_downloaded,
-                    BrowserDataDisplayFormatter.formatBytes(downloaded)
-                )
-            }
-            else -> null
-        }
-    }
-
-    /**
-     * 函数 `downloadFailureReasonText`：封装 `download Failure Reason Text` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param statusReason 参数类型为 `Int?`，表示函数执行 `statusReason` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun downloadFailureReasonText(statusReason: Int?): String? {
-        return statusReason?.let { reason ->
-            activity.getString(R.string.download_failure_reason, reason)
-        }
-    }
-
-    /**
-     * 函数 `downloadStatusTitleResId`：封装 `download Status Title Res Id` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param status 参数类型为 `DownloadStatus`，表示函数执行 `status` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun downloadStatusTitleResId(status: DownloadStatus): Int {
-        return when (status) {
-            DownloadStatus.IN_PROGRESS -> R.string.download_status_in_progress
-            DownloadStatus.COMPLETED -> R.string.download_status_completed
-            DownloadStatus.FAILED -> R.string.download_status_failed
-            DownloadStatus.CANCELED -> R.string.download_status_canceled
-        }
-    }
-
-    /**
-     * 函数 `categoryTitleResId`：封装 `category Title Res Id` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param category 参数类型为 `DownloadCategory`，表示函数执行 `category` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun categoryTitleResId(category: DownloadCategory): Int {
-        return when (category) {
-            DownloadCategory.VIDEO -> R.string.download_category_video
-            DownloadCategory.IMAGE -> R.string.download_category_image
-            DownloadCategory.AUDIO -> R.string.download_category_audio
-            DownloadCategory.DOCUMENT -> R.string.download_category_document
-            DownloadCategory.APP -> R.string.download_category_app
-            DownloadCategory.ARCHIVE -> R.string.download_category_archive
-            DownloadCategory.OTHER -> R.string.download_category_other
         }
     }
 
