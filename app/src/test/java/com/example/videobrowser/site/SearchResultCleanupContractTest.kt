@@ -18,6 +18,8 @@ class SearchResultCleanupContractTest {
         assertTrue(searchScript.contains("cleanup.removeAds = cleanup.removeAds || function (options)"))
         assertTrue(searchScript.contains("function findSearchAdDisclosureMarkers()"))
         assertTrue(searchScript.contains("function findSearchResultRoot(marker)"))
+        assertTrue(searchScript.contains("return selectorTools.normalizeText(value);"))
+        assertTrue(searchScript.contains("return domTools.queryAll(selector);"))
         assertTrue(searchScript.contains("domActions.hideElement(element, {"))
         assertTrue(commonScript.contains("const searchResultCleanup = window.VideoBrowserSearchResultCleanup"))
         assertTrue(commonScript.contains("return isBilibiliHost() || searchResultCleanup.isResultPage();"))
@@ -30,6 +32,8 @@ class SearchResultCleanupContractTest {
         assertFalse(commonScript.contains("function findSearchAdDisclosureMarkers()"))
         assertFalse(commonScript.contains("function findSearchResultRoot(marker)"))
         assertFalse(commonScript.contains("function isSearchAdDisclosure(text, descriptor)"))
+        assertFalse(searchScript.contains("document.querySelectorAll(selector)"))
+        assertFalse(searchScript.contains("replace(/\\s+/g, ' ').trim()"))
     }
 
     private fun projectFile(path: String): File {

@@ -85,11 +85,6 @@
   };
 
   function queryAll(selector) {
-    if (typeof domTools.queryAll === 'function') return domTools.queryAll(selector);
-    try {
-      return document.querySelectorAll(selector);
-    } catch (_) {
-      return [];
-    }
+    return domTools.queryAll(selector);
   }
 })();

@@ -19,6 +19,7 @@ class GenericCleanupSelectorsContractTest {
         assertTrue(cleanupScript.contains("'[class*=\"app-download\"]'"))
         assertTrue(cleanupScript.contains("cleanup.defaultSelectors = cleanup.defaultSelectors || function ()"))
         assertTrue(cleanupScript.contains("cleanup.hideDefaultElements = cleanup.hideDefaultElements || function ()"))
+        assertTrue(cleanupScript.contains("return domTools.queryAll(selector);"))
         assertTrue(commonScript.contains("const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors"))
         assertTrue(commonScript.contains("genericCleanupSelectors.defaultSelectors()"))
         assertTrue(commonScript.contains("genericCleanupSelectors.hideDefaultElements();"))
@@ -31,6 +32,7 @@ class GenericCleanupSelectorsContractTest {
         assertFalse(commonScript.contains("const accountSelectors = ["))
         assertFalse(commonScript.contains("const cleanupSelectors = ["))
         assertFalse(commonScript.contains("adSelectors.concat(accountSelectors, cleanupSelectors)"))
+        assertFalse(cleanupScript.contains("document.querySelectorAll(selector)"))
     }
 
     private fun projectFile(path: String): File {

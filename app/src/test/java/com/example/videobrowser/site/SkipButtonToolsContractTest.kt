@@ -17,6 +17,7 @@ class SkipButtonToolsContractTest {
         assertTrue(skipScript.contains("tools.defaultSelectors = tools.defaultSelectors || ["))
         assertTrue(skipScript.contains("'button[aria-label*=\"跳过\"]'"))
         assertTrue(skipScript.contains("tools.click = tools.click || function (selectors)"))
+        assertTrue(skipScript.contains("return domTools.queryAll(selector);"))
         assertTrue(commonScript.contains("const skipButtonTools = window.VideoBrowserSkipButtonTools"))
         assertTrue(commonScript.contains("skipButtonTools.click();"))
         assertTrue(scriptLoader.contains("SKIP_BUTTON_TOOLS_SCRIPT_ASSET"))
@@ -27,6 +28,7 @@ class SkipButtonToolsContractTest {
         assertFalse(commonScript.contains("const skipSelectors = ["))
         assertFalse(commonScript.contains("button[aria-label*=\"跳过\"]"))
         assertFalse(commonScript.contains("selector.indexOf('skip') !== -1"))
+        assertFalse(skipScript.contains("document.querySelectorAll(selector)"))
     }
 
     private fun projectFile(path: String): File {

@@ -15,7 +15,7 @@
   window.VideoBrowserSiteAdapterTools = tools;
 
   tools.query = function (selector) {
-    return domTools.queryAll ? domTools.queryAll(selector) : [];
+    return domTools.queryAll(selector);
   };
 
   tools.textOf = function (element) {
@@ -31,10 +31,7 @@
   };
 
   tools.normalizeText = function (value) {
-    if (typeof selectorTools.normalizeText === 'function') {
-      return selectorTools.normalizeText(value);
-    }
-    return String(value || '').replace(/\s+/g, ' ').trim();
+    return selectorTools.normalizeText(value);
   };
 
   tools.hideElement = function (element, reason, defaultReason, protectedIds) {

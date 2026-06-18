@@ -25,7 +25,7 @@ class SiteAdapterDomToolsContractTest {
         assertTrue(commonScript.contains("return selectorTools.queryAll(selector);"))
         assertTrue(commonScript.contains("return selectorTools.queryAllWithin(root, selector);"))
         assertTrue(helperScript.contains("var domTools = window.VideoBrowserDomTools || {}"))
-        assertTrue(helperScript.contains("return domTools.queryAll ? domTools.queryAll(selector) : [];"))
+        assertTrue(helperScript.contains("return domTools.queryAll(selector);"))
         assertFalse(helperScript.contains("document.querySelectorAll(selector)"))
     }
 
