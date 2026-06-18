@@ -73,6 +73,7 @@ class ScriptLoader(
         const val DOM_TOOLS_SCRIPT_ASSET = "scripts/dom_tools.js"
         const val DOM_ACTIONS_SCRIPT_ASSET = "scripts/dom_actions.js"
         const val SELECTOR_TOOLS_SCRIPT_ASSET = "scripts/selector_tools.js"
+        const val GENERIC_CLEANUP_SELECTORS_SCRIPT_ASSET = "scripts/generic_cleanup_selectors.js"
         const val SEARCH_RESULT_CLEANUP_SCRIPT_ASSET = "scripts/search_result_cleanup.js"
         const val SKIP_BUTTON_TOOLS_SCRIPT_ASSET = "scripts/skip_button_tools.js"
         const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
@@ -89,6 +90,7 @@ class ScriptLoader(
             DOM_TOOLS_SCRIPT_ASSET,
             DOM_ACTIONS_SCRIPT_ASSET,
             SELECTOR_TOOLS_SCRIPT_ASSET,
+            GENERIC_CLEANUP_SELECTORS_SCRIPT_ASSET,
             SEARCH_RESULT_CLEANUP_SCRIPT_ASSET,
             SKIP_BUTTON_TOOLS_SCRIPT_ASSET,
             NATIVE_BRIDGE_SCRIPT_ASSET,

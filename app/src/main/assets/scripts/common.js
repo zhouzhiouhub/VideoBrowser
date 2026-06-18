@@ -46,6 +46,7 @@
   const domTools = window.VideoBrowserDomTools;
   const domActions = window.VideoBrowserDomActions;
   const selectorTools = window.VideoBrowserSelectorTools;
+  const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors;
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
   const skipButtonTools = window.VideoBrowserSkipButtonTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
@@ -62,65 +63,6 @@
   const bestQualityAttemptIntervalMs = 30000;
   const normalWorkDelayMs = 250;
   const activeVideoWorkDelayMs = 750;
-  const adSelectors = [
-    '.ad',
-    '.ads',
-    '.ad-banner',
-    '.ad-container',
-    '.adsbygoogle',
-    '.advertisement',
-    '.popup-ad',
-    '.video-ad',
-    '[id^="ad_"]',
-    '[id*="-ad-"]',
-    '[class*="ad-banner"]',
-    '[class*="advertisement"]',
-    '[class*="popup-ad"]',
-    '[data-ad]',
-    '[data-ads]'
-  ];
-  const accountSelectors = [
-    '[href*="passport.baidu.com"]',
-    '[href*="wappass.baidu.com"]',
-    '[href*="/login"]',
-    '[href*="login?"]',
-    '[id*="login"]',
-    '[class*="login"]',
-    '[id*="passport"]',
-    '[class*="passport"]',
-    '[id*="signin"]',
-    '[class*="signin"]',
-    '[aria-label*="登录"]',
-    '[title*="登录"]',
-    '[data-module*="login"]',
-    '[data-module*="passport"]',
-    '#userinfo-wrap',
-    '#s-top-loginbtn',
-    '.s-top-login-btn',
-    '.user-login',
-    '.login-area'
-  ];
-  const cleanupSelectors = [
-    '[id*="top-ad"]',
-    '[class*="top-ad"]',
-    '[id*="topad"]',
-    '[class*="topad"]',
-    '[id*="ad-slot"]',
-    '[class*="ad-slot"]',
-    '[id*="ad-placeholder"]',
-    '[class*="ad-placeholder"]',
-    '[id*="banner-ad"]',
-    '[class*="banner-ad"]',
-    '[id*="top-banner"]',
-    '[class*="top-banner"]',
-    '[id*="promotion"]',
-    '[class*="promotion"]',
-    '[id*="open-app"]',
-    '[class*="open-app"]',
-    '[id*="download-app"]',
-    '[class*="download-app"]',
-    '[class*="app-download"]'
-  ];
   /**
    * 函数 `externalCssSelectors`：封装 `external Css Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
@@ -186,7 +128,7 @@
    * @param {*} includeRuleSelectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function injectStyle(includeGenericSelectors, includeRuleSelectors) {
-    const selectors = (includeGenericSelectors ? adSelectors.concat(accountSelectors, cleanupSelectors) : [])
+    const selectors = (includeGenericSelectors ? genericCleanupSelectors.defaultSelectors() : [])
       .concat(includeRuleSelectors ? externalCssSelectors() : [])
       .concat(userCssSelectors());
     styleManager.injectHideRules(selectors);
@@ -323,21 +265,7 @@
      */
     runWithMutationSuppressed(function () {
       injectStyle(true, true);
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-       */
-      adSelectors.concat(accountSelectors, cleanupSelectors).forEach(function (selector) {
-        /*
-         * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-         * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-         * @param element 表示当前回调正在检查或操作的页面元素。
-         */
-        querySelectorAllSafe(selector).forEach(function (element) {
-          hideElement(element, 'generic-cleanup');
-        });
-      });
+      genericCleanupSelectors.hideDefaultElements();
       removeConfiguredDomElements();
       removeGenericAdOverlays();
       removeTopAccountBars();
