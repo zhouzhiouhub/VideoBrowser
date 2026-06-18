@@ -88,14 +88,17 @@ class BrowserDataManagementPageTest {
         val originSearch = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSiteDataOriginSearch.kt"
         ).readText()
+        val dialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementDialogController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
         assertTrue(originSearch.contains("object BrowserSiteDataOriginSearch"))
         assertTrue(page.contains("fun showSiteData(replaceCurrent: Boolean = false, query: String? = null)"))
         assertTrue(page.contains("BrowserSiteDataOriginSearch.matches(origin.origin, query)"))
-        assertTrue(page.contains("fun showSiteDataSearchDialog"))
-        assertTrue(page.contains("showRemoveSiteDataDialog(origin.origin, query)"))
+        assertTrue(dialogs.contains("fun showSiteDataSearchDialog"))
+        assertTrue(page.contains("dialogController.showRemoveSiteDataDialog(origin.origin)"))
         assertTrue(page.contains("showSiteData(replaceCurrent = true, query = query)"))
         assertTrue(page.contains("R.string.action_search_site_data"))
         assertTrue(page.contains("R.string.action_clear_search"))
@@ -120,6 +123,9 @@ class BrowserDataManagementPageTest {
         val clearActions = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataClearActions.kt"
         ).readText()
+        val dialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementDialogController.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
@@ -136,7 +142,7 @@ class BrowserDataManagementPageTest {
         assertTrue(page.contains("importBookmarks: () -> Unit"))
         assertTrue(page.contains("R.string.action_export_bookmarks"))
         assertTrue(page.contains("R.string.action_import_bookmarks"))
-        assertTrue(page.contains("R.string.dialog_clear_bookmarks_message"))
+        assertTrue(dialogs.contains("R.string.dialog_clear_bookmarks_message"))
         assertTrue(settings.contains("showBookmarkManager: () -> Unit"))
         assertTrue(settings.contains("showBookmarkManager()"))
         assertTrue(settings.contains("R.string.action_manage_bookmarks_summary"))
@@ -164,6 +170,9 @@ class BrowserDataManagementPageTest {
         ).readText()
         val clearActions = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataClearActions.kt"
+        ).readText()
+        val dialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementDialogController.kt"
         ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
@@ -206,6 +215,9 @@ class BrowserDataManagementPageTest {
         val clearActions = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataClearActions.kt"
         ).readText()
+        val dialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementDialogController.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
@@ -218,11 +230,11 @@ class BrowserDataManagementPageTest {
         assertTrue(page.contains("fun showBrowsingHistoryData"))
         assertTrue(page.contains("savedPageRepository.history().size"))
         assertTrue(clearActions.contains("savedPageRepository.clearHistory()"))
-        assertTrue(page.contains("BrowserHistoryClearRange.entries"))
+        assertTrue(dialogs.contains("BrowserHistoryClearRange.entries"))
         assertTrue(clearActions.contains("savedPageRepository.clearHistoryUpdatedSince(cutoffMillis)"))
         assertTrue(page.contains("R.string.action_clear_history_range_summary"))
-        assertTrue(page.contains("R.string.dialog_clear_history_range_message"))
-        assertTrue(page.contains("R.string.toast_history_range_cleared"))
+        assertTrue(dialogs.contains("R.string.dialog_clear_history_range_message"))
+        assertTrue(dialogs.contains("R.string.toast_history_range_cleared"))
         assertTrue(page.contains("R.string.history_record_count"))
         assertTrue(settings.contains("showHistoryManager: () -> Unit"))
         assertTrue(settings.contains("showHistoryManager()"))

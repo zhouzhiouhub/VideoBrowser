@@ -7,12 +7,8 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.text.InputType
 import android.webkit.CookieManager
 import android.webkit.WebStorage
-import android.widget.EditText
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.download.DownloadRecordRepository
@@ -39,6 +35,11 @@ class BrowserDataManagementPage(
         browserManagers = browserManagers,
         savedPageRepository = savedPageRepository,
         downloadRecordRepository = downloadRecordRepository
+    )
+    private val dialogController = BrowserDataManagementDialogController(
+        activity = activity,
+        clearActions = clearActions,
+        reloadBrowser = { browserManager().reload() }
     )
 
     /**
@@ -92,7 +93,9 @@ class BrowserDataManagementPage(
                     summary = activity.getString(R.string.action_clear_bookmarks_summary),
                     enabled = bookmarkCount > 0
                 ) {
-                    showClearBookmarksDialog()
+                    dialogController.showClearBookmarksDialog {
+                        showBookmarkData(replaceCurrent = true)
+                    }
                 }
             }
 
@@ -138,7 +141,9 @@ class BrowserDataManagementPage(
                     summary = activity.getString(R.string.action_clear_download_records_summary),
                     enabled = downloadCount > 0
                 ) {
-                    showClearDownloadDataDialog()
+                    dialogController.showClearDownloadDataDialog {
+                        showDownloadData(replaceCurrent = true)
+                    }
                 }
             }
 
@@ -184,7 +189,9 @@ class BrowserDataManagementPage(
                     summary = activity.getString(R.string.action_clear_history_range_summary),
                     enabled = historyCount > 0
                 ) {
-                    showClearHistoryRangeDialog()
+                    dialogController.showClearHistoryRangeDialog {
+                        showBrowsingHistoryData(replaceCurrent = true)
+                    }
                 }
             }
 
@@ -230,7 +237,9 @@ class BrowserDataManagementPage(
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_all_cookies_summary)
                 ) {
-                    showClearAllCookiesDialog()
+                    dialogController.showClearAllCookiesDialog {
+                        showCookies(replaceCurrent = true)
+                    }
                 }
             }
 
@@ -247,7 +256,9 @@ class BrowserDataManagementPage(
                             title = cookie.name,
                             summary = ""
                         ) {
-                            showRemoveCookieDialog(pageUrl, cookie.name)
+                            dialogController.showRemoveCookieDialog(pageUrl, cookie.name) {
+                                showCookies(replaceCurrent = true)
+                            }
                         }
                     }
                 }
@@ -276,7 +287,9 @@ class BrowserDataManagementPage(
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_cache_summary)
                 ) {
-                    showClearCacheDialog()
+                    dialogController.showClearCacheDialog {
+                        showCache(replaceCurrent = true)
+                    }
                 }
             }
         }
@@ -333,7 +346,12 @@ class BrowserDataManagementPage(
                         title = activity.getString(R.string.action_search_site_data),
                         summary = currentSiteDataSearchSummary(query)
                     ) {
-                        showSiteDataSearchDialog(query)
+                        dialogController.showSiteDataSearchDialog(query) { searchQuery ->
+                            showSiteData(
+                                replaceCurrent = true,
+                                query = searchQuery
+                            )
+                        }
                     }
                     if (!query.isNullOrBlank()) {
                         host.addActionRow(
@@ -349,7 +367,9 @@ class BrowserDataManagementPage(
                         title = activity.getString(R.string.action_clear),
                         summary = activity.getString(R.string.action_clear_site_data_summary)
                     ) {
-                        showClearSiteDataDialog()
+                        dialogController.showClearSiteDataDialog {
+                            showSiteData(replaceCurrent = true)
+                        }
                     }
                 }
             }
@@ -374,233 +394,14 @@ class BrowserDataManagementPage(
                                 BrowserDataDisplayFormatter.siteDataUsageSummary(origin.usage)
                             )
                         ) {
-                            showRemoveSiteDataDialog(origin.origin, query)
+                            dialogController.showRemoveSiteDataDialog(origin.origin) {
+                                showSiteData(replaceCurrent = true, query = query)
+                            }
                         }
                     }
                 }
             }
         }
-    }
-
-    /**
-     * 函数 `showSiteDataSearchDialog`：控制 `show Site Data Search Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param currentQuery 参数类型为 `String?`，表示函数执行 `currentQuery` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showSiteDataSearchDialog(currentQuery: String?) {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_site_data_search)
-            setText(currentQuery.orEmpty())
-            setSelection(text?.length ?: 0)
-        }
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_search_site_data)
-            .setView(input)
-            .setPositiveButton(R.string.action_search_site_data) { _, _ ->
-                showSiteData(
-                    replaceCurrent = true,
-                    query = input.text?.toString()?.trim().orEmpty()
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showRemoveCookieDialog`：控制 `show Remove Cookie Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param cookieName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    private fun showRemoveCookieDialog(pageUrl: String, cookieName: String) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_cookie)
-            .setMessage(activity.getString(R.string.dialog_remove_cookie_message, cookieName))
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                clearActions.removeCookie(pageUrl, cookieName)
-                Toast.makeText(activity, R.string.toast_cookie_removed, Toast.LENGTH_SHORT).show()
-                browserManager().reload()
-                showCookies(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showClearAllCookiesDialog`：控制 `show Clear All Cookies Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showClearAllCookiesDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_all_cookies_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearAllCookies()
-                Toast.makeText(activity, R.string.toast_cookies_cleared, Toast.LENGTH_SHORT).show()
-                browserManager().reload()
-                showCookies(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showClearCacheDialog`：控制 `show Clear Cache Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showClearCacheDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_cache_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearCache()
-                Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
-                showCache(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showClearBookmarksDialog`：控制 `show Clear Bookmarks Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showClearBookmarksDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_bookmarks_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearBookmarks()
-                Toast.makeText(activity, R.string.toast_bookmarks_cleared, Toast.LENGTH_SHORT).show()
-                showBookmarkData(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showClearDownloadDataDialog`：控制 `show Clear Download Data Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showClearDownloadDataDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_download_records_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearDownloadRecordsAndFiles()
-                Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
-                showDownloadData(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showClearHistoryRangeDialog`：控制 `show Clear History Range Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showClearHistoryRangeDialog() {
-        val ranges = BrowserHistoryClearRange.entries
-        val labels = ranges
-            .map { range -> historyClearRangeLabel(range) }
-            .toTypedArray()
-
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setItems(labels) { _, index ->
-                ranges.getOrNull(index)?.let(::showClearHistoryDialog)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showClearHistoryDialog`：控制 `show Clear History Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param range 参数类型为 `BrowserHistoryClearRange`，表示函数执行 `range` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showClearHistoryDialog(range: BrowserHistoryClearRange) {
-        val rangeLabel = historyClearRangeLabel(range)
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(activity.getString(R.string.dialog_clear_history_range_message, rangeLabel))
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                val removedCount = clearActions.clearHistory(range)
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.toast_history_range_cleared, rangeLabel, removedCount),
-                    Toast.LENGTH_SHORT
-                ).show()
-                showBrowsingHistoryData(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `historyClearRangeLabel`：封装 `history Clear Range Label` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param range 参数类型为 `BrowserHistoryClearRange`，表示函数执行 `range` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun historyClearRangeLabel(range: BrowserHistoryClearRange): String {
-        return activity.getString(
-            when (range) {
-                BrowserHistoryClearRange.LAST_HOUR -> R.string.history_clear_range_last_hour
-                BrowserHistoryClearRange.LAST_24_HOURS -> R.string.history_clear_range_last_24_hours
-                BrowserHistoryClearRange.LAST_7_DAYS -> R.string.history_clear_range_last_7_days
-                BrowserHistoryClearRange.ALL -> R.string.history_clear_range_all
-            }
-        )
-    }
-
-    /**
-     * 函数 `showRemoveSiteDataDialog`：控制 `show Remove Site Data Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param origin 参数类型为 `String`，表示函数执行 `origin` 相关逻辑时需要读取或处理的输入。
-     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showRemoveSiteDataDialog(origin: String, query: String?) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_site_data)
-            .setMessage(activity.getString(R.string.dialog_remove_site_data_message, origin))
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                clearActions.removeSiteData(origin)
-                Toast.makeText(activity, R.string.toast_site_data_removed, Toast.LENGTH_SHORT).show()
-                showSiteData(replaceCurrent = true, query = query)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showClearSiteDataDialog`：控制 `show Clear Site Data Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showClearSiteDataDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_site_data_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearSiteData()
-                Toast.makeText(activity, R.string.toast_site_data_cleared, Toast.LENGTH_SHORT).show()
-                showSiteData(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     /**
