@@ -129,11 +129,7 @@ sealed class WebViewVideoCommand {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun speedArgument(speed: Float): String {
-        val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            DEFAULT_PLAYBACK_SPEED
-        }
+        val normalizedSpeed = PlaybackSpeedNormalizer.normalize(speed, DEFAULT_PLAYBACK_SPEED)
         return String.format(Locale.US, "%.2f", normalizedSpeed)
     }
 

@@ -132,7 +132,7 @@ class PlayerActivity : AppCompatActivity() {
                 }
             playbackQueue = playbackQueue.select(currentMediaItemIndex)
             isLandscape = savedInstanceState.getBoolean(STATE_LANDSCAPE, true)
-            selectedPlaybackSpeed = normalizePlaybackSpeed(
+            selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(
                 savedInstanceState.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
             )
             repeatMode = savedInstanceState.getString(STATE_REPEAT_MODE)
@@ -708,7 +708,7 @@ class PlayerActivity : AppCompatActivity() {
      * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
      */
     private fun setPlayerPlaybackSpeed(speed: Float) {
-        selectedPlaybackSpeed = normalizePlaybackSpeed(speed)
+        selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(speed)
         settingsManager.setDefaultVideoSpeed(selectedPlaybackSpeed)
         player?.setPlaybackSpeed(selectedPlaybackSpeed)
     }
@@ -1094,7 +1094,7 @@ class PlayerActivity : AppCompatActivity() {
         scanHandler.removeCallbacks(reverseScanRunnable)
 
         val exoPlayer = player ?: return
-        selectedPlaybackSpeed = normalizePlaybackSpeed(longPressRestoreSpeed)
+        selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(longPressRestoreSpeed)
         exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
         if (longPressRestorePlayWhenReady) {
             exoPlayer.play()
@@ -1174,7 +1174,7 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition = resumePosition
         }
         if (progress != null) {
-            selectedPlaybackSpeed = normalizePlaybackSpeed(progress.speed)
+            selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(progress.speed)
             longPressRestoreSpeed = selectedPlaybackSpeed
         }
     }
@@ -1228,21 +1228,6 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackHistoryIdentity(): String {
         return playbackQueue.items.getOrNull(currentMediaItemIndex)?.uri?.trim()
             ?: intentReader.mediaUri().trim()
-    }
-
-    /**
-     * 函数 `normalizePlaybackSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizePlaybackSpeed(speed: Float): Float {
-        return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            DEFAULT_PLAYBACK_SPEED
-        }
     }
 
     companion object {

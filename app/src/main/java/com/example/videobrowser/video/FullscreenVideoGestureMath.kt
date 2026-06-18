@@ -12,11 +12,7 @@ internal object FullscreenVideoGestureMath {
     }
 
     fun normalizeSpeed(speed: Float, defaultSpeed: Float = DEFAULT_PLAYBACK_SPEED): Float {
-        return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            defaultSpeed
-        }
+        return PlaybackSpeedNormalizer.normalize(speed, defaultSpeed)
     }
 
     fun screenZoneFor(

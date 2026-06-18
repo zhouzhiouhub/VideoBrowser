@@ -139,7 +139,7 @@ class PlaybackHistoryRepository(
             mediaIdentity = mediaIdentity,
             positionMs = fields[1].toLongOrNull()?.coerceAtLeast(0L) ?: return null,
             durationMs = fields[2].toLongOrNull()?.coerceAtLeast(0L) ?: return null,
-            speed = normalizeSpeed(fields[3].toFloatOrNull() ?: 1f),
+            speed = PlaybackSpeedNormalizer.normalize(fields[3].toFloatOrNull() ?: 1f),
             updatedAtMillis = fields[4].toLongOrNull()?.coerceAtLeast(0L) ?: return null,
             title = fields.getOrNull(5)?.takeIf { it.isNotBlank() },
             source = fields.getOrNull(6)
@@ -181,7 +181,7 @@ class PlaybackHistoryRepository(
             mediaIdentity = mediaIdentity,
             positionMs = progress.positionMs.coerceAtLeast(0L),
             durationMs = progress.durationMs.coerceAtLeast(0L),
-            speed = normalizeSpeed(progress.speed),
+            speed = PlaybackSpeedNormalizer.normalize(progress.speed),
             updatedAtMillis = progress.updatedAtMillis.coerceAtLeast(0L),
             title = normalizeTitle(progress.title)
         )
@@ -193,21 +193,6 @@ class PlaybackHistoryRepository(
             ?.trim()
             ?.take(MAX_TITLE_LENGTH)
             ?.takeIf { it.isNotBlank() }
-    }
-
-    /**
-     * 函数 `normalizeSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeSpeed(speed: Float): Float {
-        return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            1f
-        }
     }
 
     /**

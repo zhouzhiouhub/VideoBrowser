@@ -27,7 +27,7 @@ data class PlaybackSessionState(
         return copy(
             positionMs = positionMs.coerceAtLeast(0L),
             durationMs = durationMs?.takeIf { it > 0L },
-            speed = normalizeSpeed(speed),
+            speed = PlaybackSpeedNormalizer.normalize(speed),
             currentIndex = if (itemCount > 0) {
                 currentIndex.coerceIn(0, itemCount - 1)
             } else {
@@ -66,21 +66,6 @@ data class PlaybackSessionState(
                 playWhenReady = playWhenReady,
                 zoomMode = zoomMode
             ).normalized(queue.items.size)
-        }
-
-        /**
-         * 函数 `normalizeSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-         *
-         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-         * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
-         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-         */
-        private fun normalizeSpeed(speed: Float): Float {
-            return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-                speed
-            } else {
-                1f
-            }
         }
     }
 }

@@ -306,11 +306,10 @@ class FullscreenVideoController(
      * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
      */
     private fun setPlaybackSpeed(speed: Float) {
-        val normalizedSpeed = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
+        val normalizedSpeed = PlaybackSpeedNormalizer.normalize(
+            speed,
             SettingsManager.DEFAULT_VIDEO_SPEED
-        }
+        )
         playbackSpeed = normalizedSpeed
         settingsManager()?.setDefaultVideoSpeed(normalizedSpeed)
         if (::gestureOverlay.isInitialized) {

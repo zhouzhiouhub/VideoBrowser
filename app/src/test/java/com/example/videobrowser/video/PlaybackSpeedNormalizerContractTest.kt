@@ -1,0 +1,57 @@
+package com.example.videobrowser.video
+
+import java.io.File
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class PlaybackSpeedNormalizerContractTest {
+    @Test
+    fun `playback speed normalization has a single implementation`() {
+        val normalizer = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlaybackSpeedNormalizer.kt"
+        ).readText()
+        val gestureMath = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureMath.kt"
+        ).readText()
+        val sessionState = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlaybackSessionState.kt"
+        ).readText()
+        val historyRepository = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlaybackHistoryRepository.kt"
+        ).readText()
+        val fullscreenController = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoController.kt"
+        ).readText()
+        val playerActivity = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+        ).readText()
+        val webViewVideoProtocol = projectFile(
+            "src/main/java/com/example/videobrowser/video/WebViewVideoProtocol.kt"
+        ).readText()
+
+        assertTrue(normalizer.contains("object PlaybackSpeedNormalizer"))
+        assertTrue(normalizer.contains("fun normalize(speed: Float"))
+        assertTrue(gestureMath.contains("PlaybackSpeedNormalizer.normalize(speed, defaultSpeed)"))
+        assertTrue(sessionState.contains("PlaybackSpeedNormalizer.normalize(speed)"))
+        assertTrue(historyRepository.contains("PlaybackSpeedNormalizer.normalize(progress.speed)"))
+        assertTrue(fullscreenController.contains("PlaybackSpeedNormalizer.normalize("))
+        assertTrue(playerActivity.contains("PlaybackSpeedNormalizer.normalize("))
+        assertTrue(webViewVideoProtocol.contains("PlaybackSpeedNormalizer.normalize(speed, DEFAULT_PLAYBACK_SPEED)"))
+        assertFalse(gestureMath.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
+        assertFalse(sessionState.contains("private fun normalizeSpeed"))
+        assertFalse(historyRepository.contains("private fun normalizeSpeed"))
+        assertFalse(playerActivity.contains("private fun normalizePlaybackSpeed"))
+        assertFalse(fullscreenController.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
+        assertFalse(webViewVideoProtocol.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
+    }
+
+    private fun projectFile(path: String): File {
+        val workingDirectory = File("").absoluteFile
+        return listOfNotNull(
+            File(workingDirectory, path),
+            File(workingDirectory, "app/$path"),
+            workingDirectory.parentFile?.let { parent -> File(parent, path) }
+        ).first { it.exists() }
+    }
+}
