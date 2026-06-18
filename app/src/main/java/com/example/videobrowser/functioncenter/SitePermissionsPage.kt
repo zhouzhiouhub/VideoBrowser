@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
-import com.example.videobrowser.settings.SitePermission
 import com.example.videobrowser.settings.SitePermissionDecision
 import com.example.videobrowser.settings.SitePermissionRecord
 
@@ -21,6 +20,7 @@ class SitePermissionsPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val sitePermissionTextFormatter = SitePermissionTextFormatter(activity)
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -67,7 +67,7 @@ class SitePermissionsPage(
                     host.addActionRow(
                         parent = section,
                         title = record.host,
-                        summary = sitePermissionRecordSummary(record)
+                        summary = sitePermissionTextFormatter.recordSummary(record)
                     ) {
                         showRemoveSitePermissionDialog(record)
                     }
@@ -89,8 +89,8 @@ class SitePermissionsPage(
                 activity.getString(
                     R.string.dialog_remove_site_permission_message,
                     record.host,
-                    sitePermissionTitle(record.permission),
-                    sitePermissionDecisionText(record.decision)
+                    sitePermissionTextFormatter.title(record.permission),
+                    sitePermissionTextFormatter.decisionText(record.decision)
                 )
             )
             .setPositiveButton(R.string.action_remove) { _, _ ->
@@ -132,51 +132,4 @@ class SitePermissionsPage(
             .show()
     }
 
-    /**
-     * 函数 `sitePermissionRecordSummary`：封装 `site Permission Record Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param record 参数类型为 `SitePermissionRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionRecordSummary(record: SitePermissionRecord): String {
-        return listOf(
-            sitePermissionTitle(record.permission),
-            sitePermissionDecisionText(record.decision)
-        ).joinToString(separator = " | ")
-    }
-
-    /**
-     * 函数 `sitePermissionTitle`：封装 `site Permission Title` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionTitle(permission: SitePermission): String {
-        return activity.getString(
-            when (permission) {
-                SitePermission.CAMERA -> R.string.setting_site_permission_camera
-                SitePermission.MICROPHONE -> R.string.setting_site_permission_microphone
-                SitePermission.LOCATION -> R.string.setting_site_permission_location
-            }
-        )
-    }
-
-    /**
-     * 函数 `sitePermissionDecisionText`：封装 `site Permission Decision Text` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param decision 参数类型为 `SitePermissionDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionDecisionText(decision: SitePermissionDecision): String {
-        return activity.getString(
-            when (decision) {
-                SitePermissionDecision.ASK -> R.string.site_permission_ask
-                SitePermissionDecision.ALLOW -> R.string.site_permission_allowed
-                SitePermissionDecision.BLOCK -> R.string.site_permission_blocked
-            }
-        )
-    }
 }

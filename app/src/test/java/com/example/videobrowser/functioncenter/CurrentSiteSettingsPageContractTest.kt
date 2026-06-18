@@ -20,6 +20,9 @@ class CurrentSiteSettingsPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/CurrentSiteSettingsPage.kt"
         ).readText()
+        val formatter = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SitePermissionTextFormatter.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(page.contains("SitePermission.CAMERA"))
@@ -29,9 +32,9 @@ class CurrentSiteSettingsPageContractTest {
         assertTrue(page.contains("settingsManager.sitePermissionDecision(hostName, permission)"))
         assertTrue(page.contains("settingsManager.setSitePermissionDecision(hostName, permission, decision)"))
         assertTrue(page.contains("fun showSitePermissionDialog"))
-        assertTrue(page.contains("R.string.site_permission_ask"))
-        assertTrue(page.contains("R.string.site_permission_allowed"))
-        assertTrue(page.contains("R.string.site_permission_blocked"))
+        assertTrue(formatter.contains("R.string.site_permission_ask"))
+        assertTrue(formatter.contains("R.string.site_permission_allowed"))
+        assertTrue(formatter.contains("R.string.site_permission_blocked"))
         assertTrue(strings.contains("setting_site_permission_camera"))
         assertTrue(strings.contains("setting_site_permission_microphone"))
         assertTrue(strings.contains("setting_site_permission_location"))

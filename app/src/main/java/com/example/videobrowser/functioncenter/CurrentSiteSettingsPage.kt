@@ -32,6 +32,7 @@ class CurrentSiteSettingsPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val sitePermissionTextFormatter = SitePermissionTextFormatter(activity)
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -338,17 +339,17 @@ class CurrentSiteSettingsPage(
                 )
                 host.addInfoRow(
                     parent = section,
-                    title = sitePermissionTitle(SitePermission.CAMERA),
+                    title = sitePermissionTextFormatter.title(SitePermission.CAMERA),
                     summary = currentSitePermissionSummary(siteHost, SitePermission.CAMERA)
                 )
                 host.addInfoRow(
                     parent = section,
-                    title = sitePermissionTitle(SitePermission.MICROPHONE),
+                    title = sitePermissionTextFormatter.title(SitePermission.MICROPHONE),
                     summary = currentSitePermissionSummary(siteHost, SitePermission.MICROPHONE)
                 )
                 host.addInfoRow(
                     parent = section,
-                    title = sitePermissionTitle(SitePermission.LOCATION),
+                    title = sitePermissionTextFormatter.title(SitePermission.LOCATION),
                     summary = currentSitePermissionSummary(siteHost, SitePermission.LOCATION)
                 )
                 host.addInfoRow(
@@ -380,7 +381,7 @@ class CurrentSiteSettingsPage(
     ) {
         host.addActionRow(
             parent = section,
-            title = sitePermissionTitle(permission),
+            title = sitePermissionTextFormatter.title(permission),
             summary = currentSitePermissionSummary(siteHost, permission),
             enabled = hasSite
         ) {
@@ -398,12 +399,12 @@ class CurrentSiteSettingsPage(
         val hostName = currentSiteHost() ?: return
         val decisions = SitePermissionDecision.entries
         val labels = decisions
-            .map { decision -> sitePermissionDecisionText(decision) }
+            .map { decision -> sitePermissionTextFormatter.decisionText(decision) }
             .toTypedArray()
         val checkedIndex = decisions.indexOf(settingsManager.sitePermissionDecision(hostName, permission))
 
         AlertDialog.Builder(activity)
-            .setTitle(sitePermissionTitle(permission))
+            .setTitle(sitePermissionTextFormatter.title(permission))
             .setSingleChoiceItems(labels, checkedIndex) { dialog, index ->
                 val decision = decisions[index]
                 settingsManager.setSitePermissionDecision(hostName, permission, decision)
@@ -411,7 +412,7 @@ class CurrentSiteSettingsPage(
                     activity,
                     activity.getString(
                         R.string.toast_site_permission_updated,
-                        sitePermissionTitle(permission),
+                        sitePermissionTextFormatter.title(permission),
                         hostName
                     ),
                     Toast.LENGTH_SHORT
@@ -432,42 +433,10 @@ class CurrentSiteSettingsPage(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun currentSitePermissionSummary(siteHost: String?, permission: SitePermission): String {
-        return siteHost
-            ?.let { hostName -> settingsManager.sitePermissionDecision(hostName, permission) }
-            ?.let(::sitePermissionDecisionText)
-            ?: activity.getString(R.string.function_center_site_action_unavailable)
-    }
-
-    /**
-     * 函数 `sitePermissionTitle`：封装 `site Permission Title` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionTitle(permission: SitePermission): String {
-        return activity.getString(
-            when (permission) {
-                SitePermission.CAMERA -> R.string.setting_site_permission_camera
-                SitePermission.MICROPHONE -> R.string.setting_site_permission_microphone
-                SitePermission.LOCATION -> R.string.setting_site_permission_location
-            }
-        )
-    }
-
-    /**
-     * 函数 `sitePermissionDecisionText`：封装 `site Permission Decision Text` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param decision 参数类型为 `SitePermissionDecision`，表示函数执行 `decision` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionDecisionText(decision: SitePermissionDecision): String {
-        return activity.getString(
-            when (decision) {
-                SitePermissionDecision.ASK -> R.string.site_permission_ask
-                SitePermissionDecision.ALLOW -> R.string.site_permission_allowed
-                SitePermissionDecision.BLOCK -> R.string.site_permission_blocked
+        return sitePermissionTextFormatter.currentSitePermissionSummary(
+            siteHost = siteHost,
+            decision = siteHost?.let { hostName ->
+                settingsManager.sitePermissionDecision(hostName, permission)
             }
         )
     }
