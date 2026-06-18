@@ -48,6 +48,7 @@
   const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors;
   const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup;
   const genericAdOverlayCleanup = window.VideoBrowserGenericAdOverlayCleanup;
+  const topPageCleanup = window.VideoBrowserTopPageCleanup;
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
   const skipButtonTools = window.VideoBrowserSkipButtonTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
@@ -268,8 +269,8 @@
       genericCleanupSelectors.hideDefaultElements();
       removeConfiguredDomElements();
       removeGenericAdOverlays();
-      removeTopAccountBars();
-      removeTopNoiseBlocks();
+      topPageCleanup.removeAccountBars();
+      topPageCleanup.removeNoiseBlocks();
       removeSearchResultAds();
     });
   }
@@ -337,20 +338,6 @@
   }
 
   /**
-   * 函数 `hideElement`：封装 `hide Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-   */
-  function hideElement(element, reason) {
-    domActions.hideElement(element, {
-      reason: reason || 'cleanup',
-      protectAppContainers: true
-    });
-  }
-
-  /**
    * 函数 `removeElement`：封装 `remove Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -365,16 +352,6 @@
   }
 
   /**
-   * 函数 `isProtectedAppContainer`：封装 `is Protected App Container` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function isProtectedAppContainer(element) {
-    return domActions.isProtectedAppContainer(element);
-  }
-
-  /**
    * 函数 `startElementPicker`：启动元素选择器模块。
    */
   function startElementPicker() {
@@ -386,98 +363,6 @@
    */
   function stopElementPicker() {
     elementPicker.stop(state);
-  }
-
-  /**
-   * 函数 `removeTopAccountBars`：封装 `remove Top Account Bars` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeTopAccountBars() {
-    if (!/(\.|^)baidu\.com$/i.test(location.hostname)) return;
-    const candidates = [];
-    /**
-     * 函数 `addCandidate`：封装 `add Candidate` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-     */
-    function addCandidate(element) {
-      if (element && candidates.indexOf(element) === -1) candidates.push(element);
-    }
-    document.querySelectorAll(
-      'header,[role="banner"],[id*="top"],[class*="top"],[id*="head"],[class*="head"],body>div,body>div>div'
-    ).forEach(addCandidate);
-
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param element 表示当前回调正在检查或操作的页面元素。
-     */
-    candidates.forEach(function (element) {
-      if (!element || element.querySelector('input,textarea,form')) return;
-      const rect = element.getBoundingClientRect();
-      if (rect.top < 0 || rect.top > 220 || rect.height <= 0 || rect.height > 72) return;
-
-      const text = String(element.innerText || element.textContent || '');
-      const html = String(element.innerHTML || '');
-      const accountLike = /登录|账号|账户|我的|用户|passport|login|signin|user|profile/i.test(text + html);
-      const iconBarLike = element.querySelectorAll('a,button,[role="button"],svg,i').length >= 1 &&
-        /menu|grid|app|user|profile|account|more|更多|应用/i.test(html);
-      if (rect.width < Math.min(window.innerWidth * 0.45, 180) && !accountLike && !iconBarLike) return;
-      if (accountLike || iconBarLike) hideElement(element, 'top-account-bar');
-    });
-  }
-
-  /**
-   * 函数 `removeTopNoiseBlocks`：封装 `remove Top Noise Blocks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeTopNoiseBlocks() {
-    if (!isSearchProviderHomePage()) return;
-
-    document.querySelectorAll(
-      'body>div,body>section,header,[role="banner"],[id*="top"],[class*="top"],[id*="banner"],[class*="banner"]'
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param element 表示当前回调正在检查或操作的页面元素。
-     */
-    ).forEach(function (element) {
-      if (!element || element.querySelector('input,textarea,select,form,video,canvas')) return;
-
-      const rect = element.getBoundingClientRect();
-      if (rect.top < 0 || rect.top > 180 || rect.height < 32 || rect.height > 150) return;
-      if (rect.width < window.innerWidth * 0.58) return;
-
-      const text = String(element.innerText || element.textContent || '').replace(/\s+/g, '');
-      const html = String(element.innerHTML || '');
-      const descriptor = String(element.id || '') + ' ' + String(element.className || '') + ' ' + html;
-      const brandLogoLike = /logo|search-logo|bdlogo|sogoulogo/i.test(descriptor) ||
-        /百度|搜狗搜索|搜狗|360搜索|必应|Bing/i.test(text);
-      const adLike = /广告|推广|赞助|商业合作|无图|太平洋|下载APP|打开APP|app/i.test(text + descriptor) ||
-        /ad|ads|advert|banner|promo|promotion|sponsor|slot|download|openapp/i.test(descriptor);
-      const sparseTopSlot = /(\.|^)sogou\.com$/i.test(location.hostname) &&
-        rect.top < 120 &&
-        rect.height >= 48 &&
-        rect.width > window.innerWidth * 0.82 &&
-        text.length <= 18 &&
-        element.querySelectorAll('a,button,img,svg').length <= 2;
-
-      if (!brandLogoLike && (adLike || sparseTopSlot)) hideElement(element, 'top-noise-block');
-    });
-  }
-
-  /**
-   * 函数 `isSearchProviderHomePage`：封装 `is Search Provider Home Page` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function isSearchProviderHomePage() {
-    const host = String(location.hostname || '').toLowerCase();
-    const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
-    return path === '/' && /^(m\.baidu\.com|m\.sogou\.com|m\.so\.com|quark\.sm\.cn|so\.m\.sm\.cn|www\.bing\.com)$/i.test(host);
   }
 
   /**
