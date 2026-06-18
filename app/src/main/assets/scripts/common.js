@@ -49,6 +49,7 @@
   const nativeBridge = window.VideoBrowserNativeBridge;
   const videoControlTools = window.VideoBrowserVideoControlTools;
   const elementPicker = window.VideoBrowserElementPicker;
+  const scriptletHooks = window.VideoBrowserScriptletHooks;
 
   const styleId = '__videobrowser_css_filter__';
   const normalCleanupIntervalMs = 3000;
@@ -129,106 +130,6 @@
     'button[aria-label*="跳过"]',
     'button[title*="跳过"]'
   ];
-  const blockedKeywords = [
-    'doubleclick',
-    'googleads',
-    'googlesyndication',
-    '/pagead/',
-    '/adservice/',
-    '/adserver/',
-    '/advert/',
-    '/ads/',
-    'vast',
-    'vmap',
-    'preroll',
-    'midroll'
-  ];
-
-  /**
-   * 函数 `shouldBlockUrl`：封装 `should Block Url` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function shouldBlockUrl(value) {
-    return shouldBlockUrlAgainstKeywords(
-      value,
-      blockedKeywords.concat(externalBlockedKeywords())
-    );
-  }
-
-  /**
-   * 函数 `shouldBlockUrlAgainstKeywords`：封装 `should Block Url Against Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   * @param {*} keywords 表示函数执行 `keywords` 相关逻辑时需要读取或处理的输入。
-   */
-  function shouldBlockUrlAgainstKeywords(value, keywords) {
-    const url = String(value || '').toLowerCase();
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param keyword 表示当前回调正在处理的名称、键或文本值。
-     */
-    return keywords.some(function (keyword) {
-      return url.indexOf(keyword) !== -1;
-    });
-  }
-
-  /**
-   * 函数 `externalBlockedKeywords`：封装 `external Blocked Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function externalBlockedKeywords() {
-    return configKeywordList('blockedUrlKeywords');
-  }
-
-  /**
-   * 函数 `scriptletWindowOpenBlockedKeywords`：封装 `scriptlet Window Open Blocked Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function scriptletWindowOpenBlockedKeywords() {
-    return configKeywordList('scriptletWindowOpenBlockedKeywords');
-  }
-
-  /**
-   * 函数 `scriptletFetchBlockedKeywords`：封装 `scriptlet Fetch Blocked Keywords` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function scriptletFetchBlockedKeywords() {
-    return configKeywordList('scriptletFetchBlockedKeywords');
-  }
-
-  /**
-   * 函数 `configKeywordList`：封装 `config Keyword List` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} fieldName 表示函数执行 `fieldName` 相关逻辑时需要读取或处理的输入。
-   */
-  function configKeywordList(fieldName) {
-    const values = state.config && state.config[fieldName];
-    if (!Array.isArray(values)) return [];
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param keyword 表示当前回调正在处理的名称、键或文本值。
-     */
-    return values.map(function (keyword) {
-      return String(keyword || '').trim().toLowerCase();
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param keyword 表示当前回调正在处理的名称、键或文本值。
-     */
-    }).filter(function (keyword) {
-      return keyword.length >= 3;
-    });
-  }
-
   /**
    * 函数 `externalCssSelectors`：封装 `external Css Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
@@ -2694,49 +2595,9 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function installHooks() {
-    if (state.hooked) return;
-    state.hooked = true;
-
-    const originalOpen = window.open;
-    /**
-     * 函数 `window.open`：封装 `open` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} url 表示要判断、转换或传给播放器/规则逻辑的输入值。
-     */
-    window.open = function (url) {
-      if (
-        (state.config.cleanupEnabled && shouldBlockUrl(url)) ||
-        shouldBlockUrlAgainstKeywords(url, scriptletWindowOpenBlockedKeywords())
-      ) {
-        return null;
-      }
-      return originalOpen.apply(this, arguments);
-    };
-
-    const originalFetch = window.fetch;
-    if (typeof originalFetch === 'function') {
-      /**
-       * 函数 `window.fetch`：封装 `fetch` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-       *
-       * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-       */
-      window.fetch = function () {
-        if (arguments.length > 0) {
-          const input = arguments[0];
-          const url = typeof input === 'string' ? input : input && input.url;
-          if (
-            (state.config.cleanupEnabled && shouldBlockUrl(url)) ||
-            shouldBlockUrlAgainstKeywords(url, scriptletFetchBlockedKeywords())
-          ) {
-            return Promise.reject(new Error('Blocked by VideoBrowser'));
-          }
-        }
-        return originalFetch.apply(this, arguments);
-      };
-    }
-
-    installFullscreenEventHooks();
+    scriptletHooks.install(state, {
+      installFullscreenEventHooks: installFullscreenEventHooks
+    });
   }
 
   /**
