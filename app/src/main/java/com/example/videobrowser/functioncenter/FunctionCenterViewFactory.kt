@@ -7,15 +7,12 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.graphics.Color
-import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
@@ -35,6 +32,7 @@ class FunctionCenterViewFactory(
     private val rowFactory = FunctionCenterRowFactory(activity, dp, surfaceFactory)
     private val gridFactory = FunctionCenterGridFactory(activity, dp)
     private val headerFactory = FunctionCenterHeaderFactory(activity, dp, surfaceFactory, rowFactory)
+    private val contentFactory = FunctionCenterContentFactory(activity, dp, surfaceFactory, rowFactory)
 
     /**
      * 函数 `createPage`：创建 `create Page` 需要的对象、视图或配置，并返回给后续流程使用。
@@ -251,24 +249,7 @@ class FunctionCenterViewFactory(
         title: String,
         buildContent: (LinearLayout) -> Unit
     ) {
-        if (title.isNotBlank()) {
-            addSectionTitle(parent, title)
-        }
-        val section = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(4), dp(14), dp(4))
-            background = surfaceFactory.createRoundedBackground(
-                ContextCompat.getColor(activity, R.color.browser_surface)
-            )
-        }
-        buildContent(section)
-        parent.addView(
-            section,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
+        contentFactory.addFunctionSection(parent, title, buildContent)
     }
 
     /**
@@ -284,17 +265,7 @@ class FunctionCenterViewFactory(
         title: String,
         summary: String
     ) {
-        val row = rowFactory.createRowText(title, summary).apply {
-            minimumHeight = dp(58)
-            setPadding(0, dp(9), 0, dp(9))
-        }
-        parent.addView(
-            row,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
+        contentFactory.addInfoRow(parent, title, summary)
     }
 
     /**
@@ -305,24 +276,7 @@ class FunctionCenterViewFactory(
      * @param message 参数类型为 `String`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
      */
     fun addFunctionMessage(parent: LinearLayout, message: String) {
-        parent.addView(
-            TextView(activity).apply {
-                text = message
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                textSize = 15f
-                setLineSpacing(dp(2).toFloat(), 1f)
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-                background = surfaceFactory.createRoundedBackground(
-                    ContextCompat.getColor(activity, R.color.browser_surface)
-                )
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(10)
-            }
-        )
+        contentFactory.addFunctionMessage(parent, message)
     }
 
     /**
@@ -333,24 +287,7 @@ class FunctionCenterViewFactory(
      * @param message 参数类型为 `String`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
      */
     fun addEmptyState(parent: LinearLayout, message: String) {
-        parent.addView(
-            TextView(activity).apply {
-                text = message
-                gravity = Gravity.CENTER
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
-                textSize = 14f
-                setPadding(dp(16), dp(28), dp(16), dp(28))
-                background = surfaceFactory.createRoundedBackground(
-                    ContextCompat.getColor(activity, R.color.browser_surface)
-                )
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(18)
-            }
-        )
+        contentFactory.addEmptyState(parent, message)
     }
 
     /**
@@ -368,29 +305,7 @@ class FunctionCenterViewFactory(
         backgroundColor: Int? = null,
         onClick: () -> Unit
     ) {
-        val resolvedBackgroundColor =
-            backgroundColor ?: ContextCompat.getColor(activity, R.color.browser_primary)
-        parent.addView(
-            TextView(activity).apply {
-                text = title
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Color.WHITE)
-                textSize = 15f
-                isClickable = true
-                isFocusable = true
-                background = surfaceFactory.createRoundedBackground(resolvedBackgroundColor)
-                setOnClickListener { onClick() }
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(46)
-            ).apply {
-                topMargin = dp(8)
-                bottomMargin = dp(8)
-            }
-        )
+        contentFactory.addFunctionActionButton(parent, title, backgroundColor, onClick)
     }
 
     /**
@@ -479,48 +394,7 @@ class FunctionCenterViewFactory(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     fun addDivider(parent: LinearLayout) {
-        parent.addView(
-            View(activity).apply {
-                setBackgroundColor(
-                    ContextCompat.getColor(activity, R.color.browser_control_pressed)
-                )
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(1)
-            ).apply {
-                topMargin = dp(8)
-                bottomMargin = dp(8)
-            }
-        )
-    }
-
-    /**
-     * 函数 `addSectionTitle`：封装 `add Section Title` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    private fun addSectionTitle(parent: LinearLayout, title: String) {
-        parent.addView(
-            TextView(activity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
-                textSize = 13f
-                typeface = Typeface.DEFAULT_BOLD
-                includeFontPadding = false
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(18)
-                bottomMargin = dp(8)
-                marginStart = dp(4)
-                marginEnd = dp(4)
-            }
-        )
+        contentFactory.addDivider(parent)
     }
 
 }
