@@ -25,7 +25,7 @@ class NativePlaybackShuffleWiringContractTest {
         assertTrue(source.contains("playbackQueue.shuffle()"))
         assertTrue(source.contains("playbackQueue.restoreOriginalOrder()"))
         assertTrue(source.contains("private fun syncPlayerQueueToPlaybackQueue()"))
-        assertTrue(source.contains("exoPlayer.setMediaItems(playbackQueue.items.map(::toMediaItem), currentMediaItemIndex, playbackPosition)"))
+        assertTrue(source.contains("playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)"))
         assertTrue(source.contains(".setPositiveButton(shuffleActionLabel())"))
         assertTrue(source.contains("outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(playbackQueue))"))
         assertTrue(source.contains("savedInstanceState.getString(STATE_PLAYBACK_QUEUE)"))

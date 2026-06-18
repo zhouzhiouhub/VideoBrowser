@@ -1,0 +1,34 @@
+package com.example.videobrowser.video
+
+import java.io.File
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class PlayableMediaItemMedia3ConverterContractTest {
+    @Test
+    fun playerActivityDelegatesMedia3ConversionToConverter() {
+        val playerActivity = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+        ).readText()
+        val converter = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayableMediaItemMedia3Converter.kt"
+        ).readText()
+
+        assertTrue(playerActivity.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
+        assertFalse(playerActivity.contains("private fun toMediaItem("))
+        assertFalse(playerActivity.contains("private fun toSubtitleConfiguration("))
+        assertFalse(playerActivity.contains("private fun normalizedMimeType("))
+        assertTrue(converter.contains("fun toMediaItem(item: PlayableMediaItem): MediaItem"))
+        assertTrue(converter.contains("private fun toSubtitleConfiguration("))
+        assertTrue(converter.contains("private fun normalizedMimeType("))
+    }
+
+    private fun projectFile(path: String): File {
+        val workingDirectory = File("").absoluteFile
+        return listOf(
+            File(workingDirectory, path),
+            File(workingDirectory, "app/$path")
+        ).first { it.exists() }
+    }
+}

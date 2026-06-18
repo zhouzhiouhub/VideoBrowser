@@ -19,10 +19,13 @@ class PlaybackQueueWiringContractTest {
     fun playerActivityUsesQueueBackedMediaItems() {
         val source = projectFile("src/main/java/com/example/videobrowser/video/PlayerActivity.kt")
             .readText()
+        val intentReader = projectFile("src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt")
+            .readText()
 
         assertTrue(source.contains("private lateinit var playbackQueue: PlaybackQueue"))
-        assertTrue(source.contains("PlaybackQueue.single("))
+        assertTrue(intentReader.contains("PlaybackQueue.single("))
         assertTrue(source.contains("setMediaItems("))
+        assertTrue(source.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
     }
 
     /**

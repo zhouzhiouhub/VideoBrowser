@@ -38,13 +38,17 @@ class ExternalSubtitleWiringContractTest {
         val intentReader = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt"
         ).readText()
+        val converter = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayableMediaItemMedia3Converter.kt"
+        ).readText()
 
         assertTrue(playerActivity.contains("PlayerIntentExtras.SUBTITLE_URIS"))
         assertTrue(playerActivity.contains("putStringArrayListExtra("))
         assertTrue(intentReader.contains("getStringArrayListExtra(PlayerIntentExtras.SUBTITLE_URIS)"))
         assertTrue(intentReader.contains("private fun subtitleCandidates()"))
-        assertTrue(playerActivity.contains("setSubtitleConfigurations("))
-        assertTrue(playerActivity.contains("MediaItem.SubtitleConfiguration.Builder"))
+        assertTrue(converter.contains("setSubtitleConfigurations("))
+        assertTrue(converter.contains("MediaItem.SubtitleConfiguration.Builder"))
+        assertTrue(playerActivity.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
     }
 
     /**

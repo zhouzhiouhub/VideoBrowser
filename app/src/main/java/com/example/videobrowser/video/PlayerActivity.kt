@@ -11,7 +11,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -290,7 +289,7 @@ class PlayerActivity : AppCompatActivity() {
         val mediaSourceFactory = DefaultMediaSourceFactory(
             DefaultDataSource.Factory(this, dataSourceFactory)
         )
-        val mediaItems = playbackQueue.items.map(::toMediaItem)
+        val mediaItems = playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)
         val videoEffects = NativeVideoEnhancement.defaultEffects()
 
         // ExoPlayer 生命周期跟随 Activity：onStart 初始化，onStop 释放，播放位置由 savePlayerState 保存。
@@ -877,7 +876,11 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun syncPlayerQueueToPlaybackQueue() {
         val exoPlayer = player ?: return
-        exoPlayer.setMediaItems(playbackQueue.items.map(::toMediaItem), currentMediaItemIndex, playbackPosition)
+        exoPlayer.setMediaItems(
+            playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem),
+            currentMediaItemIndex,
+            playbackPosition
+        )
         exoPlayer.repeatMode = media3RepeatMode(repeatMode)
         exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
         exoPlayer.playWhenReady = playWhenReady
@@ -1204,61 +1207,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `toMediaItem`：封装 `to Media Item` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param item 参数类型为 `PlayableMediaItem`，表示函数执行 `item` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun toMediaItem(item: PlayableMediaItem): MediaItem {
-        return MediaItem.Builder()
-            .setUri(Uri.parse(item.uri))
-            .setMimeType(normalizedMimeType(item.mimeType))
-            .setSubtitleConfigurations(
-                item.subtitleCandidates.map(::toSubtitleConfiguration)
-            )
-            .build()
-    }
-
-    /**
-     * 函数 `toSubtitleConfiguration`：封装 `to Subtitle Configuration` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param candidate 参数类型为 `ExternalSubtitleCandidate`，表示函数执行 `candidate` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun toSubtitleConfiguration(
-        candidate: ExternalSubtitleCandidate
-    ): MediaItem.SubtitleConfiguration {
-        val builder = MediaItem.SubtitleConfiguration.Builder(Uri.parse(candidate.uri))
-        candidate.mimeType?.takeIf { it.isNotBlank() }?.let(builder::setMimeType)
-        candidate.language?.takeIf { it.isNotBlank() }?.let(builder::setLanguage)
-        candidate.label?.takeIf { it.isNotBlank() }?.let(builder::setLabel)
-        return builder.build()
-    }
-
-    /**
-     * 函数 `normalizedMimeType`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizedMimeType(mimeType: String?): String? {
-        return when (mimeType?.substringBefore(';')?.trim()?.lowercase()) {
-            "application/vnd.apple.mpegurl",
-            "application/x-mpegurl",
-            "audio/mpegurl",
-            "audio/x-mpegurl" -> MIME_HLS
-            "application/dash+xml" -> MIME_DASH
-            "application/vnd.ms-sstr+xml" -> MIME_SMOOTH_STREAMING
-            null,
-            "" -> null
-            else -> mimeType.substringBefore(';').trim()
-        }
-    }
-
-    /**
      * 函数 `hideSystemBars`：控制 `hide System Bars` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1313,10 +1261,6 @@ class PlayerActivity : AppCompatActivity() {
         private const val CONTROLS_HIDE_DELAY_MS = 3000
         private const val LONG_PRESS_SCAN_STEP_MS = 500L
         private const val LONG_PRESS_SCAN_INTERVAL_MS = 250L
-        private const val MIME_HLS = "application/x-mpegURL"
-        private const val MIME_DASH = "application/dash+xml"
-        private const val MIME_SMOOTH_STREAMING = "application/vnd.ms-sstr+xml"
-
         /**
          * 函数 `createIntent`：创建 `create Intent` 需要的对象、视图或配置，并返回给后续流程使用。
          *
