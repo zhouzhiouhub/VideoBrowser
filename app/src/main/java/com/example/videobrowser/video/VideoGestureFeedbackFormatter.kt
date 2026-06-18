@@ -8,6 +8,7 @@ package com.example.videobrowser.video
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
 import com.example.videobrowser.utils.PlaybackSpeedDisplayFormatter
+import com.example.videobrowser.utils.DurationLabelFormatter
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -94,15 +95,10 @@ object VideoGestureFeedbackFormatter {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun formatTime(timeMs: Long): String {
-        val totalSeconds = (timeMs / 1000L).coerceAtLeast(0L)
-        val hours = totalSeconds / 3600L
-        val minutes = (totalSeconds % 3600L) / 60L
-        val seconds = totalSeconds % 60L
-        return if (hours > 0L) {
-            "%d:%02d:%02d".format(hours, minutes, seconds)
-        } else {
-            "%02d:%02d".format(minutes, seconds)
-        }
+        return DurationLabelFormatter.formatMillis(
+            timeMs,
+            minuteStyle = DurationLabelFormatter.MinuteStyle.TWO_DIGIT
+        )
     }
 
     private const val BRIGHTNESS_ICON = "\u2600"

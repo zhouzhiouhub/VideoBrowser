@@ -10,12 +10,11 @@ package com.example.videobrowser.functioncenter
 import com.example.videobrowser.utils.PlaybackSpeedDisplayFormatter
 import com.example.videobrowser.utils.ShortDateTimeFormatter
 import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.utils.DurationLabelFormatter
 import com.example.videobrowser.video.PlaybackProgress
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 object PlaybackHistoryDisplayText {
     /**
@@ -89,18 +88,6 @@ object PlaybackHistoryDisplayText {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun formatDuration(durationMs: Long): String {
-        val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(durationMs.coerceAtLeast(0L))
-        val hours = totalSeconds / SECONDS_PER_HOUR
-        val minutes = (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
-        val seconds = totalSeconds % SECONDS_PER_MINUTE
-
-        return if (hours > 0L) {
-            String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format(Locale.US, "%d:%02d", minutes, seconds)
-        }
+        return DurationLabelFormatter.formatMillis(durationMs)
     }
-
-    private const val SECONDS_PER_MINUTE = 60L
-    private const val SECONDS_PER_HOUR = 60L * SECONDS_PER_MINUTE
 }
