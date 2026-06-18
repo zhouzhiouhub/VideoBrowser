@@ -8,11 +8,9 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import android.app.Activity
-import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Message
 import android.view.View
-import android.view.ViewGroup
 import android.webkit.GeolocationPermissions
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
@@ -50,12 +48,12 @@ class ChromeClient(
     private val windowClosed: (WebView?) -> Unit = {}
 ) : WebChromeClient() {
     private val javaScriptDialogs = ChromeJavaScriptDialogController(activity)
-    private var customView: View? = null
-    private var customViewCallback: CustomViewCallback? = null
-    private var previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-    private var previousSystemUiVisibility = 0
-    private var fullscreenModeActive = false
-    private var fullscreenLandscape = true
+    private val fullscreenController = ChromeFullscreenController(
+        activity = activity,
+        fullscreenContainer = fullscreenContainer,
+        decorView = decorView,
+        fullscreenChanged = fullscreenChanged
+    )
 
     /**
      * 函数 `isShowingCustomView`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
@@ -64,7 +62,7 @@ class ChromeClient(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isShowingCustomView(): Boolean {
-        return customView != null
+        return fullscreenController.isShowingCustomView()
     }
 
     /**
@@ -74,7 +72,7 @@ class ChromeClient(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isFullscreenModeActive(): Boolean {
-        return fullscreenModeActive
+        return fullscreenController.isFullscreenModeActive()
     }
 
     /**
@@ -84,7 +82,7 @@ class ChromeClient(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isFullscreenLandscape(): Boolean {
-        return fullscreenLandscape
+        return fullscreenController.isFullscreenLandscape()
     }
 
     /**
@@ -94,13 +92,7 @@ class ChromeClient(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun toggleFullscreenOrientation(): Boolean {
-        if (!fullscreenModeActive) {
-            return fullscreenLandscape
-        }
-
-        fullscreenLandscape = !fullscreenLandscape
-        applyFullscreenOrientation()
-        return fullscreenLandscape
+        return fullscreenController.toggleFullscreenOrientation()
     }
 
     /**
@@ -109,7 +101,7 @@ class ChromeClient(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun enterPageFullscreen() {
-        enterFullscreenMode()
+        fullscreenController.enterPageFullscreen()
     }
 
     /**
@@ -118,9 +110,7 @@ class ChromeClient(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun exitPageFullscreen() {
-        if (customView == null) {
-            exitFullscreenMode()
-        }
+        fullscreenController.exitPageFullscreen()
     }
 
     /**
@@ -320,33 +310,7 @@ class ChromeClient(
      * @param callback 参数类型为 `CustomViewCallback?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
      */
     override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
-        if (view == null) {
-            callback?.onCustomViewHidden()
-            return
-        }
-        // WebView 播放器进入全屏时会给一个自定义 View。
-        // App 把它移到 fullscreenContainer，让普通浏览器控件暂时让位。
-        if (customView != null) {
-            callback?.onCustomViewHidden()
-            return
-        }
-
-        customView = view
-        customViewCallback = callback
-        enterFullscreenMode()
-        (view.parent as? ViewGroup)?.removeView(view)
-        view.keepScreenOn = true
-        fullscreenContainer.removeAllViews()
-        fullscreenContainer.addView(
-            view,
-            FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        )
-        fullscreenContainer.visibility = View.VISIBLE
-        fullscreenContainer.bringToFront()
-        fullscreenContainer.requestFocus()
+        fullscreenController.showCustomView(view, callback)
     }
 
     /**
@@ -355,7 +319,7 @@ class ChromeClient(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     override fun onHideCustomView() {
-        hideCustomView()
+        fullscreenController.hideCustomView()
     }
 
     /**
@@ -364,77 +328,6 @@ class ChromeClient(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun hideCustomView() {
-        val view = customView ?: return
-        val callback = customViewCallback
-        customView = null
-        customViewCallback = null
-
-        view.keepScreenOn = false
-        if (view.parent == fullscreenContainer) {
-            fullscreenContainer.removeView(view)
-        } else {
-            fullscreenContainer.removeAllViews()
-        }
-        fullscreenContainer.visibility = View.GONE
-        fullscreenContainer.clearFocus()
-        exitFullscreenMode()
-        callback?.onCustomViewHidden()
-    }
-
-    /**
-     * 函数 `enterFullscreenMode`：封装 `enter Fullscreen Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun enterFullscreenMode() {
-        if (!fullscreenModeActive) {
-            fullscreenModeActive = true
-            previousOrientation = activity.requestedOrientation
-            previousSystemUiVisibility = decorView.systemUiVisibility
-            fullscreenLandscape = true
-        }
-
-        applyFullscreenOrientation()
-        decorView.systemUiVisibility =
-            previousSystemUiVisibility or
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        fullscreenChanged(true)
-    }
-
-    /**
-     * 函数 `exitFullscreenMode`：封装 `exit Fullscreen Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun exitFullscreenMode() {
-        if (!fullscreenModeActive) {
-            return
-        }
-
-        activity.requestedOrientation = previousOrientation
-        decorView.systemUiVisibility = previousSystemUiVisibility
-        previousOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        previousSystemUiVisibility = 0
-        fullscreenModeActive = false
-        fullscreenLandscape = true
-        fullscreenChanged(false)
-    }
-
-    /**
-     * 函数 `applyFullscreenOrientation`：根据最新状态刷新 `apply Fullscreen Orientation` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun applyFullscreenOrientation() {
-        activity.requestedOrientation = if (fullscreenLandscape) {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        }
+        fullscreenController.hideCustomView()
     }
 }

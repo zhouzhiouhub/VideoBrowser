@@ -51,10 +51,21 @@ class FullscreenVideoExitButtonContractTest {
         val source = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoController.kt"
         ).readText()
+        val chromeClient = projectFile(
+            "src/main/java/com/example/videobrowser/browser/ChromeClient.kt"
+        ).readText()
+        val fullscreenController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/ChromeFullscreenController.kt"
+        ).readText()
 
         assertTrue(source.contains("onExitFullscreen = ::exitFullscreen"))
         assertTrue(source.contains("chromeClient()?.hideCustomView()"))
         assertTrue(source.contains("chromeClient()?.exitPageFullscreen()"))
+        assertTrue(chromeClient.contains("ChromeFullscreenController("))
+        assertTrue(chromeClient.contains("fullscreenController.showCustomView(view, callback)"))
+        assertTrue(chromeClient.contains("fullscreenController.hideCustomView()"))
+        assertTrue(fullscreenController.contains("CustomViewCallback"))
+        assertTrue(fullscreenController.contains("ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE"))
     }
 
     /**
