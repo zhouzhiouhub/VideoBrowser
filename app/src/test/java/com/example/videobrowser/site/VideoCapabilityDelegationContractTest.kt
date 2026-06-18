@@ -132,12 +132,13 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonScriptAvoidsNativeControlsWhenUnknownSiteAlreadyHasCustomPlayerControls() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val geometryScript = projectFile("src/main/assets/scripts/geometry.js").readText()
         val enableVideoControlsBody = functionBody(script, "function enableVideoControls(video)")
 
         assertTrue(script.contains("function hasLikelyCustomPlayerControls(video)"))
         assertTrue(script.contains("function removeNativeVideoControls(video, reason)"))
-        assertTrue(script.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
-        assertTrue(script.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
+        assertTrue(geometryScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
+        assertTrue(geometryScript.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
         assertTrue(script.contains("const expandedRect = geometry.expandedRect"))
         assertTrue(script.contains("const rectsOverlap = geometry.rectsOverlap"))
         assertTrue(script.contains("'.xgplayer-controls'"))

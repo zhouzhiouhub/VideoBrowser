@@ -26,8 +26,11 @@ class ScriptLoaderTest {
 
         val script = loader.loadCommonScript()
 
-        assertEquals("content from ${ScriptLoader.COMMON_SCRIPT_ASSET}", script)
-        assertEquals(listOf(ScriptLoader.COMMON_SCRIPT_ASSET), requestedPaths)
+        assertEquals(
+            ScriptLoader.COMMON_SCRIPT_ASSETS.joinToString(separator = "\n\n") { path -> "content from $path" },
+            script
+        )
+        assertEquals(ScriptLoader.COMMON_SCRIPT_ASSETS, requestedPaths)
     }
 
     /**

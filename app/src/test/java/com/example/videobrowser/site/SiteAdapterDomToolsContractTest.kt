@@ -8,12 +8,16 @@ import org.junit.Test
 class SiteAdapterDomToolsContractTest {
     @Test
     fun `safe dom queries are shared between common script and site helpers`() {
+        val domToolsScript = projectFile("src/main/assets/scripts/dom_tools.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
 
-        assertTrue(commonScript.contains("window.VideoBrowserDomTools = domTools"))
-        assertTrue(commonScript.contains("domTools.queryAll = domTools.queryAll || function (selector)"))
-        assertTrue(commonScript.contains("domTools.queryAllWithin = domTools.queryAllWithin || function (root, selector)"))
+        assertTrue(domToolsScript.contains("window.VideoBrowserDomTools = domTools"))
+        assertTrue(domToolsScript.contains("domTools.queryAll = domTools.queryAll || function (selector)"))
+        assertTrue(domToolsScript.contains("domTools.queryAllWithin = domTools.queryAllWithin || function (root, selector)"))
+        assertTrue(commonScript.contains("const domTools = window.VideoBrowserDomTools"))
+        assertFalse(commonScript.contains("domTools.queryAll = domTools.queryAll || function (selector)"))
+        assertFalse(commonScript.contains("domTools.queryAllWithin = domTools.queryAllWithin || function (root, selector)"))
         assertTrue(commonScript.contains("return domTools.queryAll(selector);"))
         assertTrue(commonScript.contains("return domTools.queryAllWithin(root, selector);"))
         assertTrue(helperScript.contains("var domTools = window.VideoBrowserDomTools || {}"))

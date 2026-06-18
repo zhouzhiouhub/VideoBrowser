@@ -8,15 +8,21 @@ import org.junit.Test
 class SiteAdapterGeometryContractTest {
     @Test
     fun `site adapter geometry helpers are shared`() {
+        val geometryScript = projectFile("src/main/assets/scripts/geometry.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
         val bilibiliScript = projectFile("src/main/assets/scripts/bilibili.js").readText()
 
-        assertTrue(commonScript.contains("window.VideoBrowserGeometry = geometry"))
-        assertTrue(commonScript.contains("geometry.safeRect = geometry.safeRect || function (element)"))
-        assertTrue(commonScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
-        assertTrue(commonScript.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
-        assertTrue(commonScript.contains("geometry.centerDistance = geometry.centerDistance || function (first, second)"))
+        assertTrue(geometryScript.contains("window.VideoBrowserGeometry = geometry"))
+        assertTrue(geometryScript.contains("geometry.safeRect = geometry.safeRect || function (element)"))
+        assertTrue(geometryScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
+        assertTrue(geometryScript.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
+        assertTrue(geometryScript.contains("geometry.centerDistance = geometry.centerDistance || function (first, second)"))
+        assertTrue(commonScript.contains("const geometry = window.VideoBrowserGeometry"))
+        assertFalse(commonScript.contains("geometry.safeRect = geometry.safeRect || function (element)"))
+        assertFalse(commonScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
+        assertFalse(commonScript.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
+        assertFalse(commonScript.contains("geometry.centerDistance = geometry.centerDistance || function (first, second)"))
         assertTrue(helperScript.contains("var geometry = window.VideoBrowserGeometry || {}"))
         assertTrue(helperScript.contains("tools.safeRect = geometry.safeRect"))
         assertTrue(helperScript.contains("tools.expandedRect = geometry.expandedRect"))

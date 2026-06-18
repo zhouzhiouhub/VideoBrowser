@@ -74,7 +74,7 @@ class JsInjectorTest {
         injector.inject(PageFeatureConfig(cleanupEnabled = true, videoEnabled = true))
         injector.inject(PageFeatureConfig(cleanupEnabled = false, videoEnabled = true))
 
-        assertEquals(1, loadCount)
+        assertEquals(ScriptLoader.COMMON_SCRIPT_ASSETS.size, loadCount)
         assertEquals(2, evaluatedScripts.size)
         assertTrue(
             evaluatedScripts[1].contains(
@@ -141,8 +141,7 @@ class JsInjectorTest {
 
         val script = evaluatedScripts.single()
         assertEquals(
-            listOf(
-                ScriptLoader.COMMON_SCRIPT_ASSET,
+            ScriptLoader.COMMON_SCRIPT_ASSETS + listOf(
                 ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET,
                 "scripts/youtube.js"
             ),
@@ -184,7 +183,7 @@ class JsInjectorTest {
         )
 
         val script = evaluatedScripts.single()
-        assertEquals(listOf(ScriptLoader.COMMON_SCRIPT_ASSET), requestedPaths)
+        assertEquals(ScriptLoader.COMMON_SCRIPT_ASSETS, requestedPaths)
         assertFalse(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__"))
         assertFalse(script.contains("__siteYoutubeLoaded"))
     }
@@ -396,6 +395,8 @@ class JsInjectorTest {
      */
     private fun scriptContentFor(path: String): String {
         return when (path) {
+            ScriptLoader.GEOMETRY_SCRIPT_ASSET -> "window.__geometryLoaded = true;"
+            ScriptLoader.DOM_TOOLS_SCRIPT_ASSET -> "window.__domToolsLoaded = true;"
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
             ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET -> "window.__siteHelpersLoaded = true;"
             "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"

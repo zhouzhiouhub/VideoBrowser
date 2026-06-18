@@ -39,7 +39,9 @@ class ScriptLoader(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun loadCommonScript(): String {
-        return loadScript(COMMON_SCRIPT_ASSET)
+        return COMMON_SCRIPT_ASSETS.joinToString(separator = "\n\n") { path ->
+            loadScript(path)
+        }
     }
 
     /**
@@ -67,8 +69,15 @@ class ScriptLoader(
     }
 
     companion object {
+        const val GEOMETRY_SCRIPT_ASSET = "scripts/geometry.js"
+        const val DOM_TOOLS_SCRIPT_ASSET = "scripts/dom_tools.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
+        val COMMON_SCRIPT_ASSETS = listOf(
+            GEOMETRY_SCRIPT_ASSET,
+            DOM_TOOLS_SCRIPT_ASSET,
+            COMMON_SCRIPT_ASSET
+        )
         private const val SCRIPT_ASSET_DIRECTORY = "scripts/"
         private const val SCRIPT_EXTENSION = ".js"
     }
