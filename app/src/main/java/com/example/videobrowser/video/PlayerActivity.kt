@@ -819,11 +819,7 @@ class PlayerActivity : AppCompatActivity() {
             return playbackQueue.isShuffled
         }
         savePlayerState()
-        playbackQueue = if (playbackQueue.isShuffled) {
-            playbackQueue.restoreOriginalOrder()
-        } else {
-            playbackQueue.shuffle()
-        }
+        playbackQueue = playbackQueue.toggleShuffle()
         currentMediaItemIndex = playbackQueue.currentIndex
         syncPlayerQueueToPlaybackQueue()
         updateQueueControls()

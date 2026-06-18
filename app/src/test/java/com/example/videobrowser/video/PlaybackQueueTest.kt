@@ -195,6 +195,26 @@ class PlaybackQueueTest {
         assertEquals(queue, queue.restoreOriginalOrder())
     }
 
+    @Test
+    fun `toggle shuffle switches between shuffled and original order`() {
+        val first = playable("https://cdn.example.com/one.mp4")
+        val second = playable("https://cdn.example.com/two.mp4")
+        val third = playable("https://cdn.example.com/three.mp4")
+        val queue = PlaybackQueue(
+            items = listOf(first, second, third),
+            currentIndex = 1
+        )
+
+        val shuffled = queue.toggleShuffle { it.asReversed() }
+        val restored = shuffled.toggleShuffle()
+
+        assertTrue(shuffled.isShuffled)
+        assertEquals(listOf(second, third, first), shuffled.items)
+        assertFalse(restored.isShuffled)
+        assertEquals(queue.items, restored.items)
+        assertEquals(queue.currentIndex, restored.currentIndex)
+    }
+
     /**
      * 测试函数 `removeFromShuffledQueueAlsoRemovesFromOriginalOrder`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `remove From Shuffled Queue Also Removes From Original Order` 这条行为是否成立。
      *

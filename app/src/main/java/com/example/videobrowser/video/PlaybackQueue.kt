@@ -153,6 +153,22 @@ data class PlaybackQueue(
         )
     }
 
+    fun toggleShuffle(random: Random = Random.Default): PlaybackQueue {
+        return if (isShuffled) {
+            restoreOriginalOrder()
+        } else {
+            shuffle(random)
+        }
+    }
+
+    fun toggleShuffle(reorderTail: (List<PlayableMediaItem>) -> List<PlayableMediaItem>): PlaybackQueue {
+        return if (isShuffled) {
+            restoreOriginalOrder()
+        } else {
+            shuffle(reorderTail)
+        }
+    }
+
     /**
      * 函数 `restoreOriginalOrder`：封装 `restore Original Order` 这一段业务步骤，让调用方不用关心内部实现细节。
      *

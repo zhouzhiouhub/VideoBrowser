@@ -6,6 +6,7 @@ package com.example.videobrowser.video
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import java.io.File
 
@@ -20,10 +21,17 @@ class NativePlaybackShuffleWiringContractTest {
         val source = File(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val queue = File(
+            "src/main/java/com/example/videobrowser/video/PlaybackQueue.kt"
+        ).readText()
 
         assertTrue(source.contains("private fun toggleShuffleMode(): Boolean"))
-        assertTrue(source.contains("playbackQueue.shuffle()"))
-        assertTrue(source.contains("playbackQueue.restoreOriginalOrder()"))
+        assertTrue(source.contains("playbackQueue.toggleShuffle()"))
+        assertFalse(source.contains("playbackQueue.shuffle()"))
+        assertFalse(source.contains("playbackQueue.restoreOriginalOrder()"))
+        assertTrue(queue.contains("fun toggleShuffle("))
+        assertTrue(queue.contains("restoreOriginalOrder()"))
+        assertTrue(queue.contains("shuffle("))
         assertTrue(source.contains("private fun syncPlayerQueueToPlaybackQueue()"))
         assertTrue(source.contains("playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)"))
         assertTrue(source.contains(".setPositiveButton(shuffleActionLabel())"))
