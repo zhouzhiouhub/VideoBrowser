@@ -5,9 +5,8 @@ import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadCategory
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadStatus
+import com.example.videobrowser.utils.ShortDateTimeFormatter
 import com.example.videobrowser.utils.UrlUtils
-import java.text.DateFormat
-import java.util.Date
 
 internal class DownloadsPageTextFormatter(
     private val context: Context
@@ -17,8 +16,7 @@ internal class DownloadsPageTextFormatter(
         retryable: Boolean = false,
         cancelable: Boolean = false
     ): String {
-        val createdAt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-            .format(Date(record.createdAtMillis))
+        val createdAt = ShortDateTimeFormatter.format(record.createdAtMillis)
         val status = context.getString(downloadStatusTitleResId(record.status))
         val progress = progressSummary(record)
         val failureReason = if (record.status == DownloadStatus.FAILED) {

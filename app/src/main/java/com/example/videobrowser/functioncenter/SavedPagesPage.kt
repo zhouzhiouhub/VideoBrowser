@@ -12,9 +12,8 @@ import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.storage.SavedPageSearch
+import com.example.videobrowser.utils.ShortDateTimeFormatter
 import com.example.videobrowser.utils.UrlUtils
-import java.text.DateFormat
-import java.util.Date
 
 class SavedPagesPage(
     private val host: FunctionCenterPageHost,
@@ -184,7 +183,7 @@ class SavedPagesPage(
                 activity.getString(R.string.bookmark_folder_summary, folder)
             },
             UrlUtils.displayUrl(page.url),
-            timestamp?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) }
+            timestamp?.let(ShortDateTimeFormatter::format)
         ).joinToString(" | ")
     }
 

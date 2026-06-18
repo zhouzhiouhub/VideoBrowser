@@ -8,13 +8,12 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import com.example.videobrowser.utils.PlaybackSpeedNormalizer
+import com.example.videobrowser.utils.ShortDateTimeFormatter
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.PlaybackProgress
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import java.text.DateFormat
-import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -78,8 +77,7 @@ object PlaybackHistoryDisplayText {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun formatUpdatedAt(updatedAtMillis: Long): String {
-        return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-            .format(Date(updatedAtMillis))
+        return ShortDateTimeFormatter.format(updatedAtMillis)
     }
 
     /**
