@@ -85,10 +85,13 @@ class BrowserDataManagementPageTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
         ).readText()
+        val originSearch = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSiteDataOriginSearch.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(page.contains("object BrowserSiteDataOriginSearch"))
+        assertTrue(originSearch.contains("object BrowserSiteDataOriginSearch"))
         assertTrue(page.contains("fun showSiteData(replaceCurrent: Boolean = false, query: String? = null)"))
         assertTrue(page.contains("BrowserSiteDataOriginSearch.matches(origin.origin, query)"))
         assertTrue(page.contains("fun showSiteDataSearchDialog"))
