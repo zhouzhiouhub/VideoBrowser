@@ -1,5 +1,7 @@
 package com.example.videobrowser.storage
 
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
+
 /**
  * 初学者阅读提示：
  * 这个文件属于“收藏与历史存储模块”。
@@ -218,7 +220,7 @@ class SavedPageRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun updateBookmarkFolder(url: String, folder: String): Boolean {
-        val collapsedFolder = folder.trim().replace(Regex("\\s+"), " ")
+        val collapsedFolder = TextWhitespaceNormalizer.collapse(folder)
         val normalizedFolder = if (collapsedFolder.isEmpty()) {
             ""
         } else {

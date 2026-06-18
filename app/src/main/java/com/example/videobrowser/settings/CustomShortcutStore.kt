@@ -1,6 +1,7 @@
 package com.example.videobrowser.settings
 
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 
 internal class CustomShortcutStore(
     private val preferenceStore: PreferenceStore
@@ -73,9 +74,9 @@ internal class CustomShortcutStore(
     }
 
     private fun normalize(name: String, url: String): CustomShortcut? {
-        val normalizedName = SettingsTextNormalizer.collapseWhitespace(name)
+        val normalizedName = TextWhitespaceNormalizer.collapse(name)
         val normalizedUrl = url.trim()
-        if (normalizedName.isEmpty() || SettingsTextNormalizer.hasTabOrLineBreak(normalizedName)) {
+        if (normalizedName.isEmpty() || TextWhitespaceNormalizer.hasTabOrLineBreak(normalizedName)) {
             return null
         }
         if (!SettingsHttpUrlValidator.isHttpUrl(normalizedUrl)) {

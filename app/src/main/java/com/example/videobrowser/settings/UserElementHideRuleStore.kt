@@ -2,6 +2,7 @@ package com.example.videobrowser.settings
 
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 
 internal class UserElementHideRuleStore(
     private val preferenceStore: PreferenceStore
@@ -88,12 +89,12 @@ internal class UserElementHideRuleStore(
     }
 
     private fun normalizeSelector(selector: String): String? {
-        val collapsed = SettingsTextNormalizer.collapseWhitespace(selector)
+        val collapsed = TextWhitespaceNormalizer.collapse(selector)
         val normalized = stabilizeSelector(collapsed)
         if (normalized.isEmpty() || normalized.length > MAX_USER_ELEMENT_SELECTOR_LENGTH) {
             return null
         }
-        if (SettingsTextNormalizer.hasTabOrLineBreak(normalized)) {
+        if (TextWhitespaceNormalizer.hasTabOrLineBreak(normalized)) {
             return null
         }
         if (UNSAFE_SELECTOR_PATTERN.containsMatchIn(normalized)) {
@@ -113,7 +114,7 @@ internal class UserElementHideRuleStore(
         }
         return POSITIONAL_SEGMENT_PATTERN
             .replace(selector, "")
-            .let(SettingsTextNormalizer::collapseWhitespace)
+            .let(TextWhitespaceNormalizer::collapse)
     }
 
     private companion object {

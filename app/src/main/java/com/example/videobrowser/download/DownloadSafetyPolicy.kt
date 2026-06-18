@@ -7,6 +7,7 @@ package com.example.videobrowser.download
  * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 import java.net.URI
 import java.util.Locale
 
@@ -67,10 +68,8 @@ object DownloadSafetyPolicy {
      */
     fun safeDownloadFileName(fileName: String): String {
         // 文件名会落到公共下载目录，必须移除路径分隔符、控制字符和 Windows 不允许的字符。
-        val sanitized = fileName
-            .trim()
-            .replace(invalidDownloadFileNameChars, "_")
-            .replace(Regex("\\s+"), " ")
+        val sanitized = TextWhitespaceNormalizer
+            .collapse(fileName.trim().replace(invalidDownloadFileNameChars, "_"))
             .trim('.', ' ')
             .take(MAX_DOWNLOAD_FILE_NAME_LENGTH)
             .trim('.', ' ')

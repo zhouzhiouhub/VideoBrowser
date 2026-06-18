@@ -10,6 +10,7 @@ package com.example.videobrowser.video
 import com.example.videobrowser.settings.TabSeparatedLineCodec
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.utils.PlaybackSpeedNormalizer
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 
 /**
  * 单个媒体的播放进度记录。
@@ -193,8 +194,7 @@ class PlaybackHistoryRepository(
 
     private fun normalizeTitle(title: String?): String? {
         return title
-            ?.replace(Regex("\\s+"), " ")
-            ?.trim()
+            ?.let(TextWhitespaceNormalizer::collapse)
             ?.take(MAX_TITLE_LENGTH)
             ?.takeIf { it.isNotBlank() }
     }

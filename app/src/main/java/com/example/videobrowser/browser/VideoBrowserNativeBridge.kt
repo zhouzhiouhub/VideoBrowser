@@ -8,6 +8,7 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import android.webkit.JavascriptInterface
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 
 class VideoBrowserNativeBridge(
     private val postToUi: ((() -> Unit) -> Unit),
@@ -137,9 +138,8 @@ class VideoBrowserNativeBridge(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun sanitizeBridgeText(text: String, maxLength: Int): String {
-        return text
-            .replace(Regex("\\s+"), " ")
-            .trim()
+        return TextWhitespaceNormalizer
+            .collapse(text)
             .take(maxLength)
     }
 

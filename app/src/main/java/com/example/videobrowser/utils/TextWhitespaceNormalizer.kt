@@ -1,7 +1,7 @@
-package com.example.videobrowser.settings
+package com.example.videobrowser.utils
 
-internal object SettingsTextNormalizer {
-    fun collapseWhitespace(value: String): String {
+object TextWhitespaceNormalizer {
+    fun collapse(value: String): String {
         return value.trim().replace(WHITESPACE_SEQUENCE, " ")
     }
 
