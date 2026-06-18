@@ -45,12 +45,6 @@ internal class DownloadsPageTextFormatter(
         ).joinToString(" | ")
     }
 
-    fun currentSearchSummary(query: String?): String {
-        return query
-            ?.takeIf { it.isNotBlank() }
-            ?: context.getString(R.string.action_search_download_records_summary)
-    }
-
     fun statusFilterSummary(statusFilter: DownloadStatus?): String {
         return statusFilter
             ?.let { status -> context.getString(downloadStatusTitleResId(status)) }

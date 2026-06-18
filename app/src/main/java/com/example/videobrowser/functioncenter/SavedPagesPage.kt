@@ -69,7 +69,10 @@ class SavedPagesPage(
                 host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_search_saved_pages),
-                    summary = currentSearchSummary(query)
+                    summary = SearchSummaryFormatter.current(
+                        query,
+                        activity.getString(R.string.action_search_saved_pages_summary)
+                    )
                 ) {
                     dialogController.showSearchDialog(collection, title, emptyMessage, query)
                 }
@@ -185,19 +188,6 @@ class SavedPagesPage(
             UrlUtils.displayUrl(page.url),
             timestamp?.let(ShortDateTimeFormatter::format)
         ).joinToString(" | ")
-    }
-
-    /**
-     * 函数 `currentSearchSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param query 参数类型为 `String?`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSearchSummary(query: String?): String {
-        return query
-            ?.takeIf { it.isNotBlank() }
-            ?: activity.getString(R.string.action_search_saved_pages_summary)
     }
 
     /**

@@ -75,7 +75,10 @@ class DownloadsPage(
                         host.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_search_download_records),
-                            summary = textFormatter.currentSearchSummary(query)
+                            summary = SearchSummaryFormatter.current(
+                                query,
+                                activity.getString(R.string.action_search_download_records_summary)
+                            )
                         ) {
                             dialogController.showSearchDialog(query, statusFilter, categoryFilter)
                         }

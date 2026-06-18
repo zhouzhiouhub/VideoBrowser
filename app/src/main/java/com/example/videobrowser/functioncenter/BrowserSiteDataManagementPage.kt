@@ -44,7 +44,10 @@ internal class BrowserSiteDataManagementPage(
                     host.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_search_site_data),
-                        summary = currentSearchSummary(query)
+                        summary = SearchSummaryFormatter.current(
+                            query,
+                            activity.getString(R.string.action_search_site_data_summary)
+                        )
                     ) {
                         dialogController.showSiteDataSearchDialog(query) { searchQuery ->
                             show(
@@ -104,9 +107,4 @@ internal class BrowserSiteDataManagementPage(
         }
     }
 
-    private fun currentSearchSummary(query: String?): String {
-        return query
-            ?.takeIf { it.isNotBlank() }
-            ?: activity.getString(R.string.action_search_site_data_summary)
-    }
 }
