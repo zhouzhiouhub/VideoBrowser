@@ -13,12 +13,12 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
+import com.example.videobrowser.download.AndroidDownloadStatusSnapshotReader
 import com.example.videobrowser.download.DownloadCancellationPolicy
 import com.example.videobrowser.download.DownloadCancellationResult
 import com.example.videobrowser.download.DownloadCanceller
@@ -44,6 +44,7 @@ class DownloadsPage(
 ) {
     private val activity = host.activity
     private val textFormatter = DownloadsPageTextFormatter(activity)
+    private val statusSnapshotReader = AndroidDownloadStatusSnapshotReader(activity)
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -579,64 +580,7 @@ class DownloadsPage(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun queryDownloadStatusSnapshot(downloadId: Long): DownloadStatusSnapshot? {
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val cursor = runCatching {
-            downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
-        }.getOrNull() ?: return null
-        return cursor.use(::snapshotFromCursor)
-    }
-
-    /**
-     * 函数 `snapshotFromCursor`：封装 `snapshot From Cursor` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param cursor 参数类型为 `Cursor`，表示函数执行 `cursor` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun snapshotFromCursor(cursor: Cursor): DownloadStatusSnapshot? {
-        if (!cursor.moveToFirst()) {
-            return null
-        }
-        val statusColumn = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-        if (statusColumn < 0) {
-            return null
-        }
-        val reasonColumn = cursor.getColumnIndex(DownloadManager.COLUMN_REASON)
-        val downloadedColumn = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-        val totalColumn = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-        val statusReason = reasonColumn
-            .takeIf { column -> column >= 0 }
-            ?.let { column -> cursor.getInt(column) }
-        val bytesDownloaded = downloadedColumn
-            .takeIf { column -> column >= 0 }
-            ?.let { column -> cursor.getLong(column) }
-            ?.takeIf { value -> value >= 0L }
-        val totalBytes = totalColumn
-            .takeIf { column -> column >= 0 }
-            ?.let { column -> cursor.getLong(column) }
-            ?.takeIf { value -> value >= 0L }
-
-        return when (cursor.getInt(statusColumn)) {
-            DownloadManager.STATUS_SUCCESSFUL -> DownloadStatusSnapshot(
-                status = DownloadStatus.COMPLETED,
-                bytesDownloaded = bytesDownloaded,
-                totalBytes = totalBytes
-            )
-            DownloadManager.STATUS_FAILED -> DownloadStatusSnapshot(
-                status = DownloadStatus.FAILED,
-                statusReason = statusReason,
-                bytesDownloaded = bytesDownloaded,
-                totalBytes = totalBytes
-            )
-            DownloadManager.STATUS_PENDING,
-            DownloadManager.STATUS_PAUSED,
-            DownloadManager.STATUS_RUNNING -> DownloadStatusSnapshot(
-                status = DownloadStatus.IN_PROGRESS,
-                bytesDownloaded = bytesDownloaded,
-                totalBytes = totalBytes
-            )
-            else -> null
-        }
+        return statusSnapshotReader.query(downloadId)
     }
 
     private data class DownloadRecordAction(
