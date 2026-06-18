@@ -21,6 +21,7 @@ class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
     private val hostSets = SettingsHostSetStore(preferenceStore)
+    private val sitePermissions = PersistentSitePermissionStore(preferenceStore, hostSets)
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
     private val customShortcutStore = CustomShortcutStore(preferenceStore)
 
@@ -315,12 +316,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun sitePermissionDecision(host: String?, permission: SitePermission): SitePermissionDecision {
-        val normalizedHost = SiteHost.normalize(host) ?: return SitePermissionDecision.ASK
-        return when {
-            allowedSitePermissionHosts(permission).contains(normalizedHost) -> SitePermissionDecision.ALLOW
-            blockedSitePermissionHosts(permission).contains(normalizedHost) -> SitePermissionDecision.BLOCK
-            else -> SitePermissionDecision.ASK
-        }
+        return sitePermissions.decision(host, permission)
     }
 
     /**
@@ -337,22 +333,7 @@ class SettingsManager(
         permission: SitePermission,
         decision: SitePermissionDecision
     ): Boolean {
-        // 每个权限只有一种最终状态：允许、阻止或询问。保存新状态前先从两个集合里移除旧状态。
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val allowedHosts = allowedSitePermissionHosts(permission).toMutableSet()
-        val blockedHosts = blockedSitePermissionHosts(permission).toMutableSet()
-
-        allowedHosts.remove(normalizedHost)
-        blockedHosts.remove(normalizedHost)
-        when (decision) {
-            SitePermissionDecision.ALLOW -> allowedHosts.add(normalizedHost)
-            SitePermissionDecision.BLOCK -> blockedHosts.add(normalizedHost)
-            SitePermissionDecision.ASK -> Unit
-        }
-
-        hostSets.save(sitePermissionAllowedKey(permission), allowedHosts)
-        hostSets.save(sitePermissionBlockedKey(permission), blockedHosts)
-        return true
+        return sitePermissions.setDecision(host, permission, decision)
     }
 
     /**
@@ -363,7 +344,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun allowedSitePermissionHosts(permission: SitePermission): Set<String> {
-        return hostSets.load(sitePermissionAllowedKey(permission))
+        return sitePermissions.allowedHosts(permission)
     }
 
     /**
@@ -374,7 +355,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun blockedSitePermissionHosts(permission: SitePermission): Set<String> {
-        return hostSets.load(sitePermissionBlockedKey(permission))
+        return sitePermissions.blockedHosts(permission)
     }
 
     /**
@@ -384,25 +365,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun sitePermissionRecords(): List<SitePermissionRecord> {
-        return SitePermission.entries.flatMap { permission ->
-            val allowedHosts = allowedSitePermissionHosts(permission)
-            val blockedHosts = blockedSitePermissionHosts(permission)
-            allowedHosts.map { host ->
-                SitePermissionRecord(
-                    host = host,
-                    permission = permission,
-                    decision = SitePermissionDecision.ALLOW
-                )
-            } + blockedHosts
-                .filterNot { host -> host in allowedHosts }
-                .map { host ->
-                    SitePermissionRecord(
-                        host = host,
-                        permission = permission,
-                        decision = SitePermissionDecision.BLOCK
-                    )
-                }
-        }.distinct()
+        return sitePermissions.records()
     }
 
     /**
@@ -411,10 +374,7 @@ class SettingsManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearSitePermissionDecisions() {
-        SitePermission.entries.forEach { permission ->
-            preferenceStore.remove(sitePermissionAllowedKey(permission))
-            preferenceStore.remove(sitePermissionBlockedKey(permission))
-        }
+        sitePermissions.clear()
     }
 
     /**
@@ -855,36 +815,6 @@ class SettingsManager(
      */
     fun restoreDefaults(): Boolean {
         return preferenceStore.remove(RESET_KEYS, commit = true)
-    }
-
-    /**
-     * 函数 `sitePermissionAllowedKey`：封装 `site Permission Allowed Key` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionAllowedKey(permission: SitePermission): String {
-        return when (permission) {
-            SitePermission.CAMERA -> KEY_SITE_PERMISSION_CAMERA_ALLOWED_HOSTS
-            SitePermission.MICROPHONE -> KEY_SITE_PERMISSION_MICROPHONE_ALLOWED_HOSTS
-            SitePermission.LOCATION -> KEY_SITE_PERMISSION_LOCATION_ALLOWED_HOSTS
-        }
-    }
-
-    /**
-     * 函数 `sitePermissionBlockedKey`：封装 `site Permission Blocked Key` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param permission 参数类型为 `SitePermission`，表示函数执行 `permission` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun sitePermissionBlockedKey(permission: SitePermission): String {
-        return when (permission) {
-            SitePermission.CAMERA -> KEY_SITE_PERMISSION_CAMERA_BLOCKED_HOSTS
-            SitePermission.MICROPHONE -> KEY_SITE_PERMISSION_MICROPHONE_BLOCKED_HOSTS
-            SitePermission.LOCATION -> KEY_SITE_PERMISSION_LOCATION_BLOCKED_HOSTS
-        }
     }
 
     /**
