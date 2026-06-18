@@ -10,15 +10,12 @@ package com.example.videobrowser.browser.search
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.text.InputType
 import android.util.TypedValue
 import android.view.View
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
@@ -55,6 +52,13 @@ class SearchProviderController(
 
     private val providers = SearchProviders.defaults
     private val providerViews = mutableMapOf<String, SearchProviderViews>()
+    private val dialogController = SearchProviderDialogController(
+        activity = activity,
+        settingsManager = settingsManager,
+        savedPageRepository = savedPageRepository,
+        dp = dp,
+        onDataChanged = ::setup
+    )
     private val itemFactory = SearchProviderItemFactory(
         activity = activity,
         dp = dp,
@@ -345,15 +349,7 @@ class SearchProviderController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showAddShortcutDialog() {
-        showCustomShortcutEditorDialog(
-            titleResId = R.string.title_add_custom_shortcut,
-            initialName = "",
-            initialUrl = "",
-            positiveButtonResId = R.string.action_add,
-            successToastResId = R.string.toast_custom_shortcut_added
-        ) { name, url ->
-            settingsManager.addCustomShortcut(name, url)
-        }
+        dialogController.showAddShortcutDialog()
     }
 
     /**
@@ -363,16 +359,7 @@ class SearchProviderController(
      * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
      */
     private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut) {
-        val actions = listOf(
-            activity.getString(R.string.action_edit) to { showEditCustomShortcutDialog(shortcut) },
-            activity.getString(R.string.action_remove) to { showRemoveCustomShortcutDialog(shortcut) }
-        )
-        AlertDialog.Builder(activity)
-            .setTitle(shortcut.name)
-            .setItems(actions.map { action -> action.first }.toTypedArray()) { _, index ->
-                actions.getOrNull(index)?.second?.invoke()
-            }
-            .show()
+        dialogController.showCustomShortcutActionsDialog(shortcut)
     }
 
     /**
@@ -382,85 +369,7 @@ class SearchProviderController(
      * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
      */
     private fun showEditCustomShortcutDialog(shortcut: CustomShortcut) {
-        showCustomShortcutEditorDialog(
-            titleResId = R.string.title_edit_custom_shortcut,
-            initialName = shortcut.name,
-            initialUrl = shortcut.url,
-            positiveButtonResId = R.string.action_save,
-            successToastResId = R.string.toast_custom_shortcut_updated
-        ) { name, url ->
-            settingsManager.updateCustomShortcut(shortcut, name, url)
-        }
-    }
-
-    /**
-     * 函数 `showCustomShortcutEditorDialog`：控制 `show Custom Shortcut Editor Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param titleResId 参数类型为 `Int`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param initialName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param initialUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param positiveButtonResId 参数类型为 `Int`，表示函数执行 `positiveButtonResId` 相关逻辑时需要读取或处理的输入。
-     * @param successToastResId 参数类型为 `Int`，表示函数执行 `successToastResId` 相关逻辑时需要读取或处理的输入。
-     * @param saveShortcut 参数类型为 `(String, String) -> Boolean`，表示函数执行 `saveShortcut` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showCustomShortcutEditorDialog(
-        titleResId: Int,
-        initialName: String,
-        initialUrl: String,
-        positiveButtonResId: Int,
-        successToastResId: Int,
-        saveShortcut: (String, String) -> Boolean
-    ) {
-        val nameInput = EditText(activity).apply {
-            hint = activity.getString(R.string.hint_custom_shortcut_name)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-            isSingleLine = true
-            setText(initialName)
-        }
-        val urlInput = EditText(activity).apply {
-            hint = activity.getString(R.string.hint_custom_shortcut_url)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            isSingleLine = true
-            setText(initialUrl)
-        }
-        val content = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(8), dp(20), 0)
-            addView(nameInput)
-            addView(urlInput)
-        }
-
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(titleResId)
-            .setView(content)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(positiveButtonResId, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val saved = saveShortcut(
-                    nameInput.text?.toString().orEmpty(),
-                    urlInput.text?.toString().orEmpty()
-                )
-                if (saved) {
-                    setup()
-                    Toast.makeText(
-                        activity,
-                        successToastResId,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    dialog.dismiss()
-                } else {
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_custom_shortcut_invalid,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-        dialog.show()
+        dialogController.showEditCustomShortcutDialog(shortcut)
     }
 
     /**
@@ -470,26 +379,7 @@ class SearchProviderController(
      * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
      */
     private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_custom_shortcut)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_remove_custom_shortcut_message,
-                    shortcut.name
-                )
-            )
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                if (settingsManager.removeCustomShortcut(shortcut)) {
-                    setup()
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_custom_shortcut_removed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        dialogController.showRemoveCustomShortcutDialog(shortcut)
     }
 
     /**
@@ -499,30 +389,7 @@ class SearchProviderController(
      * @param quickLink 参数类型为 `HomeQuickLink`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     private fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_recent_site)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_remove_recent_site_message,
-                    quickLink.title
-                )
-            )
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                val removed = savedPageRepository.remove(
-                    SavedPageRepository.SavedPageCollection.HISTORY,
-                    quickLink.url
-                )
-                if (removed) {
-                    setup()
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_recent_site_removed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        dialogController.showRemoveRecentHistoryDialog(quickLink)
     }
 
     /**

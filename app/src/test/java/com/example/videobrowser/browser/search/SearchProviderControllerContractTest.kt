@@ -20,6 +20,9 @@ class SearchProviderControllerContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
@@ -34,19 +37,19 @@ class SearchProviderControllerContractTest {
         assertTrue(itemFactory.contains("setOnLongClickListener"))
         assertTrue(controller.contains("showCustomShortcutActionsDialog(shortcut)"))
         assertTrue(controller.contains("private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut)"))
-        assertTrue(controller.contains("R.string.action_edit"))
-        assertTrue(controller.contains("showEditCustomShortcutDialog(shortcut)"))
-        assertTrue(controller.contains("settingsManager.updateCustomShortcut(shortcut, name, url)"))
-        assertTrue(controller.contains("settingsManager.removeCustomShortcut(shortcut)"))
+        assertTrue(dialogController.contains("R.string.action_edit"))
+        assertTrue(dialogController.contains("showEditCustomShortcutDialog(shortcut)"))
+        assertTrue(dialogController.contains("settingsManager.updateCustomShortcut(shortcut, name, url)"))
+        assertTrue(dialogController.contains("settingsManager.removeCustomShortcut(shortcut)"))
         assertTrue(controller.contains("private fun showEditCustomShortcutDialog(shortcut: CustomShortcut)"))
         assertTrue(controller.contains("private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut)"))
-        assertTrue(controller.contains("private fun showCustomShortcutEditorDialog("))
-        assertTrue(controller.contains("R.string.title_edit_custom_shortcut"))
-        assertTrue(controller.contains("R.string.title_remove_custom_shortcut"))
-        assertTrue(controller.contains("R.string.dialog_remove_custom_shortcut_message"))
-        assertTrue(controller.contains("R.string.toast_custom_shortcut_updated"))
-        assertTrue(controller.contains("R.string.toast_custom_shortcut_removed"))
-        assertTrue(controller.contains("setup()"))
+        assertTrue(dialogController.contains("private fun showCustomShortcutEditorDialog("))
+        assertTrue(dialogController.contains("R.string.title_edit_custom_shortcut"))
+        assertTrue(dialogController.contains("R.string.title_remove_custom_shortcut"))
+        assertTrue(dialogController.contains("R.string.dialog_remove_custom_shortcut_message"))
+        assertTrue(dialogController.contains("R.string.toast_custom_shortcut_updated"))
+        assertTrue(dialogController.contains("R.string.toast_custom_shortcut_removed"))
+        assertTrue(controller.contains("onDataChanged = ::setup"))
         assertTrue(strings.contains("action_edit"))
         assertTrue(strings.contains("title_edit_custom_shortcut"))
         assertTrue(strings.contains("title_remove_custom_shortcut"))
@@ -65,6 +68,9 @@ class SearchProviderControllerContractTest {
     fun startPageShowsRecentHistoryQuickLinksOutsidePrivateMode() {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
+        ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt"
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
@@ -89,11 +95,11 @@ class SearchProviderControllerContractTest {
         assertTrue(controller.contains("private fun createRecentHistoryItem(quickLink: HomeQuickLink)"))
         assertTrue(controller.contains("showRemoveRecentHistoryDialog(quickLink)"))
         assertTrue(controller.contains("private fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink)"))
-        assertTrue(controller.contains("savedPageRepository.remove("))
-        assertTrue(controller.contains("SavedPageRepository.SavedPageCollection.HISTORY"))
-        assertTrue(controller.contains("R.string.title_remove_recent_site"))
-        assertTrue(controller.contains("R.string.dialog_remove_recent_site_message"))
-        assertTrue(controller.contains("R.string.toast_recent_site_removed"))
+        assertTrue(dialogController.contains("savedPageRepository.remove("))
+        assertTrue(dialogController.contains("SavedPageRepository.SavedPageCollection.HISTORY"))
+        assertTrue(dialogController.contains("R.string.title_remove_recent_site"))
+        assertTrue(dialogController.contains("R.string.dialog_remove_recent_site_message"))
+        assertTrue(dialogController.contains("R.string.toast_recent_site_removed"))
         assertTrue(itemFactory.contains("R.string.action_open_recent_site"))
         assertTrue(itemFactory.contains("R.drawable.ic_history_24"))
         assertTrue(searchAssembly.contains("savedPageRepository = savedPageRepository"))
