@@ -12,9 +12,8 @@ import com.example.videobrowser.utils.ShortDateTimeFormatter
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.utils.DurationLabelFormatter
 import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.Utf8UrlCodec
 import com.example.videobrowser.video.PlaybackProgress
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 object PlaybackHistoryDisplayText {
     /**
@@ -63,11 +62,8 @@ object PlaybackHistoryDisplayText {
     private fun decodedLastPathSegment(value: String): String? {
         val rawPath = SafeUriParser.parse(value)?.rawPath ?: return null
         val rawSegment = rawPath.substringAfterLast('/').takeIf { it.isNotBlank() } ?: return null
-        return runCatching {
-            URLDecoder.decode(rawSegment, StandardCharsets.UTF_8.name())
-        }.getOrElse {
-            rawSegment
-        }.takeIf { it.isNotBlank() }
+        return Utf8UrlCodec.decodeFormComponentOr(rawSegment, rawSegment)
+            .takeIf { it.isNotBlank() }
     }
 
     /**

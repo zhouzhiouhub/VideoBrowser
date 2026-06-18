@@ -7,10 +7,9 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 import java.util.Locale
 import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.Utf8UrlCodec
 import com.example.videobrowser.utils.WebSchemePolicy
 
 object ExternalProtocolPolicy {
@@ -77,12 +76,7 @@ object ExternalProtocolPolicy {
         val valueStart = start + marker.length
         val valueEnd = intentUri.indexOf(';', valueStart).takeIf { it >= 0 } ?: intentUri.length
         val rawValue = intentUri.substring(valueStart, valueEnd)
-        val decoded = runCatching {
-            URLDecoder.decode(
-                rawValue.replace("+", "%2B"),
-                StandardCharsets.UTF_8.name()
-            )
-        }.getOrNull()
+        val decoded = Utf8UrlCodec.decodeFormComponent(rawValue.replace("+", "%2B"))
         return decoded?.takeIf(::isWebUrl)
     }
 

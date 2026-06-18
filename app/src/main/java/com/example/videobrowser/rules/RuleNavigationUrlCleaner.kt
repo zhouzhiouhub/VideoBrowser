@@ -3,10 +3,9 @@ package com.example.videobrowser.rules
 import com.example.videobrowser.browser.ResourceType
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.Utf8UrlCodec
 import com.example.videobrowser.utils.WebSchemePolicy
 import java.net.URI
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 internal object RuleNavigationUrlCleaner {
     fun clean(
@@ -54,9 +53,7 @@ internal object RuleNavigationUrlCleaner {
     }
 
     private fun decodedQueryName(rawName: String): String {
-        return runCatching {
-            URLDecoder.decode(rawName, StandardCharsets.UTF_8.name())
-        }.getOrDefault(rawName)
+        return Utf8UrlCodec.decodeFormComponentOr(rawName, rawName)
     }
 
     private fun renderUriWithQuery(uri: URI, rawQuery: String?): String {

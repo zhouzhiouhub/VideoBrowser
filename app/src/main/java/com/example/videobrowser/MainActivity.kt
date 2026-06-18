@@ -24,6 +24,7 @@ import com.example.videobrowser.browser.BrowserActivityFeatureComponents
 import com.example.videobrowser.browser.BrowserActivityScaffoldAssemblyController
 import com.example.videobrowser.browser.BrowserActivityScaffoldComponents
 import com.example.videobrowser.browser.BrowserWebViewDebugController
+import com.example.videobrowser.utils.DensityPixelConverter
 
 /**
  * VideoBrowser 的主 Activity。
@@ -180,7 +181,7 @@ class MainActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun dp(value: Int): Int {
-        return (value * resources.displayMetrics.density).toInt()
+        return DensityPixelConverter.truncateDp(value, resources)
     }
 
     // endregion

@@ -8,9 +8,8 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.utils.Utf8UrlCodec
 import com.example.videobrowser.utils.WebUrlNormalizer
-import java.net.URLDecoder
-import java.net.URLEncoder
 
 data class BrowserTabSession(
     val tabs: List<BrowserTab>,
@@ -130,9 +129,9 @@ class BrowserTabSessionRepository(
                     .append('\t')
                     .append(tab.createdAtMillis)
                     .append('\t')
-                    .append(encode(tab.url.orEmpty()))
+                    .append(Utf8UrlCodec.encodeFormComponent(tab.url.orEmpty()))
                     .append('\t')
-                    .append(encode(tab.title))
+                    .append(Utf8UrlCodec.encodeFormComponent(tab.title))
                     .append('\n')
             }
         }
@@ -152,8 +151,8 @@ class BrowserTabSessionRepository(
         }
         val id = parts[0].toLongOrNull()?.takeIf { it > 0L } ?: return null
         val createdAtMillis = parts[1].toLongOrNull() ?: System.currentTimeMillis()
-        val url = decode(parts[2])?.trim()?.takeIf { it.isNotBlank() } ?: return null
-        val title = decode(parts[3])?.trim().orEmpty()
+        val url = Utf8UrlCodec.decodeFormComponent(parts[2])?.trim()?.takeIf { it.isNotBlank() } ?: return null
+        val title = Utf8UrlCodec.decodeFormComponent(parts[3])?.trim().orEmpty()
         return BrowserTab(
             id = id,
             url = url,
@@ -162,33 +161,8 @@ class BrowserTabSessionRepository(
         )
     }
 
-    /**
-     * 函数 `encode`：封装 `encode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun encode(value: String): String {
-        return URLEncoder.encode(value, CHARSET_NAME)
-    }
-
-    /**
-     * 函数 `decode`：封装 `decode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun decode(value: String): String? {
-        return runCatching {
-            URLDecoder.decode(value, CHARSET_NAME)
-        }.getOrNull()
-    }
-
     companion object {
         const val KEY_STANDARD_TAB_SESSION = "standard_tab_session"
-        private const val CHARSET_NAME = "UTF-8"
         private const val MAX_SESSION_TABS = 50
         private const val MAX_TITLE_LENGTH = 200
     }

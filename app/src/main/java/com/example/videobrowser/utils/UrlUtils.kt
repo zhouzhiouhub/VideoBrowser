@@ -7,9 +7,6 @@ package com.example.videobrowser.utils
  * 主要职责：提供 URL、媒体地址等跨模块复用的纯函数。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-
 /**
  * URL 解析和展示工具。
  *
@@ -71,7 +68,7 @@ object UrlUtils {
      */
     private fun encodeSearchQuery(value: String): String {
         val query = value.replace(WHITESPACE_SEQUENCE, " ").trim()
-        return URLEncoder.encode(query, StandardCharsets.UTF_8.name())
+        return Utf8UrlCodec.encodeFormComponent(query)
     }
 
     private val WHITESPACE_SEQUENCE = Regex("\\s+")

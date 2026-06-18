@@ -9,9 +9,8 @@ package com.example.videobrowser.browser
  */
 import android.content.Intent
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
+import com.example.videobrowser.utils.Utf8UrlCodec
 import com.example.videobrowser.utils.UrlUtils
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 /**
  * 浏览器启动和地址栏入口控制器。
@@ -58,7 +57,7 @@ class BrowserLaunchController(
         if (query.isEmpty()) {
             return
         }
-        val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.name())
+        val encodedQuery = Utf8UrlCodec.encodeFormComponent(query)
         loadUrl("${searchUrlPrefix()}$encodedQuery")
     }
 

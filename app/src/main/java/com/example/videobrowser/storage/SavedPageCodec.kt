@@ -1,9 +1,8 @@
 package com.example.videobrowser.storage
 
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
+import com.example.videobrowser.utils.Utf8UrlCodec
 import com.example.videobrowser.utils.WebUrlNormalizer
-import java.net.URLDecoder
-import java.net.URLEncoder
 import java.util.Locale
 
 internal class SavedPageCodec(
@@ -25,11 +24,11 @@ internal class SavedPageCodec(
                     .append('\t')
                     .append(page.updatedAtMillis.coerceAtLeast(0L))
                     .append('\t')
-                    .append(encode(page.title))
+                    .append(Utf8UrlCodec.encodeFormComponent(page.title))
                     .append('\t')
-                    .append(encode(page.url))
+                    .append(Utf8UrlCodec.encodeFormComponent(page.url))
                     .append('\t')
-                    .append(encode(page.folder))
+                    .append(Utf8UrlCodec.encodeFormComponent(page.folder))
                     .append('\n')
             }
         }
@@ -101,10 +100,13 @@ internal class SavedPageCodec(
         }
         val createdAt = parts[0].toLongOrNull() ?: 0L
         val updatedAt = parts[1].toLongOrNull() ?: createdAt
-        val title = decode(parts[2]) ?: return null
-        val url = decode(parts[3])?.takeIf { it.isNotBlank() } ?: return null
+        val title = Utf8UrlCodec.decodeFormComponent(parts[2]) ?: return null
+        val url = Utf8UrlCodec.decodeFormComponent(parts[3])?.takeIf { it.isNotBlank() } ?: return null
         val normalizedUrl = normalizeSavedWebUrl(url) ?: return null
-        val folder = parts.getOrNull(4)?.let(::decode)?.let(::normalizeBookmarkFolder).orEmpty()
+        val folder = parts.getOrNull(4)
+            ?.let(Utf8UrlCodec::decodeFormComponent)
+            ?.let(::normalizeBookmarkFolder)
+            .orEmpty()
         return SavedPage(
             title = title,
             url = normalizedUrl,
@@ -171,20 +173,11 @@ internal class SavedPageCodec(
         return builder.toString()
     }
 
-    private fun encode(value: String): String {
-        return URLEncoder.encode(value, CHARSET_NAME)
-    }
-
-    private fun decode(value: String): String? {
-        return runCatching { URLDecoder.decode(value, CHARSET_NAME) }.getOrNull()
-    }
-
     private companion object {
         private const val FORMAT_HEADER = "VideoBrowserSavedPages\t3"
         private const val FORMAT_HEADER_PREFIX = "VideoBrowserSavedPages\t"
         private const val JSON_TITLE = "title"
         private const val JSON_URL = "url"
-        private const val CHARSET_NAME = "UTF-8"
         private const val MAX_BOOKMARK_FOLDER_LENGTH = 60
         private val LEGACY_OBJECT_REGEX = Regex("\\{[^{}]*\\}")
     }

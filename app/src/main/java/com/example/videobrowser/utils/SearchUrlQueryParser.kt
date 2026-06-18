@@ -1,7 +1,5 @@
 package com.example.videobrowser.utils
 
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 import java.net.URI
 
 internal object SearchUrlQueryParser {
@@ -14,7 +12,7 @@ internal object SearchUrlQueryParser {
 
         val queryParameterName = searchQueryParameterName(prefixUri) ?: return null
         val rawValue = rawQueryParameter(currentUri.rawQuery, queryParameterName) ?: return null
-        return decodeFormComponent(rawValue)
+        return Utf8UrlCodec.decodeFormComponent(rawValue)
             ?.replace(WHITESPACE_SEQUENCE, " ")
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
@@ -37,7 +35,7 @@ internal object SearchUrlQueryParser {
             .lastOrNull()
             ?.substringBefore("=")
             ?.takeIf { it.isNotBlank() }
-            ?.let { decodeFormComponent(it) }
+            ?.let { Utf8UrlCodec.decodeFormComponent(it) }
     }
 
     private fun rawQueryParameter(rawQuery: String?, queryParameterName: String): String? {
@@ -45,19 +43,13 @@ internal object SearchUrlQueryParser {
             ?.split("&")
             ?.firstNotNullOfOrNull { part ->
                 val rawName = part.substringBefore("=")
-                val decodedName = decodeFormComponent(rawName)
+                val decodedName = Utf8UrlCodec.decodeFormComponent(rawName)
                 if (decodedName == queryParameterName && part.contains("=")) {
                     part.substringAfter("=")
                 } else {
                     null
                 }
             }
-    }
-
-    private fun decodeFormComponent(value: String): String? {
-        return runCatching {
-            URLDecoder.decode(value, StandardCharsets.UTF_8.name())
-        }.getOrNull()
     }
 
     private val WHITESPACE_SEQUENCE = Regex("\\s+")

@@ -9,11 +9,11 @@ package com.example.videobrowser.browser.search
  */
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import com.example.videobrowser.utils.Utf8UrlCodec
 
 class SearchSuggestionClient(
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -94,7 +94,7 @@ class SearchSuggestionClient(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun suggestionEndpoint(provider: SearchProvider, query: String): String {
-        val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.name())
+        val encodedQuery = Utf8UrlCodec.encodeFormComponent(query)
         return when (provider.id) {
             "edge" -> "https://api.bing.com/osjson.aspx?query=$encodedQuery"
             "so" -> "https://sug.so.360.cn/suggest?word=$encodedQuery&encodein=utf-8&encodeout=utf-8"

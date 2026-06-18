@@ -32,6 +32,7 @@ import android.widget.TextView
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.BrowserDrawableFactory
+import com.example.videobrowser.utils.DensityPixelConverter
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -1220,7 +1221,7 @@ class FullscreenVideoGestureOverlay(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun dp(value: Int): Int {
-        return (value * resources.displayMetrics.density).roundToInt()
+        return DensityPixelConverter.roundDp(value, resources)
     }
 
     private enum class VerticalGesture {
