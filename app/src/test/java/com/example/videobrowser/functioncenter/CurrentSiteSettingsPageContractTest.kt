@@ -46,6 +46,29 @@ class CurrentSiteSettingsPageContractTest {
         assertTrue(strings.contains("toast_site_permission_updated"))
     }
 
+    @Test
+    fun currentSiteSettingsDelegateFeatureSwitches() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CurrentSiteSettingsPage.kt"
+        ).readText()
+        val featureSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CurrentSiteFeatureSection.kt"
+        ).readText()
+
+        assertTrue(page.contains("CurrentSiteFeatureSection("))
+        assertTrue(page.contains("siteFeatureSection.addRows(section, siteHost, hasSite)"))
+        assertTrue(page.contains("siteFeatureSection.status("))
+        assertTrue(featureSection.contains("settingsManager::setAdBlockDisabledForSite"))
+        assertTrue(featureSection.contains("settingsManager::setSmartNoImageDisabledForSite"))
+        assertTrue(featureSection.contains("settingsManager::setJsInjectionDisabledForSite"))
+        assertTrue(featureSection.contains("settingsManager::setDomAdBlockDisabledForSite"))
+        assertTrue(featureSection.contains("settingsManager::setVideoEnhancementDisabledForSite"))
+        assertTrue(featureSection.contains("browserManager().reload()"))
+        assertTrue(featureSection.contains("onChanged = injectPageFeatures"))
+        assertTrue(featureSection.contains("R.string.toast_current_site_feature_enabled"))
+        assertTrue(featureSection.contains("R.string.toast_current_site_feature_disabled"))
+    }
+
     /**
      * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
      *

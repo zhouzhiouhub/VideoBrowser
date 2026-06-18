@@ -36,6 +36,18 @@ class CurrentSiteSettingsPage(
         currentSiteHost = currentSiteHost,
         onPermissionChanged = { show(replaceCurrent = true) }
     )
+    private val siteFeatureSection = CurrentSiteFeatureSection(
+        host = host,
+        settingsManager = settingsManager,
+        browserManager = browserManager,
+        currentSiteHost = currentSiteHost,
+        isAdBlockEnabled = isAdBlockEnabled,
+        isSmartNoImageEnabled = isSmartNoImageEnabled,
+        isJsInjectionEnabled = isJsInjectionEnabled,
+        isPageCleanupEnabled = isPageCleanupEnabled,
+        isVideoEnhancementEnabled = isVideoEnhancementEnabled,
+        injectPageFeatures = injectPageFeatures
+    )
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -89,95 +101,7 @@ class CurrentSiteSettingsPage(
             parent,
             activity.getString(R.string.function_center_section_site_actions)
         ) { section ->
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_current_site_ad_block),
-                summary = currentSiteFeatureSummary(siteHost, isAdBlockEnabled()),
-                checked = isAdBlockEnabled() &&
-                    !(siteHost?.let(settingsManager::isAdBlockDisabledForSite) ?: false),
-                enabled = hasSite && isAdBlockEnabled()
-            ) { enabled ->
-                val hostName = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setAdBlockDisabledForSite(hostName, !enabled)
-                showCurrentSiteFeatureToast(
-                    enabled = enabled,
-                    featureName = activity.getString(R.string.setting_current_site_ad_block),
-                    hostName = hostName
-                )
-                browserManager().reload()
-            }
-
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_current_site_smart_no_image),
-                summary = currentSiteFeatureSummary(siteHost, isSmartNoImageEnabled()),
-                checked = isSmartNoImageEnabled() &&
-                    !(siteHost?.let(settingsManager::isSmartNoImageDisabledForSite) ?: false),
-                enabled = hasSite && isSmartNoImageEnabled()
-            ) { enabled ->
-                val hostName = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setSmartNoImageDisabledForSite(hostName, !enabled)
-                showCurrentSiteFeatureToast(
-                    enabled = enabled,
-                    featureName = activity.getString(R.string.setting_current_site_smart_no_image),
-                    hostName = hostName
-                )
-                browserManager().reload()
-            }
-
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_current_site_js_injection),
-                summary = currentSiteFeatureSummary(siteHost, isJsInjectionEnabled()),
-                checked = isJsInjectionEnabled() &&
-                    !(siteHost?.let(settingsManager::isJsInjectionDisabledForSite) ?: false),
-                enabled = hasSite && isJsInjectionEnabled()
-            ) { enabled ->
-                val hostName = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setJsInjectionDisabledForSite(hostName, !enabled)
-                showCurrentSiteFeatureToast(
-                    enabled = enabled,
-                    featureName = activity.getString(R.string.setting_current_site_js_injection),
-                    hostName = hostName
-                )
-                browserManager().reload()
-            }
-
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_page_cleanup),
-                summary = currentSiteFeatureSummary(siteHost, isPageCleanupEnabled()),
-                checked = isPageCleanupEnabled() &&
-                    !(siteHost?.let(settingsManager::isDomAdBlockDisabledForSite) ?: false),
-                enabled = hasSite && isPageCleanupEnabled()
-            ) { enabled ->
-                val hostName = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setDomAdBlockDisabledForSite(hostName, !enabled)
-                showCurrentSiteFeatureToast(
-                    enabled = enabled,
-                    featureName = activity.getString(R.string.setting_page_cleanup),
-                    hostName = hostName
-                )
-                injectPageFeatures()
-            }
-
-            host.addSwitchRow(
-                parent = section,
-                title = activity.getString(R.string.setting_video_enhancement),
-                summary = currentSiteFeatureSummary(siteHost, isVideoEnhancementEnabled()),
-                checked = isVideoEnhancementEnabled() &&
-                    !(siteHost?.let(settingsManager::isVideoEnhancementDisabledForSite) ?: false),
-                enabled = hasSite && isVideoEnhancementEnabled()
-            ) { enabled ->
-                val hostName = currentSiteHost() ?: return@addSwitchRow
-                settingsManager.setVideoEnhancementDisabledForSite(hostName, !enabled)
-                showCurrentSiteFeatureToast(
-                    enabled = enabled,
-                    featureName = activity.getString(R.string.setting_video_enhancement),
-                    hostName = hostName
-                )
-                injectPageFeatures()
-            }
+            siteFeatureSection.addRows(section, siteHost, hasSite)
 
             host.addDivider(section)
 
@@ -217,50 +141,6 @@ class CurrentSiteSettingsPage(
     }
 
     /**
-     * 函数 `currentSiteFeatureSummary`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param siteHost 参数类型为 `String?`，表示函数执行 `siteHost` 相关逻辑时需要读取或处理的输入。
-     * @param globalEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSiteFeatureSummary(siteHost: String?, globalEnabled: Boolean): String {
-        return when {
-            siteHost == null -> activity.getString(R.string.function_center_site_action_unavailable)
-            !globalEnabled -> activity.getString(R.string.setting_disabled_in_browser_settings)
-            else -> siteHost
-        }
-    }
-
-    /**
-     * 函数 `showCurrentSiteFeatureToast`：控制 `show Current Site Feature Toast` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     * @param featureName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param hostName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    private fun showCurrentSiteFeatureToast(
-        enabled: Boolean,
-        featureName: String,
-        hostName: String
-    ) {
-        Toast.makeText(
-            activity,
-            activity.getString(
-                if (enabled) {
-                    R.string.toast_current_site_feature_enabled
-                } else {
-                    R.string.toast_current_site_feature_disabled
-                },
-                featureName,
-                hostName
-            ),
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-
-    /**
      * 函数 `showCurrentSiteConfigPage`：控制 `show Current Site Config Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -292,7 +172,7 @@ class CurrentSiteSettingsPage(
                 host.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_current_site_ad_block),
-                    summary = currentSiteFeatureStatus(
+                    summary = siteFeatureSection.status(
                         globalEnabled = isAdBlockEnabled(),
                         siteDisabled = settingsManager.isAdBlockDisabledForSite(siteHost)
                     )
@@ -300,7 +180,7 @@ class CurrentSiteSettingsPage(
                 host.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_current_site_smart_no_image),
-                    summary = currentSiteFeatureStatus(
+                    summary = siteFeatureSection.status(
                         globalEnabled = isSmartNoImageEnabled(),
                         siteDisabled = settingsManager.isSmartNoImageDisabledForSite(siteHost)
                     )
@@ -308,7 +188,7 @@ class CurrentSiteSettingsPage(
                 host.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_current_site_js_injection),
-                    summary = currentSiteFeatureStatus(
+                    summary = siteFeatureSection.status(
                         globalEnabled = isJsInjectionEnabled(),
                         siteDisabled = settingsManager.isJsInjectionDisabledForSite(siteHost)
                     )
@@ -316,7 +196,7 @@ class CurrentSiteSettingsPage(
                 host.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_page_cleanup),
-                    summary = currentSiteFeatureStatus(
+                    summary = siteFeatureSection.status(
                         globalEnabled = isPageCleanupEnabled(),
                         siteDisabled = settingsManager.isDomAdBlockDisabledForSite(siteHost)
                     )
@@ -324,7 +204,7 @@ class CurrentSiteSettingsPage(
                 host.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_video_enhancement),
-                    summary = currentSiteFeatureStatus(
+                    summary = siteFeatureSection.status(
                         globalEnabled = isVideoEnhancementEnabled(),
                         siteDisabled = settingsManager.isVideoEnhancementDisabledForSite(siteHost)
                     )
@@ -362,22 +242,6 @@ class CurrentSiteSettingsPage(
                     )
                 )
             }
-        }
-    }
-
-    /**
-     * 函数 `currentSiteFeatureStatus`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param globalEnabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     * @param siteDisabled 参数类型为 `Boolean`，表示函数执行 `siteDisabled` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentSiteFeatureStatus(globalEnabled: Boolean, siteDisabled: Boolean): String {
-        return when {
-            !globalEnabled -> activity.getString(R.string.site_config_disabled_by_global)
-            siteDisabled -> activity.getString(R.string.site_config_disabled)
-            else -> activity.getString(R.string.site_config_enabled)
         }
     }
 
