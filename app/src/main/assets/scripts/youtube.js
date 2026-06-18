@@ -1,176 +1,32 @@
 /*
- * 初学者阅读提示：
- * 这是 youtube 站点的适配脚本。
- * 它只处理该站点特有的播放器结构、遮挡元素和视频控制桥接，通用逻辑仍在 common.js 中。
+ * YouTube site adapter.
+ * Site-specific selectors live here; shared adapter plumbing lives in site_adapter_helpers.js.
  */
 (function () {
-  var adapters = window.VideoBrowserSiteAdapters || {};
-  window.VideoBrowserSiteAdapters = adapters;
-
-  var state = window.__videobrowserYoutubeState || {
-    intervalId: null,
-    config: {}
-  };
-  window.__videobrowserYoutubeState = state;
-  var siteTools = window.VideoBrowserSiteAdapterTools;
-
-  /**
-   * 函数 `query`：封装 `query` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function query(selector) {
-    return siteTools.query(selector);
-  }
-
-  /**
-   * 函数 `hideSelectors`：封装 `hide Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function hideSelectors(selectors) {
-    siteTools.hideSelectors(selectors, 'youtube-ad', 'youtube');
-  }
-
-  /**
-   * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
-   * @param {*} details 表示本次脚本运行的配置或上下文数据。
-   */
-  function logVideoDiagnostic(event, details) {
-    siteTools.logVideoDiagnostic('youtube', event, details);
-  }
-
-  /**
-   * 函数 `removeNativeVideoControls`：封装 `remove Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function removeNativeVideoControls(video) {
-    siteTools.removeNativeVideoControls(video, 'youtube');
-  }
-
-  /**
-   * 函数 `clickSkipButtons`：封装 `click Skip Buttons` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function clickSkipButtons() {
-    [
+  window.VideoBrowserSiteAdapterTools.registerBasicAdapter({
+    adapterId: 'youtube',
+    stateKey: '__videobrowserYoutubeState',
+    intervalMs: 1500,
+    cleanupSelectors: [
+      '#player-ads',
+      '#masthead-ad',
+      '.ytp-ad-module',
+      '.ytp-ad-overlay-container',
+      '.ytp-paid-content-overlay',
+      'ytd-ad-slot-renderer',
+      'ytd-display-ad-renderer',
+      'ytd-promoted-sparkles-web-renderer',
+      'ytd-promoted-video-renderer',
+      'ytd-in-feed-ad-layout-renderer',
+      'ytd-compact-promoted-video-renderer'
+    ],
+    videoClickSelectors: [
       '.ytp-ad-skip-button',
       '.ytp-ad-skip-button-modern',
       '.ytp-ad-overlay-close-button',
       'button[class*="skip"]',
       'button[aria-label*="Skip"]',
       'button[title*="Skip"]'
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    ].forEach(function (selector) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param button 表示当前回调正在检查或操作的页面元素。
-       */
-      query(selector).forEach(function (button) {
-        if (typeof button.click === 'function') button.click();
-      });
-    });
-  }
-
-  /**
-   * 函数 `run`：封装 `run` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} config 表示本次脚本运行的配置或上下文数据。
-   */
-  function run(config) {
-    if (!document.documentElement) return;
-    if (config && config.cleanupEnabled) {
-      hideSelectors([
-        '#player-ads',
-        '#masthead-ad',
-        '.ytp-ad-module',
-        '.ytp-ad-overlay-container',
-        '.ytp-paid-content-overlay',
-        'ytd-ad-slot-renderer',
-        'ytd-display-ad-renderer',
-        'ytd-promoted-sparkles-web-renderer',
-        'ytd-promoted-video-renderer',
-        'ytd-in-feed-ad-layout-renderer',
-        'ytd-compact-promoted-video-renderer'
-      ]);
-    }
-    if (config && config.videoEnabled) {
-      query('video').forEach(removeNativeVideoControls);
-      clickSkipButtons();
-    }
-  }
-
-  /**
-   * 函数 `startWorker`：封装 `start Worker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function startWorker() {
-    if (state.intervalId) return;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    state.intervalId = window.setInterval(function () {
-      run(state.config || {});
-    }, 1500);
-  }
-
-  adapters.youtube = adapters.youtube || {};
-  adapters.youtube.videoCapabilities = {
-    /**
-     * 函数 `supports`：封装 `supports` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-     */
-    supports: function (video) {
-      return Boolean(video && video.isConnected);
-    },
-    /**
-     * 函数 `canUse`：封装 `can Use` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
-     */
-    canUse: function (action) {
-      return action === 'enableControls';
-    },
-    /**
-     * 函数 `enableControls`：封装 `enable Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-     */
-    enableControls: function (video) {
-      removeNativeVideoControls(video);
-      return Boolean(video);
-    }
-  };
-  /**
-   * 函数 `adapters.youtube.apply`：封装 `apply` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} config 表示本次脚本运行的配置或上下文数据。
-   */
-  adapters.youtube.apply = function (config) {
-    this.lastConfig = config || {};
-    state.config = this.lastConfig;
-    run(state.config);
-    startWorker();
-  };
+    ]
+  });
 })();

@@ -204,24 +204,36 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(helperScript.contains("video.controls = false"))
         assertTrue(helperScript.contains("video.removeAttribute('controls')"))
         assertTrue(helperScript.contains("tools.logVideoDiagnostic(adapterId, 'remove-native-controls'"))
+        assertTrue(helperScript.contains("tools.registerBasicAdapter = function (options)"))
+        assertTrue(helperScript.contains("adapters[adapterId].videoCapabilities"))
+        assertTrue(helperScript.contains("enableControls: function (video)"))
+        assertTrue(helperScript.contains("tools.query('video').forEach(removeNativeVideoControls);"))
 
         listOf(
             "youtube" to "src/main/assets/scripts/youtube.js",
-            "bilibili" to "src/main/assets/scripts/bilibili.js",
             "iqiyi" to "src/main/assets/scripts/iqiyi.js",
             "tencent" to "src/main/assets/scripts/tencent.js",
             "youku" to "src/main/assets/scripts/youku.js"
         ).forEach { (adapterId, path) ->
             val script = projectFile(path).readText()
 
-            assertTrue(script.contains("adapters.$adapterId.videoCapabilities"))
-            assertTrue(script.contains("enableControls: function (video)"))
-            assertTrue(script.contains("function removeNativeVideoControls(video)"))
-            assertTrue(script.contains("siteTools.removeNativeVideoControls(video, '$adapterId')"))
-            assertTrue(script.contains("query('video').forEach(removeNativeVideoControls);"))
+            assertTrue(script.contains("registerBasicAdapter({"))
+            assertTrue(script.contains("adapterId: '$adapterId'"))
+            assertFalse(script.contains("adapters.$adapterId.videoCapabilities"))
+            assertFalse(script.contains("function removeNativeVideoControls(video)"))
+            assertFalse(script.contains("query('video').forEach(removeNativeVideoControls);"))
             assertFalse(script.contains("video.controls = true"))
             assertFalse(script.contains("setAttribute('controls', 'controls')"))
         }
+
+        val bilibiliScript = projectFile("src/main/assets/scripts/bilibili.js").readText()
+        assertTrue(bilibiliScript.contains("adapters.bilibili.videoCapabilities"))
+        assertTrue(bilibiliScript.contains("enableControls: function (video)"))
+        assertTrue(bilibiliScript.contains("function removeNativeVideoControls(video)"))
+        assertTrue(bilibiliScript.contains("siteTools.removeNativeVideoControls(video, 'bilibili')"))
+        assertTrue(bilibiliScript.contains("query('video').forEach(removeNativeVideoControls);"))
+        assertFalse(bilibiliScript.contains("video.controls = true"))
+        assertFalse(bilibiliScript.contains("setAttribute('controls', 'controls')"))
     }
 
     /**

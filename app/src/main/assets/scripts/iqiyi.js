@@ -1,156 +1,25 @@
 /*
- * 初学者阅读提示：
- * 这是 iqiyi 站点的适配脚本。
- * 它只处理该站点特有的播放器结构、遮挡元素和视频控制桥接，通用逻辑仍在 common.js 中。
+ * iQIYI site adapter.
+ * Site-specific selectors live here; shared adapter plumbing lives in site_adapter_helpers.js.
  */
 (function () {
-  var adapters = window.VideoBrowserSiteAdapters || {};
-  window.VideoBrowserSiteAdapters = adapters;
-
-  var state = window.__videobrowserIqiyiState || {
-    intervalId: null,
-    config: {}
-  };
-  window.__videobrowserIqiyiState = state;
-  var siteTools = window.VideoBrowserSiteAdapterTools;
-
-  /**
-   * 函数 `query`：封装 `query` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function query(selector) {
-    return siteTools.query(selector);
-  }
-
-  /**
-   * 函数 `hideSelectors`：封装 `hide Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function hideSelectors(selectors) {
-    siteTools.hideSelectors(selectors, 'iqiyi-ad', 'iqiyi');
-  }
-
-  /**
-   * 函数 `clickTextButtons`：封装 `click Text Buttons` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} pattern 表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
-   */
-  function clickTextButtons(pattern) {
-    siteTools.clickTextButtons('button,a,[role="button"],.close,.skip,.qy-player-vippay-close', pattern);
-  }
-
-  /**
-   * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
-   * @param {*} details 表示本次脚本运行的配置或上下文数据。
-   */
-  function logVideoDiagnostic(event, details) {
-    siteTools.logVideoDiagnostic('iqiyi', event, details);
-  }
-
-  /**
-   * 函数 `removeNativeVideoControls`：封装 `remove Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function removeNativeVideoControls(video) {
-    siteTools.removeNativeVideoControls(video, 'iqiyi');
-  }
-
-  /**
-   * 函数 `run`：封装 `run` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} config 表示本次脚本运行的配置或上下文数据。
-   */
-  function run(config) {
-    if (!document.documentElement) return;
-    if (config && config.cleanupEnabled) {
-      hideSelectors([
-        '.cupid',
-        '.qy-player-ad',
-        '.qy-player-vippay',
-        '.qy-player-focus-ad',
-        '.qy-player-side-ad',
-        '.qy-mod-ad',
-        '.m-box-items-ad',
-        '[class*="cupid"]',
-        '[class*="ad-wrapper"]',
-        '[data-videobrowser-remove]'
-      ]);
-      clickTextButtons(/(\u5173\u95ed|\u53d6\u6d88|\u7a0d\u540e|close|cancel)/i);
-    }
-    if (config && config.videoEnabled) {
-      query('video').forEach(removeNativeVideoControls);
-      clickTextButtons(/(\u8df3\u8fc7|\u5173\u95ed|skip|close)/i);
-    }
-  }
-
-  /**
-   * 函数 `startWorker`：封装 `start Worker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function startWorker() {
-    if (state.intervalId) return;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    state.intervalId = window.setInterval(function () {
-      run(state.config || {});
-    }, 1800);
-  }
-
-  adapters.iqiyi = adapters.iqiyi || {};
-  adapters.iqiyi.videoCapabilities = {
-    /**
-     * 函数 `supports`：封装 `supports` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-     */
-    supports: function (video) {
-      return Boolean(video && video.isConnected);
-    },
-    /**
-     * 函数 `canUse`：封装 `can Use` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
-     */
-    canUse: function (action) {
-      return action === 'enableControls';
-    },
-    /**
-     * 函数 `enableControls`：封装 `enable Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-     */
-    enableControls: function (video) {
-      removeNativeVideoControls(video);
-      return Boolean(video);
-    }
-  };
-  /**
-   * 函数 `adapters.iqiyi.apply`：封装 `apply` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} config 表示本次脚本运行的配置或上下文数据。
-   */
-  adapters.iqiyi.apply = function (config) {
-    this.lastConfig = config || {};
-    state.config = this.lastConfig;
-    run(state.config);
-    startWorker();
-  };
+  window.VideoBrowserSiteAdapterTools.registerBasicAdapter({
+    adapterId: 'iqiyi',
+    stateKey: '__videobrowserIqiyiState',
+    clickSelector: 'button,a,[role="button"],.close,.skip,.qy-player-vippay-close',
+    cleanupSelectors: [
+      '.cupid',
+      '.qy-player-ad',
+      '.qy-player-vippay',
+      '.qy-player-focus-ad',
+      '.qy-player-side-ad',
+      '.qy-mod-ad',
+      '.m-box-items-ad',
+      '[class*="cupid"]',
+      '[class*="ad-wrapper"]',
+      '[data-videobrowser-remove]'
+    ],
+    cleanupButtonPattern: /(\u5173\u95ed|\u53d6\u6d88|\u7a0d\u540e|close|cancel)/i,
+    videoButtonPattern: /(\u8df3\u8fc7|\u5173\u95ed|skip|close)/i
+  });
 })();
