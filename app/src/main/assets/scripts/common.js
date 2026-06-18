@@ -44,6 +44,7 @@
   const rectsOverlap = geometry.rectsOverlap;
 
   const domTools = window.VideoBrowserDomTools;
+  const domActions = window.VideoBrowserDomActions;
   const nativeBridge = window.VideoBrowserNativeBridge;
 
   const styleId = '__videobrowser_css_filter__';
@@ -1618,12 +1619,10 @@
    * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
    */
   function hideElement(element, reason) {
-    if (!element || element === document.body || element === document.documentElement) return;
-    if (isProtectedAppContainer(element)) return;
-    element.setAttribute('data-videobrowser-dismissed', reason || 'cleanup');
-    element.style.setProperty('display', 'none', 'important');
-    element.style.setProperty('visibility', 'hidden', 'important');
-    element.style.setProperty('pointer-events', 'none', 'important');
+    domActions.hideElement(element, {
+      reason: reason || 'cleanup',
+      protectAppContainers: true
+    });
   }
 
   /**
@@ -1634,10 +1633,10 @@
    * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
    */
   function removeElement(element, reason) {
-    if (!element || element === document.body || element === document.documentElement) return;
-    if (isProtectedAppContainer(element)) return;
-    element.setAttribute('data-videobrowser-dismissed', reason || 'remove');
-    element.remove();
+    domActions.removeElement(element, {
+      reason: reason || 'remove',
+      protectAppContainers: true
+    });
   }
 
   /**
@@ -1647,8 +1646,7 @@
    * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function isProtectedAppContainer(element) {
-    const id = String(element && element.id || '').toLowerCase();
-    return id === 'app' || id === 'root' || id === '__next' || id === 'nuxt';
+    return domActions.isProtectedAppContainer(element);
   }
 
   /**

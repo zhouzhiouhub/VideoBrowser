@@ -8,6 +8,7 @@
   var tools = window.VideoBrowserSiteAdapterTools || {};
   var geometry = window.VideoBrowserGeometry || {};
   var domTools = window.VideoBrowserDomTools || {};
+  var domActions = window.VideoBrowserDomActions || {};
   var nativeBridge = window.VideoBrowserNativeBridge || {};
   window.VideoBrowserSiteAdapterTools = tools;
 
@@ -28,13 +29,11 @@
   };
 
   tools.hideElement = function (element, reason, defaultReason, protectedIds) {
-    if (!element || element === document.body || element === document.documentElement) return;
-    var ids = protectedIds || [];
-    if (ids.indexOf(String(element.id || '').toLowerCase()) !== -1) return;
-    element.setAttribute('data-videobrowser-site-dismissed', reason || defaultReason || 'site-adapter');
-    element.style.setProperty('display', 'none', 'important');
-    element.style.setProperty('visibility', 'hidden', 'important');
-    element.style.setProperty('pointer-events', 'none', 'important');
+    domActions.hideElement(element, {
+      attributeName: 'data-videobrowser-site-dismissed',
+      reason: reason || defaultReason || 'site-adapter',
+      protectedIds: protectedIds
+    });
   };
 
   tools.hideSelectors = function (selectors, reason, defaultReason, protectedIds) {
