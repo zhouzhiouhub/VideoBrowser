@@ -103,39 +103,51 @@
     return state;
   };
 
+  tools.scopedAdapterTools = function (adapterId, options) {
+    var config = options || {};
+    var clickSelector = config.clickSelector || 'button,a,[role="button"],.close,.skip';
+    return {
+      query: tools.query,
+      textOf: tools.textOf,
+      hideElement: function (element, reason) {
+        tools.hideElement(element, reason, adapterId, config.protectedIds);
+      },
+      hideSelectors: function (selectors) {
+        tools.hideSelectors(selectors || [], adapterId + '-ad', adapterId, config.protectedIds);
+      },
+      clickTextButtons: function (pattern) {
+        tools.clickTextButtons(clickSelector, pattern);
+      },
+      logVideoDiagnostic: function (event, details) {
+        tools.logVideoDiagnostic(adapterId, event, details);
+      },
+      removeNativeVideoControls: function (video) {
+        tools.removeNativeVideoControls(video, adapterId);
+      }
+    };
+  };
+
   tools.registerBasicAdapter = function (options) {
     var adapters = window.VideoBrowserSiteAdapters || {};
     window.VideoBrowserSiteAdapters = adapters;
 
     var adapterId = options.adapterId;
     var state = tools.adapterState(options.stateKey);
-    var clickSelector = options.clickSelector || 'button,a,[role="button"],.close,.skip';
+    var adapterTools = tools.scopedAdapterTools(adapterId, options);
     var intervalMs = options.intervalMs || 1800;
-
-    function hideSelectors(selectors) {
-      tools.hideSelectors(selectors || [], adapterId + '-ad', adapterId, options.protectedIds);
-    }
-
-    function clickTextButtons(pattern) {
-      tools.clickTextButtons(clickSelector, pattern);
-    }
-
-    function removeNativeVideoControls(video) {
-      tools.removeNativeVideoControls(video, adapterId);
-    }
 
     function run(config) {
       if (!document.documentElement) return;
       if (config && config.cleanupEnabled) {
-        hideSelectors(options.cleanupSelectors);
+        adapterTools.hideSelectors(options.cleanupSelectors);
         if (options.cleanupButtonPattern) {
-          clickTextButtons(options.cleanupButtonPattern);
+          adapterTools.clickTextButtons(options.cleanupButtonPattern);
         }
       }
       if (config && config.videoEnabled) {
-        tools.query('video').forEach(removeNativeVideoControls);
+        adapterTools.query('video').forEach(adapterTools.removeNativeVideoControls);
         if (options.videoButtonPattern) {
-          clickTextButtons(options.videoButtonPattern);
+          adapterTools.clickTextButtons(options.videoButtonPattern);
         }
         if (options.videoClickSelectors) {
           tools.clickSelectors(options.videoClickSelectors);
@@ -165,7 +177,7 @@
         return action === 'enableControls';
       },
       enableControls: function (video) {
-        removeNativeVideoControls(video);
+        adapterTools.removeNativeVideoControls(video);
         return Boolean(video);
       }
     };

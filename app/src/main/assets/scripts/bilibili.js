@@ -6,13 +6,19 @@
 (function () {
   var adapters = window.VideoBrowserSiteAdapters || {};
   window.VideoBrowserSiteAdapters = adapters;
-
-  var state = window.__videobrowserBilibiliState || {
-    intervalId: null,
-    config: {}
-  };
-  window.__videobrowserBilibiliState = state;
   var siteTools = window.VideoBrowserSiteAdapterTools;
+  var state = siteTools.adapterState('__videobrowserBilibiliState');
+  var adapterTools = siteTools.scopedAdapterTools('bilibili', {
+    protectedIds: ['app'],
+    clickSelector: 'button,a,[role="button"],.close,.cancel,.skip'
+  });
+  var query = adapterTools.query;
+  var textOf = adapterTools.textOf;
+  var hideElement = adapterTools.hideElement;
+  var hideSelectors = adapterTools.hideSelectors;
+  var clickTextButtons = adapterTools.clickTextButtons;
+  var logVideoDiagnostic = adapterTools.logVideoDiagnostic;
+  var removeNativeVideoControls = adapterTools.removeNativeVideoControls;
 
   var playbackOverlaySelectors = [
     '.mplayer-play-icon',
@@ -31,78 +37,6 @@
     '[class*="mplayer"][class*="play"]',
     '[class*="mplayer"][class*="pause"]'
   ];
-
-  /**
-   * 函数 `query`：封装 `query` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function query(selector) {
-    return siteTools.query(selector);
-  }
-
-  /**
-   * 函数 `textOf`：封装 `text Of` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function textOf(element) {
-    return siteTools.textOf(element);
-  }
-
-  /**
-   * 函数 `hideElement`：封装 `hide Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-   */
-  function hideElement(element, reason) {
-    siteTools.hideElement(element, reason, 'bilibili', ['app']);
-  }
-
-  /**
-   * 函数 `hideSelectors`：封装 `hide Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function hideSelectors(selectors) {
-    siteTools.hideSelectors(selectors, 'bilibili-ad', 'bilibili', ['app']);
-  }
-
-  /**
-   * 函数 `clickTextButtons`：封装 `click Text Buttons` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} pattern 表示函数执行 `pattern` 相关逻辑时需要读取或处理的输入。
-   */
-  function clickTextButtons(pattern) {
-    siteTools.clickTextButtons('button,a,[role="button"],.close,.cancel,.skip', pattern);
-  }
-
-  /**
-   * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
-   * @param {*} details 表示本次脚本运行的配置或上下文数据。
-   */
-  function logVideoDiagnostic(event, details) {
-    siteTools.logVideoDiagnostic('bilibili', event, details);
-  }
-
-  /**
-   * 函数 `removeNativeVideoControls`：封装 `remove Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function removeNativeVideoControls(video) {
-    siteTools.removeNativeVideoControls(video, 'bilibili');
-  }
 
   /**
    * 函数 `hideVideoPlayPauseOverlays`：封装 `hide Video Play Pause Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。

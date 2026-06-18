@@ -204,10 +204,12 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(helperScript.contains("video.controls = false"))
         assertTrue(helperScript.contains("video.removeAttribute('controls')"))
         assertTrue(helperScript.contains("tools.logVideoDiagnostic(adapterId, 'remove-native-controls'"))
+        assertTrue(helperScript.contains("tools.scopedAdapterTools = function (adapterId, options)"))
+        assertTrue(helperScript.contains("removeNativeVideoControls: function (video)"))
         assertTrue(helperScript.contains("tools.registerBasicAdapter = function (options)"))
         assertTrue(helperScript.contains("adapters[adapterId].videoCapabilities"))
         assertTrue(helperScript.contains("enableControls: function (video)"))
-        assertTrue(helperScript.contains("tools.query('video').forEach(removeNativeVideoControls);"))
+        assertTrue(helperScript.contains("adapterTools.query('video').forEach(adapterTools.removeNativeVideoControls);"))
 
         listOf(
             "youtube" to "src/main/assets/scripts/youtube.js",
@@ -229,8 +231,9 @@ class VideoCapabilityDelegationContractTest {
         val bilibiliScript = projectFile("src/main/assets/scripts/bilibili.js").readText()
         assertTrue(bilibiliScript.contains("adapters.bilibili.videoCapabilities"))
         assertTrue(bilibiliScript.contains("enableControls: function (video)"))
-        assertTrue(bilibiliScript.contains("function removeNativeVideoControls(video)"))
-        assertTrue(bilibiliScript.contains("siteTools.removeNativeVideoControls(video, 'bilibili')"))
+        assertTrue(bilibiliScript.contains("scopedAdapterTools('bilibili'"))
+        assertTrue(bilibiliScript.contains("var removeNativeVideoControls = adapterTools.removeNativeVideoControls"))
+        assertFalse(bilibiliScript.contains("siteTools.removeNativeVideoControls(video, 'bilibili')"))
         assertTrue(bilibiliScript.contains("query('video').forEach(removeNativeVideoControls);"))
         assertFalse(bilibiliScript.contains("video.controls = true"))
         assertFalse(bilibiliScript.contains("setAttribute('controls', 'controls')"))
