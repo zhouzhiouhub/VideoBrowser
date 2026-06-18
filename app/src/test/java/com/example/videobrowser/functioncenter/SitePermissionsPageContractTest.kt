@@ -53,9 +53,12 @@ class SitePermissionsPageContractTest {
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
+        val settingsModels = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsModels.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(settings.contains("data class SitePermissionRecord"))
+        assertTrue(settingsModels.contains("data class SitePermissionRecord"))
         assertTrue(settings.contains("fun sitePermissionRecords(): List<SitePermissionRecord>"))
         assertTrue(settings.contains("fun clearSitePermissionDecisions()"))
         assertTrue(page.contains("settingsManager.sitePermissionRecords()"))

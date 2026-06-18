@@ -12,34 +12,6 @@ import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
 import java.net.URI
 
-data class UserElementHideRule(
-    val host: String,
-    val selector: String
-)
-
-data class CustomShortcut(
-    val name: String,
-    val url: String
-)
-
-data class SitePermissionRecord(
-    val host: String,
-    val permission: SitePermission,
-    val decision: SitePermissionDecision
-)
-
-enum class SitePermission {
-    CAMERA,
-    MICROPHONE,
-    LOCATION
-}
-
-enum class SitePermissionDecision {
-    ASK,
-    ALLOW,
-    BLOCK
-}
-
 /**
  * 应用设置读写入口。
  *
