@@ -133,12 +133,15 @@ class SavedPagesPageContractTest {
         val repository = projectFile(
             "src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt"
         ).readText()
+        val models = projectFile(
+            "src/main/java/com/example/videobrowser/storage/SavedPageModels.kt"
+        ).readText()
         val search = projectFile("src/main/java/com/example/videobrowser/storage/SavedPageSearch.kt")
             .readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(repository.contains("val folder: String = \"\""))
+        assertTrue(models.contains("val folder: String = \"\""))
         assertTrue(repository.contains("fun updateBookmarkFolder(url: String, folder: String): Boolean"))
         assertTrue(repository.contains("fun bookmarkFolders(): List<String>"))
         assertTrue(repository.contains("VideoBrowserSavedPages\\t3"))

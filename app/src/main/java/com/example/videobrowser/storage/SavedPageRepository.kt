@@ -12,19 +12,6 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
 
-data class SavedPage(
-    val title: String,
-    val url: String,
-    val createdAtMillis: Long = 0L,
-    val updatedAtMillis: Long = 0L,
-    val folder: String = ""
-)
-
-data class BookmarkImportResult(
-    val importedCount: Int,
-    val skippedCount: Int
-)
-
 /**
  * 收藏夹和浏览历史仓库。
  *
