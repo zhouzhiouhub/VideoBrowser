@@ -8,7 +8,7 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import java.net.URI
-import java.util.Locale
+import com.example.videobrowser.utils.WebSchemePolicy
 
 object HttpNavigationSafetyPolicy {
     /**
@@ -20,7 +20,7 @@ object HttpNavigationSafetyPolicy {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun requiresInsecureNavigationConfirmation(pageUrl: String?, targetUrl: String): Boolean {
-        return schemeOf(pageUrl) == "https" && isHttpNetworkUrl(targetUrl)
+        return WebSchemePolicy.isHttpsScheme(schemeOf(pageUrl)) && isHttpNetworkUrl(targetUrl)
     }
 
     /**
@@ -32,7 +32,7 @@ object HttpNavigationSafetyPolicy {
      */
     private fun isHttpNetworkUrl(url: String): Boolean {
         val uri = uriOf(url) ?: return false
-        return uri.scheme?.lowercase(Locale.ROOT) == "http" && !uri.host.isNullOrBlank()
+        return WebSchemePolicy.isHttpScheme(uri.scheme) && !uri.host.isNullOrBlank()
     }
 
     /**
@@ -43,9 +43,7 @@ object HttpNavigationSafetyPolicy {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun schemeOf(url: String?): String? {
-        return uriOf(url)
-            ?.scheme
-            ?.lowercase(Locale.ROOT)
+        return uriOf(url)?.scheme
     }
 
     /**

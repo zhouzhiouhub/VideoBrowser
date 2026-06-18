@@ -11,6 +11,7 @@ import com.example.videobrowser.browser.RequestContext
 import com.example.videobrowser.browser.ResourceType
 import com.example.videobrowser.rules.RequestRuleMatchSummary
 import com.example.videobrowser.rules.RuleEngine
+import com.example.videobrowser.utils.WebSchemePolicy
 
 /**
  * 请求级广告拦截策略，先处理开关、主文档和协议边界，再进入规则系统匹配。
@@ -38,7 +39,11 @@ object AdBlockRequestPolicy {
     ): AdBlockDecision {
         // 主文档请求不进入广告规则匹配，避免把整个网页当成广告资源误拦截。
         // 非 http/https 请求也不匹配，因为它们可能是 about、file、intent 等特殊协议。
-        val ruleSummary = if (enabled && !context.isForMainFrame && isHttpScheme(context.requestScheme)) {
+        val ruleSummary = if (
+            enabled &&
+            !context.isForMainFrame &&
+            WebSchemePolicy.isHttpOrHttpsScheme(context.requestScheme)
+        ) {
             ruleEngine.matchRequestSummary(context)
         } else {
             RequestRuleMatchSummary.NoMatch
@@ -141,15 +146,4 @@ object AdBlockRequestPolicy {
         ).shouldBlock
     }
 
-    /**
-     * 函数 `isHttpScheme`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param scheme 参数类型为 `String?`，表示函数执行 `scheme` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isHttpScheme(scheme: String?): Boolean {
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true)
-    }
 }

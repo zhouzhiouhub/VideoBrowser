@@ -7,6 +7,8 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
+import com.example.videobrowser.utils.WebSchemePolicy
+
 object SmartNoImageRequestPolicy {
     /**
      * 函数 `shouldBlock`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
@@ -25,19 +27,7 @@ object SmartNoImageRequestPolicy {
         return enabled &&
             !siteSmartNoImageDisabled &&
             !context.isForMainFrame &&
-            isHttpScheme(context.requestScheme) &&
+            WebSchemePolicy.isHttpOrHttpsScheme(context.requestScheme) &&
             context.resourceType == ResourceType.IMAGE
-    }
-
-    /**
-     * 函数 `isHttpScheme`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param scheme 参数类型为 `String?`，表示函数执行 `scheme` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isHttpScheme(scheme: String?): Boolean {
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true)
     }
 }

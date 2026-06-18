@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.utils.UrlUtils
+import com.example.videobrowser.utils.WebSchemePolicy
 import com.example.videobrowser.video.MediaRouteAction
 import com.example.videobrowser.video.MediaRouteDecision
 import com.example.videobrowser.video.MediaRouteRequest
@@ -94,7 +95,7 @@ class BrowserNavigationController(
             return true
         }
 
-        if (!isWebUrl(uri.scheme)) {
+        if (!WebSchemePolicy.isWebViewLoadableScheme(uri.scheme)) {
             if (openExternalProtocolNavigation(view, uri)) {
                 return true
             }
@@ -260,18 +261,6 @@ class BrowserNavigationController(
             loadUrl(fallbackUrl)
         }
         return true
-    }
-
-    /**
-     * 函数 `isWebUrl`：判断某个 scheme 是否应该由 WebView 继续处理。
-     *
-     * @param scheme 参数类型为 `String?`，表示 URI 的 scheme，例如 http、https 或 about。
-     * @return 返回 `Boolean`，true 表示 WebView 可以继续处理该 scheme。
-     */
-    private fun isWebUrl(scheme: String?): Boolean {
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true) ||
-            scheme.equals("about", ignoreCase = true)
     }
 
     /**
