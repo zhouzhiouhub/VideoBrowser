@@ -8,7 +8,6 @@ package com.example.videobrowser.settings
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.content.Context
-import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
 
 /**
@@ -21,6 +20,7 @@ class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
     private val hostSets = SettingsHostSetStore(preferenceStore)
+    private val siteFeatureHosts = SiteFeatureHostSettings(preferenceStore, hostSets)
     private val sitePermissions = PersistentSitePermissionStore(preferenceStore, hostSets)
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
     private val customShortcutStore = CustomShortcutStore(preferenceStore)
@@ -53,24 +53,14 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isAdBlockDisabledForSite(host: String?): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        return adBlockDisabledSiteHosts().contains(normalizedHost)
+        return siteFeatureHosts.contains(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, host)
     }
 
     /**
      * P11-01 只保存站点级请求拦截放行列表，不引入订阅、规则文件或数据库。
      */
     fun setAdBlockDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val hosts = adBlockDisabledSiteHosts().toMutableSet()
-        if (disabled) {
-            hosts.add(normalizedHost)
-        } else {
-            hosts.remove(normalizedHost)
-        }
-
-        hostSets.save(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, hosts)
-        return true
+        return siteFeatureHosts.set(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, host, disabled)
     }
 
     /**
@@ -80,7 +70,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun adBlockDisabledSiteHosts(): Set<String> {
-        return hostSets.load(KEY_SITE_AD_BLOCK_DISABLED_HOSTS)
+        return siteFeatureHosts.hosts(KEY_SITE_AD_BLOCK_DISABLED_HOSTS)
     }
 
     /**
@@ -91,8 +81,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isJsInjectionDisabledForSite(host: String?): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        return jsInjectionDisabledSiteHosts().contains(normalizedHost)
+        return siteFeatureHosts.contains(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, host)
     }
 
     /**
@@ -104,16 +93,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setJsInjectionDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val hosts = jsInjectionDisabledSiteHosts().toMutableSet()
-        if (disabled) {
-            hosts.add(normalizedHost)
-        } else {
-            hosts.remove(normalizedHost)
-        }
-
-        hostSets.save(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, hosts)
-        return true
+        return siteFeatureHosts.set(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, host, disabled)
     }
 
     /**
@@ -123,7 +103,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun jsInjectionDisabledSiteHosts(): Set<String> {
-        return hostSets.load(KEY_SITE_JS_INJECTION_DISABLED_HOSTS)
+        return siteFeatureHosts.hosts(KEY_SITE_JS_INJECTION_DISABLED_HOSTS)
     }
 
     /**
@@ -134,8 +114,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isDomAdBlockDisabledForSite(host: String?): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        return domAdBlockDisabledSiteHosts().contains(normalizedHost)
+        return siteFeatureHosts.contains(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, host)
     }
 
     /**
@@ -147,16 +126,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setDomAdBlockDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val hosts = domAdBlockDisabledSiteHosts().toMutableSet()
-        if (disabled) {
-            hosts.add(normalizedHost)
-        } else {
-            hosts.remove(normalizedHost)
-        }
-
-        hostSets.save(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, hosts)
-        return true
+        return siteFeatureHosts.set(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, host, disabled)
     }
 
     /**
@@ -166,7 +136,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun domAdBlockDisabledSiteHosts(): Set<String> {
-        return hostSets.load(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS)
+        return siteFeatureHosts.hosts(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS)
     }
 
     /**
@@ -177,8 +147,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isVideoEnhancementDisabledForSite(host: String?): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        return videoEnhancementDisabledSiteHosts().contains(normalizedHost)
+        return siteFeatureHosts.contains(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, host)
     }
 
     /**
@@ -190,16 +159,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setVideoEnhancementDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val hosts = videoEnhancementDisabledSiteHosts().toMutableSet()
-        if (disabled) {
-            hosts.add(normalizedHost)
-        } else {
-            hosts.remove(normalizedHost)
-        }
-
-        hostSets.save(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, hosts)
-        return true
+        return siteFeatureHosts.set(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, host, disabled)
     }
 
     /**
@@ -209,7 +169,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun videoEnhancementDisabledSiteHosts(): Set<String> {
-        return hostSets.load(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS)
+        return siteFeatureHosts.hosts(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS)
     }
 
     /**
@@ -220,8 +180,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isSmartNoImageDisabledForSite(host: String?): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        return smartNoImageDisabledSiteHosts().contains(normalizedHost)
+        return siteFeatureHosts.contains(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, host)
     }
 
     /**
@@ -233,16 +192,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setSmartNoImageDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val hosts = smartNoImageDisabledSiteHosts().toMutableSet()
-        if (disabled) {
-            hosts.add(normalizedHost)
-        } else {
-            hosts.remove(normalizedHost)
-        }
-
-        hostSets.save(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, hosts)
-        return true
+        return siteFeatureHosts.set(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, host, disabled)
     }
 
     /**
@@ -252,7 +202,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun smartNoImageDisabledSiteHosts(): Set<String> {
-        return hostSets.load(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS)
+        return siteFeatureHosts.hosts(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS)
     }
 
     /**
@@ -263,8 +213,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isUserWhitelistedSite(host: String?): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        return userWhitelistedSiteHosts().contains(normalizedHost)
+        return siteFeatureHosts.contains(KEY_USER_WHITELISTED_SITE_HOSTS, host)
     }
 
     /**
@@ -276,16 +225,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setUserWhitelistedSite(host: String?, whitelisted: Boolean): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val hosts = userWhitelistedSiteHosts().toMutableSet()
-        if (whitelisted) {
-            hosts.add(normalizedHost)
-        } else {
-            hosts.remove(normalizedHost)
-        }
-
-        hostSets.save(KEY_USER_WHITELISTED_SITE_HOSTS, hosts)
-        return true
+        return siteFeatureHosts.set(KEY_USER_WHITELISTED_SITE_HOSTS, host, whitelisted)
     }
 
     /**
@@ -295,7 +235,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun userWhitelistedSiteHosts(): Set<String> {
-        return hostSets.load(KEY_USER_WHITELISTED_SITE_HOSTS)
+        return siteFeatureHosts.hosts(KEY_USER_WHITELISTED_SITE_HOSTS)
     }
 
     /**
@@ -304,7 +244,7 @@ class SettingsManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearUserWhitelistedSites() {
-        preferenceStore.remove(KEY_USER_WHITELISTED_SITE_HOSTS)
+        siteFeatureHosts.clear(KEY_USER_WHITELISTED_SITE_HOSTS)
     }
 
     /**
