@@ -7,6 +7,8 @@ package com.example.videobrowser.download
  * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
+import com.example.videobrowser.utils.MimeTypeNormalizer
+
 enum class DownloadCategory {
     VIDEO,
     IMAGE,
@@ -26,27 +28,23 @@ enum class DownloadCategory {
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         fun from(mimeType: String?, fileName: String): DownloadCategory {
-            val normalizedMimeType = mimeType
-                ?.substringBefore(';')
-                ?.trim()
-                ?.lowercase()
-                .orEmpty()
+            val normalizedMimeType = MimeTypeNormalizer.normalize(mimeType).orEmpty()
             val extension = fileName
                 .substringAfterLast('.', missingDelimiterValue = "")
                 .lowercase()
 
             return when {
-                normalizedMimeType.startsWith("video/") ||
+                MimeTypeNormalizer.isVideo(mimeType) ||
                     extension in VIDEO_EXTENSIONS -> VIDEO
-                normalizedMimeType.startsWith("image/") ||
+                MimeTypeNormalizer.isImage(mimeType) ||
                     extension in IMAGE_EXTENSIONS -> IMAGE
-                normalizedMimeType.startsWith("audio/") ||
+                MimeTypeNormalizer.isAudio(mimeType) ||
                     extension in AUDIO_EXTENSIONS -> AUDIO
                 normalizedMimeType == APK_MIME_TYPE ||
                     extension in APP_EXTENSIONS -> APP
                 normalizedMimeType in ARCHIVE_MIME_TYPES ||
                     extension in ARCHIVE_EXTENSIONS -> ARCHIVE
-                normalizedMimeType.startsWith("text/") ||
+                MimeTypeNormalizer.isText(mimeType) ||
                     normalizedMimeType in DOCUMENT_MIME_TYPES ||
                     extension in DOCUMENT_EXTENSIONS -> DOCUMENT
                 else -> OTHER

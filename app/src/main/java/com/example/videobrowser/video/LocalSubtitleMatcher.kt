@@ -8,6 +8,7 @@ package com.example.videobrowser.video
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
 import androidx.media3.common.MimeTypes
+import com.example.videobrowser.utils.MimeTypeNormalizer
 
 /**
  * 本地字幕自动匹配器。
@@ -124,11 +125,7 @@ object LocalSubtitleMatcher {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun supportedSubtitleMimeType(mimeType: String?): String? {
-        val normalized = mimeType
-            ?.substringBefore(';')
-            ?.trim()
-            ?.lowercase()
-            .orEmpty()
+        val normalized = MimeTypeNormalizer.normalize(mimeType).orEmpty()
         return normalized.takeIf { it in supportedSubtitleMimeTypes }
     }
 }

@@ -124,12 +124,8 @@ object MediaUrlUtils {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isPlayableMimeType(mimeType: String?): Boolean {
-        val normalizedMimeType = mimeType
-            ?.substringBefore(';')
-            ?.trim()
-            ?.lowercase()
-            .orEmpty()
-        return normalizedMimeType.startsWith("video/") ||
+        val normalizedMimeType = MimeTypeNormalizer.normalize(mimeType).orEmpty()
+        return MimeTypeNormalizer.isVideo(mimeType) ||
             normalizedMimeType in playableMimeTypes
     }
 

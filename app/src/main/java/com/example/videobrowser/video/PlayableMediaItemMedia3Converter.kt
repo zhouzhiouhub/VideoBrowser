@@ -2,6 +2,7 @@ package com.example.videobrowser.video
 
 import android.net.Uri
 import androidx.media3.common.MediaItem
+import com.example.videobrowser.utils.MimeTypeNormalizer
 
 internal object PlayableMediaItemMedia3Converter {
     fun toMediaItem(item: PlayableMediaItem): MediaItem {
@@ -25,7 +26,7 @@ internal object PlayableMediaItemMedia3Converter {
     }
 
     private fun normalizedMimeType(mimeType: String?): String? {
-        return when (mimeType?.substringBefore(';')?.trim()?.lowercase()) {
+        return when (MimeTypeNormalizer.normalize(mimeType)) {
             "application/vnd.apple.mpegurl",
             "application/x-mpegurl",
             "audio/mpegurl",
@@ -34,7 +35,7 @@ internal object PlayableMediaItemMedia3Converter {
             "application/vnd.ms-sstr+xml" -> MIME_SMOOTH_STREAMING
             null,
             "" -> null
-            else -> mimeType.substringBefore(';').trim()
+            else -> MimeTypeNormalizer.withoutParameters(mimeType)
         }
     }
 
