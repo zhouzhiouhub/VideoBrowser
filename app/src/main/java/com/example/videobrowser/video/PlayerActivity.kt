@@ -402,7 +402,7 @@ class PlayerActivity : AppCompatActivity() {
                 playerView.player = exoPlayer
                 exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
                 exoPlayer.setMediaItems(mediaItems, currentMediaItemIndex, playbackPosition)
-                exoPlayer.repeatMode = media3RepeatMode(repeatMode)
+                exoPlayer.repeatMode = PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode(repeatMode)
                 exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.prepare()
@@ -772,13 +772,9 @@ class PlayerActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun cycleRepeatMode(): PlaybackRepeatMode {
-        repeatMode = when (repeatMode) {
-            PlaybackRepeatMode.NONE -> PlaybackRepeatMode.ONE
-            PlaybackRepeatMode.ONE -> PlaybackRepeatMode.ALL
-            PlaybackRepeatMode.ALL -> PlaybackRepeatMode.NONE
-        }
+        repeatMode = repeatMode.next()
         playbackQueue = playbackQueue.copy(repeatMode = repeatMode)
-        player?.repeatMode = media3RepeatMode(repeatMode)
+        player?.repeatMode = PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode(repeatMode)
         updateQueueControls()
         return repeatMode
     }
@@ -794,21 +790,6 @@ class PlayerActivity : AppCompatActivity() {
         }
         gestureOverlay.setQueueControlsVisible(playbackQueue.items.size > 1)
         gestureOverlay.setRepeatMode(repeatMode)
-    }
-
-    /**
-     * 函数 `media3RepeatMode`：封装 `media3 Repeat Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param mode 参数类型为 `PlaybackRepeatMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun media3RepeatMode(mode: PlaybackRepeatMode): Int {
-        return when (mode) {
-            PlaybackRepeatMode.NONE -> Player.REPEAT_MODE_OFF
-            PlaybackRepeatMode.ONE -> Player.REPEAT_MODE_ONE
-            PlaybackRepeatMode.ALL -> Player.REPEAT_MODE_ALL
-        }
     }
 
     /**
@@ -874,7 +855,7 @@ class PlayerActivity : AppCompatActivity() {
             currentMediaItemIndex,
             playbackPosition
         )
-        exoPlayer.repeatMode = media3RepeatMode(repeatMode)
+        exoPlayer.repeatMode = PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode(repeatMode)
         exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
         exoPlayer.playWhenReady = playWhenReady
         exoPlayer.prepare()

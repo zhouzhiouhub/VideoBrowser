@@ -57,6 +57,9 @@ class LocalPlaybackQueueWiringContractTest {
         val overlay = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
         ).readText()
+        val repeatModeConverter = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlaybackRepeatModeMedia3Converter.kt"
+        ).readText()
 
         assertTrue(playerActivity.contains("intentReader.playbackQueue()"))
         assertTrue(intentReader.contains("PlaybackQueueJsonCodec::decode"))
@@ -64,7 +67,8 @@ class LocalPlaybackQueueWiringContractTest {
         assertTrue(playerActivity.contains("PlaybackCommand.Previous"))
         assertTrue(playerActivity.contains("PlaybackCommand.Next"))
         assertTrue(playerActivity.contains("PlaybackCommand.ToggleRepeat"))
-        assertTrue(playerActivity.contains("Player.REPEAT_MODE_ONE"))
+        assertTrue(playerActivity.contains("PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode"))
+        assertTrue(repeatModeConverter.contains("Player.REPEAT_MODE_ONE"))
         assertTrue(playerActivity.contains("STATE_REPEAT_MODE"))
         assertTrue(playerActivity.contains("outState.putString(STATE_REPEAT_MODE, sessionState.repeatMode.name)"))
         assertTrue(overlay.contains("var onPreviousMediaRequested: (() -> Unit)? = null"))

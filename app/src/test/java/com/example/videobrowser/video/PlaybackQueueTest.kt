@@ -63,6 +63,13 @@ class PlaybackQueueTest {
         assertEquals(second, queue.previous().currentItem())
     }
 
+    @Test
+    fun `repeat mode cycles through none one and all`() {
+        assertEquals(PlaybackRepeatMode.ONE, PlaybackRepeatMode.NONE.next())
+        assertEquals(PlaybackRepeatMode.ALL, PlaybackRepeatMode.ONE.next())
+        assertEquals(PlaybackRepeatMode.NONE, PlaybackRepeatMode.ALL.next())
+    }
+
     /**
      * 测试函数 `selectMovesToValidIndexAndIgnoresInvalidIndex`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `select Moves To Valid Index And Ignores Invalid Index` 这条行为是否成立。
      *

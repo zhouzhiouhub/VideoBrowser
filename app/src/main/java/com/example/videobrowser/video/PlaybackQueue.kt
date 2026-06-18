@@ -190,5 +190,13 @@ data class PlaybackQueue(
 enum class PlaybackRepeatMode {
     NONE,
     ONE,
-    ALL
+    ALL;
+
+    fun next(): PlaybackRepeatMode {
+        return when (this) {
+            NONE -> ONE
+            ONE -> ALL
+            ALL -> NONE
+        }
+    }
 }
