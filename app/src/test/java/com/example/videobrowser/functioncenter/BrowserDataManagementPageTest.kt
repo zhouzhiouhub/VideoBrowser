@@ -117,6 +117,9 @@ class BrowserDataManagementPageTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
         ).readText()
+        val clearActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataClearActions.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
@@ -127,7 +130,7 @@ class BrowserDataManagementPageTest {
 
         assertTrue(page.contains("fun showBookmarkData"))
         assertTrue(page.contains("savedPageRepository.bookmarks().size"))
-        assertTrue(page.contains("savedPageRepository.clear(SavedPageRepository.SavedPageCollection.BOOKMARKS)"))
+        assertTrue(clearActions.contains("savedPageRepository.clear(SavedPageRepository.SavedPageCollection.BOOKMARKS)"))
         assertTrue(page.contains("R.string.bookmark_record_count"))
         assertTrue(page.contains("exportBookmarks: () -> Unit"))
         assertTrue(page.contains("importBookmarks: () -> Unit"))
@@ -159,6 +162,9 @@ class BrowserDataManagementPageTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
         ).readText()
+        val clearActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataClearActions.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
@@ -173,8 +179,8 @@ class BrowserDataManagementPageTest {
         assertTrue(page.contains("downloadRecordRepository: DownloadRecordRepository"))
         assertTrue(page.contains("fun showDownloadData"))
         assertTrue(page.contains("downloadRecordRepository.records().size"))
-        assertTrue(page.contains("DownloadRecordCleaner(downloadRecordRepository)"))
-        assertTrue(page.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(clearActions.contains("DownloadRecordCleaner(downloadRecordRepository)"))
+        assertTrue(clearActions.contains("downloadManager.remove(*downloadIds)"))
         assertTrue(page.contains("R.string.download_record_count"))
         assertTrue(settings.contains("showDownloadManager: () -> Unit"))
         assertTrue(settings.contains("showDownloadManager()"))
@@ -197,6 +203,9 @@ class BrowserDataManagementPageTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementPage.kt"
         ).readText()
+        val clearActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserDataClearActions.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
@@ -208,9 +217,9 @@ class BrowserDataManagementPageTest {
         assertTrue(page.contains("savedPageRepository: SavedPageRepository"))
         assertTrue(page.contains("fun showBrowsingHistoryData"))
         assertTrue(page.contains("savedPageRepository.history().size"))
-        assertTrue(page.contains("savedPageRepository.clearHistory()"))
+        assertTrue(clearActions.contains("savedPageRepository.clearHistory()"))
         assertTrue(page.contains("BrowserHistoryClearRange.entries"))
-        assertTrue(page.contains("savedPageRepository.clearHistoryUpdatedSince(cutoffMillis)"))
+        assertTrue(clearActions.contains("savedPageRepository.clearHistoryUpdatedSince(cutoffMillis)"))
         assertTrue(page.contains("R.string.action_clear_history_range_summary"))
         assertTrue(page.contains("R.string.dialog_clear_history_range_message"))
         assertTrue(page.contains("R.string.toast_history_range_cleared"))

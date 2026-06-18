@@ -7,8 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.app.DownloadManager
-import android.content.Context
 import android.text.InputType
 import android.webkit.CookieManager
 import android.webkit.WebStorage
@@ -17,7 +15,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
-import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.UrlUtils
@@ -37,6 +34,12 @@ class BrowserDataManagementPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val clearActions = BrowserDataClearActions(
+        context = activity,
+        browserManagers = browserManagers,
+        savedPageRepository = savedPageRepository,
+        downloadRecordRepository = downloadRecordRepository
+    )
 
     /**
      * 函数 `showBookmarkData`：控制 `show Bookmark Data` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -418,7 +421,7 @@ class BrowserDataManagementPage(
             .setTitle(R.string.title_remove_cookie)
             .setMessage(activity.getString(R.string.dialog_remove_cookie_message, cookieName))
             .setPositiveButton(R.string.action_remove) { _, _ ->
-                removeCookie(pageUrl, cookieName)
+                clearActions.removeCookie(pageUrl, cookieName)
                 Toast.makeText(activity, R.string.toast_cookie_removed, Toast.LENGTH_SHORT).show()
                 browserManager().reload()
                 showCookies(replaceCurrent = true)
@@ -437,10 +440,7 @@ class BrowserDataManagementPage(
             .setTitle(R.string.action_clear)
             .setMessage(R.string.dialog_clear_all_cookies_message)
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                CookieManager.getInstance().apply {
-                    removeAllCookies(null)
-                    flush()
-                }
+                clearActions.clearAllCookies()
                 Toast.makeText(activity, R.string.toast_cookies_cleared, Toast.LENGTH_SHORT).show()
                 browserManager().reload()
                 showCookies(replaceCurrent = true)
@@ -459,7 +459,7 @@ class BrowserDataManagementPage(
             .setTitle(R.string.action_clear)
             .setMessage(R.string.dialog_clear_cache_message)
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                browserManagers().forEach { manager -> manager.clearCache() }
+                clearActions.clearCache()
                 Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
                 showCache(replaceCurrent = true)
             }
@@ -477,7 +477,7 @@ class BrowserDataManagementPage(
             .setTitle(R.string.action_clear)
             .setMessage(R.string.dialog_clear_bookmarks_message)
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                savedPageRepository.clear(SavedPageRepository.SavedPageCollection.BOOKMARKS)
+                clearActions.clearBookmarks()
                 Toast.makeText(activity, R.string.toast_bookmarks_cleared, Toast.LENGTH_SHORT).show()
                 showBookmarkData(replaceCurrent = true)
             }
@@ -495,24 +495,12 @@ class BrowserDataManagementPage(
             .setTitle(R.string.action_clear)
             .setMessage(R.string.dialog_clear_download_records_message)
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearDownloadRecordsAndFiles()
+                clearActions.clearDownloadRecordsAndFiles()
                 Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
                 showDownloadData(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    /**
-     * 函数 `clearDownloadRecordsAndFiles`：封装 `clear Download Records And Files` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun clearDownloadRecordsAndFiles() {
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
-            downloadManager.remove(*downloadIds)
-        }.clearRecordsAndFiles()
     }
 
     /**
@@ -547,7 +535,7 @@ class BrowserDataManagementPage(
             .setTitle(R.string.action_clear)
             .setMessage(activity.getString(R.string.dialog_clear_history_range_message, rangeLabel))
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                val removedCount = clearHistory(range)
+                val removedCount = clearActions.clearHistory(range)
                 Toast.makeText(
                     activity,
                     activity.getString(R.string.toast_history_range_cleared, rangeLabel, removedCount),
@@ -557,24 +545,6 @@ class BrowserDataManagementPage(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    /**
-     * 函数 `clearHistory`：封装 `clear History` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param range 参数类型为 `BrowserHistoryClearRange`，表示函数执行 `range` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun clearHistory(range: BrowserHistoryClearRange): Int {
-        val historyCount = savedPageRepository.history().size
-        val cutoffMillis = range.cutoffMillis(System.currentTimeMillis())
-        return if (cutoffMillis == null) {
-            savedPageRepository.clearHistory()
-            historyCount
-        } else {
-            savedPageRepository.clearHistoryUpdatedSince(cutoffMillis)
-        }
     }
 
     /**
@@ -607,7 +577,7 @@ class BrowserDataManagementPage(
             .setTitle(R.string.title_remove_site_data)
             .setMessage(activity.getString(R.string.dialog_remove_site_data_message, origin))
             .setPositiveButton(R.string.action_remove) { _, _ ->
-                WebStorage.getInstance().deleteOrigin(origin)
+                clearActions.removeSiteData(origin)
                 Toast.makeText(activity, R.string.toast_site_data_removed, Toast.LENGTH_SHORT).show()
                 showSiteData(replaceCurrent = true, query = query)
             }
@@ -625,27 +595,12 @@ class BrowserDataManagementPage(
             .setTitle(R.string.action_clear)
             .setMessage(R.string.dialog_clear_site_data_message)
             .setPositiveButton(R.string.action_clear) { _, _ ->
-                WebStorage.getInstance().deleteAllData()
+                clearActions.clearSiteData()
                 Toast.makeText(activity, R.string.toast_site_data_cleared, Toast.LENGTH_SHORT).show()
                 showSiteData(replaceCurrent = true)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    /**
-     * 函数 `removeCookie`：封装 `remove Cookie` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageUrl 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param cookieName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    private fun removeCookie(pageUrl: String, cookieName: String) {
-        CookieManager.getInstance().apply {
-            setCookie(pageUrl, "$cookieName=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT")
-            setCookie(pageUrl, "$cookieName=; Max-Age=0; Path=/")
-            flush()
-        }
     }
 
     /**
