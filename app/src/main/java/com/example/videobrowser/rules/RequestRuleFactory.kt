@@ -279,36 +279,7 @@ internal object RequestRuleFactory {
     }
 
     private fun parseOptionDomainScope(text: String): DomainScope? {
-        val included = mutableSetOf<String>()
-        val excluded = mutableSetOf<String>()
-        text.split('|')
-            .map { domain -> domain.trim() }
-            .filter { domain -> domain.isNotEmpty() }
-            .forEach { rawDomain ->
-                val isExcluded = rawDomain.startsWith("~")
-                val normalized = rawDomain
-                    .removePrefix("~")
-                    .trim()
-                    .trim('.')
-                    .lowercase(Locale.US)
-                if (!isValidDomainPattern(normalized)) {
-                    return null
-                }
-                if (isExcluded) {
-                    excluded += normalized
-                } else {
-                    included += normalized
-                }
-            }
-        return DomainScope(
-            includedDomains = included,
-            excludedDomains = excluded
-        )
-    }
-
-    private fun isValidDomainPattern(domain: String): Boolean {
-        return domain.isNotBlank() &&
-            domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
+        return DomainScopeParser.parsePipeSeparated(text)
     }
 
     private val RESOURCE_TYPE_OPTIONS = mapOf(

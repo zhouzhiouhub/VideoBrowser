@@ -1,7 +1,6 @@
 package com.example.videobrowser.rules
 
 import com.example.videobrowser.adguard.AdGuardRuleParser
-import com.example.videobrowser.site.SiteHost
 import java.util.Locale
 
 internal class RuleLineParser(
@@ -44,7 +43,9 @@ internal class RuleLineParser(
             return ParsedRule.Skipped(skipped(source, lineNumber, line, "missing css rule marker"))
         }
 
-        val domainScope = parseDomains(trimmed.substring(0, markerIndex)) ?: return ParsedRule.Skipped(
+        val domainScope = DomainScopeParser.parseCommaSeparated(
+            trimmed.substring(0, markerIndex)
+        ) ?: return ParsedRule.Skipped(
             skipped(source, lineNumber, line, "invalid css rule domain")
         )
         val selector = trimmed.substring(markerIndex + markerLength).trim()
@@ -123,41 +124,6 @@ internal class RuleLineParser(
             trimmed.startsWith("!") ||
             trimmed.startsWith("# ") ||
             trimmed == "#"
-    }
-
-    private fun parseDomains(value: String): DomainScope? {
-        val trimmed = value.trim()
-        if (trimmed.isEmpty()) {
-            return DomainScope.Empty
-        }
-        val included = mutableSetOf<String>()
-        val excluded = mutableSetOf<String>()
-        trimmed.split(",")
-            .map { domain -> domain.trim() }
-            .filter { domain -> domain.isNotEmpty() }
-            .forEach { rawDomain ->
-                val isExcluded = rawDomain.startsWith("~")
-                val normalized = SiteHost.normalize(rawDomain.removePrefix("~")) ?: return null
-                if (!isValidDomain(normalized)) {
-                    return null
-                }
-                if (isExcluded) {
-                    excluded += normalized
-                } else {
-                    included += normalized
-                }
-            }
-        if (included.isEmpty() && excluded.isEmpty()) {
-            return null
-        }
-        return DomainScope(
-            includedDomains = included,
-            excludedDomains = excluded
-        )
-    }
-
-    private fun isValidDomain(domain: String): Boolean {
-        return domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
     }
 
     private fun isSafeSelector(selector: String): Boolean {

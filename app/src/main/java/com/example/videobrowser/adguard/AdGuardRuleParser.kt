@@ -7,7 +7,7 @@ package com.example.videobrowser.adguard
  * 主要职责：把外部订阅里的 AdGuard 风格规则拆分成项目内部可理解的规则文本。
  * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
  */
-import com.example.videobrowser.rules.DomainScope
+import com.example.videobrowser.rules.DomainScopeParser
 import com.example.videobrowser.rules.ElementRule
 import com.example.videobrowser.rules.ElementRuleType
 import com.example.videobrowser.rules.RemoveParamRule
@@ -16,7 +16,6 @@ import com.example.videobrowser.rules.ScriptletParseResult
 import com.example.videobrowser.rules.ScriptletRegistry
 import com.example.videobrowser.rules.ScriptletRule
 import com.example.videobrowser.rules.SkippedRule
-import com.example.videobrowser.site.SiteHost
 import java.util.Locale
 
 /**
@@ -133,7 +132,7 @@ class AdGuardRuleParser {
             return null
         }
 
-        val domainScope = parseDomains(trimmed.substring(0, markerIndex)) ?: return null
+        val domainScope = DomainScopeParser.parseCommaSeparated(trimmed.substring(0, markerIndex)) ?: return null
         val selector = trimmed.substring(markerIndex + markerLength).trim()
         if (!isSafeSelector(selector)) {
             return null
@@ -235,55 +234,6 @@ class AdGuardRuleParser {
             trimmed.startsWith("!") ||
             trimmed.startsWith("# ") ||
             trimmed == "#"
-    }
-
-    /**
-     * 函数 `parseDomains`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseDomains(value: String): DomainScope? {
-        val trimmed = value.trim()
-        if (trimmed.isEmpty()) {
-            return DomainScope.Empty
-        }
-        val included = mutableSetOf<String>()
-        val excluded = mutableSetOf<String>()
-        trimmed.split(",")
-            .map { domain -> domain.trim() }
-            .filter { domain -> domain.isNotEmpty() }
-            .forEach { rawDomain ->
-                val isExcluded = rawDomain.startsWith("~")
-                val normalized = SiteHost.normalize(rawDomain.removePrefix("~")) ?: return null
-                if (!isValidDomain(normalized)) {
-                    return null
-                }
-                if (isExcluded) {
-                    excluded += normalized
-                } else {
-                    included += normalized
-                }
-            }
-        if (included.isEmpty() && excluded.isEmpty()) {
-            return null
-        }
-        return DomainScope(
-            includedDomains = included,
-            excludedDomains = excluded
-        )
-    }
-
-    /**
-     * 函数 `isValidDomain`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isValidDomain(domain: String): Boolean {
-        return domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
     }
 
     /**
