@@ -44,6 +44,7 @@
   const rectsOverlap = geometry.rectsOverlap;
 
   const domTools = window.VideoBrowserDomTools;
+  const nativeBridge = window.VideoBrowserNativeBridge;
 
   const styleId = '__videobrowser_css_filter__';
   const normalCleanupIntervalMs = 3000;
@@ -350,46 +351,9 @@
    * @param {*} details 表示本次脚本运行的配置或上下文数据。
    */
   function logVideoDiagnostic(event, details) {
-    const values = details && typeof details === 'object' ? details : {};
-    const parts = [
-      'event=' + safeLogValue(event),
-      'host=' + safeLogValue(location.hostname || ''),
-      'path=' + safeLogValue(location.pathname || '/')
-    ];
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param key 表示当前回调正在处理的名称、键或文本值。
-     */
-    Object.keys(values).forEach(function (key) {
-      parts.push(safeLogValue(key) + '=' + safeLogValue(values[key]));
+    nativeBridge.logVideoDiagnostic(event, details, {
+      includePath: true
     });
-    const message = parts.join(' ');
-    const bridge = window.VideoBrowserNative;
-    if (bridge && typeof bridge.logVideoEvent === 'function') {
-      try {
-        bridge.logVideoEvent(message);
-        return;
-      } catch (_) {}
-    }
-    try {
-      if (window.console && typeof window.console.log === 'function') {
-        window.console.log('[VideoBrowserVideo] ' + message);
-      }
-    } catch (_) {}
-  }
-
-  /**
-   * 函数 `safeLogValue`：封装 `safe Log Value` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function safeLogValue(value) {
-    return String(value === null || typeof value === 'undefined' ? '' : value)
-      .replace(/\s+/g, ' ')
-      .replace(/[|]/g, '/')
-      .slice(0, 180);
   }
 
   /**
@@ -401,7 +365,6 @@
    */
   function videoLogDetails(video, extra) {
     const values = extra && typeof extra === 'object' ? extra : {};
-    const source = video && (video.currentSrc || video.src || video.getAttribute('src') || '');
     const className = video && String(video.className || '');
     return Object.assign({
       tag: video && video.tagName ? video.tagName.toLowerCase() : '',
@@ -410,7 +373,7 @@
       paused: video ? Boolean(video.paused) : false,
       readyState: video ? Number(video.readyState || 0) : 0,
       className: className,
-      src: source
+      src: nativeBridge.videoSource(video)
     }, values);
   }
 

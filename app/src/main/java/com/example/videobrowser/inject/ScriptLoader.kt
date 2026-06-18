@@ -71,11 +71,13 @@ class ScriptLoader(
     companion object {
         const val GEOMETRY_SCRIPT_ASSET = "scripts/geometry.js"
         const val DOM_TOOLS_SCRIPT_ASSET = "scripts/dom_tools.js"
+        const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
         val COMMON_SCRIPT_ASSETS = listOf(
             GEOMETRY_SCRIPT_ASSET,
             DOM_TOOLS_SCRIPT_ASSET,
+            NATIVE_BRIDGE_SCRIPT_ASSET,
             COMMON_SCRIPT_ASSET
         )
         private const val SCRIPT_ASSET_DIRECTORY = "scripts/"

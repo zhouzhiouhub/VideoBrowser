@@ -8,6 +8,7 @@
   var tools = window.VideoBrowserSiteAdapterTools || {};
   var geometry = window.VideoBrowserGeometry || {};
   var domTools = window.VideoBrowserDomTools || {};
+  var nativeBridge = window.VideoBrowserNativeBridge || {};
   window.VideoBrowserSiteAdapterTools = tools;
 
   tools.query = function (selector) {
@@ -63,24 +64,12 @@
   };
 
   tools.logVideoDiagnostic = function (adapterId, event, details) {
-    var bridge = window.VideoBrowserNative;
-    var message = 'event=' + event + ' adapter=' + adapterId + ' host=' + location.hostname + ' ' + (details || '');
-    if (bridge && typeof bridge.logVideoEvent === 'function') {
-      try {
-        bridge.logVideoEvent(message);
-        return;
-      } catch (_) {}
-    }
-    try {
-      if (window.console && typeof window.console.log === 'function') {
-        window.console.log('[VideoBrowserVideo] ' + message);
-      }
-    } catch (_) {}
+    nativeBridge.logVideoDiagnostic(event, details, {
+      adapterId: adapterId
+    });
   };
 
-  tools.videoSource = function (video) {
-    return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
-  };
+  tools.videoSource = nativeBridge.videoSource;
 
   tools.safeRect = geometry.safeRect;
   tools.expandedRect = geometry.expandedRect;

@@ -85,9 +85,12 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonScriptReportsVideoControlDiagnosticsToNativeLog() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val nativeBridgeScript = projectFile("src/main/assets/scripts/native_bridge.js").readText()
 
+        assertTrue(nativeBridgeScript.contains("window.VideoBrowserNativeBridge = bridgeTools"))
+        assertTrue(nativeBridgeScript.contains("bridge.logVideoEvent(message);"))
         assertTrue(script.contains("function logVideoDiagnostic(event, details)"))
-        assertTrue(script.contains("bridge.logVideoEvent(message);"))
+        assertTrue(script.contains("nativeBridge.logVideoDiagnostic(event, details,"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-site'"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-custom-player'"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-native'"))
@@ -203,6 +206,10 @@ class VideoCapabilityDelegationContractTest {
     fun platformSiteAdaptersHandleControlEnablementWithoutForcingNativeControls() {
         val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
 
+        assertTrue(helperScript.contains("var nativeBridge = window.VideoBrowserNativeBridge || {}"))
+        assertTrue(helperScript.contains("nativeBridge.logVideoDiagnostic(event, details,"))
+        assertTrue(helperScript.contains("tools.videoSource = nativeBridge.videoSource"))
+        assertFalse(helperScript.contains("bridge.logVideoEvent(message);"))
         assertTrue(helperScript.contains("tools.removeNativeVideoControls = function (video, adapterId)"))
         assertTrue(helperScript.contains("video.controls = false"))
         assertTrue(helperScript.contains("video.removeAttribute('controls')"))

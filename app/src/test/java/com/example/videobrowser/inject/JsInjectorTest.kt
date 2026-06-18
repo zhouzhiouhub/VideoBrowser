@@ -397,6 +397,7 @@ class JsInjectorTest {
         return when (path) {
             ScriptLoader.GEOMETRY_SCRIPT_ASSET -> "window.__geometryLoaded = true;"
             ScriptLoader.DOM_TOOLS_SCRIPT_ASSET -> "window.__domToolsLoaded = true;"
+            ScriptLoader.NATIVE_BRIDGE_SCRIPT_ASSET -> "window.__nativeBridgeLoaded = true;"
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
             ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET -> "window.__siteHelpersLoaded = true;"
             "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"
