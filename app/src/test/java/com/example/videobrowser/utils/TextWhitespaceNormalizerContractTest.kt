@@ -21,10 +21,19 @@ class TextWhitespaceNormalizerContractTest {
             "src/main/java/com/example/videobrowser/video/PlaybackHistoryRepository.kt"
         ).readText()
         val savedPageRepository = projectFile(
-            "src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt"
+            "src/main/java/com/example/videobrowser/storage/SavedPageCodec.kt"
         ).readText()
         val nativeBridge = projectFile(
             "src/main/java/com/example/videobrowser/browser/VideoBrowserNativeBridge.kt"
+        ).readText()
+        val pageArchiveFileName = projectFile(
+            "src/main/java/com/example/videobrowser/browser/PageArchiveFileName.kt"
+        ).readText()
+        val pagePrintController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/PagePrintController.kt"
+        ).readText()
+        val browserLaunchController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserLaunchController.kt"
         ).readText()
 
         listOf(
@@ -33,7 +42,10 @@ class TextWhitespaceNormalizerContractTest {
             downloadSafetyPolicy,
             playbackHistoryRepository,
             savedPageRepository,
-            nativeBridge
+            nativeBridge,
+            pageArchiveFileName,
+            pagePrintController,
+            browserLaunchController
         ).forEach { source ->
             assertTrue(source.contains("TextWhitespaceNormalizer"))
             assertFalse(source.contains("Regex(\"\\\\s+\")"))

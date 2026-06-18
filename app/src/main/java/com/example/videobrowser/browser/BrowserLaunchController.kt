@@ -8,6 +8,7 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看 loadAddressInput，再看 openInitialStandardPage，最后看 handleLaunchIntent。
  */
 import android.content.Intent
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 import com.example.videobrowser.utils.UrlUtils
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -53,7 +54,7 @@ class BrowserLaunchController(
      * @param keyword 参数类型为 `String`，表示用户选择或输入的搜索关键词。
      */
     fun searchAddressKeyword(keyword: String) {
-        val query = keyword.replace(WHITESPACE_SEQUENCE, " ").trim()
+        val query = TextWhitespaceNormalizer.collapse(keyword)
         if (query.isEmpty()) {
             return
         }
@@ -116,6 +117,5 @@ class BrowserLaunchController(
 
     private companion object {
         private const val BAIDU_WENXIN_URL = "https://chat.baidu.com/"
-        private val WHITESPACE_SEQUENCE = Regex("\\s+")
     }
 }

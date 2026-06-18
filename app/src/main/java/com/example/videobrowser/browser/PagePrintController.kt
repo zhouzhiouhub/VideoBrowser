@@ -15,6 +15,7 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 
 /**
  * 当前页面打印控制器。
@@ -62,9 +63,8 @@ class PagePrintController(
      * @return 返回本地化后的打印任务名称，例如“打印 - 示例页面”。
      */
     private fun printJobName(pageUrl: String): String {
-        val title = currentPageTitle()
-            .replace(WHITESPACE_SEQUENCE, " ")
-            .trim()
+        val title = TextWhitespaceNormalizer
+            .collapse(currentPageTitle())
             .ifBlank { Uri.parse(pageUrl).host.orEmpty() }
             .ifBlank { activity.getString(R.string.app_name) }
             .take(MAX_JOB_TITLE_LENGTH)
@@ -73,6 +73,5 @@ class PagePrintController(
 
     companion object {
         private const val MAX_JOB_TITLE_LENGTH = 80
-        private val WHITESPACE_SEQUENCE = Regex("\\s+")
     }
 }

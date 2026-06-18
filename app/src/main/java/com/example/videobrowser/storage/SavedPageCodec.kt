@@ -1,5 +1,6 @@
 package com.example.videobrowser.storage
 
+import com.example.videobrowser.utils.TextWhitespaceNormalizer
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -67,7 +68,7 @@ internal class SavedPageCodec(
     }
 
     fun normalizeBookmarkFolder(folder: String): String? {
-        val normalized = folder.trim().replace(WHITESPACE_SEQUENCE, " ")
+        val normalized = TextWhitespaceNormalizer.collapse(folder)
         if (normalized.isEmpty()) {
             return null
         }
@@ -194,7 +195,6 @@ internal class SavedPageCodec(
         private const val JSON_URL = "url"
         private const val CHARSET_NAME = "UTF-8"
         private const val MAX_BOOKMARK_FOLDER_LENGTH = 60
-        private val WHITESPACE_SEQUENCE = Regex("\\s+")
         private val LEGACY_OBJECT_REGEX = Regex("\\{[^{}]*\\}")
     }
 }
