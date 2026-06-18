@@ -6,6 +6,7 @@ package com.example.videobrowser.browser.search
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -35,14 +36,14 @@ class SearchProviderControllerContractTest {
         assertTrue(settings.contains("fun removeCustomShortcut(shortcut: CustomShortcut): Boolean"))
         assertTrue(settings.contains("fun updateCustomShortcut(shortcut: CustomShortcut, name: String, url: String): Boolean"))
         assertTrue(itemFactory.contains("setOnLongClickListener"))
-        assertTrue(controller.contains("showCustomShortcutActionsDialog(shortcut)"))
-        assertTrue(controller.contains("private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut)"))
+        assertTrue(controller.contains("onCustomShortcutLongClick = dialogController::showCustomShortcutActionsDialog"))
+        assertFalse(controller.contains("private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut)"))
         assertTrue(dialogController.contains("R.string.action_edit"))
         assertTrue(dialogController.contains("showEditCustomShortcutDialog(shortcut)"))
         assertTrue(dialogController.contains("settingsManager.updateCustomShortcut(shortcut, name, url)"))
         assertTrue(dialogController.contains("settingsManager.removeCustomShortcut(shortcut)"))
-        assertTrue(controller.contains("private fun showEditCustomShortcutDialog(shortcut: CustomShortcut)"))
-        assertTrue(controller.contains("private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut)"))
+        assertFalse(controller.contains("private fun showEditCustomShortcutDialog(shortcut: CustomShortcut)"))
+        assertFalse(controller.contains("private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut)"))
         assertTrue(dialogController.contains("private fun showCustomShortcutEditorDialog("))
         assertTrue(dialogController.contains("R.string.title_edit_custom_shortcut"))
         assertTrue(dialogController.contains("R.string.title_remove_custom_shortcut"))
@@ -93,8 +94,8 @@ class SearchProviderControllerContractTest {
         assertTrue(controller.contains("excludedUrls = homeQuickLinkExcludedUrls(customShortcuts)"))
         assertTrue(controller.contains("private fun addRecentHistoryItem(quickLink: HomeQuickLink)"))
         assertTrue(controller.contains("private fun createRecentHistoryItem(quickLink: HomeQuickLink)"))
-        assertTrue(controller.contains("showRemoveRecentHistoryDialog(quickLink)"))
-        assertTrue(controller.contains("private fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink)"))
+        assertTrue(controller.contains("onRecentHistoryLongClick = dialogController::showRemoveRecentHistoryDialog"))
+        assertFalse(controller.contains("private fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink)"))
         assertTrue(dialogController.contains("savedPageRepository.remove("))
         assertTrue(dialogController.contains("SavedPageRepository.SavedPageCollection.HISTORY"))
         assertTrue(dialogController.contains("R.string.title_remove_recent_site"))

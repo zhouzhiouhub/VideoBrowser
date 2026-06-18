@@ -64,10 +64,10 @@ class SearchProviderController(
         dp = dp,
         onProviderSelected = ::selectProvider,
         onCustomShortcutOpen = openCustomShortcut,
-        onCustomShortcutLongClick = { shortcut -> showCustomShortcutActionsDialog(shortcut) },
+        onCustomShortcutLongClick = dialogController::showCustomShortcutActionsDialog,
         onRecentHistoryOpen = openCustomShortcut,
-        onRecentHistoryLongClick = { quickLink -> showRemoveRecentHistoryDialog(quickLink) },
-        onAddShortcut = ::showAddShortcutDialog
+        onRecentHistoryLongClick = dialogController::showRemoveRecentHistoryDialog,
+        onAddShortcut = dialogController::showAddShortcutDialog
     )
 
     lateinit var selectedProvider: SearchProvider
@@ -341,55 +341,6 @@ class SearchProviderController(
                 setColor(ContextCompat.getColor(activity, R.color.browser_provider_circle))
             }
         }
-    }
-
-    /**
-     * 函数 `showAddShortcutDialog`：控制 `show Add Shortcut Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showAddShortcutDialog() {
-        dialogController.showAddShortcutDialog()
-    }
-
-    /**
-     * 函数 `showCustomShortcutActionsDialog`：控制 `show Custom Shortcut Actions Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut) {
-        dialogController.showCustomShortcutActionsDialog(shortcut)
-    }
-
-    /**
-     * 函数 `showEditCustomShortcutDialog`：控制 `show Edit Custom Shortcut Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showEditCustomShortcutDialog(shortcut: CustomShortcut) {
-        dialogController.showEditCustomShortcutDialog(shortcut)
-    }
-
-    /**
-     * 函数 `showRemoveCustomShortcutDialog`：控制 `show Remove Custom Shortcut Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut) {
-        dialogController.showRemoveCustomShortcutDialog(shortcut)
-    }
-
-    /**
-     * 函数 `showRemoveRecentHistoryDialog`：控制 `show Remove Recent History Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param quickLink 参数类型为 `HomeQuickLink`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     */
-    private fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink) {
-        dialogController.showRemoveRecentHistoryDialog(quickLink)
     }
 
     /**
