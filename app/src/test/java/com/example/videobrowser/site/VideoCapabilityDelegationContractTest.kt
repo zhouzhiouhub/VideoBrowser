@@ -19,13 +19,15 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonScriptDelegatesVideoActionsToSiteCapabilitiesBeforeGenericVideoFallback() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val playbackScript = projectFile("src/main/assets/scripts/video_playback_tools.js").readText()
 
         assertTrue(script.contains("function invokeSiteVideoCapability(video, action, args)"))
         assertTrue(script.contains("function hasSiteVideoCapability(video, action)"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'enableControls', [])"))
-        assertTrue(script.contains("invokeSiteVideoCapability(video, 'togglePlayPause', [])"))
-        assertTrue(script.contains("invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds])"))
-        assertTrue(script.contains("invokeSiteVideoCapability(video, 'seekTo', [targetSeconds])"))
+        assertTrue(script.contains("videoPlaybackTools.togglePlayPause(video, {"))
+        assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'togglePlayPause', [], options)"))
+        assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds], options)"))
+        assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekTo', [targetSeconds], options)"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [])"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed])"))

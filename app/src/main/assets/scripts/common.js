@@ -49,6 +49,7 @@
   const nativeBridge = window.VideoBrowserNativeBridge;
   const videoControlTools = window.VideoBrowserVideoControlTools;
   const videoQueryTools = window.VideoBrowserVideoQueryTools;
+  const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
   const styleManager = window.VideoBrowserStyleManager;
@@ -2187,22 +2188,7 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function videoTimeline(video) {
-    const duration = video.duration;
-    if (Number.isFinite(duration) && duration > 0) {
-      return { canSeek: true, start: 0, end: duration };
-    }
-
-    const seekable = video.seekable;
-    if (!seekable || !seekable.length) {
-      return { canSeek: false, start: 0, end: 0 };
-    }
-
-    const start = seekable.start(0);
-    const end = seekable.end(seekable.length - 1);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-      return { canSeek: false, start: 0, end: 0 };
-    }
-    return { canSeek: true, start: start, end: end };
+    return videoPlaybackTools.timeline(video);
   }
 
   /**
@@ -2213,17 +2199,7 @@
    */
   function reportPlaybackTimeline(video) {
     const target = video || activeFullscreenVideo();
-    if (!target) return;
-
-    const timeline = videoTimeline(target);
-    const position = Number(target.currentTime || 0);
-    const duration = timeline.canSeek ? timeline.end : Number(target.duration || -1);
-    if (nativeBridge && typeof nativeBridge.updatePlaybackTimeline === 'function') {
-      nativeBridge.updatePlaybackTimeline(
-        Number.isFinite(position) && position >= 0 ? position * 1000 : -1,
-        Number.isFinite(duration) && duration > 0 ? duration * 1000 : -1
-      );
-    }
+    videoPlaybackTools.reportTimeline(target);
   }
 
   /**
@@ -2243,20 +2219,9 @@
    * @param {*} sliderValue 表示要判断、转换或传给播放器/规则逻辑的输入值。
    */
   function seekVideo(video, sliderValue) {
-    const timeline = videoTimeline(video);
-    if (!timeline.canSeek) return;
-    const ratio = Math.max(0, Math.min(1, Number(sliderValue) / 1000));
-    const targetTime = timeline.start + ratio * (timeline.end - timeline.start);
-    try {
-      if (typeof video.fastSeek === 'function') {
-        video.fastSeek(targetTime);
-      } else {
-        video.currentTime = targetTime;
-      }
-    } catch (_) {
-      try { video.currentTime = targetTime; } catch (__) {}
-    }
-    reportPlaybackTimeline(video);
+    videoPlaybackTools.seek(video, sliderValue, {
+      reportPlaybackTimeline: reportPlaybackTimeline
+    });
   }
 
   /**
@@ -2267,29 +2232,10 @@
    * @param {*} targetSeconds 表示参与几何计算、播放控制或列表定位的数值。
    */
   function seekVideoTo(video, targetSeconds) {
-    if (!video || !Number.isFinite(targetSeconds)) return;
-    const siteResult = invokeSiteVideoCapability(video, 'seekTo', [targetSeconds]);
-    if (siteResult.handled) {
-      reportPlaybackTimeline(video);
-      return;
-    }
-    const timeline = videoTimeline(video);
-    let targetTime = targetSeconds;
-    if (timeline.canSeek) {
-      targetTime = Math.max(timeline.start, Math.min(timeline.end, targetTime));
-    } else {
-      targetTime = Math.max(0, targetTime);
-    }
-    try {
-      if (typeof video.fastSeek === 'function') {
-        video.fastSeek(targetTime);
-      } else {
-        video.currentTime = targetTime;
-      }
-    } catch (_) {
-      try { video.currentTime = targetTime; } catch (__) {}
-    }
-    reportPlaybackTimeline(video);
+    videoPlaybackTools.seekTo(video, targetSeconds, {
+      invokeSiteVideoCapability: invokeSiteVideoCapability,
+      reportPlaybackTimeline: reportPlaybackTimeline
+    });
   }
 
   /**
@@ -2300,29 +2246,10 @@
    * @param {*} offsetSeconds 表示参与几何计算、播放控制或列表定位的数值。
    */
   function seekVideoBy(video, offsetSeconds) {
-    if (!video || !Number.isFinite(offsetSeconds)) return;
-    const siteResult = invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds]);
-    if (siteResult.handled) {
-      reportPlaybackTimeline(video);
-      return;
-    }
-    const timeline = videoTimeline(video);
-    let targetTime = Number(video.currentTime || 0) + offsetSeconds;
-    if (timeline.canSeek) {
-      targetTime = Math.max(timeline.start, Math.min(timeline.end, targetTime));
-    } else {
-      targetTime = Math.max(0, targetTime);
-    }
-    try {
-      if (typeof video.fastSeek === 'function') {
-        video.fastSeek(targetTime);
-      } else {
-        video.currentTime = targetTime;
-      }
-    } catch (_) {
-      try { video.currentTime = targetTime; } catch (__) {}
-    }
-    reportPlaybackTimeline(video);
+    videoPlaybackTools.seekBy(video, offsetSeconds, {
+      invokeSiteVideoCapability: invokeSiteVideoCapability,
+      reportPlaybackTimeline: reportPlaybackTimeline
+    });
   }
 
   /**
@@ -2643,22 +2570,9 @@
    */
   function togglePlayPause() {
     const video = activeFullscreenVideo();
-    if (!video) return false;
-    const siteResult = invokeSiteVideoCapability(video, 'togglePlayPause', []);
-    if (siteResult.handled) return siteResult.value;
-    if (video.paused || video.ended) {
-      try {
-        if (video.ended) video.currentTime = 0;
-      } catch (_) {}
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       */
-      try { video.play().catch(function () {}); } catch (__) {}
-      return true;
-    }
-    try { video.pause(); } catch (_) {}
-    return false;
+    return videoPlaybackTools.togglePlayPause(video, {
+      invokeSiteVideoCapability: invokeSiteVideoCapability
+    });
   }
 
   /**
