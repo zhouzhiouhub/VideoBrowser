@@ -6,6 +6,7 @@ package com.example.videobrowser.video
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -38,14 +39,27 @@ class NativeTrackSelectionContractTest {
         val source = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativeTrackSelectionDialogController.kt"
+        ).readText()
+        val options = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativeTrackSelectionOptions.kt"
+        ).readText()
 
-        assertTrue(source.contains("TrackSelectionDialogBuilder"))
-        assertTrue(source.contains("showTrackSelectionMenu()"))
-        assertTrue(source.contains("PlaybackCommand.SelectTrack(PlaybackTrackType.AUDIO)"))
-        assertTrue(source.contains("PlaybackCommand.SelectTrack(PlaybackTrackType.SUBTITLE)"))
-        assertTrue(source.contains("C.TRACK_TYPE_AUDIO"))
-        assertTrue(source.contains("C.TRACK_TYPE_TEXT"))
+        assertTrue(source.contains("NativeTrackSelectionDialogController("))
+        assertTrue(source.contains("trackSelectionDialogController.showMenu()"))
+        assertTrue(source.contains("trackSelectionDialogController.showDialog(command.trackType)"))
+        assertTrue(dialogController.contains("TrackSelectionDialogBuilder"))
+        assertTrue(dialogController.contains("NativeTrackSelectionOptions.menuOptions()"))
+        assertTrue(dialogController.contains("NativeTrackSelectionOptions.optionFor(trackType)"))
+        assertTrue(options.contains("PlaybackTrackType.AUDIO"))
+        assertTrue(options.contains("PlaybackTrackType.SUBTITLE"))
+        assertTrue(options.contains("C.TRACK_TYPE_AUDIO"))
+        assertTrue(options.contains("C.TRACK_TYPE_TEXT"))
         assertTrue(source.contains("PlaybackCommand.ShowTrackSelection"))
+        assertFalse(source.contains("TrackSelectionDialogBuilder"))
+        assertFalse(source.contains("C.TRACK_TYPE_AUDIO"))
+        assertFalse(source.contains("C.TRACK_TYPE_TEXT"))
     }
 
     /**

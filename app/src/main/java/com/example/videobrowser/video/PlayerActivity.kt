@@ -19,7 +19,6 @@ import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
-import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -30,12 +29,10 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.ui.TrackSelectionDialogBuilder
 import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
@@ -56,6 +53,16 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var playbackQueue: PlaybackQueue
     private var player: ExoPlayer? = null
+    private val trackSelectionDialogController by lazy {
+        NativeTrackSelectionDialogController(
+            activity = this,
+            playerProvider = { player },
+            wakePlayerControls = ::wakePlayerControls,
+            onTrackTypeSelected = { trackType ->
+                handlePlaybackCommand(PlaybackCommand.SelectTrack(trackType))
+            }
+        )
+    }
     private val scanHandler = Handler(Looper.getMainLooper())
     private var playbackPosition = 0L
     private var playWhenReady = true
@@ -517,20 +524,11 @@ class PlayerActivity : AppCompatActivity() {
             PlaybackCommand.ToggleShuffle -> toggleShuffleMode()
             PlaybackCommand.CycleZoom -> cycleVideoZoomMode()
             PlaybackCommand.ShowTrackSelection -> {
-                showTrackSelectionMenu()
+                trackSelectionDialogController.showMenu()
                 Unit
             }
             is PlaybackCommand.SelectTrack -> {
-                when (command.trackType) {
-                    PlaybackTrackType.AUDIO -> showTrackSelectionDialog(
-                        C.TRACK_TYPE_AUDIO,
-                        R.string.video_track_audio
-                    )
-                    PlaybackTrackType.SUBTITLE -> showTrackSelectionDialog(
-                        C.TRACK_TYPE_TEXT,
-                        R.string.video_track_subtitles
-                    )
-                }
+                trackSelectionDialogController.showDialog(command.trackType)
                 Unit
             }
         }
@@ -989,64 +987,6 @@ class PlayerActivity : AppCompatActivity() {
             queue = playbackQueue,
             nowPlayingLabel = getString(R.string.video_queue_now_playing)
         ).toTypedArray()
-    }
-
-    /**
-     * 函数 `showTrackSelectionMenu`：控制 `show Track Selection Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showTrackSelectionMenu() {
-        if (player == null) {
-            Toast.makeText(this, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-        wakePlayerControls()
-        AlertDialog.Builder(this)
-            .setTitle(R.string.video_control_tracks)
-            .setItems(
-                arrayOf(
-                    getString(R.string.video_track_audio),
-                    getString(R.string.video_track_subtitles)
-                )
-            ) { _, which ->
-                when (which) {
-                    0 -> handlePlaybackCommand(PlaybackCommand.SelectTrack(PlaybackTrackType.AUDIO))
-                    1 -> handlePlaybackCommand(PlaybackCommand.SelectTrack(PlaybackTrackType.SUBTITLE))
-                }
-            }
-            .show()
-    }
-
-    /**
-     * 函数 `showTrackSelectionDialog`：控制 `show Track Selection Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param trackType 参数类型为 `Int`，表示函数执行 `trackType` 相关逻辑时需要读取或处理的输入。
-     * @param titleResId 参数类型为 `Int`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    @OptIn(UnstableApi::class)
-    private fun showTrackSelectionDialog(trackType: Int, titleResId: Int) {
-        val exoPlayer = player ?: run {
-            Toast.makeText(this, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val hasTracks = exoPlayer.currentTracks.groups.any { group -> group.type == trackType }
-        if (!hasTracks) {
-            Toast.makeText(this, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-        TrackSelectionDialogBuilder(
-            this,
-            getString(titleResId),
-            exoPlayer,
-            trackType
-        )
-            .setShowDisableOption(trackType == C.TRACK_TYPE_TEXT)
-            .setAllowAdaptiveSelections(false)
-            .setAllowMultipleOverrides(false)
-            .build()
-            .show()
     }
 
     /**

@@ -18,6 +18,9 @@ class NativePlaybackCommandWiringContractTest {
     @Test
     fun playerActivityRoutesOverlayCallbacksThroughPlaybackCommands() {
         val source = File("src/main/java/com/example/videobrowser/video/PlayerActivity.kt").readText()
+        val trackOptions = File(
+            "src/main/java/com/example/videobrowser/video/NativeTrackSelectionOptions.kt"
+        ).readText()
 
         assertTrue(source.contains("handlePlaybackCommand(command: PlaybackCommand)"))
         assertTrue(source.contains("PlaybackCommand.SeekBy(offsetMs)"))
@@ -30,8 +33,10 @@ class NativePlaybackCommandWiringContractTest {
         assertTrue(source.contains("PlaybackCommand.ShowQueue"))
         assertTrue(source.contains("PlaybackCommand.CycleZoom"))
         assertTrue(source.contains("PlaybackCommand.ShowTrackSelection"))
-        assertTrue(source.contains("PlaybackCommand.SelectTrack(PlaybackTrackType.AUDIO)"))
-        assertTrue(source.contains("PlaybackCommand.SelectTrack(PlaybackTrackType.SUBTITLE)"))
+        assertTrue(source.contains("handlePlaybackCommand(PlaybackCommand.SelectTrack(trackType))"))
+        assertTrue(source.contains("trackSelectionDialogController.showDialog(command.trackType)"))
+        assertTrue(trackOptions.contains("PlaybackTrackType.AUDIO"))
+        assertTrue(trackOptions.contains("PlaybackTrackType.SUBTITLE"))
     }
 
     /**
