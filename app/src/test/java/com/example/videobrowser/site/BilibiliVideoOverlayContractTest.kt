@@ -29,6 +29,24 @@ class BilibiliVideoOverlayContractTest {
         assertTrue(script.contains("bilibili-video-play-overlay"))
     }
 
+    @Test
+    fun bilibiliAdapterOwnsBrowserChoicePromptCleanup() {
+        val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
+        val bilibiliScript = projectFile("src/main/assets/scripts/bilibili.js").readText()
+
+        assertTrue(helperScript.contains("tools.normalizeText = function (value)"))
+        assertTrue(helperScript.contains("normalizeText: tools.normalizeText"))
+        assertTrue(bilibiliScript.contains("var normalizeText = adapterTools.normalizeText;"))
+        assertTrue(bilibiliScript.contains("function dismissBrowserChoicePrompts()"))
+        assertTrue(bilibiliScript.contains("dismissBrowserChoicePrompts();"))
+        assertTrue(bilibiliScript.contains("function findBrowserChoicePromptRoot(element)"))
+        assertTrue(bilibiliScript.contains("bilibili-browser-choice"))
+        assertFalse(commonScript.contains("dismissBilibiliBrowserChoicePrompts"))
+        assertFalse(commonScript.contains("findBilibiliPromptRoot"))
+        assertFalse(commonScript.contains("hideBilibiliPromptBackdrops"))
+    }
+
     /**
      * 测试函数 `projectFile`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `project File` 这条行为是否成立。
      *
