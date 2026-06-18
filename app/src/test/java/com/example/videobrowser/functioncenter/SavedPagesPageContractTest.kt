@@ -38,14 +38,17 @@ class SavedPagesPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
         ).readText()
+        val linkActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageLinkActions.kt"
+        ).readText()
 
         assertTrue(page.contains("private fun savedPageActions"))
         assertTrue(page.contains("R.string.action_copy_link"))
-        assertTrue(page.contains("copySavedPageUrl(page)"))
-        assertTrue(page.contains("ClipData.newPlainText"))
-        assertTrue(page.contains("Context.CLIPBOARD_SERVICE"))
-        assertTrue(page.contains("R.string.clipboard_page_url"))
-        assertTrue(page.contains("R.string.toast_link_copied"))
+        assertTrue(page.contains("linkActions.copyUrl(page)"))
+        assertTrue(linkActions.contains("ClipData.newPlainText"))
+        assertTrue(linkActions.contains("Context.CLIPBOARD_SERVICE"))
+        assertTrue(linkActions.contains("R.string.clipboard_page_url"))
+        assertTrue(linkActions.contains("R.string.toast_link_copied"))
     }
 
     /**
@@ -58,13 +61,16 @@ class SavedPagesPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
         ).readText()
+        val linkActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageLinkActions.kt"
+        ).readText()
 
         assertTrue(page.contains("R.string.action_share_page"))
-        assertTrue(page.contains("shareSavedPageUrl(page)"))
-        assertTrue(page.contains("Intent(Intent.ACTION_SEND)"))
-        assertTrue(page.contains("type = \"text/plain\""))
-        assertTrue(page.contains("putExtra(Intent.EXTRA_TEXT, page.url)"))
-        assertTrue(page.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
+        assertTrue(page.contains("linkActions.shareUrl(page)"))
+        assertTrue(linkActions.contains("Intent(Intent.ACTION_SEND)"))
+        assertTrue(linkActions.contains("type = \"text/plain\""))
+        assertTrue(linkActions.contains("putExtra(Intent.EXTRA_TEXT, page.url)"))
+        assertTrue(linkActions.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
     }
 
     /**

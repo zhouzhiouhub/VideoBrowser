@@ -7,10 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
@@ -32,6 +28,7 @@ class SavedPagesPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val linkActions = SavedPageLinkActions(activity)
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -271,10 +268,10 @@ class SavedPagesPage(
                 null
             },
             SavedPageAction(activity.getString(R.string.action_copy_link)) {
-                copySavedPageUrl(page)
+                linkActions.copyUrl(page)
             },
             SavedPageAction(activity.getString(R.string.action_share_page)) {
-                shareSavedPageUrl(page)
+                linkActions.shareUrl(page)
             },
             SavedPageAction(activity.getString(R.string.action_remove)) {
                 savedPageRepository.remove(collection, page.url)
@@ -375,37 +372,6 @@ class SavedPagesPage(
             }
         }
         dialog.show()
-    }
-
-    /**
-     * 函数 `copySavedPageUrl`：封装 `copy Saved Page Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun copySavedPageUrl(page: SavedPage) {
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(
-            ClipData.newPlainText(
-                activity.getString(R.string.clipboard_page_url),
-                page.url
-            )
-        )
-        Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * 函数 `shareSavedPageUrl`：封装 `share Saved Page Url` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun shareSavedPageUrl(page: SavedPage) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, page.url)
-        }
-        activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
     }
 
     /**
