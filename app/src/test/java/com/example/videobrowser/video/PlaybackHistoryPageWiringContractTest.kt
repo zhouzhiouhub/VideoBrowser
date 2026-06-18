@@ -20,12 +20,17 @@ class PlaybackHistoryPageWiringContractTest {
         val source = File(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
+        val profileShortcutSection = File(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileShortcutSection.kt"
+        ).readText()
 
         assertTrue(source.contains("PlaybackHistoryPage("))
         assertTrue(source.contains("playbackHistoryPage.show()"))
         assertTrue(source.contains("openPlaybackHistoryItem"))
         assertTrue(source.contains("FunctionCenterRootAction.PLAYBACK_HISTORY"))
-        assertTrue(source.contains("FunctionCenterProfileAction.PLAYBACK_HISTORY"))
+        assertTrue(source.contains("FunctionCenterProfileShortcutSection("))
+        assertTrue(profileShortcutSection.contains("FunctionCenterProfileAction.PLAYBACK_HISTORY"))
+        assertTrue(profileShortcutSection.contains("showPlaybackHistory()"))
     }
 
     /**

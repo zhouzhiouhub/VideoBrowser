@@ -170,6 +170,17 @@ class FunctionCenterPages(
         host = host,
         showProfilePage = ::showProfilePage
     )
+    private val profileShortcutSection = FunctionCenterProfileShortcutSection(
+        host = host,
+        isPrivateBrowsingEnabled = isPrivateBrowsingEnabled,
+        showHistory = ::showHistory,
+        showPlaybackHistory = { playbackHistoryPage.show() },
+        showBookmarks = ::showBookmarks,
+        showDownloads = { downloadsPage.show() },
+        showFileOperationsPage = showFileOperationsPage,
+        showUserManualRules = { userManualRulesPage.show() },
+        showAbout = { aboutPage.show() }
+    )
     private val browserDataManagementPage = BrowserDataManagementPage(
         host = host,
         browserManager = browserManager,
@@ -581,84 +592,7 @@ class FunctionCenterPages(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     private fun addProfileShortcutSection(parent: LinearLayout) {
-        host.addFunctionSection(
-            parent,
-            activity.getString(R.string.function_center_section_toolbox)
-        ) { section ->
-            host.addActionGrid(
-                section,
-                FunctionCenterProfileActionCatalog.shortcuts(
-                    isPrivateBrowsing = isPrivateBrowsingEnabled()
-                ).map(::createProfileGridAction)
-            )
-        }
-    }
-
-    /**
-     * 函数 `createProfileGridAction`：创建 `create Profile Grid Action` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param action 参数类型为 `FunctionCenterProfileAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createProfileGridAction(action: FunctionCenterProfileAction): FunctionCenterGridAction {
-        return when (action) {
-            FunctionCenterProfileAction.HISTORY -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_history),
-                    summary = activity.getString(R.string.action_show_history_summary),
-                    iconResId = R.drawable.ic_history_24
-                ) { showHistory() }
-            }
-
-            FunctionCenterProfileAction.PLAYBACK_HISTORY -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_playback_history),
-                    summary = activity.getString(R.string.action_show_playback_history_summary),
-                    iconResId = R.drawable.ic_history_24
-                ) { playbackHistoryPage.show() }
-            }
-
-            FunctionCenterProfileAction.BOOKMARKS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_bookmarks),
-                    summary = activity.getString(R.string.action_show_bookmarks_summary),
-                    iconResId = R.drawable.ic_star_24
-                ) { showBookmarks() }
-            }
-
-            FunctionCenterProfileAction.DOWNLOADS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_downloads),
-                    summary = activity.getString(R.string.action_show_downloads_summary),
-                    iconResId = R.drawable.ic_download_24
-                ) { downloadsPage.show() }
-            }
-
-            FunctionCenterProfileAction.FILE_OPERATIONS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_file_operations),
-                    summary = activity.getString(R.string.action_file_operations_summary),
-                    iconResId = R.drawable.ic_file_24
-                ) { showFileOperationsPage() }
-            }
-
-            FunctionCenterProfileAction.USER_MANUAL_RULES -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_manage_user_manual_rules_short),
-                    summary = activity.getString(R.string.action_manage_user_manual_rules_summary),
-                    iconResId = R.drawable.ic_rule_24
-                ) { userManualRulesPage.show() }
-            }
-
-            FunctionCenterProfileAction.ABOUT -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.action_about),
-                    summary = activity.getString(R.string.action_about_summary),
-                    iconResId = R.drawable.ic_info_24
-                ) { aboutPage.show() }
-            }
-        }
+        profileShortcutSection.add(parent)
     }
 
     /**
