@@ -8,11 +8,9 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.app.DownloadManager
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
@@ -45,6 +43,7 @@ class DownloadsPage(
     private val activity = host.activity
     private val textFormatter = DownloadsPageTextFormatter(activity)
     private val statusSnapshotReader = AndroidDownloadStatusSnapshotReader(activity)
+    private val downloadedFileLauncher = DownloadedFileLauncher(activity)
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -513,31 +512,7 @@ class DownloadsPage(
      * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
      */
     private fun shareDownloadedFile(record: DownloadRecord) {
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val uri = runCatching {
-            downloadManager.getUriForDownloadedFile(record.downloadId)
-        }.getOrNull()
-
-        if (uri == null) {
-            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = record.mimeType ?: "*/*"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            clipData = ClipData.newUri(activity.contentResolver, record.fileName, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        try {
-            activity.startActivity(
-                Intent.createChooser(intent, activity.getString(R.string.action_share_file))
-            )
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        } catch (_: SecurityException) {
-            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
-        }
+        downloadedFileLauncher.shareDownloadedFile(record)
     }
 
     /**
@@ -547,29 +522,7 @@ class DownloadsPage(
      * @param record 参数类型为 `DownloadRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
      */
     private fun openDownloadedFile(record: DownloadRecord) {
-        val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val uri = runCatching {
-            downloadManager.getUriForDownloadedFile(record.downloadId)
-        }.getOrNull()
-
-        if (uri == null) {
-            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, record.mimeType ?: "*/*")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        try {
-            activity.startActivity(
-                Intent.createChooser(intent, activity.getString(R.string.action_open_file))
-            )
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        } catch (_: SecurityException) {
-            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
-        }
+        downloadedFileLauncher.openDownloadedFile(record)
     }
 
     /**

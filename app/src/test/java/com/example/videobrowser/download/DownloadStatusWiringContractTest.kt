@@ -225,14 +225,17 @@ class DownloadStatusWiringContractTest {
         val downloadsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/DownloadsPage.kt"
         ).readText()
+        val launcher = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadedFileLauncher.kt"
+        ).readText()
 
         assertTrue(downloadsPage.contains("record.status == DownloadStatus.COMPLETED"))
         assertTrue(downloadsPage.contains("shareDownloadedFile(record)"))
-        assertTrue(downloadsPage.contains("Intent(Intent.ACTION_SEND)"))
-        assertTrue(downloadsPage.contains("putExtra(Intent.EXTRA_STREAM, uri)"))
-        assertTrue(downloadsPage.contains("ClipData.newUri(activity.contentResolver, record.fileName, uri)"))
-        assertTrue(downloadsPage.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_file))"))
-        assertTrue(downloadsPage.contains("Intent.FLAG_GRANT_READ_URI_PERMISSION"))
+        assertTrue(launcher.contains("Intent(Intent.ACTION_SEND)"))
+        assertTrue(launcher.contains("putExtra(Intent.EXTRA_STREAM, uri)"))
+        assertTrue(launcher.contains("ClipData.newUri(activity.contentResolver, record.fileName, uri)"))
+        assertTrue(launcher.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_file))"))
+        assertTrue(launcher.contains("Intent.FLAG_GRANT_READ_URI_PERMISSION"))
     }
 
     /**
