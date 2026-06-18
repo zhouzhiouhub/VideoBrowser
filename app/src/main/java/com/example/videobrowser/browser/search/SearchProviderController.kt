@@ -10,7 +10,6 @@ package com.example.videobrowser.browser.search
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri
 import android.text.InputType
 import android.text.TextUtils
 import android.util.TypedValue
@@ -149,17 +148,7 @@ class SearchProviderController(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isProviderHomeUrl(url: String?): Boolean {
-        if (url.isNullOrBlank()) {
-            return false
-        }
-
-        val currentUri = Uri.parse(url)
-        return providers.any { provider ->
-            val homeUri = Uri.parse(provider.homeUrl)
-            currentUri.scheme.equals(homeUri.scheme, ignoreCase = true) &&
-                currentUri.host.equals(homeUri.host, ignoreCase = true) &&
-                normalizedPath(currentUri) == normalizedPath(homeUri)
-        }
+        return SearchProviderHomeMatcher.isProviderHomeUrl(url, providers)
     }
 
     /**
@@ -794,14 +783,4 @@ class SearchProviderController(
         setBackgroundResource(outValue.resourceId)
     }
 
-    /**
-     * 函数 `normalizedPath`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param uri 参数类型为 `Uri`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizedPath(uri: Uri): String {
-        return uri.path.orEmpty().trim('/')
-    }
 }
