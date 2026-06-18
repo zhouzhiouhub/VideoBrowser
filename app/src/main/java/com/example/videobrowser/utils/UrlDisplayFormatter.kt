@@ -1,11 +1,10 @@
 package com.example.videobrowser.utils
 
-import java.net.URI
 import java.nio.charset.StandardCharsets
 
 internal object UrlDisplayFormatter {
     fun displayUrl(url: String): String {
-        val parsedUri = parseUri(url) ?: return decodePercentEncoded(url)
+        val parsedUri = SafeUriParser.parse(url) ?: return decodePercentEncoded(url)
         val scheme = parsedUri.scheme?.let { "$it://" }.orEmpty()
         val authority = parsedUri.rawAuthority ?: return decodePercentEncoded(url)
         val path = decodePercentEncoded(parsedUri.rawPath.orEmpty())
@@ -16,10 +15,6 @@ internal object UrlDisplayFormatter {
             ?.let { "#${decodePercentEncoded(it)}" }
             .orEmpty()
         return "$scheme$authority$path$query$fragment"
-    }
-
-    private fun parseUri(value: String): URI? {
-        return runCatching { URI(value.trim()) }.getOrNull()
     }
 
     private fun decodePercentEncoded(value: String): String {

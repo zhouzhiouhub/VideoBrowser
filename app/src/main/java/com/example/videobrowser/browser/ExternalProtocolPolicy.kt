@@ -8,9 +8,9 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import java.net.URLDecoder
-import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.Locale
+import com.example.videobrowser.utils.SafeUriParser
 import com.example.videobrowser.utils.WebSchemePolicy
 
 object ExternalProtocolPolicy {
@@ -51,7 +51,7 @@ object ExternalProtocolPolicy {
      */
     fun isWebUrl(url: String?): Boolean {
         val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return false
-        val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return false
+        val uri = SafeUriParser.parse(normalizedUrl) ?: return false
         if (!WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)) {
             return false
         }

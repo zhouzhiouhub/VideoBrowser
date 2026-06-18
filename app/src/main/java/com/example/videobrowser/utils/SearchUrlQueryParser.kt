@@ -1,13 +1,13 @@
 package com.example.videobrowser.utils
 
-import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import java.net.URI
 
 internal object SearchUrlQueryParser {
     fun searchQueryFromUrl(url: String, searchUrlPrefix: String): String? {
-        val prefixUri = parseUri(searchUrlPrefix) ?: return null
-        val currentUri = parseUri(url) ?: return null
+        val prefixUri = SafeUriParser.parse(searchUrlPrefix) ?: return null
+        val currentUri = SafeUriParser.parse(url) ?: return null
         if (!isSameSearchEndpoint(currentUri, prefixUri)) {
             return null
         }
@@ -18,10 +18,6 @@ internal object SearchUrlQueryParser {
             ?.replace(WHITESPACE_SEQUENCE, " ")
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
-    }
-
-    private fun parseUri(value: String): URI? {
-        return runCatching { URI(value.trim()) }.getOrNull()
     }
 
     private fun isSameSearchEndpoint(currentUri: URI, prefixUri: URI): Boolean {
