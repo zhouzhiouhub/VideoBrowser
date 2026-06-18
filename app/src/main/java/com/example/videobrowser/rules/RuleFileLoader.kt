@@ -8,11 +8,8 @@ package com.example.videobrowser.rules
  * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
  */
 import android.content.res.AssetManager
-import com.example.videobrowser.adguard.AdGuardRuleParser
-import com.example.videobrowser.site.SiteHost
 import java.io.File
 import java.io.InputStream
-import java.util.Locale
 import java.util.Properties
 
 /**
@@ -25,7 +22,7 @@ class RuleFileLoader(
     private val openAsset: (String) -> InputStream?,
     private val cacheDirectory: File? = null
 ) {
-    private val adGuardRuleParser = AdGuardRuleParser()
+    private val ruleLineParser = RuleLineParser()
     private val cacheSourceLabel: String? by lazy { readCacheSourceLabel() }
 
     /**
@@ -38,7 +35,7 @@ class RuleFileLoader(
         return loadRules(
             assetPath = REQUEST_RULES_ASSET,
             cacheFileName = REQUEST_RULES_CACHE_FILE,
-            parser = ::parseRequestRule
+            parser = ruleLineParser::parseRequestRule
         )
     }
 
@@ -53,7 +50,7 @@ class RuleFileLoader(
             assetPath = CSS_RULES_ASSET,
             cacheFileName = CSS_RULES_CACHE_FILE,
             parser = { line, source, lineNumber ->
-                parseCssRule(line, source, lineNumber)
+                ruleLineParser.parseCssRule(line, source, lineNumber)
             }
         )
     }
@@ -69,7 +66,7 @@ class RuleFileLoader(
             assetPath = DOM_RULES_ASSET,
             cacheFileName = DOM_RULES_CACHE_FILE,
             parser = { line, source, lineNumber ->
-                parseDomRule(line, source, lineNumber)
+                ruleLineParser.parseDomRule(line, source, lineNumber)
             }
         )
     }
@@ -85,7 +82,7 @@ class RuleFileLoader(
             assetPath = SCRIPTLET_RULES_ASSET,
             cacheFileName = SCRIPTLET_RULES_CACHE_FILE,
             parser = { line, source, lineNumber ->
-                parseScriptletRule(line, source, lineNumber)
+                ruleLineParser.parseScriptletRule(line, source, lineNumber)
             }
         )
     }
@@ -101,7 +98,7 @@ class RuleFileLoader(
             assetPath = REMOVE_PARAM_RULES_ASSET,
             cacheFileName = REMOVE_PARAM_RULES_CACHE_FILE,
             parser = { line, source, lineNumber ->
-                parseRemoveParamRule(line, source, lineNumber)
+                ruleLineParser.parseRemoveParamRule(line, source, lineNumber)
             }
         )
     }
@@ -232,275 +229,6 @@ class RuleFileLoader(
         }.getOrNull()
     }
 
-    /**
-     * 函数 `parseRequestRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
-     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseRequestRule(line: String, source: String, lineNumber: Int): ParsedRule<Rule> {
-        if (shouldIgnoreRuleLine(line)) {
-            return ParsedRule.Ignored
-        }
-        val rule = Rule.fromRequestRuleText(
-            text = line,
-            id = "$source:$lineNumber",
-            source = source
-        )
-        return if (rule != null) {
-            ParsedRule.Rule(rule)
-        } else {
-            ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported request rule syntax"))
-        }
-    }
-
-    /**
-     * 函数 `parseCssRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
-     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseCssRule(line: String, source: String, lineNumber: Int): ParsedRule<ElementRule> {
-        if (shouldIgnoreRuleLine(line)) {
-            return ParsedRule.Ignored
-        }
-        val trimmed = line.trim()
-        if (isScriptletRuleLine(trimmed)) {
-            return ParsedRule.Ignored
-        }
-        if (trimmed.contains("#?#")) {
-            return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported css exception syntax"))
-        }
-
-        val exceptionMarkerIndex = trimmed.indexOf("#@#")
-        val hideMarkerIndex = trimmed.indexOf("##")
-        val isException = exceptionMarkerIndex >= 0
-        val markerIndex = if (isException) exceptionMarkerIndex else hideMarkerIndex
-        val markerLength = if (isException) 3 else 2
-        if (markerIndex < 0) {
-            return ParsedRule.Skipped(skipped(source, lineNumber, line, "missing css rule marker"))
-        }
-
-        val domainScope = parseDomains(trimmed.substring(0, markerIndex)) ?: return ParsedRule.Skipped(
-            skipped(source, lineNumber, line, "invalid css rule domain")
-        )
-        val selector = trimmed.substring(markerIndex + markerLength).trim()
-        if (!isSafeSelector(selector)) {
-            return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported css selector"))
-        }
-
-        return ParsedRule.Rule(
-            ElementRule(
-                id = "$source:$lineNumber",
-                selector = selector,
-                type = if (isException) ElementRuleType.CSS_UNHIDE else ElementRuleType.CSS_HIDE,
-                source = source,
-                domains = domainScope.includedDomains,
-                excludedDomains = domainScope.excludedDomains
-            )
-        )
-    }
-
-    /**
-     * 函数 `parseScriptletRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
-     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseScriptletRule(
-        line: String,
-        source: String,
-        lineNumber: Int
-    ): ParsedRule<ScriptletRule> {
-        return when (val result = ScriptletRegistry.parse(line, "$source:$lineNumber", source)) {
-            ScriptletParseResult.Ignored -> ParsedRule.Ignored
-            is ScriptletParseResult.Rule -> ParsedRule.Rule(result.value)
-            is ScriptletParseResult.Skipped -> {
-                ParsedRule.Skipped(skipped(source, lineNumber, line, result.reason))
-            }
-        }
-    }
-
-    /**
-     * 函数 `parseRemoveParamRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
-     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseRemoveParamRule(
-        line: String,
-        source: String,
-        lineNumber: Int
-    ): ParsedRule<RemoveParamRule> {
-        if (shouldIgnoreRuleLine(line)) {
-            return ParsedRule.Ignored
-        }
-        val rule = adGuardRuleParser.parseRemoveParamRule(line, "$source:$lineNumber", source)
-        return if (rule != null) {
-            ParsedRule.Rule(rule)
-        } else {
-            ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported removeparam rule syntax"))
-        }
-    }
-
-    /**
-     * 函数 `parseDomRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
-     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseDomRule(line: String, source: String, lineNumber: Int): ParsedRule<ElementRule> {
-        if (shouldIgnoreRuleLine(line)) {
-            return ParsedRule.Ignored
-        }
-        val trimmed = line.trim()
-        if (!trimmed.startsWith(DOM_REMOVE_PREFIX, ignoreCase = true)) {
-            return ParsedRule.Skipped(skipped(source, lineNumber, line, "missing dom remove prefix"))
-        }
-        val selector = trimmed.substring(DOM_REMOVE_PREFIX.length).trim()
-        if (!isSafeSelector(selector)) {
-            return ParsedRule.Skipped(skipped(source, lineNumber, line, "unsupported dom selector"))
-        }
-
-        return ParsedRule.Rule(
-            ElementRule(
-                id = "$source:$lineNumber",
-                selector = selector,
-                type = ElementRuleType.DOM_REMOVE,
-                source = source
-            )
-        )
-    }
-
-    /**
-     * 函数 `shouldIgnoreRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun shouldIgnoreRuleLine(line: String): Boolean {
-        val trimmed = line.trim()
-        return trimmed.isEmpty() ||
-            trimmed.startsWith("!") ||
-            trimmed.startsWith("# ") ||
-            trimmed == "#"
-    }
-
-    /**
-     * 函数 `parseDomains`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseDomains(value: String): DomainScope? {
-        val trimmed = value.trim()
-        if (trimmed.isEmpty()) {
-            return DomainScope.Empty
-        }
-        val included = mutableSetOf<String>()
-        val excluded = mutableSetOf<String>()
-        trimmed.split(",")
-            .map { domain -> domain.trim() }
-            .filter { domain -> domain.isNotEmpty() }
-            .forEach { rawDomain ->
-                val isExcluded = rawDomain.startsWith("~")
-                val normalized = SiteHost.normalize(rawDomain.removePrefix("~")) ?: return null
-                if (!isValidDomain(normalized)) {
-                    return null
-                }
-                if (isExcluded) {
-                    excluded += normalized
-                } else {
-                    included += normalized
-                }
-            }
-        if (included.isEmpty() && excluded.isEmpty()) {
-            return null
-        }
-        return DomainScope(
-            includedDomains = included,
-            excludedDomains = excluded
-        )
-    }
-
-    /**
-     * 函数 `isValidDomain`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isValidDomain(domain: String): Boolean {
-        return domain.all { char -> char.isLetterOrDigit() || char == '-' || char == '.' }
-    }
-
-    /**
-     * 函数 `isSafeSelector`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isSafeSelector(selector: String): Boolean {
-        val value = selector.trim()
-        if (value.isEmpty() || value.length > MAX_SELECTOR_LENGTH) {
-            return false
-        }
-        if (value.any { char -> char == '{' || char == '}' || char == ';' || char == '<' || char == '>' }) {
-            return false
-        }
-        val lowered = value.lowercase(Locale.US)
-        return !UNSUPPORTED_SELECTOR_TOKENS.any { token -> lowered.contains(token) }
-    }
-
-    /**
-     * 函数 `isScriptletRuleLine`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param trimmed 参数类型为 `String`，表示函数执行 `trimmed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isScriptletRuleLine(trimmed: String): Boolean {
-        return trimmed.contains("##+js(") ||
-            trimmed.contains("#%#")
-    }
-
-    /**
-     * 函数 `skipped`：封装 `skipped` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param source 参数类型为 `String`，表示函数执行 `source` 相关逻辑时需要读取或处理的输入。
-     * @param lineNumber 参数类型为 `Int`，表示函数执行 `lineNumber` 相关逻辑时需要读取或处理的输入。
-     * @param text 参数类型为 `String`，表示函数执行 `text` 相关逻辑时需要读取或处理的输入。
-     * @param reason 参数类型为 `String`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun skipped(source: String, lineNumber: Int, text: String, reason: String): SkippedRule {
-        return SkippedRule(
-            source = source,
-            lineNumber = lineNumber,
-            text = text.trim(),
-            reason = reason
-        )
-    }
-
     companion object {
         const val REQUEST_RULES_ASSET = "rules/request_rules.txt"
         const val CSS_RULES_ASSET = "rules/css_rules.txt"
@@ -514,17 +242,6 @@ class RuleFileLoader(
         const val REMOVE_PARAM_RULES_CACHE_FILE = "removeparam_rules.txt"
         const val RULE_CACHE_METADATA_FILE = "metadata.properties"
         const val METADATA_SOURCE_LABEL = "source_label"
-        private const val DOM_REMOVE_PREFIX = "remove:"
-        private const val MAX_SELECTOR_LENGTH = 200
-
-        private val UNSUPPORTED_SELECTOR_TOKENS = listOf(
-            ":has(",
-            ":contains(",
-            ":matches(",
-            ":xpath(",
-            "javascript:",
-            "expression("
-        )
 
         /**
          * 函数 `fromAssets`：封装 `from Assets` 这一段业务步骤，让调用方不用关心内部实现细节。
@@ -555,7 +272,7 @@ data class SkippedRule(
     val reason: String
 )
 
-private sealed class ParsedRule<out T> {
+internal sealed class ParsedRule<out T> {
     data class Rule<T>(val value: T) : ParsedRule<T>()
     data class Skipped(val skippedRule: SkippedRule) : ParsedRule<Nothing>()
     object Ignored : ParsedRule<Nothing>()
