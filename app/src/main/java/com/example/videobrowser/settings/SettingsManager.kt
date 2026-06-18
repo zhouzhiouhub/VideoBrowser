@@ -595,7 +595,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun defaultVideoSpeed(): Float {
-        return normalizeVideoSpeed(
+        return SettingsValueNormalizer.videoSpeed(
             preferenceStore.getFloat(KEY_DEFAULT_VIDEO_SPEED, DEFAULT_VIDEO_SPEED)
         )
     }
@@ -607,7 +607,7 @@ class SettingsManager(
      * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
      */
     fun setDefaultVideoSpeed(speed: Float) {
-        preferenceStore.putFloat(KEY_DEFAULT_VIDEO_SPEED, normalizeVideoSpeed(speed))
+        preferenceStore.putFloat(KEY_DEFAULT_VIDEO_SPEED, SettingsValueNormalizer.videoSpeed(speed))
     }
 
     /**
@@ -617,7 +617,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun textZoomPercent(): Int {
-        return normalizeTextZoomPercent(
+        return SettingsValueNormalizer.textZoomPercent(
             preferenceStore.getFloat(
                 KEY_TEXT_ZOOM_PERCENT,
                 DEFAULT_TEXT_ZOOM_PERCENT.toFloat()
@@ -634,7 +634,7 @@ class SettingsManager(
     fun setTextZoomPercent(percent: Int) {
         preferenceStore.putFloat(
             KEY_TEXT_ZOOM_PERCENT,
-            normalizeTextZoomPercent(percent).toFloat()
+            SettingsValueNormalizer.textZoomPercent(percent).toFloat()
         )
     }
 
@@ -645,7 +645,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun homeUrl(): String {
-        return normalizeHomeUrl(
+        return SettingsValueNormalizer.homeUrl(
             preferenceStore.getString(KEY_HOME_URL, null),
             DEFAULT_HOME_URL
         )
@@ -659,7 +659,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun homeUrlOr(defaultValue: String): String {
-        return normalizeHomeUrl(
+        return SettingsValueNormalizer.homeUrl(
             preferenceStore.getString(KEY_HOME_URL, null),
             defaultValue
         )
@@ -683,7 +683,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isValidHomeUrl(url: String): Boolean {
-        return normalizeHomeUrlOrNull(url) != null
+        return SettingsValueNormalizer.homeUrlOrNull(url) != null
     }
 
     /**
@@ -693,7 +693,7 @@ class SettingsManager(
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     fun setHomeUrl(url: String) {
-        preferenceStore.putString(KEY_HOME_URL, normalizeHomeUrl(url, DEFAULT_HOME_URL))
+        preferenceStore.putString(KEY_HOME_URL, SettingsValueNormalizer.homeUrl(url, DEFAULT_HOME_URL))
     }
 
     /**
@@ -815,58 +815,6 @@ class SettingsManager(
      */
     fun restoreDefaults(): Boolean {
         return preferenceStore.remove(RESET_KEYS, commit = true)
-    }
-
-    /**
-     * 函数 `normalizeVideoSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeVideoSpeed(speed: Float): Float {
-        return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            DEFAULT_VIDEO_SPEED
-        }
-    }
-
-    /**
-     * 函数 `normalizeTextZoomPercent`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param percent 参数类型为 `Int`，表示函数执行 `percent` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeTextZoomPercent(percent: Int): Int {
-        return percent.takeIf { value -> value in TEXT_ZOOM_OPTIONS }
-            ?: DEFAULT_TEXT_ZOOM_PERCENT
-    }
-
-    /**
-     * 函数 `normalizeHomeUrl`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @param defaultValue 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeHomeUrl(value: String?, defaultValue: String): String {
-        return normalizeHomeUrlOrNull(value) ?: defaultValue
-    }
-
-    /**
-     * 函数 `normalizeHomeUrlOrNull`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String?`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeHomeUrlOrNull(value: String?): String? {
-        return value
-            ?.trim()
-            ?.takeIf(SettingsHttpUrlValidator::isHttpUrl)
     }
 
     companion object {
