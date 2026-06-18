@@ -73,6 +73,7 @@ class ScriptLoader(
         const val DOM_TOOLS_SCRIPT_ASSET = "scripts/dom_tools.js"
         const val DOM_ACTIONS_SCRIPT_ASSET = "scripts/dom_actions.js"
         const val SELECTOR_TOOLS_SCRIPT_ASSET = "scripts/selector_tools.js"
+        const val SEARCH_RESULT_CLEANUP_SCRIPT_ASSET = "scripts/search_result_cleanup.js"
         const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
         const val VIDEO_CONTROL_TOOLS_SCRIPT_ASSET = "scripts/video_control_tools.js"
         const val VIDEO_QUERY_TOOLS_SCRIPT_ASSET = "scripts/video_query_tools.js"
@@ -87,6 +88,7 @@ class ScriptLoader(
             DOM_TOOLS_SCRIPT_ASSET,
             DOM_ACTIONS_SCRIPT_ASSET,
             SELECTOR_TOOLS_SCRIPT_ASSET,
+            SEARCH_RESULT_CLEANUP_SCRIPT_ASSET,
             NATIVE_BRIDGE_SCRIPT_ASSET,
             VIDEO_CONTROL_TOOLS_SCRIPT_ASSET,
             VIDEO_QUERY_TOOLS_SCRIPT_ASSET,

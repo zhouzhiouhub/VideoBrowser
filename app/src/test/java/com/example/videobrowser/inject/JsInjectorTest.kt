@@ -399,6 +399,7 @@ class JsInjectorTest {
             ScriptLoader.DOM_TOOLS_SCRIPT_ASSET -> "window.__domToolsLoaded = true;"
             ScriptLoader.DOM_ACTIONS_SCRIPT_ASSET -> "window.__domActionsLoaded = true;"
             ScriptLoader.SELECTOR_TOOLS_SCRIPT_ASSET -> "window.__selectorToolsLoaded = true;"
+            ScriptLoader.SEARCH_RESULT_CLEANUP_SCRIPT_ASSET -> "window.__searchResultCleanupLoaded = true;"
             ScriptLoader.NATIVE_BRIDGE_SCRIPT_ASSET -> "window.__nativeBridgeLoaded = true;"
             ScriptLoader.VIDEO_CONTROL_TOOLS_SCRIPT_ASSET -> "window.__videoControlToolsLoaded = true;"
             ScriptLoader.VIDEO_QUERY_TOOLS_SCRIPT_ASSET -> "window.__videoQueryToolsLoaded = true;"

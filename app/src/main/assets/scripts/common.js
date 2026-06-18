@@ -46,6 +46,7 @@
   const domTools = window.VideoBrowserDomTools;
   const domActions = window.VideoBrowserDomActions;
   const selectorTools = window.VideoBrowserSelectorTools;
+  const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
   const nativeBridge = window.VideoBrowserNativeBridge;
   const videoControlTools = window.VideoBrowserVideoControlTools;
   const videoQueryTools = window.VideoBrowserVideoQueryTools;
@@ -1147,33 +1148,7 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function shouldSkipGenericCleanup() {
-    return isBilibiliHost() || isSearchProviderResultPage();
-  }
-
-  /**
-   * 函数 `isSearchProviderResultPage`：封装 `is Search Provider Result Page` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function isSearchProviderResultPage() {
-    const host = String(location.hostname || '').toLowerCase();
-    const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
-    const query = location.search || '';
-
-    if (/^(m|www)\.baidu\.com$/i.test(host)) {
-      return (path === '/s' && /[?&](word|wd)=/i.test(query)) ||
-        (path === '/baidu' && /[?&](word|wd)=/i.test(query));
-    }
-    if (/^(m\.)?sogou\.com$/i.test(host) || host === 'www.sogou.com') {
-      return (path === '/web' || path === '/s') && /[?&](query|keyword)=/i.test(query);
-    }
-    if (/^(m\.)?so\.com$/i.test(host) || host === 'www.so.com') {
-      return path === '/s' && /[?&]q=/i.test(query);
-    }
-    if (host === 'quark.sm.cn' || host === 'so.m.sm.cn') {
-      return path === '/s' && /[?&]q=/i.test(query);
-    }
-    return false;
+    return isBilibiliHost() || searchResultCleanup.isResultPage();
   }
 
   /**
@@ -1182,166 +1157,9 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function removeSearchResultAds() {
-    if (!isSearchProviderResultPage()) return;
-
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    runWithMutationSuppressed(function () {
-      hideKnownSearchAdContainers();
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param marker 表示当前回调正在检查或操作的页面元素。
-       */
-      findSearchAdDisclosureMarkers().forEach(function (marker) {
-        const root = findSearchResultRoot(marker);
-        if (root) hideElement(root, 'search-result-ad');
-      });
+    searchResultCleanup.removeAds({
+      runWithMutationSuppressed: runWithMutationSuppressed
     });
-  }
-
-  /**
-   * 函数 `hideKnownSearchAdContainers`：封装 `hide Known Search Ad Containers` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function hideKnownSearchAdContainers() {
-    const selectors = [
-      '[tpl^="ad"]',
-      '[tpl*="-ad"]',
-      '[tpl*="_ad"]',
-      '[tpl*="adv"]',
-      '[data-tuiguang]',
-      '[data-log*="-ad"]',
-      '[data-log*="_ad"]',
-      '[class*="ad-result"]',
-      '[class*="ec-ad"]',
-      '[class*="ec_ad"]',
-      '[class*="ec-tuiguang"]',
-      '[class*="ec_tuiguang"]',
-      '[class*="wise-ad"]',
-      '[class*="wise_ad"]'
-    ];
-
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    selectors.forEach(function (selector) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      querySelectorAllSafe(selector).forEach(function (element) {
-        const root = findSearchResultRoot(element) || element;
-        hideElement(root, 'search-result-ad-container');
-      });
-    });
-  }
-
-  /**
-   * 函数 `findSearchAdDisclosureMarkers`：封装 `find Search Ad Disclosure Markers` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function findSearchAdDisclosureMarkers() {
-    const markers = [];
-    document.querySelectorAll(
-      'span,i,em,b,a,button,[role="button"],[aria-label],[title],[class*="ad"],[class*="adv"]'
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param element 表示当前回调正在检查或操作的页面元素。
-     */
-    ).forEach(function (element) {
-      const text = normalizeText(
-        element.innerText ||
-        element.textContent ||
-        element.getAttribute('aria-label') ||
-        element.getAttribute('title')
-      );
-      const descriptor = String(element.id || '') + ' ' + String(element.className || '') + ' ' +
-        String(element.getAttribute('aria-label') || '') + ' ' +
-        String(element.getAttribute('title') || '');
-      if (isSearchAdDisclosure(text, descriptor)) markers.push(element);
-    });
-    return markers;
-  }
-
-  /**
-   * 函数 `isSearchAdDisclosure`：封装 `is Search Ad Disclosure` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} text 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   * @param {*} descriptor 表示函数执行 `descriptor` 相关逻辑时需要读取或处理的输入。
-   */
-  function isSearchAdDisclosure(text, descriptor) {
-    const compactText = String(text || '').replace(/\s+/g, '');
-    const compactDescriptor = String(descriptor || '').replace(/\s+/g, '');
-    if (/^(广告|廣告|推广|推廣|商业推广|商業推廣|赞助|贊助|sponsored|ad)$/i.test(compactText)) {
-      return true;
-    }
-    if (/^(广告|廣告|推广|推廣|赞助|贊助)[:：]?$/.test(compactText)) {
-      return true;
-    }
-    if (compactText.length <= 10 && /广告|廣告|推广|推廣|赞助|贊助|sponsored/i.test(compactText)) {
-      return true;
-    }
-    return /(^|[-_\s])(ad|ads|adv|sponsored|tuiguang|promotion)([-_\s]|$)/i.test(compactDescriptor) &&
-      compactText.length <= 24;
-  }
-
-  /**
-   * 函数 `findSearchResultRoot`：封装 `find Search Result Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} marker 表示函数执行 `marker` 相关逻辑时需要读取或处理的输入。
-   */
-  function findSearchResultRoot(marker) {
-    if (!marker || !document.body) return null;
-
-    let current = marker;
-    let candidate = null;
-    for (let depth = 0; current && depth < 9; depth += 1, current = current.parentElement) {
-      if (current === document.body || current === document.documentElement) break;
-      if (isSearchControlContainer(current)) break;
-
-      const rect = current.getBoundingClientRect();
-      if (!rect.width || !rect.height) continue;
-      if (rect.width < window.innerWidth * 0.45) continue;
-      if (rect.height < 36) continue;
-      if (rect.height > Math.min(window.innerHeight * 0.72, 520)) continue;
-
-      const text = normalizeText(current.innerText || current.textContent);
-      if (text.length < 2 || text.length > 1200) continue;
-      const hasContent = current.querySelectorAll('a,img,h1,h2,h3,[role="heading"]').length > 0 ||
-        text.length >= 8;
-      if (hasContent) candidate = current;
-    }
-
-    return candidate;
-  }
-
-  /**
-   * 函数 `isSearchControlContainer`：封装 `is Search Control Container` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function isSearchControlContainer(element) {
-    if (!element || typeof element.querySelector !== 'function') return false;
-    if (element.querySelector('input,textarea,select,form')) return true;
-
-    const rect = element.getBoundingClientRect();
-    const text = normalizeText(element.innerText || element.textContent);
-    const descriptor = String(element.id || '') + ' ' + String(element.className || '');
-    const topChromeLike = rect.top < 120 &&
-      /综合|资讯|视频|图片|知道|文库|贴吧|地图|更多|搜索|百度一下|网页|问答/.test(text);
-    return topChromeLike || /searchbox|search-box|searchbar|search-bar|tab|tabs|navbar|nav-bar/i.test(descriptor);
   }
 
   /**
