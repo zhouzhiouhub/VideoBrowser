@@ -22,6 +22,7 @@ class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
     private val hostSets = SettingsHostSetStore(preferenceStore)
+    private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
 
     /**
      * 函数 `isAdBlockEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
@@ -424,10 +425,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun userElementHideSelectorsForSite(host: String?): List<String> {
-        val normalizedHost = SiteHost.normalize(host) ?: return emptyList()
-        return userElementHideRules()
-            .filter { rule -> rule.host == normalizedHost }
-            .map { rule -> rule.selector }
+        return userElementHideRuleStore.selectorsForSite(host)
     }
 
     /**
@@ -439,11 +437,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun hasUserElementHideSelectorForSite(host: String?, selector: String): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val normalizedSelector = normalizeUserElementSelector(selector) ?: return false
-        return userElementHideRules().any { rule ->
-            rule.host == normalizedHost && rule.selector == normalizedSelector
-        }
+        return userElementHideRuleStore.hasSelectorForSite(host, selector)
     }
 
     /**
@@ -455,16 +449,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun addUserElementHideSelectorForSite(host: String?, selector: String): Boolean {
-        val normalizedHost = SiteHost.normalize(host) ?: return false
-        val normalizedSelector = normalizeUserElementSelector(selector) ?: return false
-        val rules = userElementHideRules().toMutableList()
-        if (rules.any { rule -> rule.host == normalizedHost && rule.selector == normalizedSelector }) {
-            return false
-        }
-
-        rules.add(UserElementHideRule(host = normalizedHost, selector = normalizedSelector))
-        saveUserElementHideRules(rules)
-        return true
+        return userElementHideRuleStore.addSelectorForSite(host, selector)
     }
 
     /**
@@ -474,12 +459,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun userElementHideRules(): List<UserElementHideRule> {
-        return preferenceStore.getString(KEY_USER_ELEMENT_HIDE_RULES, null)
-            ?.lineSequence()
-            ?.mapNotNull(::parseUserElementHideRule)
-            ?.distinct()
-            ?.toList()
-            ?: emptyList()
+        return userElementHideRuleStore.load()
     }
 
     /**
@@ -490,18 +470,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun removeUserElementHideRule(rule: UserElementHideRule): Boolean {
-        val normalizedHost = SiteHost.normalize(rule.host) ?: return false
-        val normalizedSelector = normalizeUserElementSelector(rule.selector) ?: return false
-        val rules = userElementHideRules()
-        val remainingRules = rules.filterNot { existingRule ->
-            existingRule.host == normalizedHost && existingRule.selector == normalizedSelector
-        }
-        if (remainingRules.size == rules.size) {
-            return false
-        }
-
-        saveUserElementHideRules(remainingRules)
-        return true
+        return userElementHideRuleStore.remove(rule)
     }
 
     /**
@@ -510,7 +479,7 @@ class SettingsManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearUserElementHideRules() {
-        preferenceStore.remove(KEY_USER_ELEMENT_HIDE_RULES)
+        userElementHideRuleStore.clear()
     }
 
     /**
@@ -948,93 +917,6 @@ class SettingsManager(
     }
 
     /**
-     * 函数 `parseUserElementHideRule`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseUserElementHideRule(line: String): UserElementHideRule? {
-        val separatorIndex = line.indexOf('\t')
-        if (separatorIndex <= 0 || separatorIndex >= line.lastIndex) {
-            return null
-        }
-        val host = SiteHost.normalize(line.substring(0, separatorIndex)) ?: return null
-        val selector = normalizeUserElementSelector(line.substring(separatorIndex + 1)) ?: return null
-        return UserElementHideRule(host = host, selector = selector)
-    }
-
-    /**
-     * 函数 `saveUserElementHideRules`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param rules 参数类型为 `List<UserElementHideRule>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
-     */
-    private fun saveUserElementHideRules(rules: List<UserElementHideRule>) {
-        val lines = rules
-            .mapNotNull { rule ->
-                val host = SiteHost.normalize(rule.host) ?: return@mapNotNull null
-                val selector = normalizeUserElementSelector(rule.selector) ?: return@mapNotNull null
-                UserElementHideRule(host = host, selector = selector)
-            }
-            .distinct()
-            .sortedWith(compareBy<UserElementHideRule> { it.host }.thenBy { it.selector })
-            .map { rule -> "${rule.host}\t${rule.selector}" }
-
-        if (lines.isEmpty()) {
-            preferenceStore.remove(KEY_USER_ELEMENT_HIDE_RULES)
-        } else {
-            preferenceStore.putString(KEY_USER_ELEMENT_HIDE_RULES, lines.joinToString(separator = "\n"))
-        }
-    }
-
-    /**
-     * 函数 `normalizeUserElementSelector`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeUserElementSelector(selector: String): String? {
-        val collapsed = selector.trim().replace(Regex("\\s+"), " ")
-        val normalized = stabilizeUserElementSelector(collapsed)
-        if (normalized.isEmpty() || normalized.length > MAX_USER_ELEMENT_SELECTOR_LENGTH) {
-            return null
-        }
-        if (normalized.any { char -> char == '\t' || char == '\n' || char == '\r' }) {
-            return null
-        }
-        if (Regex("[{};<>]").containsMatchIn(normalized)) {
-            return null
-        }
-        if (Regex(":has\\(|:contains\\(|:matches\\(|:xpath\\(|javascript:|expression\\(", RegexOption.IGNORE_CASE)
-                .containsMatchIn(normalized)
-        ) {
-            return null
-        }
-        return normalized
-    }
-
-    /**
-     * 函数 `stabilizeUserElementSelector`：封装 `stabilize User Element Selector` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param selector 参数类型为 `String`，表示函数执行 `selector` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun stabilizeUserElementSelector(selector: String): String {
-        if (!selector.contains(":nth-of-type", ignoreCase = true) ||
-            !USER_ELEMENT_STABLE_TOKEN_REGEX.containsMatchIn(selector)
-        ) {
-            return selector
-        }
-        return USER_ELEMENT_POSITIONAL_SEGMENT_REGEX
-            .replace(selector, "")
-            .replace(Regex("\\s+"), " ")
-            .trim()
-    }
-
-    /**
      * 函数 `normalizeVideoSpeed`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1165,10 +1047,6 @@ class SettingsManager(
         const val DEFAULT_VIDEO_SPEED = 1f
         const val DEFAULT_TEXT_ZOOM_PERCENT = 100
         val TEXT_ZOOM_OPTIONS = listOf(75, 100, 125, 150, 200)
-
-        private val USER_ELEMENT_POSITIONAL_SEGMENT_REGEX =
-            Regex(":nth-of-type\\(\\s*\\d+\\s*\\)", RegexOption.IGNORE_CASE)
-        private val USER_ELEMENT_STABLE_TOKEN_REGEX = Regex("[#.][A-Za-z_][A-Za-z0-9_-]*")
 
         /**
          * 函数 `from`：封装 `from` 这一段业务步骤，让调用方不用关心内部实现细节。
