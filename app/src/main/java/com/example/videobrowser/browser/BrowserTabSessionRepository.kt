@@ -8,10 +8,9 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import com.example.videobrowser.storage.PreferenceStore
-import java.net.URI
+import com.example.videobrowser.utils.WebUrlNormalizer
 import java.net.URLDecoder
 import java.net.URLEncoder
-import java.util.Locale
 
 data class BrowserTabSession(
     val tabs: List<BrowserTab>,
@@ -112,16 +111,7 @@ class BrowserTabSessionRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun normalizeRestorableWebUrl(url: String?): String? {
-        val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return null
-        val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return null
-        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
-        if (scheme != "http" && scheme != "https") {
-            return null
-        }
-        if (uri.host.isNullOrBlank()) {
-            return null
-        }
-        return normalizedUrl
+        return WebUrlNormalizer.normalizeHttpOrHttpsUrl(url)
     }
 
     /**

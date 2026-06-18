@@ -93,8 +93,7 @@ class BrowserTabSessionWiringContractTest {
         val readme = projectFile("README.md").readText()
 
         assertTrue(repository.contains("private fun normalizeRestorableWebUrl(url: String?): String?"))
-        assertTrue(repository.contains("scheme != \"http\" && scheme != \"https\""))
-        assertTrue(repository.contains("uri.host.isNullOrBlank()"))
+        assertTrue(repository.contains("WebUrlNormalizer.normalizeHttpOrHttpsUrl(url)"))
         assertTrue(readme.contains("标准标签页会话只恢复带主机名的 HTTP/HTTPS 页面 URL"))
     }
 

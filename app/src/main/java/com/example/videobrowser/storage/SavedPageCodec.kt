@@ -1,7 +1,7 @@
 package com.example.videobrowser.storage
 
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
-import java.net.URI
+import com.example.videobrowser.utils.WebUrlNormalizer
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
@@ -82,16 +82,7 @@ internal class SavedPageCodec(
     }
 
     fun normalizeSavedWebUrl(url: String): String? {
-        val normalizedUrl = url.trim().takeIf { it.isNotBlank() } ?: return null
-        val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return null
-        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
-        if (scheme != "http" && scheme != "https") {
-            return null
-        }
-        if (uri.host.isNullOrBlank()) {
-            return null
-        }
-        return normalizedUrl
+        return WebUrlNormalizer.normalizeHttpOrHttpsUrl(url)
     }
 
     private fun loadVersionedPages(rawValue: String): List<SavedPage> {
