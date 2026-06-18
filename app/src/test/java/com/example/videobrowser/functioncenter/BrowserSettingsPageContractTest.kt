@@ -136,13 +136,16 @@ class BrowserSettingsPageContractTest {
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
+        val settingsKeys = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsPreferenceKeys.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
         assertTrue(settings.contains("fun isMixedContentBlocked(): Boolean"))
         assertTrue(settings.contains("fun setMixedContentBlocked(blocked: Boolean)"))
-        assertTrue(settings.contains("DEFAULT_MIXED_CONTENT_BLOCKED = true"))
-        assertTrue(settings.contains("KEY_MIXED_CONTENT_BLOCKED = \"mixed_content_blocked\""))
+        assertTrue(settingsKeys.contains("DEFAULT_MIXED_CONTENT_BLOCKED = true"))
+        assertTrue(settingsKeys.contains("KEY_MIXED_CONTENT_BLOCKED = \"mixed_content_blocked\""))
         assertTrue(page.contains("R.string.setting_mixed_content_blocking"))
         assertTrue(page.contains("settingsManager.isMixedContentBlocked()"))
         assertTrue(page.contains("settingsManager.setMixedContentBlocked(blocked)"))
@@ -178,6 +181,9 @@ class BrowserSettingsPageContractTest {
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
+        val settingsKeys = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsPreferenceKeys.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
@@ -185,7 +191,7 @@ class BrowserSettingsPageContractTest {
         assertTrue(settings.contains("fun setTextZoomPercent(percent: Int)"))
         assertTrue(settings.contains("DEFAULT_TEXT_ZOOM_PERCENT = 100"))
         assertTrue(settings.contains("TEXT_ZOOM_OPTIONS = listOf(75, 100, 125, 150, 200)"))
-        assertTrue(settings.contains("KEY_TEXT_ZOOM_PERCENT = \"text_zoom_percent\""))
+        assertTrue(settingsKeys.contains("KEY_TEXT_ZOOM_PERCENT = \"text_zoom_percent\""))
         assertTrue(page.contains("private fun showTextZoomDialog()"))
         assertTrue(page.contains("R.string.setting_text_zoom"))
         assertTrue(page.contains("settingsManager.textZoomPercent()"))
