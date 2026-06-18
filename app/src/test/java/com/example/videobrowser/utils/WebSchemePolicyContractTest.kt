@@ -17,7 +17,8 @@ class WebSchemePolicyContractTest {
             projectFile("src/main/java/com/example/videobrowser/browser/HttpNavigationSafetyPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/BrowserUrlStateController.kt"),
             projectFile("src/main/java/com/example/videobrowser/settings/SettingsHttpUrlValidator.kt"),
-            projectFile("src/main/java/com/example/videobrowser/video/MediaRoutingController.kt")
+            projectFile("src/main/java/com/example/videobrowser/video/MediaRoutingController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/rules/RuleSubscriptionFetcher.kt")
         ).map { file -> file.readText() }
 
         sources.forEach { source ->

@@ -13,7 +13,8 @@ class HostNameNormalizerContractTest {
             projectFile("src/main/java/com/example/videobrowser/site/SiteAdapterRegistry.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/RequestContext.kt"),
             projectFile("src/main/java/com/example/videobrowser/rules/RuleMatcher.kt"),
-            projectFile("src/main/java/com/example/videobrowser/rules/DomainScope.kt")
+            projectFile("src/main/java/com/example/videobrowser/rules/DomainScope.kt"),
+            projectFile("src/main/java/com/example/videobrowser/rules/RuleSubscriptionFetcher.kt")
         ).map { file -> file.readText() }
 
         sources.forEach { source ->

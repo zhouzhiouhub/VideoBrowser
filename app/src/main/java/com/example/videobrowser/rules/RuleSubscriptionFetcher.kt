@@ -7,12 +7,13 @@ package com.example.videobrowser.rules
  * 主要职责：读取、解析、索引和匹配广告拦截规则、元素隐藏规则、参数清理规则和安全脚本规则。
  * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
  */
+import com.example.videobrowser.utils.HostNameNormalizer
+import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.WebSchemePolicy
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.URI
 import java.net.URL
-import java.util.Locale
 
 class RuleSubscriptionFetcher(
     private val networkTimeoutMs: Int = DEFAULT_NETWORK_TIMEOUT_MS,
@@ -101,9 +102,8 @@ class RuleSubscriptionFetcher(
          */
         fun normalizeSubscriptionUrl(url: String): String? {
             val normalizedUrl = url.trim().takeIf { it.isNotBlank() } ?: return null
-            val uri = runCatching { URI(normalizedUrl) }.getOrNull() ?: return null
-            val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
-            if (scheme != "http" && scheme != "https") {
+            val uri = SafeUriParser.parse(normalizedUrl) ?: return null
+            if (!WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)) {
                 return null
             }
             if (uri.host.isNullOrBlank()) {
@@ -124,10 +124,7 @@ class RuleSubscriptionFetcher(
          */
         fun subscriptionIdForUrl(url: String): String {
             val normalizedUrl = normalizeSubscriptionUrl(url) ?: return "remote"
-            return runCatching { URI(normalizedUrl).host }
-                .getOrNull()
-                ?.takeIf { host -> host.isNotBlank() }
-                ?: "remote"
+            return HostNameNormalizer.fromUrl(normalizedUrl) ?: "remote"
         }
     }
 }
