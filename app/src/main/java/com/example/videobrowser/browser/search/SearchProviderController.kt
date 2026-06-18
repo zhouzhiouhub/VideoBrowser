@@ -11,14 +11,10 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.text.InputType
-import android.text.TextUtils
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.HorizontalScrollView
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -59,6 +55,16 @@ class SearchProviderController(
 
     private val providers = SearchProviders.defaults
     private val providerViews = mutableMapOf<String, SearchProviderViews>()
+    private val itemFactory = SearchProviderItemFactory(
+        activity = activity,
+        dp = dp,
+        onProviderSelected = ::selectProvider,
+        onCustomShortcutOpen = openCustomShortcut,
+        onCustomShortcutLongClick = { shortcut -> showCustomShortcutActionsDialog(shortcut) },
+        onRecentHistoryOpen = openCustomShortcut,
+        onRecentHistoryLongClick = { quickLink -> showRemoveRecentHistoryDialog(quickLink) },
+        onAddShortcut = ::showAddShortcutDialog
+    )
 
     lateinit var selectedProvider: SearchProvider
         private set
@@ -173,14 +179,14 @@ class SearchProviderController(
      * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
      */
     private fun addProviderItem(provider: SearchProvider) {
-        val item = createProviderItem(provider)
-        val badge = createProviderBadge(provider)
-        val label = createProviderLabel(provider)
+        val item = itemFactory.createProviderItem(provider)
+        val badge = itemFactory.createProviderBadge(provider)
+        val label = itemFactory.createProviderLabel(provider)
         item.addView(badge, LinearLayout.LayoutParams(dp(48), dp(48)))
         item.addView(label)
 
         providerViews[provider.id] = SearchProviderViews(item, badge, label)
-        providerList.addView(item, providerItemLayoutParams())
+        providerList.addView(item, itemFactory.providerItemLayoutParams())
     }
 
     /**
@@ -190,13 +196,13 @@ class SearchProviderController(
      * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
      */
     private fun addCustomShortcutItem(shortcut: CustomShortcut) {
-        val item = createCustomShortcutItem(shortcut)
+        val item = itemFactory.createCustomShortcutItem(shortcut)
         item.addView(
-            createCustomShortcutBadge(shortcut),
+            itemFactory.createCustomShortcutBadge(shortcut),
             LinearLayout.LayoutParams(dp(48), dp(48))
         )
-        item.addView(createCustomShortcutLabel(shortcut.name))
-        providerList.addView(item, providerItemLayoutParams())
+        item.addView(itemFactory.createCustomShortcutLabel(shortcut.name))
+        providerList.addView(item, itemFactory.providerItemLayoutParams())
     }
 
     /**
@@ -207,9 +213,9 @@ class SearchProviderController(
      */
     private fun addRecentHistoryItem(quickLink: HomeQuickLink) {
         val item = createRecentHistoryItem(quickLink)
-        item.addView(createRecentHistoryBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
-        item.addView(createCustomShortcutLabel(quickLink.title))
-        providerList.addView(item, providerItemLayoutParams())
+        item.addView(itemFactory.createRecentHistoryBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
+        item.addView(itemFactory.createCustomShortcutLabel(quickLink.title))
+        providerList.addView(item, itemFactory.providerItemLayoutParams())
     }
 
     /**
@@ -218,215 +224,14 @@ class SearchProviderController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun addAddShortcutItem() {
-        val item = createAddShortcutItem()
-        item.addView(createAddShortcutBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
-        item.addView(createCustomShortcutLabel(activity.getString(R.string.action_add)))
-        providerList.addView(item, providerItemLayoutParams())
+        val item = itemFactory.createAddShortcutItem()
+        item.addView(itemFactory.createAddShortcutBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
+        item.addView(itemFactory.createCustomShortcutLabel(activity.getString(R.string.action_add)))
+        providerList.addView(item, itemFactory.providerItemLayoutParams())
     }
 
-    /**
-     * 函数 `createProviderItem`：创建 `create Provider Item` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createProviderItem(provider: SearchProvider): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(
-                R.string.action_select_search_provider,
-                provider.name
-            )
-            setPadding(dp(4), 0, dp(4), 0)
-            setBoundedSelectableItemBackground()
-            setOnClickListener { selectProvider(provider) }
-        }
-    }
-
-    /**
-     * 函数 `createCustomShortcutItem`：创建 `create Custom Shortcut Item` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createCustomShortcutItem(shortcut: CustomShortcut): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(
-                R.string.action_open_custom_shortcut,
-                shortcut.name
-            )
-            setPadding(dp(4), 0, dp(4), 0)
-            setBoundedSelectableItemBackground()
-            setOnClickListener { openCustomShortcut(shortcut.url) }
-            setOnLongClickListener {
-                showCustomShortcutActionsDialog(shortcut)
-                true
-            }
-        }
-    }
-
-    /**
-     * 函数 `createRecentHistoryItem`：创建 `create Recent History Item` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param quickLink 参数类型为 `HomeQuickLink`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
     private fun createRecentHistoryItem(quickLink: HomeQuickLink): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(
-                R.string.action_open_recent_site,
-                quickLink.title
-            )
-            setPadding(dp(4), 0, dp(4), 0)
-            setBoundedSelectableItemBackground()
-            setOnClickListener { openCustomShortcut(quickLink.url) }
-            setOnLongClickListener {
-                showRemoveRecentHistoryDialog(quickLink)
-                true
-            }
-        }
-    }
-
-    /**
-     * 函数 `createAddShortcutItem`：创建 `create Add Shortcut Item` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createAddShortcutItem(): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(R.string.action_add_custom_shortcut)
-            setPadding(dp(4), 0, dp(4), 0)
-            setBoundedSelectableItemBackground()
-            setOnClickListener { showAddShortcutDialog() }
-        }
-    }
-
-    /**
-     * 函数 `createRecentHistoryBadge`：创建 `create Recent History Badge` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createRecentHistoryBadge(): ImageView {
-        return ImageView(activity).apply {
-            setImageResource(R.drawable.ic_history_24)
-            setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-            background = createCircleBackground(
-                ContextCompat.getColor(activity, R.color.browser_provider_circle)
-            )
-            setPadding(dp(12), dp(12), dp(12), dp(12))
-        }
-    }
-
-    /**
-     * 函数 `createProviderBadge`：创建 `create Provider Badge` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createProviderBadge(provider: SearchProvider): TextView {
-        return TextView(activity).apply {
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            text = provider.badge
-            setTypeface(typeface, Typeface.BOLD)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, if (provider.badge.length > 1) 12f else 16f)
-        }
-    }
-
-    /**
-     * 函数 `createCustomShortcutBadge`：创建 `create Custom Shortcut Badge` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param shortcut 参数类型为 `CustomShortcut`，表示函数执行 `shortcut` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createCustomShortcutBadge(shortcut: CustomShortcut): TextView {
-        val badgeText = shortcutBadgeText(shortcut.name)
-        return TextView(activity).apply {
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            text = badgeText
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, if (badgeText.length > 1) 12f else 16f)
-            background = createCircleBackground(
-                ContextCompat.getColor(activity, R.color.browser_provider_circle)
-            )
-        }
-    }
-
-    /**
-     * 函数 `createAddShortcutBadge`：创建 `create Add Shortcut Badge` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createAddShortcutBadge(): ImageView {
-        return ImageView(activity).apply {
-            setImageResource(R.drawable.ic_add_24)
-            setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-            background = createCircleBackground(
-                ContextCompat.getColor(activity, R.color.browser_provider_circle)
-            )
-            setPadding(dp(12), dp(12), dp(12), dp(12))
-        }
-    }
-
-    /**
-     * 函数 `createProviderLabel`：创建 `create Provider Label` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param provider 参数类型为 `SearchProvider`，表示函数执行 `provider` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createProviderLabel(provider: SearchProvider): TextView {
-        return createCustomShortcutLabel(provider.name)
-    }
-
-    /**
-     * 函数 `createCustomShortcutLabel`：创建 `create Custom Shortcut Label` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param labelText 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createCustomShortcutLabel(labelText: String): TextView {
-        return TextView(activity).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(6)
-            }
-            ellipsize = TextUtils.TruncateAt.END
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            maxLines = 1
-            text = labelText
-            setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-            textSize = 12f
-        }
+        return itemFactory.createRecentHistoryItem(quickLink)
     }
 
     /**
@@ -531,20 +336,6 @@ class SearchProviderController(
             } else {
                 setColor(ContextCompat.getColor(activity, R.color.browser_provider_circle))
             }
-        }
-    }
-
-    /**
-     * 函数 `createCircleBackground`：创建 `create Circle Background` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param color 参数类型为 `Int`，表示函数执行 `color` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createCircleBackground(color: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(color)
         }
     }
 
@@ -735,27 +526,6 @@ class SearchProviderController(
     }
 
     /**
-     * 函数 `providerItemLayoutParams`：封装 `provider Item Layout Params` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun providerItemLayoutParams(): LinearLayout.LayoutParams {
-        return LinearLayout.LayoutParams(dp(78), ViewGroup.LayoutParams.MATCH_PARENT)
-    }
-
-    /**
-     * 函数 `shortcutBadgeText`：封装 `shortcut Badge Text` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun shortcutBadgeText(name: String): String {
-        return name.trim().take(2).ifBlank { "+" }
-    }
-
-    /**
      * 函数 `homeQuickLinkExcludedUrls`：封装 `home Quick Link Excluded Urls` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -766,21 +536,6 @@ class SearchProviderController(
         return customShortcuts.map { shortcut -> shortcut.url } +
             providers.map { provider -> provider.homeUrl } +
             settingsManager.homeUrlOr(selectedProvider.homeUrl)
-    }
-
-    /**
-     * 函数 `setBoundedSelectableItemBackground`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun View.setBoundedSelectableItemBackground() {
-        val outValue = TypedValue()
-        activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackground,
-            outValue,
-            true
-        )
-        setBackgroundResource(outValue.resourceId)
     }
 
 }

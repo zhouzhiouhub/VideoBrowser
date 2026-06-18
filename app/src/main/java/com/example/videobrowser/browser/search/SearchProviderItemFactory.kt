@@ -1,0 +1,190 @@
+package com.example.videobrowser.browser.search
+
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.text.TextUtils
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.example.videobrowser.R
+import com.example.videobrowser.settings.CustomShortcut
+
+internal class SearchProviderItemFactory(
+    private val activity: AppCompatActivity,
+    private val dp: (Int) -> Int,
+    private val onProviderSelected: (SearchProvider) -> Unit,
+    private val onCustomShortcutOpen: (String) -> Unit,
+    private val onCustomShortcutLongClick: (CustomShortcut) -> Unit,
+    private val onRecentHistoryOpen: (String) -> Unit,
+    private val onRecentHistoryLongClick: (HomeQuickLink) -> Unit,
+    private val onAddShortcut: () -> Unit
+) {
+    fun createProviderItem(provider: SearchProvider): LinearLayout {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            contentDescription = activity.getString(
+                R.string.action_select_search_provider,
+                provider.name
+            )
+            setPadding(dp(4), 0, dp(4), 0)
+            setBoundedSelectableItemBackground()
+            setOnClickListener { onProviderSelected(provider) }
+        }
+    }
+
+    fun createCustomShortcutItem(shortcut: CustomShortcut): LinearLayout {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            contentDescription = activity.getString(
+                R.string.action_open_custom_shortcut,
+                shortcut.name
+            )
+            setPadding(dp(4), 0, dp(4), 0)
+            setBoundedSelectableItemBackground()
+            setOnClickListener { onCustomShortcutOpen(shortcut.url) }
+            setOnLongClickListener {
+                onCustomShortcutLongClick(shortcut)
+                true
+            }
+        }
+    }
+
+    fun createRecentHistoryItem(quickLink: HomeQuickLink): LinearLayout {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            contentDescription = activity.getString(
+                R.string.action_open_recent_site,
+                quickLink.title
+            )
+            setPadding(dp(4), 0, dp(4), 0)
+            setBoundedSelectableItemBackground()
+            setOnClickListener { onRecentHistoryOpen(quickLink.url) }
+            setOnLongClickListener {
+                onRecentHistoryLongClick(quickLink)
+                true
+            }
+        }
+    }
+
+    fun createAddShortcutItem(): LinearLayout {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            contentDescription = activity.getString(R.string.action_add_custom_shortcut)
+            setPadding(dp(4), 0, dp(4), 0)
+            setBoundedSelectableItemBackground()
+            setOnClickListener { onAddShortcut() }
+        }
+    }
+
+    fun createRecentHistoryBadge(): ImageView {
+        return ImageView(activity).apply {
+            setImageResource(R.drawable.ic_history_24)
+            setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
+            background = createCircleBackground(
+                ContextCompat.getColor(activity, R.color.browser_provider_circle)
+            )
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+        }
+    }
+
+    fun createProviderBadge(provider: SearchProvider): TextView {
+        return TextView(activity).apply {
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            text = provider.badge
+            setTypeface(typeface, Typeface.BOLD)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, if (provider.badge.length > 1) 12f else 16f)
+        }
+    }
+
+    fun createCustomShortcutBadge(shortcut: CustomShortcut): TextView {
+        val badgeText = shortcutBadgeText(shortcut.name)
+        return TextView(activity).apply {
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            text = badgeText
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, if (badgeText.length > 1) 12f else 16f)
+            background = createCircleBackground(
+                ContextCompat.getColor(activity, R.color.browser_provider_circle)
+            )
+        }
+    }
+
+    fun createAddShortcutBadge(): ImageView {
+        return ImageView(activity).apply {
+            setImageResource(R.drawable.ic_add_24)
+            setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
+            background = createCircleBackground(
+                ContextCompat.getColor(activity, R.color.browser_provider_circle)
+            )
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+        }
+    }
+
+    fun createProviderLabel(provider: SearchProvider): TextView {
+        return createCustomShortcutLabel(provider.name)
+    }
+
+    fun createCustomShortcutLabel(labelText: String): TextView {
+        return TextView(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(6)
+            }
+            ellipsize = TextUtils.TruncateAt.END
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            maxLines = 1
+            text = labelText
+            setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
+            textSize = 12f
+        }
+    }
+
+    fun providerItemLayoutParams(): LinearLayout.LayoutParams {
+        return LinearLayout.LayoutParams(dp(78), ViewGroup.LayoutParams.MATCH_PARENT)
+    }
+
+    private fun shortcutBadgeText(name: String): String {
+        return name.trim().take(2).ifBlank { "+" }
+    }
+
+    private fun createCircleBackground(color: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+        }
+    }
+
+    private fun View.setBoundedSelectableItemBackground() {
+        val outValue = TypedValue()
+        activity.theme.resolveAttribute(
+            android.R.attr.selectableItemBackground,
+            outValue,
+            true
+        )
+        setBackgroundResource(outValue.resourceId)
+    }
+}

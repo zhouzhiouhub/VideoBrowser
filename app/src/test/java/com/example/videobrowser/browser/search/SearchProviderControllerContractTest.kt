@@ -23,12 +23,15 @@ class SearchProviderControllerContractTest {
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
+        val itemFactory = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderItemFactory.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
         assertTrue(settings.contains("fun removeCustomShortcut(shortcut: CustomShortcut): Boolean"))
         assertTrue(settings.contains("fun updateCustomShortcut(shortcut: CustomShortcut, name: String, url: String): Boolean"))
-        assertTrue(controller.contains("setOnLongClickListener"))
+        assertTrue(itemFactory.contains("setOnLongClickListener"))
         assertTrue(controller.contains("showCustomShortcutActionsDialog(shortcut)"))
         assertTrue(controller.contains("private fun showCustomShortcutActionsDialog(shortcut: CustomShortcut)"))
         assertTrue(controller.contains("R.string.action_edit"))
@@ -71,6 +74,9 @@ class SearchProviderControllerContractTest {
         val quickLinkBuilder = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/HomeQuickLinkBuilder.kt"
         ).readText()
+        val itemFactory = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderItemFactory.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
 
@@ -88,8 +94,8 @@ class SearchProviderControllerContractTest {
         assertTrue(controller.contains("R.string.title_remove_recent_site"))
         assertTrue(controller.contains("R.string.dialog_remove_recent_site_message"))
         assertTrue(controller.contains("R.string.toast_recent_site_removed"))
-        assertTrue(controller.contains("R.string.action_open_recent_site"))
-        assertTrue(controller.contains("R.drawable.ic_history_24"))
+        assertTrue(itemFactory.contains("R.string.action_open_recent_site"))
+        assertTrue(itemFactory.contains("R.drawable.ic_history_24"))
         assertTrue(searchAssembly.contains("savedPageRepository = savedPageRepository"))
         assertTrue(quickLinkBuilder.contains("object HomeQuickLinkBuilder"))
         assertTrue(quickLinkBuilder.contains("excludedUrls: Collection<String>"))
