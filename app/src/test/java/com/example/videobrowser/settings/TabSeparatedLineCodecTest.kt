@@ -23,4 +23,25 @@ class TabSeparatedLineCodecTest {
     fun `join pair uses a single tab separator`() {
         assertEquals("host\t.selector", TabSeparatedLineCodec.joinPair("host", ".selector"))
     }
+
+    @Test
+    fun `fields escape tabs newlines carriage returns and backslashes`() {
+        val fields = listOf(
+            "plain",
+            "with\ttab",
+            "with\nline",
+            "with\rcarriage",
+            "with\\slash"
+        )
+
+        val encoded = TabSeparatedLineCodec.joinFields(fields)
+
+        assertEquals("plain\twith\\ttab\twith\\nline\twith\\rcarriage\twith\\\\slash", encoded)
+        assertEquals(fields, TabSeparatedLineCodec.splitFields(encoded))
+    }
+
+    @Test
+    fun `split fields preserves trailing escape marker`() {
+        assertEquals(listOf("value\\"), TabSeparatedLineCodec.splitFields("value\\"))
+    }
 }

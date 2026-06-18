@@ -7,6 +7,7 @@ package com.example.videobrowser.video
  * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
+import com.example.videobrowser.settings.TabSeparatedLineCodec
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 
@@ -131,7 +132,7 @@ class PlaybackHistoryRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun parseProgress(line: String): PlaybackProgress? {
-        val fields = splitEscaped(line)
+        val fields = TabSeparatedLineCodec.splitFields(line)
         if (fields.size != LEGACY_FIELD_COUNT && fields.size != FIELD_COUNT) {
             return null
         }
@@ -157,15 +158,17 @@ class PlaybackHistoryRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun encodeProgress(progress: PlaybackProgress): String {
-        return listOf(
-            progress.mediaIdentity,
-            progress.positionMs.toString(),
-            progress.durationMs.toString(),
-            progress.speed.toString(),
-            progress.updatedAtMillis.toString(),
-            progress.title.orEmpty(),
-            progress.source.name
-        ).joinToString(separator = "\t", transform = ::escape)
+        return TabSeparatedLineCodec.joinFields(
+            listOf(
+                progress.mediaIdentity,
+                progress.positionMs.toString(),
+                progress.durationMs.toString(),
+                progress.speed.toString(),
+                progress.updatedAtMillis.toString(),
+                progress.title.orEmpty(),
+                progress.source.name
+            )
+        )
     }
 
     /**
@@ -194,67 +197,6 @@ class PlaybackHistoryRepository(
             ?.trim()
             ?.take(MAX_TITLE_LENGTH)
             ?.takeIf { it.isNotBlank() }
-    }
-
-    /**
-     * 函数 `splitEscaped`：封装 `split Escaped` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun splitEscaped(line: String): List<String> {
-        val fields = mutableListOf<String>()
-        val current = StringBuilder()
-        var escaping = false
-        line.forEach { char ->
-            if (escaping) {
-                current.append(
-                    when (char) {
-                        't' -> '\t'
-                        'n' -> '\n'
-                        'r' -> '\r'
-                        else -> char
-                    }
-                )
-                escaping = false
-            } else {
-                when (char) {
-                    '\\' -> escaping = true
-                    '\t' -> {
-                        fields.add(current.toString())
-                        current.clear()
-                    }
-                    else -> current.append(char)
-                }
-            }
-        }
-        if (escaping) {
-            current.append('\\')
-        }
-        fields.add(current.toString())
-        return fields
-    }
-
-    /**
-     * 函数 `escape`：封装 `escape` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun escape(value: String): String {
-        return buildString {
-            value.forEach { char ->
-                when (char) {
-                    '\\' -> append("\\\\")
-                    '\t' -> append("\\t")
-                    '\n' -> append("\\n")
-                    '\r' -> append("\\r")
-                    else -> append(char)
-                }
-            }
-        }
     }
 
     private companion object {

@@ -7,6 +7,7 @@ package com.example.videobrowser.download
  * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
+import com.example.videobrowser.settings.TabSeparatedLineCodec
 import com.example.videobrowser.storage.PreferenceStore
 
 /**
@@ -172,7 +173,7 @@ class DownloadRecordRepository(
      */
     private fun parseRecord(line: String): DownloadRecord? {
         // 字段数量判断用于兼容旧版本记录：旧记录没有状态、原因或进度字段时仍能读取。
-        val fields = splitEscaped(line)
+        val fields = TabSeparatedLineCodec.splitFields(line)
         if (fields.size != LEGACY_FIELD_COUNT &&
             fields.size != STATUS_FIELD_COUNT &&
             fields.size != STATUS_REASON_FIELD_COUNT &&
@@ -226,79 +227,20 @@ class DownloadRecordRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun encodeRecord(record: DownloadRecord): String {
-        return listOf(
-            record.downloadId.toString(),
-            record.title,
-            record.sourceUrl,
-            record.fileName,
-            record.mimeType.orEmpty(),
-            record.createdAtMillis.toString(),
-            record.status.storageValue,
-            record.statusReason?.toString().orEmpty(),
-            record.bytesDownloaded?.toString().orEmpty(),
-            record.totalBytes?.toString().orEmpty()
-        ).joinToString(separator = "\t", transform = ::escape)
-    }
-
-    /**
-     * 函数 `splitEscaped`：封装 `split Escaped` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun splitEscaped(line: String): List<String> {
-        val fields = mutableListOf<String>()
-        val current = StringBuilder()
-        var escaping = false
-        line.forEach { char ->
-            if (escaping) {
-                current.append(
-                    when (char) {
-                        't' -> '\t'
-                        'n' -> '\n'
-                        'r' -> '\r'
-                        else -> char
-                    }
-                )
-                escaping = false
-            } else {
-                when (char) {
-                    '\\' -> escaping = true
-                    '\t' -> {
-                        fields.add(current.toString())
-                        current.clear()
-                    }
-                    else -> current.append(char)
-                }
-            }
-        }
-        if (escaping) {
-            current.append('\\')
-        }
-        fields.add(current.toString())
-        return fields
-    }
-
-    /**
-     * 函数 `escape`：封装 `escape` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `String`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun escape(value: String): String {
-        return buildString {
-            value.forEach { char ->
-                when (char) {
-                    '\\' -> append("\\\\")
-                    '\t' -> append("\\t")
-                    '\n' -> append("\\n")
-                    '\r' -> append("\\r")
-                    else -> append(char)
-                }
-            }
-        }
+        return TabSeparatedLineCodec.joinFields(
+            listOf(
+                record.downloadId.toString(),
+                record.title,
+                record.sourceUrl,
+                record.fileName,
+                record.mimeType.orEmpty(),
+                record.createdAtMillis.toString(),
+                record.status.storageValue,
+                record.statusReason?.toString().orEmpty(),
+                record.bytesDownloaded?.toString().orEmpty(),
+                record.totalBytes?.toString().orEmpty()
+            )
+        )
     }
 
     private companion object {
