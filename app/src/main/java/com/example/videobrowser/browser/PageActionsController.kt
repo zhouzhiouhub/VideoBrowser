@@ -12,7 +12,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.widget.Toast
@@ -23,6 +22,7 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.MediaUrlUtils
+import com.example.videobrowser.utils.stringOrNull
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.MediaRouteAction
 import com.example.videobrowser.video.MediaRouteRequest
@@ -310,7 +310,7 @@ class PageActionsController(
             if (!cursor.moveToFirst()) {
                 null
             } else {
-                cursor.getStringOrNull(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                cursor.stringOrNull(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
             }
         }
     }
@@ -334,14 +334,4 @@ class PageActionsController(
         return SavedPage(title = title, url = url)
     }
 
-    /**
-     * 函数 `getStringOrNull`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun Cursor.getStringOrNull(index: Int): String? {
-        return if (index >= 0 && !isNull(index)) getString(index) else null
-    }
 }

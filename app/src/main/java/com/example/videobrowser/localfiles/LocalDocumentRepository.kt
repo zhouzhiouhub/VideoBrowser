@@ -8,9 +8,11 @@ package com.example.videobrowser.localfiles
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.content.Context
-import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
+import com.example.videobrowser.utils.intOrNull
+import com.example.videobrowser.utils.longOrNull
+import com.example.videobrowser.utils.stringOrNull
 import java.util.Locale
 
 class LocalDocumentRepository(
@@ -59,18 +61,18 @@ class LocalDocumentRepository(
             val flagsIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_FLAGS)
 
             while (cursor.moveToNext()) {
-                val documentId = cursor.getStringOrNull(idIndex) ?: continue
-                val name = cursor.getStringOrNull(nameIndex)
+                val documentId = cursor.stringOrNull(idIndex) ?: continue
+                val name = cursor.stringOrNull(nameIndex)
                     ?.takeIf { it.isNotBlank() }
                     ?: documentId.substringAfterLast(':')
                 documents += LocalDocument(
                     uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId),
                     documentId = documentId,
                     name = name,
-                    mimeType = cursor.getStringOrNull(mimeIndex),
-                    size = cursor.getLongOrNull(sizeIndex),
-                    modifiedAt = cursor.getLongOrNull(modifiedIndex),
-                    flags = cursor.getIntOrNull(flagsIndex) ?: 0
+                    mimeType = cursor.stringOrNull(mimeIndex),
+                    size = cursor.longOrNull(sizeIndex),
+                    modifiedAt = cursor.longOrNull(modifiedIndex),
+                    flags = cursor.intOrNull(flagsIndex) ?: 0
                 )
             }
         }
@@ -129,36 +131,4 @@ class LocalDocumentRepository(
         }.getOrDefault(false)
     }
 
-    /**
-     * 函数 `getStringOrNull`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun Cursor.getStringOrNull(index: Int): String? {
-        return if (index >= 0 && !isNull(index)) getString(index) else null
-    }
-
-    /**
-     * 函数 `getLongOrNull`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun Cursor.getLongOrNull(index: Int): Long? {
-        return if (index >= 0 && !isNull(index)) getLong(index) else null
-    }
-
-    /**
-     * 函数 `getIntOrNull`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun Cursor.getIntOrNull(index: Int): Int? {
-        return if (index >= 0 && !isNull(index)) getInt(index) else null
-    }
 }
