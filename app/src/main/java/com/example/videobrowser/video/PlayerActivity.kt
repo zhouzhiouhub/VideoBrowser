@@ -985,17 +985,10 @@ class PlayerActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun playbackQueueLabels(): Array<String> {
-        return playbackQueue.items.mapIndexed { index, item ->
-            val title = item.title
-                ?.takeIf { it.isNotBlank() }
-                ?: item.uri.substringAfterLast('/').ifBlank { item.uri }
-            val currentLabel = if (index == currentMediaItemIndex) {
-                " - ${getString(R.string.video_queue_now_playing)}"
-            } else {
-                ""
-            }
-            "${index + 1}. $title$currentLabel"
-        }.toTypedArray()
+        return PlaybackQueueLabelFormatter.labels(
+            queue = playbackQueue,
+            nowPlayingLabel = getString(R.string.video_queue_now_playing)
+        ).toTypedArray()
     }
 
     /**

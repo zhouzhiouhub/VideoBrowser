@@ -6,6 +6,7 @@ package com.example.videobrowser.video
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import java.io.File
 
@@ -20,6 +21,9 @@ class PlaybackQueueMenuWiringContractTest {
         val source = File(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val formatter = File(
+            "src/main/java/com/example/videobrowser/video/PlaybackQueueLabelFormatter.kt"
+        ).readText()
 
         assertTrue(source.contains("PlaybackCommand.ShowQueue"))
         assertTrue(source.contains("private fun showPlaybackQueueMenu()"))
@@ -29,6 +33,10 @@ class PlaybackQueueMenuWiringContractTest {
         assertTrue(source.contains("playbackQueue = playbackQueue.select(index)"))
         assertTrue(source.contains("playbackQueue = playbackQueue.removeAt(index)"))
         assertTrue(source.contains("showPlaybackQueueMenu()"))
+        assertTrue(source.contains("PlaybackQueueLabelFormatter.labels("))
+        assertTrue(formatter.contains("object PlaybackQueueLabelFormatter"))
+        assertTrue(formatter.contains("fun labels(queue: PlaybackQueue, nowPlayingLabel: String)"))
+        assertFalse(source.contains("item.uri.substringAfterLast('/')"))
     }
 
     /**
