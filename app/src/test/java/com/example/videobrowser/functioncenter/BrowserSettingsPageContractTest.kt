@@ -20,13 +20,16 @@ class BrowserSettingsPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
+        val dialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDialogController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(page.contains("addBrowserBasicsSection(content)"))
-        assertTrue(page.contains("private fun showHomeUrlDialog()"))
+        assertTrue(dialogs.contains("fun showHomeUrlDialog()"))
         assertTrue(page.contains("settingsManager.homeUrl()"))
-        assertTrue(page.contains("settingsManager.isValidHomeUrl(homeUrl)"))
-        assertTrue(page.contains("settingsManager.setHomeUrl(homeUrl)"))
+        assertTrue(dialogs.contains("settingsManager.isValidHomeUrl(homeUrl)"))
+        assertTrue(dialogs.contains("settingsManager.setHomeUrl(homeUrl)"))
         assertTrue(strings.contains("setting_home_page"))
         assertTrue(strings.contains("hint_home_page_url"))
         assertTrue(strings.contains("toast_home_page_updated"))
@@ -43,6 +46,9 @@ class BrowserSettingsPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
+        val dialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDialogController.kt"
+        ).readText()
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
@@ -55,10 +61,10 @@ class BrowserSettingsPageContractTest {
         ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(page.contains("SearchProviders.defaults"))
-        assertTrue(page.contains("private fun showSearchEngineDialog()"))
+        assertTrue(dialogs.contains("SearchProviders.defaults"))
+        assertTrue(dialogs.contains("fun showSearchEngineDialog()"))
         assertTrue(page.contains("currentSearchProviderName()"))
-        assertTrue(page.contains("selectSearchProvider(provider.id)"))
+        assertTrue(dialogs.contains("selectSearchProvider(provider.id)"))
         assertTrue(searchProviderController.contains("fun selectDefaultSearchProvider(providerId: String): Boolean"))
         assertTrue(searchProviderController.contains("settingsManager.setSearchEngineId(provider.id)"))
         assertTrue(
@@ -170,6 +176,9 @@ class BrowserSettingsPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
+        val dialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDialogController.kt"
+        ).readText()
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
         ).readText()
@@ -192,11 +201,11 @@ class BrowserSettingsPageContractTest {
         assertTrue(settings.contains("DEFAULT_TEXT_ZOOM_PERCENT = 100"))
         assertTrue(settings.contains("TEXT_ZOOM_OPTIONS = listOf(75, 100, 125, 150, 200)"))
         assertTrue(settingsKeys.contains("KEY_TEXT_ZOOM_PERCENT = \"text_zoom_percent\""))
-        assertTrue(page.contains("private fun showTextZoomDialog()"))
+        assertTrue(dialogs.contains("fun showTextZoomDialog()"))
         assertTrue(page.contains("R.string.setting_text_zoom"))
         assertTrue(page.contains("settingsManager.textZoomPercent()"))
-        assertTrue(page.contains("settingsManager.setTextZoomPercent(percent)"))
-        assertTrue(page.contains("browserManager().setTextZoomPercent(percent)"))
+        assertTrue(dialogs.contains("settingsManager.setTextZoomPercent(percent)"))
+        assertTrue(dialogs.contains("browserManager().setTextZoomPercent(percent)"))
         assertTrue(browserManager.contains("fun setTextZoomPercent(percent: Int)"))
         assertTrue(browserManager.contains("textZoom = textZoomPercent"))
         assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))

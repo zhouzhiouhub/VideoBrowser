@@ -7,14 +7,9 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.text.InputType
 import android.widget.LinearLayout
-import android.widget.EditText
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
-import com.example.videobrowser.browser.search.SearchProviders
 import com.example.videobrowser.settings.SettingsManager
 
 class BrowserSettingsPage(
@@ -49,6 +44,13 @@ class BrowserSettingsPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val dialogController = BrowserSettingsDialogController(
+        activity = activity,
+        settingsManager = settingsManager,
+        browserManager = browserManager,
+        selectSearchProvider = selectSearchProvider,
+        onSettingsChanged = { show() }
+    )
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -172,112 +174,16 @@ class BrowserSettingsPage(
                 title = activity.getString(R.string.setting_home_page),
                 summary = settingsManager.homeUrl()
             ) {
-                showHomeUrlDialog()
+                dialogController.showHomeUrlDialog()
             }
             host.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.setting_search_engine),
                 summary = currentSearchProviderName()
             ) {
-                showSearchEngineDialog()
+                dialogController.showSearchEngineDialog()
             }
         }
-    }
-
-    /**
-     * 函数 `showHomeUrlDialog`：控制 `show Home Url Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showHomeUrlDialog() {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_home_page_url)
-            setText(settingsManager.homeUrl())
-            setSelection(text?.length ?: 0)
-        }
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.setting_home_page)
-            .setView(input)
-            .setPositiveButton(R.string.action_save, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val homeUrl = input.text?.toString().orEmpty()
-                if (!settingsManager.isValidHomeUrl(homeUrl)) {
-                    Toast.makeText(activity, R.string.toast_home_page_invalid, Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-                settingsManager.setHomeUrl(homeUrl)
-                Toast.makeText(activity, R.string.toast_home_page_updated, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                show()
-            }
-        }
-        dialog.show()
-    }
-
-    /**
-     * 函数 `showSearchEngineDialog`：控制 `show Search Engine Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showSearchEngineDialog() {
-        val providers = SearchProviders.defaults
-        val selectedIndex = providers
-            .indexOfFirst { provider -> provider.id == settingsManager.searchEngineId() }
-            .takeIf { index -> index >= 0 }
-            ?: 0
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.setting_search_engine)
-            .setSingleChoiceItems(
-                providers.map { provider -> provider.name }.toTypedArray(),
-                selectedIndex
-            ) { dialog, index ->
-                val provider = providers[index]
-                val toastResId = if (selectSearchProvider(provider.id)) {
-                    R.string.toast_search_engine_updated
-                } else {
-                    R.string.toast_search_engine_invalid
-                }
-                Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                show()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showTextZoomDialog`：控制 `show Text Zoom Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showTextZoomDialog() {
-        val options = SettingsManager.TEXT_ZOOM_OPTIONS
-        val selectedIndex = options
-            .indexOf(settingsManager.textZoomPercent())
-            .takeIf { index -> index >= 0 }
-            ?: options.indexOf(SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT).coerceAtLeast(0)
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.setting_text_zoom)
-            .setSingleChoiceItems(
-                options.map { percent ->
-                    activity.getString(R.string.text_zoom_percent, percent)
-                }.toTypedArray(),
-                selectedIndex
-            ) { dialog, index ->
-                val percent = options[index]
-                settingsManager.setTextZoomPercent(percent)
-                browserManager().setTextZoomPercent(percent)
-                Toast.makeText(activity, R.string.toast_text_zoom_updated, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                show()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     /**
@@ -510,7 +416,7 @@ class BrowserSettingsPage(
                     settingsManager.textZoomPercent()
                 )
             ) {
-                showTextZoomDialog()
+                dialogController.showTextZoomDialog()
             }
 
             host.addSwitchRow(
