@@ -107,6 +107,9 @@ class SavedPagesPageContractTest {
         val repository = projectFile(
             "src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt"
         ).readText()
+        val codec = projectFile(
+            "src/main/java/com/example/videobrowser/storage/SavedPageCodec.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(repository.contains("fun updateTitle(collection: SavedPageCollection, url: String, title: String): Boolean"))
@@ -133,6 +136,9 @@ class SavedPagesPageContractTest {
         val repository = projectFile(
             "src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt"
         ).readText()
+        val codec = projectFile(
+            "src/main/java/com/example/videobrowser/storage/SavedPageCodec.kt"
+        ).readText()
         val models = projectFile(
             "src/main/java/com/example/videobrowser/storage/SavedPageModels.kt"
         ).readText()
@@ -144,7 +150,7 @@ class SavedPagesPageContractTest {
         assertTrue(models.contains("val folder: String = \"\""))
         assertTrue(repository.contains("fun updateBookmarkFolder(url: String, folder: String): Boolean"))
         assertTrue(repository.contains("fun bookmarkFolders(): List<String>"))
-        assertTrue(repository.contains("VideoBrowserSavedPages\\t3"))
+        assertTrue(codec.contains("VideoBrowserSavedPages\\t3"))
         assertTrue(page.contains("private fun bookmarkGroups"))
         assertTrue(page.contains("R.string.bookmark_folder_unfiled"))
         assertTrue(page.contains("R.string.bookmark_folder_count"))
