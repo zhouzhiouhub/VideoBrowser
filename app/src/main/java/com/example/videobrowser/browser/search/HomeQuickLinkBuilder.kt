@@ -8,7 +8,9 @@ package com.example.videobrowser.browser.search
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import com.example.videobrowser.storage.SavedPage
-import java.net.URI
+import com.example.videobrowser.utils.HostNameNormalizer
+import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.WebSchemePolicy
 import java.util.Locale
 
 data class HomeQuickLink(
@@ -59,12 +61,11 @@ object HomeQuickLinkBuilder {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun urlKey(url: String): String? {
-        val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return null
-        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
-        val host = uri.host?.lowercase(Locale.ROOT) ?: return null
-        if (scheme != "http" && scheme != "https") {
+        val uri = SafeUriParser.parse(url) ?: return null
+        if (!WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)) {
             return null
         }
+        val host = HostNameNormalizer.normalize(uri.host) ?: return null
         return uri.toString().lowercase(Locale.ROOT).takeIf { host.isNotBlank() }
     }
 
@@ -76,8 +77,8 @@ object HomeQuickLinkBuilder {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun displayHost(url: String): String? {
-        return runCatching { URI(url.trim()).host }
-            .getOrNull()
+        return SafeUriParser.parse(url)
+            ?.host
             ?.takeIf { host -> host.isNotBlank() }
     }
 

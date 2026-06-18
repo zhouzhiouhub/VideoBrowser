@@ -2,6 +2,8 @@ package com.example.videobrowser.rules
 
 import com.example.videobrowser.browser.ResourceType
 import com.example.videobrowser.site.SiteHost
+import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.WebSchemePolicy
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -14,9 +16,8 @@ internal object RuleNavigationUrlCleaner {
         ruleMatcher: RuleMatcher
     ): String {
         // 导航清理只处理 http/https URL，其他 scheme 不应该被当成普通网页参数改写。
-        val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return url
-        val scheme = uri.scheme?.lowercase().orEmpty()
-        if (scheme != "http" && scheme != "https") {
+        val uri = SafeUriParser.parse(url) ?: return url
+        if (!WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)) {
             return url
         }
         val rawQuery = uri.rawQuery ?: return url

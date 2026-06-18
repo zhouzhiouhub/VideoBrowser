@@ -7,7 +7,9 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
-import java.net.URI
+import com.example.videobrowser.utils.HostNameNormalizer
+import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.WebSchemePolicy
 import java.util.Locale
 
 class HistoryRecordPolicy(
@@ -56,20 +58,12 @@ class HistoryRecordPolicy(
              * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
              */
             fun from(value: String?): WebUrl? {
-                val uri = try {
-                    URI(value?.trim().orEmpty())
-                } catch (_: IllegalArgumentException) {
-                    return null
-                }
+                val uri = SafeUriParser.parse(value) ?: return null
                 val scheme = uri.scheme?.lowercase(Locale.US) ?: return null
-                if (scheme != "http" && scheme != "https") {
+                if (!WebSchemePolicy.isHttpOrHttpsScheme(scheme)) {
                     return null
                 }
-                val host = uri.host
-                    ?.trimEnd('.')
-                    ?.lowercase(Locale.US)
-                    ?.takeIf { it.isNotBlank() }
-                    ?: return null
+                val host = HostNameNormalizer.normalize(uri.host) ?: return null
                 return WebUrl(
                     scheme = scheme,
                     host = host,
