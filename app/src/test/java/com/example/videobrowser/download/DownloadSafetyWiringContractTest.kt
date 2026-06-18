@@ -20,6 +20,9 @@ class DownloadSafetyWiringContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadController.kt"
         ).readText()
+        val enqueueController = projectFile(
+            "src/main/java/com/example/videobrowser/download/DownloadEnqueueController.kt"
+        ).readText()
         val policy = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadSafetyPolicy.kt"
         ).readText()
@@ -34,20 +37,26 @@ class DownloadSafetyWiringContractTest {
         assertTrue(policy.contains("(scheme == \"http\" || scheme == \"https\")"))
         assertTrue(policy.contains("fun safeDownloadFileName(fileName: String): String"))
         assertTrue(policy.contains("invalidDownloadFileNameChars"))
-        assertTrue(controller.contains("DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)"))
-        assertTrue(controller.contains("DownloadSafetyPolicy.isDownloadableNetworkUrl(url)"))
-        assertTrue(controller.contains("DownloadSafetyPolicy.safeDownloadFileName("))
-        assertTrue(controller.contains("DownloadSafetyPolicy.requiresInsecureTransportConfirmation(browserManager().currentUrl(), url)"))
-        assertTrue(controller.contains("private fun confirmDownloadIfNeeded("))
-        assertTrue(controller.contains("private fun showRiskyDownloadConfirmation"))
-        assertTrue(controller.contains("private fun showInsecureDownloadConfirmation"))
-        assertTrue(controller.contains("AlertDialog.Builder(activity)"))
-        assertTrue(controller.contains("R.string.title_confirm_app_download"))
-        assertTrue(controller.contains("R.string.dialog_confirm_app_download_message"))
-        assertTrue(controller.contains("R.string.title_confirm_insecure_download"))
-        assertTrue(controller.contains("R.string.dialog_confirm_insecure_download_message"))
-        assertTrue(controller.contains("R.string.action_download_anyway"))
-        assertTrue(controller.contains("private fun enqueueConfirmed("))
+        assertTrue(controller.contains("DownloadEnqueueController("))
+        assertTrue(controller.contains("enqueueController.enqueue("))
+        assertTrue(enqueueController.contains("DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)"))
+        assertTrue(enqueueController.contains("DownloadSafetyPolicy.isDownloadableNetworkUrl(url)"))
+        assertTrue(enqueueController.contains("DownloadSafetyPolicy.safeDownloadFileName("))
+        assertTrue(
+            enqueueController.contains(
+                "DownloadSafetyPolicy.requiresInsecureTransportConfirmation(browserManager().currentUrl(), url)"
+            )
+        )
+        assertTrue(enqueueController.contains("private fun confirmDownloadIfNeeded("))
+        assertTrue(enqueueController.contains("private fun showRiskyDownloadConfirmation"))
+        assertTrue(enqueueController.contains("private fun showInsecureDownloadConfirmation"))
+        assertTrue(enqueueController.contains("AlertDialog.Builder(activity)"))
+        assertTrue(enqueueController.contains("R.string.title_confirm_app_download"))
+        assertTrue(enqueueController.contains("R.string.dialog_confirm_app_download_message"))
+        assertTrue(enqueueController.contains("R.string.title_confirm_insecure_download"))
+        assertTrue(enqueueController.contains("R.string.dialog_confirm_insecure_download_message"))
+        assertTrue(enqueueController.contains("R.string.action_download_anyway"))
+        assertTrue(enqueueController.contains("private fun enqueueConfirmed("))
         assertTrue(strings.contains("title_confirm_app_download"))
         assertTrue(strings.contains("dialog_confirm_app_download_message"))
         assertTrue(strings.contains("title_confirm_insecure_download"))

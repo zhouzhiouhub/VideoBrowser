@@ -20,9 +20,12 @@ class DownloadStatusWiringContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadController.kt"
         ).readText()
+        val enqueueController = projectFile(
+            "src/main/java/com/example/videobrowser/download/DownloadEnqueueController.kt"
+        ).readText()
         val readme = projectFile("README.md").readText()
 
-        assertTrue(controller.contains("DownloadStatus.IN_PROGRESS"))
+        assertTrue(enqueueController.contains("DownloadStatus.IN_PROGRESS"))
         assertTrue(controller.contains("DownloadManager.ACTION_DOWNLOAD_COMPLETE"))
         assertTrue(controller.contains("DownloadManager.Query().setFilterById(downloadId)"))
         assertTrue(controller.contains("DownloadManager.STATUS_SUCCESSFUL"))

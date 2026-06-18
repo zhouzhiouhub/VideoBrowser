@@ -12,15 +12,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
-import android.os.Environment
-import android.webkit.CookieManager
-import android.webkit.URLUtil
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.video.MediaRouteAction
 import com.example.videobrowser.video.MediaRouteRequest
@@ -56,6 +49,11 @@ class DownloadController(
             handleDownloadComplete(intent)
         }
     }
+    private val enqueueController = DownloadEnqueueController(
+        activity = activity,
+        browserManager = browserManager,
+        downloadRecordRepository = downloadRecordRepository
+    )
     private var receiverRegistered = false
 
     init {
@@ -142,173 +140,12 @@ class DownloadController(
         contentDisposition: String?,
         mimeType: String?
     ) {
-        // 真正创建系统下载前先做 URL 和文件名安全检查，必要时弹出确认对话框。
-        if (url.isNullOrBlank()) {
-            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (!DownloadSafetyPolicy.isDownloadableNetworkUrl(url)) {
-            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val fileName = DownloadSafetyPolicy.safeDownloadFileName(
-            URLUtil.guessFileName(url, contentDisposition, mimeType)
-        )
-        confirmDownloadIfNeeded(
+        enqueueController.enqueue(
             url = url,
-            fileName = fileName,
-            mimeType = mimeType,
-            confirmed = {
-                enqueueConfirmed(
-                    url = url,
-                    userAgent = userAgent,
-                    mimeType = mimeType,
-                    fileName = fileName
-                )
-            }
+            userAgent = userAgent,
+            contentDisposition = contentDisposition,
+            mimeType = mimeType
         )
-    }
-
-    /**
-     * 函数 `confirmDownloadIfNeeded`：封装 `confirm Download If Needed` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
-     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun confirmDownloadIfNeeded(
-        url: String,
-        fileName: String,
-        mimeType: String?,
-        confirmed: () -> Unit
-    ) {
-        if (DownloadSafetyPolicy.requiresInsecureTransportConfirmation(browserManager().currentUrl(), url)) {
-            showInsecureDownloadConfirmation(
-                fileName = fileName,
-                confirmed = {
-                    confirmAppPackageDownloadIfNeeded(
-                        fileName = fileName,
-                        mimeType = mimeType,
-                        confirmed = confirmed
-                    )
-                }
-            )
-            return
-        }
-
-        confirmAppPackageDownloadIfNeeded(
-            fileName = fileName,
-            mimeType = mimeType,
-            confirmed = confirmed
-        )
-    }
-
-    /**
-     * 函数 `confirmAppPackageDownloadIfNeeded`：封装 `confirm App Package Download If Needed` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
-     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun confirmAppPackageDownloadIfNeeded(
-        fileName: String,
-        mimeType: String?,
-        confirmed: () -> Unit
-    ) {
-        if (DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)) {
-            showRiskyDownloadConfirmation(
-                fileName = fileName,
-                confirmed = confirmed
-            )
-            return
-        }
-
-        confirmed()
-    }
-
-    /**
-     * 函数 `showRiskyDownloadConfirmation`：控制 `show Risky Download Confirmation` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showRiskyDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_confirm_app_download)
-            .setMessage(activity.getString(R.string.dialog_confirm_app_download_message, fileName))
-            .setPositiveButton(R.string.action_download_anyway) { _, _ -> confirmed() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showInsecureDownloadConfirmation`：控制 `show Insecure Download Confirmation` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param confirmed 参数类型为 `() -> Unit`，表示函数执行 `confirmed` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showInsecureDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_confirm_insecure_download)
-            .setMessage(activity.getString(R.string.dialog_confirm_insecure_download_message, fileName))
-            .setPositiveButton(R.string.action_download_anyway) { _, _ -> confirmed() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `enqueueConfirmed`：封装 `enqueue Confirmed` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param userAgent 参数类型为 `String?`，表示函数执行 `userAgent` 相关逻辑时需要读取或处理的输入。
-     * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
-     * @param fileName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     */
-    private fun enqueueConfirmed(
-        url: String,
-        userAgent: String?,
-        mimeType: String?,
-        fileName: String
-    ) {
-        // DownloadManager 负责后台下载和系统通知；应用自己只保存一份轻量记录用于功能中心展示。
-        runCatching {
-            val resolvedUserAgent = userAgent?.takeIf { it.isNotBlank() }
-                ?: browserManager().userAgentString()?.takeIf { it.isNotBlank() }
-            val request = DownloadManager.Request(Uri.parse(url)).apply {
-                setTitle(fileName)
-                setDescription(activity.getString(R.string.toast_download_started))
-                setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
-                mimeType?.takeIf { it.isNotBlank() }?.let { setMimeType(it) }
-                resolvedUserAgent?.let { addRequestHeader("User-Agent", it) }
-                CookieManager.getInstance().getCookie(url)?.let { addRequestHeader("Cookie", it) }
-            }
-            val downloadManager =
-                activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val downloadId = downloadManager.enqueue(request)
-            downloadRecordRepository.add(
-                DownloadRecord(
-                    downloadId = downloadId,
-                    title = fileName,
-                    sourceUrl = url,
-                    fileName = fileName,
-                    mimeType = mimeType,
-                    createdAtMillis = System.currentTimeMillis(),
-                    status = DownloadStatus.IN_PROGRESS
-                )
-            )
-        }.onSuccess {
-            Toast.makeText(activity, R.string.toast_download_started, Toast.LENGTH_SHORT).show()
-        }.onFailure {
-            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
-        }
     }
 
     /**
