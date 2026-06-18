@@ -7,8 +7,7 @@ package com.example.videobrowser.site
  * 主要职责：识别不同视频网站或网页宿主，并把站点专属能力交给通用浏览器流程使用。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
-import java.net.URI
-import java.util.Locale
+import com.example.videobrowser.utils.HostNameNormalizer
 
 /**
  * 统一处理“当前站点”的 host 识别，避免 UI、设置和拦截策略各自解析域名。
@@ -22,14 +21,7 @@ object SiteHost {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun fromUrl(url: String?): String? {
-        val value = url?.trim().orEmpty()
-        if (value.isEmpty()) {
-            return null
-        }
-
-        return runCatching { URI(value).host }
-            .getOrNull()
-            .let(::normalize)
+        return HostNameNormalizer.fromUrl(url)
     }
 
     /**
@@ -40,11 +32,6 @@ object SiteHost {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun normalize(host: String?): String? {
-        val normalized = host
-            ?.trim()
-            ?.trim('.')
-            ?.lowercase(Locale.ROOT)
-            .orEmpty()
-        return normalized.takeIf { it.isNotEmpty() }
+        return HostNameNormalizer.normalize(host)
     }
 }

@@ -8,7 +8,7 @@ package com.example.videobrowser.rules
  * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
  */
 import com.example.videobrowser.browser.ResourceType
-import java.net.URI
+import com.example.videobrowser.utils.HostNameNormalizer
 import java.util.Locale
 
 class RuleMatcher {
@@ -40,17 +40,15 @@ class RuleMatcher {
         if (!rule.domainScope.matches(pageHost)) {
             return false
         }
-        if (!matchesPartyOption(rule, host ?: parseHost(url), pageHost)) {
+        val requestHost = host ?: HostNameNormalizer.fromUrl(url)
+        if (!matchesPartyOption(rule, requestHost, pageHost)) {
             return false
         }
 
         return when (rule.type) {
             RuleType.URL_CONTAINS -> normalizedUrl.contains(rule.normalizedPattern)
             RuleType.URL_PATTERN -> rule.normalizedPatternRegex?.containsMatchIn(normalizedUrl) ?: false
-            RuleType.DOMAIN_CONTAINS -> matchesDomain(
-                host = normalizeHost(host ?: parseHost(url)),
-                domain = normalizeHost(rule.pattern)
-            )
+            RuleType.DOMAIN_CONTAINS -> HostNameNormalizer.matchesDomainOrSubdomain(requestHost, rule.pattern)
         }
     }
 
@@ -96,9 +94,11 @@ class RuleMatcher {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun isThirdParty(requestHost: String?, pageHost: String?): Boolean? {
-        val requestSite = effectiveSite(normalizeHost(requestHost)).takeIf { it.isNotEmpty() }
+        val requestSite = effectiveSite(HostNameNormalizer.normalize(requestHost).orEmpty())
+            .takeIf { it.isNotEmpty() }
             ?: return null
-        val pageSite = effectiveSite(normalizeHost(pageHost)).takeIf { it.isNotEmpty() }
+        val pageSite = effectiveSite(HostNameNormalizer.normalize(pageHost).orEmpty())
+            .takeIf { it.isNotEmpty() }
             ?: return null
         return requestSite != pageSite
     }
@@ -123,22 +123,6 @@ class RuleMatcher {
     }
 
     /**
-     * 函数 `matchesDomain`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param host 参数类型为 `String`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
-     * @param domain 参数类型为 `String`，表示函数执行 `domain` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun matchesDomain(host: String, domain: String): Boolean {
-        if (host.isEmpty() || domain.isEmpty()) {
-            return false
-        }
-
-        return host == domain || host.endsWith(".$domain")
-    }
-
-    /**
      * 函数 `normalizeUrl`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -147,31 +131,6 @@ class RuleMatcher {
      */
     private fun normalizeUrl(url: String): String {
         return url.trim().lowercase(Locale.US)
-    }
-
-    /**
-     * 函数 `normalizeHost`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeHost(host: String?): String {
-        return host.orEmpty()
-            .trim()
-            .trim('.')
-            .lowercase(Locale.US)
-    }
-
-    /**
-     * 函数 `parseHost`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseHost(url: String): String? {
-        return runCatching { URI(url.trim()).host }.getOrNull()
     }
 
     private companion object {

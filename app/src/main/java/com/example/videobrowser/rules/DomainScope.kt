@@ -7,14 +7,14 @@ package com.example.videobrowser.rules
  * 主要职责：读取、解析、索引和匹配广告拦截规则、元素隐藏规则、参数清理规则和安全脚本规则。
  * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
  */
-import com.example.videobrowser.site.SiteHost
+import com.example.videobrowser.utils.HostNameNormalizer
 
 data class DomainScope(
     val includedDomains: Set<String> = emptySet(),
     val excludedDomains: Set<String> = emptySet()
 ) {
-    val normalizedIncludedDomains: Set<String> = includedDomains.mapNotNull(SiteHost::normalize).toSet()
-    val normalizedExcludedDomains: Set<String> = excludedDomains.mapNotNull(SiteHost::normalize).toSet()
+    val normalizedIncludedDomains: Set<String> = includedDomains.mapNotNull(HostNameNormalizer::normalize).toSet()
+    val normalizedExcludedDomains: Set<String> = excludedDomains.mapNotNull(HostNameNormalizer::normalize).toSet()
 
     val hasRestrictions: Boolean
         get() = normalizedIncludedDomains.isNotEmpty() || normalizedExcludedDomains.isNotEmpty()
@@ -31,7 +31,7 @@ data class DomainScope(
             return true
         }
 
-        val normalizedHost = SiteHost.normalize(host) ?: return false
+        val normalizedHost = HostNameNormalizer.normalize(host) ?: return false
         if (normalizedExcludedDomains.any { domain -> hostMatchesDomain(normalizedHost, domain) }) {
             return false
         }
@@ -53,7 +53,7 @@ data class DomainScope(
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         fun hostMatchesDomain(host: String, domain: String): Boolean {
-            return host == domain || host.endsWith(".$domain")
+            return HostNameNormalizer.matchesDomainOrSubdomain(host, domain)
         }
     }
 }
