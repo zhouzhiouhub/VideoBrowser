@@ -193,7 +193,7 @@ class BrowserManager(
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     fun load(url: String) {
-        suspendCurrentPage()
+        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
         webView.loadUrl(url)
     }
 
@@ -204,7 +204,7 @@ class BrowserManager(
      * @param error 参数类型为 `BrowserPageError`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
      */
     fun loadErrorPage(error: BrowserPageError) {
-        disposeCurrentPage()
+        BrowserPageLifecycleScriptController.disposeCurrentPage(webView)
         webView.loadDataWithBaseURL(
             "about:blank",
             BrowserErrorPage.render(error),
@@ -224,7 +224,7 @@ class BrowserManager(
         if (!webView.canGoBack()) {
             return false
         }
-        suspendCurrentPage()
+        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
         webView.goBack()
         return true
     }
@@ -239,7 +239,7 @@ class BrowserManager(
         if (!webView.canGoForward()) {
             return false
         }
-        suspendCurrentPage()
+        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
         webView.goForward()
         return true
     }
@@ -250,7 +250,7 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun reload() {
-        suspendCurrentPage()
+        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
         webView.reload()
     }
 
@@ -453,7 +453,7 @@ class BrowserManager(
     fun destroyWebView(targetWebView: WebView, clearSharedStores: Boolean = true) {
         targetWebView.webChromeClient = null
         if (targetWebView === webView) {
-            disposeCurrentPage()
+            BrowserPageLifecycleScriptController.disposeCurrentPage(webView)
         }
         targetWebView.stopLoading()
         targetWebView.loadUrl("about:blank")
@@ -525,7 +525,7 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearTransientBrowsingData() {
-        disposeCurrentPage()
+        BrowserPageLifecycleScriptController.disposeCurrentPage(webView)
         webView.stopLoading()
         webView.loadUrl("about:blank")
         clearBrowsingData(clearSharedStores = false)
@@ -558,38 +558,4 @@ class BrowserManager(
         destroyWebView(webView)
     }
 
-    /**
-     * 函数 `suspendCurrentPage`：封装 `suspend Current Page` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun suspendCurrentPage() {
-        if (webView.url.isNullOrBlank()) {
-            return
-        }
-        webView.evaluateJavascript(PAGE_SUSPEND_SCRIPT, null)
-    }
-
-    /**
-     * 函数 `disposeCurrentPage`：封装 `dispose Current Page` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun disposeCurrentPage() {
-        if (webView.url.isNullOrBlank()) {
-            return
-        }
-        webView.evaluateJavascript(PAGE_DISPOSE_SCRIPT, null)
-    }
-
-    private companion object {
-        private const val PAGE_SUSPEND_SCRIPT =
-            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.suspend==='function'){" +
-                "window.VideoBrowserEnhancer.suspend({pauseVideos:true});" +
-                "}"
-        private const val PAGE_DISPOSE_SCRIPT =
-            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.dispose==='function'){" +
-                "window.VideoBrowserEnhancer.dispose({pauseVideos:true});" +
-                "}"
-    }
 }
