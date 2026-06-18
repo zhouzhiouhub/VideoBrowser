@@ -10,7 +10,6 @@ package com.example.videobrowser.settings
 import android.content.Context
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.PreferenceStore
-import java.net.URI
 
 /**
  * 应用设置读写入口。
@@ -23,6 +22,7 @@ class SettingsManager(
 ) {
     private val hostSets = SettingsHostSetStore(preferenceStore)
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
+    private val customShortcutStore = CustomShortcutStore(preferenceStore)
 
     /**
      * 函数 `isAdBlockEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
@@ -767,13 +767,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun customShortcuts(): List<CustomShortcut> {
-        return preferenceStore.getString(KEY_CUSTOM_SHORTCUTS, null)
-            ?.lineSequence()
-            ?.mapNotNull(::parseCustomShortcut)
-            ?.distinct()
-            ?.toList()
-            ?.takeLast(MAX_CUSTOM_SHORTCUTS)
-            ?: emptyList()
+        return customShortcutStore.load()
     }
 
     /**
@@ -785,13 +779,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun addCustomShortcut(name: String, url: String): Boolean {
-        val shortcut = normalizeCustomShortcut(name, url) ?: return false
-        val shortcuts = customShortcuts()
-            .filterNot { existing -> existing == shortcut }
-            .plus(shortcut)
-            .takeLast(MAX_CUSTOM_SHORTCUTS)
-        saveCustomShortcuts(shortcuts)
-        return true
+        return customShortcutStore.add(name, url)
     }
 
     /**
@@ -802,14 +790,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun removeCustomShortcut(shortcut: CustomShortcut): Boolean {
-        val normalizedShortcut = normalizeCustomShortcut(shortcut.name, shortcut.url) ?: return false
-        val shortcuts = customShortcuts()
-        val remainingShortcuts = shortcuts.filterNot { existing -> existing == normalizedShortcut }
-        if (remainingShortcuts.size == shortcuts.size) {
-            return false
-        }
-        saveCustomShortcuts(remainingShortcuts)
-        return true
+        return customShortcutStore.remove(shortcut)
     }
 
     /**
@@ -822,17 +803,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun updateCustomShortcut(shortcut: CustomShortcut, name: String, url: String): Boolean {
-        val normalizedShortcut = normalizeCustomShortcut(shortcut.name, shortcut.url) ?: return false
-        val updatedShortcut = normalizeCustomShortcut(name, url) ?: return false
-        val shortcuts = customShortcuts().toMutableList()
-        val index = shortcuts.indexOf(normalizedShortcut)
-        if (index < 0) {
-            return false
-        }
-
-        shortcuts[index] = updatedShortcut
-        saveCustomShortcuts(shortcuts.distinct())
-        return true
+        return customShortcutStore.update(shortcut, name, url)
     }
 
     /**
@@ -965,80 +936,7 @@ class SettingsManager(
     private fun normalizeHomeUrlOrNull(value: String?): String? {
         return value
             ?.trim()
-            ?.takeIf(::isHttpUrl)
-    }
-
-    /**
-     * 函数 `parseCustomShortcut`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param line 参数类型为 `String`，表示函数执行 `line` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun parseCustomShortcut(line: String): CustomShortcut? {
-        val separatorIndex = line.indexOf('\t')
-        if (separatorIndex <= 0 || separatorIndex >= line.lastIndex) {
-            return null
-        }
-        return normalizeCustomShortcut(
-            line.substring(0, separatorIndex),
-            line.substring(separatorIndex + 1)
-        )
-    }
-
-    /**
-     * 函数 `saveCustomShortcuts`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param shortcuts 参数类型为 `List<CustomShortcut>`，表示函数执行 `shortcuts` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun saveCustomShortcuts(shortcuts: List<CustomShortcut>) {
-        val lines = shortcuts
-            .mapNotNull { shortcut -> normalizeCustomShortcut(shortcut.name, shortcut.url) }
-            .distinct()
-            .takeLast(MAX_CUSTOM_SHORTCUTS)
-            .map { shortcut -> "${shortcut.name}\t${shortcut.url}" }
-
-        if (lines.isEmpty()) {
-            preferenceStore.remove(KEY_CUSTOM_SHORTCUTS)
-        } else {
-            preferenceStore.putString(KEY_CUSTOM_SHORTCUTS, lines.joinToString(separator = "\n"))
-        }
-    }
-
-    /**
-     * 函数 `normalizeCustomShortcut`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun normalizeCustomShortcut(name: String, url: String): CustomShortcut? {
-        val normalizedName = name.trim().replace(Regex("\\s+"), " ")
-        val normalizedUrl = url.trim()
-        if (normalizedName.isEmpty() || normalizedName.any { it == '\t' || it == '\n' || it == '\r' }) {
-            return null
-        }
-        if (!isHttpUrl(normalizedUrl)) {
-            return null
-        }
-        return CustomShortcut(name = normalizedName, url = normalizedUrl)
-    }
-
-    /**
-     * 函数 `isHttpUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isHttpUrl(url: String): Boolean {
-        val uri = runCatching { URI(url) }.getOrNull() ?: return false
-        val scheme = uri.scheme ?: return false
-        return (scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true)) &&
-            !uri.host.isNullOrBlank()
+            ?.takeIf(SettingsHttpUrlValidator::isHttpUrl)
     }
 
     companion object {
