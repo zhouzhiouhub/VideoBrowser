@@ -45,6 +45,7 @@
 
   const domTools = window.VideoBrowserDomTools;
   const domActions = window.VideoBrowserDomActions;
+  const selectorTools = window.VideoBrowserSelectorTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
 
   const styleId = '__videobrowser_css_filter__';
@@ -260,22 +261,7 @@
    * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
    */
   function safeSelectorList(value) {
-    if (!Array.isArray(value)) return [];
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    return value.map(function (selector) {
-      return String(selector || '').trim();
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    }).filter(function (selector) {
-      return isSafeSelector(selector);
-    });
+    return selectorTools.safeSelectorList(value);
   }
 
   /**
@@ -285,9 +271,7 @@
    * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function isSafeSelector(selector) {
-    if (!selector || selector.length > 200) return false;
-    if (/[{};<>]/.test(selector)) return false;
-    return !/:has\(|:contains\(|:matches\(|:xpath\(|javascript:|expression\(/i.test(selector);
+    return selectorTools.isSafeSelector(selector);
   }
 
   /**
@@ -297,7 +281,7 @@
    * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function querySelectorAllSafe(selector) {
-    return domTools.queryAll(selector);
+    return selectorTools.queryAll(selector);
   }
 
   /**
@@ -1532,7 +1516,7 @@
    * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
    */
   function normalizeText(value) {
-    return String(value || '').replace(/\s+/g, ' ').trim();
+    return selectorTools.normalizeText(value);
   }
 
   /**
@@ -2055,17 +2039,7 @@
    * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
    */
   function cssIdentifier(value) {
-    if (window.CSS && typeof window.CSS.escape === 'function') {
-      return window.CSS.escape(String(value));
-    }
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param character 表示当前回调收到的 `character` 参数。
-     */
-    return String(value).replace(/[^A-Za-z0-9_-]/g, function (character) {
-      return '\\' + character.charCodeAt(0).toString(16) + ' ';
-    });
+    return selectorTools.cssIdentifier(value);
   }
 
   /**
@@ -2377,7 +2351,7 @@
    * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
    */
   function querySelectorAllSafeWithin(root, selector) {
-    return domTools.queryAllWithin(root, selector);
+    return selectorTools.queryAllWithin(root, selector);
   }
 
   /**

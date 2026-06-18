@@ -1,0 +1,35 @@
+package com.example.videobrowser.site
+
+import java.io.File
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class SelectorToolsContractTest {
+    @Test
+    fun `selector helpers are owned by shared selector module`() {
+        val selectorToolsScript = projectFile("src/main/assets/scripts/selector_tools.js").readText()
+        val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+
+        assertTrue(selectorToolsScript.contains("window.VideoBrowserSelectorTools = selectorTools"))
+        assertTrue(selectorToolsScript.contains("selectorTools.isSafeSelector = selectorTools.isSafeSelector || function (selector)"))
+        assertTrue(selectorToolsScript.contains("selectorTools.safeSelectorList = selectorTools.safeSelectorList || function (value)"))
+        assertTrue(selectorToolsScript.contains("selectorTools.queryAll = selectorTools.queryAll || function (selector)"))
+        assertTrue(selectorToolsScript.contains("selectorTools.cssIdentifier = selectorTools.cssIdentifier || function (value)"))
+        assertTrue(commonScript.contains("const selectorTools = window.VideoBrowserSelectorTools"))
+        assertTrue(commonScript.contains("return selectorTools.safeSelectorList(value);"))
+        assertTrue(commonScript.contains("return selectorTools.isSafeSelector(selector);"))
+        assertTrue(commonScript.contains("return selectorTools.queryAll(selector);"))
+        assertTrue(commonScript.contains("return selectorTools.cssIdentifier(value);"))
+        assertFalse(commonScript.contains("if (!selector || selector.length > 200) return false;"))
+        assertFalse(commonScript.contains("window.CSS.escape(String(value))"))
+    }
+
+    private fun projectFile(path: String): File {
+        val workingDirectory = File("").absoluteFile
+        return listOf(
+            File(workingDirectory, path),
+            File(workingDirectory, "app/$path")
+        ).first { it.exists() }
+    }
+}

@@ -72,6 +72,7 @@ class ScriptLoader(
         const val GEOMETRY_SCRIPT_ASSET = "scripts/geometry.js"
         const val DOM_TOOLS_SCRIPT_ASSET = "scripts/dom_tools.js"
         const val DOM_ACTIONS_SCRIPT_ASSET = "scripts/dom_actions.js"
+        const val SELECTOR_TOOLS_SCRIPT_ASSET = "scripts/selector_tools.js"
         const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
@@ -79,6 +80,7 @@ class ScriptLoader(
             GEOMETRY_SCRIPT_ASSET,
             DOM_TOOLS_SCRIPT_ASSET,
             DOM_ACTIONS_SCRIPT_ASSET,
+            SELECTOR_TOOLS_SCRIPT_ASSET,
             NATIVE_BRIDGE_SCRIPT_ASSET,
             COMMON_SCRIPT_ASSET
         )
