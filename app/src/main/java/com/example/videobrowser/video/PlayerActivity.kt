@@ -40,6 +40,7 @@ import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 
 /**
  * 原生视频播放器界面。

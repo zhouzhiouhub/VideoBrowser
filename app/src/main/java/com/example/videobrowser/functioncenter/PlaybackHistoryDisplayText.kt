@@ -7,6 +7,7 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
+import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.video.PlaybackProgress
 import java.net.URI
@@ -109,7 +110,7 @@ object PlaybackHistoryDisplayText {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun formatSpeed(speed: Float): String {
-        val normalized = if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) speed else 1f
+        val normalized = PlaybackSpeedNormalizer.normalize(speed)
         val numeric = if (normalized % 1f == 0f) {
             normalized.toInt().toString()
         } else {

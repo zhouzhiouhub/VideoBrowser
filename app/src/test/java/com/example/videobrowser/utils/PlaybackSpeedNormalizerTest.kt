@@ -1,4 +1,4 @@
-package com.example.videobrowser.video
+package com.example.videobrowser.utils
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

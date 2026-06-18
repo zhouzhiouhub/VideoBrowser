@@ -1,12 +1,10 @@
 package com.example.videobrowser.settings
 
+import com.example.videobrowser.utils.PlaybackSpeedNormalizer
+
 internal object SettingsValueNormalizer {
     fun videoSpeed(speed: Float): Float {
-        return if (!speed.isNaN() && !speed.isInfinite() && speed > 0f) {
-            speed
-        } else {
-            SettingsManager.DEFAULT_VIDEO_SPEED
-        }
+        return PlaybackSpeedNormalizer.normalize(speed, SettingsManager.DEFAULT_VIDEO_SPEED)
     }
 
     fun textZoomPercent(percent: Int): Int {

@@ -8,6 +8,7 @@ package com.example.videobrowser.video
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 
 /**
  * 单个媒体的播放进度记录。

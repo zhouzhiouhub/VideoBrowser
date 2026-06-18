@@ -1,4 +1,4 @@
-package com.example.videobrowser.video
+package com.example.videobrowser.utils
 
 internal object PlaybackSpeedNormalizer {
     fun normalize(speed: Float, defaultSpeed: Float = DEFAULT_SPEED): Float {

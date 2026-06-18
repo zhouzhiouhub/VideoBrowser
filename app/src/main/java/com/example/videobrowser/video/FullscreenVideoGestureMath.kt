@@ -1,5 +1,6 @@
 package com.example.videobrowser.video
 
+import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 import kotlin.math.roundToInt
 
 internal object FullscreenVideoGestureMath {

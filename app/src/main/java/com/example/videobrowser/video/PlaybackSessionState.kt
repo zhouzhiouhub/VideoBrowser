@@ -1,5 +1,7 @@
 package com.example.videobrowser.video
 
+import com.example.videobrowser.utils.PlaybackSpeedNormalizer
+
 /**
  * 初学者阅读提示：
  * 这个文件属于“视频播放模块”。

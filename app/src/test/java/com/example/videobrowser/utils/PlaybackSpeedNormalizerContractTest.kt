@@ -1,4 +1,4 @@
-package com.example.videobrowser.video
+package com.example.videobrowser.utils
 
 import java.io.File
 import org.junit.Assert.assertFalse
@@ -9,7 +9,7 @@ class PlaybackSpeedNormalizerContractTest {
     @Test
     fun `playback speed normalization has a single implementation`() {
         val normalizer = projectFile(
-            "src/main/java/com/example/videobrowser/video/PlaybackSpeedNormalizer.kt"
+            "src/main/java/com/example/videobrowser/utils/PlaybackSpeedNormalizer.kt"
         ).readText()
         val gestureMath = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureMath.kt"
@@ -29,6 +29,12 @@ class PlaybackSpeedNormalizerContractTest {
         val webViewVideoProtocol = projectFile(
             "src/main/java/com/example/videobrowser/video/WebViewVideoProtocol.kt"
         ).readText()
+        val settingsValueNormalizer = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsValueNormalizer.kt"
+        ).readText()
+        val playbackHistoryDisplayText = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/PlaybackHistoryDisplayText.kt"
+        ).readText()
 
         assertTrue(normalizer.contains("object PlaybackSpeedNormalizer"))
         assertTrue(normalizer.contains("fun normalize(speed: Float"))
@@ -38,12 +44,16 @@ class PlaybackSpeedNormalizerContractTest {
         assertTrue(fullscreenController.contains("PlaybackSpeedNormalizer.normalize("))
         assertTrue(playerActivity.contains("PlaybackSpeedNormalizer.normalize("))
         assertTrue(webViewVideoProtocol.contains("PlaybackSpeedNormalizer.normalize(speed, DEFAULT_PLAYBACK_SPEED)"))
+        assertTrue(settingsValueNormalizer.contains("PlaybackSpeedNormalizer.normalize("))
+        assertTrue(playbackHistoryDisplayText.contains("PlaybackSpeedNormalizer.normalize(speed)"))
         assertFalse(gestureMath.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
         assertFalse(sessionState.contains("private fun normalizeSpeed"))
         assertFalse(historyRepository.contains("private fun normalizeSpeed"))
         assertFalse(playerActivity.contains("private fun normalizePlaybackSpeed"))
         assertFalse(fullscreenController.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
         assertFalse(webViewVideoProtocol.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
+        assertFalse(settingsValueNormalizer.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
+        assertFalse(playbackHistoryDisplayText.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
     }
 
     private fun projectFile(path: String): File {

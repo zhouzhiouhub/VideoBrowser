@@ -15,6 +15,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.ChromeClient
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 
 /**
  * 网页全屏视频控制器。
