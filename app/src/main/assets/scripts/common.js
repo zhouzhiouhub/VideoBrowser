@@ -50,8 +50,8 @@
   const videoControlTools = window.VideoBrowserVideoControlTools;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
+  const styleManager = window.VideoBrowserStyleManager;
 
-  const styleId = '__videobrowser_css_filter__';
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
   const generatedAdCleanupIntervalMs = 100;
@@ -198,27 +198,7 @@
     const selectors = (includeGenericSelectors ? adSelectors.concat(accountSelectors, cleanupSelectors) : [])
       .concat(includeRuleSelectors ? externalCssSelectors() : [])
       .concat(userCssSelectors());
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     * @param index 表示排序、比较或去重时当前回调收到的位置或比较对象。
-     */
-    const uniqueSelectors = selectors.filter(function (selector, index) {
-      return selectors.indexOf(selector) === index;
-    });
-    if (!uniqueSelectors.length) {
-      removeStyle();
-      return;
-    }
-    let style = document.getElementById(styleId);
-    if (!style) {
-      style = document.createElement('style');
-      style.id = styleId;
-      document.documentElement.appendChild(style);
-    }
-    style.textContent = uniqueSelectors.join(',') +
-      '{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';
+    styleManager.injectHideRules(selectors);
   }
 
   /**
@@ -227,8 +207,7 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function removeStyle() {
-    const style = document.getElementById(styleId);
-    if (style) style.remove();
+    styleManager.remove();
   }
 
   /**

@@ -77,6 +77,7 @@ class ScriptLoader(
         const val VIDEO_CONTROL_TOOLS_SCRIPT_ASSET = "scripts/video_control_tools.js"
         const val ELEMENT_PICKER_SCRIPT_ASSET = "scripts/element_picker.js"
         const val SCRIPTLET_HOOKS_SCRIPT_ASSET = "scripts/scriptlet_hooks.js"
+        const val STYLE_MANAGER_SCRIPT_ASSET = "scripts/style_manager.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
         val COMMON_SCRIPT_ASSETS = listOf(
@@ -88,6 +89,7 @@ class ScriptLoader(
             VIDEO_CONTROL_TOOLS_SCRIPT_ASSET,
             ELEMENT_PICKER_SCRIPT_ASSET,
             SCRIPTLET_HOOKS_SCRIPT_ASSET,
+            STYLE_MANAGER_SCRIPT_ASSET,
             COMMON_SCRIPT_ASSET
         )
         private const val SCRIPT_ASSET_DIRECTORY = "scripts/"
