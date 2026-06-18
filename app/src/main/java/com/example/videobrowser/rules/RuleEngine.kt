@@ -38,6 +38,7 @@ class RuleEngine(
     )
     private val requestCapabilities = compiledRules.requestCapabilities
     private val elementSelectorQuery = RuleElementSelectorQuery(compiledRules)
+    private val scriptletQuery = RuleScriptletQuery(compiledRules)
     private val requestRuleOrder = requestCapabilities
         .mapIndexed { index, capability -> capability.rule to index }
         .toMap()
@@ -251,10 +252,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun scriptletWindowOpenBlockedKeywordsFor(pageUrl: String?): List<String> {
-        return scriptletArgumentsFor(
-            pageUrl = pageUrl,
-            hookName = "window-open-block-keyword"
-        )
+        return scriptletQuery.windowOpenBlockedKeywordsFor(pageUrl)
     }
 
     /**
@@ -265,10 +263,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun scriptletFetchBlockedKeywordsFor(pageUrl: String?): List<String> {
-        return scriptletArgumentsFor(
-            pageUrl = pageUrl,
-            hookName = "fetch-block-keyword"
-        )
+        return scriptletQuery.fetchBlockedKeywordsFor(pageUrl)
     }
 
     /**
@@ -279,9 +274,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isScriptletSkipButtonsEnabledFor(pageUrl: String?): Boolean {
-        return scriptletHooksFor(pageUrl).any { capability ->
-            capability.hookName == "click-skip-buttons"
-        }
+        return scriptletQuery.isSkipButtonsEnabledFor(pageUrl)
     }
 
     /**
@@ -292,9 +285,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isScriptletVideoControlsEnabledFor(pageUrl: String?): Boolean {
-        return scriptletHooksFor(pageUrl).any { capability ->
-            capability.hookName == "enable-video-controls"
-        }
+        return scriptletQuery.isVideoControlsEnabledFor(pageUrl)
     }
 
     /**
@@ -385,32 +376,4 @@ class RuleEngine(
             }
     }
 
-    /**
-     * 函数 `scriptletArgumentsFor`：封装 `scriptlet Arguments For` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param hookName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun scriptletArgumentsFor(pageUrl: String?, hookName: String): List<String> {
-        return scriptletHooksFor(pageUrl)
-            .filter { capability -> capability.hookName == hookName }
-            .flatMap { capability -> capability.arguments }
-            .distinct()
-    }
-
-    /**
-     * 函数 `scriptletHooksFor`：封装 `scriptlet Hooks For` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun scriptletHooksFor(pageUrl: String?): List<RuleCapability.SafeHook> {
-        val pageHost = SiteHost.fromUrl(pageUrl)
-        return compiledRules.safeHookCapabilities.filter { capability ->
-            capability.domainScope.matches(pageHost)
-        }
-    }
 }

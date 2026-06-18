@@ -16,6 +16,10 @@ object ScriptletRegistry {
     const val REASON_INVALID_ARGUMENTS = "invalid scriptlet arguments"
     const val REASON_INVALID_DOMAIN = "invalid scriptlet domain"
     const val REASON_RAW_SCRIPTLET_JAVASCRIPT = "raw scriptlet javascript not allowed"
+    const val HOOK_WINDOW_OPEN_BLOCK_KEYWORD = "window-open-block-keyword"
+    const val HOOK_FETCH_BLOCK_KEYWORD = "fetch-block-keyword"
+    const val HOOK_CLICK_SKIP_BUTTONS = "click-skip-buttons"
+    const val HOOK_ENABLE_VIDEO_CONTROLS = "enable-video-controls"
 
     /**
      * 函数 `parse`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
@@ -271,19 +275,19 @@ object ScriptletRegistry {
     private const val RAW_SCRIPTLET_MARKER = "#%#"
 
     private val SUPPORTED_SCRIPTLETS = mapOf(
-        "window-open-block-keyword" to ScriptletSpec(
+        HOOK_WINDOW_OPEN_BLOCK_KEYWORD to ScriptletSpec(
             argumentCount = 1,
             argumentValidator = ::isSafeKeyword
         ),
-        "fetch-block-keyword" to ScriptletSpec(
+        HOOK_FETCH_BLOCK_KEYWORD to ScriptletSpec(
             argumentCount = 1,
             argumentValidator = ::isSafeKeyword
         ),
-        "click-skip-buttons" to ScriptletSpec(
+        HOOK_CLICK_SKIP_BUTTONS to ScriptletSpec(
             argumentCount = 0,
             argumentValidator = { true }
         ),
-        "enable-video-controls" to ScriptletSpec(
+        HOOK_ENABLE_VIDEO_CONTROLS to ScriptletSpec(
             argumentCount = 0,
             argumentValidator = { true }
         )
