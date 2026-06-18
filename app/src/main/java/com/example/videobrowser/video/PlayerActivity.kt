@@ -24,7 +24,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.media3.common.C
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -544,7 +543,7 @@ class PlayerActivity : AppCompatActivity() {
         val exoPlayer = player
         val durationMs = exoPlayer
             ?.duration
-            ?.takeIf { it != C.TIME_UNSET && it > 0L }
+            ?.let(Media3Duration::knownDurationMs)
         return PlaybackSessionState.fromQueue(
             queue = playbackQueue,
             positionMs = exoPlayer?.currentPosition ?: playbackPosition,
@@ -574,12 +573,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun seekPlayerTo(positionMs: Long) {
         val exoPlayer = player ?: return
-        val duration = exoPlayer.duration
-        val boundedTarget = if (duration != C.TIME_UNSET && duration > 0) {
-            positionMs.coerceIn(0L, duration)
-        } else {
-            positionMs.coerceAtLeast(0L)
-        }
+        val boundedTarget = Media3Duration.boundedSeekPositionMs(positionMs, exoPlayer.duration)
         exoPlayer.seekTo(boundedTarget)
     }
 
@@ -591,7 +585,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun currentPlayerSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition? {
         val exoPlayer = player ?: return null
-        val duration = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0L }
+        val duration = Media3Duration.knownDurationMs(exoPlayer.duration)
         return FullscreenVideoGestureOverlay.SeekPosition(
             positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
             durationMs = duration
@@ -1124,7 +1118,7 @@ class PlayerActivity : AppCompatActivity() {
         if (identity.isBlank()) {
             return
         }
-        val duration = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: 0L
+        val duration = Media3Duration.durationOrZero(exoPlayer.duration)
         playbackHistoryRepository.save(
             PlaybackProgress(
                 mediaIdentity = identity,

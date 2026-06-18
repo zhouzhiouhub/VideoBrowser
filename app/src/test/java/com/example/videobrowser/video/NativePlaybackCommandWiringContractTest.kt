@@ -6,6 +6,7 @@ package com.example.videobrowser.video
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import java.io.File
 
@@ -47,9 +48,15 @@ class NativePlaybackCommandWiringContractTest {
     @Test
     fun playerActivitySnapshotsNativePlaybackSessionState() {
         val source = File("src/main/java/com/example/videobrowser/video/PlayerActivity.kt").readText()
+        val duration = File("src/main/java/com/example/videobrowser/video/Media3Duration.kt").readText()
 
         assertTrue(source.contains("currentPlaybackSessionState()"))
         assertTrue(source.contains("PlaybackSessionState.fromQueue("))
         assertTrue(source.contains("val sessionState = currentPlaybackSessionState()"))
+        assertTrue(source.contains("Media3Duration.knownDurationMs"))
+        assertTrue(source.contains("Media3Duration.boundedSeekPositionMs"))
+        assertTrue(source.contains("Media3Duration.durationOrZero"))
+        assertTrue(duration.contains("C.TIME_UNSET"))
+        assertFalse(source.contains("C.TIME_UNSET"))
     }
 }
