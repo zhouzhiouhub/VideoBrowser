@@ -36,7 +36,7 @@ class DownloadSafetyWiringContractTest {
         assertTrue(policy.contains("fun isDownloadableNetworkUrl(url: String): Boolean"))
         assertTrue(policy.contains("(scheme == \"http\" || scheme == \"https\")"))
         assertTrue(policy.contains("fun safeDownloadFileName(fileName: String): String"))
-        assertTrue(policy.contains("invalidDownloadFileNameChars"))
+        assertTrue(policy.contains("FileNameSanitizer.replaceInvalidCharacters"))
         assertTrue(controller.contains("DownloadEnqueueController("))
         assertTrue(controller.contains("enqueueController.enqueue("))
         assertTrue(enqueueController.contains("DownloadSafetyPolicy.requiresConfirmation(fileName, mimeType)"))

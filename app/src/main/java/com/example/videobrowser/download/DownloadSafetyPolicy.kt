@@ -7,6 +7,7 @@ package com.example.videobrowser.download
  * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
+import com.example.videobrowser.utils.FileNameSanitizer
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
 import java.net.URI
 import java.util.Locale
@@ -19,7 +20,6 @@ import java.util.Locale
 object DownloadSafetyPolicy {
     private const val DEFAULT_DOWNLOAD_FILE_NAME = "download.bin"
     private const val MAX_DOWNLOAD_FILE_NAME_LENGTH = 120
-    private val invalidDownloadFileNameChars = Regex("[\\\\/:*?\"<>|\\p{Cntrl}]")
 
     /**
      * 函数 `requiresConfirmation`：封装 `requires Confirmation` 这一段业务步骤，让调用方不用关心内部实现细节。
@@ -69,7 +69,9 @@ object DownloadSafetyPolicy {
     fun safeDownloadFileName(fileName: String): String {
         // 文件名会落到公共下载目录，必须移除路径分隔符、控制字符和 Windows 不允许的字符。
         val sanitized = TextWhitespaceNormalizer
-            .collapse(fileName.trim().replace(invalidDownloadFileNameChars, "_"))
+            .collapse(
+                FileNameSanitizer.replaceInvalidCharacters(fileName.trim())
+            )
             .trim('.', ' ')
             .take(MAX_DOWNLOAD_FILE_NAME_LENGTH)
             .trim('.', ' ')

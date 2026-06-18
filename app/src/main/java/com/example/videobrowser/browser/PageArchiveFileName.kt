@@ -7,13 +7,13 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
+import com.example.videobrowser.utils.FileNameSanitizer
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
 import java.net.URI
 
 object PageArchiveFileName {
     private const val MAX_BASE_NAME_LENGTH = 80
     private const val EXTENSION = ".mhtml"
-    private val invalidFileNameCharacters = Regex("""[\u0000-\u001F\\/:*?"<>|]+""")
 
     /**
      * 函数 `create`：创建 `create` 需要的对象、视图或配置，并返回给后续流程使用。
@@ -60,7 +60,9 @@ object PageArchiveFileName {
     private fun sanitize(value: String): String {
         return TextWhitespaceNormalizer
             .collapse(value)
-            .replace(invalidFileNameCharacters, "_")
+            .let { text ->
+                FileNameSanitizer.replaceInvalidCharacters(text, collapseRuns = true)
+            }
             .trim(' ', '.', '_')
     }
 }
