@@ -21,6 +21,8 @@ import java.net.URI
 class SettingsManager(
     private val preferenceStore: PreferenceStore
 ) {
+    private val hostSets = SettingsHostSetStore(preferenceStore)
+
     /**
      * 函数 `isAdBlockEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
      *
@@ -65,14 +67,7 @@ class SettingsManager(
             hosts.remove(normalizedHost)
         }
 
-        if (hosts.isEmpty()) {
-            preferenceStore.remove(KEY_SITE_AD_BLOCK_DISABLED_HOSTS)
-        } else {
-            preferenceStore.putString(
-                KEY_SITE_AD_BLOCK_DISABLED_HOSTS,
-                hosts.sorted().joinToString(separator = "\n")
-            )
-        }
+        hostSets.save(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, hosts)
         return true
     }
 
@@ -83,11 +78,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun adBlockDisabledSiteHosts(): Set<String> {
-        return preferenceStore.getString(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, null)
-            ?.lineSequence()
-            ?.mapNotNull(SiteHost::normalize)
-            ?.toSet()
-            ?: emptySet()
+        return hostSets.load(KEY_SITE_AD_BLOCK_DISABLED_HOSTS)
     }
 
     /**
@@ -119,7 +110,7 @@ class SettingsManager(
             hosts.remove(normalizedHost)
         }
 
-        saveHostSet(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, hosts)
+        hostSets.save(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, hosts)
         return true
     }
 
@@ -130,7 +121,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun jsInjectionDisabledSiteHosts(): Set<String> {
-        return loadHostSet(KEY_SITE_JS_INJECTION_DISABLED_HOSTS)
+        return hostSets.load(KEY_SITE_JS_INJECTION_DISABLED_HOSTS)
     }
 
     /**
@@ -162,7 +153,7 @@ class SettingsManager(
             hosts.remove(normalizedHost)
         }
 
-        saveHostSet(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, hosts)
+        hostSets.save(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, hosts)
         return true
     }
 
@@ -173,7 +164,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun domAdBlockDisabledSiteHosts(): Set<String> {
-        return loadHostSet(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS)
+        return hostSets.load(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS)
     }
 
     /**
@@ -205,7 +196,7 @@ class SettingsManager(
             hosts.remove(normalizedHost)
         }
 
-        saveHostSet(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, hosts)
+        hostSets.save(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, hosts)
         return true
     }
 
@@ -216,7 +207,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun videoEnhancementDisabledSiteHosts(): Set<String> {
-        return loadHostSet(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS)
+        return hostSets.load(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS)
     }
 
     /**
@@ -248,7 +239,7 @@ class SettingsManager(
             hosts.remove(normalizedHost)
         }
 
-        saveHostSet(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, hosts)
+        hostSets.save(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, hosts)
         return true
     }
 
@@ -259,7 +250,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun smartNoImageDisabledSiteHosts(): Set<String> {
-        return loadHostSet(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS)
+        return hostSets.load(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS)
     }
 
     /**
@@ -291,7 +282,7 @@ class SettingsManager(
             hosts.remove(normalizedHost)
         }
 
-        saveHostSet(KEY_USER_WHITELISTED_SITE_HOSTS, hosts)
+        hostSets.save(KEY_USER_WHITELISTED_SITE_HOSTS, hosts)
         return true
     }
 
@@ -302,7 +293,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun userWhitelistedSiteHosts(): Set<String> {
-        return loadHostSet(KEY_USER_WHITELISTED_SITE_HOSTS)
+        return hostSets.load(KEY_USER_WHITELISTED_SITE_HOSTS)
     }
 
     /**
@@ -358,8 +349,8 @@ class SettingsManager(
             SitePermissionDecision.ASK -> Unit
         }
 
-        saveHostSet(sitePermissionAllowedKey(permission), allowedHosts)
-        saveHostSet(sitePermissionBlockedKey(permission), blockedHosts)
+        hostSets.save(sitePermissionAllowedKey(permission), allowedHosts)
+        hostSets.save(sitePermissionBlockedKey(permission), blockedHosts)
         return true
     }
 
@@ -371,7 +362,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun allowedSitePermissionHosts(permission: SitePermission): Set<String> {
-        return loadHostSet(sitePermissionAllowedKey(permission))
+        return hostSets.load(sitePermissionAllowedKey(permission))
     }
 
     /**
@@ -382,7 +373,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun blockedSitePermissionHosts(permission: SitePermission): Set<String> {
-        return loadHostSet(sitePermissionBlockedKey(permission))
+        return hostSets.load(sitePermissionBlockedKey(permission))
     }
 
     /**
@@ -924,40 +915,6 @@ class SettingsManager(
      */
     fun restoreDefaults(): Boolean {
         return preferenceStore.remove(RESET_KEYS, commit = true)
-    }
-
-    /**
-     * 函数 `loadHostSet`：启动或加载 `load Host Set` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun loadHostSet(key: String): Set<String> {
-        return preferenceStore.getString(key, null)
-            ?.lineSequence()
-            ?.mapNotNull(SiteHost::normalize)
-            ?.toSet()
-            ?: emptySet()
-    }
-
-    /**
-     * 函数 `saveHostSet`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param key 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param hosts 参数类型为 `Set<String>`，表示函数执行 `hosts` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun saveHostSet(key: String, hosts: Set<String>) {
-        // 站点集合按行保存，写入前排序，能让存储内容稳定，测试和导出都更容易比较。
-        if (hosts.isEmpty()) {
-            preferenceStore.remove(key)
-        } else {
-            preferenceStore.putString(
-                key,
-                hosts.sorted().joinToString(separator = "\n")
-            )
-        }
     }
 
     /**
