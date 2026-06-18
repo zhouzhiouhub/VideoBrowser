@@ -463,7 +463,7 @@
          * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
          * @param element 表示当前回调正在检查或操作的页面元素。
          */
-        document.querySelectorAll(selector).forEach(function (element) {
+        querySelectorAllSafe(selector).forEach(function (element) {
           hideElement(element, 'generic-cleanup');
         });
       });
@@ -1363,7 +1363,7 @@
        * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
        * @param element 表示当前回调正在检查或操作的页面元素。
        */
-      document.querySelectorAll(selector).forEach(function (element) {
+      querySelectorAllSafe(selector).forEach(function (element) {
         const root = findSearchResultRoot(element) || element;
         hideElement(root, 'search-result-ad-container');
       });
@@ -3061,7 +3061,7 @@
        * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
        * @param button 表示当前回调正在检查或操作的页面元素。
        */
-      document.querySelectorAll(selector).forEach(function (button) {
+      querySelectorAllSafe(selector).forEach(function (button) {
         const text = String(button.innerText || button.textContent || button.getAttribute('aria-label') || '');
         const looksLikeSkip = /skip|跳过|关闭|close/i.test(text) || selector.indexOf('skip') !== -1;
         if (looksLikeSkip && typeof button.click === 'function') button.click();

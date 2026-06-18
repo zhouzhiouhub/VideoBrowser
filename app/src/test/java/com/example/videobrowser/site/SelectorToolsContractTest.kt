@@ -22,6 +22,7 @@ class SelectorToolsContractTest {
         assertTrue(commonScript.contains("return selectorTools.queryAll(selector);"))
         assertTrue(commonScript.contains("return selectorTools.cssIdentifier(value);"))
         assertFalse(commonScript.contains("if (!selector || selector.length > 200) return false;"))
+        assertFalse(commonScript.contains("document.querySelectorAll(selector)"))
         assertFalse(commonScript.contains("window.CSS.escape(String(value))"))
     }
 
