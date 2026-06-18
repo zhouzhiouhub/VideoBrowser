@@ -10,7 +10,6 @@ package com.example.videobrowser.rules
 import com.example.videobrowser.browser.BrowserRequest
 import com.example.videobrowser.browser.RequestContext
 import com.example.videobrowser.browser.ResourceType
-import com.example.videobrowser.site.SiteHost
 
 /**
  * 页面净化规则的统一查询入口。
@@ -36,12 +35,9 @@ class RuleEngine(
         scriptletRules = scriptletRules,
         removeParamRules = removeParamRules
     )
-    private val requestCapabilities = compiledRules.requestCapabilities
+    private val requestQuery = RuleRequestQuery(compiledRules, ruleMatcher)
     private val elementSelectorQuery = RuleElementSelectorQuery(compiledRules)
     private val scriptletQuery = RuleScriptletQuery(compiledRules)
-    private val requestRuleOrder = requestCapabilities
-        .mapIndexed { index, capability -> capability.rule to index }
-        .toMap()
 
     /**
      * 函数 `matchRequest`：封装 `match Request` 这一段业务步骤，让调用方不用关心内部实现细节。
@@ -62,12 +58,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun matchRequest(context: RequestContext): RuleMatchResult {
-        return matchRequest(
-            url = context.requestUrl,
-            host = context.requestHost,
-            pageHost = context.pageHost,
-            resourceType = context.resourceType
-        )
+        return requestQuery.matchRequest(context)
     }
 
     /**
@@ -86,28 +77,12 @@ class RuleEngine(
         pageHost: String? = null,
         resourceType: ResourceType = ResourceType.UNKNOWN
     ): RuleMatchResult {
-        // 放行规则优先于阻断规则，避免白名单被后面的通配拦截规则覆盖。
-        findFirstMatchingRule(
-            action = RuleAction.ALLOW,
+        return requestQuery.matchRequest(
             url = url,
             host = host,
             pageHost = pageHost,
             resourceType = resourceType
-        )?.let { allowRule ->
-            return RuleMatchResult.allow(allowRule)
-        }
-
-        findFirstMatchingRule(
-            action = RuleAction.BLOCK,
-            url = url,
-            host = host,
-            pageHost = pageHost,
-            resourceType = resourceType
-        )?.let { blockRule ->
-            return RuleMatchResult.block(blockRule)
-        }
-
-        return RuleMatchResult.NoMatch
+        )
     }
 
     /**
@@ -118,12 +93,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun matchRequestCandidates(context: RequestContext): List<RuleMatchResult> {
-        return matchRequestCandidates(
-            url = context.requestUrl,
-            host = context.requestHost,
-            pageHost = context.pageHost,
-            resourceType = context.resourceType
-        )
+        return requestQuery.matchRequestCandidates(context)
     }
 
     /**
@@ -142,19 +112,12 @@ class RuleEngine(
         pageHost: String? = null,
         resourceType: ResourceType = ResourceType.UNKNOWN
     ): List<RuleMatchResult> {
-        val requestHost = host ?: SiteHost.fromUrl(url)
-        return (matchingCapabilitiesFor(RuleAction.ALLOW, url, requestHost, pageHost, resourceType) +
-            matchingCapabilitiesFor(RuleAction.BLOCK, url, requestHost, pageHost, resourceType))
-            .distinctBy { capability -> requestRuleOrder[capability.rule] ?: Int.MAX_VALUE }
-            .sortedBy { capability -> requestRuleOrder[capability.rule] ?: Int.MAX_VALUE }
-            .map { capability ->
-                when (capability.rule.action) {
-                    RuleAction.ALLOW -> RuleMatchResult.allow(capability.rule)
-                    RuleAction.BLOCK -> RuleMatchResult.block(capability.rule)
-                    RuleAction.NONE -> RuleMatchResult.NoMatch
-                }
-            }
-            .filter { result -> result.matched }
+        return requestQuery.matchRequestCandidates(
+            url = url,
+            host = host,
+            pageHost = pageHost,
+            resourceType = resourceType
+        )
     }
 
     /**
@@ -165,14 +128,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun matchRequestSummary(context: RequestContext): RequestRuleMatchSummary {
-        val candidates = matchRequestCandidates(context)
-        return RequestRuleMatchSummary(
-            allowMatch = candidates.firstOrNull { result -> result.shouldAllow }
-                ?: RuleMatchResult.NoMatch,
-            blockMatch = candidates.firstOrNull { result -> result.shouldBlock }
-                ?: RuleMatchResult.NoMatch,
-            ruleCandidates = candidates
-        )
+        return requestQuery.matchRequestSummary(context)
     }
 
     /**
@@ -296,84 +252,7 @@ class RuleEngine(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun urlContainsBlockPatternsFor(pageUrl: String?): List<String> {
-        val pageHost = SiteHost.fromUrl(pageUrl)
-        return requestCapabilities
-            .map { capability -> capability.rule }
-            .filter { rule ->
-                rule.action == RuleAction.BLOCK &&
-                    rule.type == RuleType.URL_CONTAINS &&
-                    rule.thirdParty == null &&
-                    rule.resourceTypes.isEmpty() &&
-                    rule.domainScope.matches(pageHost)
-            }
-            .map { rule -> rule.pattern }
-            .distinct()
-    }
-
-    /**
-     * 函数 `findFirstMatchingRule`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
-     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
-     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun findFirstMatchingRule(
-        action: RuleAction,
-        url: String,
-        host: String?,
-        pageHost: String?,
-        resourceType: ResourceType
-    ): Rule? {
-        val requestHost = if (host != null) {
-            host
-        } else {
-            SiteHost.fromUrl(url)
-        }
-        return matchingCapabilitiesFor(
-            action = action,
-            url = url,
-            host = requestHost,
-            pageHost = pageHost,
-            resourceType = resourceType
-        ).firstOrNull()?.rule
-    }
-
-    /**
-     * 函数 `matchingCapabilitiesFor`：封装 `matching Capabilities For` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param action 参数类型为 `RuleAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
-     * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
-     * @param host 参数类型为 `String?`，表示函数执行 `host` 相关逻辑时需要读取或处理的输入。
-     * @param pageHost 参数类型为 `String?`，表示函数执行 `pageHost` 相关逻辑时需要读取或处理的输入。
-     * @param resourceType 参数类型为 `ResourceType`，表示函数执行 `resourceType` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun matchingCapabilitiesFor(
-        action: RuleAction,
-        url: String,
-        host: String?,
-        pageHost: String?,
-        resourceType: ResourceType
-    ): List<RuleCapability.Request> {
-        return compiledRules.requestCandidatesFor(
-            action = action,
-            host = host,
-            url = url
-        ).filter { capability ->
-            val rule = capability.rule
-            ruleMatcher.matches(
-                rule = rule,
-                url = url,
-                host = host,
-                pageHost = pageHost,
-                resourceType = resourceType
-            )
-            }
+        return requestQuery.urlContainsBlockPatternsFor(pageUrl)
     }
 
 }
