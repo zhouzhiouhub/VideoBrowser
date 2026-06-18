@@ -9,8 +9,6 @@ package com.example.videobrowser.functioncenter
  */
 import android.graphics.Color
 import android.graphics.Typeface
-import android.text.TextUtils
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -36,6 +34,7 @@ class FunctionCenterViewFactory(
 ) {
     private val surfaceFactory = FunctionCenterSurfaceFactory(activity, dp)
     private val rowFactory = FunctionCenterRowFactory(activity, dp, surfaceFactory)
+    private val gridFactory = FunctionCenterGridFactory(activity, dp)
 
     /**
      * 函数 `createPage`：创建 `create Page` 需要的对象、视图或配置，并返回给后续流程使用。
@@ -506,36 +505,7 @@ class FunctionCenterViewFactory(
         parent: LinearLayout,
         actions: List<FunctionCenterGridAction>
     ) {
-        FunctionCenterActionGridLayout.rows(actions.size).forEachIndexed { rowIndex, rowSlots ->
-            val row = LinearLayout(activity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.START or Gravity.CENTER_VERTICAL
-            }
-            rowSlots.forEach { actionIndex ->
-                row.addView(
-                    actionIndex?.let { createGridActionView(actions[it]) } ?: View(activity),
-                    LinearLayout.LayoutParams(
-                        0,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        1f
-                    ).apply {
-                        marginStart = dp(2)
-                        marginEnd = dp(2)
-                    }
-                )
-            }
-            parent.addView(
-                row,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    if (rowIndex > 0) {
-                        topMargin = dp(4)
-                    }
-                }
-            )
-        }
+        gridFactory.addActionGrid(parent, actions)
     }
 
     /**
@@ -627,55 +597,6 @@ class FunctionCenterViewFactory(
     }
 
     /**
-     * 函数 `createGridActionView`：创建 `create Grid Action View` 需要的对象、视图或配置，并返回给后续流程使用。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param action 参数类型为 `FunctionCenterGridAction`，表示函数执行 `action` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun createGridActionView(action: FunctionCenterGridAction): View {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            minimumHeight = dp(72)
-            setPadding(dp(4), dp(8), dp(4), dp(6))
-            isClickable = action.enabled
-            isFocusable = action.enabled
-            isEnabled = action.enabled
-            alpha = if (action.enabled) 1f else 0.48f
-            setBoundedSelectableItemBackground()
-            if (action.enabled) {
-                setOnClickListener { action.onClick() }
-            }
-
-            addView(
-                ImageView(activity).apply {
-                    setImageResource(action.iconResId)
-                    setColorFilter(ContextCompat.getColor(activity, R.color.browser_icon))
-                    setPadding(dp(6), dp(6), dp(6), dp(6))
-                },
-                LinearLayout.LayoutParams(dp(34), dp(34))
-            )
-            addView(
-                TextView(activity).apply {
-                    text = action.title
-                    setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                    textSize = 12f
-                    gravity = Gravity.CENTER
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
-                },
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    topMargin = dp(3)
-                }
-            )
-        }
-    }
-
-    /**
      * 函数 `addSectionTitle`：封装 `add Section Title` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -703,18 +624,4 @@ class FunctionCenterViewFactory(
         )
     }
 
-    /**
-     * 函数 `setBoundedSelectableItemBackground`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun View.setBoundedSelectableItemBackground() {
-        val outValue = TypedValue()
-        activity.theme.resolveAttribute(
-            android.R.attr.selectableItemBackground,
-            outValue,
-            true
-        )
-        setBackgroundResource(outValue.resourceId)
-    }
 }
