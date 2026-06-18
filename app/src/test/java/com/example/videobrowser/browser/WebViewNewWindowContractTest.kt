@@ -20,9 +20,13 @@ class WebViewNewWindowContractTest {
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
         ).readText()
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
+        ).readText()
 
-        assertTrue(browserManager.contains("javaScriptCanOpenWindowsAutomatically = false"))
-        assertTrue(browserManager.contains("setSupportMultipleWindows(true)"))
+        assertTrue(browserManager.contains("BrowserWebViewSettingsController()"))
+        assertTrue(settingsController.contains("javaScriptCanOpenWindowsAutomatically = false"))
+        assertTrue(settingsController.contains("setSupportMultipleWindows(true)"))
     }
 
     /**

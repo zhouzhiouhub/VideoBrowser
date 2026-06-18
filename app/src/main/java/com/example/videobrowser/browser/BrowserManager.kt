@@ -7,15 +7,10 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
-import android.os.Build
-import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.WebChromeClient
-import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import java.util.Collections
-import java.util.WeakHashMap
 
 /**
  * WebView 的安全包装器。
@@ -31,16 +26,12 @@ class BrowserManager(
         val name: String
     )
 
-    private val configuredWebViews = Collections.newSetFromMap(WeakHashMap<WebView, Boolean>())
+    private val webViewSettings = BrowserWebViewSettingsController()
     private val javascriptInterfaces = mutableListOf<JavascriptInterfaceBinding>()
     private var chromeClient: WebChromeClient? = null
     private var browserClient: WebViewClient? = null
     private var downloadListener: DownloadListener? = null
-    private var findResultListener: ((Int, Int, Boolean) -> Unit)? = null
     private var privateBrowsingEnabled = false
-    private var thirdPartyCookiesEnabled = true
-    private var mixedContentBlocked = true
-    private var textZoomPercent = 100
 
     val activeWebView: WebView
         get() = webView
@@ -52,44 +43,7 @@ class BrowserManager(
      * 在标签页切换时被重复设置；WeakHashMap 不会阻止旧 WebView 被回收。
      */
     fun setup() {
-        if (!configuredWebViews.add(webView)) {
-            return
-        }
-
-        applyCookiePolicy(webView)
-        applyFindResultListener(webView)
-
-        webView.settings.apply {
-            javaScriptEnabled = true
-            javaScriptCanOpenWindowsAutomatically = false
-            domStorageEnabled = true
-            mediaPlaybackRequiresUserGesture = false
-            cacheMode = WebSettings.LOAD_DEFAULT
-            loadWithOverviewMode = false
-            useWideViewPort = false
-            loadsImagesAutomatically = true
-            blockNetworkImage = false
-            textZoom = textZoomPercent
-            setSupportZoom(true)
-            builtInZoomControls = true
-            displayZoomControls = false
-            setSupportMultipleWindows(true)
-            setGeolocationEnabled(true)
-            allowFileAccess = false
-            allowContentAccess = true
-            @Suppress("DEPRECATION")
-            allowFileAccessFromFileURLs = false
-            @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = false
-            applyMixedContentMode(webView)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                safeBrowsingEnabled = true
-            }
-            @Suppress("DEPRECATION")
-            databaseEnabled = true
-            @Suppress("DEPRECATION")
-            saveFormData = false
-        }
+        webViewSettings.setup(webView)
     }
 
     /**
@@ -169,8 +123,7 @@ class BrowserManager(
      * @param listener 参数类型为 `((Int, Int, Boolean) -> Unit)?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
      */
     fun setFindResultListener(listener: ((Int, Int, Boolean) -> Unit)?) {
-        findResultListener = listener
-        configuredWebViews.forEach(::applyFindResultListener)
+        webViewSettings.setFindResultListener(listener)
     }
 
     /**
@@ -339,15 +292,7 @@ class BrowserManager(
      */
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
         privateBrowsingEnabled = enabled
-        configuredWebViews.forEach(::applyCookiePolicy)
-        webView.settings.domStorageEnabled = !enabled
-        @Suppress("DEPRECATION")
-        webView.settings.databaseEnabled = !enabled
-        webView.settings.cacheMode = if (enabled) {
-            WebSettings.LOAD_NO_CACHE
-        } else {
-            WebSettings.LOAD_DEFAULT
-        }
+        webViewSettings.setPrivateBrowsingEnabled(enabled, webView)
     }
 
     /**
@@ -357,8 +302,7 @@ class BrowserManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setThirdPartyCookiesEnabled(enabled: Boolean) {
-        thirdPartyCookiesEnabled = enabled
-        configuredWebViews.forEach(::applyCookiePolicy)
+        webViewSettings.setThirdPartyCookiesEnabled(enabled)
     }
 
     /**
@@ -368,8 +312,7 @@ class BrowserManager(
      * @param blocked 参数类型为 `Boolean`，表示函数执行 `blocked` 相关逻辑时需要读取或处理的输入。
      */
     fun setMixedContentBlocked(blocked: Boolean) {
-        mixedContentBlocked = blocked
-        configuredWebViews.forEach(::applyMixedContentMode)
+        webViewSettings.setMixedContentBlocked(blocked)
     }
 
     /**
@@ -379,8 +322,7 @@ class BrowserManager(
      * @param percent 参数类型为 `Int`，表示函数执行 `percent` 相关逻辑时需要读取或处理的输入。
      */
     fun setTextZoomPercent(percent: Int) {
-        textZoomPercent = percent
-        configuredWebViews.forEach(::applyTextZoom)
+        webViewSettings.setTextZoomPercent(percent)
     }
 
     /**
@@ -459,64 +401,8 @@ class BrowserManager(
         targetWebView.loadUrl("about:blank")
         BrowserWebViewDataCleaner.clear(targetWebView, clearSharedStores)
         targetWebView.removeAllViews()
-        configuredWebViews.remove(targetWebView)
+        webViewSettings.forget(targetWebView)
         targetWebView.destroy()
-    }
-
-    /**
-     * 函数 `applyCookiePolicy`：根据最新状态刷新 `apply Cookie Policy` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun applyCookiePolicy(targetWebView: WebView) {
-        CookieManager.getInstance().apply {
-            setAcceptCookie(!privateBrowsingEnabled)
-            setAcceptThirdPartyCookies(
-                targetWebView,
-                !privateBrowsingEnabled && thirdPartyCookiesEnabled
-            )
-        }
-    }
-
-    /**
-     * 函数 `applyMixedContentMode`：根据最新状态刷新 `apply Mixed Content Mode` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun applyMixedContentMode(targetWebView: WebView) {
-        targetWebView.settings.mixedContentMode = if (mixedContentBlocked) {
-            WebSettings.MIXED_CONTENT_NEVER_ALLOW
-        } else {
-            WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-        }
-    }
-
-    /**
-     * 函数 `applyTextZoom`：根据最新状态刷新 `apply Text Zoom` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun applyTextZoom(targetWebView: WebView) {
-        targetWebView.settings.textZoom = textZoomPercent
-    }
-
-    /**
-     * 函数 `applyFindResultListener`：根据最新状态刷新 `apply Find Result Listener` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param targetWebView 参数类型为 `WebView`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     */
-    private fun applyFindResultListener(targetWebView: WebView) {
-        targetWebView.setFindListener(
-            findResultListener?.let { listener ->
-                WebView.FindListener { activeMatchOrdinal, numberOfMatches, isDoneCounting ->
-                    listener(activeMatchOrdinal, numberOfMatches, isDoneCounting)
-                }
-            }
-        )
     }
 
     /**

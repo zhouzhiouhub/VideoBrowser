@@ -96,6 +96,9 @@ class BrowserSettingsPageContractTest {
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
         ).readText()
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
+        ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
         val startupController = projectFile(
@@ -113,8 +116,9 @@ class BrowserSettingsPageContractTest {
         assertTrue(page.contains("settingsManager.setThirdPartyCookiesEnabled(enabled)"))
         assertTrue(page.contains("browserManager().setThirdPartyCookiesEnabled(enabled)"))
         assertTrue(browserManager.contains("fun setThirdPartyCookiesEnabled(enabled: Boolean)"))
-        assertTrue(browserManager.contains("setAcceptThirdPartyCookies("))
-        assertTrue(browserManager.contains("!privateBrowsingEnabled && thirdPartyCookiesEnabled"))
+        assertTrue(browserManager.contains("webViewSettings.setThirdPartyCookiesEnabled(enabled)"))
+        assertTrue(settingsController.contains("setAcceptThirdPartyCookies("))
+        assertTrue(settingsController.contains("!privateBrowsingEnabled && thirdPartyCookiesEnabled"))
         assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupController.contains("setThirdPartyCookiesEnabled(settingsManager.areThirdPartyCookiesEnabled())"))
         assertTrue(strings.contains("setting_third_party_cookies"))
@@ -133,6 +137,9 @@ class BrowserSettingsPageContractTest {
         ).readText()
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
@@ -157,8 +164,9 @@ class BrowserSettingsPageContractTest {
         assertTrue(page.contains("settingsManager.setMixedContentBlocked(blocked)"))
         assertTrue(page.contains("browserManager().setMixedContentBlocked(blocked)"))
         assertTrue(browserManager.contains("fun setMixedContentBlocked(blocked: Boolean)"))
-        assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_NEVER_ALLOW"))
-        assertTrue(browserManager.contains("WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE"))
+        assertTrue(browserManager.contains("webViewSettings.setMixedContentBlocked(blocked)"))
+        assertTrue(settingsController.contains("WebSettings.MIXED_CONTENT_NEVER_ALLOW"))
+        assertTrue(settingsController.contains("WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE"))
         assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupController.contains("setMixedContentBlocked(settingsManager.isMixedContentBlocked())"))
         assertTrue(strings.contains("setting_mixed_content_blocking"))
@@ -181,6 +189,9 @@ class BrowserSettingsPageContractTest {
         ).readText()
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
         ).readText()
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
@@ -207,7 +218,8 @@ class BrowserSettingsPageContractTest {
         assertTrue(dialogs.contains("settingsManager.setTextZoomPercent(percent)"))
         assertTrue(dialogs.contains("browserManager().setTextZoomPercent(percent)"))
         assertTrue(browserManager.contains("fun setTextZoomPercent(percent: Int)"))
-        assertTrue(browserManager.contains("textZoom = textZoomPercent"))
+        assertTrue(browserManager.contains("webViewSettings.setTextZoomPercent(percent)"))
+        assertTrue(settingsController.contains("textZoom = textZoomPercent"))
         assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupController.contains("setTextZoomPercent(settingsManager.textZoomPercent())"))
         assertTrue(strings.contains("setting_text_zoom"))

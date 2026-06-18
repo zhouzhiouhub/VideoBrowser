@@ -20,6 +20,9 @@ class FindInPageWiringContractTest {
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
         ).readText()
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
+        ).readText()
 
         assertTrue(browserManager.contains("fun findAllAsync(query: String)"))
         assertTrue(browserManager.contains("webView.findAllAsync(query)"))
@@ -28,8 +31,9 @@ class FindInPageWiringContractTest {
         assertTrue(browserManager.contains("fun clearFindMatches()"))
         assertTrue(browserManager.contains("webView.clearMatches()"))
         assertTrue(browserManager.contains("fun setFindResultListener(listener: ((Int, Int, Boolean) -> Unit)?)"))
-        assertTrue(browserManager.contains("targetWebView.setFindListener("))
-        assertTrue(browserManager.contains("WebView.FindListener"))
+        assertTrue(browserManager.contains("webViewSettings.setFindResultListener(listener)"))
+        assertTrue(settingsController.contains("targetWebView.setFindListener("))
+        assertTrue(settingsController.contains("WebView.FindListener"))
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/FindInPageController.kt"
         ).readText()

@@ -44,8 +44,12 @@ class WebGeolocationPermissionContractTest {
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
         ).readText()
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
+        ).readText()
 
-        assertTrue(browserManager.contains("setGeolocationEnabled(true)"))
+        assertTrue(browserManager.contains("BrowserWebViewSettingsController()"))
+        assertTrue(settingsController.contains("setGeolocationEnabled(true)"))
     }
 
     /**
