@@ -7,10 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.text.InputType
-import android.widget.EditText
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
@@ -28,7 +24,14 @@ class SavedPagesPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
-    private val linkActions = SavedPageLinkActions(activity)
+    private val dialogController = SavedPagesDialogController(
+        activity = activity,
+        savedPageRepository = savedPageRepository,
+        linkActions = SavedPageLinkActions(activity),
+        openUrlInNewTab = openUrlInNewTab,
+        loadUrl = loadUrl,
+        showSavedPagesPage = ::show
+    )
 
     /**
      * 函数 `show`：控制 `show` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -69,7 +72,7 @@ class SavedPagesPage(
                     title = activity.getString(R.string.action_search_saved_pages),
                     summary = currentSearchSummary(query)
                 ) {
-                    showSearchDialog(collection, title, emptyMessage, query)
+                    dialogController.showSearchDialog(collection, title, emptyMessage, query)
                 }
                 if (!query.isNullOrBlank()) {
                     host.addActionRow(
@@ -90,7 +93,7 @@ class SavedPagesPage(
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_saved_pages_summary)
                 ) {
-                    showClearSavedPagesDialog(collection)
+                    dialogController.showClearSavedPagesDialog(collection)
                 }
             }
 
@@ -162,271 +165,8 @@ class SavedPagesPage(
                 title = page.title.ifBlank { page.url },
                 summary = pageSummary(page)
             ) {
-                showSavedPageActionsDialog(collection, page, title, emptyMessage)
+                dialogController.showSavedPageActionsDialog(collection, page, title, emptyMessage)
             }
-        }
-    }
-
-    /**
-     * 函数 `showSearchDialog`：控制 `show Search Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
-     * @param currentQuery 参数类型为 `String?`，表示函数执行 `currentQuery` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showSearchDialog(
-        collection: SavedPageCollection,
-        title: String,
-        emptyMessage: String,
-        currentQuery: String?
-    ) {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_saved_pages_search)
-            setText(currentQuery.orEmpty())
-            setSelection(text?.length ?: 0)
-        }
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_search_saved_pages)
-            .setView(input)
-            .setPositiveButton(R.string.action_search_saved_pages) { _, _ ->
-                show(
-                    collection = collection,
-                    title = title,
-                    emptyMessage = emptyMessage,
-                    replaceCurrent = true,
-                    query = input.text?.toString()?.trim().orEmpty()
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `showSavedPageActionsDialog`：控制 `show Saved Page Actions Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showSavedPageActionsDialog(
-        collection: SavedPageCollection,
-        page: SavedPage,
-        title: String,
-        emptyMessage: String
-    ) {
-        val actions = savedPageActions(collection, page, title, emptyMessage)
-        AlertDialog.Builder(activity)
-            .setTitle(page.title.ifBlank { page.url })
-            .setItems(actions.map { action -> action.title }.toTypedArray()) { _, index ->
-                actions.getOrNull(index)?.perform?.invoke()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `savedPageActions`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun savedPageActions(
-        collection: SavedPageCollection,
-        page: SavedPage,
-        title: String,
-        emptyMessage: String
-    ): List<SavedPageAction> {
-        return listOf(
-            SavedPageAction(activity.getString(R.string.action_open_page)) {
-                loadUrl(page.url)
-            },
-            SavedPageAction(activity.getString(R.string.action_open_in_new_tab)) {
-                openUrlInNewTab(page.url)
-            },
-            if (collection == SavedPageCollection.BOOKMARKS) {
-                SavedPageAction(activity.getString(R.string.action_rename)) {
-                    showRenameBookmarkDialog(page, title, emptyMessage)
-                }
-            } else {
-                null
-            },
-            if (collection == SavedPageCollection.BOOKMARKS) {
-                SavedPageAction(activity.getString(R.string.action_move_bookmark_folder)) {
-                    showMoveBookmarkFolderDialog(page, title, emptyMessage)
-                }
-            } else {
-                null
-            },
-            SavedPageAction(activity.getString(R.string.action_copy_link)) {
-                linkActions.copyUrl(page)
-            },
-            SavedPageAction(activity.getString(R.string.action_share_page)) {
-                linkActions.shareUrl(page)
-            },
-            SavedPageAction(activity.getString(R.string.action_remove)) {
-                savedPageRepository.remove(collection, page.url)
-                Toast.makeText(
-                    activity,
-                    R.string.toast_saved_page_removed,
-                    Toast.LENGTH_SHORT
-                ).show()
-                show(collection, title, emptyMessage, replaceCurrent = true)
-            }
-        ).filterNotNull()
-    }
-
-    /**
-     * 函数 `showRenameBookmarkDialog`：控制 `show Rename Bookmark Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showRenameBookmarkDialog(
-        page: SavedPage,
-        title: String,
-        emptyMessage: String
-    ) {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_saved_page_title)
-            setText(page.title.ifBlank { page.url })
-            setSelection(text?.length ?: 0)
-        }
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_rename_bookmark)
-            .setView(input)
-            .setPositiveButton(R.string.action_rename, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val updated = savedPageRepository.updateTitle(
-                    collection = SavedPageCollection.BOOKMARKS,
-                    url = page.url,
-                    title = input.text?.toString().orEmpty()
-                )
-                if (!updated) {
-                    Toast.makeText(activity, R.string.toast_saved_page_title_invalid, Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-                Toast.makeText(activity, R.string.toast_saved_page_renamed, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                show(SavedPageCollection.BOOKMARKS, title, emptyMessage, replaceCurrent = true)
-            }
-        }
-        dialog.show()
-    }
-
-    /**
-     * 函数 `showMoveBookmarkFolderDialog`：控制 `show Move Bookmark Folder Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showMoveBookmarkFolderDialog(
-        page: SavedPage,
-        title: String,
-        emptyMessage: String
-    ) {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_bookmark_folder)
-            setText(page.folder)
-            setSelection(text?.length ?: 0)
-        }
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_move_bookmark_folder)
-            .setView(input)
-            .setPositiveButton(R.string.action_save, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val updated = savedPageRepository.updateBookmarkFolder(
-                    url = page.url,
-                    folder = input.text?.toString().orEmpty()
-                )
-                if (!updated) {
-                    Toast.makeText(activity, R.string.toast_bookmark_folder_invalid, Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-                Toast.makeText(activity, R.string.toast_bookmark_folder_updated, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                show(SavedPageCollection.BOOKMARKS, title, emptyMessage, replaceCurrent = true)
-            }
-        }
-        dialog.show()
-    }
-
-    /**
-     * 函数 `showClearSavedPagesDialog`：控制 `show Clear Saved Pages Dialog` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun showClearSavedPagesDialog(collection: SavedPageCollection) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_saved_pages_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                savedPageRepository.clear(collection)
-                Toast.makeText(
-                    activity,
-                    R.string.toast_saved_pages_cleared,
-                    Toast.LENGTH_SHORT
-                ).show()
-                show(
-                    collection = collection,
-                    title = collectionTitle(collection),
-                    emptyMessage = collectionEmptyMessage(collection),
-                    replaceCurrent = true
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    /**
-     * 函数 `collectionTitle`：封装 `collection Title` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun collectionTitle(collection: SavedPageCollection): String {
-        return when (collection) {
-            SavedPageCollection.BOOKMARKS -> activity.getString(R.string.title_bookmarks)
-            SavedPageCollection.HISTORY -> activity.getString(R.string.title_history)
-        }
-    }
-
-    /**
-     * 函数 `collectionEmptyMessage`：封装 `collection Empty Message` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun collectionEmptyMessage(collection: SavedPageCollection): String {
-        return when (collection) {
-            SavedPageCollection.BOOKMARKS -> activity.getString(R.string.toast_bookmarks_empty)
-            SavedPageCollection.HISTORY -> activity.getString(R.string.toast_history_empty)
         }
     }
 
@@ -484,11 +224,6 @@ class SavedPagesPage(
             ).takeIf { group -> group.pages.isNotEmpty() }
         ) + folderGroups
     }
-
-    private data class SavedPageAction(
-        val title: String,
-        val perform: () -> Unit
-    )
 
     private data class SavedPageGroup(
         val title: String,
