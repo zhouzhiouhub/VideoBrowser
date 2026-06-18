@@ -9,7 +9,8 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数了解 URL 从哪里来，再看 currentActionableUrl() 的筛选规则。
  */
 import com.example.videobrowser.site.SiteHost
-import java.net.URI
+import com.example.videobrowser.utils.SafeUriParser
+import com.example.videobrowser.utils.WebSchemePolicy
 
 /**
  * 浏览器 URL 状态控制器。
@@ -59,8 +60,6 @@ class BrowserUrlStateController(
      * @return true 表示 URL 使用 http 或 https 协议，可以作为普通网页地址处理。
      */
     fun isShareableUrl(url: String): Boolean {
-        val scheme = runCatching { URI(url.trim()).scheme }.getOrNull()
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true)
+        return WebSchemePolicy.isHttpOrHttpsScheme(SafeUriParser.scheme(url))
     }
 }

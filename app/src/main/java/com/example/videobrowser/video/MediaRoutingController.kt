@@ -8,6 +8,7 @@ package com.example.videobrowser.video
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
 import com.example.videobrowser.utils.MediaUrlUtils
+import com.example.videobrowser.utils.WebSchemePolicy
 
 /**
  * 媒体路由决策器。
@@ -119,9 +120,7 @@ object MediaRoutingController {
      */
     private fun isWebUrl(url: String): Boolean {
         val scheme = url.substringBefore(':', missingDelimiterValue = "")
-        return scheme.equals("http", ignoreCase = true) ||
-            scheme.equals("https", ignoreCase = true) ||
-            scheme.equals("about", ignoreCase = true)
+        return WebSchemePolicy.isWebViewLoadableScheme(scheme)
     }
 }
 

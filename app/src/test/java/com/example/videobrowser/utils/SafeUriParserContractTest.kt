@@ -13,7 +13,9 @@ class SafeUriParserContractTest {
             projectFile("src/main/java/com/example/videobrowser/utils/UrlDisplayFormatter.kt"),
             projectFile("src/main/java/com/example/videobrowser/download/DownloadSafetyPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/HttpNavigationSafetyPolicy.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/ExternalProtocolPolicy.kt")
+            projectFile("src/main/java/com/example/videobrowser/browser/ExternalProtocolPolicy.kt"),
+            projectFile("src/main/java/com/example/videobrowser/browser/BrowserUrlStateController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/settings/SettingsHttpUrlValidator.kt")
         ).map { file -> file.readText() }
 
         sources.forEach { source ->
