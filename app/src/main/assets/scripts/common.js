@@ -47,6 +47,7 @@
   const domActions = window.VideoBrowserDomActions;
   const selectorTools = window.VideoBrowserSelectorTools;
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
+  const skipButtonTools = window.VideoBrowserSkipButtonTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
   const videoControlTools = window.VideoBrowserVideoControlTools;
   const videoQueryTools = window.VideoBrowserVideoQueryTools;
@@ -119,19 +120,6 @@
     '[id*="download-app"]',
     '[class*="download-app"]',
     '[class*="app-download"]'
-  ];
-  const skipSelectors = [
-    '.skip',
-    '.skip-button',
-    '.ad-skip',
-    '.ytp-ad-skip-button',
-    '.ytp-ad-skip-button-modern',
-    'button[class*="skip"]',
-    'button[id*="skip"]',
-    'button[aria-label*="Skip"]',
-    'button[aria-label*="skip"]',
-    'button[aria-label*="跳过"]',
-    'button[title*="跳过"]'
   ];
   /**
    * 函数 `externalCssSelectors`：封装 `external Css Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -2090,23 +2078,7 @@
    */
   function clickSkipButtons() {
     if (!state.config.videoEnabled && !state.config.scriptletSkipButtonsEnabled) return;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    skipSelectors.forEach(function (selector) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param button 表示当前回调正在检查或操作的页面元素。
-       */
-      querySelectorAllSafe(selector).forEach(function (button) {
-        const text = String(button.innerText || button.textContent || button.getAttribute('aria-label') || '');
-        const looksLikeSkip = /skip|跳过|关闭|close/i.test(text) || selector.indexOf('skip') !== -1;
-        if (looksLikeSkip && typeof button.click === 'function') button.click();
-      });
-    });
+    skipButtonTools.click();
   }
 
   /**

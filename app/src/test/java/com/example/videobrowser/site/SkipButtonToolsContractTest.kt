@@ -1,0 +1,39 @@
+package com.example.videobrowser.site
+
+import java.io.File
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class SkipButtonToolsContractTest {
+    @Test
+    fun `skip button clicking is owned by shared skip button module`() {
+        val skipScript = projectFile("src/main/assets/scripts/skip_button_tools.js").readText()
+        val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
+        val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
+
+        assertTrue(skipScript.contains("window.VideoBrowserSkipButtonTools = tools"))
+        assertTrue(skipScript.contains("tools.defaultSelectors = tools.defaultSelectors || ["))
+        assertTrue(skipScript.contains("'button[aria-label*=\"跳过\"]'"))
+        assertTrue(skipScript.contains("tools.click = tools.click || function (selectors)"))
+        assertTrue(commonScript.contains("const skipButtonTools = window.VideoBrowserSkipButtonTools"))
+        assertTrue(commonScript.contains("skipButtonTools.click();"))
+        assertTrue(scriptLoader.contains("SKIP_BUTTON_TOOLS_SCRIPT_ASSET"))
+        assertTrue(
+            commonAssetList.indexOf("SKIP_BUTTON_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
+        )
+        assertFalse(commonScript.contains("const skipSelectors = ["))
+        assertFalse(commonScript.contains("button[aria-label*=\"跳过\"]"))
+        assertFalse(commonScript.contains("selector.indexOf('skip') !== -1"))
+    }
+
+    private fun projectFile(path: String): File {
+        val workingDirectory = File("").absoluteFile
+        return listOf(
+            File(workingDirectory, path),
+            File(workingDirectory, "app/$path")
+        ).first { it.exists() }
+    }
+}
