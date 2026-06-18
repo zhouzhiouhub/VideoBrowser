@@ -712,14 +712,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun playPreviousMedia() {
-        val previousIndex = when {
-            currentMediaItemIndex > 0 -> currentMediaItemIndex - 1
-            repeatMode == PlaybackRepeatMode.ALL && playbackQueue.items.size > 1 -> {
-                playbackQueue.items.lastIndex
-            }
-            else -> currentMediaItemIndex
-        }
-        playMediaAt(previousIndex)
+        playMediaAt(playbackQueue.previous().currentIndex)
     }
 
     /**
@@ -728,12 +721,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun playNextMedia() {
-        val nextIndex = when {
-            currentMediaItemIndex + 1 < playbackQueue.items.size -> currentMediaItemIndex + 1
-            repeatMode == PlaybackRepeatMode.ALL && playbackQueue.items.size > 1 -> 0
-            else -> currentMediaItemIndex
-        }
-        playMediaAt(nextIndex)
+        playMediaAt(playbackQueue.next().currentIndex)
     }
 
     /**

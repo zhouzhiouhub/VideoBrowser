@@ -6,6 +6,7 @@ package com.example.videobrowser.video
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -26,6 +27,10 @@ class PlaybackQueueWiringContractTest {
         assertTrue(intentReader.contains("PlaybackQueue.single("))
         assertTrue(source.contains("setMediaItems("))
         assertTrue(source.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
+        assertTrue(source.contains("playbackQueue.previous().currentIndex"))
+        assertTrue(source.contains("playbackQueue.next().currentIndex"))
+        assertFalse(source.contains("currentMediaItemIndex - 1"))
+        assertFalse(source.contains("currentMediaItemIndex + 1 < playbackQueue.items.size"))
     }
 
     /**
