@@ -18,6 +18,16 @@
     return domTools.queryAll(selector);
   };
 
+  tools.emptyQuery = tools.emptyQuery || function () {
+    return [];
+  };
+
+  tools.noop = tools.noop || function () {};
+
+  tools.nullResult = tools.nullResult || function () {
+    return null;
+  };
+
   tools.textOf = function (element) {
     return String(
       element && (

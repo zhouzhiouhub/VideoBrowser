@@ -3,6 +3,7 @@
  */
 (function () {
   var tools = window.VideoBrowserBilibiliQualityTools || {};
+  var adapterDefaults = window.VideoBrowserSiteAdapterTools || {};
   window.VideoBrowserBilibiliQualityTools = tools;
 
   tools.preferBestQuality = tools.preferBestQuality || function (adapterTools, playerApi) {
@@ -14,12 +15,12 @@
     var adapter = adapterTools || {};
     var api = playerApi || {};
     return {
-      query: typeof adapter.query === 'function' ? adapter.query : emptyQuery,
-      textOf: typeof adapter.textOf === 'function' ? adapter.textOf : textOf,
-      logVideoDiagnostic: typeof adapter.logVideoDiagnostic === 'function' ? adapter.logVideoDiagnostic : noop,
-      readPlayerMethod: typeof api.read === 'function' ? api.read : nullReader,
-      callPlayerMethod: typeof api.call === 'function' ? api.call : nullCaller,
-      handledValue: typeof api.handledValue === 'function' ? api.handledValue : nullCaller
+      query: typeof adapter.query === 'function' ? adapter.query : adapterDefaults.emptyQuery,
+      textOf: typeof adapter.textOf === 'function' ? adapter.textOf : adapterDefaults.textOf,
+      logVideoDiagnostic: typeof adapter.logVideoDiagnostic === 'function' ? adapter.logVideoDiagnostic : adapterDefaults.noop,
+      readPlayerMethod: typeof api.read === 'function' ? api.read : adapterDefaults.nullResult,
+      callPlayerMethod: typeof api.call === 'function' ? api.call : adapterDefaults.nullResult,
+      handledValue: typeof api.handledValue === 'function' ? api.handledValue : adapterDefaults.nullResult
     };
   }
 
@@ -172,22 +173,4 @@
     }, 0);
     return true;
   }
-
-  function textOf(element) {
-    return String(element && (element.innerText || element.textContent) || '').trim();
-  }
-
-  function emptyQuery() {
-    return [];
-  }
-
-  function nullReader() {
-    return null;
-  }
-
-  function nullCaller() {
-    return null;
-  }
-
-  function noop() {}
 })();

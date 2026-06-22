@@ -3,6 +3,7 @@
  */
 (function () {
   var tools = window.VideoBrowserBilibiliBrowserChoiceCleanup || {};
+  var adapterDefaults = window.VideoBrowserSiteAdapterTools || {};
   window.VideoBrowserBilibiliBrowserChoiceCleanup = tools;
 
   tools.dismissPrompts = tools.dismissPrompts || function (adapterTools) {
@@ -37,9 +38,9 @@
   function promptHelpers(adapterTools) {
     var tools = adapterTools || {};
     return {
-      query: typeof tools.query === 'function' ? tools.query : emptyQuery,
-      hideElement: typeof tools.hideElement === 'function' ? tools.hideElement : noop,
-      normalizeText: typeof tools.normalizeText === 'function' ? tools.normalizeText : normalizeText
+      query: typeof tools.query === 'function' ? tools.query : adapterDefaults.emptyQuery,
+      hideElement: typeof tools.hideElement === 'function' ? tools.hideElement : adapterDefaults.noop,
+      normalizeText: typeof tools.normalizeText === 'function' ? tools.normalizeText : adapterDefaults.normalizeText
     };
   }
 
@@ -96,14 +97,4 @@
       helpers.hideElement(element, 'bilibili-browser-choice-backdrop');
     });
   }
-
-  function normalizeText(value) {
-    return String(value || '').replace(/\s+/g, ' ').trim();
-  }
-
-  function emptyQuery() {
-    return [];
-  }
-
-  function noop() {}
 })();

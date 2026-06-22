@@ -3,6 +3,7 @@
  */
 (function () {
   var tools = window.VideoBrowserBilibiliOverlayCleanup || {};
+  var adapterDefaults = window.VideoBrowserSiteAdapterTools || {};
   window.VideoBrowserBilibiliOverlayCleanup = tools;
 
   var playbackOverlaySelectors = [
@@ -42,8 +43,8 @@
   function overlayHelpers(adapterTools) {
     var tools = adapterTools || {};
     return {
-      query: typeof tools.query === 'function' ? tools.query : emptyQuery,
-      hideElement: typeof tools.hideElement === 'function' ? tools.hideElement : noop,
+      query: typeof tools.query === 'function' ? tools.query : adapterDefaults.emptyQuery,
+      hideElement: typeof tools.hideElement === 'function' ? tools.hideElement : adapterDefaults.noop,
       safeRect: tools.safeRect,
       expandedRect: tools.expandedRect,
       rectsOverlap: tools.rectsOverlap,
@@ -111,10 +112,4 @@
     }
     return root;
   }
-
-  function emptyQuery() {
-    return [];
-  }
-
-  function noop() {}
 })();
