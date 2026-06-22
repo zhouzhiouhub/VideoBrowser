@@ -9,6 +9,7 @@ class SearchResultCleanupContractTest {
     @Test
     fun `search result cleanup is owned by shared search cleanup module`() {
         val searchScript = projectFile("src/main/assets/scripts/search_result_cleanup.js").readText()
+        val coordinatorScript = projectFile("src/main/assets/scripts/page_cleanup_coordinator.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
@@ -21,9 +22,9 @@ class SearchResultCleanupContractTest {
         assertTrue(searchScript.contains("return selectorTools.normalizeText(value);"))
         assertTrue(searchScript.contains("return domTools.queryAll(selector);"))
         assertTrue(searchScript.contains("domActions.hideElement(element, {"))
-        assertTrue(commonScript.contains("const searchResultCleanup = window.VideoBrowserSearchResultCleanup"))
-        assertTrue(commonScript.contains("return isBilibiliHost() || searchResultCleanup.isResultPage();"))
-        assertTrue(commonScript.contains("searchResultCleanup.removeAds({"))
+        assertTrue(coordinatorScript.contains("const searchResultCleanup = window.VideoBrowserSearchResultCleanup || {}"))
+        assertTrue(coordinatorScript.contains("return isBilibiliHost(options) || searchResultCleanup.isResultPage();"))
+        assertTrue(coordinatorScript.contains("searchResultCleanup.removeAds({"))
         assertTrue(scriptLoader.contains("SEARCH_RESULT_CLEANUP_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("SEARCH_RESULT_CLEANUP_SCRIPT_ASSET") <
@@ -32,6 +33,8 @@ class SearchResultCleanupContractTest {
         assertFalse(commonScript.contains("function findSearchAdDisclosureMarkers()"))
         assertFalse(commonScript.contains("function findSearchResultRoot(marker)"))
         assertFalse(commonScript.contains("function isSearchAdDisclosure(text, descriptor)"))
+        assertFalse(commonScript.contains("const searchResultCleanup = window.VideoBrowserSearchResultCleanup"))
+        assertFalse(commonScript.contains("searchResultCleanup.removeAds({"))
         assertFalse(searchScript.contains("document.querySelectorAll(selector)"))
         assertFalse(searchScript.contains("replace(/\\s+/g, ' ').trim()"))
     }

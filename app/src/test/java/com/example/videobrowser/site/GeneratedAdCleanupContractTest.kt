@@ -10,6 +10,7 @@ class GeneratedAdCleanupContractTest {
     fun `generated ad cleanup is owned by shared generated cleanup module`() {
         val generatedScript = projectFile("src/main/assets/scripts/generated_ad_cleanup.js").readText()
         val overlayScript = projectFile("src/main/assets/scripts/generic_ad_overlay_cleanup.js").readText()
+        val coordinatorScript = projectFile("src/main/assets/scripts/page_cleanup_coordinator.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val geometryScript = projectFile("src/main/assets/scripts/geometry.js").readText()
         val domToolsScript = projectFile("src/main/assets/scripts/dom_tools.js").readText()
@@ -25,9 +26,11 @@ class GeneratedAdCleanupContractTest {
         assertTrue(generatedScript.contains("geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)"))
         assertTrue(generatedScript.contains("domTools.parseZIndex(style.zIndex)"))
         assertTrue(generatedScript.contains("domTools.elementDescriptor(element)"))
-        assertTrue(commonScript.contains("const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup"))
+        assertTrue(coordinatorScript.contains("const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup || {}"))
         assertTrue(overlayScript.contains("generatedAdCleanup.run(state, {"))
-        assertTrue(commonScript.contains("generatedAdCleanup.run(state, { now: now, force: false });"))
+        assertTrue(coordinatorScript.contains("coordinator.runGenerated = coordinator.runGenerated || function (state, options)"))
+        assertTrue(coordinatorScript.contains("generatedAdCleanup.run(state, {"))
+        assertTrue(commonScript.contains("pageCleanupCoordinator.runGenerated(state, {"))
         assertTrue(geometryScript.contains("geometry.visibleRectInViewport = geometry.visibleRectInViewport || function"))
         assertTrue(domToolsScript.contains("domTools.elementDescriptor = domTools.elementDescriptor || function"))
         assertTrue(domToolsScript.contains("domTools.parseZIndex = domTools.parseZIndex || function"))
@@ -43,6 +46,8 @@ class GeneratedAdCleanupContractTest {
         assertFalse(commonScript.contains("function isGeneratedAdAdjunctControl"))
         assertFalse(commonScript.contains("function elementDescriptor(element)"))
         assertFalse(commonScript.contains("function parseZIndex(value)"))
+        assertFalse(commonScript.contains("const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup"))
+        assertFalse(commonScript.contains("generatedAdCleanup.run(state, { now: now, force: false });"))
     }
 
     private fun projectFile(path: String): File {

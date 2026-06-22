@@ -37,12 +37,7 @@
     state.fullscreenPlaybackSpeed = 1;
   }
 
-  const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors;
-  const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup;
-  const genericAdOverlayCleanup = window.VideoBrowserGenericAdOverlayCleanup;
-  const configuredCleanup = window.VideoBrowserConfiguredCleanup;
-  const topPageCleanup = window.VideoBrowserTopPageCleanup;
-  const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
+  const pageCleanupCoordinator = window.VideoBrowserPageCleanupCoordinator;
   const skipButtonTools = window.VideoBrowserSkipButtonTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
   const logVideoDiagnostic = nativeBridge.logPageVideoDiagnostic;
@@ -83,71 +78,6 @@
    */
   function runWithMutationSuppressed(work) {
     return pageLifecycleTools.runWithMutationSuppressed(state, work);
-  }
-
-  /**
-   * 函数 `removeAds`：封装 `remove Ads` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeAds() {
-    if (!state.config.cleanupEnabled || !document.documentElement) return;
-    if (shouldSkipGenericCleanup()) {
-      configuredCleanup.injectStyle(state, {
-        includeGenericSelectors: false,
-        includeRuleSelectors: true
-      });
-      removeSearchResultAds();
-      configuredCleanup.removeDomElements(state);
-      if (!isBilibiliHost()) removeGenericAdOverlays();
-      return;
-    }
-
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    runWithMutationSuppressed(function () {
-      configuredCleanup.injectStyle(state, {
-        includeGenericSelectors: true,
-        includeRuleSelectors: true
-      });
-      genericCleanupSelectors.hideDefaultElements();
-      configuredCleanup.removeDomElements(state);
-      removeGenericAdOverlays();
-      topPageCleanup.removeAccountBars();
-      topPageCleanup.removeNoiseBlocks();
-      removeSearchResultAds();
-    });
-  }
-
-  /**
-   * 函数 `removeGenericAdOverlays`：封装 `remove Generic Ad Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeGenericAdOverlays() {
-    genericAdOverlayCleanup.run(state);
-  }
-
-  /**
-   * 函数 `shouldSkipGenericCleanup`：封装 `should Skip Generic Cleanup` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function shouldSkipGenericCleanup() {
-    return isBilibiliHost() || searchResultCleanup.isResultPage();
-  }
-
-  /**
-   * 函数 `removeSearchResultAds`：封装 `remove Search Result Ads` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeSearchResultAds() {
-    searchResultCleanup.removeAds({
-      runWithMutationSuppressed: runWithMutationSuppressed
-    });
   }
 
   /**
@@ -559,20 +489,19 @@
     const cleanupInterval = hasActiveVideo() ? activeVideoCleanupIntervalMs : normalCleanupIntervalMs;
     state.lastWorkAt = now;
     if (state.config.cleanupEnabled) {
-      if (!isBilibiliHost()) {
-        generatedAdCleanup.run(state, { now: now, force: false });
-      }
+      pageCleanupCoordinator.runGenerated(state, {
+        now: now,
+        isBilibiliHost: isBilibiliHost
+      });
       if (now - Number(state.lastCleanupAt || 0) >= cleanupInterval) {
         state.lastCleanupAt = now;
-        removeAds();
+        pageCleanupCoordinator.run(state, {
+          isBilibiliHost: isBilibiliHost,
+          runWithMutationSuppressed: runWithMutationSuppressed
+        });
       }
-    } else if (configuredCleanup.hasUserCssSelectors(state)) {
-      configuredCleanup.injectStyle(state, {
-        includeGenericSelectors: false,
-        includeRuleSelectors: false
-      });
     } else {
-      configuredCleanup.removeStyle();
+      pageCleanupCoordinator.applyDisabledState(state);
     }
     clickSkipButtons();
     enhanceVideos();

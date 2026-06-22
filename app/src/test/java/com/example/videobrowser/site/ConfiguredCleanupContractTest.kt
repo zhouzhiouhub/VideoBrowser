@@ -9,6 +9,7 @@ class ConfiguredCleanupContractTest {
     @Test
     fun `configured cleanup owns rule selector style and dom cleanup`() {
         val cleanupScript = projectFile("src/main/assets/scripts/configured_cleanup.js").readText()
+        val coordinatorScript = projectFile("src/main/assets/scripts/page_cleanup_coordinator.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
@@ -23,16 +24,28 @@ class ConfiguredCleanupContractTest {
         assertTrue(cleanupScript.contains("selectorTools.queryAll(selector).forEach(function (element)"))
         assertTrue(cleanupScript.contains("domActions.removeElement(element, {"))
         assertTrue(cleanupScript.contains("styleManager.injectHideRules(selectors);"))
-        assertTrue(commonScript.contains("const configuredCleanup = window.VideoBrowserConfiguredCleanup"))
-        assertTrue(commonScript.contains("configuredCleanup.injectStyle(state, {"))
-        assertTrue(commonScript.contains("configuredCleanup.removeDomElements(state);"))
-        assertTrue(commonScript.contains("configuredCleanup.hasUserCssSelectors(state)"))
-        assertTrue(commonScript.contains("configuredCleanup.removeStyle();"))
+        assertTrue(coordinatorScript.contains("const configuredCleanup = window.VideoBrowserConfiguredCleanup || {}"))
+        assertTrue(coordinatorScript.contains("configuredCleanup.injectStyle(state, {"))
+        assertTrue(coordinatorScript.contains("configuredCleanup.removeDomElements(state);"))
+        assertTrue(coordinatorScript.contains("configuredCleanup.hasUserCssSelectors(state)"))
+        assertTrue(coordinatorScript.contains("configuredCleanup.removeStyle();"))
+        assertTrue(commonScript.contains("const pageCleanupCoordinator = window.VideoBrowserPageCleanupCoordinator"))
+        assertTrue(commonScript.contains("pageCleanupCoordinator.applyDisabledState(state);"))
         assertTrue(scriptLoader.contains("CONFIGURED_CLEANUP_SCRIPT_ASSET"))
+        assertTrue(scriptLoader.contains("PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("CONFIGURED_CLEANUP_SCRIPT_ASSET") <
+                commonAssetList.indexOf("PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET")
+        )
+        assertTrue(
+            commonAssetList.indexOf("PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
         )
+        assertFalse(commonScript.contains("const configuredCleanup = window.VideoBrowserConfiguredCleanup"))
+        assertFalse(commonScript.contains("configuredCleanup.injectStyle(state, {"))
+        assertFalse(commonScript.contains("configuredCleanup.removeDomElements(state);"))
+        assertFalse(commonScript.contains("configuredCleanup.hasUserCssSelectors(state)"))
+        assertFalse(commonScript.contains("configuredCleanup.removeStyle();"))
         assertFalse(commonScript.contains("function externalCssSelectors()"))
         assertFalse(commonScript.contains("function userCssSelectors()"))
         assertFalse(commonScript.contains("function externalDomSelectors()"))
