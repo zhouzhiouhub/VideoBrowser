@@ -3,6 +3,7 @@
  */
 (function () {
   const tools = window.VideoBrowserPageLifecycleTools || {};
+  const callbackTools = window.VideoBrowserCallbackTools;
   window.VideoBrowserPageLifecycleTools = tools;
 
   tools.runWithMutationSuppressed = tools.runWithMutationSuppressed || function (state, work) {
@@ -25,12 +26,12 @@
       document.addEventListener('webkitfullscreenchange', callbacks.syncDocumentFullscreenState);
     }
     window.addEventListener('pagehide', function () {
-      call(callbacks, 'suspendPageFeatures', { pauseVideos: true });
+      callbackTools.call(callbacks, 'suspendPageFeatures', { pauseVideos: true });
     });
     window.addEventListener('pageshow', function () {
       targetState.disposed = false;
-      call(callbacks, 'startWorkers');
-      call(callbacks, 'schedulePageWork');
+      callbackTools.call(callbacks, 'startWorkers');
+      callbackTools.call(callbacks, 'schedulePageWork');
     });
   };
 
@@ -56,7 +57,7 @@
   tools.disposePageFeatures = tools.disposePageFeatures || function (state, options, callbacks) {
     const targetState = state || {};
     const config = callbacks || {};
-    call(config, 'suspendPageFeatures', options);
+    callbackTools.call(config, 'suspendPageFeatures', options);
     targetState.disposed = true;
     targetState.pendingWork = false;
 
@@ -86,7 +87,7 @@
     if (!targetState.observer && document.documentElement && !disableObserver) {
       targetState.observer = new MutationObserver(function () {
         if (targetState.suppressMutationWork) return;
-        call(callbacks, 'schedulePageWork');
+        callbackTools.call(callbacks, 'schedulePageWork');
       });
       targetState.observer.observe(document.documentElement, {
         childList: true,
@@ -96,15 +97,9 @@
 
     if (!targetState.intervalId) {
       targetState.intervalId = window.setInterval(function () {
-        call(callbacks, 'schedulePageWork');
+        callbackTools.call(callbacks, 'schedulePageWork');
       }, Number(callbacks.intervalMs || 1500));
     }
     return true;
   };
-
-  function call(callbacks, name, value) {
-    if (typeof callbacks[name] === 'function') {
-      callbacks[name](value);
-    }
-  }
 })();

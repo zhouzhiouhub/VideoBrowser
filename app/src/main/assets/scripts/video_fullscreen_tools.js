@@ -4,6 +4,7 @@
 (function () {
   const tools = window.VideoBrowserVideoFullscreenTools || {};
   const enhancerState = window.VideoBrowserEnhancerState;
+  const callbackTools = window.VideoBrowserCallbackTools;
   window.VideoBrowserVideoFullscreenTools = tools;
 
   tools.activeVideo = tools.activeVideo || function (state, videoQueryTools) {
@@ -118,28 +119,28 @@
         !video.paused ||
         position > 0
       ) {
-        call(callbacks, 'reportPlaybackTimeline', video);
+        callbackTools.call(callbacks, 'reportPlaybackTimeline', video);
       }
     };
 
     video.addEventListener('webkitbeginfullscreen', function () {
       targetState.nativeFullscreenVideo = video;
-      call(callbacks, 'applyVideoSpeed', video);
-      call(callbacks, 'reportPlaybackTimeline', video);
-      call(callbacks, 'enterNativeFullscreen');
+      callbackTools.call(callbacks, 'applyVideoSpeed', video);
+      callbackTools.call(callbacks, 'reportPlaybackTimeline', video);
+      callbackTools.call(callbacks, 'enterNativeFullscreen');
     });
 
     video.addEventListener('webkitendfullscreen', function () {
-      call(callbacks, 'stopDirectionalPlayback');
+      callbackTools.call(callbacks, 'stopDirectionalPlayback');
       targetState.nativeFullscreenVideo = null;
       targetState.documentFullscreenActive = false;
       targetState.fullscreenPlaybackSpeed = 1;
-      call(callbacks, 'applyVideoSpeed', video);
-      call(callbacks, 'exitNativeFullscreen');
+      callbackTools.call(callbacks, 'applyVideoSpeed', video);
+      callbackTools.call(callbacks, 'exitNativeFullscreen');
     });
 
     video.addEventListener('dblclick', function () {
-      call(callbacks, 'requestVideoFullscreen', video);
+      callbackTools.call(callbacks, 'requestVideoFullscreen', video);
     });
 
     ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'play', 'playing'].forEach(function (eventName) {
@@ -180,11 +181,5 @@
     return typeof callbacks.isVideoFullscreen === 'function'
       ? callbacks.isVideoFullscreen(video)
       : tools.isVideoFullscreen(video);
-  }
-
-  function call(callbacks, name, value) {
-    if (typeof callbacks[name] === 'function') {
-      callbacks[name](value);
-    }
   }
 })();

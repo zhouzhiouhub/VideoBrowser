@@ -21,7 +21,9 @@ class VideoFullscreenToolsContractTest {
         assertTrue(fullscreenScript.contains("tools.installVideoHooks = tools.installVideoHooks || function (video, state, options)"))
         assertTrue(fullscreenScript.contains("tools.syncDocumentState = tools.syncDocumentState || function (state, options)"))
         assertTrue(fullscreenScript.contains("const enhancerState = window.VideoBrowserEnhancerState;"))
+        assertTrue(fullscreenScript.contains("const callbackTools = window.VideoBrowserCallbackTools;"))
         assertTrue(fullscreenScript.contains("const hookedVideos = enhancerState.ensureWeakSet(targetState, 'fullscreenHookedVideos');"))
+        assertTrue(fullscreenScript.contains("callbackTools.call(callbacks, 'reportPlaybackTimeline', video);"))
         assertTrue(fullscreenScript.contains("target.requestFullscreen || target.webkitRequestFullscreen"))
         assertTrue(fullscreenScript.contains("video.addEventListener('webkitbeginfullscreen', function ()"))
         assertTrue(fullscreenScript.contains("video.addEventListener('webkitendfullscreen', function ()"))
@@ -45,6 +47,7 @@ class VideoFullscreenToolsContractTest {
         assertFalse(commonScript.contains("video.addEventListener('webkitbeginfullscreen'"))
         assertFalse(commonScript.contains("const timelineReporter = function ()"))
         assertFalse(fullscreenScript.contains("targetState.fullscreenHookedVideos = new WeakSet();"))
+        assertFalse(fullscreenScript.contains("function call(callbacks, name, value)"))
     }
 
     private fun projectFile(path: String): File {

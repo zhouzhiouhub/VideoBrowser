@@ -58,7 +58,7 @@ class PlaybackHistoryWiringContractTest {
         assertTrue(webRecorder.contains("source = PlaybackHistorySource.WEB_PAGE"))
         assertTrue(webRecorder.contains("private const val SAVE_THROTTLE_MS = 5_000L"))
         assertTrue(webRecorder.contains("playbackHistoryRepository.save("))
-        assertTrue(fullscreenScript.contains("call(callbacks, 'reportPlaybackTimeline', video);"))
+        assertTrue(fullscreenScript.contains("callbackTools.call(callbacks, 'reportPlaybackTimeline', video);"))
         assertTrue(script.contains("videoPlaybackTools.reportTimeline(target);"))
         assertTrue(playbackScript.contains("nativeBridge.updatePlaybackTimeline("))
         assertTrue(

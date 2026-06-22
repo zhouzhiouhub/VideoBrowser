@@ -5,6 +5,7 @@
   const tools = window.VideoBrowserVideoPlaybackTools || {};
   const nativeBridge = window.VideoBrowserNativeBridge || {};
   const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
+  const callbackTools = window.VideoBrowserCallbackTools;
   window.VideoBrowserVideoPlaybackTools = tools;
 
   tools.timeline = tools.timeline || function (video) {
@@ -150,7 +151,7 @@
 
     if (normalizedDirection > 0) {
       targetState.fullscreenPlaybackSpeed = 2;
-      call(callbacks, 'applyVideoSpeed', video);
+      callbackTools.call(callbacks, 'applyVideoSpeed', video);
       tools.play(video);
       return true;
     }
@@ -183,7 +184,7 @@
 
     const video = scan.video && scan.video.isConnected ? scan.video : activeVideo(callbacks);
     if (video) {
-      call(callbacks, 'applyVideoSpeed', video);
+      callbackTools.call(callbacks, 'applyVideoSpeed', video);
       if (scan.wasPaused) {
         tools.pause(video);
       } else {
@@ -240,11 +241,5 @@
       return true;
     }
     return tools.seekBy(video, offsetSeconds, config);
-  }
-
-  function call(callbacks, name, value) {
-    if (typeof callbacks[name] === 'function') {
-      callbacks[name](value);
-    }
   }
 })();

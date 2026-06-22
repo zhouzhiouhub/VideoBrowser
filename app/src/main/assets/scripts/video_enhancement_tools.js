@@ -5,6 +5,7 @@
   const tools = window.VideoBrowserVideoEnhancementTools || {};
   const enhancerState = window.VideoBrowserEnhancerState;
   const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
+  const callbackTools = window.VideoBrowserCallbackTools;
   window.VideoBrowserVideoEnhancementTools = tools;
 
   tools.installPlaybackSpeedHooks = tools.installPlaybackSpeedHooks || function (video, state, options) {
@@ -109,7 +110,7 @@
   tools.setPlaybackSpeed = tools.setPlaybackSpeed || function (speed, state, options) {
     const targetState = state || {};
     const config = options || {};
-    call(config, 'stopDirectionalPlayback');
+    callbackTools.call(config, 'stopDirectionalPlayback');
 
     const normalizedSpeed = Number(speed || 1);
     targetState.fullscreenPlaybackSpeed =
@@ -154,12 +155,6 @@
     const config = options || {};
     if (config.videoQueryTools && typeof config.videoQueryTools.forEach === 'function') {
       config.videoQueryTools.forEach(callback);
-    }
-  }
-
-  function call(callbacks, name) {
-    if (callbacks && typeof callbacks[name] === 'function') {
-      callbacks[name]();
     }
   }
 

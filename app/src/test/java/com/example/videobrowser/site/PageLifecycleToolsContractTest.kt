@@ -19,6 +19,8 @@ class PageLifecycleToolsContractTest {
         assertTrue(lifecycleScript.contains("tools.schedulePageWork = tools.schedulePageWork || function (state, options)"))
         assertTrue(lifecycleScript.contains("tools.disposePageFeatures = tools.disposePageFeatures || function (state, options, callbacks)"))
         assertTrue(lifecycleScript.contains("tools.startWorkers = tools.startWorkers || function (state, options)"))
+        assertTrue(lifecycleScript.contains("const callbackTools = window.VideoBrowserCallbackTools;"))
+        assertTrue(lifecycleScript.contains("callbackTools.call(callbacks, 'schedulePageWork');"))
         assertTrue(lifecycleScript.contains("targetState.observer = new MutationObserver(function ()"))
         assertTrue(lifecycleScript.contains("targetState.intervalId = window.setInterval(function ()"))
         assertTrue(lifecycleScript.contains("document.addEventListener('fullscreenchange', callbacks.syncDocumentFullscreenState);"))
@@ -37,6 +39,7 @@ class PageLifecycleToolsContractTest {
         assertFalse(commonScript.contains("window.setTimeout(runPageWork, delay)"))
         assertFalse(commonScript.contains("window.addEventListener('pagehide'"))
         assertFalse(commonScript.contains("state.observer.disconnect();"))
+        assertFalse(lifecycleScript.contains("function call(callbacks, name, value)"))
     }
 
     private fun projectFile(path: String): File {
