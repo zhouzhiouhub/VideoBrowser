@@ -16,6 +16,9 @@ class FunctionCenterPageHost(
     private val functionCenter: FunctionCenterController
 ) {
     private val viewFactory = functionCenter.viewFactory
+    private val contentFactory = viewFactory.contentFactory
+    private val headerFactory = viewFactory.headerFactory
+    private val gridFactory = viewFactory.gridFactory
 
     /**
      * 函数 `showPage`：控制 `show Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -180,7 +183,7 @@ class FunctionCenterPageHost(
         title: String,
         buildContent: (LinearLayout) -> Unit
     ) {
-        viewFactory.addFunctionSection(parent, title, buildContent)
+        contentFactory.addFunctionSection(parent, title, buildContent)
     }
 
     /**
@@ -192,7 +195,7 @@ class FunctionCenterPageHost(
      * @param summary 参数类型为 `String`，表示函数执行 `summary` 相关逻辑时需要读取或处理的输入。
      */
     fun addInfoRow(parent: LinearLayout, title: String, summary: String) {
-        viewFactory.addInfoRow(parent, title, summary)
+        contentFactory.addInfoRow(parent, title, summary)
     }
 
     /**
@@ -203,7 +206,7 @@ class FunctionCenterPageHost(
      * @param message 参数类型为 `String`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
      */
     fun addFunctionMessage(parent: LinearLayout, message: String) {
-        viewFactory.addFunctionMessage(parent, message)
+        contentFactory.addFunctionMessage(parent, message)
     }
 
     /**
@@ -216,7 +219,7 @@ class FunctionCenterPageHost(
      * @param onClick 参数类型为 `() -> Unit`，表示函数执行 `onClick` 相关逻辑时需要读取或处理的输入。
      */
     fun addProfileHeader(parent: LinearLayout, title: String, summary: String, onClick: () -> Unit) {
-        viewFactory.addProfileHeader(parent, title, summary, onClick)
+        headerFactory.addProfileHeader(parent, title, summary, onClick)
     }
 
     /**
@@ -236,7 +239,7 @@ class FunctionCenterPageHost(
         rightTitle: String,
         rightSummary: String
     ) {
-        viewFactory.addBenefitStrip(parent, leftTitle, leftSummary, rightTitle, rightSummary)
+        headerFactory.addBenefitStrip(parent, leftTitle, leftSummary, rightTitle, rightSummary)
     }
 
     /**
@@ -258,7 +261,7 @@ class FunctionCenterPageHost(
         onOpenPage: (SavedPage) -> Unit,
         onShowHistory: () -> Unit
     ) {
-        viewFactory.addHistoryPreview(parent, title, emptyMessage, pages, onOpenPage, onShowHistory)
+        headerFactory.addHistoryPreview(parent, title, emptyMessage, pages, onOpenPage, onShowHistory)
     }
 
     /**
@@ -269,7 +272,7 @@ class FunctionCenterPageHost(
      * @param message 参数类型为 `String`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
      */
     fun addEmptyState(parent: LinearLayout, message: String) {
-        viewFactory.addEmptyState(parent, message)
+        contentFactory.addEmptyState(parent, message)
     }
 
     /**
@@ -287,7 +290,7 @@ class FunctionCenterPageHost(
         backgroundColor: Int? = null,
         onClick: () -> Unit
     ) {
-        viewFactory.addFunctionActionButton(parent, title, backgroundColor, onClick)
+        contentFactory.addFunctionActionButton(parent, title, backgroundColor, onClick)
     }
 
     /**
@@ -301,7 +304,7 @@ class FunctionCenterPageHost(
         parent: LinearLayout,
         actions: List<FunctionCenterGridAction>
     ) {
-        viewFactory.addActionGrid(parent, actions)
+        gridFactory.addActionGrid(parent, actions)
     }
 
     /**
@@ -323,7 +326,7 @@ class FunctionCenterPageHost(
         enabled: Boolean = true,
         onChanged: (Boolean) -> Unit
     ) {
-        viewFactory.addSwitchRow(parent, title, summary, checked, enabled, onChanged)
+        contentFactory.addSwitchRow(parent, title, summary, checked, enabled, onChanged)
     }
 
     /**
@@ -343,7 +346,7 @@ class FunctionCenterPageHost(
         enabled: Boolean = true,
         onClick: () -> Unit
     ) {
-        viewFactory.addActionRow(parent, title, summary, enabled, onClick)
+        contentFactory.addActionRow(parent, title, summary, enabled, onClick)
     }
 
     /**
@@ -353,6 +356,6 @@ class FunctionCenterPageHost(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     fun addDivider(parent: LinearLayout) {
-        viewFactory.addDivider(parent)
+        contentFactory.addDivider(parent)
     }
 }

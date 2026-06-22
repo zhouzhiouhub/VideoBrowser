@@ -14,6 +14,9 @@ class FunctionCenterViewFactoryContractTest {
         val pageFactory = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPageViewFactory.kt"
         ).readText()
+        val pageHost = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPageHost.kt"
+        ).readText()
 
         assertTrue(viewFactory.contains("FunctionCenterPageViewFactory(activity, dp, surfaceFactory)"))
         assertTrue(viewFactory.contains("return pageFactory.createPage(title, onBack, buildContent)"))
@@ -35,6 +38,21 @@ class FunctionCenterViewFactoryContractTest {
         assertFalse(viewFactory.contains("ScrollView("))
         assertFalse(viewFactory.contains("createSheetToolbar("))
         assertFalse(viewFactory.contains("displayMetrics.heightPixels"))
+        assertFalse(viewFactory.contains("fun addFunctionSection("))
+        assertFalse(viewFactory.contains("fun addActionRow("))
+        assertFalse(viewFactory.contains("fun addSwitchRow("))
+        assertFalse(viewFactory.contains("fun addActionGrid("))
+
+        assertTrue(viewFactory.contains("internal val contentFactory = FunctionCenterContentFactory("))
+        assertTrue(viewFactory.contains("internal val headerFactory = FunctionCenterHeaderFactory("))
+        assertTrue(viewFactory.contains("internal val gridFactory = FunctionCenterGridFactory(activity, dp)"))
+        assertTrue(viewFactory.contains("private val rowFactory = FunctionCenterRowFactory(activity, dp, surfaceFactory)"))
+        assertTrue(pageHost.contains("private val contentFactory = viewFactory.contentFactory"))
+        assertTrue(pageHost.contains("private val headerFactory = viewFactory.headerFactory"))
+        assertTrue(pageHost.contains("private val gridFactory = viewFactory.gridFactory"))
+        assertTrue(pageHost.contains("contentFactory.addFunctionSection(parent, title, buildContent)"))
+        assertTrue(pageHost.contains("headerFactory.addProfileHeader(parent, title, summary, onClick)"))
+        assertTrue(pageHost.contains("gridFactory.addActionGrid(parent, actions)"))
     }
 
     private fun projectFile(path: String): File {
