@@ -27,6 +27,9 @@ class NativeVideoZoomWiringContractTest {
         val controller = File(
             "src/main/java/com/example/videobrowser/video/NativePlayerVideoZoomController.kt"
         ).readText()
+        val commandDispatcher = File(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackCommandDispatcher.kt"
+        ).readText()
 
         assertTrue(source.contains("NativePlayerVideoZoomController("))
         assertTrue(source.contains("NativePlayerSavedState.restore("))
@@ -37,8 +40,8 @@ class NativeVideoZoomWiringContractTest {
         assertTrue(controller.contains("gestureOverlay()?.setVideoZoomMode(videoZoomMode)"))
         assertTrue(controller.contains("fun cycle(): VideoZoomMode"))
         assertTrue(source.contains("nativePlayerVideoZoomController.currentMode()"))
-        assertTrue(source.contains("PlaybackCommand.CycleZoom"))
-        assertTrue(source.contains("PlaybackCommand.CycleZoom -> nativePlayerVideoZoomController.cycle()"))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.CycleZoom"))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.CycleZoom -> videoZoomController.cycle()"))
 
         assertFalse(source.contains("private var videoZoomMode = VideoZoomMode.FIT"))
         assertFalse(source.contains("playerView.resizeMode = videoZoomMode.resizeMode"))

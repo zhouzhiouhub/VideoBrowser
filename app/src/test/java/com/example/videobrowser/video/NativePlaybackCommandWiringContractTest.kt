@@ -19,6 +19,9 @@ class NativePlaybackCommandWiringContractTest {
     @Test
     fun playerActivityRoutesOverlayCallbacksThroughPlaybackCommands() {
         val source = File("src/main/java/com/example/videobrowser/video/PlayerActivity.kt").readText()
+        val commandDispatcher = File(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackCommandDispatcher.kt"
+        ).readText()
         val gestureOverlayBinder = File(
             "src/main/java/com/example/videobrowser/video/NativePlayerGestureOverlayBinder.kt"
         ).readText()
@@ -27,9 +30,11 @@ class NativePlaybackCommandWiringContractTest {
         ).readText()
 
         assertTrue(source.contains("handlePlaybackCommand(command: PlaybackCommand)"))
+        assertTrue(source.contains("nativePlaybackCommandDispatcher.handle(command)"))
+        assertTrue(source.contains("NativePlaybackCommandDispatcher("))
         assertTrue(gestureOverlayBinder.contains("PlaybackCommand.SeekBy(offsetMs)"))
         assertTrue(gestureOverlayBinder.contains("PlaybackCommand.SeekTo(positionMs)"))
-        assertTrue(source.contains("PlaybackCommand.TogglePlayPause"))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.TogglePlayPause"))
         assertTrue(gestureOverlayBinder.contains("PlaybackCommand.SetSpeed(speed)"))
         assertTrue(gestureOverlayBinder.contains("PlaybackCommand.Previous"))
         assertTrue(gestureOverlayBinder.contains("PlaybackCommand.Next"))
@@ -38,7 +43,8 @@ class NativePlaybackCommandWiringContractTest {
         assertTrue(gestureOverlayBinder.contains("PlaybackCommand.CycleZoom"))
         assertTrue(gestureOverlayBinder.contains("PlaybackCommand.ShowTrackSelection"))
         assertTrue(source.contains("handlePlaybackCommand(PlaybackCommand.SelectTrack(trackType))"))
-        assertTrue(source.contains("trackSelectionDialogController.showDialog(command.trackType)"))
+        assertTrue(commandDispatcher.contains("trackSelectionDialogController.showDialog(command.trackType)"))
+        assertFalse(source.contains("when (command)"))
         assertTrue(trackOptions.contains("PlaybackTrackType.AUDIO"))
         assertTrue(trackOptions.contains("PlaybackTrackType.SUBTITLE"))
     }

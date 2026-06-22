@@ -82,6 +82,20 @@ class PlayerActivity : AppCompatActivity() {
     private val nativePlayerVideoEffectsController = NativePlayerVideoEffectsController(
         logTag = VIDEO_LOG_TAG
     )
+    private val nativePlaybackCommandDispatcher by lazy {
+        NativePlaybackCommandDispatcher(
+            transportController = nativePlayerTransportController,
+            playbackSpeedController = nativePlayerPlaybackSpeedController,
+            queueController = nativePlayerQueueController,
+            playbackQueue = { playbackQueue },
+            setPlaybackQueue = { queue -> playbackQueue = queue },
+            repeatModeController = nativePlayerRepeatModeController,
+            videoZoomController = nativePlayerVideoZoomController,
+            trackSelectionDialogController = trackSelectionDialogController,
+            playbackQueueDialogController = playbackQueueDialogController,
+            updateQueueControls = ::updateQueueControls
+        )
+    }
     private val nativePlayerInitializer by lazy {
         NativePlayerInitializer(
             context = this,
@@ -410,55 +424,7 @@ class PlayerActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun handlePlaybackCommand(command: PlaybackCommand): Any? {
-        // 这一层把 UI 手势/按钮命令转换成播放器动作，后续新增控制项时也从这里接入。
-        return when (command) {
-            PlaybackCommand.Play -> nativePlayerTransportController.play()
-            PlaybackCommand.Pause -> nativePlayerTransportController.pause()
-            PlaybackCommand.TogglePlayPause -> nativePlayerTransportController.togglePlayPause()
-            is PlaybackCommand.SeekBy -> {
-                nativePlayerTransportController.seekBy(command.offsetMs)
-                Unit
-            }
-            is PlaybackCommand.SeekTo -> {
-                nativePlayerTransportController.seekTo(command.positionMs)
-                Unit
-            }
-            is PlaybackCommand.SetSpeed -> {
-                nativePlayerPlaybackSpeedController.setSpeed(command.speed)
-                Unit
-            }
-            PlaybackCommand.Previous -> {
-                nativePlayerQueueController.playPreviousMedia()
-                Unit
-            }
-            PlaybackCommand.Next -> {
-                nativePlayerQueueController.playNextMedia()
-                Unit
-            }
-            PlaybackCommand.ToggleRepeat -> {
-                playbackQueue = nativePlayerRepeatModeController.cycle(playbackQueue)
-                updateQueueControls()
-                nativePlayerRepeatModeController.currentMode()
-            }
-            is PlaybackCommand.SelectQueueItem -> {
-                nativePlayerQueueController.playMediaAt(command.index)
-                Unit
-            }
-            PlaybackCommand.ShowQueue -> {
-                playbackQueueDialogController.showMenu()
-                Unit
-            }
-            PlaybackCommand.ToggleShuffle -> nativePlayerQueueController.toggleShuffleMode()
-            PlaybackCommand.CycleZoom -> nativePlayerVideoZoomController.cycle()
-            PlaybackCommand.ShowTrackSelection -> {
-                trackSelectionDialogController.showMenu()
-                Unit
-            }
-            is PlaybackCommand.SelectTrack -> {
-                trackSelectionDialogController.showDialog(command.trackType)
-                Unit
-            }
-        }
+        return nativePlaybackCommandDispatcher.handle(command)
     }
 
     /**

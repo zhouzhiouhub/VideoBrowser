@@ -14,14 +14,17 @@ class NativePlayerTransportControllerContractTest {
         val transportController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerTransportController.kt"
         ).readText()
+        val commandDispatcher = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackCommandDispatcher.kt"
+        ).readText()
 
         assertTrue(playerActivity.contains("NativePlayerTransportController("))
         assertTrue(playerActivity.contains("nativePlayerTransportController::currentSeekPosition"))
-        assertTrue(playerActivity.contains("nativePlayerTransportController.seekBy(command.offsetMs)"))
-        assertTrue(playerActivity.contains("nativePlayerTransportController.seekTo(command.positionMs)"))
-        assertTrue(playerActivity.contains("nativePlayerTransportController.togglePlayPause()"))
-        assertTrue(playerActivity.contains("nativePlayerTransportController.play()"))
-        assertTrue(playerActivity.contains("nativePlayerTransportController.pause()"))
+        assertTrue(commandDispatcher.contains("transportController.seekBy(command.offsetMs)"))
+        assertTrue(commandDispatcher.contains("transportController.seekTo(command.positionMs)"))
+        assertTrue(commandDispatcher.contains("transportController.togglePlayPause()"))
+        assertTrue(commandDispatcher.contains("transportController.play()"))
+        assertTrue(commandDispatcher.contains("transportController.pause()"))
         assertFalse(playerActivity.contains("private fun seekPlayerBy"))
         assertFalse(playerActivity.contains("private fun seekPlayerTo"))
         assertFalse(playerActivity.contains("private fun togglePlayerPlayPause"))

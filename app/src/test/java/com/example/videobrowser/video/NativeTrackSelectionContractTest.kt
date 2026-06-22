@@ -49,13 +49,16 @@ class NativeTrackSelectionContractTest {
         val dialogController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativeTrackSelectionDialogController.kt"
         ).readText()
+        val commandDispatcher = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackCommandDispatcher.kt"
+        ).readText()
         val options = projectFile(
             "src/main/java/com/example/videobrowser/video/NativeTrackSelectionOptions.kt"
         ).readText()
 
         assertTrue(source.contains("NativeTrackSelectionDialogController("))
-        assertTrue(source.contains("trackSelectionDialogController.showMenu()"))
-        assertTrue(source.contains("trackSelectionDialogController.showDialog(command.trackType)"))
+        assertTrue(commandDispatcher.contains("trackSelectionDialogController.showMenu()"))
+        assertTrue(commandDispatcher.contains("trackSelectionDialogController.showDialog(command.trackType)"))
         assertTrue(dialogController.contains("TrackSelectionDialogBuilder"))
         assertTrue(dialogController.contains("NativeTrackSelectionOptions.menuOptions()"))
         assertTrue(dialogController.contains("NativeTrackSelectionOptions.optionFor(trackType)"))
@@ -63,7 +66,7 @@ class NativeTrackSelectionContractTest {
         assertTrue(options.contains("PlaybackTrackType.SUBTITLE"))
         assertTrue(options.contains("C.TRACK_TYPE_AUDIO"))
         assertTrue(options.contains("C.TRACK_TYPE_TEXT"))
-        assertTrue(source.contains("PlaybackCommand.ShowTrackSelection"))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.ShowTrackSelection"))
         assertFalse(source.contains("TrackSelectionDialogBuilder"))
         assertFalse(source.contains("C.TRACK_TYPE_AUDIO"))
         assertFalse(source.contains("C.TRACK_TYPE_TEXT"))

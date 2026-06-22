@@ -69,13 +69,16 @@ class LocalPlaybackQueueWiringContractTest {
         val queueController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
         ).readText()
+        val commandDispatcher = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackCommandDispatcher.kt"
+        ).readText()
 
         assertTrue(playerActivity.contains("intentReader.playbackQueue()"))
         assertTrue(intentReader.contains("PlaybackQueueJsonCodec::decode"))
         assertTrue(intentExtras.contains("PLAYBACK_QUEUE"))
-        assertTrue(playerActivity.contains("PlaybackCommand.Previous"))
-        assertTrue(playerActivity.contains("PlaybackCommand.Next"))
-        assertTrue(playerActivity.contains("PlaybackCommand.ToggleRepeat"))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.Previous"))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.Next"))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.ToggleRepeat"))
         assertTrue(playerActivity.contains("NativePlayerQueueController("))
         assertTrue(queueController.contains("fun playPreviousMedia()"))
         assertTrue(queueController.contains("fun playNextMedia()"))

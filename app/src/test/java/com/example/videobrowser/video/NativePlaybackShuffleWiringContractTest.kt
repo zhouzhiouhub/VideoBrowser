@@ -24,6 +24,9 @@ class NativePlaybackShuffleWiringContractTest {
         val queueController = File(
             "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
         ).readText()
+        val commandDispatcher = File(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackCommandDispatcher.kt"
+        ).readText()
         val queueDialog = File(
             "src/main/java/com/example/videobrowser/video/NativePlaybackQueueDialogController.kt"
         ).readText()
@@ -35,7 +38,8 @@ class NativePlaybackShuffleWiringContractTest {
         ).readText()
 
         assertTrue(playerActivity.contains("NativePlayerQueueController("))
-        assertTrue(playerActivity.contains("PlaybackCommand.ToggleShuffle -> nativePlayerQueueController.toggleShuffleMode()"))
+        assertTrue(playerActivity.contains("NativePlaybackCommandDispatcher("))
+        assertTrue(commandDispatcher.contains("PlaybackCommand.ToggleShuffle -> queueController.toggleShuffleMode()"))
         assertFalse(playerActivity.contains("private fun toggleShuffleMode(): Boolean"))
         assertTrue(queueController.contains("fun toggleShuffleMode(): Boolean"))
         assertTrue(queueController.contains("playbackQueue.toggleShuffle()"))
