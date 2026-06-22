@@ -73,9 +73,14 @@ class PlayerActivity : AppCompatActivity() {
             onRemoveMedia = ::removeMediaFromQueue
         )
     }
+    private val nativePlayerTransportController = NativePlayerTransportController(
+        player = { player },
+        logTag = VIDEO_LOG_TAG,
+        wakePlayerControls = ::wakePlayerControls
+    )
     private val directionalLongPressController = NativeDirectionalLongPressController(
         scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
-        seekBy = ::seekPlayerBy
+        seekBy = nativePlayerTransportController::seekBy
     )
     private var playbackPosition = 0L
     private var playWhenReady = true
@@ -367,7 +372,7 @@ class PlayerActivity : AppCompatActivity() {
         gestureOverlay = FullscreenVideoGestureOverlay(this).apply {
             onSeekBy = { offsetMs -> handlePlaybackCommand(PlaybackCommand.SeekBy(offsetMs)) }
             onSeekTo = { positionMs -> handlePlaybackCommand(PlaybackCommand.SeekTo(positionMs)) }
-            onSeekPreviewStart = ::currentPlayerSeekPosition
+            onSeekPreviewStart = nativePlayerTransportController::currentSeekPosition
             onTogglePlayPause = {
                 handlePlaybackCommand(PlaybackCommand.TogglePlayPause) as? Boolean
             }
@@ -419,15 +424,15 @@ class PlayerActivity : AppCompatActivity() {
     private fun handlePlaybackCommand(command: PlaybackCommand): Any? {
         // 这一层把 UI 手势/按钮命令转换成播放器动作，后续新增控制项时也从这里接入。
         return when (command) {
-            PlaybackCommand.Play -> playPlayer()
-            PlaybackCommand.Pause -> pausePlayer()
-            PlaybackCommand.TogglePlayPause -> togglePlayerPlayPause()
+            PlaybackCommand.Play -> nativePlayerTransportController.play()
+            PlaybackCommand.Pause -> nativePlayerTransportController.pause()
+            PlaybackCommand.TogglePlayPause -> nativePlayerTransportController.togglePlayPause()
             is PlaybackCommand.SeekBy -> {
-                seekPlayerBy(command.offsetMs)
+                nativePlayerTransportController.seekBy(command.offsetMs)
                 Unit
             }
             is PlaybackCommand.SeekTo -> {
-                seekPlayerTo(command.positionMs)
+                nativePlayerTransportController.seekTo(command.positionMs)
                 Unit
             }
             is PlaybackCommand.SetSpeed -> {
@@ -483,98 +488,6 @@ class PlayerActivity : AppCompatActivity() {
             playWhenReady = exoPlayer?.playWhenReady ?: playWhenReady,
             zoomMode = videoZoomMode
         )
-    }
-
-    /**
-     * 函数 `seekPlayerBy`：封装 `seek Player By` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param offsetMs 参数类型为 `Long`，表示函数执行 `offsetMs` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun seekPlayerBy(offsetMs: Long) {
-        val exoPlayer = player ?: return
-        seekPlayerTo(exoPlayer.currentPosition + offsetMs)
-    }
-
-    /**
-     * 函数 `seekPlayerTo`：封装 `seek Player To` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param positionMs 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     */
-    private fun seekPlayerTo(positionMs: Long) {
-        val exoPlayer = player ?: return
-        val boundedTarget = Media3Duration.boundedSeekPositionMs(positionMs, exoPlayer.duration)
-        exoPlayer.seekTo(boundedTarget)
-    }
-
-    /**
-     * 函数 `currentPlayerSeekPosition`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentPlayerSeekPosition(): FullscreenVideoGestureOverlay.SeekPosition? {
-        val exoPlayer = player ?: return null
-        val duration = Media3Duration.knownDurationMs(exoPlayer.duration)
-        return FullscreenVideoGestureOverlay.SeekPosition(
-            positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
-            durationMs = duration
-        )
-    }
-
-    /**
-     * 函数 `togglePlayerPlayPause`：封装 `toggle Player Play Pause` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun togglePlayerPlayPause(): Boolean? {
-        val exoPlayer = player ?: return null
-        Log.d(
-            VIDEO_LOG_TAG,
-            "event=native-toggle-playback isPlaying=${exoPlayer.isPlaying} " +
-                "playWhenReady=${exoPlayer.playWhenReady} state=${exoPlayer.playbackState}"
-        )
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
-        } else {
-            if (exoPlayer.playbackState == Player.STATE_ENDED) {
-                exoPlayer.seekTo(0)
-            }
-            exoPlayer.play()
-        }
-        wakePlayerControls()
-        return exoPlayer.playWhenReady
-    }
-
-    /**
-     * 函数 `playPlayer`：封装 `play Player` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun playPlayer(): Boolean? {
-        val exoPlayer = player ?: return null
-        if (exoPlayer.playbackState == Player.STATE_ENDED) {
-            exoPlayer.seekTo(0)
-        }
-        exoPlayer.play()
-        wakePlayerControls()
-        return exoPlayer.playWhenReady
-    }
-
-    /**
-     * 函数 `pausePlayer`：封装 `pause Player` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun pausePlayer(): Boolean? {
-        val exoPlayer = player ?: return null
-        exoPlayer.pause()
-        wakePlayerControls()
-        return exoPlayer.playWhenReady
     }
 
     /**
