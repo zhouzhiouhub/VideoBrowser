@@ -97,6 +97,9 @@ class WebGeolocationPermissionContractTest {
         val geolocationController = projectFile(
             "src/main/java/com/example/videobrowser/browser/GeolocationPermissionController.kt"
         ).readText()
+        val sitePermissionDecisionController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserSitePermissionDecisionController.kt"
+        ).readText()
         val webRequestAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebRequestAssemblyController.kt"
         ).readText()
@@ -116,9 +119,9 @@ class WebGeolocationPermissionContractTest {
         assertTrue(geolocationController.contains("SitePermission.LOCATION"))
         assertTrue(activityScaffoldAssembly.contains("SessionSitePermissionStore"))
         assertTrue(activityScaffoldAssembly.contains("val sessionSitePermissionStore = SessionSitePermissionStore()"))
-        assertTrue(geolocationController.contains("settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)"))
-        assertTrue(geolocationController.contains("settingsManager.setSitePermissionDecision("))
-        assertTrue(geolocationController.contains("sessionSitePermissionStore.isAllowed(hostName, SitePermission.LOCATION)"))
+        assertTrue(sitePermissionDecisionController.contains("settingsManager.sitePermissionDecision(hostName, permission)"))
+        assertTrue(sitePermissionDecisionController.contains("settingsManager.setSitePermissionDecision("))
+        assertTrue(sitePermissionDecisionController.contains("sessionSitePermissionStore.isAllowed(hostName, permission)"))
         assertTrue(geolocationController.contains("allowGeolocationPermissionForSession(prompt.origin)"))
         assertTrue(geolocationController.contains("SitePermissionDecision.ALLOW -> prompt.callback.invoke(prompt.origin, true, false)"))
         assertTrue(geolocationController.contains("SitePermissionDecision.BLOCK -> denyPermissionPrompt"))
@@ -147,7 +150,7 @@ class WebGeolocationPermissionContractTest {
                 "browserChromeClientController()?.cancelPendingGeolocationPermissionPrompt()"
             )
         )
-        assertTrue(geolocationController.contains("if (isPrivateBrowsingEnabled())"))
+        assertTrue(sitePermissionDecisionController.contains("if (isPrivateBrowsingEnabled())"))
         assertTrue(privateBrowsingSwitchController.contains("sessionSitePermissionStore.clear()"))
         assertTrue(strings.contains("title_geolocation_permission_request"))
         assertTrue(strings.contains("dialog_geolocation_permission_request_message"))
