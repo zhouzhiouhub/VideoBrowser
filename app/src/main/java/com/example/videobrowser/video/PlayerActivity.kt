@@ -1124,36 +1124,18 @@ class PlayerActivity : AppCompatActivity() {
             subtitleCandidates: List<ExternalSubtitleCandidate> = emptyList(),
             playbackQueue: PlaybackQueue? = null
         ): Intent {
-            return Intent(context, PlayerActivity::class.java).apply {
-                putExtra(PlayerIntentExtras.MEDIA_URI, mediaUri)
-                putExtra(PlayerIntentExtras.MEDIA_TITLE, title)
-                putExtra(PlayerIntentExtras.MIME_TYPE, mimeType)
-                putExtra(PlayerIntentExtras.USER_AGENT, userAgent)
-                putExtra(PlayerIntentExtras.COOKIE, cookie)
-                putExtra(PlayerIntentExtras.REFERER, referer)
-                putExtra(PlayerIntentExtras.PRIVATE_BROWSING, privateBrowsing)
-                if (subtitleCandidates.isNotEmpty()) {
-                    putStringArrayListExtra(
-                        PlayerIntentExtras.SUBTITLE_URIS,
-                        ArrayList(subtitleCandidates.map { it.uri })
-                    )
-                    putStringArrayListExtra(
-                        PlayerIntentExtras.SUBTITLE_LABELS,
-                        ArrayList(subtitleCandidates.map { it.label.orEmpty() })
-                    )
-                    putStringArrayListExtra(
-                        PlayerIntentExtras.SUBTITLE_MIME_TYPES,
-                        ArrayList(subtitleCandidates.map { it.mimeType.orEmpty() })
-                    )
-                    putStringArrayListExtra(
-                        PlayerIntentExtras.SUBTITLE_LANGUAGES,
-                        ArrayList(subtitleCandidates.map { it.language.orEmpty() })
-                    )
-                }
-                playbackQueue?.let {
-                    putExtra(PlayerIntentExtras.PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(it))
-                }
-            }
+            return PlayerIntentFactory.create(
+                context = context,
+                mediaUri = mediaUri,
+                title = title,
+                mimeType = mimeType,
+                userAgent = userAgent,
+                cookie = cookie,
+                referer = referer,
+                privateBrowsing = privateBrowsing,
+                subtitleCandidates = subtitleCandidates,
+                playbackQueue = playbackQueue
+            )
         }
     }
 }

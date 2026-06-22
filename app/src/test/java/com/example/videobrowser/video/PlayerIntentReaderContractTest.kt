@@ -14,10 +14,14 @@ class PlayerIntentReaderContractTest {
         val reader = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt"
         ).readText()
+        val factory = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerIntentFactory.kt"
+        ).readText()
         val extras = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerIntentExtras.kt"
         ).readText()
 
+        assertTrue(playerActivity.contains("PlayerIntentFactory.create("))
         assertTrue(playerActivity.contains("private val intentReader: PlayerIntentReader"))
         assertTrue(playerActivity.contains("intentReader.playbackQueue()"))
         assertTrue(playerActivity.contains("intentReader.requestHeaders()"))
@@ -26,6 +30,9 @@ class PlayerIntentReaderContractTest {
         assertFalse(playerActivity.contains("private fun currentPlayableMediaItem()"))
         assertFalse(playerActivity.contains("private fun subtitleCandidatesFromIntent()"))
         assertFalse(playerActivity.contains("private fun playbackQueueFromIntent()"))
+        assertTrue(factory.contains("putExtra(PlayerIntentExtras.MEDIA_URI, mediaUri)"))
+        assertTrue(factory.contains("putExtra(PlayerIntentExtras.PRIVATE_BROWSING, privateBrowsing)"))
+        assertTrue(factory.contains("putExtra(PlayerIntentExtras.PLAYBACK_QUEUE"))
         assertTrue(reader.contains("internal class PlayerIntentReader"))
         assertTrue(reader.contains("PlaybackQueueJsonCodec::decode"))
         assertTrue(extras.contains("internal object PlayerIntentExtras"))

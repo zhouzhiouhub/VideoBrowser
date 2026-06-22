@@ -32,6 +32,9 @@ class ExternalSubtitleWiringContractTest {
      */
     @Test
     fun playerActivitySerializesSubtitleCandidatesAndAttachesThemToMediaItem() {
+        val intentFactory = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerIntentFactory.kt"
+        ).readText()
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
@@ -42,12 +45,13 @@ class ExternalSubtitleWiringContractTest {
             "src/main/java/com/example/videobrowser/video/PlayableMediaItemMedia3Converter.kt"
         ).readText()
 
-        assertTrue(playerActivity.contains("PlayerIntentExtras.SUBTITLE_URIS"))
-        assertTrue(playerActivity.contains("putStringArrayListExtra("))
+        assertTrue(intentFactory.contains("PlayerIntentExtras.SUBTITLE_URIS"))
+        assertTrue(intentFactory.contains("putStringArrayListExtra("))
         assertTrue(intentReader.contains("getStringArrayListExtra(PlayerIntentExtras.SUBTITLE_URIS)"))
         assertTrue(intentReader.contains("private fun subtitleCandidates()"))
         assertTrue(converter.contains("setSubtitleConfigurations("))
         assertTrue(converter.contains("MediaItem.SubtitleConfiguration.Builder"))
+        assertTrue(playerActivity.contains("PlayerIntentFactory.create("))
         assertTrue(playerActivity.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
     }
 

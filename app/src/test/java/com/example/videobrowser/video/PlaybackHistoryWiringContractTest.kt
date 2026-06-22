@@ -91,6 +91,9 @@ class PlaybackHistoryWiringContractTest {
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val intentFactory = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerIntentFactory.kt"
+        ).readText()
         val externalNavigator = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserExternalNavigator.kt"
         ).readText()
@@ -103,7 +106,8 @@ class PlaybackHistoryWiringContractTest {
             .readText()
 
         assertTrue(playerActivity.contains("privateBrowsing: Boolean = false"))
-        assertTrue(playerActivity.contains("putExtra(PlayerIntentExtras.PRIVATE_BROWSING, privateBrowsing)"))
+        assertTrue(playerActivity.contains("privateBrowsing = privateBrowsing"))
+        assertTrue(intentFactory.contains("putExtra(PlayerIntentExtras.PRIVATE_BROWSING, privateBrowsing)"))
         assertTrue(externalNavigator.contains("privateBrowsing: Boolean = false"))
         assertTrue(externalNavigator.contains("privateBrowsing = privateBrowsing"))
         assertTrue(nativePlayerEntryController.contains("class NativePlayerEntryController"))
