@@ -1,5 +1,7 @@
 package com.example.videobrowser.functioncenter
 
+import com.example.videobrowser.testutil.projectFile
+
 /**
  * 测试阅读提示：
  * 这个测试文件验证“Function Center Root Sheet Layout Test”相关行为。
@@ -9,7 +11,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class FunctionCenterRootSheetLayoutTest {
     /**
@@ -54,12 +55,4 @@ class FunctionCenterRootSheetLayoutTest {
         assertFalse(pages.contains("addFunctionNavigationSection"))
     }
 
-    private fun projectFile(path: String): File {
-        val workingDirectory = File("").absoluteFile
-        return listOfNotNull(
-            File(workingDirectory, path),
-            File(workingDirectory, "app/$path"),
-            workingDirectory.parentFile?.let { parent -> File(parent, path) }
-        ).first { it.exists() }
-    }
 }
