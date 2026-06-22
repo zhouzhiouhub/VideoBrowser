@@ -42,7 +42,7 @@
   const nativeBridge = window.VideoBrowserNativeBridge;
   const logVideoDiagnostic = nativeBridge.logPageVideoDiagnostic;
   const videoLogDetails = nativeBridge.videoLogDetails;
-  const videoControlTools = window.VideoBrowserVideoControlTools;
+  const videoControlCoordinator = window.VideoBrowserVideoControlCoordinator;
   const videoQueryTools = window.VideoBrowserVideoQueryTools;
   const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools;
   const videoFullscreenTools = window.VideoBrowserVideoFullscreenTools;
@@ -51,7 +51,6 @@
   const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
   const hasSiteVideoCapability = siteVideoCapabilityBroker.has;
   const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke;
-  const customControlDetector = window.VideoBrowserVideoCustomControlDetector;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
   const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;
@@ -65,7 +64,7 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function cleanupLegacyVideoOverlays() {
-    videoControlTools.cleanupLegacyOverlays(state, {
+    videoControlCoordinator.cleanupLegacyOverlays(state, {
       runWithMutationSuppressed: runWithMutationSuppressed
     });
   }
@@ -107,7 +106,7 @@
      */
     videoQueryTools.forEach(function (video) {
       if (state.config.videoEnabled || state.config.scriptletVideoControlsEnabled) {
-        enableVideoControls(video);
+        videoControlCoordinator.enableControls(video);
       }
       if (!state.config.videoEnabled) return;
       preferBestVideoQuality(video);
@@ -115,33 +114,6 @@
       installPlaybackSpeedHooks(video);
       applyVideoSpeed(video);
     });
-  }
-
-  /**
-   * 函数 `enableNativeVideoControls`：封装 `enable Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function enableNativeVideoControls(video) {
-    videoControlTools.enableNativeControls(video);
-  }
-
-  /**
-   * 函数 `removeNativeVideoControls`：封装 `remove Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-   */
-  function removeNativeVideoControls(video, reason) {
-    const hadNativeControls = videoControlTools.removeNativeControls(video);
-    if (hadNativeControls) {
-      logVideoDiagnostic('remove-native-controls-generic', videoLogDetails(video, {
-        reason: reason || 'custom-player'
-      }));
-    }
-    return hadNativeControls;
   }
 
   /**
@@ -237,34 +209,6 @@
   }
 
   /**
-   * 函数 `enableVideoControls`：封装 `enable Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function enableVideoControls(video) {
-    const siteResult = invokeSiteVideoCapability(video, 'enableControls', []);
-    if (siteResult.handled) {
-      logVideoDiagnostic('enable-controls-site', videoLogDetails(video, {
-        handled: true,
-        result: siteResult.value
-      }));
-      return;
-    }
-    if (customControlDetector.hasControls(video)) {
-      removeNativeVideoControls(video, 'custom-player');
-      logVideoDiagnostic('enable-controls-custom-player', videoLogDetails(video, {
-        handled: true
-      }));
-      return;
-    }
-    enableNativeVideoControls(video);
-    logVideoDiagnostic('enable-controls-native', videoLogDetails(video, {
-      handled: false
-    }));
-  }
-
-  /**
    * 函数 `wakeVideoControls`：封装 `wake Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -273,7 +217,7 @@
   function wakeVideoControls(video) {
     return videoWakeTools.wake(video, {
       activeFullscreenVideo: activeFullscreenVideo,
-      enableVideoControls: enableVideoControls,
+      enableVideoControls: videoControlCoordinator.enableControls,
       reportPlaybackTimeline: reportPlaybackTimeline
     });
   }

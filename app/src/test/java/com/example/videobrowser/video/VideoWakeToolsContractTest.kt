@@ -22,7 +22,7 @@ class VideoWakeToolsContractTest {
         assertTrue(wakeScript.contains("callbacks.enableVideoControls(target);"))
         assertTrue(commonScript.contains("const videoWakeTools = window.VideoBrowserVideoWakeTools"))
         assertTrue(commonScript.contains("return videoWakeTools.wake(video, {"))
-        assertTrue(commonScript.contains("enableVideoControls: enableVideoControls"))
+        assertTrue(commonScript.contains("enableVideoControls: videoControlCoordinator.enableControls"))
         assertTrue(scriptLoader.contains("VIDEO_WAKE_TOOLS_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("VIDEO_WAKE_TOOLS_SCRIPT_ASSET") <

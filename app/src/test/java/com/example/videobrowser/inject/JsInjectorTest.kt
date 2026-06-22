@@ -426,6 +426,7 @@ class JsInjectorTest {
             ScriptLoader.VIDEO_QUERY_TOOLS_SCRIPT_ASSET -> "window.__videoQueryToolsLoaded = true;"
             ScriptLoader.SITE_VIDEO_CAPABILITY_BROKER_SCRIPT_ASSET -> "window.__siteVideoCapabilityBrokerLoaded = true;"
             ScriptLoader.VIDEO_CUSTOM_CONTROL_DETECTOR_SCRIPT_ASSET -> "window.__videoCustomControlDetectorLoaded = true;"
+            ScriptLoader.VIDEO_CONTROL_COORDINATOR_SCRIPT_ASSET -> "window.__videoControlCoordinatorLoaded = true;"
             ScriptLoader.VIDEO_FULLSCREEN_TOOLS_SCRIPT_ASSET -> "window.__videoFullscreenToolsLoaded = true;"
             ScriptLoader.VIDEO_WAKE_TOOLS_SCRIPT_ASSET -> "window.__videoWakeToolsLoaded = true;"
             ScriptLoader.VIDEO_ENHANCEMENT_TOOLS_SCRIPT_ASSET -> "window.__videoEnhancementToolsLoaded = true;"

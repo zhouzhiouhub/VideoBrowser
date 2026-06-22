@@ -20,6 +20,7 @@ class VideoCapabilityDelegationContractTest {
     fun commonScriptDelegatesVideoActionsToSiteCapabilitiesBeforeGenericVideoFallback() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
         val brokerScript = projectFile("src/main/assets/scripts/site_video_capability_broker.js").readText()
+        val controlCoordinatorScript = projectFile("src/main/assets/scripts/video_control_coordinator.js").readText()
         val playbackScript = projectFile("src/main/assets/scripts/video_playback_tools.js").readText()
         val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
 
@@ -27,7 +28,8 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(brokerScript.contains("broker.has = broker.has || function (video, action)"))
         assertTrue(script.contains("const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke"))
         assertTrue(script.contains("const hasSiteVideoCapability = siteVideoCapabilityBroker.has"))
-        assertTrue(script.contains("invokeSiteVideoCapability(video, 'enableControls', [])"))
+        assertTrue(controlCoordinatorScript.contains("invokeSiteVideoCapability(video, 'enableControls', [])"))
+        assertTrue(script.contains("videoControlCoordinator.enableControls(video);"))
         assertTrue(script.contains("videoPlaybackTools.togglePlayPause(video, {"))
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'togglePlayPause', [], options)"))
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds], options)"))
@@ -48,7 +50,8 @@ class VideoCapabilityDelegationContractTest {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
         val enhanceVideosBody = functionBody(script, "function enhanceVideos()")
 
-        assertTrue(enhanceVideosBody.contains("enableVideoControls(video);"))
+        assertTrue(enhanceVideosBody.contains("videoControlCoordinator.enableControls(video);"))
+        assertFalse(enhanceVideosBody.contains("enableVideoControls(video);"))
         assertFalse(enhanceVideosBody.contains("enableNativeVideoControls(video);"))
     }
 
@@ -83,7 +86,7 @@ class VideoCapabilityDelegationContractTest {
         val wakeControlsBody = functionBody(script, "function wakeVideoControls(video)")
 
         assertTrue(wakeControlsBody.contains("return videoWakeTools.wake(video, {"))
-        assertTrue(wakeControlsBody.contains("enableVideoControls: enableVideoControls"))
+        assertTrue(wakeControlsBody.contains("enableVideoControls: videoControlCoordinator.enableControls"))
         assertTrue(wakeScript.contains("callbacks.enableVideoControls(target);"))
         assertFalse(wakeControlsBody.contains("enableNativeVideoControls(target);"))
     }
@@ -96,6 +99,7 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonScriptReportsVideoControlDiagnosticsToNativeLog() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val controlCoordinatorScript = projectFile("src/main/assets/scripts/video_control_coordinator.js").readText()
         val nativeBridgeScript = projectFile("src/main/assets/scripts/native_bridge.js").readText()
 
         assertTrue(nativeBridgeScript.contains("window.VideoBrowserNativeBridge = bridgeTools"))
@@ -104,11 +108,14 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(nativeBridgeScript.contains("bridgeTools.videoLogDetails = bridgeTools.videoLogDetails || function (video, extra)"))
         assertTrue(script.contains("const logVideoDiagnostic = nativeBridge.logPageVideoDiagnostic"))
         assertTrue(script.contains("const videoLogDetails = nativeBridge.videoLogDetails"))
-        assertTrue(script.contains("logVideoDiagnostic('enable-controls-site'"))
-        assertTrue(script.contains("logVideoDiagnostic('enable-controls-custom-player'"))
-        assertTrue(script.contains("logVideoDiagnostic('enable-controls-native'"))
+        assertTrue(controlCoordinatorScript.contains("logVideoDiagnostic('enable-controls-site'"))
+        assertTrue(controlCoordinatorScript.contains("logVideoDiagnostic('enable-controls-custom-player'"))
+        assertTrue(controlCoordinatorScript.contains("logVideoDiagnostic('enable-controls-native'"))
         assertFalse(script.contains("function logVideoDiagnostic(event, details)"))
         assertFalse(script.contains("function videoLogDetails(video, extra)"))
+        assertFalse(script.contains("logVideoDiagnostic('enable-controls-site'"))
+        assertFalse(script.contains("logVideoDiagnostic('enable-controls-custom-player'"))
+        assertFalse(script.contains("logVideoDiagnostic('enable-controls-native'"))
     }
 
     /**
@@ -150,24 +157,34 @@ class VideoCapabilityDelegationContractTest {
     fun commonScriptAvoidsNativeControlsWhenUnknownSiteAlreadyHasCustomPlayerControls() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
         val geometryScript = projectFile("src/main/assets/scripts/geometry.js").readText()
+        val controlCoordinatorScript = projectFile("src/main/assets/scripts/video_control_coordinator.js").readText()
         val videoControlToolsScript = projectFile("src/main/assets/scripts/video_control_tools.js").readText()
         val customControlDetectorScript = projectFile("src/main/assets/scripts/video_custom_control_detector.js").readText()
-        val enableVideoControlsBody = functionBody(script, "function enableVideoControls(video)")
+        val enableVideoControlsBody = functionBody(
+            controlCoordinatorScript,
+            "coordinator.enableControls = coordinator.enableControls || function (video)"
+        )
 
         assertTrue(videoControlToolsScript.contains("window.VideoBrowserVideoControlTools = tools"))
         assertTrue(videoControlToolsScript.contains("tools.enableNativeControls = tools.enableNativeControls || function (video)"))
         assertTrue(videoControlToolsScript.contains("tools.removeNativeControls = tools.removeNativeControls || function (video)"))
         assertTrue(videoControlToolsScript.contains("tools.cleanupLegacyOverlays = tools.cleanupLegacyOverlays || function (state, options)"))
         assertTrue(videoControlToolsScript.contains("document.querySelectorAll('.__videobrowser_video_controls__')"))
-        assertTrue(script.contains("const videoControlTools = window.VideoBrowserVideoControlTools"))
+        assertTrue(controlCoordinatorScript.contains("const videoControlTools = window.VideoBrowserVideoControlTools || {}"))
+        assertTrue(controlCoordinatorScript.contains("window.VideoBrowserVideoControlCoordinator = coordinator"))
         assertTrue(customControlDetectorScript.contains("detector.hasControls = detector.hasControls || function (video)"))
-        assertTrue(script.contains("function removeNativeVideoControls(video, reason)"))
-        assertTrue(script.contains("videoControlTools.removeNativeControls(video)"))
-        assertTrue(script.contains("videoControlTools.enableNativeControls(video)"))
-        assertTrue(script.contains("videoControlTools.cleanupLegacyOverlays(state, {"))
+        assertTrue(controlCoordinatorScript.contains("coordinator.removeNativeControls = coordinator.removeNativeControls || function (video, reason)"))
+        assertTrue(controlCoordinatorScript.contains("videoControlTools.removeNativeControls(video)"))
+        assertTrue(controlCoordinatorScript.contains("videoControlTools.enableNativeControls(video)"))
+        assertTrue(controlCoordinatorScript.contains("videoControlTools.cleanupLegacyOverlays(state, options);"))
+        assertTrue(script.contains("videoControlCoordinator.cleanupLegacyOverlays(state, {"))
         assertFalse(script.contains("document.querySelectorAll('.__videobrowser_video_controls__')"))
         assertFalse(script.contains("try { video.controls = false; }"))
         assertFalse(script.contains("try { video.removeAttribute('controls'); }"))
+        assertFalse(script.contains("const videoControlTools = window.VideoBrowserVideoControlTools"))
+        assertFalse(script.contains("function removeNativeVideoControls(video, reason)"))
+        assertFalse(script.contains("videoControlTools.removeNativeControls(video)"))
+        assertFalse(script.contains("videoControlTools.enableNativeControls(video)"))
         assertTrue(geometryScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
         assertTrue(geometryScript.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
         assertTrue(customControlDetectorScript.contains("geometry.expandedRect(videoRect, 12)"))
@@ -178,10 +195,10 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(customControlDetectorScript.contains("'.vjs-control-bar'"))
         assertTrue(customControlDetectorScript.contains("'[class*=\"player-control\"]'"))
         assertTrue(enableVideoControlsBody.contains("customControlDetector.hasControls(video)"))
-        assertTrue(enableVideoControlsBody.contains("removeNativeVideoControls(video, 'custom-player')"))
+        assertTrue(enableVideoControlsBody.contains("coordinator.removeNativeControls(video, 'custom-player')"))
         assertTrue(enableVideoControlsBody.contains("logVideoDiagnostic('enable-controls-custom-player'"))
         assertTrue(enableVideoControlsBody.indexOf("customControlDetector.hasControls(video)") <
-            enableVideoControlsBody.indexOf("enableNativeVideoControls(video)"))
+            enableVideoControlsBody.indexOf("videoControlTools.enableNativeControls(video)"))
     }
 
     /**

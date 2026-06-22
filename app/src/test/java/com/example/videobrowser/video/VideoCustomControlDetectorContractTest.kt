@@ -9,6 +9,7 @@ class VideoCustomControlDetectorContractTest {
     @Test
     fun `custom player control detection is owned by shared detector module`() {
         val detectorScript = projectFile("src/main/assets/scripts/video_custom_control_detector.js").readText()
+        val controlCoordinatorScript = projectFile("src/main/assets/scripts/video_control_coordinator.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
@@ -23,11 +24,18 @@ class VideoCustomControlDetectorContractTest {
         assertTrue(detectorScript.contains("'[class*=\"player-control\"]'"))
         assertTrue(detectorScript.contains("geometry.rectsOverlap(rect, geometry.expandedRect(videoRect, 12))"))
         assertTrue(detectorScript.contains("return selectorTools.queryAllWithin(root, selector);"))
-        assertTrue(commonScript.contains("const customControlDetector = window.VideoBrowserVideoCustomControlDetector"))
-        assertTrue(commonScript.contains("customControlDetector.hasControls(video)"))
+        assertTrue(controlCoordinatorScript.contains("const customControlDetector = window.VideoBrowserVideoCustomControlDetector || {}"))
+        assertTrue(controlCoordinatorScript.contains("customControlDetector.hasControls(video)"))
+        assertFalse(commonScript.contains("const customControlDetector = window.VideoBrowserVideoCustomControlDetector"))
+        assertFalse(commonScript.contains("customControlDetector.hasControls(video)"))
         assertTrue(scriptLoader.contains("VIDEO_CUSTOM_CONTROL_DETECTOR_SCRIPT_ASSET"))
+        assertTrue(scriptLoader.contains("VIDEO_CONTROL_COORDINATOR_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("VIDEO_CUSTOM_CONTROL_DETECTOR_SCRIPT_ASSET") <
+                commonAssetList.indexOf("VIDEO_CONTROL_COORDINATOR_SCRIPT_ASSET")
+        )
+        assertTrue(
+            commonAssetList.indexOf("VIDEO_CONTROL_COORDINATOR_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
         )
         assertFalse(commonScript.contains("const customPlayerControlSelectors = ["))
