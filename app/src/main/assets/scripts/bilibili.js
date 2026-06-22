@@ -20,6 +20,7 @@
   var removeNativeVideoControls = adapterTools.removeNativeVideoControls;
   var overlayCleanup = window.VideoBrowserBilibiliOverlayCleanup || {};
   var browserChoiceCleanup = window.VideoBrowserBilibiliBrowserChoiceCleanup || {};
+  var playerApi = window.VideoBrowserBilibiliPlayerApi || {};
 
   /**
    * 函数 `hideVideoPlayPauseOverlays`：封装 `hide Video Play Pause Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -39,27 +40,6 @@
   }
 
   /**
-   * 函数 `findBilibiliPlayerApi`：封装 `find Bilibili Player Api` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function findBilibiliPlayerApi() {
-    var candidates = [
-      window.player,
-      window.bilibiliPlayer,
-      window.__bilibiliPlayer,
-      window.__PLAYER__,
-      window.$player
-    ];
-
-    for (var index = 0; index < candidates.length; index += 1) {
-      var candidate = candidates[index];
-      if (candidate && typeof candidate === 'object') return candidate;
-    }
-    return null;
-  }
-
-  /**
    * 函数 `playerMethodsFor`：封装 `player Methods For` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -67,18 +47,7 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function playerMethodsFor(action, video) {
-    if (action === 'togglePlayPause') {
-      return video && (video.paused || video.ended)
-        ? ['play']
-        : ['pause'];
-    }
-    if (action === 'seekBy' || action === 'seekTo') {
-      return ['seek', 'seekTo', 'setCurrentTime'];
-    }
-    if (action === 'setPlaybackSpeed') {
-      return ['setPlaybackRate', 'setPlaybackSpeed'];
-    }
-    return [];
+    return typeof playerApi.methodsFor === 'function' ? playerApi.methodsFor(action, video) : [];
   }
 
   /**
@@ -89,16 +58,7 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function hasPlayerMethod(action, video) {
-    var api = findBilibiliPlayerApi();
-    if (!api) return false;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param methodName 表示当前回调收到的 `methodName` 参数。
-     */
-    return playerMethodsFor(action, video).some(function (methodName) {
-      return typeof api[methodName] === 'function';
-    });
+    return typeof playerApi.hasMethod === 'function' && playerApi.hasMethod(action, video);
   }
 
   /**
@@ -109,21 +69,7 @@
    * @param {*} args 表示稍后执行的回调、清理函数或调用参数。
    */
   function callPlayerMethod(methodNames, args) {
-    var api = findBilibiliPlayerApi();
-    if (!api) return null;
-
-    for (var index = 0; index < methodNames.length; index += 1) {
-      var methodName = methodNames[index];
-      var method = api[methodName];
-      if (typeof method !== 'function') continue;
-      try {
-        return {
-          handled: true,
-          value: method.apply(api, args || [])
-        };
-      } catch (_) {}
-    }
-    return null;
+    return typeof playerApi.call === 'function' ? playerApi.call(methodNames, args) : null;
   }
 
   /**
@@ -133,19 +79,7 @@
    * @param {*} methodNames 表示要判断、转换或传给播放器/规则逻辑的输入值。
    */
   function readPlayerMethod(methodNames) {
-    var api = findBilibiliPlayerApi();
-    if (!api) return null;
-
-    for (var index = 0; index < methodNames.length; index += 1) {
-      var methodName = methodNames[index];
-      var value = api[methodName];
-      if (typeof value === 'undefined' || value === null) continue;
-      try {
-        var result = typeof value === 'function' ? value.call(api) : value;
-        if (typeof result !== 'undefined' && result !== null) return result;
-      } catch (_) {}
-    }
-    return null;
+    return typeof playerApi.read === 'function' ? playerApi.read(methodNames) : null;
   }
 
   /**
@@ -380,8 +314,9 @@
    * @param {*} fallbackValue 表示要判断、转换或传给播放器/规则逻辑的输入值。
    */
   function handledValue(callResult, fallbackValue) {
-    if (!callResult || !callResult.handled) return null;
-    return typeof callResult.value === 'undefined' ? fallbackValue : callResult.value;
+    return typeof playerApi.handledValue === 'function'
+      ? playerApi.handledValue(callResult, fallbackValue)
+      : null;
   }
 
   /**
@@ -391,19 +326,9 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function currentVideoTime(video) {
-    var api = findBilibiliPlayerApi();
-    if (api) {
-      var getterNames = ['getCurrentTime', 'currentTime'];
-      for (var index = 0; index < getterNames.length; index += 1) {
-        var getter = api[getterNames[index]];
-        try {
-          var value = typeof getter === 'function' ? getter.call(api) : getter;
-          var numericValue = Number(value);
-          if (Number.isFinite(numericValue) && numericValue >= 0) return numericValue;
-        } catch (_) {}
-      }
-    }
-    return Number(video && video.currentTime || 0);
+    return typeof playerApi.currentVideoTime === 'function'
+      ? playerApi.currentVideoTime(video)
+      : Number(video && video.currentTime || 0);
   }
 
   /**

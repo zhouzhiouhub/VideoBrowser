@@ -184,6 +184,7 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun bilibiliAdapterExposesPlatformVideoCapabilitiesForCommonBroker() {
         val script = projectFile("src/main/assets/scripts/bilibili.js").readText()
+        val playerApiScript = projectFile("src/main/assets/scripts/bilibili_player_api.js").readText()
 
         assertTrue(script.contains("adapters.bilibili.videoCapabilities"))
         assertTrue(script.contains("supports: function (video)"))
@@ -193,9 +194,14 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("seekTo: function (video, targetSeconds)"))
         assertTrue(script.contains("setPlaybackSpeed: function (video, speed)"))
         assertTrue(script.contains("preferBestQuality: function (video)"))
-        assertTrue(script.contains("findBilibiliPlayerApi()"))
-        assertTrue(script.contains("'setPlaybackRate'"))
-        assertTrue(script.contains("'seek'"))
+        assertTrue(script.contains("var playerApi = window.VideoBrowserBilibiliPlayerApi || {};"))
+        assertTrue(script.contains("return typeof playerApi.hasMethod === 'function' && playerApi.hasMethod(action, video);"))
+        assertTrue(playerApiScript.contains("window.VideoBrowserBilibiliPlayerApi = tools"))
+        assertTrue(playerApiScript.contains("tools.find = tools.find || function ()"))
+        assertTrue(playerApiScript.contains("tools.methodsFor = tools.methodsFor || function (action, video)"))
+        assertTrue(playerApiScript.contains("'setPlaybackRate'"))
+        assertTrue(playerApiScript.contains("'seek'"))
+        assertFalse(script.contains("function findBilibiliPlayerApi()"))
     }
 
     /**
