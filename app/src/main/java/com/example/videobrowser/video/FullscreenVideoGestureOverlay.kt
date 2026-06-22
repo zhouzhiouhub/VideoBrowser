@@ -85,6 +85,14 @@ class FullscreenVideoGestureOverlay(
         feedbackHandler = feedbackHandler,
         dp = ::dp
     )
+    private val seekGestureController = FullscreenVideoSeekGestureController(
+        seekPreviewStart = { onSeekPreviewStart?.invoke() },
+        seekBy = { offsetMs -> onSeekBy?.invoke(offsetMs) },
+        seekTo = { positionMs -> onSeekTo?.invoke(positionMs) },
+        currentFeedbackText = { feedbackController.currentText() },
+        showFeedback = ::showFeedback,
+        hideFeedback = { feedbackController.hide() }
+    )
 
     private var landscape = true
     private var playbackSpeed = DEFAULT_PLAYBACK_SPEED
@@ -97,10 +105,6 @@ class FullscreenVideoGestureOverlay(
     private var tapCandidate = false
     private var longPressActive = false
     private var downZone = VideoGestureScreenZone.CENTER
-    private var seekStartPositionMs: Long? = null
-    private var seekDurationMs: Long? = null
-    private var pendingHorizontalSeekMs = 0L
-    private var pendingSeekTargetMs: Long? = null
     private var downX = 0f
     private var downY = 0f
     private var downTime = 0L
@@ -738,12 +742,7 @@ class FullscreenVideoGestureOverlay(
         clearSeekAccumulator()
         feedbackHandler.removeCallbacks(longPressRunnable)
 
-        val position = onSeekPreviewStart?.invoke()
-        seekStartPositionMs = position?.positionMs?.takeIf { it >= 0L }
-        seekDurationMs = position?.durationMs?.takeIf { it > 0L }
-        pendingHorizontalSeekMs = 0L
-        pendingSeekTargetMs = seekStartPositionMs
-        updateHorizontalSeek(deltaX)
+        seekGestureController.begin(deltaX, width)
     }
 
     /**
@@ -753,25 +752,7 @@ class FullscreenVideoGestureOverlay(
      * @param deltaX 参数类型为 `Float`，表示函数执行 `deltaX` 相关逻辑时需要读取或处理的输入。
      */
     private fun updateHorizontalSeek(deltaX: Float) {
-        val offsetMs = VideoSeekDragCalculator.offsetForDrag(deltaX, width, seekDurationMs)
-        pendingHorizontalSeekMs = offsetMs
-
-        val start = seekStartPositionMs
-        val duration = seekDurationMs
-        val target = start?.let {
-            VideoSeekDragCalculator.targetForDrag(
-                startPositionMs = it,
-                durationMs = duration,
-                deltaX = deltaX,
-                viewWidth = width
-            )
-        }
-        pendingSeekTargetMs = target
-
-        showFeedback(
-            VideoGestureFeedbackFormatter.formatSeekPreview(offsetMs, target, duration),
-            autoHide = false
-        )
+        seekGestureController.update(deltaX, width)
     }
 
     /**
@@ -782,22 +763,7 @@ class FullscreenVideoGestureOverlay(
      */
     private fun finishHorizontalSeek(commit: Boolean) {
         // 抬手时才真正 seek，移动过程只显示反馈，避免每一帧都让播放器跳转。
-        val feedbackText = feedbackController.currentText()
-        if (commit && pendingHorizontalSeekMs != 0L) {
-            pendingSeekTargetMs?.let { onSeekTo?.invoke(it) }
-                ?: onSeekBy?.invoke(pendingHorizontalSeekMs)
-        }
-
-        if (commit && feedbackText.isNotBlank()) {
-            showFeedback(feedbackText)
-        } else {
-            feedbackController.hide()
-        }
-
-        seekStartPositionMs = null
-        seekDurationMs = null
-        pendingHorizontalSeekMs = 0L
-        pendingSeekTargetMs = null
+        seekGestureController.finish(commit)
     }
 
     /**
