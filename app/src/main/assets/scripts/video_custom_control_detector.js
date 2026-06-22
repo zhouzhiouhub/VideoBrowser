@@ -35,13 +35,13 @@
     const root = detector.rootFor(video);
     if (!root) return false;
     const controls = controlSelectors.some(function (selector) {
-      return queryAllWithin(root, selector).some(function (element) {
+      return selectorTools.queryAllWithin(root, selector).some(function (element) {
         return isLikelyControlElement(element, video);
       });
     });
     if (controls) return true;
 
-    return queryAllWithin(root, 'button,[role="button"],input[type="range"]').some(function (element) {
+    return selectorTools.queryAllWithin(root, 'button,[role="button"],input[type="range"]').some(function (element) {
       return isLikelyMediaControlElement(element, video);
     });
   };
@@ -58,7 +58,7 @@
   };
 
   function isLikelyPlayerRoot(element) {
-    const descriptor = elementDescriptor(element).toLowerCase();
+    const descriptor = domTools.elementDescriptor(element).toLowerCase();
     return /xgplayer|dplayer|artplayer|jwplayer|video-js|vjs-|plyr|ckplayer|prism-player|mejs|hls-player|video-player|player-container|player-wrap|player_box|playerbox|video-container|video-wrap|video_box|videobox/i
       .test(descriptor);
   }
@@ -82,8 +82,8 @@
 
   function isLikelyMediaControlElement(element, video) {
     if (!isLikelyControlElement(element, video)) return false;
-    const descriptor = elementDescriptor(element).toLowerCase();
-    const text = normalizeText(
+    const descriptor = domTools.elementDescriptor(element).toLowerCase();
+    const text = selectorTools.normalizeText(
       element.innerText ||
       element.textContent ||
       element.getAttribute('aria-label') ||
@@ -92,17 +92,5 @@
     if (element.matches && element.matches('input[type="range"]')) return true;
     return /play|pause|seek|progress|volume|fullscreen|screenfull|control|播放|暂停|进度|音量|全屏/i
       .test(descriptor + ' ' + text);
-  }
-
-  function normalizeText(value) {
-    return selectorTools.normalizeText(value);
-  }
-
-  function elementDescriptor(element) {
-    return domTools.elementDescriptor(element);
-  }
-
-  function queryAllWithin(root, selector) {
-    return selectorTools.queryAllWithin(root, selector);
   }
 })();

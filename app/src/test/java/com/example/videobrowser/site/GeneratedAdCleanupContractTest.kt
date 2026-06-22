@@ -26,6 +26,7 @@ class GeneratedAdCleanupContractTest {
         assertTrue(generatedScript.contains("geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)"))
         assertTrue(generatedScript.contains("domTools.parseZIndex(style.zIndex)"))
         assertTrue(generatedScript.contains("domTools.elementDescriptor(element)"))
+        assertTrue(generatedScript.contains("domActions.hideElement(element, {"))
         assertTrue(coordinatorScript.contains("const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup || {}"))
         assertTrue(overlayScript.contains("generatedAdCleanup.run(state, {"))
         assertTrue(coordinatorScript.contains("coordinator.runGenerated = coordinator.runGenerated || function (state, options)"))
@@ -48,6 +49,7 @@ class GeneratedAdCleanupContractTest {
         assertFalse(commonScript.contains("function parseZIndex(value)"))
         assertFalse(commonScript.contains("const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup"))
         assertFalse(commonScript.contains("generatedAdCleanup.run(state, { now: now, force: false });"))
+        assertFalse(generatedScript.contains("function hideElement(element, reason)"))
     }
 
     private fun projectFile(path: String): File {

@@ -23,7 +23,9 @@ class VideoCustomControlDetectorContractTest {
         assertTrue(detectorScript.contains("'.vjs-control-bar'"))
         assertTrue(detectorScript.contains("'[class*=\"player-control\"]'"))
         assertTrue(detectorScript.contains("geometry.rectsOverlap(rect, geometry.expandedRect(videoRect, 12))"))
-        assertTrue(detectorScript.contains("return selectorTools.queryAllWithin(root, selector);"))
+        assertTrue(detectorScript.contains("selectorTools.queryAllWithin(root, selector).some(function (element)"))
+        assertTrue(detectorScript.contains("domTools.elementDescriptor(element).toLowerCase()"))
+        assertTrue(detectorScript.contains("selectorTools.normalizeText("))
         assertTrue(controlCoordinatorScript.contains("const customControlDetector = window.VideoBrowserVideoCustomControlDetector || {}"))
         assertTrue(controlCoordinatorScript.contains("customControlDetector.hasControls(video)"))
         assertFalse(commonScript.contains("const customControlDetector = window.VideoBrowserVideoCustomControlDetector"))
@@ -43,6 +45,9 @@ class VideoCustomControlDetectorContractTest {
         assertFalse(commonScript.contains("function customPlayerRootFor(video)"))
         assertFalse(commonScript.contains("function isLikelyCustomControlElement(element, video)"))
         assertFalse(commonScript.contains("function isLikelyMediaControlElement(element, video)"))
+        assertFalse(detectorScript.contains("function normalizeText(value)"))
+        assertFalse(detectorScript.contains("function elementDescriptor(element)"))
+        assertFalse(detectorScript.contains("function queryAllWithin(root, selector)"))
     }
 
     private fun projectFile(path: String): File {

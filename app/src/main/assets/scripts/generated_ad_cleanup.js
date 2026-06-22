@@ -54,16 +54,25 @@
 
     if (imageSlices.length >= 12) {
       imageSlices.forEach(function (element) {
-        hideElement(element, 'generated-sliced-ad');
+        domActions.hideElement(element, {
+          reason: 'generated-sliced-ad',
+          protectAppContainers: true
+        });
       });
       adjunctControls.forEach(function (element) {
-        hideElement(element, 'generated-sliced-ad');
+        domActions.hideElement(element, {
+          reason: 'generated-sliced-ad',
+          protectAppContainers: true
+        });
       });
     }
 
     if (clickGridCells.length >= 20) {
       clickGridCells.forEach(function (element) {
-        hideElement(element, 'generated-click-grid');
+        domActions.hideElement(element, {
+          reason: 'generated-click-grid',
+          protectAppContainers: true
+        });
       });
     }
   };
@@ -100,12 +109,5 @@
     const descriptor = domTools.elementDescriptor(element);
     return /^[a-z]{5,10}$/.test(tagName) ||
       (!descriptor.trim() && !String(style.backgroundImage || '').match(/^url\(/i));
-  }
-
-  function hideElement(element, reason) {
-    domActions.hideElement(element, {
-      reason: reason,
-      protectAppContainers: true
-    });
   }
 })();
