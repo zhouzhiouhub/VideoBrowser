@@ -86,6 +86,7 @@ class ScriptLoader(
         const val VIDEO_CUSTOM_CONTROL_DETECTOR_SCRIPT_ASSET = "scripts/video_custom_control_detector.js"
         const val VIDEO_FULLSCREEN_TOOLS_SCRIPT_ASSET = "scripts/video_fullscreen_tools.js"
         const val VIDEO_WAKE_TOOLS_SCRIPT_ASSET = "scripts/video_wake_tools.js"
+        const val VIDEO_ENHANCEMENT_TOOLS_SCRIPT_ASSET = "scripts/video_enhancement_tools.js"
         const val VIDEO_PLAYBACK_TOOLS_SCRIPT_ASSET = "scripts/video_playback_tools.js"
         const val ELEMENT_PICKER_SCRIPT_ASSET = "scripts/element_picker.js"
         const val SCRIPTLET_HOOKS_SCRIPT_ASSET = "scripts/scriptlet_hooks.js"
@@ -111,6 +112,7 @@ class ScriptLoader(
             VIDEO_CUSTOM_CONTROL_DETECTOR_SCRIPT_ASSET,
             VIDEO_FULLSCREEN_TOOLS_SCRIPT_ASSET,
             VIDEO_WAKE_TOOLS_SCRIPT_ASSET,
+            VIDEO_ENHANCEMENT_TOOLS_SCRIPT_ASSET,
             VIDEO_PLAYBACK_TOOLS_SCRIPT_ASSET,
             ELEMENT_PICKER_SCRIPT_ASSET,
             SCRIPTLET_HOOKS_SCRIPT_ASSET,

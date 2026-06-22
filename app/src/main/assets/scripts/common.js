@@ -50,6 +50,7 @@
   const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools;
   const videoFullscreenTools = window.VideoBrowserVideoFullscreenTools;
   const videoWakeTools = window.VideoBrowserVideoWakeTools;
+  const videoEnhancementTools = window.VideoBrowserVideoEnhancementTools;
   const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
   const hasSiteVideoCapability = siteVideoCapabilityBroker.has;
   const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke;
@@ -59,7 +60,6 @@
 
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
-  const bestQualityAttemptIntervalMs = 30000;
   const normalWorkDelayMs = 250;
   const activeVideoWorkDelayMs = 750;
   /**
@@ -358,29 +358,8 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function installPlaybackSpeedHooks(video) {
-    if (!video || state.speedHookedVideos.has(video)) return;
-    state.speedHookedVideos.add(video);
-    /**
-     * 函数 `enforceSpeed`：封装 `enforce Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    const enforceSpeed = function () {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       */
-      window.setTimeout(function () {
-        applyVideoSpeed(video);
-      }, 0);
-    };
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param eventName 表示当前回调正在处理的名称、键或文本值。
-     */
-    ['loadedmetadata', 'play', 'playing', 'ratechange', 'webkitbeginfullscreen'].forEach(function (eventName) {
-      video.addEventListener(eventName, enforceSpeed);
+    return videoEnhancementTools.installPlaybackSpeedHooks(video, state, {
+      applyVideoSpeed: applyVideoSpeed
     });
   }
 
@@ -391,9 +370,9 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function desiredVideoSpeed(video) {
-    const speed = currentFullscreenPlaybackSpeed();
-    if (!state.config.videoEnabled || !isFullscreenPlaybackTarget(video)) return 1;
-    return Number.isFinite(speed) && speed > 0 ? speed : 1;
+    return videoEnhancementTools.desiredSpeed(video, state, {
+      isVideoFullscreen: isVideoFullscreen
+    });
   }
 
   /**
@@ -402,8 +381,7 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function currentFullscreenPlaybackSpeed() {
-    const speed = Number(state.fullscreenPlaybackSpeed || 1);
-    return Number.isFinite(speed) && speed > 0 ? speed : 1;
+    return videoEnhancementTools.currentFullscreenPlaybackSpeed(state);
   }
 
   /**
@@ -413,7 +391,9 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function isFullscreenPlaybackTarget(video) {
-    return Boolean(video && (isVideoFullscreen(video) || state.nativeFullscreenVideo === video));
+    return videoEnhancementTools.isFullscreenPlaybackTarget(video, state, {
+      isVideoFullscreen: isVideoFullscreen
+    });
   }
 
   /**
@@ -423,18 +403,11 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function applyVideoSpeed(video) {
-    const speed = desiredVideoSpeed(video);
-    if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) {
-      if (!isFullscreenPlaybackTarget(video)) return;
-      const siteResult = invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed]);
-      if (siteResult.handled) return;
-    }
-    try {
-      if (Math.abs(Number(video.playbackRate || 1) - speed) > 0.01) {
-        video.playbackRate = speed;
-      }
-      video.defaultPlaybackRate = speed;
-    } catch (_) {}
+    return videoEnhancementTools.applySpeed(video, state, {
+      hasSiteVideoCapability: hasSiteVideoCapability,
+      invokeSiteVideoCapability: invokeSiteVideoCapability,
+      isVideoFullscreen: isVideoFullscreen
+    });
   }
 
   /**
@@ -444,31 +417,12 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function preferBestVideoQuality(video) {
-    if (!state.config.videoEnabled || !video || !video.isConnected) return;
-    if (!hasSiteVideoCapability(video, 'preferBestQuality')) return;
-
-    const now = Date.now();
-    const lastAttempt = state.bestQualityAttempts.get(video);
-    if (lastAttempt && lastAttempt.success) return;
-    if (lastAttempt && now - Number(lastAttempt.at || 0) < bestQualityAttemptIntervalMs) return;
-
-    state.bestQualityAttempts.set(video, { at: now, success: false });
-    logVideoDiagnostic('quality-prefer-start', videoLogDetails(video, {}));
-
-    const siteResult = invokeSiteVideoCapability(video, 'preferBestQuality', []);
-    if (siteResult.handled) {
-      const success = siteResult.value !== false;
-      state.bestQualityAttempts.set(video, { at: now, success: success });
-      logVideoDiagnostic(
-        success ? 'quality-prefer-success' : 'quality-prefer-unavailable',
-        videoLogDetails(video, { result: siteResult.value })
-      );
-      return;
-    }
-
-    logVideoDiagnostic('quality-prefer-unavailable', videoLogDetails(video, {
-      result: 'no-site-handler'
-    }));
+    return videoEnhancementTools.preferBestQuality(video, state, {
+      hasSiteVideoCapability: hasSiteVideoCapability,
+      invokeSiteVideoCapability: invokeSiteVideoCapability,
+      logVideoDiagnostic: logVideoDiagnostic,
+      videoLogDetails: videoLogDetails
+    });
   }
 
   /**

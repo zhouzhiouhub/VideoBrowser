@@ -21,6 +21,7 @@ class VideoCapabilityDelegationContractTest {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
         val brokerScript = projectFile("src/main/assets/scripts/site_video_capability_broker.js").readText()
         val playbackScript = projectFile("src/main/assets/scripts/video_playback_tools.js").readText()
+        val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
 
         assertTrue(brokerScript.contains("broker.invoke = broker.invoke || function (video, action, args)"))
         assertTrue(brokerScript.contains("broker.has = broker.has || function (video, action)"))
@@ -32,9 +33,9 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds], options)"))
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekTo', [targetSeconds], options)"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
-        assertTrue(script.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [])"))
-        assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed])"))
-        assertFalse(script.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
+        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [], config)"))
+        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
+        assertFalse(enhancementScript.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
     }
 
     /**
@@ -59,9 +60,11 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonVideoEnhancementRequestsBestQualityThroughSiteCapabilitiesWithoutCustomUi() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
         val enhanceVideosBody = functionBody(script, "function enhanceVideos()")
 
         assertTrue(script.contains("function preferBestVideoQuality(video)"))
+        assertTrue(enhancementScript.contains("tools.preferBestQuality = tools.preferBestQuality || function (video, state, options)"))
         assertTrue(enhanceVideosBody.contains("preferBestVideoQuality(video);"))
         assertFalse(script.contains("qualitySelector"))
         assertFalse(script.contains("quality-select"))
@@ -124,14 +127,13 @@ class VideoCapabilityDelegationContractTest {
      */
     @Test
     fun commonScriptReappliesSitePlaybackSpeedBeforeGenericFallback() {
-        val script = projectFile("src/main/assets/scripts/common.js").readText()
-        val applyVideoSpeedBody = functionBody(script, "function applyVideoSpeed(video)")
+        val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
 
-        assertTrue(applyVideoSpeedBody.contains("const speed = desiredVideoSpeed(video);"))
-        assertTrue(applyVideoSpeedBody.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed])"))
+        assertTrue(enhancementScript.contains("const speed = tools.desiredSpeed(video, state, config);"))
+        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
         assertTrue(
-            applyVideoSpeedBody.indexOf("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed])") <
-                applyVideoSpeedBody.indexOf("video.playbackRate = speed;")
+            enhancementScript.indexOf("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)") <
+                enhancementScript.indexOf("video.playbackRate = speed;")
         )
     }
 
