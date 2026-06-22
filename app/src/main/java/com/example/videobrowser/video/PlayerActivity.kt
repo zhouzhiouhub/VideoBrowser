@@ -96,6 +96,16 @@ class PlayerActivity : AppCompatActivity() {
             updateQueueControls = ::updateQueueControls
         )
     }
+    private val nativePlaybackSessionStateProvider by lazy {
+        NativePlaybackSessionStateProvider(
+            playerProvider = { player },
+            playbackQueue = { playbackQueue },
+            fallbackPlaybackPosition = { playbackPosition },
+            fallbackPlayWhenReady = { playWhenReady },
+            currentPlaybackSpeed = nativePlayerPlaybackSpeedController::currentSpeed,
+            currentVideoZoomMode = nativePlayerVideoZoomController::currentMode
+        )
+    }
     private val nativePlayerInitializer by lazy {
         NativePlayerInitializer(
             context = this,
@@ -332,7 +342,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     override fun onSaveInstanceState(outState: Bundle) {
         savePlayerState()
-        val sessionState = currentPlaybackSessionState()
+        val sessionState = nativePlaybackSessionStateProvider.currentState()
         NativePlayerSavedState.save(
             outState = outState,
             sessionState = sessionState,
@@ -425,27 +435,6 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun handlePlaybackCommand(command: PlaybackCommand): Any? {
         return nativePlaybackCommandDispatcher.handle(command)
-    }
-
-    /**
-     * 函数 `currentPlaybackSessionState`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentPlaybackSessionState(): PlaybackSessionState {
-        val exoPlayer = player
-        val durationMs = exoPlayer
-            ?.duration
-            ?.let(Media3Duration::knownDurationMs)
-        return PlaybackSessionState.fromQueue(
-            queue = playbackQueue,
-            positionMs = exoPlayer?.currentPosition ?: playbackPosition,
-            durationMs = durationMs,
-            speed = nativePlayerPlaybackSpeedController.currentSpeed(),
-            playWhenReady = exoPlayer?.playWhenReady ?: playWhenReady,
-            zoomMode = nativePlayerVideoZoomController.currentMode()
-        )
     }
 
     /**
