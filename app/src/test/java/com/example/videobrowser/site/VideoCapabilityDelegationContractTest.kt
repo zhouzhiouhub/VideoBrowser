@@ -185,6 +185,7 @@ class VideoCapabilityDelegationContractTest {
     fun bilibiliAdapterExposesPlatformVideoCapabilitiesForCommonBroker() {
         val script = projectFile("src/main/assets/scripts/bilibili.js").readText()
         val playerApiScript = projectFile("src/main/assets/scripts/bilibili_player_api.js").readText()
+        val qualityScript = projectFile("src/main/assets/scripts/bilibili_quality_tools.js").readText()
 
         assertTrue(script.contains("adapters.bilibili.videoCapabilities"))
         assertTrue(script.contains("supports: function (video)"))
@@ -195,12 +196,19 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("setPlaybackSpeed: function (video, speed)"))
         assertTrue(script.contains("preferBestQuality: function (video)"))
         assertTrue(script.contains("var playerApi = window.VideoBrowserBilibiliPlayerApi || {};"))
+        assertTrue(script.contains("var qualityTools = window.VideoBrowserBilibiliQualityTools || {};"))
+        assertTrue(script.contains("qualityTools.preferBestQuality(adapterTools, playerApi);"))
         assertTrue(script.contains("return typeof playerApi.hasMethod === 'function' && playerApi.hasMethod(action, video);"))
         assertTrue(playerApiScript.contains("window.VideoBrowserBilibiliPlayerApi = tools"))
         assertTrue(playerApiScript.contains("tools.find = tools.find || function ()"))
         assertTrue(playerApiScript.contains("tools.methodsFor = tools.methodsFor || function (action, video)"))
         assertTrue(playerApiScript.contains("'setPlaybackRate'"))
         assertTrue(playerApiScript.contains("'seek'"))
+        assertTrue(qualityScript.contains("window.VideoBrowserBilibiliQualityTools = tools"))
+        assertTrue(qualityScript.contains("tools.preferBestQuality = tools.preferBestQuality || function (adapterTools, playerApi)"))
+        assertTrue(qualityScript.contains("function qualityScore(text)"))
+        assertTrue(qualityScript.contains("helpers.logVideoDiagnostic('quality-menu-select'"))
+        assertFalse(script.contains("function qualityScore(text)"))
         assertFalse(script.contains("function findBilibiliPlayerApi()"))
     }
 

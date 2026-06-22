@@ -28,6 +28,7 @@ class SiteAdapterRegistryTest {
                 "scripts/bilibili_overlay_cleanup.js",
                 "scripts/bilibili_browser_choice_cleanup.js",
                 "scripts/bilibili_player_api.js",
+                "scripts/bilibili_quality_tools.js",
                 "scripts/bilibili.js"
             ),
             registry.scriptFilesFor("https://m.bilibili.com/video/BV1")
