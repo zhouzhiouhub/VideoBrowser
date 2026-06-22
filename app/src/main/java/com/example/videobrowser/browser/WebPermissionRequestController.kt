@@ -33,7 +33,7 @@ class WebPermissionRequestController(
     private val hasAndroidPermission: (String) -> Boolean,
     private val requestAndroidPermissions: (Array<String>) -> Unit
 ) {
-    private var pendingWebPermissionRequest: PermissionRequest? = null
+    private val pendingRequestStore = WebPermissionPendingRequestStore()
     private val sitePermissionDecisionController = BrowserSitePermissionDecisionController(
         settingsManager = settingsManager,
         sessionSitePermissionStore = sessionSitePermissionStore,
@@ -72,9 +72,8 @@ class WebPermissionRequestController(
             return
         }
 
-        pendingWebPermissionRequest?.deny()
+        pendingRequestStore.replaceWith(request)
         webPermissionPromptController.cancelPendingPrompt()
-        pendingWebPermissionRequest = request
         requestAndroidPermissions(missingPermissions)
     }
 
@@ -86,8 +85,7 @@ class WebPermissionRequestController(
      * @param grants 参数类型为 `Map<String, Boolean>`，表示 Android 权限名到是否授予的映射，由 ActivityResultLauncher 返回。
      */
     fun handleAndroidPermissionResult(grants: Map<String, Boolean>) {
-        val request = pendingWebPermissionRequest ?: return
-        pendingWebPermissionRequest = null
+        val request = pendingRequestStore.take() ?: return
         val requiredPermissions = WebPermissionResourceMapper.androidPermissionsFor(request.resources)
         if (requiredPermissions != null && requiredPermissions.all { permission ->
                 grants[permission] == true || hasAndroidPermission(permission)
@@ -108,14 +106,11 @@ class WebPermissionRequestController(
      */
     fun handlePermissionRequestCanceled(request: PermissionRequest?) {
         if (request == null) {
-            pendingWebPermissionRequest?.deny()
-            pendingWebPermissionRequest = null
+            pendingRequestStore.cancelPending()
             webPermissionPromptController.cancelPendingPrompt()
             return
         }
-        if (request == pendingWebPermissionRequest) {
-            pendingWebPermissionRequest = null
-        }
+        pendingRequestStore.clearIfPending(request)
         webPermissionPromptController.cancelIfPending(request)
     }
 
@@ -125,8 +120,7 @@ class WebPermissionRequestController(
      * 初学者阅读提示：Activity 销毁时调用，避免 WebView 还在等待权限结果。
      */
     fun cancelPendingRequest() {
-        pendingWebPermissionRequest?.deny()
-        pendingWebPermissionRequest = null
+        pendingRequestStore.cancelPending()
         webPermissionPromptController.cancelPendingPrompt()
     }
 

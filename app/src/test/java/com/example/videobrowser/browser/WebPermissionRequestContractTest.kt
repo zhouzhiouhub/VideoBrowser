@@ -83,6 +83,9 @@ class WebPermissionRequestContractTest {
         val webPermissionResourceMapper = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionResourceMapper.kt"
         ).readText()
+        val webPermissionPendingRequestStore = projectFile(
+            "src/main/java/com/example/videobrowser/browser/WebPermissionPendingRequestStore.kt"
+        ).readText()
         val sitePermissionDecisionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSitePermissionDecisionController.kt"
         ).readText()
@@ -99,7 +102,13 @@ class WebPermissionRequestContractTest {
         assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(runtimeFeatureAssembly.contains("webPermissionRequestController = webRequests.webPermissionRequestController"))
         assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestWebPermissions"))
-        assertTrue(webPermissionController.contains("pendingWebPermissionRequest: PermissionRequest?"))
+        assertTrue(webPermissionController.contains("WebPermissionPendingRequestStore()"))
+        assertTrue(webPermissionController.contains("pendingRequestStore.replaceWith(request)"))
+        assertTrue(webPermissionController.contains("pendingRequestStore.take()"))
+        assertTrue(webPermissionController.contains("pendingRequestStore.cancelPending()"))
+        assertFalse(webPermissionController.contains("pendingWebPermissionRequest: PermissionRequest?"))
+        assertTrue(webPermissionPendingRequestStore.contains("pendingWebPermissionRequest: PermissionRequest?"))
+        assertTrue(webPermissionPendingRequestStore.contains("pendingWebPermissionRequest?.deny()"))
         assertTrue(webPermissionPromptController.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))
         assertTrue(webPermissionController.contains("WebPermissionResourceMapper.androidPermissionsFor(request.resources)"))
         assertTrue(webPermissionResourceMapper.contains("PermissionRequest.RESOURCE_VIDEO_CAPTURE"))
