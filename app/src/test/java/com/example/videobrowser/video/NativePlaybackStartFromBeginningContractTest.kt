@@ -23,9 +23,13 @@ class NativePlaybackStartFromBeginningContractTest {
         val historyController = File(
             "src/main/java/com/example/videobrowser/video/NativePlaybackHistoryController.kt"
         ).readText()
+        val historySessionController = File(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackHistorySessionController.kt"
+        ).readText()
 
         assertTrue(source.contains("alwaysStartVideosFromBeginning = settingsManager::alwaysStartVideosFromBeginning"))
-        assertTrue(source.contains("nativePlaybackHistoryController.restore(playbackHistoryIdentity())"))
+        assertTrue(source.contains("nativePlaybackHistorySessionController.restore()"))
+        assertTrue(historySessionController.contains("historyController.restore(playbackHistoryIdentity())"))
         assertTrue(historyController.contains("if (alwaysStartVideosFromBeginning())"))
         assertTrue(historyController.contains("return NativePlaybackHistoryRestore(positionMs = 0L)"))
         assertTrue(source.contains("playbackPosition = positionMs"))

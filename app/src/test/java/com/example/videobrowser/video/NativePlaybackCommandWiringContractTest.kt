@@ -55,6 +55,9 @@ class NativePlaybackCommandWiringContractTest {
         val transportController = File(
             "src/main/java/com/example/videobrowser/video/NativePlayerTransportController.kt"
         ).readText()
+        val historySessionController = File(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackHistorySessionController.kt"
+        ).readText()
 
         assertTrue(source.contains("currentPlaybackSessionState()"))
         assertTrue(source.contains("PlaybackSessionState.fromQueue("))
@@ -62,7 +65,7 @@ class NativePlaybackCommandWiringContractTest {
         assertTrue(source.contains("Media3Duration::knownDurationMs"))
         assertTrue(transportController.contains("Media3Duration.knownDurationMs"))
         assertTrue(transportController.contains("Media3Duration.boundedSeekPositionMs"))
-        assertTrue(source.contains("Media3Duration.durationOrZero"))
+        assertTrue(historySessionController.contains("Media3Duration.durationOrZero"))
         assertTrue(duration.contains("C.TIME_UNSET"))
         assertFalse(source.contains("C.TIME_UNSET"))
     }

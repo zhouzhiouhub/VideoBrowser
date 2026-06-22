@@ -23,14 +23,23 @@ class PlaybackHistoryWiringContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlaybackHistoryController.kt"
         ).readText()
+        val sessionController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackHistorySessionController.kt"
+        ).readText()
 
         assertTrue(source.contains("PlaybackHistoryRepository"))
         assertTrue(source.contains("NativePlaybackHistoryController("))
+        assertTrue(source.contains("NativePlaybackHistorySessionController("))
         assertTrue(source.contains("restorePlaybackHistory()"))
-        assertTrue(source.contains("nativePlaybackHistoryController.restore(playbackHistoryIdentity())"))
+        assertTrue(source.contains("nativePlaybackHistorySessionController.restore()"))
         assertTrue(source.contains("restorePlaybackPositionForCurrentMedia()"))
+        assertTrue(source.contains("nativePlaybackHistorySessionController.restorePositionForCurrentMedia()"))
         assertFalse(source.contains("playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity())"))
-        assertTrue(source.contains("nativePlaybackHistoryController.save("))
+        assertFalse(source.contains("private fun playbackHistoryIdentity()"))
+        assertTrue(source.contains("nativePlaybackHistorySessionController.save(exoPlayer)"))
+        assertTrue(sessionController.contains("historyController.restore(playbackHistoryIdentity())"))
+        assertTrue(sessionController.contains("historyController.save("))
+        assertTrue(sessionController.contains("NativePlaybackHistorySnapshot("))
         assertTrue(controller.contains("resumePositionFor(mediaIdentity)"))
         assertTrue(controller.contains("saveProgress("))
         assertTrue(controller.contains("source = PlaybackHistorySource.NATIVE_MEDIA"))

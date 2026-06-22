@@ -37,6 +37,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var nativePlaybackHistoryController: NativePlaybackHistoryController
+    private lateinit var nativePlaybackHistorySessionController: NativePlaybackHistorySessionController
     private lateinit var playerControlsVisibilityController: NativePlayerControlsVisibilityController
     private lateinit var playbackQueue: PlaybackQueue
     private var player: ExoPlayer? = null
@@ -185,6 +186,14 @@ class PlayerActivity : AppCompatActivity() {
                 playbackHistoryRepository.save(progress, privateBrowsing)
             },
             privateBrowsing = { intentReader.isPrivateBrowsing() }
+        )
+        nativePlaybackHistorySessionController = NativePlaybackHistorySessionController(
+            historyController = nativePlaybackHistoryController,
+            playbackQueue = { playbackQueue },
+            currentMediaItemIndex = { currentMediaItemIndex },
+            fallbackMediaUri = intentReader::mediaUri,
+            fallbackMediaTitle = intentReader::mediaTitle,
+            currentPlaybackSpeed = nativePlayerPlaybackSpeedController::currentSpeed
         )
         val intentPlaybackQueue = intentReader.playbackQueue()
         val defaultPlaybackSpeed = settingsManager.defaultVideoSpeed()
@@ -567,7 +576,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun restorePlaybackHistory() {
-        val restored = nativePlaybackHistoryController.restore(playbackHistoryIdentity())
+        val restored = nativePlaybackHistorySessionController.restore()
         restored.positionMs?.let { positionMs ->
             playbackPosition = positionMs
         }
@@ -577,7 +586,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun restorePlaybackPositionForCurrentMedia(): Long {
-        return nativePlaybackHistoryController.restore(playbackHistoryIdentity()).positionMs ?: 0L
+        return nativePlaybackHistorySessionController.restorePositionForCurrentMedia()
     }
 
     /**
@@ -587,16 +596,7 @@ class PlayerActivity : AppCompatActivity() {
      * @param exoPlayer 参数类型为 `ExoPlayer`，表示函数执行 `exoPlayer` 相关逻辑时需要读取或处理的输入。
      */
     private fun savePlaybackHistory(exoPlayer: ExoPlayer) {
-        nativePlaybackHistoryController.save(
-            NativePlaybackHistorySnapshot(
-                mediaIdentity = playbackHistoryIdentity(),
-                positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
-                durationMs = Media3Duration.durationOrZero(exoPlayer.duration),
-                speed = nativePlayerPlaybackSpeedController.currentSpeed(),
-                title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title
-                    ?: intentReader.mediaTitle()
-            )
-        )
+        nativePlaybackHistorySessionController.save(exoPlayer)
     }
 
     /**
@@ -606,17 +606,6 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun hideSystemBars() {
         nativePlayerWindowController.hideSystemBars()
-    }
-
-    /**
-     * 函数 `playbackHistoryIdentity`：封装 `playback History Identity` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun playbackHistoryIdentity(): String {
-        return playbackQueue.items.getOrNull(currentMediaItemIndex)?.uri?.trim()
-            ?: intentReader.mediaUri().trim()
     }
 
     companion object {
