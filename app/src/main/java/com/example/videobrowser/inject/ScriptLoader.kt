@@ -83,6 +83,7 @@ class ScriptLoader(
         const val SKIP_BUTTON_TOOLS_SCRIPT_ASSET = "scripts/skip_button_tools.js"
         const val ENHANCER_STATE_SCRIPT_ASSET = "scripts/enhancer_state.js"
         const val CALLBACK_TOOLS_SCRIPT_ASSET = "scripts/callback_tools.js"
+        const val PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET = "scripts/page_lifecycle_tools.js"
         const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
         const val VIDEO_CONTROL_TOOLS_SCRIPT_ASSET = "scripts/video_control_tools.js"
         const val VIDEO_QUERY_TOOLS_SCRIPT_ASSET = "scripts/video_query_tools.js"
@@ -99,7 +100,6 @@ class ScriptLoader(
         const val STYLE_MANAGER_SCRIPT_ASSET = "scripts/style_manager.js"
         const val CONFIGURED_CLEANUP_SCRIPT_ASSET = "scripts/configured_cleanup.js"
         const val PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET = "scripts/page_cleanup_coordinator.js"
-        const val PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET = "scripts/page_lifecycle_tools.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
         val COMMON_SCRIPT_ASSETS = listOf(
@@ -117,6 +117,7 @@ class ScriptLoader(
             SKIP_BUTTON_TOOLS_SCRIPT_ASSET,
             ENHANCER_STATE_SCRIPT_ASSET,
             CALLBACK_TOOLS_SCRIPT_ASSET,
+            PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET,
             NATIVE_BRIDGE_SCRIPT_ASSET,
             VIDEO_CONTROL_TOOLS_SCRIPT_ASSET,
             VIDEO_QUERY_TOOLS_SCRIPT_ASSET,
@@ -133,7 +134,6 @@ class ScriptLoader(
             STYLE_MANAGER_SCRIPT_ASSET,
             CONFIGURED_CLEANUP_SCRIPT_ASSET,
             PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET,
-            PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET,
             COMMON_SCRIPT_ASSET
         )
         private const val SCRIPT_ASSET_DIRECTORY = "scripts/"

@@ -29,10 +29,17 @@ class ConfiguredCleanupContractTest {
         assertTrue(coordinatorScript.contains("configuredCleanup.removeDomElements(state);"))
         assertTrue(coordinatorScript.contains("configuredCleanup.hasUserCssSelectors(state)"))
         assertTrue(coordinatorScript.contains("configuredCleanup.removeStyle();"))
+        assertTrue(coordinatorScript.contains("const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;"))
+        assertTrue(coordinatorScript.contains("pageLifecycleTools.runWithOptionalMutationSuppression(config, function ()"))
         assertTrue(commonScript.contains("const pageCleanupCoordinator = window.VideoBrowserPageCleanupCoordinator"))
         assertTrue(commonScript.contains("pageCleanupCoordinator.applyDisabledState(state);"))
         assertTrue(scriptLoader.contains("CONFIGURED_CLEANUP_SCRIPT_ASSET"))
         assertTrue(scriptLoader.contains("PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET"))
+        assertTrue(scriptLoader.contains("PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET"))
+        assertTrue(
+            commonAssetList.indexOf("PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET")
+        )
         assertTrue(
             commonAssetList.indexOf("CONFIGURED_CLEANUP_SCRIPT_ASSET") <
                 commonAssetList.indexOf("PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET")
@@ -51,6 +58,7 @@ class ConfiguredCleanupContractTest {
         assertFalse(commonScript.contains("function externalDomSelectors()"))
         assertFalse(commonScript.contains("function safeSelectorList(value)"))
         assertFalse(commonScript.contains("function removeConfiguredDomElements()"))
+        assertFalse(coordinatorScript.contains("function runWithMutationSuppressed(config, work)"))
     }
 
     private fun projectFile(path: String): File {

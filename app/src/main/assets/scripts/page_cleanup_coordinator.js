@@ -9,6 +9,7 @@
   const configuredCleanup = window.VideoBrowserConfiguredCleanup || {};
   const topPageCleanup = window.VideoBrowserTopPageCleanup || {};
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup || {};
+  const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;
   window.VideoBrowserPageCleanupCoordinator = coordinator;
 
   coordinator.run = coordinator.run || function (state, options) {
@@ -27,7 +28,7 @@
       return true;
     }
 
-    runWithMutationSuppressed(config, function () {
+    pageLifecycleTools.runWithOptionalMutationSuppression(config, function () {
       configuredCleanup.injectStyle(state, {
         includeGenericSelectors: true,
         includeRuleSelectors: true
@@ -80,14 +81,6 @@
   coordinator.removeGenericAdOverlays = coordinator.removeGenericAdOverlays || function (state) {
     genericAdOverlayCleanup.run(state);
   };
-
-  function runWithMutationSuppressed(config, work) {
-    if (typeof config.runWithMutationSuppressed === 'function') {
-      config.runWithMutationSuppressed(work);
-      return;
-    }
-    work();
-  }
 
   function isBilibiliHost(options) {
     return Boolean(

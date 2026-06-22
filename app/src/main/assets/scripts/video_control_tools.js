@@ -4,6 +4,7 @@
 (function () {
   const tools = window.VideoBrowserVideoControlTools || {};
   const domTools = window.VideoBrowserDomTools || {};
+  const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;
   window.VideoBrowserVideoControlTools = tools;
 
   tools.enableNativeControls = tools.enableNativeControls || function (video) {
@@ -44,18 +45,10 @@
     }
     targetState.videoOverlays = null;
 
-    runWithMutationSuppressed(config, function () {
+    pageLifecycleTools.runWithOptionalMutationSuppression(config, function () {
       domTools.queryAll('.__videobrowser_video_controls__').forEach(function (overlay) {
         overlay.remove();
       });
     });
   };
-
-  function runWithMutationSuppressed(config, work) {
-    if (typeof config.runWithMutationSuppressed === 'function') {
-      config.runWithMutationSuppressed(work);
-      return;
-    }
-    work();
-  }
 })();

@@ -18,6 +18,14 @@
     }
   };
 
+  tools.runWithOptionalMutationSuppression = tools.runWithOptionalMutationSuppression || function (options, work) {
+    const config = options || {};
+    if (typeof config.runWithMutationSuppressed === 'function') {
+      return config.runWithMutationSuppressed(work);
+    }
+    return typeof work === 'function' ? work() : undefined;
+  };
+
   tools.installFullscreenEventHooks = tools.installFullscreenEventHooks || function (state, options) {
     const targetState = state || {};
     const callbacks = options || {};

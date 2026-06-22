@@ -15,6 +15,7 @@ class PageLifecycleToolsContractTest {
 
         assertTrue(lifecycleScript.contains("window.VideoBrowserPageLifecycleTools = tools"))
         assertTrue(lifecycleScript.contains("tools.runWithMutationSuppressed = tools.runWithMutationSuppressed || function (state, work)"))
+        assertTrue(lifecycleScript.contains("tools.runWithOptionalMutationSuppression = tools.runWithOptionalMutationSuppression || function (options, work)"))
         assertTrue(lifecycleScript.contains("tools.installFullscreenEventHooks = tools.installFullscreenEventHooks || function (state, options)"))
         assertTrue(lifecycleScript.contains("tools.schedulePageWork = tools.schedulePageWork || function (state, options)"))
         assertTrue(lifecycleScript.contains("tools.disposePageFeatures = tools.disposePageFeatures || function (state, options, callbacks)"))
@@ -31,6 +32,14 @@ class PageLifecycleToolsContractTest {
         assertTrue(commonScript.contains("return pageLifecycleTools.disposePageFeatures(state, options, {"))
         assertTrue(commonScript.contains("return pageLifecycleTools.startWorkers(state, {"))
         assertTrue(scriptLoader.contains("PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET"))
+        assertTrue(
+            commonAssetList.indexOf("PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("VIDEO_CONTROL_TOOLS_SCRIPT_ASSET")
+        )
+        assertTrue(
+            commonAssetList.indexOf("PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET")
+        )
         assertTrue(
             commonAssetList.indexOf("PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
