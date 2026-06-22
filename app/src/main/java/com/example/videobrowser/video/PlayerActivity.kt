@@ -40,6 +40,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var nativePlaybackHistorySessionController: NativePlaybackHistorySessionController
     private lateinit var playerControlsVisibilityController: NativePlayerControlsVisibilityController
     private lateinit var playbackQueue: PlaybackQueue
+    private val playbackState = NativePlayerPlaybackState()
     private var player: ExoPlayer? = null
     private val nativePlayerWindowController by lazy {
         NativePlayerWindowController(this)
@@ -100,8 +101,8 @@ class PlayerActivity : AppCompatActivity() {
         NativePlaybackSessionStateProvider(
             playerProvider = { player },
             playbackQueue = { playbackQueue },
-            fallbackPlaybackPosition = { playbackPosition },
-            fallbackPlayWhenReady = { playWhenReady },
+            fallbackPlaybackPosition = { playbackState.playbackPosition },
+            fallbackPlayWhenReady = { playbackState.playWhenReady },
             currentPlaybackSpeed = nativePlayerPlaybackSpeedController::currentSpeed,
             currentVideoZoomMode = nativePlayerVideoZoomController::currentMode
         )
@@ -116,9 +117,9 @@ class PlayerActivity : AppCompatActivity() {
             requestHeaders = intentReader::requestHeaders,
             userAgent = intentReader::userAgent,
             playbackQueue = { playbackQueue },
-            currentMediaItemIndex = { currentMediaItemIndex },
-            playbackPosition = { playbackPosition },
-            playWhenReady = { playWhenReady },
+            currentMediaItemIndex = { playbackState.currentMediaItemIndex },
+            playbackPosition = { playbackState.playbackPosition },
+            playWhenReady = { playbackState.playWhenReady },
             applyVideoEffects = nativePlayerVideoEffectsController::applyToPlayer,
             applyRepeatMode = nativePlayerRepeatModeController::applyToPlayer,
             applyPlaybackSpeed = nativePlayerPlaybackSpeedController::applyToPlayer,
@@ -130,11 +131,11 @@ class PlayerActivity : AppCompatActivity() {
             playerProvider = { player },
             queueProvider = { playbackQueue },
             setQueue = { queue -> playbackQueue = queue },
-            currentMediaItemIndex = { currentMediaItemIndex },
-            setCurrentMediaItemIndex = { index -> currentMediaItemIndex = index },
-            playbackPosition = { playbackPosition },
-            setPlaybackPosition = { position -> playbackPosition = position },
-            playWhenReady = { playWhenReady },
+            currentMediaItemIndex = { playbackState.currentMediaItemIndex },
+            setCurrentMediaItemIndex = playbackState::setCurrentMediaItemIndex,
+            playbackPosition = { playbackState.playbackPosition },
+            setPlaybackPosition = playbackState::setPlaybackPosition,
+            playWhenReady = { playbackState.playWhenReady },
             savePlayerState = ::savePlayerState,
             restorePlaybackPositionForCurrentMedia = ::restorePlaybackPositionForCurrentMedia,
             applyRepeatModeToQueue = nativePlayerRepeatModeController::applyToQueue,
@@ -182,9 +183,6 @@ class PlayerActivity : AppCompatActivity() {
         scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
         seekBy = nativePlayerTransportController::seekBy
     )
-    private var playbackPosition = 0L
-    private var playWhenReady = true
-    private var currentMediaItemIndex = 0
     private val intentReader: PlayerIntentReader by lazy { PlayerIntentReader(intent) }
 
     /**
@@ -214,7 +212,7 @@ class PlayerActivity : AppCompatActivity() {
         nativePlaybackHistorySessionController = NativePlaybackHistorySessionController(
             historyController = nativePlaybackHistoryController,
             playbackQueue = { playbackQueue },
-            currentMediaItemIndex = { currentMediaItemIndex },
+            currentMediaItemIndex = { playbackState.currentMediaItemIndex },
             fallbackMediaUri = intentReader::mediaUri,
             fallbackMediaTitle = intentReader::mediaTitle,
             currentPlaybackSpeed = nativePlayerPlaybackSpeedController::currentSpeed
@@ -228,7 +226,11 @@ class PlayerActivity : AppCompatActivity() {
             fallbackVideoZoomMode = nativePlayerVideoZoomController.currentMode()
         )
         playbackQueue = restoredState?.playbackQueue ?: intentPlaybackQueue
-        currentMediaItemIndex = restoredState?.currentMediaItemIndex ?: playbackQueue.currentIndex
+        if (restoredState != null) {
+            playbackState.restoreFrom(restoredState)
+        } else {
+            playbackState.setCurrentMediaItemIndex(playbackQueue.currentIndex)
+        }
         nativePlayerRepeatModeController.setMode(restoredState?.repeatMode ?: playbackQueue.repeatMode)
         nativePlayerPlaybackSpeedController.restoreSpeed(
             restoredState?.selectedPlaybackSpeed ?: defaultPlaybackSpeed
@@ -246,8 +248,6 @@ class PlayerActivity : AppCompatActivity() {
 
         if (restoredState != null) {
             // 系统重建时恢复内存状态，避免旋转或后台回收后从头播放。
-            playbackPosition = restoredState.playbackPosition
-            playWhenReady = restoredState.playWhenReady
             nativePlayerOrientationController.setLandscape(restoredState.isLandscape)
             nativePlayerVideoZoomController.setMode(restoredState.videoZoomMode)
             nativePlayerVideoEffectsController.restoreState(
@@ -518,9 +518,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun savePlayerState() {
         player?.let {
-            playbackPosition = it.currentPosition
-            playWhenReady = it.playWhenReady
-            currentMediaItemIndex = it.currentMediaItemIndex
+            playbackState.updateFrom(it)
             savePlaybackHistory(it)
         }
     }
@@ -533,7 +531,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun restorePlaybackHistory() {
         val restored = nativePlaybackHistorySessionController.restore()
         restored.positionMs?.let { positionMs ->
-            playbackPosition = positionMs
+            playbackState.setPlaybackPosition(positionMs)
         }
         restored.playbackSpeed?.let { playbackSpeed ->
             nativePlayerPlaybackSpeedController.restoreSpeed(playbackSpeed)
