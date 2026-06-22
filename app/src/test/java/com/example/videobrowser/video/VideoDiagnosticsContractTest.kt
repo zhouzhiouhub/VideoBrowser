@@ -82,6 +82,9 @@ class VideoDiagnosticsContractTest {
         val touchSessionSource = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoTouchSessionState.kt"
         ).readText()
+        val longPressControllerSource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoLongPressController.kt"
+        ).readText()
 
         assertTrue(overlaySource.contains("FullscreenVideoTouchSessionState()"))
         assertTrue(overlaySource.contains("touchSession.beginDispatchDown("))
@@ -91,8 +94,9 @@ class VideoDiagnosticsContractTest {
                 "touchSession.setActiveGesture(FullscreenVideoActiveGesture.HORIZONTAL_SEEK)"
             )
         )
-        assertTrue(overlaySource.contains("touchSession.startLongPress()"))
-        assertTrue(overlaySource.contains("touchSession.stopLongPress()"))
+        assertTrue(overlaySource.contains("FullscreenVideoLongPressController("))
+        assertTrue(longPressControllerSource.contains("touchSession.startLongPress()"))
+        assertTrue(longPressControllerSource.contains("touchSession.stopLongPress()"))
         assertTrue(overlaySource.contains("touchSession.reset()"))
         assertTrue(touchSessionSource.contains("internal class FullscreenVideoTouchSessionState"))
         assertTrue(touchSessionSource.contains("internal enum class FullscreenVideoActiveGesture"))

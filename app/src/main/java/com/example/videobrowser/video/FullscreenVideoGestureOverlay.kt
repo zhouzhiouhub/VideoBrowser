@@ -154,12 +154,18 @@ class FullscreenVideoGestureOverlay(
         seekBy = { offsetMs -> onSeekBy?.invoke(offsetMs) },
         showFeedback = { text -> showFeedback(text) }
     )
+    private val longPressController = FullscreenVideoLongPressController(
+        feedbackHandler = feedbackHandler,
+        touchSession = touchSession,
+        isLocked = { locked },
+        clearSideTapState = sideTapSeekController::clearAll,
+        requestDirectionalLongPressStart = { direction -> onDirectionalLongPressStart?.invoke(direction) },
+        requestDirectionalLongPressEnd = { onDirectionalLongPressEnd?.invoke() },
+        showFeedback = ::showFeedback,
+        hideFeedback = { feedbackController.hide() }
+    )
     private val locked: Boolean
         get() = lockUiController.locked
-
-    private val longPressRunnable = Runnable {
-        triggerLongPress()
-    }
 
     init {
         visibility = View.GONE
@@ -197,12 +203,12 @@ class FullscreenVideoGestureOverlay(
      */
     fun hideOverlay() {
         speedPopupController.dismiss()
-        stopLongPress()
+        longPressController.cancelScheduled()
+        longPressController.stopActive()
         systemGestureController.restoreWindowBrightness()
         lockUiController.setLocked(false, announce = false)
         resetTouchState()
         sideTapSeekController.clearAll()
-        feedbackHandler.removeCallbacks(longPressRunnable)
         feedbackController.hide()
         visibility = View.GONE
     }
@@ -403,9 +409,7 @@ class FullscreenVideoGestureOverlay(
                     brightness = systemGestureController.currentWindowBrightness(),
                     volume = systemGestureController.currentStreamVolume()
                 )
-                if (touchSession.downZone.isSide()) {
-                    feedbackHandler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT_MS)
-                }
+                longPressController.scheduleIfSideZone(LONG_PRESS_TIMEOUT_MS)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -415,7 +419,7 @@ class FullscreenVideoGestureOverlay(
                     (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop)
                 ) {
                     touchSession.cancelTapCandidate()
-                    feedbackHandler.removeCallbacks(longPressRunnable)
+                    longPressController.cancelScheduled()
                 }
                 if (!touchSession.longPressActive &&
                     touchSession.activeGesture == FullscreenVideoActiveGesture.NONE &&
@@ -454,9 +458,9 @@ class FullscreenVideoGestureOverlay(
                 return true
             }
             MotionEvent.ACTION_UP -> {
-                feedbackHandler.removeCallbacks(longPressRunnable)
+                longPressController.cancelScheduled()
                 if (touchSession.longPressActive) {
-                    stopLongPress()
+                    longPressController.stopActive()
                     resetTouchState()
                     return true
                 }
@@ -475,8 +479,8 @@ class FullscreenVideoGestureOverlay(
                 return true
             }
             MotionEvent.ACTION_CANCEL -> {
-                feedbackHandler.removeCallbacks(longPressRunnable)
-                stopLongPress()
+                longPressController.cancelScheduled()
+                longPressController.stopActive()
                 if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
                     finishHorizontalSeek(commit = false)
                 }
@@ -497,7 +501,7 @@ class FullscreenVideoGestureOverlay(
         // 横向滑动开始时记录当前播放位置，后续移动只是在这个基础上计算预览目标。
         touchSession.setActiveGesture(FullscreenVideoActiveGesture.HORIZONTAL_SEEK)
         sideTapSeekController.clearAll()
-        feedbackHandler.removeCallbacks(longPressRunnable)
+        longPressController.cancelScheduled()
 
         seekGestureController.begin(deltaX, width)
     }
@@ -546,42 +550,6 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `triggerLongPress`：封装 `trigger Long Press` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun triggerLongPress() {
-        // 长按左右区域触发连续快退/快进；中心区域不触发，避免和普通点击冲突。
-        if (locked ||
-            touchSession.longPressActive ||
-            touchSession.activeGesture != FullscreenVideoActiveGesture.NONE ||
-            !touchSession.downZone.isSide()
-        ) {
-            return
-        }
-        touchSession.startLongPress()
-        sideTapSeekController.clearAll()
-        val direction = if (touchSession.downZone == VideoGestureScreenZone.LEFT) -1 else 1
-        onDirectionalLongPressStart?.invoke(direction)
-        showFeedback(
-            VideoGestureFeedbackFormatter.formatSpeed(VideoSpeedOptions.longPressSpeed),
-            autoHide = false
-        )
-    }
-
-    /**
-     * 函数 `stopLongPress`：封装 `stop Long Press` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun stopLongPress() {
-        if (!touchSession.longPressActive) return
-        touchSession.stopLongPress()
-        onDirectionalLongPressEnd?.invoke()
-        feedbackController.hide()
-    }
-
-    /**
      * 函数 `showSpeedPopup`：控制 `show Speed Popup` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -591,7 +559,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private fun clearGestureStateWhenLocked() {
-        stopLongPress()
+        longPressController.stopActive()
         if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
             finishHorizontalSeek(commit = false)
         }
