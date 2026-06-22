@@ -95,6 +95,21 @@ internal class BrowserWebViewSettingsController {
         configuredWebViews.forEach(::applyTextZoom)
     }
 
+    fun applyDesktopMode(
+        webView: WebView,
+        enabled: Boolean,
+        desktopUserAgent: String,
+        defaultUserAgent: String?
+    ) {
+        webView.settings.userAgentString = if (enabled) {
+            desktopUserAgent
+        } else {
+            defaultUserAgent
+        }
+        webView.settings.useWideViewPort = enabled
+        webView.settings.loadWithOverviewMode = enabled
+    }
+
     fun forget(webView: WebView) {
         configuredWebViews.remove(webView)
     }

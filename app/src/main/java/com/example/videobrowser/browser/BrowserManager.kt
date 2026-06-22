@@ -243,13 +243,12 @@ class BrowserManager(
         reload: Boolean
     ) {
         // 桌面模式本质是修改 User-Agent 和 viewport 设置，然后按需重新加载当前页。
-        webView.settings.userAgentString = if (enabled) {
-            desktopUserAgent
-        } else {
-            defaultUserAgent
-        }
-        webView.settings.useWideViewPort = enabled
-        webView.settings.loadWithOverviewMode = enabled
+        webViewSettings.applyDesktopMode(
+            webView = webView,
+            enabled = enabled,
+            desktopUserAgent = desktopUserAgent,
+            defaultUserAgent = defaultUserAgent
+        )
         if (reload) {
             reload()
         }

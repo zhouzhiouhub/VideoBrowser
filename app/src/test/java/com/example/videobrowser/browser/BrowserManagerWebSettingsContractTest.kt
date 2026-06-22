@@ -6,6 +6,7 @@ package com.example.videobrowser.browser
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -98,6 +99,26 @@ class BrowserManagerWebSettingsContractTest {
         assertTrue(settingsController.contains("allowFileAccessFromFileURLs = false"))
         assertTrue(settingsController.contains("allowUniversalAccessFromFileURLs = false"))
         assertTrue(readme.contains("默认禁止 `file://` 页面跨文件或跨来源访问本地资源"))
+    }
+
+    @Test
+    fun desktopModeWebSettingsAreOwnedBySettingsController() {
+        val browserManager = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
+        ).readText()
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
+        ).readText()
+
+        assertTrue(browserManager.contains("fun applyDesktopMode("))
+        assertTrue(browserManager.contains("webViewSettings.applyDesktopMode("))
+        assertTrue(settingsController.contains("fun applyDesktopMode("))
+        assertTrue(settingsController.contains("webView.settings.userAgentString = if (enabled)"))
+        assertTrue(settingsController.contains("webView.settings.useWideViewPort = enabled"))
+        assertTrue(settingsController.contains("webView.settings.loadWithOverviewMode = enabled"))
+        assertFalse(browserManager.contains("webView.settings.userAgentString = if (enabled)"))
+        assertFalse(browserManager.contains("webView.settings.useWideViewPort = enabled"))
+        assertFalse(browserManager.contains("webView.settings.loadWithOverviewMode = enabled"))
     }
 
     /**
