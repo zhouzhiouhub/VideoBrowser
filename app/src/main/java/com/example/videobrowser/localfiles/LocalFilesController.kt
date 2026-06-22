@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.functioncenter.FunctionCenterController
+import com.example.videobrowser.functioncenter.FunctionCenterPageHost
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.PlaybackQueue
@@ -27,7 +28,7 @@ import com.example.videobrowser.video.PlaybackQueue
 class LocalFilesController(
     private val activity: AppCompatActivity,
     private val preferenceStore: PreferenceStore,
-    private val functionCenter: FunctionCenterController,
+    functionCenter: FunctionCenterController,
     private val logTag: String,
     private val showMainFunctionCenterPage: () -> Unit,
     private val onOpenDocumentUri: (
@@ -38,6 +39,7 @@ class LocalFilesController(
         PlaybackQueue?
     ) -> Unit
 ) {
+    private val host = FunctionCenterPageHost(activity, functionCenter)
     private val directoryPermissions =
         LocalDirectoryPermissionManager(activity, preferenceStore, logTag)
     private val documentRepository = LocalDocumentRepository(activity)
@@ -72,15 +74,15 @@ class LocalFilesController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun showFileOperationsPage() {
-        functionCenter.showPage(
+        host.showPage(
             title = activity.getString(R.string.title_file_operations),
             onBack = showMainFunctionCenterPage
         ) { content ->
-            functionCenter.addFunctionSection(
+            host.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_open_local_file),
                     summary = activity.getString(R.string.action_open_local_file_summary)
@@ -88,7 +90,7 @@ class LocalFilesController(
                     fileLaunchers.openFile()
                 }
 
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_browse_local_folder),
                     summary = activity.getString(R.string.action_browse_local_folder_summary)
@@ -101,7 +103,7 @@ class LocalFilesController(
                     }
                 }
 
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_choose_local_folder),
                     summary = activity.getString(R.string.action_choose_local_folder_summary)
@@ -180,15 +182,15 @@ class LocalFilesController(
             return
         }
 
-        functionCenter.showPage(
+        host.showPage(
             title = current.title,
             onBack = onBack
         ) { content ->
-            functionCenter.addFunctionSection(
+            host.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_new_folder),
                     summary = activity.getString(R.string.action_new_folder_summary)
@@ -202,7 +204,7 @@ class LocalFilesController(
                     )
                 }
 
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_new_text_file),
                     summary = activity.getString(R.string.action_new_text_file_summary)
@@ -216,7 +218,7 @@ class LocalFilesController(
                     )
                 }
 
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_refresh),
                     summary = activity.getString(R.string.action_refresh_local_folder_summary)
@@ -226,16 +228,16 @@ class LocalFilesController(
             }
 
             if (documents.isEmpty()) {
-                functionCenter.addEmptyState(content, activity.getString(R.string.dialog_local_folder_empty))
+                host.addEmptyState(content, activity.getString(R.string.dialog_local_folder_empty))
                 return@showPage
             }
 
-            functionCenter.addFunctionSection(
+            host.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_files)
             ) { section ->
                 documents.forEach { document ->
-                    functionCenter.addActionRow(
+                    host.addActionRow(
                         parent = section,
                         title = document.name,
                         summary = documentFormatter.summary(document)
@@ -270,16 +272,16 @@ class LocalFilesController(
         siblingDocuments: List<LocalDocument>
     ) {
         // 对单个文件提供打开、分享、重命名、删除等动作；媒体文件还会尝试构建同目录播放队列。
-        functionCenter.showPage(
+        host.showPage(
             title = document.name,
             onBack = { showLocalDirectoryPage(treeUri, path) }
         ) { content ->
-            functionCenter.addFunctionMessage(content, documentFormatter.summary(document))
-            functionCenter.addFunctionSection(
+            host.addFunctionMessage(content, documentFormatter.summary(document))
+            host.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_open_file),
                     summary = activity.getString(R.string.action_open_file_summary)
@@ -295,7 +297,7 @@ class LocalFilesController(
                     )
                 }
 
-                functionCenter.addActionRow(
+                host.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_share_file),
                     summary = activity.getString(R.string.action_share_file_summary)
@@ -304,7 +306,7 @@ class LocalFilesController(
                 }
 
                 if (document.canRename) {
-                    functionCenter.addActionRow(
+                    host.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_rename_file),
                         summary = activity.getString(R.string.action_rename_file_summary)
@@ -314,7 +316,7 @@ class LocalFilesController(
                 }
 
                 if (document.canDelete) {
-                    functionCenter.addActionRow(
+                    host.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_delete_file),
                         summary = activity.getString(R.string.action_delete_file_summary)

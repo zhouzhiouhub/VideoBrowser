@@ -15,6 +15,8 @@ class FunctionCenterPageHost(
     val activity: AppCompatActivity,
     private val functionCenter: FunctionCenterController
 ) {
+    private val viewFactory = functionCenter.viewFactory
+
     /**
      * 函数 `showPage`：控制 `show Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
@@ -178,7 +180,7 @@ class FunctionCenterPageHost(
         title: String,
         buildContent: (LinearLayout) -> Unit
     ) {
-        functionCenter.addFunctionSection(parent, title, buildContent)
+        viewFactory.addFunctionSection(parent, title, buildContent)
     }
 
     /**
@@ -190,7 +192,7 @@ class FunctionCenterPageHost(
      * @param summary 参数类型为 `String`，表示函数执行 `summary` 相关逻辑时需要读取或处理的输入。
      */
     fun addInfoRow(parent: LinearLayout, title: String, summary: String) {
-        functionCenter.addInfoRow(parent, title, summary)
+        viewFactory.addInfoRow(parent, title, summary)
     }
 
     /**
@@ -201,7 +203,7 @@ class FunctionCenterPageHost(
      * @param message 参数类型为 `String`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
      */
     fun addFunctionMessage(parent: LinearLayout, message: String) {
-        functionCenter.addFunctionMessage(parent, message)
+        viewFactory.addFunctionMessage(parent, message)
     }
 
     /**
@@ -214,7 +216,7 @@ class FunctionCenterPageHost(
      * @param onClick 参数类型为 `() -> Unit`，表示函数执行 `onClick` 相关逻辑时需要读取或处理的输入。
      */
     fun addProfileHeader(parent: LinearLayout, title: String, summary: String, onClick: () -> Unit) {
-        functionCenter.addProfileHeader(parent, title, summary, onClick)
+        viewFactory.addProfileHeader(parent, title, summary, onClick)
     }
 
     /**
@@ -234,7 +236,7 @@ class FunctionCenterPageHost(
         rightTitle: String,
         rightSummary: String
     ) {
-        functionCenter.addBenefitStrip(parent, leftTitle, leftSummary, rightTitle, rightSummary)
+        viewFactory.addBenefitStrip(parent, leftTitle, leftSummary, rightTitle, rightSummary)
     }
 
     /**
@@ -256,7 +258,7 @@ class FunctionCenterPageHost(
         onOpenPage: (SavedPage) -> Unit,
         onShowHistory: () -> Unit
     ) {
-        functionCenter.addHistoryPreview(parent, title, emptyMessage, pages, onOpenPage, onShowHistory)
+        viewFactory.addHistoryPreview(parent, title, emptyMessage, pages, onOpenPage, onShowHistory)
     }
 
     /**
@@ -267,7 +269,7 @@ class FunctionCenterPageHost(
      * @param message 参数类型为 `String`，表示函数执行 `message` 相关逻辑时需要读取或处理的输入。
      */
     fun addEmptyState(parent: LinearLayout, message: String) {
-        functionCenter.addEmptyState(parent, message)
+        viewFactory.addEmptyState(parent, message)
     }
 
     /**
@@ -285,7 +287,7 @@ class FunctionCenterPageHost(
         backgroundColor: Int? = null,
         onClick: () -> Unit
     ) {
-        functionCenter.addFunctionActionButton(parent, title, backgroundColor, onClick)
+        viewFactory.addFunctionActionButton(parent, title, backgroundColor, onClick)
     }
 
     /**
@@ -299,7 +301,7 @@ class FunctionCenterPageHost(
         parent: LinearLayout,
         actions: List<FunctionCenterGridAction>
     ) {
-        functionCenter.addActionGrid(parent, actions)
+        viewFactory.addActionGrid(parent, actions)
     }
 
     /**
@@ -321,7 +323,7 @@ class FunctionCenterPageHost(
         enabled: Boolean = true,
         onChanged: (Boolean) -> Unit
     ) {
-        functionCenter.addSwitchRow(parent, title, summary, checked, enabled, onChanged)
+        viewFactory.addSwitchRow(parent, title, summary, checked, enabled, onChanged)
     }
 
     /**
@@ -341,7 +343,7 @@ class FunctionCenterPageHost(
         enabled: Boolean = true,
         onClick: () -> Unit
     ) {
-        functionCenter.addActionRow(parent, title, summary, enabled, onClick)
+        viewFactory.addActionRow(parent, title, summary, enabled, onClick)
     }
 
     /**
@@ -351,6 +353,6 @@ class FunctionCenterPageHost(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     fun addDivider(parent: LinearLayout) {
-        functionCenter.addDivider(parent)
+        viewFactory.addDivider(parent)
     }
 }
