@@ -8,10 +8,8 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 
 /**
  * 功能中心容器控制器。
@@ -25,14 +23,8 @@ class FunctionCenterController(
     dp: (Int) -> Int
 ) {
     internal val viewFactory = FunctionCenterViewFactory(activity, dp)
-    private var page: View? = null
-    private var backAction: (() -> Unit)? = null
-    private val pageHistory = FunctionCenterPageHistory<PageState>()
-
-    private data class PageState(
-        val view: View,
-        val backAction: (() -> Unit)?
-    )
+    private val pageContainer = FunctionCenterPageContainerController(rootView)
+    private val pageHistory = FunctionCenterPageHistory<FunctionCenterPageState>()
 
     /**
      * 函数 `showPage`：控制 `show Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
@@ -146,15 +138,17 @@ class FunctionCenterController(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun handleBack(): Boolean {
-        if (page == null) {
+        if (!pageContainer.hasPage) {
             return false
         }
         val previousPage = pageHistory.pop()
         if (previousPage != null) {
-            restorePage(previousPage)
+            pageContainer.restore(previousPage)
             return true
         }
-        backAction?.invoke() ?: close()
+        if (!pageContainer.invokeBackAction()) {
+            close()
+        }
         return true
     }
 
@@ -165,10 +159,9 @@ class FunctionCenterController(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun close(): Boolean {
-        val currentPage = page ?: return false
-        (currentPage.parent as? ViewGroup)?.removeView(currentPage)
-        page = null
-        backAction = null
+        if (!pageContainer.close()) {
+            return false
+        }
         pageHistory.clear()
         return true
     }
@@ -183,56 +176,11 @@ class FunctionCenterController(
      */
     private fun attachPage(page: View, onBack: () -> Unit, saveCurrentPage: Boolean) {
         // saveCurrentPage 为 true 时把当前页压栈，这样功能中心内部的返回键能回到上一页。
-        val container = rootView as? ViewGroup ?: return
-        this.page?.let { currentPage ->
-            (currentPage.parent as? ViewGroup)?.removeView(currentPage)
-            if (saveCurrentPage) {
-                pageHistory.push(PageState(currentPage, backAction))
-            }
-        }
-
-        this.page = page
-        backAction = onBack
-        addPageToContainer(container, page)
-    }
-
-    /**
-     * 函数 `restorePage`：封装 `restore Page` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pageState 参数类型为 `PageState`，表示函数执行 `pageState` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun restorePage(pageState: PageState) {
-        val container = rootView as? ViewGroup ?: return
-        page?.let { currentPage ->
-            (currentPage.parent as? ViewGroup)?.removeView(currentPage)
-        }
-        page = pageState.view
-        backAction = pageState.backAction
-        addPageToContainer(container, pageState.view)
-    }
-
-    /**
-     * 函数 `addPageToContainer`：封装 `add Page To Container` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param container 参数类型为 `ViewGroup`，表示函数执行 `container` 相关逻辑时需要读取或处理的输入。
-     * @param page 参数类型为 `View`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addPageToContainer(container: ViewGroup, page: View) {
-        container.addView(
-            page,
-            ConstraintLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            ).apply {
-                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-            }
+        pageContainer.attach(
+            nextPage = page,
+            onBack = onBack,
+            saveCurrentPage = saveCurrentPage,
+            onSaveCurrentPage = pageHistory::push
         )
-        page.bringToFront()
-        page.requestFocus()
     }
 }
