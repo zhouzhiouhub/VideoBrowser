@@ -14,11 +14,14 @@ class FullscreenVideoSeekGestureControllerContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoSeekGestureController.kt"
         ).readText()
+        val eventHandler = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureEventHandler.kt"
+        ).readText()
 
         assertTrue(overlay.contains("FullscreenVideoSeekGestureController("))
-        assertTrue(overlay.contains("seekGestureController.begin(deltaX, width)"))
-        assertTrue(overlay.contains("seekGestureController.update(deltaX, width)"))
-        assertTrue(overlay.contains("seekGestureController.finish(commit)"))
+        assertTrue(eventHandler.contains("seekGestureController.begin(deltaX, viewWidth())"))
+        assertTrue(eventHandler.contains("seekGestureController.update(deltaX, viewWidth())"))
+        assertTrue(eventHandler.contains("seekGestureController.finish(commit)"))
 
         assertTrue(controller.contains("private var startPositionMs: Long? = null"))
         assertTrue(controller.contains("private var durationMs: Long? = null"))
@@ -36,6 +39,8 @@ class FullscreenVideoSeekGestureControllerContractTest {
         assertFalse(overlay.contains("VideoSeekDragCalculator.offsetForDrag("))
         assertFalse(overlay.contains("VideoSeekDragCalculator.targetForDrag("))
         assertFalse(overlay.contains("VideoGestureFeedbackFormatter.formatSeekPreview("))
+        assertFalse(overlay.contains("seekGestureController.begin(deltaX"))
+        assertFalse(overlay.contains("seekGestureController.update(deltaX"))
     }
 
     private fun projectFile(path: String): File {

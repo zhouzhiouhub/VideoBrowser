@@ -17,14 +17,17 @@ class FullscreenVideoSystemGestureControllerContractTest {
         val gestureMath = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureMath.kt"
         ).readText()
+        val eventHandler = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureEventHandler.kt"
+        ).readText()
 
         assertTrue(overlay.contains("FullscreenVideoSystemGestureController("))
         assertTrue(overlay.contains("systemGestureController.captureWindowBrightness()"))
         assertTrue(overlay.contains("systemGestureController.restoreWindowBrightness()"))
-        assertTrue(overlay.contains("systemGestureController.currentWindowBrightness()"))
-        assertTrue(overlay.contains("systemGestureController.currentStreamVolume()"))
-        assertTrue(overlay.contains("systemGestureController.updateBrightness("))
-        assertTrue(overlay.contains("systemGestureController.updateVolume("))
+        assertTrue(eventHandler.contains("systemGestureController.currentWindowBrightness()"))
+        assertTrue(eventHandler.contains("systemGestureController.currentStreamVolume()"))
+        assertTrue(eventHandler.contains("systemGestureController.updateBrightness("))
+        assertTrue(eventHandler.contains("systemGestureController.updateVolume("))
 
         assertTrue(controller.contains("activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager"))
         assertTrue(controller.contains("Settings.System.getInt("))
@@ -45,6 +48,8 @@ class FullscreenVideoSystemGestureControllerContractTest {
         assertFalse(overlay.contains("private fun updateVolume("))
         assertFalse(overlay.contains("private var savedWindowBrightness"))
         assertFalse(overlay.contains("private const val DEFAULT_BRIGHTNESS"))
+        assertFalse(overlay.contains("systemGestureController.updateBrightness("))
+        assertFalse(overlay.contains("systemGestureController.updateVolume("))
         assertFalse(controller.contains("private const val DEFAULT_BRIGHTNESS"))
     }
 

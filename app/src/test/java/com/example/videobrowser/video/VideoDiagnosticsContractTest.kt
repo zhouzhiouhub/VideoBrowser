@@ -85,12 +85,16 @@ class VideoDiagnosticsContractTest {
         val longPressControllerSource = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoLongPressController.kt"
         ).readText()
+        val gestureEventHandlerSource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureEventHandler.kt"
+        ).readText()
 
         assertTrue(overlaySource.contains("FullscreenVideoTouchSessionState()"))
         assertTrue(overlaySource.contains("touchSession.beginDispatchDown("))
-        assertTrue(overlaySource.contains("touchSession.beginGestureDown("))
+        assertTrue(overlaySource.contains("FullscreenVideoGestureEventHandler("))
+        assertTrue(gestureEventHandlerSource.contains("touchSession.beginGestureDown("))
         assertTrue(
-            overlaySource.contains(
+            gestureEventHandlerSource.contains(
                 "touchSession.setActiveGesture(FullscreenVideoActiveGesture.HORIZONTAL_SEEK)"
             )
         )

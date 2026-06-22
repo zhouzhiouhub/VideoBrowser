@@ -21,7 +21,6 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.example.videobrowser.utils.DensityPixelConverter
-import kotlin.math.abs
 
 /**
  * 全屏视频上方的透明手势层。
@@ -163,6 +162,20 @@ class FullscreenVideoGestureOverlay(
         requestDirectionalLongPressEnd = { onDirectionalLongPressEnd?.invoke() },
         showFeedback = ::showFeedback,
         hideFeedback = { feedbackController.hide() }
+    )
+    private val gestureEventHandler = FullscreenVideoGestureEventHandler(
+        touchSession = touchSession,
+        systemGestureController = systemGestureController,
+        sideTapSeekController = sideTapSeekController,
+        seekGestureController = seekGestureController,
+        longPressController = longPressController,
+        touchSlop = touchSlop,
+        swipeStartDistance = { swipeStartDistance },
+        viewWidth = { width },
+        viewHeight = { height },
+        screenZoneFor = ::screenZoneFor,
+        handleTap = ::handleTap,
+        resetTouchState = ::resetTouchState
     )
     private val locked: Boolean
         get() = lockUiController.locked
@@ -312,7 +325,7 @@ class FullscreenVideoGestureOverlay(
             return true
         }
 
-        return handleGestureEvent(event)
+        return gestureEventHandler.handle(event)
     }
 
     /**
@@ -391,143 +404,6 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `handleGestureEvent`：处理 `handle Gesture Event` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param event 参数类型为 `MotionEvent`，表示函数执行 `event` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun handleGestureEvent(event: MotionEvent): Boolean {
-        // 这里是触摸事件的总入口：先记录起点区域，再根据移动方向决定是哪一种手势。
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                touchSession.beginGestureDown(
-                    x = event.x,
-                    y = event.y,
-                    eventTime = event.eventTime,
-                    zone = screenZoneFor(event.x),
-                    brightness = systemGestureController.currentWindowBrightness(),
-                    volume = systemGestureController.currentStreamVolume()
-                )
-                longPressController.scheduleIfSideZone(LONG_PRESS_TIMEOUT_MS)
-                return true
-            }
-            MotionEvent.ACTION_MOVE -> {
-                val deltaX = event.x - touchSession.downX
-                val deltaY = event.y - touchSession.downY
-                if (!touchSession.longPressActive &&
-                    (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop)
-                ) {
-                    touchSession.cancelTapCandidate()
-                    longPressController.cancelScheduled()
-                }
-                if (!touchSession.longPressActive &&
-                    touchSession.activeGesture == FullscreenVideoActiveGesture.NONE &&
-                    abs(deltaX) >= swipeStartDistance &&
-                    abs(deltaX) > abs(deltaY)
-                ) {
-                    beginHorizontalSeek(deltaX)
-                } else if (!touchSession.longPressActive &&
-                    touchSession.activeGesture == FullscreenVideoActiveGesture.NONE &&
-                    touchSession.downZone.isSide() &&
-                    abs(deltaY) >= swipeStartDistance &&
-                    abs(deltaY) > abs(deltaX) * VERTICAL_GESTURE_RATIO
-                ) {
-                    touchSession.setActiveGesture(
-                        if (touchSession.downZone == VideoGestureScreenZone.LEFT) {
-                            FullscreenVideoActiveGesture.BRIGHTNESS
-                        } else {
-                            FullscreenVideoActiveGesture.VOLUME
-                        }
-                    )
-                }
-                when (touchSession.activeGesture) {
-                    FullscreenVideoActiveGesture.HORIZONTAL_SEEK -> updateHorizontalSeek(deltaX)
-                    FullscreenVideoActiveGesture.BRIGHTNESS -> systemGestureController.updateBrightness(
-                        deltaY = deltaY,
-                        viewHeight = height,
-                        initialBrightness = touchSession.initialBrightness
-                    )
-                    FullscreenVideoActiveGesture.VOLUME -> systemGestureController.updateVolume(
-                        deltaY = deltaY,
-                        viewHeight = height,
-                        initialVolume = touchSession.initialVolume
-                    )
-                    FullscreenVideoActiveGesture.NONE -> Unit
-                }
-                return true
-            }
-            MotionEvent.ACTION_UP -> {
-                longPressController.cancelScheduled()
-                if (touchSession.longPressActive) {
-                    longPressController.stopActive()
-                    resetTouchState()
-                    return true
-                }
-                if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
-                    finishHorizontalSeek(commit = true)
-                    resetTouchState()
-                    return true
-                }
-                if (touchSession.activeGesture == FullscreenVideoActiveGesture.NONE &&
-                    touchSession.tapCandidate &&
-                    event.eventTime - touchSession.downTime <= TAP_MAX_DURATION_MS
-                ) {
-                    handleTap(event.x, event.eventTime)
-                }
-                resetTouchState()
-                return true
-            }
-            MotionEvent.ACTION_CANCEL -> {
-                longPressController.cancelScheduled()
-                longPressController.stopActive()
-                if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
-                    finishHorizontalSeek(commit = false)
-                }
-                resetTouchState()
-                return true
-            }
-        }
-        return true
-    }
-
-    /**
-     * 函数 `beginHorizontalSeek`：封装 `begin Horizontal Seek` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param deltaX 参数类型为 `Float`，表示函数执行 `deltaX` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun beginHorizontalSeek(deltaX: Float) {
-        // 横向滑动开始时记录当前播放位置，后续移动只是在这个基础上计算预览目标。
-        touchSession.setActiveGesture(FullscreenVideoActiveGesture.HORIZONTAL_SEEK)
-        sideTapSeekController.clearAll()
-        longPressController.cancelScheduled()
-
-        seekGestureController.begin(deltaX, width)
-    }
-
-    /**
-     * 函数 `updateHorizontalSeek`：根据最新状态刷新 `update Horizontal Seek` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param deltaX 参数类型为 `Float`，表示函数执行 `deltaX` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun updateHorizontalSeek(deltaX: Float) {
-        seekGestureController.update(deltaX, width)
-    }
-
-    /**
-     * 函数 `finishHorizontalSeek`：封装 `finish Horizontal Seek` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param commit 参数类型为 `Boolean`，表示函数执行 `commit` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun finishHorizontalSeek(commit: Boolean) {
-        // 抬手时才真正 seek，移动过程只显示反馈，避免每一帧都让播放器跳转。
-        seekGestureController.finish(commit)
-    }
-
-    /**
      * 函数 `handleTap`：处理 `handle Tap` 对应的事件或请求，集中完成校验、状态更新和回调通知。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -560,9 +436,7 @@ class FullscreenVideoGestureOverlay(
 
     private fun clearGestureStateWhenLocked() {
         longPressController.stopActive()
-        if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
-            finishHorizontalSeek(commit = false)
-        }
+        gestureEventHandler.cancelActiveHorizontalSeek()
         sideTapSeekController.clearAll()
     }
 
@@ -653,10 +527,7 @@ class FullscreenVideoGestureOverlay(
     }
 
     private companion object {
-        private const val TAP_MAX_DURATION_MS = 260L
-        private const val LONG_PRESS_TIMEOUT_MS = 520L
         private const val BOTTOM_PASSTHROUGH_DP = 92
         private const val MIN_SWIPE_DISTANCE_DP = 10
-        private const val VERTICAL_GESTURE_RATIO = 1.15f
     }
 }

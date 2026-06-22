@@ -14,10 +14,14 @@ class FullscreenVideoLongPressControllerContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoLongPressController.kt"
         ).readText()
+        val eventHandler = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureEventHandler.kt"
+        ).readText()
 
         assertTrue(overlay.contains("FullscreenVideoLongPressController("))
-        assertTrue(overlay.contains("longPressController.scheduleIfSideZone(LONG_PRESS_TIMEOUT_MS)"))
-        assertTrue(overlay.contains("longPressController.cancelScheduled()"))
+        assertTrue(eventHandler.contains("longPressController.scheduleIfSideZone(LONG_PRESS_TIMEOUT_MS)"))
+        assertTrue(eventHandler.contains("longPressController.cancelScheduled()"))
+        assertTrue(eventHandler.contains("longPressController.stopActive()"))
         assertTrue(overlay.contains("longPressController.stopActive()"))
 
         assertTrue(controller.contains("private val longPressRunnable = Runnable"))
@@ -35,6 +39,7 @@ class FullscreenVideoLongPressControllerContractTest {
         assertFalse(overlay.contains("private fun triggerLongPress"))
         assertFalse(overlay.contains("private fun stopLongPress"))
         assertFalse(overlay.contains("VideoSpeedOptions.longPressSpeed"))
+        assertFalse(overlay.contains("longPressController.scheduleIfSideZone(LONG_PRESS_TIMEOUT_MS)"))
     }
 
     private fun projectFile(path: String): File {
