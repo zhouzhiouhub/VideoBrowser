@@ -121,6 +121,9 @@ class VideoDiagnosticsContractTest {
         val playerActivitySource = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val gestureOverlayBinder = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerGestureOverlayBinder.kt"
+        ).readText()
         val controlVisibilityController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerControlsVisibilityController.kt"
         ).readText()
@@ -145,7 +148,8 @@ class VideoDiagnosticsContractTest {
             handleTapBody.indexOf("if (touchSession.playbackControlsVisibleOnTouchStart)") <
                 handleTapBody.indexOf("onTogglePlayPause?.invoke()")
         )
-        assertTrue(playerActivitySource.contains("arePlaybackControlsVisible = ::arePlayerControlsVisible"))
+        assertTrue(playerActivitySource.contains("arePlayerControlsVisible = ::arePlayerControlsVisible"))
+        assertTrue(gestureOverlayBinder.contains("arePlaybackControlsVisible = arePlayerControlsVisible"))
         assertTrue(playerActivitySource.contains("playerControlsVisibilityController.areControlsVisible()"))
         assertTrue(controlVisibilityController.contains("playerView.isControllerFullyVisible"))
     }

@@ -17,12 +17,17 @@ class NativePlayerWindowControllerContractTest {
         val orientationController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerOrientationController.kt"
         ).readText()
+        val gestureOverlayBinder = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerGestureOverlayBinder.kt"
+        ).readText()
 
         assertTrue(playerActivity.contains("NativePlayerWindowController(this)"))
         assertTrue(playerActivity.contains("NativePlayerOrientationController("))
         assertTrue(playerActivity.contains("nativePlayerOrientationController.setLandscape(isLandscape = true)"))
-        assertTrue(playerActivity.contains("onToggleOrientation = nativePlayerOrientationController::toggle"))
-        assertTrue(playerActivity.contains("isLandscape = nativePlayerOrientationController.isLandscape()"))
+        assertTrue(playerActivity.contains("toggleOrientation = nativePlayerOrientationController::toggle"))
+        assertTrue(playerActivity.contains("isLandscape = nativePlayerOrientationController::isLandscape"))
+        assertTrue(gestureOverlayBinder.contains("onToggleOrientation = toggleOrientation"))
+        assertTrue(gestureOverlayBinder.contains("setLandscape(isLandscape())"))
         assertTrue(playerActivity.contains("nativePlayerWindowController.hideSystemBars()"))
         assertTrue(orientationController.contains("private var landscape = true"))
         assertTrue(orientationController.contains("windowController.applyOrientation(landscape)"))

@@ -15,7 +15,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
-import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -119,6 +118,25 @@ class PlayerActivity : AppCompatActivity() {
             updateTitle = { mediaTitle -> title = mediaTitle },
             updateQueueControls = ::updateQueueControls,
             wakePlayerControls = ::wakePlayerControls
+        )
+    }
+    private val nativePlayerGestureOverlayBinder by lazy {
+        NativePlayerGestureOverlayBinder(
+            activity = this,
+            playerRoot = playerRoot,
+            seekPreviewStart = nativePlayerTransportController::currentSeekPosition,
+            handlePlaybackCommand = ::handlePlaybackCommand,
+            startDirectionalLongPress = ::startDirectionalLongPress,
+            stopDirectionalLongPress = ::stopDirectionalLongPress,
+            toggleOrientation = nativePlayerOrientationController::toggle,
+            wakePlayerControls = ::wakePlayerControls,
+            arePlayerControlsVisible = ::arePlayerControlsVisible,
+            exitFullscreen = ::finish,
+            currentPlaybackSpeed = nativePlayerPlaybackSpeedController::currentSpeed,
+            isLandscape = nativePlayerOrientationController::isLandscape,
+            hasMultipleQueueItems = { playbackQueue.hasMultipleItems },
+            currentRepeatMode = nativePlayerRepeatModeController::currentMode,
+            currentVideoZoomMode = nativePlayerVideoZoomController::currentMode
         )
     }
     private val playbackQueueDialogController by lazy {
@@ -372,50 +390,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun setupGestureOverlay() {
-        // 手势层不直接操作 ExoPlayer，而是统一发 PlaybackCommand，再由 handlePlaybackCommand 分发。
-        gestureOverlay = FullscreenVideoGestureOverlay(this).apply {
-            onSeekBy = { offsetMs -> handlePlaybackCommand(PlaybackCommand.SeekBy(offsetMs)) }
-            onSeekTo = { positionMs -> handlePlaybackCommand(PlaybackCommand.SeekTo(positionMs)) }
-            onSeekPreviewStart = nativePlayerTransportController::currentSeekPosition
-            onTogglePlayPause = {
-                handlePlaybackCommand(PlaybackCommand.TogglePlayPause) as? Boolean
-            }
-            onPlaybackSpeedSelected = { speed ->
-                handlePlaybackCommand(PlaybackCommand.SetSpeed(speed))
-            }
-            onDirectionalLongPressStart = ::startDirectionalLongPress
-            onDirectionalLongPressEnd = ::stopDirectionalLongPress
-            onToggleOrientation = nativePlayerOrientationController::toggle
-            onUserInteraction = ::wakePlayerControls
-            arePlaybackControlsVisible = ::arePlayerControlsVisible
-            onExitFullscreen = ::finish
-            onTrackSelectionRequested = {
-                handlePlaybackCommand(PlaybackCommand.ShowTrackSelection)
-            }
-            onPlaybackQueueRequested = { handlePlaybackCommand(PlaybackCommand.ShowQueue) }
-            onVideoZoomRequested = {
-                handlePlaybackCommand(PlaybackCommand.CycleZoom) as? VideoZoomMode
-                    ?: nativePlayerVideoZoomController.currentMode()
-            }
-            onPreviousMediaRequested = { handlePlaybackCommand(PlaybackCommand.Previous) }
-            onNextMediaRequested = { handlePlaybackCommand(PlaybackCommand.Next) }
-            onRepeatModeRequested = {
-                handlePlaybackCommand(PlaybackCommand.ToggleRepeat) as? PlaybackRepeatMode
-                    ?: nativePlayerRepeatModeController.currentMode()
-            }
-            setPlaybackSpeed(nativePlayerPlaybackSpeedController.currentSpeed())
-            setLandscape(nativePlayerOrientationController.isLandscape())
-            setQueueControlsVisible(playbackQueue.hasMultipleItems)
-            setRepeatMode(nativePlayerRepeatModeController.currentMode())
-            setVideoZoomMode(nativePlayerVideoZoomController.currentMode())
-        }
-        playerRoot.addView(
-            gestureOverlay,
-            FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        )
+        gestureOverlay = nativePlayerGestureOverlayBinder.attach()
     }
 
     /**

@@ -78,8 +78,12 @@ class FullscreenVideoExitButtonContractTest {
         val source = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val binder = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerGestureOverlayBinder.kt"
+        ).readText()
 
-        assertTrue(source.contains("onExitFullscreen = ::finish"))
+        assertTrue(source.contains("exitFullscreen = ::finish"))
+        assertTrue(binder.contains("onExitFullscreen = exitFullscreen"))
     }
 
     /**

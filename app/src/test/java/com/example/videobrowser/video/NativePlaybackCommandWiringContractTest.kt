@@ -19,21 +19,24 @@ class NativePlaybackCommandWiringContractTest {
     @Test
     fun playerActivityRoutesOverlayCallbacksThroughPlaybackCommands() {
         val source = File("src/main/java/com/example/videobrowser/video/PlayerActivity.kt").readText()
+        val gestureOverlayBinder = File(
+            "src/main/java/com/example/videobrowser/video/NativePlayerGestureOverlayBinder.kt"
+        ).readText()
         val trackOptions = File(
             "src/main/java/com/example/videobrowser/video/NativeTrackSelectionOptions.kt"
         ).readText()
 
         assertTrue(source.contains("handlePlaybackCommand(command: PlaybackCommand)"))
-        assertTrue(source.contains("PlaybackCommand.SeekBy(offsetMs)"))
-        assertTrue(source.contains("PlaybackCommand.SeekTo(positionMs)"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.SeekBy(offsetMs)"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.SeekTo(positionMs)"))
         assertTrue(source.contains("PlaybackCommand.TogglePlayPause"))
-        assertTrue(source.contains("PlaybackCommand.SetSpeed(speed)"))
-        assertTrue(source.contains("PlaybackCommand.Previous"))
-        assertTrue(source.contains("PlaybackCommand.Next"))
-        assertTrue(source.contains("PlaybackCommand.ToggleRepeat"))
-        assertTrue(source.contains("PlaybackCommand.ShowQueue"))
-        assertTrue(source.contains("PlaybackCommand.CycleZoom"))
-        assertTrue(source.contains("PlaybackCommand.ShowTrackSelection"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.SetSpeed(speed)"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.Previous"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.Next"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.ToggleRepeat"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.ShowQueue"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.CycleZoom"))
+        assertTrue(gestureOverlayBinder.contains("PlaybackCommand.ShowTrackSelection"))
         assertTrue(source.contains("handlePlaybackCommand(PlaybackCommand.SelectTrack(trackType))"))
         assertTrue(source.contains("trackSelectionDialogController.showDialog(command.trackType)"))
         assertTrue(trackOptions.contains("PlaybackTrackType.AUDIO"))
