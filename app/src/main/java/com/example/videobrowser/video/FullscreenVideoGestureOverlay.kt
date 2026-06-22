@@ -110,10 +110,6 @@ class FullscreenVideoGestureOverlay(
     private var downTime = 0L
     private var initialBrightness = FullscreenVideoGestureMath.DEFAULT_BRIGHTNESS
     private var initialVolume = 0
-    private var pendingTapZone = VideoGestureScreenZone.NONE
-    private var pendingTapTime = 0L
-    private var seekAccumulatorDirection = 0
-    private var seekAccumulatorCount = 0
     private val speedPopupController = FullscreenVideoSpeedPopupController(
         context = context,
         anchorView = speedButton,
@@ -137,18 +133,13 @@ class FullscreenVideoGestureOverlay(
         activity = activity,
         showFeedback = ::showFeedback
     )
+    private val sideTapSeekController = FullscreenVideoSideTapSeekController(
+        feedbackHandler = feedbackHandler,
+        seekBy = { offsetMs -> onSeekBy?.invoke(offsetMs) },
+        showFeedback = { text -> showFeedback(text) }
+    )
     private val locked: Boolean
         get() = lockUiController.locked
-
-    private val clearPendingTapRunnable = Runnable {
-        pendingTapZone = VideoGestureScreenZone.NONE
-        pendingTapTime = 0L
-    }
-
-    private val clearSeekAccumulatorRunnable = Runnable {
-        seekAccumulatorDirection = 0
-        seekAccumulatorCount = 0
-    }
 
     private val longPressRunnable = Runnable {
         triggerLongPress()
@@ -194,8 +185,7 @@ class FullscreenVideoGestureOverlay(
         systemGestureController.restoreWindowBrightness()
         lockUiController.setLocked(false, announce = false)
         resetTouchState()
-        feedbackHandler.removeCallbacks(clearPendingTapRunnable)
-        feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
+        sideTapSeekController.clearAll()
         feedbackHandler.removeCallbacks(longPressRunnable)
         feedbackController.hide()
         visibility = View.GONE
@@ -738,8 +728,7 @@ class FullscreenVideoGestureOverlay(
     private fun beginHorizontalSeek(deltaX: Float) {
         // 横向滑动开始时记录当前播放位置，后续移动只是在这个基础上计算预览目标。
         activeGesture = VerticalGesture.HORIZONTAL_SEEK
-        clearPendingSideTap()
-        clearSeekAccumulator()
+        sideTapSeekController.clearAll()
         feedbackHandler.removeCallbacks(longPressRunnable)
 
         seekGestureController.begin(deltaX, width)
@@ -777,54 +766,15 @@ class FullscreenVideoGestureOverlay(
         notifyUserInteraction()
         when (val zone = screenZoneFor(upX)) {
             VideoGestureScreenZone.CENTER -> {
-                clearPendingSideTap()
+                sideTapSeekController.clearPendingTap()
                 if (playbackControlsVisibleOnTouchStart) {
                     onTogglePlayPause?.invoke()
                 }
             }
             VideoGestureScreenZone.LEFT,
-            VideoGestureScreenZone.RIGHT -> registerSideTap(zone, eventTime)
+            VideoGestureScreenZone.RIGHT -> sideTapSeekController.registerTap(zone, eventTime)
             VideoGestureScreenZone.NONE -> Unit
         }
-    }
-
-    /**
-     * 函数 `registerSideTap`：封装 `register Side Tap` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param zone 参数类型为 `VideoGestureScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
-     * @param eventTime 参数类型为 `Long`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     */
-    private fun registerSideTap(zone: VideoGestureScreenZone, eventTime: Long) {
-        if (pendingTapZone == zone && eventTime - pendingTapTime <= DOUBLE_TAP_TIMEOUT_MS) {
-            clearPendingSideTap()
-            handleDoubleTap(zone)
-            return
-        }
-        pendingTapZone = zone
-        pendingTapTime = eventTime
-        feedbackHandler.removeCallbacks(clearPendingTapRunnable)
-        feedbackHandler.postDelayed(clearPendingTapRunnable, DOUBLE_TAP_TIMEOUT_MS)
-    }
-
-    /**
-     * 函数 `handleDoubleTap`：处理 `handle Double Tap` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param zone 参数类型为 `VideoGestureScreenZone`，表示函数执行 `zone` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun handleDoubleTap(zone: VideoGestureScreenZone) {
-        val direction = if (zone == VideoGestureScreenZone.LEFT) -1 else 1
-        onSeekBy?.invoke(direction * SEEK_STEP_MS)
-        if (seekAccumulatorDirection != direction) {
-            seekAccumulatorDirection = direction
-            seekAccumulatorCount = 0
-        }
-        seekAccumulatorCount += 1
-        val seconds = direction * seekAccumulatorCount * SEEK_STEP_SECONDS
-        showFeedback(VideoGestureFeedbackFormatter.formatSeekSeconds(seconds))
-        feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
-        feedbackHandler.postDelayed(clearSeekAccumulatorRunnable, SEEK_ACCUMULATE_RESET_MS)
     }
 
     /**
@@ -839,8 +789,7 @@ class FullscreenVideoGestureOverlay(
         }
         longPressActive = true
         tapCandidate = false
-        clearPendingSideTap()
-        clearSeekAccumulator()
+        sideTapSeekController.clearAll()
         val direction = if (downZone == VideoGestureScreenZone.LEFT) -1 else 1
         onDirectionalLongPressStart?.invoke(direction)
         showFeedback(
@@ -875,8 +824,7 @@ class FullscreenVideoGestureOverlay(
         if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
             finishHorizontalSeek(commit = false)
         }
-        clearPendingSideTap()
-        clearSeekAccumulator()
+        sideTapSeekController.clearAll()
     }
 
     /**
@@ -945,28 +893,6 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `clearPendingSideTap`：封装 `clear Pending Side Tap` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun clearPendingSideTap() {
-        pendingTapZone = VideoGestureScreenZone.NONE
-        pendingTapTime = 0L
-        feedbackHandler.removeCallbacks(clearPendingTapRunnable)
-    }
-
-    /**
-     * 函数 `clearSeekAccumulator`：封装 `clear Seek Accumulator` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun clearSeekAccumulator() {
-        seekAccumulatorDirection = 0
-        seekAccumulatorCount = 0
-        feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
-    }
-
-    /**
      * 函数 `screenZoneFor`：封装 `screen Zone For` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1032,12 +958,8 @@ class FullscreenVideoGestureOverlay(
 
     private companion object {
         private const val DEFAULT_PLAYBACK_SPEED = 1f
-        private const val SEEK_STEP_MS = 10_000L
-        private const val SEEK_STEP_SECONDS = 10
         private const val TAP_MAX_DURATION_MS = 260L
-        private const val DOUBLE_TAP_TIMEOUT_MS = 280L
         private const val LONG_PRESS_TIMEOUT_MS = 520L
-        private const val SEEK_ACCUMULATE_RESET_MS = 850L
         private const val BOTTOM_PASSTHROUGH_DP = 92
         private const val MIN_SWIPE_DISTANCE_DP = 10
         private const val VERTICAL_GESTURE_RATIO = 1.15f
