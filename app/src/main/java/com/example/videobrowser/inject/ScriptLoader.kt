@@ -81,6 +81,7 @@ class ScriptLoader(
         const val TOP_PAGE_CLEANUP_SCRIPT_ASSET = "scripts/top_page_cleanup.js"
         const val SEARCH_RESULT_CLEANUP_SCRIPT_ASSET = "scripts/search_result_cleanup.js"
         const val SKIP_BUTTON_TOOLS_SCRIPT_ASSET = "scripts/skip_button_tools.js"
+        const val ENHANCER_STATE_SCRIPT_ASSET = "scripts/enhancer_state.js"
         const val NATIVE_BRIDGE_SCRIPT_ASSET = "scripts/native_bridge.js"
         const val VIDEO_CONTROL_TOOLS_SCRIPT_ASSET = "scripts/video_control_tools.js"
         const val VIDEO_QUERY_TOOLS_SCRIPT_ASSET = "scripts/video_query_tools.js"
@@ -113,6 +114,7 @@ class ScriptLoader(
             TOP_PAGE_CLEANUP_SCRIPT_ASSET,
             SEARCH_RESULT_CLEANUP_SCRIPT_ASSET,
             SKIP_BUTTON_TOOLS_SCRIPT_ASSET,
+            ENHANCER_STATE_SCRIPT_ASSET,
             NATIVE_BRIDGE_SCRIPT_ASSET,
             VIDEO_CONTROL_TOOLS_SCRIPT_ASSET,
             VIDEO_QUERY_TOOLS_SCRIPT_ASSET,

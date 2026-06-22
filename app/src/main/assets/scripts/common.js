@@ -4,39 +4,8 @@
  * 它负责读取 Kotlin 侧传入的配置，执行页面清理、元素屏蔽、视频手势桥接和诊断日志。
  */
 (function () {
-  const state = window.__videobrowserState || {
-    observer: null,
-    intervalId: null,
-    hooked: false,
-    config: {},
-    pendingWork: false,
-    lastWorkAt: 0,
-    lastCleanupAt: 0,
-    suppressMutationWork: false,
-    disposed: false
-  };
-  window.__videobrowserState = state;
-  state.suppressMutationWork = false;
-  state.lastCleanupAt = Number(state.lastCleanupAt || 0);
-  if (!Number.isFinite(state.lastCleanupAt)) state.lastCleanupAt = 0;
-  if (!state.fullscreenHookedVideos || typeof state.fullscreenHookedVideos.add !== 'function') {
-    state.fullscreenHookedVideos = new WeakSet();
-  }
-  if (!state.speedHookedVideos || typeof state.speedHookedVideos.add !== 'function') {
-    state.speedHookedVideos = new WeakSet();
-  }
-  if (!state.bestQualityAttempts || typeof state.bestQualityAttempts.get !== 'function') {
-    state.bestQualityAttempts = new WeakMap();
-  }
-  state.nativeFullscreenVideo = state.nativeFullscreenVideo || null;
-  state.documentFullscreenActive = Boolean(state.documentFullscreenActive);
-  state.directionalPlayback = state.directionalPlayback || null;
-  state.elementPicker = state.elementPicker || null;
-  state.fullscreenPlaybackSpeed = Number(state.fullscreenPlaybackSpeed || 1);
-  if (!Number.isFinite(state.fullscreenPlaybackSpeed) || state.fullscreenPlaybackSpeed <= 0) {
-    state.fullscreenPlaybackSpeed = 1;
-  }
-
+  const enhancerState = window.VideoBrowserEnhancerState;
+  const state = enhancerState.current();
   const pageCleanupCoordinator = window.VideoBrowserPageCleanupCoordinator;
   const skipButtonTools = window.VideoBrowserSkipButtonTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
