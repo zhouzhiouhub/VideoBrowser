@@ -10,6 +10,7 @@ class SiteAdapterGeometryContractTest {
     fun `site adapter geometry helpers are shared`() {
         val geometryScript = projectFile("src/main/assets/scripts/geometry.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val customControlDetectorScript = projectFile("src/main/assets/scripts/video_custom_control_detector.js").readText()
         val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
         val bilibiliScript = projectFile("src/main/assets/scripts/bilibili.js").readText()
 
@@ -18,7 +19,8 @@ class SiteAdapterGeometryContractTest {
         assertTrue(geometryScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
         assertTrue(geometryScript.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))
         assertTrue(geometryScript.contains("geometry.centerDistance = geometry.centerDistance || function (first, second)"))
-        assertTrue(commonScript.contains("const geometry = window.VideoBrowserGeometry"))
+        assertTrue(customControlDetectorScript.contains("const geometry = window.VideoBrowserGeometry || {}"))
+        assertTrue(customControlDetectorScript.contains("geometry.rectsOverlap(rect, geometry.expandedRect(videoRect, 12))"))
         assertFalse(commonScript.contains("geometry.safeRect = geometry.safeRect || function (element)"))
         assertFalse(commonScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
         assertFalse(commonScript.contains("geometry.rectsOverlap = geometry.rectsOverlap || function (first, second)"))

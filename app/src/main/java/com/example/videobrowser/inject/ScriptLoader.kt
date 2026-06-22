@@ -83,6 +83,7 @@ class ScriptLoader(
         const val VIDEO_CONTROL_TOOLS_SCRIPT_ASSET = "scripts/video_control_tools.js"
         const val VIDEO_QUERY_TOOLS_SCRIPT_ASSET = "scripts/video_query_tools.js"
         const val SITE_VIDEO_CAPABILITY_BROKER_SCRIPT_ASSET = "scripts/site_video_capability_broker.js"
+        const val VIDEO_CUSTOM_CONTROL_DETECTOR_SCRIPT_ASSET = "scripts/video_custom_control_detector.js"
         const val VIDEO_PLAYBACK_TOOLS_SCRIPT_ASSET = "scripts/video_playback_tools.js"
         const val ELEMENT_PICKER_SCRIPT_ASSET = "scripts/element_picker.js"
         const val SCRIPTLET_HOOKS_SCRIPT_ASSET = "scripts/scriptlet_hooks.js"
@@ -104,6 +105,7 @@ class ScriptLoader(
             VIDEO_CONTROL_TOOLS_SCRIPT_ASSET,
             VIDEO_QUERY_TOOLS_SCRIPT_ASSET,
             SITE_VIDEO_CAPABILITY_BROKER_SCRIPT_ASSET,
+            VIDEO_CUSTOM_CONTROL_DETECTOR_SCRIPT_ASSET,
             VIDEO_PLAYBACK_TOOLS_SCRIPT_ASSET,
             ELEMENT_PICKER_SCRIPT_ASSET,
             SCRIPTLET_HOOKS_SCRIPT_ASSET,

@@ -37,12 +37,6 @@
     state.fullscreenPlaybackSpeed = 1;
   }
 
-  const geometry = window.VideoBrowserGeometry;
-  const expandedRect = geometry.expandedRect;
-  const rectsOverlap = geometry.rectsOverlap;
-
-  const domTools = window.VideoBrowserDomTools;
-  const elementDescriptor = domTools.elementDescriptor;
   const domActions = window.VideoBrowserDomActions;
   const selectorTools = window.VideoBrowserSelectorTools;
   const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors;
@@ -58,6 +52,7 @@
   const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
   const hasSiteVideoCapability = siteVideoCapabilityBroker.has;
   const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke;
+  const customControlDetector = window.VideoBrowserVideoCustomControlDetector;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
   const styleManager = window.VideoBrowserStyleManager;
@@ -331,16 +326,6 @@
   }
 
   /**
-   * 函数 `normalizeText`：封装 `normalize Text` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function normalizeText(value) {
-    return selectorTools.normalizeText(value);
-  }
-
-  /**
    * 函数 `removeElement`：封装 `remove Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -391,29 +376,6 @@
     });
   }
 
-  const customPlayerControlSelectors = [
-    '.xgplayer-controls',
-    '.xgplayer-progress',
-    '.xgplayer-start',
-    '.dplayer-controller',
-    '.dplayer-icons',
-    '.art-controls',
-    '.art-control',
-    '.vjs-control-bar',
-    '.jw-controls',
-    '.plyr__controls',
-    '.ckplayer-control',
-    '.ckplayer-controls',
-    '.prism-controlbar',
-    '.mejs__controls',
-    '[class*="player-control"]',
-    '[class*="player_control"]',
-    '[class*="video-control"]',
-    '[class*="video_control"]',
-    '[class*="control-bar"]',
-    '[class*="controlbar"]'
-  ];
-
   /**
    * 函数 `enableNativeVideoControls`：封装 `enable Native Video Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
@@ -439,127 +401,6 @@
       }));
     }
     return hadNativeControls;
-  }
-
-  /**
-   * 函数 `hasLikelyCustomPlayerControls`：封装 `has Likely Custom Player Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function hasLikelyCustomPlayerControls(video) {
-    const root = customPlayerRootFor(video);
-    if (!root) return false;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    const controls = customPlayerControlSelectors.some(function (selector) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      return querySelectorAllSafeWithin(root, selector).some(function (element) {
-        return isLikelyCustomControlElement(element, video);
-      });
-    });
-    if (controls) return true;
-
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param element 表示当前回调正在检查或操作的页面元素。
-     */
-    return querySelectorAllSafeWithin(root, 'button,[role="button"],input[type="range"]').some(function (element) {
-      return isLikelyMediaControlElement(element, video);
-    });
-  }
-
-  /**
-   * 函数 `customPlayerRootFor`：封装 `custom Player Root For` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function customPlayerRootFor(video) {
-    if (!video || !video.isConnected) return null;
-    let current = video.parentElement || video;
-    for (let depth = 0; current && depth < 8; depth += 1, current = current.parentElement) {
-      if (current === document.body || current === document.documentElement) break;
-      if (!current.contains(video)) continue;
-      if (isLikelyCustomPlayerRoot(current)) return current;
-    }
-    return video.parentElement || video;
-  }
-
-  /**
-   * 函数 `isLikelyCustomPlayerRoot`：封装 `is Likely Custom Player Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function isLikelyCustomPlayerRoot(element) {
-    const descriptor = elementDescriptor(element).toLowerCase();
-    return /xgplayer|dplayer|artplayer|jwplayer|video-js|vjs-|plyr|ckplayer|prism-player|mejs|hls-player|video-player|player-container|player-wrap|player_box|playerbox|video-container|video-wrap|video_box|videobox/i
-      .test(descriptor);
-  }
-
-  /**
-   * 函数 `querySelectorAllSafeWithin`：封装 `query Selector All Safe Within` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} root 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function querySelectorAllSafeWithin(root, selector) {
-    return selectorTools.queryAllWithin(root, selector);
-  }
-
-  /**
-   * 函数 `isLikelyCustomControlElement`：封装 `is Likely Custom Control Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function isLikelyCustomControlElement(element, video) {
-    if (!element || element === video || element.querySelector('video')) return false;
-    if (element.getAttribute('data-videobrowser-dismissed')) return false;
-
-    const rect = element.getBoundingClientRect();
-    const videoRect = video && typeof video.getBoundingClientRect === 'function'
-      ? video.getBoundingClientRect()
-      : null;
-    if (!rect || rect.width <= 0 || rect.height <= 0) {
-      return true;
-    }
-    if (!videoRect || videoRect.width <= 0 || videoRect.height <= 0) {
-      return true;
-    }
-    return rectsOverlap(rect, expandedRect(videoRect, 12));
-  }
-
-  /**
-   * 函数 `isLikelyMediaControlElement`：封装 `is Likely Media Control Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function isLikelyMediaControlElement(element, video) {
-    if (!isLikelyCustomControlElement(element, video)) return false;
-    const descriptor = elementDescriptor(element).toLowerCase();
-    const text = normalizeText(
-      element.innerText ||
-      element.textContent ||
-      element.getAttribute('aria-label') ||
-      element.getAttribute('title')
-    ).toLowerCase();
-    if (element.matches && element.matches('input[type="range"]')) return true;
-    return /play|pause|seek|progress|volume|fullscreen|screenfull|control|播放|暂停|进度|音量|全屏/i
-      .test(descriptor + ' ' + text);
   }
 
   /**
@@ -756,7 +597,7 @@
       }));
       return;
     }
-    if (hasLikelyCustomPlayerControls(video)) {
+    if (customControlDetector.hasControls(video)) {
       removeNativeVideoControls(video, 'custom-player');
       logVideoDiagnostic('enable-controls-custom-player', videoLogDetails(video, {
         handled: true
