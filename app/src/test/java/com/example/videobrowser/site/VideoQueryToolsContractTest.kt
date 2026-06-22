@@ -10,6 +10,7 @@ class VideoQueryToolsContractTest {
     fun `video element lookup is owned by shared video query module`() {
         val videoQueryScript = projectFile("src/main/assets/scripts/video_query_tools.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val fullscreenScript = projectFile("src/main/assets/scripts/video_fullscreen_tools.js").readText()
 
         assertTrue(videoQueryScript.contains("window.VideoBrowserVideoQueryTools = tools"))
         assertTrue(videoQueryScript.contains("tools.all = tools.all || function ()"))
@@ -18,7 +19,7 @@ class VideoQueryToolsContractTest {
         assertTrue(videoQueryScript.contains("tools.some = tools.some || function (predicate)"))
         assertTrue(commonScript.contains("const videoQueryTools = window.VideoBrowserVideoQueryTools"))
         assertTrue(commonScript.contains("videoQueryTools.forEach(function (video)"))
-        assertTrue(commonScript.contains("const videos = videoQueryTools.all();"))
+        assertTrue(fullscreenScript.contains("videoQueryTools.all()"))
         assertTrue(commonScript.contains("return videoQueryTools.some(function (video)"))
         assertFalse(commonScript.contains("document.querySelectorAll('video')"))
     }
