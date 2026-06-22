@@ -62,36 +62,20 @@ class PlayerActivity : AppCompatActivity() {
             }
         )
     }
-    private val scanHandler = Handler(Looper.getMainLooper())
+    private val directionalLongPressController = NativeDirectionalLongPressController(
+        scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
+        seekBy = ::seekPlayerBy
+    )
     private var playbackPosition = 0L
     private var playWhenReady = true
     private var currentMediaItemIndex = 0
     private var selectedPlaybackSpeed = DEFAULT_PLAYBACK_SPEED
-    private var longPressRestoreSpeed = DEFAULT_PLAYBACK_SPEED
-    private var longPressRestorePlayWhenReady = true
-    private var longPressDirection = 0
-    private var directionalLongPressActive = false
     private var isLandscape = true
     private var videoEffectsEnabled = true
     private var retriedPlaybackWithoutVideoEffects = false
     private var repeatMode = PlaybackRepeatMode.NONE
     private var videoZoomMode = VideoZoomMode.FIT
     private val intentReader: PlayerIntentReader by lazy { PlayerIntentReader(intent) }
-
-    private val reverseScanRunnable = object : Runnable {
-        /**
-         * 函数 `run`：封装 `run` 这一段业务步骤，让调用方不用关心内部实现细节。
-         *
-         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-         */
-        override fun run() {
-            if (!directionalLongPressActive || longPressDirection >= 0) {
-                return
-            }
-            seekPlayerBy(-LONG_PRESS_SCAN_STEP_MS)
-            scanHandler.postDelayed(this, LONG_PRESS_SCAN_INTERVAL_MS)
-        }
-    }
 
     /**
      * 函数 `onCreate`：处理 `on Create` 对应的事件或请求，集中完成校验、状态更新和回调通知。
@@ -118,7 +102,6 @@ class PlayerActivity : AppCompatActivity() {
         currentMediaItemIndex = playbackQueue.currentIndex
         repeatMode = playbackQueue.repeatMode
         selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
-        longPressRestoreSpeed = selectedPlaybackSpeed
 
         playerRoot = findViewById(R.id.playerRoot)
         playerView = findViewById(R.id.playerView)
@@ -149,7 +132,6 @@ class PlayerActivity : AppCompatActivity() {
             videoZoomMode = savedInstanceState.getString(STATE_VIDEO_ZOOM_MODE)
                 ?.let { runCatching { VideoZoomMode.valueOf(it) }.getOrNull() }
                 ?: videoZoomMode
-            longPressRestoreSpeed = selectedPlaybackSpeed
             videoEffectsEnabled = savedInstanceState.getBoolean(STATE_VIDEO_EFFECTS_ENABLED, true)
             retriedPlaybackWithoutVideoEffects = savedInstanceState.getBoolean(
                 STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
@@ -956,21 +938,11 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun startDirectionalLongPress(direction: Int) {
         val exoPlayer = player ?: return
-        stopDirectionalLongPress()
-
-        directionalLongPressActive = true
-        longPressDirection = if (direction < 0) -1 else 1
-        longPressRestoreSpeed = selectedPlaybackSpeed
-        longPressRestorePlayWhenReady = exoPlayer.playWhenReady
-
-        if (longPressDirection > 0) {
-            exoPlayer.setPlaybackSpeed(VideoSpeedOptions.longPressSpeed)
-            exoPlayer.play()
-        } else {
-            exoPlayer.pause()
-            seekPlayerBy(-LONG_PRESS_SCAN_STEP_MS)
-            scanHandler.postDelayed(reverseScanRunnable, LONG_PRESS_SCAN_INTERVAL_MS)
-        }
+        directionalLongPressController.start(
+            direction = direction,
+            selectedPlaybackSpeed = selectedPlaybackSpeed,
+            playbackTarget = ExoPlayerDirectionalLongPressTarget(exoPlayer)
+        )
     }
 
     /**
@@ -979,20 +951,8 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun stopDirectionalLongPress() {
-        if (!directionalLongPressActive) {
-            return
-        }
-        directionalLongPressActive = false
-        longPressDirection = 0
-        scanHandler.removeCallbacks(reverseScanRunnable)
-
-        val exoPlayer = player ?: return
-        selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(longPressRestoreSpeed)
-        exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
-        if (longPressRestorePlayWhenReady) {
-            exoPlayer.play()
-        } else {
-            exoPlayer.pause()
+        directionalLongPressController.stop()?.let { restoredSpeed ->
+            selectedPlaybackSpeed = restoredSpeed
         }
     }
 
@@ -1068,7 +1028,6 @@ class PlayerActivity : AppCompatActivity() {
         }
         if (progress != null) {
             selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(progress.speed)
-            longPressRestoreSpeed = selectedPlaybackSpeed
         }
     }
 
@@ -1137,8 +1096,6 @@ class PlayerActivity : AppCompatActivity() {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val CONTROLS_HIDE_DELAY_MS = 3000
-        private const val LONG_PRESS_SCAN_STEP_MS = 500L
-        private const val LONG_PRESS_SCAN_INTERVAL_MS = 250L
         /**
          * 函数 `createIntent`：创建 `create Intent` 需要的对象、视图或配置，并返回给后续流程使用。
          *
