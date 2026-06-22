@@ -133,6 +133,50 @@ internal class FunctionCenterContentFactory(
         )
     }
 
+    fun addSwitchRow(
+        parent: LinearLayout,
+        title: String,
+        summary: String,
+        checked: Boolean,
+        enabled: Boolean = true,
+        onChanged: (Boolean) -> Unit
+    ) {
+        parent.addView(
+            rowFactory.createSwitchRow(
+                title = title,
+                summary = summary,
+                checked = checked,
+                enabled = enabled,
+                onChanged = onChanged
+            ),
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
+    fun addActionRow(
+        parent: LinearLayout,
+        title: String,
+        summary: String,
+        enabled: Boolean = true,
+        onClick: () -> Unit
+    ) {
+        parent.addView(
+            rowFactory.createActionRow(
+                title = title,
+                summary = summary,
+                enabled = enabled,
+                onClick = onClick
+            ),
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
     fun addDivider(parent: LinearLayout) {
         parent.addView(
             View(activity).apply {

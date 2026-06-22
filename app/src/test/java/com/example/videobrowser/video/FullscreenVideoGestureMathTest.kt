@@ -7,6 +7,98 @@ import org.junit.Test
 
 class FullscreenVideoGestureMathTest {
     @Test
+    fun `brightness drag maps vertical movement and clamps to gesture range`() {
+        assertEquals(
+            0.9f,
+            FullscreenVideoGestureMath.brightnessForDrag(
+                initialBrightness = 0.4f,
+                deltaY = -50f,
+                viewHeight = 100
+            ),
+            0.0001f
+        )
+        assertEquals(
+            0.02f,
+            FullscreenVideoGestureMath.brightnessForDrag(
+                initialBrightness = 0.4f,
+                deltaY = 100f,
+                viewHeight = 100
+            ),
+            0.0001f
+        )
+        assertEquals(
+            1f,
+            FullscreenVideoGestureMath.brightnessForDrag(
+                initialBrightness = 0.8f,
+                deltaY = -100f,
+                viewHeight = 100
+            ),
+            0.0001f
+        )
+    }
+
+    @Test
+    fun `brightness drag handles invalid height by clamping initial value`() {
+        assertEquals(
+            0.02f,
+            FullscreenVideoGestureMath.brightnessForDrag(
+                initialBrightness = -1f,
+                deltaY = -100f,
+                viewHeight = 0
+            ),
+            0.0001f
+        )
+    }
+
+    @Test
+    fun `volume drag maps vertical movement and clamps to stream range`() {
+        assertEquals(
+            10,
+            FullscreenVideoGestureMath.volumeForDrag(
+                initialVolume = 5,
+                deltaY = -50f,
+                viewHeight = 100,
+                minVolume = 0,
+                maxVolume = 10
+            )
+        )
+        assertEquals(
+            0,
+            FullscreenVideoGestureMath.volumeForDrag(
+                initialVolume = 5,
+                deltaY = 50f,
+                viewHeight = 100,
+                minVolume = 0,
+                maxVolume = 10
+            )
+        )
+    }
+
+    @Test
+    fun `volume drag rejects invalid ranges or height`() {
+        assertEquals(
+            null,
+            FullscreenVideoGestureMath.volumeForDrag(
+                initialVolume = 5,
+                deltaY = -50f,
+                viewHeight = 100,
+                minVolume = 10,
+                maxVolume = 10
+            )
+        )
+        assertEquals(
+            null,
+            FullscreenVideoGestureMath.volumeForDrag(
+                initialVolume = 5,
+                deltaY = -50f,
+                viewHeight = 0,
+                minVolume = 0,
+                maxVolume = 10
+            )
+        )
+    }
+
+    @Test
     fun `volume percent maps stream range and clamps outside values`() {
         assertEquals(0, FullscreenVideoGestureMath.volumePercent(0, 0, 10))
         assertEquals(50, FullscreenVideoGestureMath.volumePercent(5, 0, 10))

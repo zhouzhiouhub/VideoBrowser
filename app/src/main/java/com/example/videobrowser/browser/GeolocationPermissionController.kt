@@ -16,7 +16,6 @@ import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermission
 import com.example.videobrowser.settings.SitePermissionDecision
-import com.example.videobrowser.site.SiteHost
 
 /**
  * WebView 地理位置权限控制器。
@@ -41,6 +40,11 @@ class GeolocationPermissionController(
     private var pendingPermissionPrompt: GeolocationPermissionPrompt? = null
     private var pendingSitePrompt: GeolocationPermissionPrompt? = null
     private var pendingDialog: AlertDialog? = null
+    private val sitePermissionDecisionController = BrowserSitePermissionDecisionController(
+        settingsManager = settingsManager,
+        sessionSitePermissionStore = sessionSitePermissionStore,
+        isPrivateBrowsingEnabled = isPrivateBrowsingEnabled
+    )
 
     /**
      * 函数 `handlePermissionRequest`：处理 WebView 发来的地理位置权限请求。
@@ -208,14 +212,10 @@ class GeolocationPermissionController(
      * @return 返回允许、阻止或询问用户的决策。
      */
     private fun geolocationPermissionDecision(origin: String?): SitePermissionDecision {
-        val hostName = SiteHost.fromUrl(origin) ?: return SitePermissionDecision.ASK
-        val decision = settingsManager.sitePermissionDecision(hostName, SitePermission.LOCATION)
-        return when {
-            decision == SitePermissionDecision.BLOCK -> SitePermissionDecision.BLOCK
-            decision == SitePermissionDecision.ALLOW ||
-                sessionSitePermissionStore.isAllowed(hostName, SitePermission.LOCATION) -> SitePermissionDecision.ALLOW
-            else -> SitePermissionDecision.ASK
-        }
+        return sitePermissionDecisionController.decisionForOrigin(
+            origin = origin,
+            permissions = listOf(SitePermission.LOCATION)
+        )
     }
 
     /**
@@ -225,17 +225,10 @@ class GeolocationPermissionController(
      * @param allowed 参数类型为 `Boolean`，表示用户是否允许定位；false 会保存为阻止。
      */
     private fun saveGeolocationPermissionDecision(origin: String?, allowed: Boolean) {
-        if (isPrivateBrowsingEnabled()) {
-            if (allowed) {
-                allowGeolocationPermissionForSession(origin)
-            }
-            return
-        }
-        val hostName = SiteHost.fromUrl(origin) ?: return
-        settingsManager.setSitePermissionDecision(
-            host = hostName,
-            permission = SitePermission.LOCATION,
-            decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
+        sitePermissionDecisionController.saveDecisionForOrigin(
+            origin = origin,
+            permissions = listOf(SitePermission.LOCATION),
+            allowed = allowed
         )
     }
 
@@ -245,8 +238,10 @@ class GeolocationPermissionController(
      * @param origin 参数类型为 `String?`，表示网页请求定位权限的来源地址。
      */
     private fun allowGeolocationPermissionForSession(origin: String?) {
-        val hostName = SiteHost.fromUrl(origin) ?: return
-        sessionSitePermissionStore.allow(hostName, SitePermission.LOCATION)
+        sitePermissionDecisionController.allowForSession(
+            origin = origin,
+            permissions = listOf(SitePermission.LOCATION)
+        )
     }
 
     /**

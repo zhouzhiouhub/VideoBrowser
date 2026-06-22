@@ -341,19 +341,7 @@ class FunctionCenterViewFactory(
         enabled: Boolean = true,
         onChanged: (Boolean) -> Unit
     ) {
-        parent.addView(
-            rowFactory.createSwitchRow(
-                title = title,
-                summary = summary,
-                checked = checked,
-                enabled = enabled,
-                onChanged = onChanged
-            ),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
+        contentFactory.addSwitchRow(parent, title, summary, checked, enabled, onChanged)
     }
 
     /**
@@ -373,18 +361,7 @@ class FunctionCenterViewFactory(
         enabled: Boolean = true,
         onClick: () -> Unit
     ) {
-        parent.addView(
-            rowFactory.createActionRow(
-                title = title,
-                summary = summary,
-                enabled = enabled,
-                onClick = onClick
-            ),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
+        contentFactory.addActionRow(parent, title, summary, enabled, onClick)
     }
 
     /**

@@ -7,16 +7,13 @@ package com.example.videobrowser.browser
  * 主要职责：把 WebView PermissionRequest 映射到 Android 运行时权限、站点权限设置和用户确认弹窗，并且只授予应用支持的网页资源。
  * 阅读顺序：先看 handlePermissionRequest，再看 handleAndroidPermissionResult 和 showPermissionPrompt，最后看资源映射函数。
  */
-import android.Manifest
 import android.webkit.PermissionRequest
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.settings.SettingsManager
-import com.example.videobrowser.settings.SitePermission
 import com.example.videobrowser.settings.SitePermissionDecision
-import com.example.videobrowser.site.SiteHost
 
 /**
  * WebView 相机/麦克风权限请求控制器。
@@ -41,6 +38,11 @@ class WebPermissionRequestController(
     private var pendingWebPermissionRequest: PermissionRequest? = null
     private var pendingWebPermissionPromptRequest: PermissionRequest? = null
     private var pendingWebPermissionDialog: AlertDialog? = null
+    private val sitePermissionDecisionController = BrowserSitePermissionDecisionController(
+        settingsManager = settingsManager,
+        sessionSitePermissionStore = sessionSitePermissionStore,
+        isPrivateBrowsingEnabled = isPrivateBrowsingEnabled
+    )
 
     /**
      * 函数 `handlePermissionRequest`：处理 WebView 发来的网页权限请求。
@@ -51,7 +53,7 @@ class WebPermissionRequestController(
      */
     fun handlePermissionRequest(request: PermissionRequest?) {
         request ?: return
-        val requiredPermissions = androidPermissionsForWebResources(request.resources)
+        val requiredPermissions = WebPermissionResourceMapper.androidPermissionsFor(request.resources)
         if (requiredPermissions == null) {
             request.deny()
             return
@@ -84,7 +86,7 @@ class WebPermissionRequestController(
     fun handleAndroidPermissionResult(grants: Map<String, Boolean>) {
         val request = pendingWebPermissionRequest ?: return
         pendingWebPermissionRequest = null
-        val requiredPermissions = androidPermissionsForWebResources(request.resources)
+        val requiredPermissions = WebPermissionResourceMapper.androidPermissionsFor(request.resources)
         if (requiredPermissions != null && requiredPermissions.all { permission ->
                 grants[permission] == true || hasAndroidPermission(permission)
             }
@@ -247,23 +249,12 @@ class WebPermissionRequestController(
      */
     private fun webPermissionResourceSummary(resources: Array<String>): String {
         return resources
-            .mapNotNull { resource -> webPermissionResourceLabel(resource) }
+            .mapNotNull { resource ->
+                WebPermissionResourceMapper.labelResourceIdFor(resource)
+                    ?.let(activity::getString)
+            }
             .distinct()
             .joinToString(", ")
-    }
-
-    /**
-     * 函数 `webPermissionResourceLabel`：把单个 WebView 权限资源转换成本地化名称。
-     *
-     * @param resource 参数类型为 `String`，表示 WebView 权限资源常量。
-     * @return 返回相机/麦克风名称；未知资源返回 null。
-     */
-    private fun webPermissionResourceLabel(resource: String): String? {
-        return when (resource) {
-            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> activity.getString(R.string.web_permission_camera)
-            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> activity.getString(R.string.web_permission_microphone)
-            else -> null
-        }
     }
 
     /**
@@ -273,20 +264,10 @@ class WebPermissionRequestController(
      * @return 返回允许、阻止或询问用户的决策。
      */
     private fun webPermissionDecision(request: PermissionRequest): SitePermissionDecision {
-        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return SitePermissionDecision.ASK
-        val permissions = request.resources
-            .mapNotNull(::sitePermissionForWebResource)
-        val decisions = permissions
-            .map { permission -> settingsManager.sitePermissionDecision(hostName, permission) }
-        return when {
-            decisions.any { decision -> decision == SitePermissionDecision.BLOCK } -> SitePermissionDecision.BLOCK
-            permissions.isNotEmpty() &&
-                permissions.all { permission ->
-                    settingsManager.sitePermissionDecision(hostName, permission) == SitePermissionDecision.ALLOW ||
-                        sessionSitePermissionStore.isAllowed(hostName, permission)
-                } -> SitePermissionDecision.ALLOW
-            else -> SitePermissionDecision.ASK
-        }
+        return sitePermissionDecisionController.decisionForOrigin(
+            origin = request.origin?.toString(),
+            permissions = WebPermissionResourceMapper.sitePermissionsFor(request.resources)
+        )
     }
 
     /**
@@ -296,19 +277,11 @@ class WebPermissionRequestController(
      * @param allowed 参数类型为 `Boolean`，表示用户是否允许该权限；false 会保存为阻止。
      */
     private fun saveWebPermissionDecision(request: PermissionRequest, allowed: Boolean) {
-        if (isPrivateBrowsingEnabled()) {
-            if (allowed) {
-                allowWebPermissionForSession(request)
-            }
-            return
-        }
-        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
-        val decision = if (allowed) SitePermissionDecision.ALLOW else SitePermissionDecision.BLOCK
-        request.resources
-            .mapNotNull(::sitePermissionForWebResource)
-            .forEach { permission ->
-                settingsManager.setSitePermissionDecision(hostName, permission, decision)
-            }
+        sitePermissionDecisionController.saveDecisionForOrigin(
+            origin = request.origin?.toString(),
+            permissions = WebPermissionResourceMapper.sitePermissionsFor(request.resources),
+            allowed = allowed
+        )
     }
 
     /**
@@ -317,26 +290,10 @@ class WebPermissionRequestController(
      * @param request 参数类型为 `PermissionRequest`，表示需要临时允许的网页权限请求。
      */
     private fun allowWebPermissionForSession(request: PermissionRequest) {
-        val hostName = SiteHost.fromUrl(request.origin?.toString()) ?: return
-        request.resources
-            .mapNotNull(::sitePermissionForWebResource)
-            .forEach { permission ->
-                sessionSitePermissionStore.allow(hostName, permission)
-            }
-    }
-
-    /**
-     * 函数 `sitePermissionForWebResource`：把 WebView 权限资源映射为站点权限类型。
-     *
-     * @param resource 参数类型为 `String`，表示 WebView 权限资源常量。
-     * @return 返回相机或麦克风站点权限；未知资源返回 null。
-     */
-    private fun sitePermissionForWebResource(resource: String): SitePermission? {
-        return when (resource) {
-            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> SitePermission.CAMERA
-            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> SitePermission.MICROPHONE
-            else -> null
-        }
+        sitePermissionDecisionController.allowForSession(
+            origin = request.origin?.toString(),
+            permissions = WebPermissionResourceMapper.sitePermissionsFor(request.resources)
+        )
     }
 
     /**
@@ -345,53 +302,12 @@ class WebPermissionRequestController(
      * @param request 参数类型为 `PermissionRequest`，表示要 grant 或 deny 的网页权限请求。
      */
     private fun grantSupportedWebPermissionResources(request: PermissionRequest) {
-        val resources = supportedWebPermissionResources(request.resources)
+        val resources = WebPermissionResourceMapper.supportedResources(request.resources)
         if (resources == null) {
             request.deny()
             return
         }
 
         request.grant(resources)
-    }
-
-    /**
-     * 函数 `supportedWebPermissionResources`：过滤并去重支持的 WebView 权限资源。
-     *
-     * @param resources 参数类型为 `Array<String>`，表示 WebView 原始请求资源列表。
-     * @return 返回只包含相机/麦克风的资源数组；如果包含未知资源则返回 null 让调用方拒绝。
-     */
-    private fun supportedWebPermissionResources(resources: Array<String>): Array<String>? {
-        val supportedResources = mutableListOf<String>()
-        resources.forEach { resource ->
-            when (resource) {
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE,
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
-                    if (resource !in supportedResources) {
-                        supportedResources += resource
-                    }
-                }
-
-                else -> return null
-            }
-        }
-        return supportedResources.toTypedArray().takeIf { it.isNotEmpty() }
-    }
-
-    /**
-     * 函数 `androidPermissionsForWebResources`：把 WebView 权限资源映射为 Android 运行时权限。
-     *
-     * @param resources 参数类型为 `Array<String>`，表示 WebView 请求的网页权限资源列表。
-     * @return 返回需要申请的 Android 权限列表；如果包含未知网页资源则返回 null。
-     */
-    private fun androidPermissionsForWebResources(resources: Array<String>): List<String>? {
-        val permissions = mutableListOf<String>()
-        resources.forEach { resource ->
-            when (resource) {
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE -> permissions += Manifest.permission.CAMERA
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> permissions += Manifest.permission.RECORD_AUDIO
-                else -> return null
-            }
-        }
-        return permissions.takeIf { it.isNotEmpty() }
     }
 }

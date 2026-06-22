@@ -4,6 +4,40 @@ import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 import kotlin.math.roundToInt
 
 internal object FullscreenVideoGestureMath {
+    fun clampBrightness(brightness: Float): Float {
+        return brightness.coerceIn(MIN_BRIGHTNESS, MAX_BRIGHTNESS)
+    }
+
+    fun brightnessForDrag(
+        initialBrightness: Float,
+        deltaY: Float,
+        viewHeight: Int
+    ): Float {
+        if (viewHeight <= 0) {
+            return clampBrightness(initialBrightness)
+        }
+
+        val deltaRatio = -deltaY / viewHeight.toFloat()
+        return clampBrightness(initialBrightness + deltaRatio)
+    }
+
+    fun volumeForDrag(
+        initialVolume: Int,
+        deltaY: Float,
+        viewHeight: Int,
+        minVolume: Int,
+        maxVolume: Int
+    ): Int? {
+        if (maxVolume <= minVolume || viewHeight <= 0) {
+            return null
+        }
+
+        val deltaRatio = -deltaY / viewHeight.toFloat()
+        return (initialVolume + deltaRatio * (maxVolume - minVolume))
+            .roundToInt()
+            .coerceIn(minVolume, maxVolume)
+    }
+
     fun volumePercent(volume: Int, minVolume: Int, maxVolume: Int): Int {
         if (maxVolume <= minVolume) return 0
 
@@ -31,6 +65,8 @@ internal object FullscreenVideoGestureMath {
     }
 
     private const val DEFAULT_PLAYBACK_SPEED = 1f
+    private const val MIN_BRIGHTNESS = 0.02f
+    private const val MAX_BRIGHTNESS = 1f
     private const val LEFT_ZONE_RATIO = 0.3f
     private const val RIGHT_ZONE_RATIO = 0.3f
 }

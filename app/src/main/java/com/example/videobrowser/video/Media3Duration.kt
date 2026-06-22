@@ -12,11 +12,6 @@ internal object Media3Duration {
     }
 
     fun boundedSeekPositionMs(positionMs: Long, durationMs: Long): Long {
-        val knownDuration = knownDurationMs(durationMs)
-        return if (knownDuration != null) {
-            positionMs.coerceIn(0L, knownDuration)
-        } else {
-            positionMs.coerceAtLeast(0L)
-        }
+        return PlaybackSeekBounds.clampPosition(positionMs, knownDurationMs(durationMs))
     }
 }

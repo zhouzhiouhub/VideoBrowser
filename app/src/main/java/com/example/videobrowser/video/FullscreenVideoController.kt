@@ -228,11 +228,7 @@ class FullscreenVideoController(
     private fun seekTo(positionMs: Long) {
         val duration = videoDurationMs
         Log.d(VIDEO_LOG_TAG, "event=web-seek-to requestedMs=$positionMs durationMs=$duration")
-        val boundedPositionMs = if (duration != null && duration > 0L) {
-            positionMs.coerceIn(0L, duration)
-        } else {
-            positionMs.coerceAtLeast(0L)
-        }
+        val boundedPositionMs = PlaybackSeekBounds.clampPosition(positionMs, duration)
         videoPositionMs = boundedPositionMs
         evaluateWebVideoCommand(WebViewVideoCommand.SeekTo(boundedPositionMs))
     }
@@ -259,14 +255,11 @@ class FullscreenVideoController(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun boundedVideoPosition(offsetMs: Long): Long? {
-        val current = videoPositionMs ?: return null
-        val target = current + offsetMs
-        val duration = videoDurationMs
-        return if (duration != null && duration > 0L) {
-            target.coerceIn(0L, duration)
-        } else {
-            target.coerceAtLeast(0L)
-        }
+        return PlaybackSeekBounds.offsetPosition(
+            currentPositionMs = videoPositionMs,
+            offsetMs = offsetMs,
+            durationMs = videoDurationMs
+        )
     }
 
     /**

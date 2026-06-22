@@ -34,7 +34,6 @@ import com.example.videobrowser.R
 import com.example.videobrowser.utils.BrowserDrawableFactory
 import com.example.videobrowser.utils.DensityPixelConverter
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 /**
  * 全屏视频上方的透明手势层。
@@ -806,8 +805,11 @@ class FullscreenVideoGestureOverlay(
      * @param deltaY 参数类型为 `Float`，表示函数执行 `deltaY` 相关逻辑时需要读取或处理的输入。
      */
     private fun updateBrightness(deltaY: Float) {
-        val deltaRatio = -deltaY / height.toFloat()
-        val brightness = (initialBrightness + deltaRatio).coerceIn(MIN_BRIGHTNESS, 1f)
+        val brightness = FullscreenVideoGestureMath.brightnessForDrag(
+            initialBrightness = initialBrightness,
+            deltaY = deltaY,
+            viewHeight = height
+        )
         val attributes = activity.window.attributes
         attributes.screenBrightness = brightness
         activity.window.attributes = attributes
@@ -823,12 +825,13 @@ class FullscreenVideoGestureOverlay(
     private fun updateVolume(deltaY: Float) {
         val minVolume = streamMinVolume()
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        if (maxVolume <= minVolume) return
-
-        val deltaRatio = -deltaY / height.toFloat()
-        val nextVolume = (initialVolume + deltaRatio * (maxVolume - minVolume))
-            .roundToInt()
-            .coerceIn(minVolume, maxVolume)
+        val nextVolume = FullscreenVideoGestureMath.volumeForDrag(
+            initialVolume = initialVolume,
+            deltaY = deltaY,
+            viewHeight = height,
+            minVolume = minVolume,
+            maxVolume = maxVolume
+        ) ?: return
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, nextVolume, 0)
         showFeedback(VideoGestureFeedbackFormatter.formatVolume(nextVolume, minVolume, maxVolume))
     }
@@ -1068,14 +1071,14 @@ class FullscreenVideoGestureOverlay(
     private fun currentWindowBrightness(): Float {
         val current = activity.window.attributes.screenBrightness
         if (current >= 0f) {
-            return current.coerceIn(MIN_BRIGHTNESS, 1f)
+            return FullscreenVideoGestureMath.clampBrightness(current)
         }
         return runCatching {
             Settings.System.getInt(
                 activity.contentResolver,
                 Settings.System.SCREEN_BRIGHTNESS
             ) / 255f
-        }.getOrDefault(DEFAULT_BRIGHTNESS).coerceIn(MIN_BRIGHTNESS, 1f)
+        }.getOrDefault(DEFAULT_BRIGHTNESS).let(FullscreenVideoGestureMath::clampBrightness)
     }
 
     /**
@@ -1233,9 +1236,7 @@ class FullscreenVideoGestureOverlay(
 
     private companion object {
         private const val DEFAULT_PLAYBACK_SPEED = 1f
-        private const val LONG_PRESS_PLAYBACK_SPEED = 2f
         private const val DEFAULT_BRIGHTNESS = 0.5f
-        private const val MIN_BRIGHTNESS = 0.02f
         private const val SEEK_STEP_MS = 10_000L
         private const val SEEK_STEP_SECONDS = 10
         private const val TAP_MAX_DURATION_MS = 260L

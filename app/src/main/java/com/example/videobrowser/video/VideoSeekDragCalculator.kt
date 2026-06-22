@@ -60,9 +60,6 @@ object VideoSeekDragCalculator {
         viewWidth: Int
     ): Long {
         val target = startPositionMs + offsetForDrag(deltaX, viewWidth, durationMs)
-        return durationMs
-            ?.takeIf { it > 0L }
-            ?.let { target.coerceIn(0L, it) }
-            ?: target.coerceAtLeast(0L)
+        return PlaybackSeekBounds.clampPosition(target, durationMs)
     }
 }
