@@ -77,6 +77,9 @@ class WebPermissionRequestContractTest {
         val webPermissionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionRequestController.kt"
         ).readText()
+        val webPermissionPromptController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/WebPermissionPromptController.kt"
+        ).readText()
         val webPermissionResourceMapper = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionResourceMapper.kt"
         ).readText()
@@ -97,7 +100,7 @@ class WebPermissionRequestContractTest {
         assertTrue(runtimeFeatureAssembly.contains("webPermissionRequestController = webRequests.webPermissionRequestController"))
         assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestWebPermissions"))
         assertTrue(webPermissionController.contains("pendingWebPermissionRequest: PermissionRequest?"))
-        assertTrue(webPermissionController.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))
+        assertTrue(webPermissionPromptController.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))
         assertTrue(webPermissionController.contains("WebPermissionResourceMapper.androidPermissionsFor(request.resources)"))
         assertTrue(webPermissionResourceMapper.contains("PermissionRequest.RESOURCE_VIDEO_CAPTURE"))
         assertTrue(webPermissionResourceMapper.contains("Manifest.permission.CAMERA"))
@@ -110,23 +113,25 @@ class WebPermissionRequestContractTest {
         assertTrue(sitePermissionDecisionController.contains("settingsManager.sitePermissionDecision(hostName, permission)"))
         assertTrue(sitePermissionDecisionController.contains("settingsManager.setSitePermissionDecision(hostName, permission, decision)"))
         assertTrue(sitePermissionDecisionController.contains("sessionSitePermissionStore.isAllowed(hostName, permission)"))
-        assertTrue(webPermissionController.contains("allowWebPermissionForSession(request)"))
+        assertTrue(webPermissionController.contains("allowForSession = ::allowWebPermissionForSession"))
+        assertTrue(webPermissionPromptController.contains("allowForSession(request)"))
         assertTrue(webPermissionController.contains("SitePermissionDecision.ALLOW -> grantSupportedWebPermissionResources(request)"))
         assertTrue(webPermissionController.contains("SitePermissionDecision.BLOCK -> request.deny()"))
-        assertTrue(webPermissionController.contains("showPermissionPrompt(request)"))
+        assertTrue(webPermissionController.contains("SitePermissionDecision.ASK -> webPermissionPromptController.show(request)"))
         assertTrue(webPermissionController.contains("private fun grantSupportedWebPermissionResources(request: PermissionRequest)"))
         assertTrue(webPermissionController.contains("WebPermissionResourceMapper.supportedResources(request.resources)"))
         assertTrue(webPermissionResourceMapper.contains("fun supportedResources(resources: Array<String>): Array<String>?"))
         assertFalse(webPermissionController.contains("private fun supportedWebPermissionResources"))
         assertTrue(webPermissionController.contains("request.grant(resources)"))
-        assertTrue(webPermissionController.contains("R.string.title_web_permission_request"))
-        assertTrue(webPermissionController.contains("R.string.dialog_web_permission_request_message"))
-        assertTrue(webPermissionController.contains("R.string.action_allow"))
-        assertTrue(webPermissionController.contains("R.string.action_allow_once"))
-        assertTrue(webPermissionController.contains("rememberDecision = false"))
-        assertTrue(webPermissionController.contains("R.string.action_deny"))
+        assertTrue(webPermissionPromptController.contains("R.string.title_web_permission_request"))
+        assertTrue(webPermissionPromptController.contains("R.string.dialog_web_permission_request_message"))
+        assertTrue(webPermissionPromptController.contains("R.string.action_allow"))
+        assertTrue(webPermissionPromptController.contains("R.string.action_allow_once"))
+        assertTrue(webPermissionPromptController.contains("rememberDecision = false"))
+        assertTrue(webPermissionPromptController.contains("R.string.action_deny"))
         assertFalse(webPermissionController.contains("request.grant(request.resources)"))
         assertTrue(webPermissionController.contains("request.deny()"))
+        assertTrue(webPermissionPromptController.contains("request.deny()"))
         assertTrue(
             chromeClientController.contains(
                 "permissionRequested = webPermissionRequestController::handlePermissionRequest"

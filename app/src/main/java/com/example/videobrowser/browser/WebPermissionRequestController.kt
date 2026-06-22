@@ -5,12 +5,10 @@ package com.example.videobrowser.browser
  * 这个文件属于“网页权限请求模块”。
  * 文件名 WebPermissionRequestController 可以拆开理解为“Web Permission Request Controller”，表示它专门负责 WebView 网页请求相机/麦克风权限的流程。
  * 主要职责：把 WebView PermissionRequest 映射到 Android 运行时权限、站点权限设置和用户确认弹窗，并且只授予应用支持的网页资源。
- * 阅读顺序：先看 handlePermissionRequest，再看 handleAndroidPermissionResult 和 showPermissionPrompt，最后看资源映射函数。
+ * 阅读顺序：先看 handlePermissionRequest，再看 handleAndroidPermissionResult 和 WebPermissionPromptController，最后看资源映射函数。
  */
 import android.webkit.PermissionRequest
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.example.videobrowser.R
 import com.example.videobrowser.settings.SessionSitePermissionStore
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermissionDecision
@@ -28,20 +26,24 @@ import com.example.videobrowser.settings.SitePermissionDecision
  * @param requestAndroidPermissions 参数类型为 `(Array<String>) -> Unit`，表示启动 Android 多权限申请的回调，参数是缺失的系统权限列表。
  */
 class WebPermissionRequestController(
-    private val activity: AppCompatActivity,
-    private val settingsManager: SettingsManager,
-    private val sessionSitePermissionStore: SessionSitePermissionStore,
-    private val isPrivateBrowsingEnabled: () -> Boolean,
+    activity: AppCompatActivity,
+    settingsManager: SettingsManager,
+    sessionSitePermissionStore: SessionSitePermissionStore,
+    isPrivateBrowsingEnabled: () -> Boolean,
     private val hasAndroidPermission: (String) -> Boolean,
     private val requestAndroidPermissions: (Array<String>) -> Unit
 ) {
     private var pendingWebPermissionRequest: PermissionRequest? = null
-    private var pendingWebPermissionPromptRequest: PermissionRequest? = null
-    private var pendingWebPermissionDialog: AlertDialog? = null
     private val sitePermissionDecisionController = BrowserSitePermissionDecisionController(
         settingsManager = settingsManager,
         sessionSitePermissionStore = sessionSitePermissionStore,
         isPrivateBrowsingEnabled = isPrivateBrowsingEnabled
+    )
+    private val webPermissionPromptController = WebPermissionPromptController(
+        activity = activity,
+        saveDecision = ::saveWebPermissionDecision,
+        allowForSession = ::allowWebPermissionForSession,
+        grantSupportedResources = ::grantSupportedWebPermissionResources
     )
 
     /**
@@ -71,7 +73,7 @@ class WebPermissionRequestController(
         }
 
         pendingWebPermissionRequest?.deny()
-        cancelPendingPrompt()
+        webPermissionPromptController.cancelPendingPrompt()
         pendingWebPermissionRequest = request
         requestAndroidPermissions(missingPermissions)
     }
@@ -108,15 +110,13 @@ class WebPermissionRequestController(
         if (request == null) {
             pendingWebPermissionRequest?.deny()
             pendingWebPermissionRequest = null
-            cancelPendingPrompt()
+            webPermissionPromptController.cancelPendingPrompt()
             return
         }
         if (request == pendingWebPermissionRequest) {
             pendingWebPermissionRequest = null
         }
-        if (request == pendingWebPermissionPromptRequest) {
-            cancelPendingPrompt()
-        }
+        webPermissionPromptController.cancelIfPending(request)
     }
 
     /**
@@ -127,7 +127,7 @@ class WebPermissionRequestController(
     fun cancelPendingRequest() {
         pendingWebPermissionRequest?.deny()
         pendingWebPermissionRequest = null
-        cancelPendingPrompt()
+        webPermissionPromptController.cancelPendingPrompt()
     }
 
     /**
@@ -141,120 +141,8 @@ class WebPermissionRequestController(
         when (webPermissionDecision(request)) {
             SitePermissionDecision.ALLOW -> grantSupportedWebPermissionResources(request)
             SitePermissionDecision.BLOCK -> request.deny()
-            SitePermissionDecision.ASK -> showPermissionPrompt(request)
+            SitePermissionDecision.ASK -> webPermissionPromptController.show(request)
         }
-    }
-
-    /**
-     * 函数 `showPermissionPrompt`：展示网页权限确认弹窗。
-     *
-     * 初学者阅读提示：用户可以选择永久允许、仅本次允许或拒绝；仅本次允许不会写入持久设置。
-     *
-     * @param request 参数类型为 `PermissionRequest`，表示需要用户确认的网页权限请求。
-     */
-    private fun showPermissionPrompt(request: PermissionRequest) {
-        cancelPendingPrompt()
-        pendingWebPermissionPromptRequest = request
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_web_permission_request)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_web_permission_request_message,
-                    webPermissionOrigin(request),
-                    webPermissionResourceSummary(request.resources)
-                )
-            )
-            .setPositiveButton(R.string.action_allow) { _, _ ->
-                answerPermissionPrompt(request, allowed = true)
-            }
-            .setNeutralButton(R.string.action_allow_once) { _, _ ->
-                answerPermissionPrompt(request, allowed = true, rememberDecision = false)
-            }
-            .setNegativeButton(R.string.action_deny) { _, _ ->
-                answerPermissionPrompt(request, allowed = false)
-            }
-            .create()
-        dialog.setOnCancelListener {
-            answerPermissionPrompt(request, allowed = false)
-        }
-        pendingWebPermissionDialog = dialog
-        dialog.show()
-    }
-
-    /**
-     * 函数 `answerPermissionPrompt`：处理用户在网页权限弹窗中的选择。
-     *
-     * 初学者阅读提示：允许且记住会写入站点设置；允许但不记住只写入会话权限；拒绝且记住会写入阻止设置。
-     *
-     * @param request 参数类型为 `PermissionRequest`，表示正在等待用户选择的网页权限请求。
-     * @param allowed 参数类型为 `Boolean`，表示用户是否允许这次网页权限请求。
-     * @param rememberDecision 参数类型为 `Boolean`，表示是否把用户选择写入持久站点权限设置。
-     */
-    private fun answerPermissionPrompt(
-        request: PermissionRequest,
-        allowed: Boolean,
-        rememberDecision: Boolean = true
-    ) {
-        if (pendingWebPermissionPromptRequest != request) {
-            return
-        }
-        pendingWebPermissionPromptRequest = null
-        pendingWebPermissionDialog = null
-        if (allowed) {
-            if (rememberDecision) {
-                saveWebPermissionDecision(request, allowed = true)
-            } else {
-                allowWebPermissionForSession(request)
-            }
-            grantSupportedWebPermissionResources(request)
-        } else {
-            if (rememberDecision) {
-                saveWebPermissionDecision(request, allowed = false)
-            }
-            request.deny()
-        }
-    }
-
-    /**
-     * 函数 `cancelPendingPrompt`：关闭当前网页权限确认弹窗并拒绝对应请求。
-     *
-     * 初学者阅读提示：新的权限请求到来或 Activity 销毁时调用，确保旧请求不会悬挂。
-     */
-    private fun cancelPendingPrompt() {
-        val request = pendingWebPermissionPromptRequest
-        pendingWebPermissionPromptRequest = null
-        pendingWebPermissionDialog?.dismiss()
-        pendingWebPermissionDialog = null
-        request?.deny()
-    }
-
-    /**
-     * 函数 `webPermissionOrigin`：返回网页权限请求来源的展示文案。
-     *
-     * @param request 参数类型为 `PermissionRequest`，表示网页权限请求，用来读取 origin。
-     * @return 返回 origin 字符串；如果请求没有来源，则返回“未知来源”文案。
-     */
-    private fun webPermissionOrigin(request: PermissionRequest): String {
-        return request.origin
-            ?.toString()
-            ?.takeIf { origin -> origin.isNotBlank() }
-            ?: activity.getString(R.string.permission_origin_unknown)
-    }
-
-    /**
-     * 函数 `webPermissionResourceSummary`：把网页权限资源列表转换成用户可读摘要。
-     *
-     * @param resources 参数类型为 `Array<String>`，表示 WebView 请求的网页权限资源列表。
-     * @return 返回去重后的本地化资源名称，用逗号连接，例如“相机, 麦克风”。
-     */
-    private fun webPermissionResourceSummary(resources: Array<String>): String {
-        return resources
-            .mapNotNull { resource ->
-                WebPermissionResourceMapper.labelResourceIdFor(resource)
-                    ?.let(activity::getString)
-            }
-            .distinct()
-            .joinToString(", ")
     }
 
     /**
