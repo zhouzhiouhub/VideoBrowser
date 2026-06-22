@@ -9,6 +9,7 @@ class VideoEnhancementToolsContractTest {
     @Test
     fun `video enhancement behavior is owned by shared enhancement module`() {
         val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
+        val enhancerApiScript = projectFile("src/main/assets/scripts/enhancer_api.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
@@ -41,10 +42,18 @@ class VideoEnhancementToolsContractTest {
         assertTrue(commonScript.contains("return videoEnhancementTools.isFullscreenPlaybackTarget(video, state, {"))
         assertTrue(commonScript.contains("return videoEnhancementTools.applySpeed(video, state, {"))
         assertTrue(commonScript.contains("return videoEnhancementTools.preferBestQuality(video, state, {"))
-        assertTrue(commonScript.contains("videoEnhancementTools.setPlaybackSpeed(speed, state, {"))
+        assertTrue(commonScript.contains("const enhancerApi = window.VideoBrowserEnhancerApi"))
+        assertTrue(commonScript.contains("window.VideoBrowserEnhancer = enhancerApi.create({"))
+        assertTrue(enhancerApiScript.contains("window.VideoBrowserEnhancerApi = api"))
+        assertTrue(enhancerApiScript.contains("videoEnhancementTools.setPlaybackSpeed(speed, state, {"))
         assertTrue(scriptLoader.contains("VIDEO_ENHANCEMENT_TOOLS_SCRIPT_ASSET"))
+        assertTrue(scriptLoader.contains("ENHANCER_API_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("VIDEO_ENHANCEMENT_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("ENHANCER_API_SCRIPT_ASSET")
+        )
+        assertTrue(
+            commonAssetList.indexOf("ENHANCER_API_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
         )
         assertFalse(commonScript.contains("state.speedHookedVideos.add(video);"))
@@ -53,6 +62,7 @@ class VideoEnhancementToolsContractTest {
         assertFalse(commonScript.contains("const normalizedSpeed = Number(speed || 1);"))
         assertFalse(commonScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
         assertFalse(commonScript.contains("videoQueryTools.forEach(applyVideoSpeed);"))
+        assertFalse(commonScript.contains("setPlaybackSpeed: function (speed)"))
         assertFalse(enhancementScript.contains("targetState.speedHookedVideos = new WeakSet();"))
         assertFalse(enhancementScript.contains("targetState.bestQualityAttempts = new WeakMap();"))
         assertFalse(enhancementScript.contains("function invokeSiteVideoCapability(video, action, args, options)"))

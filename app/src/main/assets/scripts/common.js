@@ -23,6 +23,7 @@
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
   const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;
+  const enhancerApi = window.VideoBrowserEnhancerApi;
 
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
@@ -522,145 +523,28 @@
     });
   }
 
-  window.VideoBrowserEnhancer = {
-    /**
-     * 函数 `apply`：封装 `apply` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} config 表示本次脚本运行的配置或上下文数据。
-     */
-    apply: function (config) {
-      state.disposed = false;
-      state.config = config || {};
-      state.lastCleanupAt = 0;
-      cleanupLegacyVideoOverlays();
-      installHooks();
-      runPageWork();
-      startWorkers();
-    },
-    /**
-     * 函数 `exitFullscreen`：封装 `exit Fullscreen` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    exitFullscreen: function () {
-      exitVideoFullscreen();
-    },
-    /**
-     * 函数 `seekBy`：封装 `seek By` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} offsetSeconds 表示参与几何计算、播放控制或列表定位的数值。
-     */
-    seekBy: function (offsetSeconds) {
-      seekVideoBy(activeFullscreenVideo(), Number(offsetSeconds || 0));
-    },
-    /**
-     * 函数 `seekTo`：封装 `seek To` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} targetSeconds 表示参与几何计算、播放控制或列表定位的数值。
-     */
-    seekTo: function (targetSeconds) {
-      seekVideoTo(activeFullscreenVideo(), Number(targetSeconds || 0));
-    },
-    /**
-     * 函数 `reportPlaybackTimeline`：封装 `report Playback Timeline` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    reportPlaybackTimeline: function () {
-      reportPlaybackTimeline(activeFullscreenVideo());
-    },
-    /**
-     * 函数 `togglePlayPause`：封装 `toggle Play Pause` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    togglePlayPause: function () {
-      return togglePlayPause();
-    },
-    /**
-     * 函数 `wakeControls`：封装 `wake Controls` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    wakeControls: function () {
-      return wakeVideoControls(activeFullscreenVideo());
-    },
-    /**
-     * 函数 `setPlaybackSpeed`：封装 `set Playback Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} speed 表示参与几何计算、播放控制或列表定位的数值。
-     */
-    setPlaybackSpeed: function (speed) {
-      videoEnhancementTools.setPlaybackSpeed(speed, state, {
-        stopDirectionalPlayback: stopDirectionalPlayback,
-        activeFullscreenVideo: activeFullscreenVideo,
-        invokeSiteVideoCapability: invokeSiteVideoCapability,
-        videoQueryTools: videoQueryTools,
-        applyVideoSpeed: applyVideoSpeed
-      });
-    },
-    /**
-     * 函数 `startDirectionalPlayback`：封装 `start Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} direction 表示参与几何计算、播放控制或列表定位的数值。
-     */
-    startDirectionalPlayback: function (direction) {
-      startDirectionalPlayback(direction);
-    },
-    /**
-     * 函数 `stopDirectionalPlayback`：封装 `stop Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    stopDirectionalPlayback: function () {
-      stopDirectionalPlayback();
-    },
-    /**
-     * 函数 `startElementPicker`：封装 `start Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    startElementPicker: function () {
-      return startElementPicker();
-    },
-    /**
-     * 函数 `cancelElementPicker`：封装 `cancel Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    cancelElementPicker: function () {
-      stopElementPicker();
-    },
-    /**
-     * 函数 `finishElementPicker`：封装 `finish Element Picker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    finishElementPicker: function () {
-      stopElementPicker();
-    },
-    /**
-     * 函数 `suspend`：封装 `suspend` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
-     */
-    suspend: function (options) {
-      suspendPageFeatures(options || {});
-    },
-    /**
-     * 函数 `dispose`：封装 `dispose` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
-     */
-    dispose: function (options) {
-      disposePageFeatures(options || {});
-    }
-  };
+  window.VideoBrowserEnhancer = enhancerApi.create({
+    state: state,
+    videoEnhancementTools: videoEnhancementTools,
+    videoQueryTools: videoQueryTools,
+    invokeSiteVideoCapability: invokeSiteVideoCapability,
+    cleanupLegacyVideoOverlays: cleanupLegacyVideoOverlays,
+    installHooks: installHooks,
+    runPageWork: runPageWork,
+    startWorkers: startWorkers,
+    exitVideoFullscreen: exitVideoFullscreen,
+    seekVideoBy: seekVideoBy,
+    seekVideoTo: seekVideoTo,
+    reportPlaybackTimeline: reportPlaybackTimeline,
+    togglePlayPause: togglePlayPause,
+    wakeVideoControls: wakeVideoControls,
+    activeFullscreenVideo: activeFullscreenVideo,
+    applyVideoSpeed: applyVideoSpeed,
+    startDirectionalPlayback: startDirectionalPlayback,
+    stopDirectionalPlayback: stopDirectionalPlayback,
+    startElementPicker: startElementPicker,
+    stopElementPicker: stopElementPicker,
+    suspendPageFeatures: suspendPageFeatures,
+    disposePageFeatures: disposePageFeatures
+  });
 })();

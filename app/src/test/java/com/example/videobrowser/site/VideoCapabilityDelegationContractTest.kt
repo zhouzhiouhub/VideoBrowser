@@ -23,6 +23,7 @@ class VideoCapabilityDelegationContractTest {
         val controlCoordinatorScript = projectFile("src/main/assets/scripts/video_control_coordinator.js").readText()
         val playbackScript = projectFile("src/main/assets/scripts/video_playback_tools.js").readText()
         val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
+        val enhancerApiScript = projectFile("src/main/assets/scripts/enhancer_api.js").readText()
 
         assertTrue(brokerScript.contains("broker.invoke = broker.invoke || function (video, action, args)"))
         assertTrue(brokerScript.contains("broker.has = broker.has || function (video, action)"))
@@ -34,7 +35,8 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'togglePlayPause', [])"))
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekBy', [offsetSeconds])"))
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekTo', [targetSeconds])"))
-        assertTrue(script.contains("videoEnhancementTools.setPlaybackSpeed(speed, state, {"))
+        assertTrue(script.contains("window.VideoBrowserEnhancer = enhancerApi.create({"))
+        assertTrue(enhancerApiScript.contains("videoEnhancementTools.setPlaybackSpeed(speed, state, {"))
         assertTrue(enhancementScript.contains("[targetState.fullscreenPlaybackSpeed]"))
         assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'preferBestQuality', [])"))
         assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'setPlaybackSpeed', [speed])"))
@@ -130,7 +132,7 @@ class VideoCapabilityDelegationContractTest {
      */
     @Test
     fun commonScriptKeepsSelectedFullscreenSpeedWhenPageFeaturesReapply() {
-        val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val script = projectFile("src/main/assets/scripts/enhancer_api.js").readText()
         val applyBody = functionBody(script, "apply: function (config)")
 
         assertFalse(applyBody.contains("state.fullscreenPlaybackSpeed = 1;"))
