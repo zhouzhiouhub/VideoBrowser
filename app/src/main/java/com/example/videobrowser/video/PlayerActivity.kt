@@ -28,7 +28,6 @@ import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
-import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 
 /**
  * 原生视频播放器界面。
@@ -93,6 +92,11 @@ class PlayerActivity : AppCompatActivity() {
         playerProvider = { player },
         gestureOverlay = { if (::gestureOverlay.isInitialized) gestureOverlay else null }
     )
+    private val nativePlayerPlaybackSpeedController = NativePlayerPlaybackSpeedController(
+        playerProvider = { player },
+        gestureOverlay = { if (::gestureOverlay.isInitialized) gestureOverlay else null },
+        saveDefaultVideoSpeed = { speed -> settingsManager.setDefaultVideoSpeed(speed) }
+    )
     private val directionalLongPressController = NativeDirectionalLongPressController(
         scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
         seekBy = nativePlayerTransportController::seekBy
@@ -100,7 +104,6 @@ class PlayerActivity : AppCompatActivity() {
     private var playbackPosition = 0L
     private var playWhenReady = true
     private var currentMediaItemIndex = 0
-    private var selectedPlaybackSpeed = DEFAULT_PLAYBACK_SPEED
     private var videoEffectsEnabled = true
     private var retriedPlaybackWithoutVideoEffects = false
     private val intentReader: PlayerIntentReader by lazy { PlayerIntentReader(intent) }
@@ -140,7 +143,9 @@ class PlayerActivity : AppCompatActivity() {
         playbackQueue = restoredState?.playbackQueue ?: intentPlaybackQueue
         currentMediaItemIndex = restoredState?.currentMediaItemIndex ?: playbackQueue.currentIndex
         nativePlayerRepeatModeController.setMode(restoredState?.repeatMode ?: playbackQueue.repeatMode)
-        selectedPlaybackSpeed = restoredState?.selectedPlaybackSpeed ?: defaultPlaybackSpeed
+        nativePlayerPlaybackSpeedController.restoreSpeed(
+            restoredState?.selectedPlaybackSpeed ?: defaultPlaybackSpeed
+        )
 
         playerRoot = findViewById(R.id.playerRoot)
         playerView = findViewById(R.id.playerView)
@@ -346,7 +351,7 @@ class PlayerActivity : AppCompatActivity() {
                 exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
                 exoPlayer.setMediaItems(mediaItems, currentMediaItemIndex, playbackPosition)
                 nativePlayerRepeatModeController.applyToPlayer(exoPlayer)
-                exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
+                nativePlayerPlaybackSpeedController.applyToPlayer(exoPlayer)
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.prepare()
             }
@@ -416,7 +421,7 @@ class PlayerActivity : AppCompatActivity() {
                 handlePlaybackCommand(PlaybackCommand.ToggleRepeat) as? PlaybackRepeatMode
                     ?: nativePlayerRepeatModeController.currentMode()
             }
-            setPlaybackSpeed(selectedPlaybackSpeed)
+            setPlaybackSpeed(nativePlayerPlaybackSpeedController.currentSpeed())
             setLandscape(nativePlayerOrientationController.isLandscape())
             setQueueControlsVisible(playbackQueue.hasMultipleItems)
             setRepeatMode(nativePlayerRepeatModeController.currentMode())
@@ -453,7 +458,7 @@ class PlayerActivity : AppCompatActivity() {
                 Unit
             }
             is PlaybackCommand.SetSpeed -> {
-                setPlayerPlaybackSpeed(command.speed)
+                nativePlayerPlaybackSpeedController.setSpeed(command.speed)
                 Unit
             }
             PlaybackCommand.Previous -> {
@@ -505,7 +510,7 @@ class PlayerActivity : AppCompatActivity() {
             queue = playbackQueue,
             positionMs = exoPlayer?.currentPosition ?: playbackPosition,
             durationMs = durationMs,
-            speed = selectedPlaybackSpeed,
+            speed = nativePlayerPlaybackSpeedController.currentSpeed(),
             playWhenReady = exoPlayer?.playWhenReady ?: playWhenReady,
             zoomMode = nativePlayerVideoZoomController.currentMode()
         )
@@ -531,18 +536,6 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun arePlayerControlsVisible(): Boolean {
         return ::playerView.isInitialized && playerControlsVisibilityController.areControlsVisible()
-    }
-
-    /**
-     * 函数 `setPlayerPlaybackSpeed`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun setPlayerPlaybackSpeed(speed: Float) {
-        selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(speed)
-        settingsManager.setDefaultVideoSpeed(selectedPlaybackSpeed)
-        player?.setPlaybackSpeed(selectedPlaybackSpeed)
     }
 
     /**
@@ -638,7 +631,7 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition
         )
         nativePlayerRepeatModeController.applyToPlayer(exoPlayer)
-        exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
+        nativePlayerPlaybackSpeedController.applyToPlayer(exoPlayer)
         exoPlayer.playWhenReady = playWhenReady
         exoPlayer.prepare()
     }
@@ -684,7 +677,7 @@ class PlayerActivity : AppCompatActivity() {
         val exoPlayer = player ?: return
         directionalLongPressController.start(
             direction = direction,
-            selectedPlaybackSpeed = selectedPlaybackSpeed,
+            selectedPlaybackSpeed = nativePlayerPlaybackSpeedController.currentSpeed(),
             playbackTarget = ExoPlayerDirectionalLongPressTarget(exoPlayer)
         )
     }
@@ -696,7 +689,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun stopDirectionalLongPress() {
         directionalLongPressController.stop()?.let { restoredSpeed ->
-            selectedPlaybackSpeed = restoredSpeed
+            nativePlayerPlaybackSpeedController.restoreSpeed(restoredSpeed)
         }
     }
 
@@ -738,7 +731,7 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition = positionMs
         }
         restored.playbackSpeed?.let { playbackSpeed ->
-            selectedPlaybackSpeed = playbackSpeed
+            nativePlayerPlaybackSpeedController.restoreSpeed(playbackSpeed)
         }
     }
 
@@ -754,7 +747,7 @@ class PlayerActivity : AppCompatActivity() {
                 mediaIdentity = playbackHistoryIdentity(),
                 positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
                 durationMs = Media3Duration.durationOrZero(exoPlayer.duration),
-                speed = selectedPlaybackSpeed,
+                speed = nativePlayerPlaybackSpeedController.currentSpeed(),
                 title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title
                     ?: intentReader.mediaTitle()
             )
@@ -783,7 +776,6 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
-        private const val DEFAULT_PLAYBACK_SPEED = 1f
         /**
          * 函数 `createIntent`：创建 `create Intent` 需要的对象、视图或配置，并返回给后续流程使用。
          *

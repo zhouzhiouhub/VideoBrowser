@@ -26,6 +26,9 @@ class PlaybackSpeedNormalizerContractTest {
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val nativePlaybackSpeedController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerPlaybackSpeedController.kt"
+        ).readText()
         val webViewVideoProtocol = projectFile(
             "src/main/java/com/example/videobrowser/video/WebViewVideoProtocol.kt"
         ).readText()
@@ -45,7 +48,7 @@ class PlaybackSpeedNormalizerContractTest {
         assertTrue(sessionState.contains("PlaybackSpeedNormalizer.normalize(speed)"))
         assertTrue(historyRepository.contains("PlaybackSpeedNormalizer.normalize(progress.speed)"))
         assertTrue(fullscreenController.contains("PlaybackSpeedNormalizer.normalize("))
-        assertTrue(playerActivity.contains("PlaybackSpeedNormalizer.normalize("))
+        assertTrue(nativePlaybackSpeedController.contains("PlaybackSpeedNormalizer::normalize"))
         assertTrue(webViewVideoProtocol.contains("PlaybackSpeedNormalizer.normalize(speed, DEFAULT_PLAYBACK_SPEED)"))
         assertTrue(settingsValueNormalizer.contains("PlaybackSpeedNormalizer.normalize("))
         assertTrue(displayFormatter.contains("PlaybackSpeedNormalizer.normalize(speed)"))
@@ -54,6 +57,7 @@ class PlaybackSpeedNormalizerContractTest {
         assertFalse(sessionState.contains("private fun normalizeSpeed"))
         assertFalse(historyRepository.contains("private fun normalizeSpeed"))
         assertFalse(playerActivity.contains("private fun normalizePlaybackSpeed"))
+        assertFalse(playerActivity.contains("PlaybackSpeedNormalizer.normalize("))
         assertFalse(fullscreenController.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
         assertFalse(webViewVideoProtocol.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
         assertFalse(settingsValueNormalizer.contains("!speed.isNaN() && !speed.isInfinite() && speed > 0f"))
