@@ -732,41 +732,13 @@
    * @param {*} direction 表示参与几何计算、播放控制或列表定位的数值。
    */
   function startDirectionalPlayback(direction) {
-    const video = activeFullscreenVideo();
-    if (!video) return;
-    stopDirectionalPlayback();
-
-    const normalizedDirection = Number(direction) < 0 ? -1 : 1;
-    const previousSpeed = currentFullscreenPlaybackSpeed();
-    state.directionalPlayback = {
-      video: video,
-      direction: normalizedDirection,
-      previousSpeed: previousSpeed,
-      wasPaused: Boolean(video.paused),
-      intervalId: null
-    };
-
-    if (normalizedDirection > 0) {
-      state.fullscreenPlaybackSpeed = 2;
-      applyVideoSpeed(video);
-      videoPlaybackTools.play(video);
-      return;
-    }
-
-    videoPlaybackTools.pause(video);
-    seekVideoBy(video, -0.5);
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    state.directionalPlayback.intervalId = window.setInterval(function () {
-      const scan = state.directionalPlayback;
-      if (!scan || scan.direction >= 0 || !scan.video || !scan.video.isConnected) {
-        stopDirectionalPlayback();
-        return;
-      }
-      seekVideoBy(scan.video, -0.5);
-    }, 250);
+    return videoPlaybackTools.startDirectional(direction, state, {
+      activeFullscreenVideo: activeFullscreenVideo,
+      currentFullscreenPlaybackSpeed: currentFullscreenPlaybackSpeed,
+      applyVideoSpeed: applyVideoSpeed,
+      seekVideoBy: seekVideoBy,
+      videoQueryTools: videoQueryTools
+    });
   }
 
   /**
@@ -775,26 +747,11 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function stopDirectionalPlayback() {
-    const scan = state.directionalPlayback;
-    if (!scan) return;
-    if (scan.intervalId) {
-      window.clearInterval(scan.intervalId);
-    }
-    state.directionalPlayback = null;
-    state.fullscreenPlaybackSpeed = Number.isFinite(Number(scan.previousSpeed)) && Number(scan.previousSpeed) > 0
-      ? Number(scan.previousSpeed)
-      : 1;
-
-    const video = scan.video && scan.video.isConnected ? scan.video : activeFullscreenVideo();
-    if (video) {
-      applyVideoSpeed(video);
-      if (scan.wasPaused) {
-        videoPlaybackTools.pause(video);
-      } else {
-        videoPlaybackTools.play(video);
-      }
-    }
-    videoQueryTools.forEach(applyVideoSpeed);
+    return videoPlaybackTools.stopDirectional(state, {
+      activeFullscreenVideo: activeFullscreenVideo,
+      applyVideoSpeed: applyVideoSpeed,
+      videoQueryTools: videoQueryTools
+    });
   }
 
   /**

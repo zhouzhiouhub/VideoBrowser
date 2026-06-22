@@ -22,15 +22,20 @@ class VideoPlaybackToolsContractTest {
         assertTrue(playbackScript.contains("tools.seekTo = tools.seekTo || function (video, targetSeconds, options)"))
         assertTrue(playbackScript.contains("tools.seekBy = tools.seekBy || function (video, offsetSeconds, options)"))
         assertTrue(playbackScript.contains("tools.togglePlayPause = tools.togglePlayPause || function (video, options)"))
+        assertTrue(playbackScript.contains("tools.startDirectional = tools.startDirectional || function (direction, state, options)"))
+        assertTrue(playbackScript.contains("tools.stopDirectional = tools.stopDirectional || function (state, options)"))
+        assertTrue(playbackScript.contains("targetState.directionalPlayback.intervalId = window.setInterval(function ()"))
         assertTrue(commonScript.contains("const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools"))
         assertTrue(commonScript.contains("return videoPlaybackTools.timeline(video);"))
         assertTrue(commonScript.contains("videoPlaybackTools.reportTimeline(target);"))
         assertTrue(commonScript.contains("videoPlaybackTools.seekTo(video, targetSeconds, {"))
         assertTrue(commonScript.contains("videoPlaybackTools.seekBy(video, offsetSeconds, {"))
         assertTrue(commonScript.contains("return videoPlaybackTools.togglePlayPause(video, {"))
+        assertTrue(commonScript.contains("return videoPlaybackTools.startDirectional(direction, state, {"))
+        assertTrue(commonScript.contains("return videoPlaybackTools.stopDirectional(state, {"))
         assertTrue(commonScript.contains("videoPlaybackTools.pauseAll(videoQueryTools);"))
-        assertTrue(commonScript.contains("videoPlaybackTools.pause(video);"))
-        assertTrue(commonScript.contains("videoPlaybackTools.play(video);"))
+        assertTrue(playbackScript.contains("tools.pause(video);"))
+        assertTrue(playbackScript.contains("tools.play(video);"))
         assertTrue(scriptLoader.contains("VIDEO_PLAYBACK_TOOLS_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("VIDEO_PLAYBACK_TOOLS_SCRIPT_ASSET") <
@@ -39,6 +44,7 @@ class VideoPlaybackToolsContractTest {
         assertFalse(commonScript.contains("if (typeof video.fastSeek === 'function')"))
         assertFalse(commonScript.contains("video.play().catch(function () {})"))
         assertFalse(commonScript.contains("video.pause();"))
+        assertFalse(commonScript.contains("state.directionalPlayback.intervalId = window.setInterval(function ()"))
     }
 
     private fun projectFile(path: String): File {

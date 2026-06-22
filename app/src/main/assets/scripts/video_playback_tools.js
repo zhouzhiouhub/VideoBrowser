@@ -130,6 +130,71 @@
     return false;
   };
 
+  tools.startDirectional = tools.startDirectional || function (direction, state, options) {
+    const targetState = state || {};
+    const callbacks = options || {};
+    const video = activeVideo(callbacks);
+    if (!video) return false;
+    tools.stopDirectional(targetState, callbacks);
+
+    const normalizedDirection = Number(direction) < 0 ? -1 : 1;
+    const previousSpeed = currentPlaybackSpeed(targetState, callbacks);
+    targetState.directionalPlayback = {
+      video: video,
+      direction: normalizedDirection,
+      previousSpeed: previousSpeed,
+      wasPaused: Boolean(video.paused),
+      intervalId: null
+    };
+
+    if (normalizedDirection > 0) {
+      targetState.fullscreenPlaybackSpeed = 2;
+      call(callbacks, 'applyVideoSpeed', video);
+      tools.play(video);
+      return true;
+    }
+
+    tools.pause(video);
+    seekBy(video, -0.5, callbacks);
+    targetState.directionalPlayback.intervalId = window.setInterval(function () {
+      const scan = targetState.directionalPlayback;
+      if (!scan || scan.direction >= 0 || !scan.video || !scan.video.isConnected) {
+        tools.stopDirectional(targetState, callbacks);
+        return;
+      }
+      seekBy(scan.video, -0.5, callbacks);
+    }, 250);
+    return true;
+  };
+
+  tools.stopDirectional = tools.stopDirectional || function (state, options) {
+    const targetState = state || {};
+    const callbacks = options || {};
+    const scan = targetState.directionalPlayback;
+    if (!scan) return false;
+    if (scan.intervalId) {
+      window.clearInterval(scan.intervalId);
+    }
+    targetState.directionalPlayback = null;
+    targetState.fullscreenPlaybackSpeed = Number.isFinite(Number(scan.previousSpeed)) && Number(scan.previousSpeed) > 0
+      ? Number(scan.previousSpeed)
+      : 1;
+
+    const video = scan.video && scan.video.isConnected ? scan.video : activeVideo(callbacks);
+    if (video) {
+      call(callbacks, 'applyVideoSpeed', video);
+      if (scan.wasPaused) {
+        tools.pause(video);
+      } else {
+        tools.play(video);
+      }
+    }
+    if (callbacks.videoQueryTools && typeof callbacks.videoQueryTools.forEach === 'function') {
+      callbacks.videoQueryTools.forEach(callbacks.applyVideoSpeed);
+    }
+    return true;
+  };
+
   function invokeSiteVideoCapability(video, action, args, options) {
     const config = options || {};
     if (typeof config.invokeSiteVideoCapability === 'function') {
@@ -156,6 +221,37 @@
       }
     } catch (_) {
       try { video.currentTime = targetTime; } catch (__) {}
+    }
+  }
+
+  function activeVideo(options) {
+    const config = options || {};
+    return typeof config.activeFullscreenVideo === 'function'
+      ? config.activeFullscreenVideo()
+      : null;
+  }
+
+  function currentPlaybackSpeed(state, options) {
+    const config = options || {};
+    if (typeof config.currentFullscreenPlaybackSpeed === 'function') {
+      return config.currentFullscreenPlaybackSpeed();
+    }
+    const speed = Number((state && state.fullscreenPlaybackSpeed) || 1);
+    return Number.isFinite(speed) && speed > 0 ? speed : 1;
+  }
+
+  function seekBy(video, offsetSeconds, options) {
+    const config = options || {};
+    if (typeof config.seekVideoBy === 'function') {
+      config.seekVideoBy(video, offsetSeconds);
+      return true;
+    }
+    return tools.seekBy(video, offsetSeconds, config);
+  }
+
+  function call(callbacks, name, value) {
+    if (typeof callbacks[name] === 'function') {
+      callbacks[name](value);
     }
   }
 })();
