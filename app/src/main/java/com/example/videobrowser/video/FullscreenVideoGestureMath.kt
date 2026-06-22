@@ -4,6 +4,8 @@ import com.example.videobrowser.utils.PlaybackSpeedNormalizer
 import kotlin.math.roundToInt
 
 internal object FullscreenVideoGestureMath {
+    const val DEFAULT_BRIGHTNESS = 0.5f
+
     fun clampBrightness(brightness: Float): Float {
         return brightness.coerceIn(MIN_BRIGHTNESS, MAX_BRIGHTNESS)
     }

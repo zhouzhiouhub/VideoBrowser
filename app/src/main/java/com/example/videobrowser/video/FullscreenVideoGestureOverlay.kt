@@ -8,14 +8,10 @@ package com.example.videobrowser.video
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
 import android.app.Activity
-import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
-import android.media.AudioManager
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.MotionEvent
@@ -69,8 +65,6 @@ class FullscreenVideoGestureOverlay(
     var onNextMediaRequested: (() -> Unit)? = null
     var onRepeatModeRequested: (() -> PlaybackRepeatMode)? = null
 
-    private val audioManager =
-        activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val feedbackHandler = Handler(Looper.getMainLooper())
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private val swipeStartDistance by lazy { maxOf(dp(MIN_SWIPE_DISTANCE_DP), touchSlop) }
@@ -93,7 +87,6 @@ class FullscreenVideoGestureOverlay(
     private var playbackSpeed = DEFAULT_PLAYBACK_SPEED
     private var repeatMode = PlaybackRepeatMode.NONE
     private var videoZoomMode = VideoZoomMode.FIT
-    private var savedWindowBrightness: Float? = null
     private var touchStartedOnControl = false
     private var touchStartedInBottomPassthrough = false
     private var playbackControlsVisibleOnTouchStart = true
@@ -108,7 +101,7 @@ class FullscreenVideoGestureOverlay(
     private var downX = 0f
     private var downY = 0f
     private var downTime = 0L
-    private var initialBrightness = DEFAULT_BRIGHTNESS
+    private var initialBrightness = FullscreenVideoGestureMath.DEFAULT_BRIGHTNESS
     private var initialVolume = 0
     private var pendingTapZone = VideoGestureScreenZone.NONE
     private var pendingTapTime = 0L
@@ -131,6 +124,10 @@ class FullscreenVideoGestureOverlay(
         controlsGroup = controlsGroup,
         dismissSpeedPopup = speedPopupController::dismiss,
         clearGestureStateWhenLocked = ::clearGestureStateWhenLocked,
+        showFeedback = ::showFeedback
+    )
+    private val systemGestureController = FullscreenVideoSystemGestureController(
+        activity = activity,
         showFeedback = ::showFeedback
     )
     private val locked: Boolean
@@ -176,7 +173,7 @@ class FullscreenVideoGestureOverlay(
      */
     fun showOverlay() {
         if (visibility != View.VISIBLE) {
-            savedWindowBrightness = activity.window.attributes.screenBrightness
+            systemGestureController.captureWindowBrightness()
         }
         visibility = View.VISIBLE
         bringToFront()
@@ -191,7 +188,7 @@ class FullscreenVideoGestureOverlay(
     fun hideOverlay() {
         speedPopupController.dismiss()
         stopLongPress()
-        restoreWindowBrightness()
+        systemGestureController.restoreWindowBrightness()
         lockUiController.setLocked(false, announce = false)
         resetTouchState()
         feedbackHandler.removeCallbacks(hideFeedbackRunnable)
@@ -659,8 +656,8 @@ class FullscreenVideoGestureOverlay(
                 downY = event.y
                 downTime = event.eventTime
                 downZone = screenZoneFor(downX)
-                initialBrightness = currentWindowBrightness()
-                initialVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                initialBrightness = systemGestureController.currentWindowBrightness()
+                initialVolume = systemGestureController.currentStreamVolume()
                 activeGesture = VerticalGesture.NONE
                 tapCandidate = true
                 longPressActive = false
@@ -698,8 +695,16 @@ class FullscreenVideoGestureOverlay(
                 }
                 when (activeGesture) {
                     VerticalGesture.HORIZONTAL_SEEK -> updateHorizontalSeek(deltaX)
-                    VerticalGesture.BRIGHTNESS -> updateBrightness(deltaY)
-                    VerticalGesture.VOLUME -> updateVolume(deltaY)
+                    VerticalGesture.BRIGHTNESS -> systemGestureController.updateBrightness(
+                        deltaY = deltaY,
+                        viewHeight = height,
+                        initialBrightness = initialBrightness
+                    )
+                    VerticalGesture.VOLUME -> systemGestureController.updateVolume(
+                        deltaY = deltaY,
+                        viewHeight = height,
+                        initialVolume = initialVolume
+                    )
                     VerticalGesture.NONE -> Unit
                 }
                 return true
@@ -812,44 +817,6 @@ class FullscreenVideoGestureOverlay(
         seekDurationMs = null
         pendingHorizontalSeekMs = 0L
         pendingSeekTargetMs = null
-    }
-
-    /**
-     * 函数 `updateBrightness`：根据最新状态刷新 `update Brightness` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param deltaY 参数类型为 `Float`，表示函数执行 `deltaY` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun updateBrightness(deltaY: Float) {
-        val brightness = FullscreenVideoGestureMath.brightnessForDrag(
-            initialBrightness = initialBrightness,
-            deltaY = deltaY,
-            viewHeight = height
-        )
-        val attributes = activity.window.attributes
-        attributes.screenBrightness = brightness
-        activity.window.attributes = attributes
-        showFeedback(VideoGestureFeedbackFormatter.formatBrightness(brightness))
-    }
-
-    /**
-     * 函数 `updateVolume`：根据最新状态刷新 `update Volume` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param deltaY 参数类型为 `Float`，表示函数执行 `deltaY` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun updateVolume(deltaY: Float) {
-        val minVolume = streamMinVolume()
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val nextVolume = FullscreenVideoGestureMath.volumeForDrag(
-            initialVolume = initialVolume,
-            deltaY = deltaY,
-            viewHeight = height,
-            minVolume = minVolume,
-            maxVolume = maxVolume
-        ) ?: return
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, nextVolume, 0)
-        showFeedback(VideoGestureFeedbackFormatter.formatVolume(nextVolume, minVolume, maxVolume))
     }
 
     /**
@@ -998,52 +965,6 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `currentWindowBrightness`：从现有状态、缓存或输入对象中取得目标数据，并把结果交给调用方继续处理。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun currentWindowBrightness(): Float {
-        val current = activity.window.attributes.screenBrightness
-        if (current >= 0f) {
-            return FullscreenVideoGestureMath.clampBrightness(current)
-        }
-        return runCatching {
-            Settings.System.getInt(
-                activity.contentResolver,
-                Settings.System.SCREEN_BRIGHTNESS
-            ) / 255f
-        }.getOrDefault(DEFAULT_BRIGHTNESS).let(FullscreenVideoGestureMath::clampBrightness)
-    }
-
-    /**
-     * 函数 `restoreWindowBrightness`：封装 `restore Window Brightness` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun restoreWindowBrightness() {
-        val saved = savedWindowBrightness ?: return
-        val attributes = activity.window.attributes
-        attributes.screenBrightness = saved
-        activity.window.attributes = attributes
-        savedWindowBrightness = null
-    }
-
-    /**
-     * 函数 `streamMinVolume`：封装 `stream Min Volume` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun streamMinVolume(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            audioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC)
-        } else {
-            0
-        }
-    }
-
-    /**
      * 函数 `showFeedback`：控制 `show Feedback` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -1171,7 +1092,6 @@ class FullscreenVideoGestureOverlay(
 
     private companion object {
         private const val DEFAULT_PLAYBACK_SPEED = 1f
-        private const val DEFAULT_BRIGHTNESS = 0.5f
         private const val SEEK_STEP_MS = 10_000L
         private const val SEEK_STEP_SECONDS = 10
         private const val TAP_MAX_DURATION_MS = 260L
