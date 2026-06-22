@@ -21,11 +21,17 @@ class GenericAdOverlayCleanupContractTest {
         assertTrue(signalScript.contains("signals.mediaSourceLooksLikeAd = signals.mediaSourceLooksLikeAd || function (element)"))
         assertTrue(signalScript.contains("signals.hasCloseLikeDescendant = signals.hasCloseLikeDescendant || function (element)"))
         assertTrue(signalScript.contains("signals.clearScrollLocks = signals.clearScrollLocks || function ()"))
+        assertTrue(signalScript.contains("selectorTools.normalizeText("))
+        assertTrue(signalScript.contains("domTools.elementDescriptor(element)"))
         assertTrue(detectorScript.contains("window.VideoBrowserGenericAdOverlayDetector = detector"))
         assertTrue(detectorScript.contains("detector.collectCandidates = detector.collectCandidates || function ()"))
         assertTrue(detectorScript.contains("detector.findRoot = detector.findRoot || function (element)"))
         assertTrue(detectorScript.contains("function shouldUseGenericAdOverlayRoot(currentRoot, candidateRoot)"))
         assertTrue(detectorScript.contains("function isLikelyGenericAdOverlay(element)"))
+        assertTrue(detectorScript.contains("domTools.queryAll(selector).forEach(addCandidate);"))
+        assertTrue(detectorScript.contains("selectorTools.normalizeText(element.innerText || element.textContent)"))
+        assertTrue(detectorScript.contains("domTools.elementDescriptor(element)"))
+        assertTrue(detectorScript.contains("domActions.isProtectedAppContainer(element)"))
         assertTrue(overlayScript.contains("window.VideoBrowserGenericAdOverlayCleanup = cleanup"))
         assertTrue(overlayScript.contains("const overlaySignals = window.VideoBrowserGenericAdOverlaySignals || {}"))
         assertTrue(overlayScript.contains("const overlayDetector = window.VideoBrowserGenericAdOverlayDetector || {}"))
@@ -34,7 +40,9 @@ class GenericAdOverlayCleanupContractTest {
         assertTrue(overlayScript.contains("overlayDetector.findRoot(candidate)"))
         assertTrue(overlayScript.contains("overlaySignals.clearScrollLocks();"))
         assertTrue(overlayScript.contains("generatedAdCleanup.run(state, {"))
-        assertTrue(overlayScript.contains("return domTools.queryAll(selector);"))
+        assertTrue(overlayScript.contains("domTools.queryAll('body *').forEach(function (element)"))
+        assertTrue(overlayScript.contains("selectorTools.normalizeText(element.textContent)"))
+        assertTrue(overlayScript.contains("domActions.hideElement(root, {"))
         assertTrue(coordinatorScript.contains("const genericAdOverlayCleanup = window.VideoBrowserGenericAdOverlayCleanup || {}"))
         assertTrue(coordinatorScript.contains("genericAdOverlayCleanup.run(state);"))
         assertTrue(commonScript.contains("const pageCleanupCoordinator = window.VideoBrowserPageCleanupCoordinator"))
@@ -73,6 +81,14 @@ class GenericAdOverlayCleanupContractTest {
         assertFalse(overlayScript.contains("function findGenericAdOverlayRoot(element)"))
         assertFalse(overlayScript.contains("function isLikelyGenericAdOverlay(element)"))
         assertFalse(overlayScript.contains("function shouldUseGenericAdOverlayRoot(currentRoot, candidateRoot)"))
+        listOf(signalScript, detectorScript, overlayScript).forEach { script ->
+            assertFalse(script.contains("function normalizeText(value)"))
+            assertFalse(script.contains("function elementDescriptor(element)"))
+            assertFalse(script.contains("function queryAll(selector)"))
+            assertFalse(script.contains("function hideElement(element, reason)"))
+            assertFalse(script.contains("function isProtectedAppContainer(element)"))
+        }
+        assertFalse(detectorScript.contains("function parseZIndex(value)"))
     }
 
     private fun projectFile(path: String): File {

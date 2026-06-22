@@ -41,13 +41,13 @@
       '[style*="position: absolute"]',
       '[style*="position:absolute"]'
     ].forEach(function (selector) {
-      queryAll(selector).forEach(addCandidate);
+      domTools.queryAll(selector).forEach(addCandidate);
     });
 
-    queryAll('button,a,i,[role="button"],[aria-label],[title]').forEach(function (element) {
+    domTools.queryAll('button,a,i,[role="button"],[aria-label],[title]').forEach(function (element) {
       if (overlaySignals.isCloseLikeControl(element)) addCandidate(element);
     });
-    queryAll('img,picture,svg').forEach(function (element) {
+    domTools.queryAll('img,picture,svg').forEach(function (element) {
       const rect = element.getBoundingClientRect();
       const source = overlaySignals.mediaSourceValue(element);
       if (
@@ -58,8 +58,8 @@
       }
     });
 
-    queryAll('body *').forEach(function (element) {
-      if (!element || isProtectedAppContainer(element) || element.querySelector('video')) return;
+    domTools.queryAll('body *').forEach(function (element) {
+      if (!element || domActions.isProtectedAppContainer(element) || element.querySelector('video')) return;
 
       const style = getComputedStyle(element);
       if (!/fixed|absolute|sticky/i.test(style.position)) return;
@@ -73,8 +73,8 @@
       if (rect.width > Math.min(viewportWidth * 0.9, 360)) return;
       if (rect.height > Math.min(viewportHeight * 0.55, 420)) return;
 
-      const descriptor = elementDescriptor(element);
-      const text = normalizeText(element.innerText || element.textContent);
+      const descriptor = domTools.elementDescriptor(element);
+      const text = selectorTools.normalizeText(element.innerText || element.textContent);
       const promoText = overlaySignals.promoTextLike(text);
       const compactPromo = rect.width >= viewportWidth * 0.5 &&
         rect.height <= Math.min(viewportHeight * 0.42, 320);
@@ -92,12 +92,12 @@
       }
     });
 
-    queryAll('body *').forEach(function (element) {
-      if (!element || isProtectedAppContainer(element) || element.querySelector('video,form,input,textarea,select')) {
+    domTools.queryAll('body *').forEach(function (element) {
+      if (!element || domActions.isProtectedAppContainer(element) || element.querySelector('video,form,input,textarea,select')) {
         return;
       }
 
-      const text = normalizeText(element.innerText || element.textContent);
+      const text = selectorTools.normalizeText(element.innerText || element.textContent);
       if (!overlaySignals.promoTextLike(text)) {
         return;
       }
@@ -126,7 +126,7 @@
     let matchedRoot = null;
     for (let depth = 0; current && depth < 9; depth += 1, current = current.parentElement) {
       if (current === document.body || current === document.documentElement) break;
-      if (isProtectedAppContainer(current)) break;
+      if (domActions.isProtectedAppContainer(current)) break;
       if (isLikelyGenericAdOverlay(current) && shouldUseGenericAdOverlayRoot(matchedRoot, current)) {
         matchedRoot = current;
       }
@@ -146,10 +146,10 @@
     if (!currentRoot) return true;
 
     const style = getComputedStyle(candidateRoot);
-    const descriptor = elementDescriptor(candidateRoot);
+    const descriptor = domTools.elementDescriptor(candidateRoot);
     const canPromoteLayer = /fixed|absolute|sticky/i.test(style.position) &&
       (
-        parseZIndex(style.zIndex) >= 10 ||
+        domTools.parseZIndex(style.zIndex) >= 10 ||
         /modal|popup|pop|mask|overlay|dialog|layer/i.test(descriptor)
       );
     if (canPromoteLayer) return true;
@@ -163,11 +163,11 @@
   }
 
   function isLikelyGenericAdOverlay(element) {
-    if (!element || isProtectedAppContainer(element)) return false;
+    if (!element || domActions.isProtectedAppContainer(element)) return false;
     if (element.querySelector('video')) return false;
 
-    const descriptor = elementDescriptor(element);
-    const text = normalizeText(element.innerText || element.textContent);
+    const descriptor = domTools.elementDescriptor(element);
+    const text = selectorTools.normalizeText(element.innerText || element.textContent);
     const promoTextLike = overlaySignals.promoTextLike(text);
     const adTextLike = overlaySignals.adTextLike(text);
     const adNameLike = overlaySignals.adNameLike(descriptor);
@@ -199,7 +199,7 @@
 
     const style = getComputedStyle(element);
     const positioned = /fixed|absolute|sticky/i.test(style.position);
-    const zIndex = parseZIndex(style.zIndex);
+    const zIndex = domTools.parseZIndex(style.zIndex);
     const layerNameLike = overlaySignals.layerNameLike(descriptor);
     const highLayer = zIndex >= 10 || layerNameLike;
     const imageOnlyWideBanner = !positioned &&
@@ -306,23 +306,4 @@
     );
   }
 
-  function normalizeText(value) {
-    return selectorTools.normalizeText(value);
-  }
-
-  function elementDescriptor(element) {
-    return domTools.elementDescriptor(element);
-  }
-
-  function parseZIndex(value) {
-    return domTools.parseZIndex(value);
-  }
-
-  function isProtectedAppContainer(element) {
-    return domActions.isProtectedAppContainer(element);
-  }
-
-  function queryAll(selector) {
-    return domTools.queryAll(selector);
-  }
 })();

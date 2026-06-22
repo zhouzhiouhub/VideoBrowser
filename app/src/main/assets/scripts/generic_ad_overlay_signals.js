@@ -85,14 +85,14 @@
   signals.isCloseLikeControl = signals.isCloseLikeControl || function (element) {
     if (!element) return false;
     const rect = element.getBoundingClientRect();
-    const text = normalizeText(
+    const text = selectorTools.normalizeText(
       element.innerText ||
       element.textContent ||
       element.getAttribute('aria-label') ||
       element.getAttribute('title') ||
       element.getAttribute('alt')
     );
-    const descriptor = elementDescriptor(element);
+    const descriptor = domTools.elementDescriptor(element);
     const compactText = text.replace(/\s+/g, '');
     if (/^(×|x|X|✕|✖|关闭|關閉|取消|跳过|跳過|稍后|稍後|不再提示|close|skip|dismiss)$/i.test(compactText)) {
       return true;
@@ -133,13 +133,5 @@
         element.classList.remove(className);
       }
     });
-  }
-
-  function normalizeText(value) {
-    return selectorTools.normalizeText(value);
-  }
-
-  function elementDescriptor(element) {
-    return domTools.elementDescriptor(element);
   }
 })();
