@@ -28,6 +28,10 @@ class BrowserManager(
 
     private val webViewSettings = BrowserWebViewSettingsController()
     private val webViewLifecycle = BrowserWebViewLifecycleController(webViewSettings)
+    private val webViewFindController = BrowserWebViewFindController(
+        webView = { webView },
+        webViewSettings = webViewSettings
+    )
     private val javascriptInterfaces = mutableListOf<JavascriptInterfaceBinding>()
     private var chromeClient: WebChromeClient? = null
     private var browserClient: WebViewClient? = null
@@ -124,7 +128,7 @@ class BrowserManager(
      * @param listener 参数类型为 `((Int, Int, Boolean) -> Unit)?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
      */
     fun setFindResultListener(listener: ((Int, Int, Boolean) -> Unit)?) {
-        webViewSettings.setFindResultListener(listener)
+        webViewFindController.setFindResultListener(listener)
     }
 
     /**
@@ -343,7 +347,7 @@ class BrowserManager(
      * @param query 参数类型为 `String`，表示函数执行 `query` 相关逻辑时需要读取或处理的输入。
      */
     fun findAllAsync(query: String) {
-        webView.findAllAsync(query)
+        webViewFindController.findAllAsync(query)
     }
 
     /**
@@ -353,7 +357,7 @@ class BrowserManager(
      * @param forward 参数类型为 `Boolean`，表示函数执行 `forward` 相关逻辑时需要读取或处理的输入。
      */
     fun findNext(forward: Boolean = true) {
-        webView.findNext(forward)
+        webViewFindController.findNext(forward)
     }
 
     /**
@@ -362,7 +366,7 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearFindMatches() {
-        webView.clearMatches()
+        webViewFindController.clearFindMatches()
     }
 
     /**
