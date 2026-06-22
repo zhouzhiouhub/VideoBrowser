@@ -75,7 +75,7 @@
 
   cleanup.hideDefaultElements = cleanup.hideDefaultElements || function () {
     cleanup.defaultSelectors().forEach(function (selector) {
-      queryAll(selector).forEach(function (element) {
+      domTools.queryAll(selector).forEach(function (element) {
         domActions.hideElement(element, {
           reason: 'generic-cleanup',
           protectAppContainers: true
@@ -83,8 +83,4 @@
       });
     });
   };
-
-  function queryAll(selector) {
-    return domTools.queryAll(selector);
-  }
 })();

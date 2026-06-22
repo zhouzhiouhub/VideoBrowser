@@ -22,7 +22,7 @@
 
   tools.click = tools.click || function (selectors) {
     (selectors || tools.defaultSelectors).forEach(function (selector) {
-      queryAll(selector).forEach(function (button) {
+      domTools.queryAll(selector).forEach(function (button) {
         const text = String(button.innerText || button.textContent || button.getAttribute('aria-label') || '');
         const looksLikeSkip = /skip|跳过|关闭|close/i.test(text) || selector.indexOf('skip') !== -1;
         if (looksLikeSkip && typeof button.click === 'function') {
@@ -31,8 +31,4 @@
       });
     });
   };
-
-  function queryAll(selector) {
-    return domTools.queryAll(selector);
-  }
 })();
