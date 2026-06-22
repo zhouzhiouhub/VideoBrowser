@@ -20,10 +20,14 @@ class NativeVideoZoomWiringContractTest {
         val source = File(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val savedState = File(
+            "src/main/java/com/example/videobrowser/video/NativePlayerSavedState.kt"
+        ).readText()
 
         assertTrue(source.contains("private var videoZoomMode = VideoZoomMode.FIT"))
-        assertTrue(source.contains("savedInstanceState.getString(STATE_VIDEO_ZOOM_MODE)"))
-        assertTrue(source.contains("outState.putString(STATE_VIDEO_ZOOM_MODE, sessionState.zoomMode.name)"))
+        assertTrue(source.contains("NativePlayerSavedState.restore("))
+        assertTrue(savedState.contains("savedInstanceState.getString(STATE_VIDEO_ZOOM_MODE)"))
+        assertTrue(savedState.contains("outState.putString(STATE_VIDEO_ZOOM_MODE, sessionState.zoomMode.name)"))
         assertTrue(source.contains("playerView.resizeMode = videoZoomMode.resizeMode"))
         assertTrue(source.contains("PlaybackCommand.CycleZoom"))
         assertTrue(source.contains("private fun cycleVideoZoomMode(): VideoZoomMode"))

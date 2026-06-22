@@ -114,51 +114,32 @@ class PlayerActivity : AppCompatActivity() {
             },
             privateBrowsing = { intentReader.isPrivateBrowsing() }
         )
-        val savedPlaybackQueue = if (savedInstanceState != null) {
-            savedInstanceState.getString(STATE_PLAYBACK_QUEUE)?.let(PlaybackQueueJsonCodec::decode)
-        } else {
-            null
-        }
-        // 横竖屏切换或系统重建 Activity 时优先恢复队列；首次进入则从 Intent 解析队列。
-        playbackQueue = savedPlaybackQueue ?: intentReader.playbackQueue()
-        currentMediaItemIndex = playbackQueue.currentIndex
-        repeatMode = playbackQueue.repeatMode
-        selectedPlaybackSpeed = settingsManager.defaultVideoSpeed()
+        val intentPlaybackQueue = intentReader.playbackQueue()
+        val defaultPlaybackSpeed = settingsManager.defaultVideoSpeed()
+        val restoredState = NativePlayerSavedState.restore(
+            savedInstanceState = savedInstanceState,
+            fallbackPlaybackQueue = intentPlaybackQueue,
+            fallbackPlaybackSpeed = defaultPlaybackSpeed,
+            fallbackVideoZoomMode = videoZoomMode
+        )
+        playbackQueue = restoredState?.playbackQueue ?: intentPlaybackQueue
+        currentMediaItemIndex = restoredState?.currentMediaItemIndex ?: playbackQueue.currentIndex
+        repeatMode = restoredState?.repeatMode ?: playbackQueue.repeatMode
+        selectedPlaybackSpeed = restoredState?.selectedPlaybackSpeed ?: defaultPlaybackSpeed
 
         playerRoot = findViewById(R.id.playerRoot)
         playerView = findViewById(R.id.playerView)
         playerView.keepScreenOn = true
         playerView.setControllerShowTimeoutMs(CONTROLS_HIDE_DELAY_MS)
 
-        if (savedInstanceState != null) {
+        if (restoredState != null) {
             // 系统重建时恢复内存状态，避免旋转或后台回收后从头播放。
-            playbackPosition = savedInstanceState.getLong(STATE_PLAYBACK_POSITION)
-            playWhenReady = savedInstanceState.getBoolean(STATE_PLAY_WHEN_READY, true)
-            currentMediaItemIndex = savedInstanceState.getInt(STATE_MEDIA_ITEM_INDEX)
-                .let { index ->
-                    if (playbackQueue.items.isEmpty()) {
-                        0
-                    } else {
-                        index.coerceIn(0, playbackQueue.items.lastIndex)
-                    }
-                }
-            playbackQueue = playbackQueue.select(currentMediaItemIndex)
-            isLandscape = savedInstanceState.getBoolean(STATE_LANDSCAPE, true)
-            selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(
-                savedInstanceState.getFloat(STATE_PLAYBACK_SPEED, selectedPlaybackSpeed)
-            )
-            repeatMode = savedInstanceState.getString(STATE_REPEAT_MODE)
-                ?.let { runCatching { PlaybackRepeatMode.valueOf(it) }.getOrNull() }
-                ?: repeatMode
-            playbackQueue = playbackQueue.copy(repeatMode = repeatMode)
-            videoZoomMode = savedInstanceState.getString(STATE_VIDEO_ZOOM_MODE)
-                ?.let { runCatching { VideoZoomMode.valueOf(it) }.getOrNull() }
-                ?: videoZoomMode
-            videoEffectsEnabled = savedInstanceState.getBoolean(STATE_VIDEO_EFFECTS_ENABLED, true)
-            retriedPlaybackWithoutVideoEffects = savedInstanceState.getBoolean(
-                STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
-                false
-            )
+            playbackPosition = restoredState.playbackPosition
+            playWhenReady = restoredState.playWhenReady
+            isLandscape = restoredState.isLandscape
+            videoZoomMode = restoredState.videoZoomMode
+            videoEffectsEnabled = restoredState.videoEffectsEnabled
+            retriedPlaybackWithoutVideoEffects = restoredState.retriedPlaybackWithoutVideoEffects
         } else {
             restorePlaybackHistory()
         }
@@ -248,18 +229,13 @@ class PlayerActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         savePlayerState()
         val sessionState = currentPlaybackSessionState()
-        outState.putLong(STATE_PLAYBACK_POSITION, sessionState.positionMs)
-        outState.putBoolean(STATE_PLAY_WHEN_READY, sessionState.playWhenReady)
-        outState.putInt(STATE_MEDIA_ITEM_INDEX, sessionState.currentIndex)
-        outState.putBoolean(STATE_LANDSCAPE, isLandscape)
-        outState.putFloat(STATE_PLAYBACK_SPEED, sessionState.speed)
-        outState.putString(STATE_REPEAT_MODE, sessionState.repeatMode.name)
-        outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(playbackQueue))
-        outState.putString(STATE_VIDEO_ZOOM_MODE, sessionState.zoomMode.name)
-        outState.putBoolean(STATE_VIDEO_EFFECTS_ENABLED, videoEffectsEnabled)
-        outState.putBoolean(
-            STATE_RETRIED_WITHOUT_VIDEO_EFFECTS,
-            retriedPlaybackWithoutVideoEffects
+        NativePlayerSavedState.save(
+            outState = outState,
+            sessionState = sessionState,
+            playbackQueue = playbackQueue,
+            isLandscape = isLandscape,
+            videoEffectsEnabled = videoEffectsEnabled,
+            retriedPlaybackWithoutVideoEffects = retriedPlaybackWithoutVideoEffects
         )
         super.onSaveInstanceState(outState)
     }
@@ -1012,16 +988,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val STATE_PLAYBACK_POSITION = "playback_position"
-        private const val STATE_PLAY_WHEN_READY = "play_when_ready"
-        private const val STATE_MEDIA_ITEM_INDEX = "media_item_index"
-        private const val STATE_LANDSCAPE = "landscape"
-        private const val STATE_PLAYBACK_SPEED = "playback_speed"
-        private const val STATE_REPEAT_MODE = "repeat_mode"
-        private const val STATE_PLAYBACK_QUEUE = "playback_queue"
-        private const val STATE_VIDEO_ZOOM_MODE = "video_zoom_mode"
-        private const val STATE_VIDEO_EFFECTS_ENABLED = "video_effects_enabled"
-        private const val STATE_RETRIED_WITHOUT_VIDEO_EFFECTS = "retried_without_video_effects"
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val CONTROLS_HIDE_DELAY_MS = 3000

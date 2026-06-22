@@ -25,10 +25,22 @@ class PlaybackQueueJsonCodecContractTest {
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val intentFactory = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerIntentFactory.kt"
+        ).readText()
+        val intentReader = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt"
+        ).readText()
+        val savedState = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerSavedState.kt"
+        ).readText()
 
-        assertTrue(playerActivity.contains("PlaybackQueueJsonCodec.encode(playbackQueue)"))
-        assertTrue(playerActivity.contains("PlaybackQueueJsonCodec.encode(it)"))
-        assertTrue(playerActivity.contains("PlaybackQueueJsonCodec::decode"))
+        assertTrue(playerActivity.contains("NativePlayerSavedState.restore("))
+        assertTrue(playerActivity.contains("NativePlayerSavedState.save("))
+        assertTrue(intentFactory.contains("PlaybackQueueJsonCodec.encode(queue)"))
+        assertTrue(intentReader.contains("PlaybackQueueJsonCodec::decode"))
+        assertTrue(savedState.contains("PlaybackQueueJsonCodec.encode(playbackQueue)"))
+        assertTrue(savedState.contains("PlaybackQueueJsonCodec::decode"))
         assertFalse(playerActivity.contains("private object PlaybackQueueJson"))
         assertFalse(playerActivity.contains("private fun decodePlaybackQueue"))
         assertFalse(playerActivity.contains("private fun playableItemsFromJson"))
