@@ -171,6 +171,8 @@ class JsInjector(
                     }
                     siteScripts.forEach { siteScript ->
                         appendScriptGuard(siteScript)
+                    }
+                    siteScripts.distinctBy { siteScript -> siteScript.adapterId }.forEach { siteScript ->
                         appendLine(siteScript.buildApplyCall())
                     }
                 }

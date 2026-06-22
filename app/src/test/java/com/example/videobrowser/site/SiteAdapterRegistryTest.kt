@@ -24,7 +24,10 @@ class SiteAdapterRegistryTest {
             registry.scriptFilesFor("https://www.youtube.com/watch?v=1")
         )
         assertEquals(
-            listOf("scripts/bilibili.js"),
+            listOf(
+                "scripts/bilibili_overlay_cleanup.js",
+                "scripts/bilibili.js"
+            ),
             registry.scriptFilesFor("https://m.bilibili.com/video/BV1")
         )
         assertEquals(

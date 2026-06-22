@@ -60,31 +60,34 @@ class SiteAdapterRegistry(
                         id = "youtube",
                         displayName = "YouTube",
                         domains = setOf("youtube.com"),
-                        scriptAssetPath = "scripts/youtube.js"
+                        scriptAssetPaths = listOf("scripts/youtube.js")
                     ),
                     domainAdapter(
                         id = "bilibili",
                         displayName = "Bilibili",
                         domains = setOf("bilibili.com"),
-                        scriptAssetPath = "scripts/bilibili.js"
+                        scriptAssetPaths = listOf(
+                            "scripts/bilibili_overlay_cleanup.js",
+                            "scripts/bilibili.js"
+                        )
                     ),
                     domainAdapter(
                         id = "iqiyi",
                         displayName = "iQIYI",
                         domains = setOf("iqiyi.com"),
-                        scriptAssetPath = "scripts/iqiyi.js"
+                        scriptAssetPaths = listOf("scripts/iqiyi.js")
                     ),
                     domainAdapter(
                         id = "tencent",
                         displayName = "Tencent Video",
                         domains = setOf("v.qq.com"),
-                        scriptAssetPath = "scripts/tencent.js"
+                        scriptAssetPaths = listOf("scripts/tencent.js")
                     ),
                     domainAdapter(
                         id = "youku",
                         displayName = "Youku",
                         domains = setOf("youku.com"),
-                        scriptAssetPath = "scripts/youku.js"
+                        scriptAssetPaths = listOf("scripts/youku.js")
                     )
                 )
             )
@@ -97,21 +100,21 @@ class SiteAdapterRegistry(
          * @param id 参数类型为 `String`，表示函数执行 `id` 相关逻辑时需要读取或处理的输入。
          * @param displayName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
          * @param domains 参数类型为 `Set<String>`，表示函数执行 `domains` 相关逻辑时需要读取或处理的输入。
-         * @param scriptAssetPath 参数类型为 `String`，表示函数执行 `scriptAssetPath` 相关逻辑时需要读取或处理的输入。
+         * @param scriptAssetPaths 参数类型为 `List<String>`，表示函数执行 `scriptAssetPaths` 相关逻辑时需要读取或处理的输入。
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         private fun domainAdapter(
             id: String,
             displayName: String,
             domains: Set<String>,
-            scriptAssetPath: String
+            scriptAssetPaths: List<String>
         ): SiteAdapter {
             return DomainSiteAdapter(
                 SiteProfile(
                     id = id,
                     displayName = displayName,
                     domains = domains,
-                    scriptAssetPaths = listOf(scriptAssetPath)
+                    scriptAssetPaths = scriptAssetPaths
                 )
             )
         }

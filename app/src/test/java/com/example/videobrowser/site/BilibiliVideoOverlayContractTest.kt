@@ -19,14 +19,20 @@ class BilibiliVideoOverlayContractTest {
     @Test
     fun bilibiliAdapterHidesOwnCenterPlaybackOverlayAfterEnablingNativeControls() {
         val script = projectFile("src/main/assets/scripts/bilibili.js").readText()
+        val overlayScript = projectFile("src/main/assets/scripts/bilibili_overlay_cleanup.js").readText()
 
-        assertTrue(script.contains("function hideVideoPlayPauseOverlays()"))
-        assertTrue(script.contains("function isLikelyCenterPlaybackOverlay(element, video)"))
+        assertTrue(overlayScript.contains("window.VideoBrowserBilibiliOverlayCleanup = tools"))
+        assertTrue(overlayScript.contains("tools.hideVideoPlayPauseOverlays = tools.hideVideoPlayPauseOverlays || function (adapterTools)"))
+        assertTrue(overlayScript.contains("function isLikelyCenterPlaybackOverlay(element, video, helpers)"))
+        assertTrue(script.contains("var overlayCleanup = window.VideoBrowserBilibiliOverlayCleanup || {};"))
+        assertTrue(script.contains("overlayCleanup.hideVideoPlayPauseOverlays(adapterTools);"))
         assertTrue(script.contains("hideVideoPlayPauseOverlays();"))
         assertFalse(script.contains("enableVideoControls();\n      hideVideoPlayPauseOverlays();"))
-        assertTrue(script.contains(".mplayer-play-icon"))
-        assertTrue(script.contains(".bpx-player-state-wrap"))
-        assertTrue(script.contains("bilibili-video-play-overlay"))
+        assertTrue(overlayScript.contains(".mplayer-play-icon"))
+        assertTrue(overlayScript.contains(".bpx-player-state-wrap"))
+        assertTrue(overlayScript.contains("bilibili-video-play-overlay"))
+        assertFalse(script.contains("var playbackOverlaySelectors = ["))
+        assertFalse(script.contains("function matchingVideoForOverlay(element, videos)"))
     }
 
     @Test

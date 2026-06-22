@@ -20,30 +20,7 @@
   var clickTextButtons = adapterTools.clickTextButtons;
   var logVideoDiagnostic = adapterTools.logVideoDiagnostic;
   var removeNativeVideoControls = adapterTools.removeNativeVideoControls;
-  var safeRect = adapterTools.safeRect;
-  var expandedRect = adapterTools.expandedRect;
-  var rectsOverlap = adapterTools.rectsOverlap;
-  var rectCenterX = adapterTools.rectCenterX;
-  var rectCenterY = adapterTools.rectCenterY;
-  var centerDistance = adapterTools.centerDistance;
-
-  var playbackOverlaySelectors = [
-    '.mplayer-play-icon',
-    '.mplayer-pause-icon',
-    '.mplayer-icon-play',
-    '.mplayer-icon-pause',
-    '.mplayer-state-play',
-    '.mplayer-state-pause',
-    '.bpx-player-state-wrap',
-    '.bpx-player-state-play',
-    '.bpx-player-state-pause',
-    '.bilibili-player-video-state',
-    '[class*="player-state"]',
-    '[class*="state-play"]',
-    '[class*="state-pause"]',
-    '[class*="mplayer"][class*="play"]',
-    '[class*="mplayer"][class*="pause"]'
-  ];
+  var overlayCleanup = window.VideoBrowserBilibiliOverlayCleanup || {};
 
   /**
    * 函数 `hideVideoPlayPauseOverlays`：封装 `hide Video Play Pause Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -51,33 +28,9 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function hideVideoPlayPauseOverlays() {
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param video 表示当前回调正在检查或操作的页面元素。
-     */
-    var videos = Array.prototype.slice.call(query('video')).filter(function (video) {
-      return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
-    });
-    if (!videos.length) return;
-
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    playbackOverlaySelectors.forEach(function (selector) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      query(selector).forEach(function (element) {
-        var video = matchingVideoForOverlay(element, videos);
-        if (!video || !isLikelyCenterPlaybackOverlay(element, video)) return;
-        hideElement(playbackOverlayRoot(element, video), 'bilibili-video-play-overlay');
-      });
-    });
+    if (typeof overlayCleanup.hideVideoPlayPauseOverlays === 'function') {
+      overlayCleanup.hideVideoPlayPauseOverlays(adapterTools);
+    }
   }
 
   function dismissBrowserChoicePrompts() {
@@ -160,91 +113,6 @@
       if (text.length > 40) return;
       hideElement(element, 'bilibili-browser-choice-backdrop');
     });
-  }
-
-  /**
-   * 函数 `matchingVideoForOverlay`：封装 `matching Video For Overlay` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} videos 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function matchingVideoForOverlay(element, videos) {
-    var elementRect = safeRect(element);
-    if (!elementRect) return null;
-
-    var bestVideo = null;
-    var bestDistance = Infinity;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param video 表示当前回调正在检查或操作的页面元素。
-     */
-    videos.forEach(function (video) {
-      var videoRect = safeRect(video);
-      if (!videoRect) return;
-      if (!rectsOverlap(elementRect, expandedRect(videoRect, 16))) return;
-
-      var distance = centerDistance(elementRect, videoRect);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestVideo = video;
-      }
-    });
-    return bestVideo;
-  }
-
-  /**
-   * 函数 `isLikelyCenterPlaybackOverlay`：封装 `is Likely Center Playback Overlay` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function isLikelyCenterPlaybackOverlay(element, video) {
-    if (!element || !video || element.querySelector('video')) return false;
-
-    var descriptor = (String(element.id || '') + ' ' + String(element.className || '')).toLowerCase();
-    if (!/(^|[-_\s])(play|pause|state|mplayer|bpx-player-state)([-_\s]|$)|player-state|state-play|state-pause/.test(descriptor)) {
-      return false;
-    }
-
-    var elementRect = safeRect(element);
-    var videoRect = safeRect(video);
-    if (!elementRect || !videoRect) return false;
-    if (!rectsOverlap(elementRect, expandedRect(videoRect, 16))) return false;
-
-    var centerLimitX = Math.max(72, videoRect.width * 0.28);
-    var centerLimitY = Math.max(54, videoRect.height * 0.32);
-    var centerAligned =
-      Math.abs(rectCenterX(elementRect) - rectCenterX(videoRect)) <= centerLimitX &&
-      Math.abs(rectCenterY(elementRect) - rectCenterY(videoRect)) <= centerLimitY;
-    if (!centerAligned) return false;
-
-    var compactControl =
-      elementRect.width <= Math.max(144, videoRect.width * 0.72) &&
-      elementRect.height <= Math.max(144, videoRect.height * 0.72);
-    var knownStateLayer = /mplayer|bpx-player-state|player-state|video-state|state-play|state-pause/.test(descriptor);
-    return compactControl || knownStateLayer;
-  }
-
-  /**
-   * 函数 `playbackOverlayRoot`：封装 `playback Overlay Root` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   */
-  function playbackOverlayRoot(element, video) {
-    var root = element;
-    for (var depth = 0; depth < 3 && root.parentElement; depth += 1) {
-      var parent = root.parentElement;
-      if (parent === document.body || parent === document.documentElement) break;
-      if (parent.querySelector('video')) break;
-      if (!isLikelyCenterPlaybackOverlay(parent, video)) break;
-      root = parent;
-    }
-    return root;
   }
 
   /**
