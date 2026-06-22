@@ -45,6 +45,8 @@
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
   const skipButtonTools = window.VideoBrowserSkipButtonTools;
   const nativeBridge = window.VideoBrowserNativeBridge;
+  const logVideoDiagnostic = nativeBridge.logPageVideoDiagnostic;
+  const videoLogDetails = nativeBridge.videoLogDetails;
   const videoControlTools = window.VideoBrowserVideoControlTools;
   const videoQueryTools = window.VideoBrowserVideoQueryTools;
   const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools;
@@ -61,39 +63,6 @@
 
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
-  /**
-   * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} event 表示浏览器事件或事件名称，用来区分触发来源。
-   * @param {*} details 表示本次脚本运行的配置或上下文数据。
-   */
-  function logVideoDiagnostic(event, details) {
-    nativeBridge.logVideoDiagnostic(event, details, {
-      includePath: true
-    });
-  }
-
-  /**
-   * 函数 `videoLogDetails`：封装 `video Log Details` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} extra 表示本次脚本运行的配置或上下文数据。
-   */
-  function videoLogDetails(video, extra) {
-    const values = extra && typeof extra === 'object' ? extra : {};
-    const className = video && String(video.className || '');
-    return Object.assign({
-      tag: video && video.tagName ? video.tagName.toLowerCase() : '',
-      controls: video ? Boolean(video.controls) : false,
-      controlsAttr: video ? video.hasAttribute('controls') : false,
-      paused: video ? Boolean(video.paused) : false,
-      readyState: video ? Number(video.readyState || 0) : 0,
-      className: className,
-      src: nativeBridge.videoSource(video)
-    }, values);
-  }
 
   /**
    * 函数 `cleanupLegacyVideoOverlays`：封装 `cleanup Legacy Video Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -101,43 +70,8 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function cleanupLegacyVideoOverlays() {
-    if (state.videoOverlays && typeof state.videoOverlays.forEach === 'function') {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param controls 表示当前回调收到的 `controls` 参数。
-       */
-      state.videoOverlays.forEach(function (controls) {
-        if (controls && Array.isArray(controls.disposers)) {
-          /*
-           * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-           * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-           * @param dispose 表示当前回调需要执行的函数或请求来源。
-           */
-          controls.disposers.forEach(function (dispose) {
-            try { dispose(); } catch (_) {}
-          });
-          controls.disposers.length = 0;
-        }
-      });
-      if (typeof state.videoOverlays.clear === 'function') {
-        state.videoOverlays.clear();
-      }
-    }
-    state.videoOverlays = null;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    runWithMutationSuppressed(function () {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param overlay 表示当前回调正在检查或操作的页面元素。
-       */
-      document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
-        overlay.remove();
-      });
+    videoControlTools.cleanupLegacyOverlays(state, {
+      runWithMutationSuppressed: runWithMutationSuppressed
     });
   }
 
@@ -552,20 +486,6 @@
   }
 
   /**
-   * 函数 `formatTime`：封装 `format Time` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function formatTime(value) {
-    if (!Number.isFinite(value) || value < 0) return '00:00';
-    const total = Math.floor(value);
-    const minutes = Math.floor(total / 60);
-    const seconds = total % 60;
-    return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-  }
-
-  /**
    * 函数 `clickSkipButtons`：封装 `click Skip Buttons` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -581,14 +501,7 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function hasActiveVideo() {
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param video 表示当前回调正在检查或操作的页面元素。
-     */
-    return videoQueryTools.some(function (video) {
-      return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
-    });
+    return videoQueryTools.hasActive();
   }
 
   /**

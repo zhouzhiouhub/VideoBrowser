@@ -65,8 +65,28 @@
     bridgeTools.logVideoMessage(parts.join(' '));
   };
 
+  bridgeTools.logPageVideoDiagnostic = bridgeTools.logPageVideoDiagnostic || function (event, details) {
+    bridgeTools.logVideoDiagnostic(event, details, {
+      includePath: true
+    });
+  };
+
   bridgeTools.videoSource = bridgeTools.videoSource || function (video) {
     return String(video && (video.currentSrc || video.src || video.getAttribute('src')) || '').slice(0, 180);
+  };
+
+  bridgeTools.videoLogDetails = bridgeTools.videoLogDetails || function (video, extra) {
+    const values = extra && typeof extra === 'object' ? extra : {};
+    const className = video && String(video.className || '');
+    return Object.assign({
+      tag: video && video.tagName ? video.tagName.toLowerCase() : '',
+      controls: video ? Boolean(video.controls) : false,
+      controlsAttr: video ? video.hasAttribute('controls') : false,
+      paused: video ? Boolean(video.paused) : false,
+      readyState: video ? Number(video.readyState || 0) : 0,
+      className: className,
+      src: bridgeTools.videoSource(video)
+    }, values);
   };
 
   bridgeTools.updatePlaybackTimeline = bridgeTools.updatePlaybackTimeline || function (positionMs, durationMs) {

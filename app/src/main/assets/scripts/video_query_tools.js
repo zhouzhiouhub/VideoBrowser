@@ -16,4 +16,12 @@
   tools.some = tools.some || function (predicate) {
     return tools.all().some(predicate);
   };
+
+  tools.isActive = tools.isActive || function (video) {
+    return Boolean(video && video.isConnected && !video.paused && !video.ended && video.readyState > 1);
+  };
+
+  tools.hasActive = tools.hasActive || function () {
+    return tools.some(tools.isActive);
+  };
 })();

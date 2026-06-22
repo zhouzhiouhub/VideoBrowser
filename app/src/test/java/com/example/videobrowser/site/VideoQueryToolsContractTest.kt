@@ -17,10 +17,13 @@ class VideoQueryToolsContractTest {
         assertTrue(videoQueryScript.contains("document.querySelectorAll('video')"))
         assertTrue(videoQueryScript.contains("tools.forEach = tools.forEach || function (callback)"))
         assertTrue(videoQueryScript.contains("tools.some = tools.some || function (predicate)"))
+        assertTrue(videoQueryScript.contains("tools.isActive = tools.isActive || function (video)"))
+        assertTrue(videoQueryScript.contains("tools.hasActive = tools.hasActive || function ()"))
         assertTrue(commonScript.contains("const videoQueryTools = window.VideoBrowserVideoQueryTools"))
         assertTrue(commonScript.contains("videoQueryTools.forEach(function (video)"))
         assertTrue(fullscreenScript.contains("videoQueryTools.all()"))
-        assertTrue(commonScript.contains("return videoQueryTools.some(function (video)"))
+        assertTrue(commonScript.contains("return videoQueryTools.hasActive();"))
+        assertFalse(commonScript.contains("return videoQueryTools.some(function (video)"))
         assertFalse(commonScript.contains("document.querySelectorAll('video')"))
     }
 

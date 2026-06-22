@@ -100,11 +100,15 @@ class VideoCapabilityDelegationContractTest {
 
         assertTrue(nativeBridgeScript.contains("window.VideoBrowserNativeBridge = bridgeTools"))
         assertTrue(nativeBridgeScript.contains("bridge.logVideoEvent(message);"))
-        assertTrue(script.contains("function logVideoDiagnostic(event, details)"))
-        assertTrue(script.contains("nativeBridge.logVideoDiagnostic(event, details,"))
+        assertTrue(nativeBridgeScript.contains("bridgeTools.logPageVideoDiagnostic = bridgeTools.logPageVideoDiagnostic || function (event, details)"))
+        assertTrue(nativeBridgeScript.contains("bridgeTools.videoLogDetails = bridgeTools.videoLogDetails || function (video, extra)"))
+        assertTrue(script.contains("const logVideoDiagnostic = nativeBridge.logPageVideoDiagnostic"))
+        assertTrue(script.contains("const videoLogDetails = nativeBridge.videoLogDetails"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-site'"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-custom-player'"))
         assertTrue(script.contains("logVideoDiagnostic('enable-controls-native'"))
+        assertFalse(script.contains("function logVideoDiagnostic(event, details)"))
+        assertFalse(script.contains("function videoLogDetails(video, extra)"))
     }
 
     /**
@@ -153,11 +157,15 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(videoControlToolsScript.contains("window.VideoBrowserVideoControlTools = tools"))
         assertTrue(videoControlToolsScript.contains("tools.enableNativeControls = tools.enableNativeControls || function (video)"))
         assertTrue(videoControlToolsScript.contains("tools.removeNativeControls = tools.removeNativeControls || function (video)"))
+        assertTrue(videoControlToolsScript.contains("tools.cleanupLegacyOverlays = tools.cleanupLegacyOverlays || function (state, options)"))
+        assertTrue(videoControlToolsScript.contains("document.querySelectorAll('.__videobrowser_video_controls__')"))
         assertTrue(script.contains("const videoControlTools = window.VideoBrowserVideoControlTools"))
         assertTrue(customControlDetectorScript.contains("detector.hasControls = detector.hasControls || function (video)"))
         assertTrue(script.contains("function removeNativeVideoControls(video, reason)"))
         assertTrue(script.contains("videoControlTools.removeNativeControls(video)"))
         assertTrue(script.contains("videoControlTools.enableNativeControls(video)"))
+        assertTrue(script.contains("videoControlTools.cleanupLegacyOverlays(state, {"))
+        assertFalse(script.contains("document.querySelectorAll('.__videobrowser_video_controls__')"))
         assertFalse(script.contains("try { video.controls = false; }"))
         assertFalse(script.contains("try { video.removeAttribute('controls'); }"))
         assertTrue(geometryScript.contains("geometry.expandedRect = geometry.expandedRect || function (rect, amount)"))
