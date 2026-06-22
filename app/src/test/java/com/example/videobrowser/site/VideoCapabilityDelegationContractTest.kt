@@ -28,18 +28,21 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(brokerScript.contains("broker.has = broker.has || function (video, action)"))
         assertTrue(script.contains("const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke"))
         assertTrue(script.contains("const hasSiteVideoCapability = siteVideoCapabilityBroker.has"))
-        assertTrue(controlCoordinatorScript.contains("invokeSiteVideoCapability(video, 'enableControls', [])"))
+        assertTrue(controlCoordinatorScript.contains("siteVideoCapabilityBroker.invoke(video, 'enableControls', [])"))
         assertTrue(script.contains("videoControlCoordinator.enableControls(video);"))
         assertTrue(script.contains("videoPlaybackTools.togglePlayPause(video, {"))
-        assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'togglePlayPause', [], options)"))
-        assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds], options)"))
-        assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekTo', [targetSeconds], options)"))
+        assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'togglePlayPause', [])"))
+        assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekBy', [offsetSeconds])"))
+        assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekTo', [targetSeconds])"))
         assertTrue(script.contains("videoEnhancementTools.setPlaybackSpeed(speed, state, {"))
         assertTrue(enhancementScript.contains("[targetState.fullscreenPlaybackSpeed]"))
-        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [], config)"))
-        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
+        assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'preferBestQuality', [])"))
+        assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'setPlaybackSpeed', [speed])"))
         assertFalse(enhancementScript.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
         assertFalse(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
+        assertFalse(controlCoordinatorScript.contains("function invokeSiteVideoCapability(video, action, args)"))
+        assertFalse(playbackScript.contains("function invokeSiteVideoCapability(video, action, args, options)"))
+        assertFalse(enhancementScript.contains("function invokeSiteVideoCapability(video, action, args, options)"))
     }
 
     /**
@@ -143,9 +146,9 @@ class VideoCapabilityDelegationContractTest {
         val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
 
         assertTrue(enhancementScript.contains("const speed = tools.desiredSpeed(video, state, config);"))
-        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
+        assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'setPlaybackSpeed', [speed])"))
         assertTrue(
-            enhancementScript.indexOf("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)") <
+            enhancementScript.indexOf("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'setPlaybackSpeed', [speed])") <
                 enhancementScript.indexOf("video.playbackRate = speed;")
         )
     }

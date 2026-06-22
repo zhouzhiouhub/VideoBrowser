@@ -24,6 +24,10 @@ class VideoPlaybackToolsContractTest {
         assertTrue(playbackScript.contains("tools.togglePlayPause = tools.togglePlayPause || function (video, options)"))
         assertTrue(playbackScript.contains("tools.startDirectional = tools.startDirectional || function (direction, state, options)"))
         assertTrue(playbackScript.contains("tools.stopDirectional = tools.stopDirectional || function (state, options)"))
+        assertTrue(playbackScript.contains("const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;"))
+        assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekTo', [targetSeconds])"))
+        assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekBy', [offsetSeconds])"))
+        assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'togglePlayPause', [])"))
         assertTrue(playbackScript.contains("targetState.directionalPlayback.intervalId = window.setInterval(function ()"))
         assertTrue(commonScript.contains("const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools"))
         assertTrue(commonScript.contains("return videoPlaybackTools.timeline(video);"))
@@ -45,6 +49,7 @@ class VideoPlaybackToolsContractTest {
         assertFalse(commonScript.contains("video.play().catch(function () {})"))
         assertFalse(commonScript.contains("video.pause();"))
         assertFalse(commonScript.contains("state.directionalPlayback.intervalId = window.setInterval(function ()"))
+        assertFalse(playbackScript.contains("function invokeSiteVideoCapability(video, action, args, options)"))
     }
 
     private fun projectFile(path: String): File {

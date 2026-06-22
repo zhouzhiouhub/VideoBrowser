@@ -35,6 +35,13 @@
     return broker.forVideo(video, action).length > 0;
   };
 
+  broker.hasFromOptions = broker.hasFromOptions || function (options, video, action) {
+    const config = options || {};
+    return typeof config.hasSiteVideoCapability === 'function'
+      ? config.hasSiteVideoCapability(video, action)
+      : false;
+  };
+
   broker.invoke = broker.invoke || function (video, action, args) {
     const capabilitiesList = broker.forVideo(video, action);
     for (let index = 0; index < capabilitiesList.length; index += 1) {
@@ -48,6 +55,18 @@
         }
       } catch (_) {}
     }
+    return broker.unhandled();
+  };
+
+  broker.invokeFromOptions = broker.invokeFromOptions || function (options, video, action, args) {
+    const config = options || {};
+    if (typeof config.invokeSiteVideoCapability === 'function') {
+      return config.invokeSiteVideoCapability(video, action, args);
+    }
+    return broker.unhandled();
+  };
+
+  broker.unhandled = broker.unhandled || function () {
     return { handled: false, value: undefined };
   };
 })();

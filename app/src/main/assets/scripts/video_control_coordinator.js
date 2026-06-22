@@ -14,7 +14,7 @@
   };
 
   coordinator.enableControls = coordinator.enableControls || function (video) {
-    const siteResult = invokeSiteVideoCapability(video, 'enableControls', []);
+    const siteResult = siteVideoCapabilityBroker.invoke(video, 'enableControls', []);
     if (siteResult.handled) {
       logVideoDiagnostic('enable-controls-site', videoLogDetails(video, {
         handled: true,
@@ -47,12 +47,6 @@
     }
     return hadNativeControls;
   };
-
-  function invokeSiteVideoCapability(video, action, args) {
-    return typeof siteVideoCapabilityBroker.invoke === 'function'
-      ? siteVideoCapabilityBroker.invoke(video, action, args)
-      : { handled: false, value: null };
-  }
 
   function logVideoDiagnostic(event, details) {
     if (typeof nativeBridge.logPageVideoDiagnostic === 'function') {

@@ -4,6 +4,7 @@
 (function () {
   const tools = window.VideoBrowserVideoPlaybackTools || {};
   const nativeBridge = window.VideoBrowserNativeBridge || {};
+  const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
   window.VideoBrowserVideoPlaybackTools = tools;
 
   tools.timeline = tools.timeline || function (video) {
@@ -82,7 +83,7 @@
 
   tools.seekTo = tools.seekTo || function (video, targetSeconds, options) {
     if (!video || !Number.isFinite(targetSeconds)) return false;
-    const siteResult = invokeSiteVideoCapability(video, 'seekTo', [targetSeconds], options);
+    const siteResult = siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekTo', [targetSeconds]);
     if (siteResult.handled) {
       reportPlaybackTimeline(video, options);
       return true;
@@ -99,7 +100,7 @@
 
   tools.seekBy = tools.seekBy || function (video, offsetSeconds, options) {
     if (!video || !Number.isFinite(offsetSeconds)) return false;
-    const siteResult = invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds], options);
+    const siteResult = siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekBy', [offsetSeconds]);
     if (siteResult.handled) {
       reportPlaybackTimeline(video, options);
       return true;
@@ -117,7 +118,7 @@
 
   tools.togglePlayPause = tools.togglePlayPause || function (video, options) {
     if (!video) return false;
-    const siteResult = invokeSiteVideoCapability(video, 'togglePlayPause', [], options);
+    const siteResult = siteVideoCapabilityBroker.invokeFromOptions(options, video, 'togglePlayPause', []);
     if (siteResult.handled) return siteResult.value;
     if (video.paused || video.ended) {
       try {
@@ -194,14 +195,6 @@
     }
     return true;
   };
-
-  function invokeSiteVideoCapability(video, action, args, options) {
-    const config = options || {};
-    if (typeof config.invokeSiteVideoCapability === 'function') {
-      return config.invokeSiteVideoCapability(video, action, args);
-    }
-    return { handled: false, value: undefined };
-  }
 
   function reportPlaybackTimeline(video, options) {
     const config = options || {};

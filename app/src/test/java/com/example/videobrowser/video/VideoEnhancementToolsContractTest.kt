@@ -24,10 +24,13 @@ class VideoEnhancementToolsContractTest {
         assertTrue(enhancementScript.contains("const enhancerState = window.VideoBrowserEnhancerState;"))
         assertTrue(enhancementScript.contains("const hookedVideos = enhancerState.ensureWeakSet(targetState, 'speedHookedVideos');"))
         assertTrue(enhancementScript.contains("enhancerState.ensureWeakMap(targetState, 'bestQualityAttempts');"))
-        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
+        assertTrue(enhancementScript.contains("const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;"))
+        assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.hasFromOptions(config, video, 'setPlaybackSpeed')"))
+        assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'setPlaybackSpeed', [speed])"))
         assertTrue(enhancementScript.contains("[targetState.fullscreenPlaybackSpeed]"))
         assertTrue(enhancementScript.contains("forEachVideo(config, function (targetVideo)"))
-        assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [], config)"))
+        assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.hasFromOptions(config, video, 'preferBestQuality')"))
+        assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'preferBestQuality', [])"))
         assertTrue(commonScript.contains("const videoEnhancementTools = window.VideoBrowserVideoEnhancementTools"))
         assertTrue(commonScript.contains("return videoEnhancementTools.installPlaybackSpeedHooks(video, state, {"))
         assertTrue(commonScript.contains("return videoEnhancementTools.desiredSpeed(video, state, {"))
@@ -49,6 +52,8 @@ class VideoEnhancementToolsContractTest {
         assertFalse(commonScript.contains("videoQueryTools.forEach(applyVideoSpeed);"))
         assertFalse(enhancementScript.contains("targetState.speedHookedVideos = new WeakSet();"))
         assertFalse(enhancementScript.contains("targetState.bestQualityAttempts = new WeakMap();"))
+        assertFalse(enhancementScript.contains("function invokeSiteVideoCapability(video, action, args, options)"))
+        assertFalse(enhancementScript.contains("function hasSiteVideoCapability(video, action, options)"))
     }
 
     private fun projectFile(path: String): File {

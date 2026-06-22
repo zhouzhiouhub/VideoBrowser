@@ -4,6 +4,7 @@
 (function () {
   const tools = window.VideoBrowserVideoEnhancementTools || {};
   const enhancerState = window.VideoBrowserEnhancerState;
+  const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
   window.VideoBrowserVideoEnhancementTools = tools;
 
   tools.installPlaybackSpeedHooks = tools.installPlaybackSpeedHooks || function (video, state, options) {
@@ -53,9 +54,9 @@
   tools.applySpeed = tools.applySpeed || function (video, state, options) {
     const config = options || {};
     const speed = tools.desiredSpeed(video, state, config);
-    if (hasSiteVideoCapability(video, 'setPlaybackSpeed', config)) {
+    if (siteVideoCapabilityBroker.hasFromOptions(config, video, 'setPlaybackSpeed')) {
       if (!tools.isFullscreenPlaybackTarget(video, state, config)) return false;
-      const siteResult = invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config);
+      const siteResult = siteVideoCapabilityBroker.invokeFromOptions(config, video, 'setPlaybackSpeed', [speed]);
       if (siteResult.handled) return true;
     }
     try {
@@ -73,7 +74,7 @@
     const targetState = state || {};
     const config = options || {};
     if (!targetState.config || !targetState.config.videoEnabled || !video || !video.isConnected) return false;
-    if (!hasSiteVideoCapability(video, 'preferBestQuality', config)) return false;
+    if (!siteVideoCapabilityBroker.hasFromOptions(config, video, 'preferBestQuality')) return false;
 
     enhancerState.ensureWeakMap(targetState, 'bestQualityAttempts');
 
@@ -86,7 +87,7 @@
     targetState.bestQualityAttempts.set(video, { at: now, success: false });
     logVideoDiagnostic('quality-prefer-start', video, {}, config);
 
-    const siteResult = invokeSiteVideoCapability(video, 'preferBestQuality', [], config);
+    const siteResult = siteVideoCapabilityBroker.invokeFromOptions(config, video, 'preferBestQuality', []);
     if (siteResult.handled) {
       const success = siteResult.value !== false;
       targetState.bestQualityAttempts.set(video, { at: now, success: success });
@@ -119,11 +120,11 @@
       targetState.nativeFullscreenVideo = video;
     }
 
-    const siteResult = invokeSiteVideoCapability(
+    const siteResult = siteVideoCapabilityBroker.invokeFromOptions(
+      config,
       video,
       'setPlaybackSpeed',
-      [targetState.fullscreenPlaybackSpeed],
-      config
+      [targetState.fullscreenPlaybackSpeed]
     );
     if (siteResult.handled) return true;
 
@@ -132,21 +133,6 @@
     });
     return true;
   };
-
-  function hasSiteVideoCapability(video, action, options) {
-    const config = options || {};
-    return typeof config.hasSiteVideoCapability === 'function'
-      ? config.hasSiteVideoCapability(video, action)
-      : false;
-  }
-
-  function invokeSiteVideoCapability(video, action, args, options) {
-    const config = options || {};
-    if (typeof config.invokeSiteVideoCapability === 'function') {
-      return config.invokeSiteVideoCapability(video, action, args);
-    }
-    return { handled: false, value: undefined };
-  }
 
   function activeVideo(options) {
     const config = options || {};
