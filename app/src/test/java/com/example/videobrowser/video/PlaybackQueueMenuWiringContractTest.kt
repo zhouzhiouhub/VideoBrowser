@@ -55,15 +55,23 @@ class PlaybackQueueMenuWiringContractTest {
      */
     @Test
     fun overlayExposesPlaybackQueueButton() {
-        val source = File(
+        val overlay = File(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
         ).readText()
+        val controlsController = File(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoControlsGroupController.kt"
+        ).readText()
 
-        assertTrue(source.contains("var onPlaybackQueueRequested: (() -> Unit)? = null"))
-        assertTrue(source.contains("private val queueButton = controlTextView()"))
-        assertTrue(source.contains("R.string.video_control_queue"))
-        assertTrue(source.contains("onPlaybackQueueRequested?.invoke()"))
-        assertTrue(source.contains("queueButton.visibility = visibility"))
+        assertTrue(overlay.contains("var onPlaybackQueueRequested: (() -> Unit)? = null"))
+        assertTrue(overlay.contains("private val queueButton = controlTextView()"))
+        assertTrue(overlay.contains("requestPlaybackQueue = { onPlaybackQueueRequested?.invoke() }"))
+        assertTrue(overlay.contains("controlsGroupController.setQueueControlsVisible(visible)"))
+        assertFalse(overlay.contains("R.string.video_control_queue"))
+        assertFalse(overlay.contains("queueButton.visibility = visibility"))
+        assertTrue(controlsController.contains("private fun setupQueueButton()"))
+        assertTrue(controlsController.contains("R.string.video_control_queue"))
+        assertTrue(controlsController.contains("requestPlaybackQueue()"))
+        assertTrue(controlsController.contains("queueButton.visibility = visibility"))
     }
 
     /**

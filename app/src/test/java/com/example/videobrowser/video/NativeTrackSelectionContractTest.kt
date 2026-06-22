@@ -18,15 +18,22 @@ class NativeTrackSelectionContractTest {
      */
     @Test
     fun fullscreenOverlayProvidesTrackSelectionButton() {
-        val source = projectFile(
+        val overlay = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
         ).readText()
+        val controlsController = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoControlsGroupController.kt"
+        ).readText()
 
-        assertTrue(source.contains("var onTrackSelectionRequested: (() -> Unit)? = null"))
-        assertTrue(source.contains("private val trackButton"))
-        assertTrue(source.contains("trackButton.setOnClickListener"))
-        assertTrue(source.contains("onTrackSelectionRequested?.invoke()"))
-        assertTrue(source.contains("R.string.video_control_tracks"))
+        assertTrue(overlay.contains("var onTrackSelectionRequested: (() -> Unit)? = null"))
+        assertTrue(overlay.contains("FullscreenVideoControlsGroupController("))
+        assertTrue(overlay.contains("requestTrackSelection = { onTrackSelectionRequested?.invoke() }"))
+        assertFalse(overlay.contains("trackButton.setOnClickListener"))
+        assertTrue(controlsController.contains("private val trackButton: TextView"))
+        assertTrue(controlsController.contains("private fun setupTrackButton()"))
+        assertTrue(controlsController.contains("trackButton.setOnClickListener"))
+        assertTrue(controlsController.contains("requestTrackSelection()"))
+        assertTrue(controlsController.contains("R.string.video_control_tracks"))
     }
 
     /**

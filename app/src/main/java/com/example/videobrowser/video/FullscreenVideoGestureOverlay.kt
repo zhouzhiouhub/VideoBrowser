@@ -9,7 +9,6 @@ package com.example.videobrowser.video
  */
 import android.app.Activity
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
@@ -80,6 +79,30 @@ class FullscreenVideoGestureOverlay(
     private val zoomButton = controlTextView()
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
+    private val controlsGroupController = FullscreenVideoControlsGroupController(
+        context = context,
+        controlsGroup = controlsGroup,
+        previousButton = previousButton,
+        nextButton = nextButton,
+        repeatButton = repeatButton,
+        queueButton = queueButton,
+        speedButton = speedButton,
+        trackButton = trackButton,
+        zoomButton = zoomButton,
+        rotateButton = rotateButton,
+        dp = ::dp,
+        isLocked = { locked },
+        notifyUserInteraction = ::notifyUserInteraction,
+        showSpeedPopup = ::showSpeedPopup,
+        requestPreviousMedia = { onPreviousMediaRequested?.invoke() },
+        requestNextMedia = { onNextMediaRequested?.invoke() },
+        requestRepeatMode = { onRepeatModeRequested?.invoke() },
+        requestPlaybackQueue = { onPlaybackQueueRequested?.invoke() },
+        requestTrackSelection = { onTrackSelectionRequested?.invoke() },
+        requestVideoZoomMode = { onVideoZoomRequested?.invoke() },
+        requestOrientation = { onToggleOrientation?.invoke() },
+        showFeedback = { text -> showFeedback(text) }
+    )
     private val feedbackController = FullscreenVideoFeedbackController(
         context = context,
         feedbackHandler = feedbackHandler,
@@ -94,10 +117,6 @@ class FullscreenVideoGestureOverlay(
         hideFeedback = { feedbackController.hide() }
     )
 
-    private var landscape = true
-    private var playbackSpeed = DEFAULT_PLAYBACK_SPEED
-    private var repeatMode = PlaybackRepeatMode.NONE
-    private var videoZoomMode = VideoZoomMode.FIT
     private var touchStartedOnControl = false
     private var touchStartedInBottomPassthrough = false
     private var playbackControlsVisibleOnTouchStart = true
@@ -115,7 +134,7 @@ class FullscreenVideoGestureOverlay(
         anchorView = speedButton,
         speedOptions = speedOptions,
         dp = ::dp,
-        currentPlaybackSpeed = { playbackSpeed },
+        currentPlaybackSpeed = controlsGroupController::currentPlaybackSpeed,
         notifyUserInteraction = ::notifyUserInteraction,
         setPlaybackSpeed = ::setPlaybackSpeed,
         onPlaybackSpeedSelected = { speed -> onPlaybackSpeedSelected?.invoke(speed) },
@@ -153,10 +172,10 @@ class FullscreenVideoGestureOverlay(
 
         setupExitButton()
         setupLockButton()
-        setupControlsGroup()
+        controlsGroupController.attachTo(this)
         setupFeedbackView()
         lockUiController.update()
-        setPlaybackSpeed(DEFAULT_PLAYBACK_SPEED)
+        setPlaybackSpeed(FullscreenVideoControlsGroupController.DEFAULT_PLAYBACK_SPEED)
         setLandscape(true)
     }
 
@@ -198,12 +217,7 @@ class FullscreenVideoGestureOverlay(
      * @param speed 参数类型为 `Float`，表示函数执行 `speed` 相关逻辑时需要读取或处理的输入。
      */
     fun setPlaybackSpeed(speed: Float) {
-        playbackSpeed = FullscreenVideoGestureMath.normalizeSpeed(speed, DEFAULT_PLAYBACK_SPEED)
-        speedButton.text = VideoGestureFeedbackFormatter.formatSpeed(playbackSpeed)
-        speedButton.contentDescription = context.getString(
-            R.string.video_control_speed,
-            VideoGestureFeedbackFormatter.formatSpeed(playbackSpeed)
-        )
+        controlsGroupController.setPlaybackSpeed(speed)
     }
 
     /**
@@ -213,15 +227,7 @@ class FullscreenVideoGestureOverlay(
      * @param isLandscape 参数类型为 `Boolean`，表示函数执行 `isLandscape` 相关逻辑时需要读取或处理的输入。
      */
     fun setLandscape(isLandscape: Boolean) {
-        landscape = isLandscape
-        val label = if (landscape) {
-            context.getString(R.string.video_control_rotate_to_portrait)
-        } else {
-            context.getString(R.string.video_control_rotate_to_landscape)
-        }
-        rotateButton.text = ROTATE_ICON
-        rotateButton.contentDescription = label
-        ViewCompat.setTooltipText(rotateButton, label)
+        controlsGroupController.setLandscape(isLandscape)
     }
 
     /**
@@ -231,11 +237,7 @@ class FullscreenVideoGestureOverlay(
      * @param visible 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setQueueControlsVisible(visible: Boolean) {
-        val visibility = if (visible) View.VISIBLE else View.GONE
-        previousButton.visibility = visibility
-        nextButton.visibility = visibility
-        repeatButton.visibility = visibility
-        queueButton.visibility = visibility
+        controlsGroupController.setQueueControlsVisible(visible)
     }
 
     /**
@@ -245,19 +247,7 @@ class FullscreenVideoGestureOverlay(
      * @param mode 参数类型为 `PlaybackRepeatMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
      */
     fun setRepeatMode(mode: PlaybackRepeatMode) {
-        repeatMode = mode
-        repeatButton.text = when (mode) {
-            PlaybackRepeatMode.NONE -> REPEAT_NONE_ICON
-            PlaybackRepeatMode.ONE -> REPEAT_ONE_ICON
-            PlaybackRepeatMode.ALL -> REPEAT_ALL_ICON
-        }
-        val label = when (mode) {
-            PlaybackRepeatMode.NONE -> context.getString(R.string.video_control_repeat_none)
-            PlaybackRepeatMode.ONE -> context.getString(R.string.video_control_repeat_one)
-            PlaybackRepeatMode.ALL -> context.getString(R.string.video_control_repeat_all)
-        }
-        repeatButton.contentDescription = label
-        ViewCompat.setTooltipText(repeatButton, label)
+        controlsGroupController.setRepeatMode(mode)
     }
 
     /**
@@ -267,19 +257,7 @@ class FullscreenVideoGestureOverlay(
      * @param mode 参数类型为 `VideoZoomMode`，表示函数执行 `mode` 相关逻辑时需要读取或处理的输入。
      */
     fun setVideoZoomMode(mode: VideoZoomMode) {
-        videoZoomMode = mode
-        zoomButton.text = when (mode) {
-            VideoZoomMode.FIT -> ZOOM_FIT_ICON
-            VideoZoomMode.STRETCH -> ZOOM_STRETCH_ICON
-            VideoZoomMode.CROP -> ZOOM_CROP_ICON
-        }
-        val label = when (mode) {
-            VideoZoomMode.FIT -> context.getString(R.string.video_control_zoom_fit)
-            VideoZoomMode.STRETCH -> context.getString(R.string.video_control_zoom_stretch)
-            VideoZoomMode.CROP -> context.getString(R.string.video_control_zoom_crop)
-        }
-        zoomButton.contentDescription = label
-        ViewCompat.setTooltipText(zoomButton, label)
+        controlsGroupController.setVideoZoomMode(mode)
     }
 
     /**
@@ -417,164 +395,6 @@ class FullscreenVideoGestureOverlay(
     }
 
     /**
-     * 函数 `setupControlsGroup`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupControlsGroup() {
-        controlsGroup.orientation = LinearLayout.HORIZONTAL
-        controlsGroup.gravity = Gravity.CENTER_VERTICAL
-        controlsGroup.addView(
-            previousButton,
-            LinearLayout.LayoutParams(
-                dp(44),
-                dp(40)
-            ).apply {
-                marginEnd = dp(8)
-            }
-        )
-        controlsGroup.addView(
-            nextButton,
-            LinearLayout.LayoutParams(
-                dp(44),
-                dp(40)
-            ).apply {
-                marginEnd = dp(8)
-            }
-        )
-        controlsGroup.addView(
-            repeatButton,
-            LinearLayout.LayoutParams(
-                dp(44),
-                dp(40)
-            ).apply {
-                marginEnd = dp(8)
-            }
-        )
-        controlsGroup.addView(
-            queueButton,
-            LinearLayout.LayoutParams(
-                dp(44),
-                dp(40)
-            ).apply {
-                marginEnd = dp(8)
-            }
-        )
-        controlsGroup.addView(
-            speedButton,
-            LinearLayout.LayoutParams(
-                dp(62),
-                dp(40)
-            ).apply {
-                marginEnd = dp(8)
-            }
-        )
-        controlsGroup.addView(
-            trackButton,
-            LinearLayout.LayoutParams(
-                dp(44),
-                dp(40)
-            ).apply {
-                marginEnd = dp(8)
-            }
-        )
-        controlsGroup.addView(
-            zoomButton,
-            LinearLayout.LayoutParams(
-                dp(44),
-                dp(40)
-            ).apply {
-                marginEnd = dp(8)
-            }
-        )
-        controlsGroup.addView(
-            rotateButton,
-            LinearLayout.LayoutParams(
-                dp(44),
-                dp(40)
-            )
-        )
-
-        speedButton.setOnClickListener {
-            notifyUserInteraction()
-            if (!locked) showSpeedPopup()
-        }
-        previousButton.text = PREVIOUS_ICON
-        previousButton.contentDescription = context.getString(R.string.video_control_previous)
-        ViewCompat.setTooltipText(
-            previousButton,
-            context.getString(R.string.video_control_previous)
-        )
-        previousButton.setOnClickListener {
-            notifyUserInteraction()
-            if (locked) return@setOnClickListener
-            onPreviousMediaRequested?.invoke()
-        }
-        nextButton.text = NEXT_ICON
-        nextButton.contentDescription = context.getString(R.string.video_control_next)
-        ViewCompat.setTooltipText(nextButton, context.getString(R.string.video_control_next))
-        nextButton.setOnClickListener {
-            notifyUserInteraction()
-            if (locked) return@setOnClickListener
-            onNextMediaRequested?.invoke()
-        }
-        repeatButton.setOnClickListener {
-            notifyUserInteraction()
-            if (locked) return@setOnClickListener
-            val mode = onRepeatModeRequested?.invoke() ?: repeatMode
-            setRepeatMode(mode)
-            showFeedback(repeatButton.contentDescription?.toString().orEmpty())
-        }
-        val queueLabel = context.getString(R.string.video_control_queue)
-        queueButton.text = QUEUE_ICON
-        queueButton.contentDescription = queueLabel
-        ViewCompat.setTooltipText(queueButton, queueLabel)
-        queueButton.setOnClickListener {
-            notifyUserInteraction()
-            if (locked) return@setOnClickListener
-            onPlaybackQueueRequested?.invoke()
-        }
-        setQueueControlsVisible(false)
-        setRepeatMode(PlaybackRepeatMode.NONE)
-        val trackLabel = context.getString(R.string.video_control_tracks)
-        trackButton.text = TRACK_ICON
-        trackButton.contentDescription = trackLabel
-        ViewCompat.setTooltipText(trackButton, trackLabel)
-        trackButton.setOnClickListener {
-            notifyUserInteraction()
-            if (locked) return@setOnClickListener
-            onTrackSelectionRequested?.invoke()
-        }
-        setVideoZoomMode(VideoZoomMode.FIT)
-        zoomButton.setOnClickListener {
-            notifyUserInteraction()
-            if (locked) return@setOnClickListener
-            val mode = onVideoZoomRequested?.invoke() ?: videoZoomMode.next()
-            setVideoZoomMode(mode)
-            showFeedback(zoomButton.contentDescription?.toString().orEmpty())
-        }
-        rotateButton.setOnClickListener {
-            notifyUserInteraction()
-            if (locked) return@setOnClickListener
-            val isLandscape = onToggleOrientation?.invoke() ?: !landscape
-            setLandscape(isLandscape)
-            showFeedback(ROTATE_ICON)
-        }
-
-        addView(
-            controlsGroup,
-            LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                gravity = Gravity.TOP or Gravity.END
-                topMargin = dp(14)
-                rightMargin = dp(14)
-            }
-        )
-    }
-
-    /**
      * 函数 `setupFeedbackView`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -600,21 +420,7 @@ class FullscreenVideoGestureOverlay(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun controlTextView(): TextView {
-        return TextView(context).apply {
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            isClickable = true
-            isFocusable = true
-            minWidth = dp(44)
-            setPadding(dp(8), 0, dp(8), 0)
-            setTextColor(Color.WHITE)
-            setTypeface(typeface, Typeface.BOLD)
-            textSize = 18f
-            background = BrowserDrawableFactory.roundedBackground(
-                Color.argb(178, 0, 0, 0),
-                dp(20)
-            )
-        }
+        return FullscreenVideoControlsGroupController.controlTextView(context, ::dp)
     }
 
     /**
@@ -957,22 +763,10 @@ class FullscreenVideoGestureOverlay(
     }
 
     private companion object {
-        private const val DEFAULT_PLAYBACK_SPEED = 1f
         private const val TAP_MAX_DURATION_MS = 260L
         private const val LONG_PRESS_TIMEOUT_MS = 520L
         private const val BOTTOM_PASSTHROUGH_DP = 92
         private const val MIN_SWIPE_DISTANCE_DP = 10
         private const val VERTICAL_GESTURE_RATIO = 1.15f
-        private const val ROTATE_ICON = "\u21bb"
-        private const val TRACK_ICON = "轨"
-        private const val PREVIOUS_ICON = "\u23ee"
-        private const val NEXT_ICON = "\u23ed"
-        private const val REPEAT_NONE_ICON = "\u21c4"
-        private const val REPEAT_ONE_ICON = "\u267e1"
-        private const val REPEAT_ALL_ICON = "\u267e"
-        private const val QUEUE_ICON = "\u2630"
-        private const val ZOOM_FIT_ICON = "\u9002"
-        private const val ZOOM_STRETCH_ICON = "\u62c9"
-        private const val ZOOM_CROP_ICON = "\u88c1"
     }
 }

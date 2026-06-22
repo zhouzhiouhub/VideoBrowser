@@ -53,17 +53,26 @@ class NativeVideoZoomWiringContractTest {
      */
     @Test
     fun overlayExposesVideoZoomButton() {
-        val source = File(
+        val overlay = File(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
         ).readText()
+        val controlsController = File(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoControlsGroupController.kt"
+        ).readText()
 
-        assertTrue(source.contains("var onVideoZoomRequested: (() -> VideoZoomMode)? = null"))
-        assertTrue(source.contains("private val zoomButton = controlTextView()"))
-        assertTrue(source.contains("fun setVideoZoomMode(mode: VideoZoomMode)"))
-        assertTrue(source.contains("R.string.video_control_zoom_fit"))
-        assertTrue(source.contains("R.string.video_control_zoom_stretch"))
-        assertTrue(source.contains("R.string.video_control_zoom_crop"))
-        assertTrue(source.contains("onVideoZoomRequested?.invoke()"))
+        assertTrue(overlay.contains("var onVideoZoomRequested: (() -> VideoZoomMode)? = null"))
+        assertTrue(overlay.contains("private val zoomButton = controlTextView()"))
+        assertTrue(overlay.contains("fun setVideoZoomMode(mode: VideoZoomMode)"))
+        assertTrue(overlay.contains("controlsGroupController.setVideoZoomMode(mode)"))
+        assertTrue(overlay.contains("requestVideoZoomMode = { onVideoZoomRequested?.invoke() }"))
+        assertFalse(overlay.contains("private var videoZoomMode = VideoZoomMode.FIT"))
+        assertFalse(overlay.contains("R.string.video_control_zoom_fit"))
+        assertTrue(controlsController.contains("private var videoZoomMode = VideoZoomMode.FIT"))
+        assertTrue(controlsController.contains("private fun setupZoomButton()"))
+        assertTrue(controlsController.contains("requestVideoZoomMode() ?: videoZoomMode.next()"))
+        assertTrue(controlsController.contains("R.string.video_control_zoom_fit"))
+        assertTrue(controlsController.contains("R.string.video_control_zoom_stretch"))
+        assertTrue(controlsController.contains("R.string.video_control_zoom_crop"))
     }
 
     /**
