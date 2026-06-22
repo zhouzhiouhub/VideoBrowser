@@ -18,8 +18,11 @@ class PlaybackQueueMenuWiringContractTest {
      */
     @Test
     fun playerActivityWiresPlaybackQueueMenuActions() {
-        val source = File(
+        val playerActivity = File(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+        ).readText()
+        val queueController = File(
+            "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
         ).readText()
         val dialogController = File(
             "src/main/java/com/example/videobrowser/video/NativePlaybackQueueDialogController.kt"
@@ -28,24 +31,29 @@ class PlaybackQueueMenuWiringContractTest {
             "src/main/java/com/example/videobrowser/video/PlaybackQueueLabelFormatter.kt"
         ).readText()
 
-        assertTrue(source.contains("PlaybackCommand.ShowQueue"))
-        assertTrue(source.contains("playbackQueueDialogController.showMenu()"))
+        assertTrue(playerActivity.contains("PlaybackCommand.ShowQueue"))
+        assertTrue(playerActivity.contains("playbackQueueDialogController.showMenu()"))
         assertTrue(dialogController.contains("fun showMenu()"))
         assertTrue(dialogController.contains("private fun showRemoveMenu()"))
-        assertTrue(source.contains("private fun removeMediaFromQueue(index: Int)"))
-        assertTrue(source.contains("handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))"))
-        assertTrue(source.contains("handlePlaybackCommand(PlaybackCommand.ToggleShuffle)"))
-        assertTrue(source.contains("playbackQueue = playbackQueue.select(index)"))
-        assertTrue(source.contains("playbackQueue = playbackQueue.removeAt(index)"))
+        assertTrue(playerActivity.contains("onRemoveMedia = nativePlayerQueueController::removeMediaFromQueue"))
+        assertTrue(playerActivity.contains("handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))"))
+        assertTrue(playerActivity.contains("handlePlaybackCommand(PlaybackCommand.ToggleShuffle)"))
+        assertTrue(playerActivity.contains("nativePlayerQueueController.playMediaAt(command.index)"))
+        assertFalse(playerActivity.contains("private fun removeMediaFromQueue(index: Int)"))
+        assertFalse(playerActivity.contains("playbackQueue = playbackQueue.select(index)"))
+        assertFalse(playerActivity.contains("playbackQueue = playbackQueue.removeAt(index)"))
+        assertTrue(queueController.contains("fun removeMediaFromQueue(index: Int)"))
+        assertTrue(queueController.contains("val selectedQueue = playbackQueue.select(index)"))
+        assertTrue(queueController.contains("val updatedQueue = playbackQueue.removeAt(index)"))
         assertTrue(dialogController.contains("queue.hasMultipleItems"))
-        assertTrue(source.contains("playbackQueue.canRemoveAt(index)"))
+        assertTrue(queueController.contains("playbackQueue.canRemoveAt(index)"))
         assertTrue(dialogController.contains("showMenu()"))
         assertTrue(dialogController.contains("PlaybackQueueLabelFormatter.labels("))
         assertTrue(formatter.contains("object PlaybackQueueLabelFormatter"))
         assertTrue(formatter.contains("fun labels(queue: PlaybackQueue, nowPlayingLabel: String)"))
-        assertFalse(source.contains("playbackQueue.items.size <= 1"))
-        assertFalse(source.contains("playbackQueue.items.size > 1"))
-        assertFalse(source.contains("item.uri.substringAfterLast('/')"))
+        assertFalse(playerActivity.contains("playbackQueue.items.size <= 1"))
+        assertFalse(playerActivity.contains("playbackQueue.items.size > 1"))
+        assertFalse(playerActivity.contains("item.uri.substringAfterLast('/')"))
     }
 
     /**

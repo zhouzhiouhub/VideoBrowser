@@ -64,20 +64,6 @@ class PlayerActivity : AppCompatActivity() {
             }
         )
     }
-    private val playbackQueueDialogController by lazy {
-        NativePlaybackQueueDialogController(
-            activity = this,
-            queueProvider = { playbackQueue },
-            wakePlayerControls = ::wakePlayerControls,
-            onSelectQueueItem = { index ->
-                handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))
-            },
-            onToggleShuffle = {
-                handlePlaybackCommand(PlaybackCommand.ToggleShuffle)
-            },
-            onRemoveMedia = ::removeMediaFromQueue
-        )
-    }
     private val nativePlayerTransportController = NativePlayerTransportController(
         player = { player },
         logTag = VIDEO_LOG_TAG,
@@ -100,6 +86,40 @@ class PlayerActivity : AppCompatActivity() {
     private val nativePlayerVideoEffectsController = NativePlayerVideoEffectsController(
         logTag = VIDEO_LOG_TAG
     )
+    private val nativePlayerQueueController by lazy {
+        NativePlayerQueueController(
+            playerProvider = { player },
+            queueProvider = { playbackQueue },
+            setQueue = { queue -> playbackQueue = queue },
+            currentMediaItemIndex = { currentMediaItemIndex },
+            setCurrentMediaItemIndex = { index -> currentMediaItemIndex = index },
+            playbackPosition = { playbackPosition },
+            setPlaybackPosition = { position -> playbackPosition = position },
+            playWhenReady = { playWhenReady },
+            savePlayerState = ::savePlayerState,
+            restorePlaybackPositionForCurrentMedia = ::restorePlaybackPositionForCurrentMedia,
+            applyRepeatModeToQueue = nativePlayerRepeatModeController::applyToQueue,
+            applyRepeatModeToPlayer = nativePlayerRepeatModeController::applyToPlayer,
+            applyPlaybackSpeedToPlayer = nativePlayerPlaybackSpeedController::applyToPlayer,
+            updateTitle = { mediaTitle -> title = mediaTitle },
+            updateQueueControls = ::updateQueueControls,
+            wakePlayerControls = ::wakePlayerControls
+        )
+    }
+    private val playbackQueueDialogController by lazy {
+        NativePlaybackQueueDialogController(
+            activity = this,
+            queueProvider = { playbackQueue },
+            wakePlayerControls = ::wakePlayerControls,
+            onSelectQueueItem = { index ->
+                handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))
+            },
+            onToggleShuffle = {
+                handlePlaybackCommand(PlaybackCommand.ToggleShuffle)
+            },
+            onRemoveMedia = nativePlayerQueueController::removeMediaFromQueue
+        )
+    }
     private val directionalLongPressController = NativeDirectionalLongPressController(
         scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
         seekBy = nativePlayerTransportController::seekBy
@@ -330,7 +350,9 @@ class PlayerActivity : AppCompatActivity() {
                         savePlaybackHistory = { savePlaybackHistory(exoPlayer) },
                         wakePlayerControls = ::wakePlayerControls,
                         mediaItemTransitioned = {
-                            handleMediaItemTransition(exoPlayer.currentMediaItemIndex)
+                            nativePlayerQueueController.handleMediaItemTransition(
+                                exoPlayer.currentMediaItemIndex
+                            )
                         }
                     )
                 )
@@ -356,16 +378,6 @@ class PlayerActivity : AppCompatActivity() {
         savePlayerState()
         releasePlayer()
         initializePlayer()
-    }
-
-    private fun handleMediaItemTransition(index: Int) {
-        currentMediaItemIndex = index
-        playbackQueue = nativePlayerRepeatModeController.applyToQueue(
-            playbackQueue.select(currentMediaItemIndex)
-        )
-        playbackPosition = 0L
-        title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title.orEmpty()
-        updateQueueControls()
     }
 
     /**
@@ -446,11 +458,11 @@ class PlayerActivity : AppCompatActivity() {
                 Unit
             }
             PlaybackCommand.Previous -> {
-                playPreviousMedia()
+                nativePlayerQueueController.playPreviousMedia()
                 Unit
             }
             PlaybackCommand.Next -> {
-                playNextMedia()
+                nativePlayerQueueController.playNextMedia()
                 Unit
             }
             PlaybackCommand.ToggleRepeat -> {
@@ -459,14 +471,14 @@ class PlayerActivity : AppCompatActivity() {
                 nativePlayerRepeatModeController.currentMode()
             }
             is PlaybackCommand.SelectQueueItem -> {
-                playMediaAt(command.index)
+                nativePlayerQueueController.playMediaAt(command.index)
                 Unit
             }
             PlaybackCommand.ShowQueue -> {
                 playbackQueueDialogController.showMenu()
                 Unit
             }
-            PlaybackCommand.ToggleShuffle -> toggleShuffleMode()
+            PlaybackCommand.ToggleShuffle -> nativePlayerQueueController.toggleShuffleMode()
             PlaybackCommand.CycleZoom -> nativePlayerVideoZoomController.cycle()
             PlaybackCommand.ShowTrackSelection -> {
                 trackSelectionDialogController.showMenu()
@@ -523,53 +535,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `playPreviousMedia`：封装 `play Previous Media` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun playPreviousMedia() {
-        playMediaAt(playbackQueue.previous().currentIndex)
-    }
-
-    /**
-     * 函数 `playNextMedia`：封装 `play Next Media` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun playNextMedia() {
-        playMediaAt(playbackQueue.next().currentIndex)
-    }
-
-    /**
-     * 函数 `playMediaAt`：封装 `play Media At` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     */
-    private fun playMediaAt(index: Int) {
-        val exoPlayer = player ?: return
-        if (index !in playbackQueue.items.indices) {
-            wakePlayerControls()
-            return
-        }
-        if (index == currentMediaItemIndex) {
-            playbackQueue = playbackQueue.select(index)
-            wakePlayerControls()
-            return
-        }
-
-        savePlayerState()
-        playbackQueue = playbackQueue.select(index)
-        currentMediaItemIndex = playbackQueue.currentIndex
-        playbackPosition = restorePlaybackPositionForCurrentMedia()
-        exoPlayer.seekTo(index, playbackPosition)
-        exoPlayer.play()
-        title = playbackQueue.items[index].title.orEmpty()
-        updateQueueControls()
-        wakePlayerControls()
-    }
-
-    /**
      * 函数 `updateQueueControls`：根据最新状态刷新 `update Queue Controls` 相关数据或界面，让调用方看到一致结果。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -580,73 +545,6 @@ class PlayerActivity : AppCompatActivity() {
         }
         gestureOverlay.setQueueControlsVisible(playbackQueue.hasMultipleItems)
         gestureOverlay.setRepeatMode(nativePlayerRepeatModeController.currentMode())
-    }
-
-    /**
-     * 函数 `toggleShuffleMode`：封装 `toggle Shuffle Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun toggleShuffleMode(): Boolean {
-        if (!playbackQueue.hasMultipleItems) {
-            wakePlayerControls()
-            return playbackQueue.isShuffled
-        }
-        savePlayerState()
-        playbackQueue = playbackQueue.toggleShuffle()
-        currentMediaItemIndex = playbackQueue.currentIndex
-        syncPlayerQueueToPlaybackQueue()
-        updateQueueControls()
-        wakePlayerControls()
-        return playbackQueue.isShuffled
-    }
-
-    /**
-     * 函数 `syncPlayerQueueToPlaybackQueue`：根据最新状态刷新 `sync Player Queue To Playback Queue` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun syncPlayerQueueToPlaybackQueue() {
-        val exoPlayer = player ?: return
-        exoPlayer.setMediaItems(
-            playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem),
-            currentMediaItemIndex,
-            playbackPosition
-        )
-        nativePlayerRepeatModeController.applyToPlayer(exoPlayer)
-        nativePlayerPlaybackSpeedController.applyToPlayer(exoPlayer)
-        exoPlayer.playWhenReady = playWhenReady
-        exoPlayer.prepare()
-    }
-
-    /**
-     * 函数 `removeMediaFromQueue`：封装 `remove Media From Queue` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param index 参数类型为 `Int`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     */
-    private fun removeMediaFromQueue(index: Int) {
-        if (!playbackQueue.canRemoveAt(index)) {
-            wakePlayerControls()
-            return
-        }
-        savePlayerState()
-        val removedCurrentItem = index == currentMediaItemIndex
-        playbackQueue = playbackQueue.removeAt(index)
-        currentMediaItemIndex = playbackQueue.currentIndex
-        val exoPlayer = player
-        if (exoPlayer != null && index < exoPlayer.mediaItemCount) {
-            exoPlayer.removeMediaItem(index)
-            if (removedCurrentItem) {
-                playbackPosition = restorePlaybackPositionForCurrentMedia()
-                exoPlayer.seekTo(currentMediaItemIndex, playbackPosition)
-                exoPlayer.play()
-            }
-        }
-        title = playbackQueue.currentItem()?.title.orEmpty()
-        updateQueueControls()
-        wakePlayerControls()
     }
 
     /**

@@ -66,6 +66,9 @@ class LocalPlaybackQueueWiringContractTest {
         val savedState = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerSavedState.kt"
         ).readText()
+        val queueController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
+        ).readText()
 
         assertTrue(playerActivity.contains("intentReader.playbackQueue()"))
         assertTrue(intentReader.contains("PlaybackQueueJsonCodec::decode"))
@@ -73,6 +76,11 @@ class LocalPlaybackQueueWiringContractTest {
         assertTrue(playerActivity.contains("PlaybackCommand.Previous"))
         assertTrue(playerActivity.contains("PlaybackCommand.Next"))
         assertTrue(playerActivity.contains("PlaybackCommand.ToggleRepeat"))
+        assertTrue(playerActivity.contains("NativePlayerQueueController("))
+        assertTrue(queueController.contains("fun playPreviousMedia()"))
+        assertTrue(queueController.contains("fun playNextMedia()"))
+        assertTrue(queueController.contains("playbackQueue.previous().currentIndex"))
+        assertTrue(queueController.contains("playbackQueue.next().currentIndex"))
         assertTrue(playerActivity.contains("NativePlayerRepeatModeController("))
         assertTrue(repeatModeController.contains("PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode"))
         assertTrue(repeatModeController.contains("fun cycle(queue: PlaybackQueue): PlaybackQueue"))

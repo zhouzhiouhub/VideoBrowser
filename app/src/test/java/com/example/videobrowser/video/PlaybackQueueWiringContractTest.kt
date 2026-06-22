@@ -18,19 +18,25 @@ class PlaybackQueueWiringContractTest {
      */
     @Test
     fun playerActivityUsesQueueBackedMediaItems() {
-        val source = projectFile("src/main/java/com/example/videobrowser/video/PlayerActivity.kt")
+        val playerActivity = projectFile("src/main/java/com/example/videobrowser/video/PlayerActivity.kt")
             .readText()
+        val queueController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
+        ).readText()
         val intentReader = projectFile("src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt")
             .readText()
 
-        assertTrue(source.contains("private lateinit var playbackQueue: PlaybackQueue"))
+        assertTrue(playerActivity.contains("private lateinit var playbackQueue: PlaybackQueue"))
         assertTrue(intentReader.contains("PlaybackQueue.single("))
-        assertTrue(source.contains("setMediaItems("))
-        assertTrue(source.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
-        assertTrue(source.contains("playbackQueue.previous().currentIndex"))
-        assertTrue(source.contains("playbackQueue.next().currentIndex"))
-        assertFalse(source.contains("currentMediaItemIndex - 1"))
-        assertFalse(source.contains("currentMediaItemIndex + 1 < playbackQueue.items.size"))
+        assertTrue(playerActivity.contains("setMediaItems("))
+        assertTrue(playerActivity.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
+        assertTrue(playerActivity.contains("NativePlayerQueueController("))
+        assertTrue(queueController.contains("playbackQueue.previous().currentIndex"))
+        assertTrue(queueController.contains("playbackQueue.next().currentIndex"))
+        assertFalse(playerActivity.contains("currentMediaItemIndex - 1"))
+        assertFalse(playerActivity.contains("currentMediaItemIndex + 1 < playbackQueue.items.size"))
+        assertFalse(queueController.contains("currentMediaItemIndex() - 1"))
+        assertFalse(queueController.contains("currentMediaItemIndex() + 1 < playbackQueue.items.size"))
     }
 
     /**

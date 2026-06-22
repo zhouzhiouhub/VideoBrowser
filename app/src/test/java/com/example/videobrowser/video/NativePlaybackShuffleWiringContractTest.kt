@@ -18,8 +18,11 @@ class NativePlaybackShuffleWiringContractTest {
      */
     @Test
     fun playerActivityWiresShuffleThroughPlaybackQueueMenu() {
-        val source = File(
+        val playerActivity = File(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
+        ).readText()
+        val queueController = File(
+            "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
         ).readText()
         val queueDialog = File(
             "src/main/java/com/example/videobrowser/video/NativePlaybackQueueDialogController.kt"
@@ -31,17 +34,20 @@ class NativePlaybackShuffleWiringContractTest {
             "src/main/java/com/example/videobrowser/video/NativePlayerSavedState.kt"
         ).readText()
 
-        assertTrue(source.contains("private fun toggleShuffleMode(): Boolean"))
-        assertTrue(source.contains("playbackQueue.toggleShuffle()"))
-        assertFalse(source.contains("playbackQueue.shuffle()"))
-        assertFalse(source.contains("playbackQueue.restoreOriginalOrder()"))
+        assertTrue(playerActivity.contains("NativePlayerQueueController("))
+        assertTrue(playerActivity.contains("PlaybackCommand.ToggleShuffle -> nativePlayerQueueController.toggleShuffleMode()"))
+        assertFalse(playerActivity.contains("private fun toggleShuffleMode(): Boolean"))
+        assertTrue(queueController.contains("fun toggleShuffleMode(): Boolean"))
+        assertTrue(queueController.contains("playbackQueue.toggleShuffle()"))
+        assertFalse(queueController.contains("playbackQueue.shuffle()"))
+        assertFalse(queueController.contains("playbackQueue.restoreOriginalOrder()"))
         assertTrue(queue.contains("fun toggleShuffle("))
         assertTrue(queue.contains("restoreOriginalOrder()"))
         assertTrue(queue.contains("shuffle("))
-        assertTrue(source.contains("private fun syncPlayerQueueToPlaybackQueue()"))
-        assertTrue(source.contains("playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)"))
+        assertTrue(queueController.contains("fun syncPlayerQueueToPlaybackQueue()"))
+        assertTrue(queueController.contains("playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)"))
         assertTrue(queueDialog.contains(".setPositiveButton(shuffleActionLabel(queue))"))
-        assertTrue(source.contains("NativePlayerSavedState.save("))
+        assertTrue(playerActivity.contains("NativePlayerSavedState.save("))
         assertTrue(savedState.contains("outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(playbackQueue))"))
         assertTrue(savedState.contains("savedInstanceState.getString(STATE_PLAYBACK_QUEUE)"))
     }

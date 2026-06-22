@@ -14,11 +14,16 @@ class NativePlayerEventListenerContractTest {
         val eventListener = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerEventListener.kt"
         ).readText()
+        val queueController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
+        ).readText()
 
         assertTrue(playerActivity.contains("NativePlayerEventListener("))
         assertTrue(playerActivity.contains("retryPlaybackWithoutVideoEffects = ::retryPlaybackWithoutVideoEffects"))
         assertTrue(playerActivity.contains("savePlaybackHistory = { savePlaybackHistory(exoPlayer) }"))
-        assertTrue(playerActivity.contains("handleMediaItemTransition(exoPlayer.currentMediaItemIndex)"))
+        assertTrue(playerActivity.contains("nativePlayerQueueController.handleMediaItemTransition("))
+        assertTrue(playerActivity.contains("exoPlayer.currentMediaItemIndex"))
+        assertTrue(queueController.contains("fun handleMediaItemTransition(index: Int)"))
         assertFalse(playerActivity.contains("object : Player.Listener"))
         assertFalse(playerActivity.contains("override fun onPlayerError"))
 
