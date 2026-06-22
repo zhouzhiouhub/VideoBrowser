@@ -214,8 +214,10 @@ class JsInjectorTest {
             )
         )
         assertTrue(script.contains("if (!window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili_overlay_cleanup.js\"]) {"))
+        assertTrue(script.contains("if (!window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili_browser_choice_cleanup.js\"]) {"))
         assertTrue(script.contains("if (!window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili.js\"]) {"))
         assertTrue(script.indexOf("scripts/bilibili_overlay_cleanup.js") < script.indexOf("scripts/bilibili.js"))
+        assertTrue(script.indexOf("scripts/bilibili_browser_choice_cleanup.js") < script.indexOf("scripts/bilibili.js"))
         assertTrue(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__[\"scripts/bilibili.js\"] = true;"))
         assertTrue(script.contains("window.VideoBrowserSiteAdapters[\"bilibili\"].apply(config);"))
         assertEquals(
@@ -429,6 +431,7 @@ class JsInjectorTest {
             ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET -> "window.__siteHelpersLoaded = true;"
             "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"
             "scripts/bilibili_overlay_cleanup.js" -> "window.__siteBilibiliOverlayCleanupLoaded = true;"
+            "scripts/bilibili_browser_choice_cleanup.js" -> "window.__siteBilibiliBrowserChoiceCleanupLoaded = true;"
             "scripts/bilibili.js" -> "window.__siteBilibiliLoaded = true;"
             else -> error("Unexpected script path: $path")
         }

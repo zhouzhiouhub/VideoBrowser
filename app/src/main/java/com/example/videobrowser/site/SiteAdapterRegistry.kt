@@ -68,6 +68,7 @@ class SiteAdapterRegistry(
                         domains = setOf("bilibili.com"),
                         scriptAssetPaths = listOf(
                             "scripts/bilibili_overlay_cleanup.js",
+                            "scripts/bilibili_browser_choice_cleanup.js",
                             "scripts/bilibili.js"
                         )
                     ),

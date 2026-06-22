@@ -26,6 +26,7 @@ class SiteAdapterRegistryTest {
         assertEquals(
             listOf(
                 "scripts/bilibili_overlay_cleanup.js",
+                "scripts/bilibili_browser_choice_cleanup.js",
                 "scripts/bilibili.js"
             ),
             registry.scriptFilesFor("https://m.bilibili.com/video/BV1")
