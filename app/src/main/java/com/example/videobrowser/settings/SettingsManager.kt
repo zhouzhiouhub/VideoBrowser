@@ -21,7 +21,9 @@ class SettingsManager(
 ) {
     private val hostSets = SettingsHostSetStore(preferenceStore)
     private val globalPreferences = SettingsGlobalPreferenceStore(preferenceStore)
-    private val siteFeatureHosts = SiteFeatureHostSettings(preferenceStore, hostSets)
+    private val siteFeatures = SettingsSiteFeatureFacade(
+        SiteFeatureHostSettings(preferenceStore, hostSets)
+    )
     private val sitePermissions = PersistentSitePermissionStore(preferenceStore, hostSets)
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
     private val customShortcutStore = CustomShortcutStore(preferenceStore)
@@ -54,14 +56,14 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isAdBlockDisabledForSite(host: String?): Boolean {
-        return siteFeatureHosts.contains(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, host)
+        return siteFeatures.isAdBlockDisabledForSite(host)
     }
 
     /**
      * P11-01 只保存站点级请求拦截放行列表，不引入订阅、规则文件或数据库。
      */
     fun setAdBlockDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        return siteFeatureHosts.set(KEY_SITE_AD_BLOCK_DISABLED_HOSTS, host, disabled)
+        return siteFeatures.setAdBlockDisabledForSite(host, disabled)
     }
 
     /**
@@ -71,7 +73,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun adBlockDisabledSiteHosts(): Set<String> {
-        return siteFeatureHosts.hosts(KEY_SITE_AD_BLOCK_DISABLED_HOSTS)
+        return siteFeatures.adBlockDisabledSiteHosts()
     }
 
     /**
@@ -82,7 +84,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isJsInjectionDisabledForSite(host: String?): Boolean {
-        return siteFeatureHosts.contains(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, host)
+        return siteFeatures.isJsInjectionDisabledForSite(host)
     }
 
     /**
@@ -94,7 +96,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setJsInjectionDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        return siteFeatureHosts.set(KEY_SITE_JS_INJECTION_DISABLED_HOSTS, host, disabled)
+        return siteFeatures.setJsInjectionDisabledForSite(host, disabled)
     }
 
     /**
@@ -104,7 +106,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun jsInjectionDisabledSiteHosts(): Set<String> {
-        return siteFeatureHosts.hosts(KEY_SITE_JS_INJECTION_DISABLED_HOSTS)
+        return siteFeatures.jsInjectionDisabledSiteHosts()
     }
 
     /**
@@ -115,7 +117,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isDomAdBlockDisabledForSite(host: String?): Boolean {
-        return siteFeatureHosts.contains(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, host)
+        return siteFeatures.isDomAdBlockDisabledForSite(host)
     }
 
     /**
@@ -127,7 +129,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setDomAdBlockDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        return siteFeatureHosts.set(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS, host, disabled)
+        return siteFeatures.setDomAdBlockDisabledForSite(host, disabled)
     }
 
     /**
@@ -137,7 +139,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun domAdBlockDisabledSiteHosts(): Set<String> {
-        return siteFeatureHosts.hosts(KEY_SITE_DOM_AD_BLOCK_DISABLED_HOSTS)
+        return siteFeatures.domAdBlockDisabledSiteHosts()
     }
 
     /**
@@ -148,7 +150,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isVideoEnhancementDisabledForSite(host: String?): Boolean {
-        return siteFeatureHosts.contains(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, host)
+        return siteFeatures.isVideoEnhancementDisabledForSite(host)
     }
 
     /**
@@ -160,7 +162,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setVideoEnhancementDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        return siteFeatureHosts.set(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS, host, disabled)
+        return siteFeatures.setVideoEnhancementDisabledForSite(host, disabled)
     }
 
     /**
@@ -170,7 +172,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun videoEnhancementDisabledSiteHosts(): Set<String> {
-        return siteFeatureHosts.hosts(KEY_SITE_VIDEO_ENHANCEMENT_DISABLED_HOSTS)
+        return siteFeatures.videoEnhancementDisabledSiteHosts()
     }
 
     /**
@@ -181,7 +183,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isSmartNoImageDisabledForSite(host: String?): Boolean {
-        return siteFeatureHosts.contains(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, host)
+        return siteFeatures.isSmartNoImageDisabledForSite(host)
     }
 
     /**
@@ -193,7 +195,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setSmartNoImageDisabledForSite(host: String?, disabled: Boolean): Boolean {
-        return siteFeatureHosts.set(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS, host, disabled)
+        return siteFeatures.setSmartNoImageDisabledForSite(host, disabled)
     }
 
     /**
@@ -203,7 +205,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun smartNoImageDisabledSiteHosts(): Set<String> {
-        return siteFeatureHosts.hosts(KEY_SITE_SMART_NO_IMAGE_DISABLED_HOSTS)
+        return siteFeatures.smartNoImageDisabledSiteHosts()
     }
 
     /**
@@ -214,7 +216,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isUserWhitelistedSite(host: String?): Boolean {
-        return siteFeatureHosts.contains(KEY_USER_WHITELISTED_SITE_HOSTS, host)
+        return siteFeatures.isUserWhitelistedSite(host)
     }
 
     /**
@@ -226,7 +228,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun setUserWhitelistedSite(host: String?, whitelisted: Boolean): Boolean {
-        return siteFeatureHosts.set(KEY_USER_WHITELISTED_SITE_HOSTS, host, whitelisted)
+        return siteFeatures.setUserWhitelistedSite(host, whitelisted)
     }
 
     /**
@@ -236,7 +238,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun userWhitelistedSiteHosts(): Set<String> {
-        return siteFeatureHosts.hosts(KEY_USER_WHITELISTED_SITE_HOSTS)
+        return siteFeatures.userWhitelistedSiteHosts()
     }
 
     /**
@@ -245,7 +247,7 @@ class SettingsManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearUserWhitelistedSites() {
-        siteFeatureHosts.clear(KEY_USER_WHITELISTED_SITE_HOSTS)
+        siteFeatures.clearUserWhitelistedSites()
     }
 
     /**
