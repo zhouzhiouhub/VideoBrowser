@@ -561,7 +561,7 @@ class PlayerActivity : AppCompatActivity() {
         savePlayerState()
         playbackQueue = playbackQueue.select(index)
         currentMediaItemIndex = playbackQueue.currentIndex
-        playbackPosition = playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity()) ?: 0L
+        playbackPosition = restorePlaybackPositionForCurrentMedia()
         exoPlayer.seekTo(index, playbackPosition)
         exoPlayer.play()
         title = playbackQueue.items[index].title.orEmpty()
@@ -639,9 +639,7 @@ class PlayerActivity : AppCompatActivity() {
         if (exoPlayer != null && index < exoPlayer.mediaItemCount) {
             exoPlayer.removeMediaItem(index)
             if (removedCurrentItem) {
-                playbackPosition = playbackHistoryRepository.resumePositionFor(
-                    playbackHistoryIdentity()
-                ) ?: 0L
+                playbackPosition = restorePlaybackPositionForCurrentMedia()
                 exoPlayer.seekTo(currentMediaItemIndex, playbackPosition)
                 exoPlayer.play()
             }
@@ -717,6 +715,10 @@ class PlayerActivity : AppCompatActivity() {
         restored.playbackSpeed?.let { playbackSpeed ->
             nativePlayerPlaybackSpeedController.restoreSpeed(playbackSpeed)
         }
+    }
+
+    private fun restorePlaybackPositionForCurrentMedia(): Long {
+        return nativePlaybackHistoryController.restore(playbackHistoryIdentity()).positionMs ?: 0L
     }
 
     /**

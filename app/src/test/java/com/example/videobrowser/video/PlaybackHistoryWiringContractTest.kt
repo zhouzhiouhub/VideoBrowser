@@ -6,6 +6,7 @@ package com.example.videobrowser.video
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -27,6 +28,8 @@ class PlaybackHistoryWiringContractTest {
         assertTrue(source.contains("NativePlaybackHistoryController("))
         assertTrue(source.contains("restorePlaybackHistory()"))
         assertTrue(source.contains("nativePlaybackHistoryController.restore(playbackHistoryIdentity())"))
+        assertTrue(source.contains("restorePlaybackPositionForCurrentMedia()"))
+        assertFalse(source.contains("playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity())"))
         assertTrue(source.contains("nativePlaybackHistoryController.save("))
         assertTrue(controller.contains("resumePositionFor(mediaIdentity)"))
         assertTrue(controller.contains("saveProgress("))
