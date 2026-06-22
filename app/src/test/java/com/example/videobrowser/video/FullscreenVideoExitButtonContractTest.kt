@@ -20,12 +20,18 @@ class FullscreenVideoExitButtonContractTest {
         val source = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
         ).readText()
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoExitButtonController.kt"
+        ).readText()
 
         assertTrue(source.contains("var onExitFullscreen: (() -> Unit)? = null"))
         assertTrue(source.contains("private val exitButton"))
-        assertTrue(source.contains("setupExitButton()"))
-        assertTrue(source.contains("gravity = Gravity.TOP or Gravity.START"))
-        assertTrue(source.contains("onExitFullscreen?.invoke()"))
+        assertTrue(source.contains("FullscreenVideoExitButtonController("))
+        assertTrue(source.contains("exitButtonController.attachTo(this)"))
+        assertTrue(source.contains("exitFullscreen = { onExitFullscreen?.invoke() }"))
+        assertTrue(controller.contains("gravity = Gravity.TOP or Gravity.START"))
+        assertTrue(controller.contains("notifyUserInteraction()"))
+        assertTrue(controller.contains("exitFullscreen()"))
     }
 
     /**

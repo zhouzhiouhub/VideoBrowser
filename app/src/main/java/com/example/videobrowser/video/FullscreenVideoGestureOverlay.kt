@@ -18,12 +18,8 @@ import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.view.ViewCompat
-import com.example.videobrowser.R
-import com.example.videobrowser.utils.BrowserDrawableFactory
 import com.example.videobrowser.utils.DensityPixelConverter
 import kotlin.math.abs
 
@@ -69,6 +65,13 @@ class FullscreenVideoGestureOverlay(
     private val speedOptions = VideoSpeedOptions.menuSpeeds()
 
     private val exitButton = ImageButton(context)
+    private val exitButtonController = FullscreenVideoExitButtonController(
+        context = context,
+        exitButton = exitButton,
+        dp = ::dp,
+        notifyUserInteraction = ::notifyUserInteraction,
+        exitFullscreen = { onExitFullscreen?.invoke() }
+    )
     private val lockButton = controlTextView()
     private val previousButton = controlTextView()
     private val nextButton = controlTextView()
@@ -158,7 +161,7 @@ class FullscreenVideoGestureOverlay(
         isFocusable = false
         setBackgroundColor(Color.TRANSPARENT)
 
-        setupExitButton()
+        exitButtonController.attachTo(this)
         setupLockButton()
         controlsGroupController.attachTo(this)
         setupFeedbackView()
@@ -322,44 +325,6 @@ class FullscreenVideoGestureOverlay(
     override fun onDetachedFromWindow() {
         hideOverlay()
         super.onDetachedFromWindow()
-    }
-
-    /**
-     * 函数 `setupExitButton`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun setupExitButton() {
-        val label = context.getString(R.string.video_control_exit_fullscreen)
-        exitButton.apply {
-            background = BrowserDrawableFactory.roundedBackground(
-                Color.argb(178, 0, 0, 0),
-                dp(20)
-            )
-            contentDescription = label
-            isClickable = true
-            isFocusable = true
-            scaleType = ImageView.ScaleType.CENTER
-            setColorFilter(Color.WHITE)
-            setImageResource(R.drawable.ic_close_24)
-            setPadding(dp(10), dp(10), dp(10), dp(10))
-            setOnClickListener {
-                notifyUserInteraction()
-                onExitFullscreen?.invoke()
-            }
-        }
-        ViewCompat.setTooltipText(exitButton, label)
-        addView(
-            exitButton,
-            LayoutParams(
-                dp(44),
-                dp(44)
-            ).apply {
-                gravity = Gravity.TOP or Gravity.START
-                topMargin = dp(14)
-                leftMargin = dp(14)
-            }
-        )
     }
 
     /**

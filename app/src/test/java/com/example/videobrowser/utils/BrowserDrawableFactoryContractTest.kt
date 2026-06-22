@@ -14,6 +14,9 @@ class BrowserDrawableFactoryContractTest {
         val overlay = projectFile(
             "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
         ).readText()
+        val fullscreenExitButtonController = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoExitButtonController.kt"
+        ).readText()
         val functionCenterSurface = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterSurfaceFactory.kt"
         ).readText()
@@ -32,7 +35,7 @@ class BrowserDrawableFactoryContractTest {
         assertTrue(factory.contains("fun topRoundedBackground("))
         assertTrue(factory.contains("fun circleBackground("))
         assertFalse(overlay.contains("private fun roundedBackground("))
-        assertTrue(overlay.contains("BrowserDrawableFactory.roundedBackground"))
+        assertTrue(fullscreenExitButtonController.contains("BrowserDrawableFactory.roundedBackground"))
         assertFalse(functionCenterSurface.contains("GradientDrawable().apply"))
         assertTrue(functionCenterSurface.contains("BrowserDrawableFactory.roundedBackground"))
         assertTrue(functionCenterSurface.contains("BrowserDrawableFactory.topRoundedBackground"))
