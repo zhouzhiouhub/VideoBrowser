@@ -9,6 +9,7 @@ class GenericCleanupSelectorsContractTest {
     @Test
     fun `generic cleanup selectors are owned by shared selector module`() {
         val cleanupScript = projectFile("src/main/assets/scripts/generic_cleanup_selectors.js").readText()
+        val configuredCleanupScript = projectFile("src/main/assets/scripts/configured_cleanup.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
@@ -21,7 +22,7 @@ class GenericCleanupSelectorsContractTest {
         assertTrue(cleanupScript.contains("cleanup.hideDefaultElements = cleanup.hideDefaultElements || function ()"))
         assertTrue(cleanupScript.contains("return domTools.queryAll(selector);"))
         assertTrue(commonScript.contains("const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors"))
-        assertTrue(commonScript.contains("genericCleanupSelectors.defaultSelectors()"))
+        assertTrue(configuredCleanupScript.contains("genericCleanupSelectors.defaultSelectors()"))
         assertTrue(commonScript.contains("genericCleanupSelectors.hideDefaultElements();"))
         assertTrue(scriptLoader.contains("GENERIC_CLEANUP_SELECTORS_SCRIPT_ASSET"))
         assertTrue(

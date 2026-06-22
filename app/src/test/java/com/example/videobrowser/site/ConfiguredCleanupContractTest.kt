@@ -1,0 +1,50 @@
+package com.example.videobrowser.site
+
+import java.io.File
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class ConfiguredCleanupContractTest {
+    @Test
+    fun `configured cleanup owns rule selector style and dom cleanup`() {
+        val cleanupScript = projectFile("src/main/assets/scripts/configured_cleanup.js").readText()
+        val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
+        val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
+
+        assertTrue(cleanupScript.contains("window.VideoBrowserConfiguredCleanup = cleanup"))
+        assertTrue(cleanupScript.contains("cleanup.cssSelectors = cleanup.cssSelectors || function (state)"))
+        assertTrue(cleanupScript.contains("cleanup.userCssSelectors = cleanup.userCssSelectors || function (state)"))
+        assertTrue(cleanupScript.contains("cleanup.domSelectors = cleanup.domSelectors || function (state)"))
+        assertTrue(cleanupScript.contains("cleanup.injectStyle = cleanup.injectStyle || function (state, options)"))
+        assertTrue(cleanupScript.contains("cleanup.removeDomElements = cleanup.removeDomElements || function (state)"))
+        assertTrue(cleanupScript.contains("return selectorTools.safeSelectorList(value);"))
+        assertTrue(cleanupScript.contains("selectorTools.queryAll(selector).forEach(function (element)"))
+        assertTrue(cleanupScript.contains("domActions.removeElement(element, {"))
+        assertTrue(cleanupScript.contains("styleManager.injectHideRules(selectors);"))
+        assertTrue(commonScript.contains("const configuredCleanup = window.VideoBrowserConfiguredCleanup"))
+        assertTrue(commonScript.contains("configuredCleanup.injectStyle(state, {"))
+        assertTrue(commonScript.contains("configuredCleanup.removeDomElements(state);"))
+        assertTrue(commonScript.contains("configuredCleanup.hasUserCssSelectors(state)"))
+        assertTrue(commonScript.contains("configuredCleanup.removeStyle();"))
+        assertTrue(scriptLoader.contains("CONFIGURED_CLEANUP_SCRIPT_ASSET"))
+        assertTrue(
+            commonAssetList.indexOf("CONFIGURED_CLEANUP_SCRIPT_ASSET") <
+                commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
+        )
+        assertFalse(commonScript.contains("function externalCssSelectors()"))
+        assertFalse(commonScript.contains("function userCssSelectors()"))
+        assertFalse(commonScript.contains("function externalDomSelectors()"))
+        assertFalse(commonScript.contains("function safeSelectorList(value)"))
+        assertFalse(commonScript.contains("function removeConfiguredDomElements()"))
+    }
+
+    private fun projectFile(path: String): File {
+        val workingDirectory = File("").absoluteFile
+        return listOf(
+            File(workingDirectory, path),
+            File(workingDirectory, "app/$path")
+        ).first { it.exists() }
+    }
+}

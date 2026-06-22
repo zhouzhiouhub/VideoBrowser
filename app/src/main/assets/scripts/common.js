@@ -37,11 +37,10 @@
     state.fullscreenPlaybackSpeed = 1;
   }
 
-  const domActions = window.VideoBrowserDomActions;
-  const selectorTools = window.VideoBrowserSelectorTools;
   const genericCleanupSelectors = window.VideoBrowserGenericCleanupSelectors;
   const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup;
   const genericAdOverlayCleanup = window.VideoBrowserGenericAdOverlayCleanup;
+  const configuredCleanup = window.VideoBrowserConfiguredCleanup;
   const topPageCleanup = window.VideoBrowserTopPageCleanup;
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup;
   const skipButtonTools = window.VideoBrowserSkipButtonTools;
@@ -56,93 +55,12 @@
   const customControlDetector = window.VideoBrowserVideoCustomControlDetector;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
-  const styleManager = window.VideoBrowserStyleManager;
 
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
   const bestQualityAttemptIntervalMs = 30000;
   const normalWorkDelayMs = 250;
   const activeVideoWorkDelayMs = 750;
-  /**
-   * 函数 `externalCssSelectors`：封装 `external Css Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function externalCssSelectors() {
-    return safeSelectorList(state.config && state.config.cssSelectors);
-  }
-
-  /**
-   * 函数 `userCssSelectors`：封装 `user Css Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function userCssSelectors() {
-    return safeSelectorList(state.config && state.config.userCssSelectors);
-  }
-
-  /**
-   * 函数 `externalDomSelectors`：封装 `external Dom Selectors` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function externalDomSelectors() {
-    return safeSelectorList(state.config && state.config.domSelectors);
-  }
-
-  /**
-   * 函数 `safeSelectorList`：封装 `safe Selector List` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} value 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function safeSelectorList(value) {
-    return selectorTools.safeSelectorList(value);
-  }
-
-  /**
-   * 函数 `isSafeSelector`：封装 `is Safe Selector` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function isSafeSelector(selector) {
-    return selectorTools.isSafeSelector(selector);
-  }
-
-  /**
-   * 函数 `querySelectorAllSafe`：封装 `query Selector All Safe` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} selector 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function querySelectorAllSafe(selector) {
-    return selectorTools.queryAll(selector);
-  }
-
-  /**
-   * 函数 `injectStyle`：封装 `inject Style` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} includeGenericSelectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   * @param {*} includeRuleSelectors 表示 CSS 选择器或查询条件，用来定位页面里的目标元素。
-   */
-  function injectStyle(includeGenericSelectors, includeRuleSelectors) {
-    const selectors = (includeGenericSelectors ? genericCleanupSelectors.defaultSelectors() : [])
-      .concat(includeRuleSelectors ? externalCssSelectors() : [])
-      .concat(userCssSelectors());
-    styleManager.injectHideRules(selectors);
-  }
-
-  /**
-   * 函数 `removeStyle`：封装 `remove Style` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeStyle() {
-    styleManager.remove();
-  }
-
   /**
    * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
@@ -252,9 +170,12 @@
   function removeAds() {
     if (!state.config.cleanupEnabled || !document.documentElement) return;
     if (shouldSkipGenericCleanup()) {
-      injectStyle(false, true);
+      configuredCleanup.injectStyle(state, {
+        includeGenericSelectors: false,
+        includeRuleSelectors: true
+      });
       removeSearchResultAds();
-      removeConfiguredDomElements();
+      configuredCleanup.removeDomElements(state);
       if (!isBilibiliHost()) removeGenericAdOverlays();
       return;
     }
@@ -264,36 +185,16 @@
      * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
      */
     runWithMutationSuppressed(function () {
-      injectStyle(true, true);
+      configuredCleanup.injectStyle(state, {
+        includeGenericSelectors: true,
+        includeRuleSelectors: true
+      });
       genericCleanupSelectors.hideDefaultElements();
-      removeConfiguredDomElements();
+      configuredCleanup.removeDomElements(state);
       removeGenericAdOverlays();
       topPageCleanup.removeAccountBars();
       topPageCleanup.removeNoiseBlocks();
       removeSearchResultAds();
-    });
-  }
-
-  /**
-   * 函数 `removeConfiguredDomElements`：封装 `remove Configured Dom Elements` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function removeConfiguredDomElements() {
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param selector 表示本次遍历拿到的选择器字符串，用来继续查找页面元素。
-     */
-    externalDomSelectors().forEach(function (selector) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       * @param element 表示当前回调正在检查或操作的页面元素。
-       */
-      querySelectorAllSafe(selector).forEach(function (element) {
-        removeElement(element, 'rule-dom-remove');
-      });
     });
   }
 
@@ -323,20 +224,6 @@
   function removeSearchResultAds() {
     searchResultCleanup.removeAds({
       runWithMutationSuppressed: runWithMutationSuppressed
-    });
-  }
-
-  /**
-   * 函数 `removeElement`：封装 `remove Element` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} element 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} reason 表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-   */
-  function removeElement(element, reason) {
-    domActions.removeElement(element, {
-      reason: reason || 'remove',
-      protectAppContainers: true
     });
   }
 
@@ -941,10 +828,13 @@
         state.lastCleanupAt = now;
         removeAds();
       }
-    } else if (userCssSelectors().length) {
-      injectStyle(false, false);
+    } else if (configuredCleanup.hasUserCssSelectors(state)) {
+      configuredCleanup.injectStyle(state, {
+        includeGenericSelectors: false,
+        includeRuleSelectors: false
+      });
     } else {
-      removeStyle();
+      configuredCleanup.removeStyle();
     }
     clickSkipButtons();
     enhanceVideos();

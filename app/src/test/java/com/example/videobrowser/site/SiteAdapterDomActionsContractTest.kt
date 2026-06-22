@@ -10,14 +10,15 @@ class SiteAdapterDomActionsContractTest {
     fun `element hiding actions are shared between common script and site helpers`() {
         val domActionsScript = projectFile("src/main/assets/scripts/dom_actions.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val configuredCleanupScript = projectFile("src/main/assets/scripts/configured_cleanup.js").readText()
         val topPageCleanupScript = projectFile("src/main/assets/scripts/top_page_cleanup.js").readText()
         val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
 
         assertTrue(domActionsScript.contains("window.VideoBrowserDomActions = actions"))
         assertTrue(domActionsScript.contains("actions.hideElement = actions.hideElement || function (element, options)"))
         assertTrue(domActionsScript.contains("actions.removeElement = actions.removeElement || function (element, options)"))
-        assertTrue(commonScript.contains("const domActions = window.VideoBrowserDomActions"))
-        assertTrue(commonScript.contains("domActions.removeElement(element, {"))
+        assertTrue(configuredCleanupScript.contains("const domActions = window.VideoBrowserDomActions || {}"))
+        assertTrue(configuredCleanupScript.contains("domActions.removeElement(element, {"))
         assertFalse(commonScript.contains("element.style.setProperty('display', 'none', 'important')"))
         assertTrue(topPageCleanupScript.contains("const domActions = window.VideoBrowserDomActions || {}"))
         assertTrue(topPageCleanupScript.contains("domActions.hideElement(element, {"))

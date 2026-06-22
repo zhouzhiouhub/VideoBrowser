@@ -11,6 +11,7 @@ class SiteAdapterDomToolsContractTest {
         val domToolsScript = projectFile("src/main/assets/scripts/dom_tools.js").readText()
         val selectorToolsScript = projectFile("src/main/assets/scripts/selector_tools.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val configuredCleanupScript = projectFile("src/main/assets/scripts/configured_cleanup.js").readText()
         val customControlDetectorScript = projectFile("src/main/assets/scripts/video_custom_control_detector.js").readText()
         val helperScript = projectFile("src/main/assets/scripts/site_adapter_helpers.js").readText()
 
@@ -24,7 +25,7 @@ class SiteAdapterDomToolsContractTest {
         assertTrue(selectorToolsScript.contains("const domTools = window.VideoBrowserDomTools || {}"))
         assertTrue(selectorToolsScript.contains("return domTools.queryAll(selector);"))
         assertTrue(selectorToolsScript.contains("return domTools.queryAllWithin(root, selector);"))
-        assertTrue(commonScript.contains("return selectorTools.queryAll(selector);"))
+        assertTrue(configuredCleanupScript.contains("selectorTools.queryAll(selector).forEach(function (element)"))
         assertTrue(customControlDetectorScript.contains("return selectorTools.queryAllWithin(root, selector);"))
         assertTrue(helperScript.contains("var domTools = window.VideoBrowserDomTools || {}"))
         assertTrue(helperScript.contains("return domTools.queryAll(selector);"))

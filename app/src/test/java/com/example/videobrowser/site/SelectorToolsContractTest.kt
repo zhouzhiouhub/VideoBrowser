@@ -10,6 +10,7 @@ class SelectorToolsContractTest {
     fun `selector helpers are owned by shared selector module`() {
         val selectorToolsScript = projectFile("src/main/assets/scripts/selector_tools.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val configuredCleanupScript = projectFile("src/main/assets/scripts/configured_cleanup.js").readText()
         val elementPickerScript = projectFile("src/main/assets/scripts/element_picker.js").readText()
 
         assertTrue(selectorToolsScript.contains("window.VideoBrowserSelectorTools = selectorTools"))
@@ -17,10 +18,9 @@ class SelectorToolsContractTest {
         assertTrue(selectorToolsScript.contains("selectorTools.safeSelectorList = selectorTools.safeSelectorList || function (value)"))
         assertTrue(selectorToolsScript.contains("selectorTools.queryAll = selectorTools.queryAll || function (selector)"))
         assertTrue(selectorToolsScript.contains("selectorTools.cssIdentifier = selectorTools.cssIdentifier || function (value)"))
-        assertTrue(commonScript.contains("const selectorTools = window.VideoBrowserSelectorTools"))
-        assertTrue(commonScript.contains("return selectorTools.safeSelectorList(value);"))
-        assertTrue(commonScript.contains("return selectorTools.isSafeSelector(selector);"))
-        assertTrue(commonScript.contains("return selectorTools.queryAll(selector);"))
+        assertTrue(configuredCleanupScript.contains("const selectorTools = window.VideoBrowserSelectorTools || {}"))
+        assertTrue(configuredCleanupScript.contains("return selectorTools.safeSelectorList(value);"))
+        assertTrue(configuredCleanupScript.contains("selectorTools.queryAll(selector).forEach(function (element)"))
         assertTrue(elementPickerScript.contains("selectorTools.cssIdentifier(id)"))
         assertTrue(elementPickerScript.contains("selectorTools.cssIdentifier(className)"))
         assertTrue(elementPickerScript.contains("const matches = selectorTools.queryAll(selector);"))
