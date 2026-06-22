@@ -116,19 +116,7 @@ class FullscreenVideoGestureOverlay(
         showFeedback = ::showFeedback,
         hideFeedback = { feedbackController.hide() }
     )
-
-    private var touchStartedOnControl = false
-    private var touchStartedInBottomPassthrough = false
-    private var playbackControlsVisibleOnTouchStart = true
-    private var activeGesture = VerticalGesture.NONE
-    private var tapCandidate = false
-    private var longPressActive = false
-    private var downZone = VideoGestureScreenZone.CENTER
-    private var downX = 0f
-    private var downY = 0f
-    private var downTime = 0L
-    private var initialBrightness = FullscreenVideoGestureMath.DEFAULT_BRIGHTNESS
-    private var initialVolume = 0
+    private val touchSession = FullscreenVideoTouchSessionState()
     private val speedPopupController = FullscreenVideoSpeedPopupController(
         context = context,
         anchorView = speedButton,
@@ -274,23 +262,25 @@ class FullscreenVideoGestureOverlay(
         }
 
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-            playbackControlsVisibleOnTouchStart = arePlaybackControlsVisible?.invoke() ?: true
-            touchStartedOnControl = isControlPoint(event.x, event.y)
-            touchStartedInBottomPassthrough =
-                !locked && event.y >= height - bottomPassthroughHeight()
+            touchSession.beginDispatchDown(
+                playbackControlsVisible = arePlaybackControlsVisible?.invoke() ?: true,
+                startedOnControl = isControlPoint(event.x, event.y),
+                startedInBottomPassthrough =
+                    !locked && event.y >= height - bottomPassthroughHeight()
+            )
         }
 
-        if (touchStartedOnControl) {
+        if (touchSession.touchStartedOnControl) {
             super.dispatchTouchEvent(event)
             if (event.isFinishedAction()) {
-                touchStartedOnControl = false
+                touchSession.clearControlStart()
             }
             return true
         }
 
-        if (touchStartedInBottomPassthrough) {
+        if (touchSession.touchStartedInBottomPassthrough) {
             if (event.isFinishedAction()) {
-                touchStartedInBottomPassthrough = false
+                touchSession.clearBottomPassthroughStart()
             }
             return false
         }
@@ -434,78 +424,79 @@ class FullscreenVideoGestureOverlay(
         // 这里是触摸事件的总入口：先记录起点区域，再根据移动方向决定是哪一种手势。
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                downX = event.x
-                downY = event.y
-                downTime = event.eventTime
-                downZone = screenZoneFor(downX)
-                initialBrightness = systemGestureController.currentWindowBrightness()
-                initialVolume = systemGestureController.currentStreamVolume()
-                activeGesture = VerticalGesture.NONE
-                tapCandidate = true
-                longPressActive = false
-                if (downZone.isSide()) {
+                touchSession.beginGestureDown(
+                    x = event.x,
+                    y = event.y,
+                    eventTime = event.eventTime,
+                    zone = screenZoneFor(event.x),
+                    brightness = systemGestureController.currentWindowBrightness(),
+                    volume = systemGestureController.currentStreamVolume()
+                )
+                if (touchSession.downZone.isSide()) {
                     feedbackHandler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT_MS)
                 }
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val deltaX = event.x - downX
-                val deltaY = event.y - downY
-                if (!longPressActive &&
+                val deltaX = event.x - touchSession.downX
+                val deltaY = event.y - touchSession.downY
+                if (!touchSession.longPressActive &&
                     (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop)
                 ) {
-                    tapCandidate = false
+                    touchSession.cancelTapCandidate()
                     feedbackHandler.removeCallbacks(longPressRunnable)
                 }
-                if (!longPressActive &&
-                    activeGesture == VerticalGesture.NONE &&
+                if (!touchSession.longPressActive &&
+                    touchSession.activeGesture == FullscreenVideoActiveGesture.NONE &&
                     abs(deltaX) >= swipeStartDistance &&
                     abs(deltaX) > abs(deltaY)
                 ) {
                     beginHorizontalSeek(deltaX)
-                } else if (!longPressActive &&
-                    activeGesture == VerticalGesture.NONE &&
-                    downZone.isSide() &&
+                } else if (!touchSession.longPressActive &&
+                    touchSession.activeGesture == FullscreenVideoActiveGesture.NONE &&
+                    touchSession.downZone.isSide() &&
                     abs(deltaY) >= swipeStartDistance &&
                     abs(deltaY) > abs(deltaX) * VERTICAL_GESTURE_RATIO
                 ) {
-                    activeGesture = if (downZone == VideoGestureScreenZone.LEFT) {
-                        VerticalGesture.BRIGHTNESS
-                    } else {
-                        VerticalGesture.VOLUME
-                    }
+                    touchSession.setActiveGesture(
+                        if (touchSession.downZone == VideoGestureScreenZone.LEFT) {
+                            FullscreenVideoActiveGesture.BRIGHTNESS
+                        } else {
+                            FullscreenVideoActiveGesture.VOLUME
+                        }
+                    )
                 }
-                when (activeGesture) {
-                    VerticalGesture.HORIZONTAL_SEEK -> updateHorizontalSeek(deltaX)
-                    VerticalGesture.BRIGHTNESS -> systemGestureController.updateBrightness(
+                when (touchSession.activeGesture) {
+                    FullscreenVideoActiveGesture.HORIZONTAL_SEEK -> updateHorizontalSeek(deltaX)
+                    FullscreenVideoActiveGesture.BRIGHTNESS -> systemGestureController.updateBrightness(
                         deltaY = deltaY,
                         viewHeight = height,
-                        initialBrightness = initialBrightness
+                        initialBrightness = touchSession.initialBrightness
                     )
-                    VerticalGesture.VOLUME -> systemGestureController.updateVolume(
+                    FullscreenVideoActiveGesture.VOLUME -> systemGestureController.updateVolume(
                         deltaY = deltaY,
                         viewHeight = height,
-                        initialVolume = initialVolume
+                        initialVolume = touchSession.initialVolume
                     )
-                    VerticalGesture.NONE -> Unit
+                    FullscreenVideoActiveGesture.NONE -> Unit
                 }
                 return true
             }
             MotionEvent.ACTION_UP -> {
                 feedbackHandler.removeCallbacks(longPressRunnable)
-                if (longPressActive) {
+                if (touchSession.longPressActive) {
                     stopLongPress()
                     resetTouchState()
                     return true
                 }
-                if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
+                if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
                     finishHorizontalSeek(commit = true)
                     resetTouchState()
                     return true
                 }
-                if (activeGesture == VerticalGesture.NONE &&
-                    tapCandidate &&
-                    event.eventTime - downTime <= TAP_MAX_DURATION_MS
+                if (touchSession.activeGesture == FullscreenVideoActiveGesture.NONE &&
+                    touchSession.tapCandidate &&
+                    event.eventTime - touchSession.downTime <= TAP_MAX_DURATION_MS
                 ) {
                     handleTap(event.x, event.eventTime)
                 }
@@ -515,7 +506,7 @@ class FullscreenVideoGestureOverlay(
             MotionEvent.ACTION_CANCEL -> {
                 feedbackHandler.removeCallbacks(longPressRunnable)
                 stopLongPress()
-                if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
+                if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
                     finishHorizontalSeek(commit = false)
                 }
                 resetTouchState()
@@ -533,7 +524,7 @@ class FullscreenVideoGestureOverlay(
      */
     private fun beginHorizontalSeek(deltaX: Float) {
         // 横向滑动开始时记录当前播放位置，后续移动只是在这个基础上计算预览目标。
-        activeGesture = VerticalGesture.HORIZONTAL_SEEK
+        touchSession.setActiveGesture(FullscreenVideoActiveGesture.HORIZONTAL_SEEK)
         sideTapSeekController.clearAll()
         feedbackHandler.removeCallbacks(longPressRunnable)
 
@@ -573,7 +564,7 @@ class FullscreenVideoGestureOverlay(
         when (val zone = screenZoneFor(upX)) {
             VideoGestureScreenZone.CENTER -> {
                 sideTapSeekController.clearPendingTap()
-                if (playbackControlsVisibleOnTouchStart) {
+                if (touchSession.playbackControlsVisibleOnTouchStart) {
                     onTogglePlayPause?.invoke()
                 }
             }
@@ -590,13 +581,16 @@ class FullscreenVideoGestureOverlay(
      */
     private fun triggerLongPress() {
         // 长按左右区域触发连续快退/快进；中心区域不触发，避免和普通点击冲突。
-        if (locked || longPressActive || activeGesture != VerticalGesture.NONE || !downZone.isSide()) {
+        if (locked ||
+            touchSession.longPressActive ||
+            touchSession.activeGesture != FullscreenVideoActiveGesture.NONE ||
+            !touchSession.downZone.isSide()
+        ) {
             return
         }
-        longPressActive = true
-        tapCandidate = false
+        touchSession.startLongPress()
         sideTapSeekController.clearAll()
-        val direction = if (downZone == VideoGestureScreenZone.LEFT) -1 else 1
+        val direction = if (touchSession.downZone == VideoGestureScreenZone.LEFT) -1 else 1
         onDirectionalLongPressStart?.invoke(direction)
         showFeedback(
             VideoGestureFeedbackFormatter.formatSpeed(VideoSpeedOptions.longPressSpeed),
@@ -610,8 +604,8 @@ class FullscreenVideoGestureOverlay(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun stopLongPress() {
-        if (!longPressActive) return
-        longPressActive = false
+        if (!touchSession.longPressActive) return
+        touchSession.stopLongPress()
         onDirectionalLongPressEnd?.invoke()
         feedbackController.hide()
     }
@@ -627,7 +621,7 @@ class FullscreenVideoGestureOverlay(
 
     private fun clearGestureStateWhenLocked() {
         stopLongPress()
-        if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
+        if (touchSession.activeGesture == FullscreenVideoActiveGesture.HORIZONTAL_SEEK) {
             finishHorizontalSeek(commit = false)
         }
         sideTapSeekController.clearAll()
@@ -690,12 +684,7 @@ class FullscreenVideoGestureOverlay(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun resetTouchState() {
-        activeGesture = VerticalGesture.NONE
-        tapCandidate = false
-        touchStartedOnControl = false
-        touchStartedInBottomPassthrough = false
-        playbackControlsVisibleOnTouchStart = true
-        downZone = VideoGestureScreenZone.CENTER
+        touchSession.reset()
     }
 
     /**
@@ -753,13 +742,6 @@ class FullscreenVideoGestureOverlay(
      */
     private fun dp(value: Int): Int {
         return DensityPixelConverter.roundDp(value, resources)
-    }
-
-    private enum class VerticalGesture {
-        NONE,
-        HORIZONTAL_SEEK,
-        BRIGHTNESS,
-        VOLUME
     }
 
     private companion object {

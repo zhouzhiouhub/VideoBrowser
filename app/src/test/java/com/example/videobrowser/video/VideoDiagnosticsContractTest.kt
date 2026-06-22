@@ -63,13 +63,49 @@ class VideoDiagnosticsContractTest {
             "override fun dispatchTouchEvent(event: MotionEvent): Boolean"
         )
 
-        val bottomPassthroughIndex = dispatchBody.indexOf("if (touchStartedInBottomPassthrough)")
+        val bottomPassthroughIndex = dispatchBody.indexOf(
+            "if (touchSession.touchStartedInBottomPassthrough)"
+        )
         val wakeControlsIndex = dispatchBody.indexOf("if (event.isWakeControlsAction())")
 
         assertTrue(bottomPassthroughIndex >= 0)
         assertTrue(wakeControlsIndex >= 0)
         assertTrue(bottomPassthroughIndex < wakeControlsIndex)
         assertTrue(dispatchBody.substring(bottomPassthroughIndex, wakeControlsIndex).contains("return false"))
+    }
+
+    @Test
+    fun fullscreenGestureOverlayDelegatesTouchStateToSessionModule() {
+        val overlaySource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
+        ).readText()
+        val touchSessionSource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoTouchSessionState.kt"
+        ).readText()
+
+        assertTrue(overlaySource.contains("FullscreenVideoTouchSessionState()"))
+        assertTrue(overlaySource.contains("touchSession.beginDispatchDown("))
+        assertTrue(overlaySource.contains("touchSession.beginGestureDown("))
+        assertTrue(
+            overlaySource.contains(
+                "touchSession.setActiveGesture(FullscreenVideoActiveGesture.HORIZONTAL_SEEK)"
+            )
+        )
+        assertTrue(overlaySource.contains("touchSession.startLongPress()"))
+        assertTrue(overlaySource.contains("touchSession.stopLongPress()"))
+        assertTrue(overlaySource.contains("touchSession.reset()"))
+        assertTrue(touchSessionSource.contains("internal class FullscreenVideoTouchSessionState"))
+        assertTrue(touchSessionSource.contains("internal enum class FullscreenVideoActiveGesture"))
+        assertTrue(touchSessionSource.contains("fun beginDispatchDown("))
+        assertTrue(touchSessionSource.contains("fun beginGestureDown("))
+        assertTrue(touchSessionSource.contains("fun startLongPress()"))
+        assertFalse(overlaySource.contains("private var touchStartedOnControl"))
+        assertFalse(overlaySource.contains("private var touchStartedInBottomPassthrough"))
+        assertFalse(overlaySource.contains("private var playbackControlsVisibleOnTouchStart"))
+        assertFalse(overlaySource.contains("private var activeGesture"))
+        assertFalse(overlaySource.contains("private var tapCandidate"))
+        assertFalse(overlaySource.contains("private var longPressActive"))
+        assertFalse(overlaySource.contains("private enum class VerticalGesture"))
     }
 
     /**
@@ -96,12 +132,17 @@ class VideoDiagnosticsContractTest {
             overlaySource,
             "private fun handleTap(upX: Float, eventTime: Long)"
         )
+        val touchSessionSource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoTouchSessionState.kt"
+        ).readText()
 
         assertTrue(overlaySource.contains("var arePlaybackControlsVisible: (() -> Boolean)? = null"))
-        assertTrue(dispatchBody.contains("playbackControlsVisibleOnTouchStart = arePlaybackControlsVisible?.invoke() ?: true"))
-        assertTrue(handleTapBody.contains("if (playbackControlsVisibleOnTouchStart)"))
+        assertTrue(dispatchBody.contains("touchSession.beginDispatchDown("))
+        assertTrue(dispatchBody.contains("playbackControlsVisible = arePlaybackControlsVisible?.invoke() ?: true"))
+        assertTrue(touchSessionSource.contains("var playbackControlsVisibleOnTouchStart = true"))
+        assertTrue(handleTapBody.contains("if (touchSession.playbackControlsVisibleOnTouchStart)"))
         assertTrue(
-            handleTapBody.indexOf("if (playbackControlsVisibleOnTouchStart)") <
+            handleTapBody.indexOf("if (touchSession.playbackControlsVisibleOnTouchStart)") <
                 handleTapBody.indexOf("onTogglePlayPause?.invoke()")
         )
         assertTrue(playerActivitySource.contains("arePlaybackControlsVisible = ::arePlayerControlsVisible"))
