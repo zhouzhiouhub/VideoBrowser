@@ -7,14 +7,14 @@ internal object BrowserPageLifecycleScriptController {
         if (webView.url.isNullOrBlank()) {
             return
         }
-        webView.evaluateJavascript(PAGE_SUSPEND_SCRIPT, null)
+        BrowserWebViewScriptEvaluator.evaluate(webView, PAGE_SUSPEND_SCRIPT)
     }
 
     fun disposeCurrentPage(webView: WebView) {
         if (webView.url.isNullOrBlank()) {
             return
         }
-        webView.evaluateJavascript(PAGE_DISPOSE_SCRIPT, null)
+        BrowserWebViewScriptEvaluator.evaluate(webView, PAGE_DISPOSE_SCRIPT)
     }
 
     private const val PAGE_SUSPEND_SCRIPT =
