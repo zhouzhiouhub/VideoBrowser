@@ -21,11 +21,6 @@ import android.webkit.WebViewClient
 class BrowserManager(
     private var webView: WebView
 ) {
-    private data class JavascriptInterfaceBinding(
-        val interfaceObject: Any,
-        val name: String
-    )
-
     private val webViewSettings = BrowserWebViewSettingsController()
     private val webViewLifecycle = BrowserWebViewLifecycleController(webViewSettings)
     private val webViewFindController = BrowserWebViewFindController(
@@ -35,10 +30,9 @@ class BrowserManager(
     private val webViewNavigationController = BrowserWebViewNavigationController(
         webView = { webView }
     )
-    private val javascriptInterfaces = mutableListOf<JavascriptInterfaceBinding>()
-    private var chromeClient: WebChromeClient? = null
-    private var browserClient: WebViewClient? = null
-    private var downloadListener: DownloadListener? = null
+    private val webViewBindingController = BrowserWebViewBindingController(
+        activeWebView = { webView }
+    )
     private var privateBrowsingEnabled = false
 
     val activeWebView: WebView
@@ -74,21 +68,14 @@ class BrowserManager(
             return
         }
         if (detachCurrent) {
-            webView.webChromeClient = null
-            webView.webViewClient = WebViewClient()
-            webView.setDownloadListener(null)
+            webViewBindingController.detachFrom(webView)
         }
 
         webView = nextWebView
         this.privateBrowsingEnabled = privateBrowsingEnabled
         setup()
         setPrivateBrowsingEnabled(privateBrowsingEnabled)
-        webView.webChromeClient = chromeClient
-        browserClient?.let { webView.webViewClient = it }
-        webView.setDownloadListener(downloadListener)
-        javascriptInterfaces.forEach { binding ->
-            webView.addJavascriptInterface(binding.interfaceObject, binding.name)
-        }
+        webViewBindingController.attachToCurrentWebView()
     }
 
     /**
@@ -98,8 +85,7 @@ class BrowserManager(
      * @param client 参数类型为 `WebChromeClient?`，表示函数执行 `client` 相关逻辑时需要读取或处理的输入。
      */
     fun setChromeClient(client: WebChromeClient?) {
-        chromeClient = client
-        webView.webChromeClient = client
+        webViewBindingController.setChromeClient(client)
     }
 
     /**
@@ -109,8 +95,7 @@ class BrowserManager(
      * @param client 参数类型为 `WebViewClient`，表示函数执行 `client` 相关逻辑时需要读取或处理的输入。
      */
     fun setBrowserClient(client: WebViewClient) {
-        browserClient = client
-        webView.webViewClient = client
+        webViewBindingController.setBrowserClient(client)
     }
 
     /**
@@ -120,8 +105,7 @@ class BrowserManager(
      * @param listener 参数类型为 `DownloadListener?`，表示回调对象，异步操作完成后用它把结果通知回调用方。
      */
     fun setDownloadListener(listener: DownloadListener?) {
-        downloadListener = listener
-        webView.setDownloadListener(listener)
+        webViewBindingController.setDownloadListener(listener)
     }
 
     /**
@@ -142,9 +126,7 @@ class BrowserManager(
      * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
      */
     fun addJavascriptInterface(interfaceObject: Any, name: String) {
-        javascriptInterfaces.removeAll { it.name == name }
-        javascriptInterfaces.add(JavascriptInterfaceBinding(interfaceObject, name))
-        webView.addJavascriptInterface(interfaceObject, name)
+        webViewBindingController.addJavascriptInterface(interfaceObject, name)
     }
 
     /**
