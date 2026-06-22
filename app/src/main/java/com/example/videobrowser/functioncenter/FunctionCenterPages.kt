@@ -7,7 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
@@ -224,6 +223,12 @@ class FunctionCenterPages(
         selectSearchProvider = selectSearchProvider,
         showRootPage = ::showRootPage
     )
+    private val profilePage = FunctionCenterProfilePage(
+        host = host,
+        profileShortcutSection = profileShortcutSection,
+        browserSettingsPage = browserSettingsPage,
+        closePage = { close() }
+    )
     private val rootActionSection = FunctionCenterRootActionSection(
         host = host,
         settingsManager = settingsManager,
@@ -278,27 +283,7 @@ class FunctionCenterPages(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun showProfilePage() {
-        host.showPage(
-            title = activity.getString(R.string.title_profile_page),
-            onBack = { close() }
-        ) { content ->
-            FunctionCenterProfilePageLayout.blocks().forEach { block ->
-                when (block) {
-                    FunctionCenterProfilePageBlock.PROFILE_HEADER -> {
-                        host.addProfileHeader(
-                            parent = content,
-                            title = activity.getString(R.string.function_center_profile_name),
-                            summary = activity.getString(R.string.function_center_profile_summary)
-                        ) {
-                            browserSettingsPage.show()
-                        }
-                    }
-
-                    FunctionCenterProfilePageBlock.SHORTCUTS -> addProfileShortcutSection(content)
-                    FunctionCenterProfilePageBlock.FEATURES -> addProfileFeatureSection(content)
-                }
-            }
-        }
+        profilePage.show()
     }
 
     /**
@@ -328,27 +313,6 @@ class FunctionCenterPages(
      */
     fun close(): Boolean {
         return host.close()
-    }
-
-    /**
-     * 函数 `addProfileShortcutSection`：封装 `add Profile Shortcut Section` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addProfileShortcutSection(parent: LinearLayout) {
-        profileShortcutSection.add(parent)
-    }
-
-    /**
-     * 函数 `addProfileFeatureSection`：封装 `add Profile Feature Section` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addProfileFeatureSection(parent: LinearLayout) {
-        browserSettingsPage.addExpandedBrowserSettings(parent)
-        browserSettingsPage.addProfileDataManagement(parent)
     }
 
     /**
