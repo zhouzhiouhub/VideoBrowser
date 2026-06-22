@@ -160,6 +160,9 @@ class VideoDiagnosticsContractTest {
         val source = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val playerInitializer = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerInitializer.kt"
+        ).readText()
         val videoEffectsController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerVideoEffectsController.kt"
         ).readText()
@@ -167,12 +170,14 @@ class VideoDiagnosticsContractTest {
         assertTrue(source.contains("NativePlayerVideoEffectsController("))
         assertTrue(videoEffectsController.contains("NativeVideoEnhancement::defaultEffects"))
         assertTrue(videoEffectsController.contains("exoPlayer.setVideoEffects(videoEffects)"))
-        assertTrue(source.contains("nativePlayerVideoEffectsController.applyToPlayer(exoPlayer)"))
+        assertTrue(source.contains("NativePlayerInitializer("))
+        assertTrue(source.contains("applyVideoEffects = nativePlayerVideoEffectsController::applyToPlayer"))
+        assertTrue(playerInitializer.contains("applyVideoEffects(exoPlayer)"))
         assertTrue(source.contains("retryPlaybackWithoutVideoEffects()"))
         assertTrue(source.contains("nativePlayerVideoEffectsController.markRetryWithoutEffects()"))
         assertTrue(
-            source.indexOf("nativePlayerVideoEffectsController.applyToPlayer(exoPlayer)") <
-                source.indexOf("exoPlayer.prepare()")
+            playerInitializer.indexOf("applyVideoEffects(exoPlayer)") <
+                playerInitializer.indexOf("exoPlayer.prepare()")
         )
         assertFalse(source.contains("private var videoEffectsEnabled"))
         assertFalse(source.contains("private var retriedPlaybackWithoutVideoEffects"))

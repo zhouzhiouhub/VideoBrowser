@@ -20,6 +20,9 @@ class PlaybackQueueWiringContractTest {
     fun playerActivityUsesQueueBackedMediaItems() {
         val playerActivity = projectFile("src/main/java/com/example/videobrowser/video/PlayerActivity.kt")
             .readText()
+        val playerInitializer = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerInitializer.kt"
+        ).readText()
         val queueController = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerQueueController.kt"
         ).readText()
@@ -28,8 +31,9 @@ class PlaybackQueueWiringContractTest {
 
         assertTrue(playerActivity.contains("private lateinit var playbackQueue: PlaybackQueue"))
         assertTrue(intentReader.contains("PlaybackQueue.single("))
-        assertTrue(playerActivity.contains("setMediaItems("))
-        assertTrue(playerActivity.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
+        assertTrue(playerActivity.contains("NativePlayerInitializer("))
+        assertTrue(playerInitializer.contains("setMediaItems("))
+        assertTrue(playerInitializer.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
         assertTrue(playerActivity.contains("NativePlayerQueueController("))
         assertTrue(queueController.contains("playbackQueue.previous().currentIndex"))
         assertTrue(queueController.contains("playbackQueue.next().currentIndex"))

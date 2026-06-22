@@ -11,6 +11,9 @@ class NativePlayerPlaybackSpeedControllerContractTest {
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val playerInitializer = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerInitializer.kt"
+        ).readText()
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerPlaybackSpeedController.kt"
         ).readText()
@@ -19,7 +22,8 @@ class NativePlayerPlaybackSpeedControllerContractTest {
         assertTrue(playerActivity.contains("nativePlayerPlaybackSpeedController.restoreSpeed("))
         assertTrue(playerActivity.contains("nativePlayerPlaybackSpeedController.setSpeed(command.speed)"))
         assertTrue(playerActivity.contains("nativePlayerPlaybackSpeedController.currentSpeed()"))
-        assertTrue(playerActivity.contains("nativePlayerPlaybackSpeedController.applyToPlayer(exoPlayer)"))
+        assertTrue(playerActivity.contains("applyPlaybackSpeed = nativePlayerPlaybackSpeedController::applyToPlayer"))
+        assertTrue(playerInitializer.contains("applyPlaybackSpeed(exoPlayer)"))
 
         assertTrue(controller.contains("private var selectedPlaybackSpeed = DEFAULT_PLAYBACK_SPEED"))
         assertTrue(controller.contains("PlaybackSpeedNormalizer::normalize"))

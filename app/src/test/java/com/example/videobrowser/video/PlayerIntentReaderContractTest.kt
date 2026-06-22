@@ -14,6 +14,9 @@ class PlayerIntentReaderContractTest {
         val reader = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt"
         ).readText()
+        val playerInitializer = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerInitializer.kt"
+        ).readText()
         val factory = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerIntentFactory.kt"
         ).readText()
@@ -24,7 +27,8 @@ class PlayerIntentReaderContractTest {
         assertTrue(playerActivity.contains("PlayerIntentFactory.create("))
         assertTrue(playerActivity.contains("private val intentReader: PlayerIntentReader"))
         assertTrue(playerActivity.contains("intentReader.playbackQueue()"))
-        assertTrue(playerActivity.contains("intentReader.requestHeaders()"))
+        assertTrue(playerActivity.contains("requestHeaders = intentReader::requestHeaders"))
+        assertTrue(playerInitializer.contains("setDefaultRequestProperties(requestHeaders())"))
         assertTrue(playerActivity.contains("intentReader.isPrivateBrowsing()"))
         assertFalse(playerActivity.contains("private fun requestHeaders()"))
         assertFalse(playerActivity.contains("private fun currentPlayableMediaItem()"))

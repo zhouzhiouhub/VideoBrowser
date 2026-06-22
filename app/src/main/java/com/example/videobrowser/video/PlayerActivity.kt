@@ -19,11 +19,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.media3.common.AudioAttributes
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
@@ -86,6 +82,25 @@ class PlayerActivity : AppCompatActivity() {
     private val nativePlayerVideoEffectsController = NativePlayerVideoEffectsController(
         logTag = VIDEO_LOG_TAG
     )
+    private val nativePlayerInitializer by lazy {
+        NativePlayerInitializer(
+            context = this,
+            playerView = playerView,
+            logTag = VIDEO_LOG_TAG,
+            mediaUri = intentReader::mediaUri,
+            mimeType = intentReader::mimeType,
+            requestHeaders = intentReader::requestHeaders,
+            userAgent = intentReader::userAgent,
+            playbackQueue = { playbackQueue },
+            currentMediaItemIndex = { currentMediaItemIndex },
+            playbackPosition = { playbackPosition },
+            playWhenReady = { playWhenReady },
+            applyVideoEffects = nativePlayerVideoEffectsController::applyToPlayer,
+            applyRepeatMode = nativePlayerRepeatModeController::applyToPlayer,
+            applyPlaybackSpeed = nativePlayerPlaybackSpeedController::applyToPlayer,
+            createEventListener = ::createNativePlayerEventListener
+        )
+    }
     private val nativePlayerQueueController by lazy {
         NativePlayerQueueController(
             playerProvider = { player },
@@ -309,61 +324,32 @@ class PlayerActivity : AppCompatActivity() {
             Log.d(VIDEO_LOG_TAG, "event=native-initialize skipped=true")
             return
         }
-        Log.d(
-            VIDEO_LOG_TAG,
-            "event=native-initialize uri=${intentReader.mediaUri().take(180)} mime=${intentReader.mimeType()}"
-        )
-
-        val dataSourceFactory = DefaultHttpDataSource.Factory()
-            .setAllowCrossProtocolRedirects(true)
-            .setDefaultRequestProperties(intentReader.requestHeaders())
-        // WebView 传来的 User-Agent、Cookie、Referer 会放进请求头，减少站点防盗链导致的播放失败。
-        intentReader.userAgent()
-            ?.takeIf { it.isNotBlank() }
-            ?.let { dataSourceFactory.setUserAgent(it) }
-
-        val mediaSourceFactory = DefaultMediaSourceFactory(
-            DefaultDataSource.Factory(this, dataSourceFactory)
-        )
-        val mediaItems = playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)
-
         // ExoPlayer 生命周期跟随 Activity：onStart 初始化，onStop 释放，播放位置由 savePlayerState 保存。
-        player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(mediaSourceFactory)
-            .build()
-            .also { exoPlayer ->
-                nativePlayerVideoEffectsController.applyToPlayer(exoPlayer)
-                exoPlayer.addListener(
-                    NativePlayerEventListener(
-                        logTag = VIDEO_LOG_TAG,
-                        isVideoEffectsEnabled = nativePlayerVideoEffectsController::isEnabled,
-                        hasRetriedPlaybackWithoutVideoEffects =
-                            nativePlayerVideoEffectsController::hasRetriedWithoutEffects,
-                        retryPlaybackWithoutVideoEffects = ::retryPlaybackWithoutVideoEffects,
-                        showPlaybackFailed = {
-                            Toast.makeText(
-                                this@PlayerActivity,
-                                R.string.toast_media_playback_failed,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        savePlaybackHistory = { savePlaybackHistory(exoPlayer) },
-                        wakePlayerControls = ::wakePlayerControls,
-                        mediaItemTransitioned = {
-                            nativePlayerQueueController.handleMediaItemTransition(
-                                exoPlayer.currentMediaItemIndex
-                            )
-                        }
-                    )
+        player = nativePlayerInitializer.initialize()
+    }
+
+    private fun createNativePlayerEventListener(exoPlayer: ExoPlayer): NativePlayerEventListener {
+        return NativePlayerEventListener(
+            logTag = VIDEO_LOG_TAG,
+            isVideoEffectsEnabled = nativePlayerVideoEffectsController::isEnabled,
+            hasRetriedPlaybackWithoutVideoEffects =
+                nativePlayerVideoEffectsController::hasRetriedWithoutEffects,
+            retryPlaybackWithoutVideoEffects = ::retryPlaybackWithoutVideoEffects,
+            showPlaybackFailed = {
+                Toast.makeText(
+                    this@PlayerActivity,
+                    R.string.toast_media_playback_failed,
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            savePlaybackHistory = { savePlaybackHistory(exoPlayer) },
+            wakePlayerControls = ::wakePlayerControls,
+            mediaItemTransitioned = {
+                nativePlayerQueueController.handleMediaItemTransition(
+                    exoPlayer.currentMediaItemIndex
                 )
-                playerView.player = exoPlayer
-                exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
-                exoPlayer.setMediaItems(mediaItems, currentMediaItemIndex, playbackPosition)
-                nativePlayerRepeatModeController.applyToPlayer(exoPlayer)
-                nativePlayerPlaybackSpeedController.applyToPlayer(exoPlayer)
-                exoPlayer.playWhenReady = playWhenReady
-                exoPlayer.prepare()
             }
+        )
     }
 
     /**

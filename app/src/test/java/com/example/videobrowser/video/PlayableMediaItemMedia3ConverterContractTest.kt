@@ -11,11 +11,15 @@ class PlayableMediaItemMedia3ConverterContractTest {
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val playerInitializer = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerInitializer.kt"
+        ).readText()
         val converter = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayableMediaItemMedia3Converter.kt"
         ).readText()
 
-        assertTrue(playerActivity.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
+        assertTrue(playerActivity.contains("NativePlayerInitializer("))
+        assertTrue(playerInitializer.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
         assertFalse(playerActivity.contains("private fun toMediaItem("))
         assertFalse(playerActivity.contains("private fun toSubtitleConfiguration("))
         assertFalse(playerActivity.contains("private fun normalizedMimeType("))

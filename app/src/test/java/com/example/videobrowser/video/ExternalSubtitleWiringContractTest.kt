@@ -38,6 +38,9 @@ class ExternalSubtitleWiringContractTest {
         val playerActivity = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val playerInitializer = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerInitializer.kt"
+        ).readText()
         val intentReader = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerIntentReader.kt"
         ).readText()
@@ -52,7 +55,8 @@ class ExternalSubtitleWiringContractTest {
         assertTrue(converter.contains("setSubtitleConfigurations("))
         assertTrue(converter.contains("MediaItem.SubtitleConfiguration.Builder"))
         assertTrue(playerActivity.contains("PlayerIntentFactory.create("))
-        assertTrue(playerActivity.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
+        assertTrue(playerActivity.contains("NativePlayerInitializer("))
+        assertTrue(playerInitializer.contains("PlayableMediaItemMedia3Converter::toMediaItem"))
     }
 
     /**
