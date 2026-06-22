@@ -27,6 +27,7 @@ class BrowserManager(
     )
 
     private val webViewSettings = BrowserWebViewSettingsController()
+    private val webViewLifecycle = BrowserWebViewLifecycleController(webViewSettings)
     private val javascriptInterfaces = mutableListOf<JavascriptInterfaceBinding>()
     private var chromeClient: WebChromeClient? = null
     private var browserClient: WebViewClient? = null
@@ -373,7 +374,7 @@ class BrowserManager(
     fun clearBrowsingData(clearSharedStores: Boolean = true) {
         // clearSharedStores 为 true 时会清理 Cookie/WebStorage 等 WebView 全局数据。
         // 无痕退出时可按需要只清当前 WebView，避免影响普通模式的登录状态。
-        BrowserWebViewDataCleaner.clear(webView, clearSharedStores)
+        webViewLifecycle.clearBrowsingData(webView, clearSharedStores)
     }
 
     /**
@@ -382,7 +383,7 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearCache() {
-        webView.clearCache(true)
+        webViewLifecycle.clearCache(webView)
     }
 
     /**
@@ -393,16 +394,11 @@ class BrowserManager(
      * @param clearSharedStores 参数类型为 `Boolean`，表示函数执行 `clearSharedStores` 相关逻辑时需要读取或处理的输入。
      */
     fun destroyWebView(targetWebView: WebView, clearSharedStores: Boolean = true) {
-        targetWebView.webChromeClient = null
-        if (targetWebView === webView) {
-            BrowserPageLifecycleScriptController.disposeCurrentPage(webView)
-        }
-        targetWebView.stopLoading()
-        targetWebView.loadUrl("about:blank")
-        BrowserWebViewDataCleaner.clear(targetWebView, clearSharedStores)
-        targetWebView.removeAllViews()
-        webViewSettings.forget(targetWebView)
-        targetWebView.destroy()
+        webViewLifecycle.destroyWebView(
+            targetWebView = targetWebView,
+            activeWebView = webView,
+            clearSharedStores = clearSharedStores
+        )
     }
 
     /**
@@ -411,10 +407,7 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clearTransientBrowsingData() {
-        BrowserPageLifecycleScriptController.disposeCurrentPage(webView)
-        webView.stopLoading()
-        webView.loadUrl("about:blank")
-        clearBrowsingData(clearSharedStores = false)
+        webViewLifecycle.clearTransientBrowsingData(webView)
     }
 
     /**
