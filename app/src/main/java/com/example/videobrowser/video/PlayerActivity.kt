@@ -97,6 +97,9 @@ class PlayerActivity : AppCompatActivity() {
         gestureOverlay = { if (::gestureOverlay.isInitialized) gestureOverlay else null },
         saveDefaultVideoSpeed = { speed -> settingsManager.setDefaultVideoSpeed(speed) }
     )
+    private val nativePlayerVideoEffectsController = NativePlayerVideoEffectsController(
+        logTag = VIDEO_LOG_TAG
+    )
     private val directionalLongPressController = NativeDirectionalLongPressController(
         scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
         seekBy = nativePlayerTransportController::seekBy
@@ -104,8 +107,6 @@ class PlayerActivity : AppCompatActivity() {
     private var playbackPosition = 0L
     private var playWhenReady = true
     private var currentMediaItemIndex = 0
-    private var videoEffectsEnabled = true
-    private var retriedPlaybackWithoutVideoEffects = false
     private val intentReader: PlayerIntentReader by lazy { PlayerIntentReader(intent) }
 
     /**
@@ -163,8 +164,10 @@ class PlayerActivity : AppCompatActivity() {
             playWhenReady = restoredState.playWhenReady
             nativePlayerOrientationController.setLandscape(restoredState.isLandscape)
             nativePlayerVideoZoomController.setMode(restoredState.videoZoomMode)
-            videoEffectsEnabled = restoredState.videoEffectsEnabled
-            retriedPlaybackWithoutVideoEffects = restoredState.retriedPlaybackWithoutVideoEffects
+            nativePlayerVideoEffectsController.restoreState(
+                enabled = restoredState.videoEffectsEnabled,
+                retriedWithoutEffects = restoredState.retriedPlaybackWithoutVideoEffects
+            )
         } else {
             restorePlaybackHistory()
         }
@@ -259,8 +262,9 @@ class PlayerActivity : AppCompatActivity() {
             sessionState = sessionState,
             playbackQueue = playbackQueue,
             isLandscape = nativePlayerOrientationController.isLandscape(),
-            videoEffectsEnabled = videoEffectsEnabled,
-            retriedPlaybackWithoutVideoEffects = retriedPlaybackWithoutVideoEffects
+            videoEffectsEnabled = nativePlayerVideoEffectsController.isEnabled(),
+            retriedPlaybackWithoutVideoEffects = nativePlayerVideoEffectsController
+                .hasRetriedWithoutEffects()
         )
         super.onSaveInstanceState(outState)
     }
@@ -302,36 +306,19 @@ class PlayerActivity : AppCompatActivity() {
             DefaultDataSource.Factory(this, dataSourceFactory)
         )
         val mediaItems = playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)
-        val videoEffects = NativeVideoEnhancement.defaultEffects()
 
         // ExoPlayer 生命周期跟随 Activity：onStart 初始化，onStop 释放，播放位置由 savePlayerState 保存。
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
             .also { exoPlayer ->
-                if (videoEffectsEnabled && videoEffects.isNotEmpty()) {
-                    runCatching {
-                        exoPlayer.setVideoEffects(videoEffects)
-                    }.onSuccess {
-                        Log.d(
-                            VIDEO_LOG_TAG,
-                            "event=native-video-effects applied=true count=${videoEffects.size}"
-                        )
-                    }.onFailure { error ->
-                        videoEffectsEnabled = false
-                        Log.d(
-                            VIDEO_LOG_TAG,
-                            "event=native-video-effects applied=false error=${error.message}"
-                        )
-                    }
-                }
+                nativePlayerVideoEffectsController.applyToPlayer(exoPlayer)
                 exoPlayer.addListener(
                     NativePlayerEventListener(
                         logTag = VIDEO_LOG_TAG,
-                        isVideoEffectsEnabled = { videoEffectsEnabled },
-                        hasRetriedPlaybackWithoutVideoEffects = {
-                            retriedPlaybackWithoutVideoEffects
-                        },
+                        isVideoEffectsEnabled = nativePlayerVideoEffectsController::isEnabled,
+                        hasRetriedPlaybackWithoutVideoEffects =
+                            nativePlayerVideoEffectsController::hasRetriedWithoutEffects,
                         retryPlaybackWithoutVideoEffects = ::retryPlaybackWithoutVideoEffects,
                         showPlaybackFailed = {
                             Toast.makeText(
@@ -363,13 +350,10 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun retryPlaybackWithoutVideoEffects() {
-        if (retriedPlaybackWithoutVideoEffects) {
+        if (!nativePlayerVideoEffectsController.markRetryWithoutEffects()) {
             return
         }
-        Log.d(VIDEO_LOG_TAG, "event=native-video-effects retryWithoutEffects=true")
         savePlayerState()
-        retriedPlaybackWithoutVideoEffects = true
-        videoEffectsEnabled = false
         releasePlayer()
         initializePlayer()
     }
