@@ -20,8 +20,6 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.AudioAttributes
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -301,83 +299,26 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 }
                 exoPlayer.addListener(
-                    object : Player.Listener {
-                        /**
-                         * 函数 `onPlayerError`：处理 `on Player Error` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-                         *
-                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-                         * @param error 参数类型为 `PlaybackException`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
-                         */
-                        override fun onPlayerError(error: PlaybackException) {
-                            Log.d(
-                                VIDEO_LOG_TAG,
-                                "event=native-player-error code=${error.errorCode} message=${error.message}"
-                            )
-                            if (videoEffectsEnabled && !retriedPlaybackWithoutVideoEffects) {
-                                retryPlaybackWithoutVideoEffects()
-                                return
-                            }
+                    NativePlayerEventListener(
+                        logTag = VIDEO_LOG_TAG,
+                        isVideoEffectsEnabled = { videoEffectsEnabled },
+                        hasRetriedPlaybackWithoutVideoEffects = {
+                            retriedPlaybackWithoutVideoEffects
+                        },
+                        retryPlaybackWithoutVideoEffects = ::retryPlaybackWithoutVideoEffects,
+                        showPlaybackFailed = {
                             Toast.makeText(
                                 this@PlayerActivity,
                                 R.string.toast_media_playback_failed,
                                 Toast.LENGTH_SHORT
                             ).show()
+                        },
+                        savePlaybackHistory = { savePlaybackHistory(exoPlayer) },
+                        wakePlayerControls = ::wakePlayerControls,
+                        mediaItemTransitioned = {
+                            handleMediaItemTransition(exoPlayer.currentMediaItemIndex)
                         }
-
-                        /**
-                         * 函数 `onPlayWhenReadyChanged`：处理 `on Play When Ready Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-                         *
-                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-                         * @param playWhenReady 参数类型为 `Boolean`，表示函数执行 `playWhenReady` 相关逻辑时需要读取或处理的输入。
-                         * @param reason 参数类型为 `Int`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-                         */
-                        override fun onPlayWhenReadyChanged(
-                            playWhenReady: Boolean,
-                            reason: Int
-                        ) {
-                            Log.d(
-                                VIDEO_LOG_TAG,
-                                "event=native-play-when-ready playWhenReady=$playWhenReady reason=$reason"
-                            )
-                            savePlaybackHistory(exoPlayer)
-                            wakePlayerControls()
-                        }
-
-                        /**
-                         * 函数 `onPlaybackStateChanged`：处理 `on Playback State Changed` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-                         *
-                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-                         * @param playbackState 参数类型为 `Int`，表示函数执行 `playbackState` 相关逻辑时需要读取或处理的输入。
-                         */
-                        override fun onPlaybackStateChanged(playbackState: Int) {
-                            Log.d(
-                                VIDEO_LOG_TAG,
-                                "event=native-playback-state state=$playbackState"
-                            )
-                            if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
-                                savePlaybackHistory(exoPlayer)
-                            }
-                            wakePlayerControls()
-                        }
-
-                        /**
-                         * 函数 `onMediaItemTransition`：处理 `on Media Item Transition` 对应的事件或请求，集中完成校验、状态更新和回调通知。
-                         *
-                         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-                         * @param mediaItem 参数类型为 `MediaItem?`，表示函数执行 `mediaItem` 相关逻辑时需要读取或处理的输入。
-                         * @param reason 参数类型为 `Int`，表示函数执行 `reason` 相关逻辑时需要读取或处理的输入。
-                         */
-                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                            currentMediaItemIndex = exoPlayer.currentMediaItemIndex
-                            playbackQueue = playbackQueue
-                                .select(currentMediaItemIndex)
-                                .copy(repeatMode = repeatMode)
-                            playbackPosition = 0L
-                            title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title.orEmpty()
-                            updateQueueControls()
-                            wakePlayerControls()
-                        }
-                    }
+                    )
                 )
                 playerView.player = exoPlayer
                 exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
@@ -404,6 +345,16 @@ class PlayerActivity : AppCompatActivity() {
         videoEffectsEnabled = false
         releasePlayer()
         initializePlayer()
+    }
+
+    private fun handleMediaItemTransition(index: Int) {
+        currentMediaItemIndex = index
+        playbackQueue = playbackQueue
+            .select(currentMediaItemIndex)
+            .copy(repeatMode = repeatMode)
+        playbackPosition = 0L
+        title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title.orEmpty()
+        updateQueueControls()
     }
 
     /**
