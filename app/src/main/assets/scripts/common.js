@@ -299,55 +299,14 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function installVideoFullscreenHooks(video) {
-    if (!video || state.fullscreenHookedVideos.has(video)) return;
-    state.fullscreenHookedVideos.add(video);
-    /**
-     * 函数 `timelineReporter`：封装 `timeline Reporter` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-     */
-    const timelineReporter = function () {
-      const position = Number(video.currentTime || 0);
-      if (isVideoFullscreen(video) || state.nativeFullscreenVideo === video || !video.paused || position > 0) {
-        reportPlaybackTimeline(video);
-      }
-    };
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    video.addEventListener('webkitbeginfullscreen', function () {
-      state.nativeFullscreenVideo = video;
-      applyVideoSpeed(video);
-      reportPlaybackTimeline(video);
-      enterNativeFullscreen();
-    });
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    video.addEventListener('webkitendfullscreen', function () {
-      stopDirectionalPlayback();
-      state.nativeFullscreenVideo = null;
-      state.documentFullscreenActive = false;
-      state.fullscreenPlaybackSpeed = 1;
-      applyVideoSpeed(video);
-      exitNativeFullscreen();
-    });
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    video.addEventListener('dblclick', function () {
-      requestVideoFullscreen(video);
-    });
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param eventName 表示当前回调正在处理的名称、键或文本值。
-     */
-    ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'play', 'playing'].forEach(function (eventName) {
-      video.addEventListener(eventName, timelineReporter);
+    return videoFullscreenTools.installVideoHooks(video, state, {
+      isVideoFullscreen: isVideoFullscreen,
+      applyVideoSpeed: applyVideoSpeed,
+      reportPlaybackTimeline: reportPlaybackTimeline,
+      enterNativeFullscreen: enterNativeFullscreen,
+      stopDirectionalPlayback: stopDirectionalPlayback,
+      exitNativeFullscreen: exitNativeFullscreen,
+      requestVideoFullscreen: requestVideoFullscreen
     });
   }
 

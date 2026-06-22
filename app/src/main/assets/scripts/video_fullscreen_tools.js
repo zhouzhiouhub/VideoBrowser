@@ -103,6 +103,51 @@
     }
   };
 
+  tools.installVideoHooks = tools.installVideoHooks || function (video, state, options) {
+    const targetState = state || {};
+    const callbacks = options || {};
+    if (!targetState.fullscreenHookedVideos || typeof targetState.fullscreenHookedVideos.add !== 'function') {
+      targetState.fullscreenHookedVideos = new WeakSet();
+    }
+    if (!video || targetState.fullscreenHookedVideos.has(video)) return;
+    targetState.fullscreenHookedVideos.add(video);
+
+    const timelineReporter = function () {
+      const position = Number(video.currentTime || 0);
+      if (isVideoFullscreen(video, callbacks) ||
+        targetState.nativeFullscreenVideo === video ||
+        !video.paused ||
+        position > 0
+      ) {
+        call(callbacks, 'reportPlaybackTimeline', video);
+      }
+    };
+
+    video.addEventListener('webkitbeginfullscreen', function () {
+      targetState.nativeFullscreenVideo = video;
+      call(callbacks, 'applyVideoSpeed', video);
+      call(callbacks, 'reportPlaybackTimeline', video);
+      call(callbacks, 'enterNativeFullscreen');
+    });
+
+    video.addEventListener('webkitendfullscreen', function () {
+      call(callbacks, 'stopDirectionalPlayback');
+      targetState.nativeFullscreenVideo = null;
+      targetState.documentFullscreenActive = false;
+      targetState.fullscreenPlaybackSpeed = 1;
+      call(callbacks, 'applyVideoSpeed', video);
+      call(callbacks, 'exitNativeFullscreen');
+    });
+
+    video.addEventListener('dblclick', function () {
+      call(callbacks, 'requestVideoFullscreen', video);
+    });
+
+    ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'play', 'playing'].forEach(function (eventName) {
+      video.addEventListener(eventName, timelineReporter);
+    });
+  };
+
   tools.syncDocumentState = tools.syncDocumentState || function (state, options) {
     const callbacks = options || {};
     const hasDocumentFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
@@ -131,4 +176,16 @@
     callbacks.videoQueryTools.forEach(callbacks.applyVideoSpeed);
     callbacks.exitNativeFullscreen();
   };
+
+  function isVideoFullscreen(video, callbacks) {
+    return typeof callbacks.isVideoFullscreen === 'function'
+      ? callbacks.isVideoFullscreen(video)
+      : tools.isVideoFullscreen(video);
+  }
+
+  function call(callbacks, name, value) {
+    if (typeof callbacks[name] === 'function') {
+      callbacks[name](value);
+    }
+  }
 })();

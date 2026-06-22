@@ -18,10 +18,14 @@ class VideoFullscreenToolsContractTest {
         assertTrue(fullscreenScript.contains("tools.request = tools.request || function (video, options)"))
         assertTrue(fullscreenScript.contains("tools.exit = tools.exit || function (state, options)"))
         assertTrue(fullscreenScript.contains("tools.isVideoFullscreen = tools.isVideoFullscreen || function (video)"))
+        assertTrue(fullscreenScript.contains("tools.installVideoHooks = tools.installVideoHooks || function (video, state, options)"))
         assertTrue(fullscreenScript.contains("tools.syncDocumentState = tools.syncDocumentState || function (state, options)"))
         assertTrue(fullscreenScript.contains("target.requestFullscreen || target.webkitRequestFullscreen"))
+        assertTrue(fullscreenScript.contains("video.addEventListener('webkitbeginfullscreen', function ()"))
+        assertTrue(fullscreenScript.contains("video.addEventListener('webkitendfullscreen', function ()"))
         assertTrue(fullscreenScript.contains("document.exitFullscreen()"))
         assertTrue(commonScript.contains("const videoFullscreenTools = window.VideoBrowserVideoFullscreenTools"))
+        assertTrue(commonScript.contains("return videoFullscreenTools.installVideoHooks(video, state, {"))
         assertTrue(commonScript.contains("return videoFullscreenTools.activeVideo(state, videoQueryTools);"))
         assertTrue(commonScript.contains("videoFullscreenTools.request(video, {"))
         assertTrue(commonScript.contains("videoFullscreenTools.exit(state, {"))
@@ -35,6 +39,9 @@ class VideoFullscreenToolsContractTest {
         assertFalse(commonScript.contains("target.requestFullscreen || target.webkitRequestFullscreen"))
         assertFalse(commonScript.contains("document.exitFullscreen()"))
         assertFalse(commonScript.contains("document.webkitExitFullscreen()"))
+        assertFalse(commonScript.contains("state.fullscreenHookedVideos.add(video);"))
+        assertFalse(commonScript.contains("video.addEventListener('webkitbeginfullscreen'"))
+        assertFalse(commonScript.contains("const timelineReporter = function ()"))
     }
 
     private fun projectFile(path: String): File {
