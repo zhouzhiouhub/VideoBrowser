@@ -34,10 +34,12 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'togglePlayPause', [], options)"))
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekBy', [offsetSeconds], options)"))
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'seekTo', [targetSeconds], options)"))
-        assertTrue(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
+        assertTrue(script.contains("videoEnhancementTools.setPlaybackSpeed(speed, state, {"))
+        assertTrue(enhancementScript.contains("[targetState.fullscreenPlaybackSpeed]"))
         assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [], config)"))
         assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
         assertFalse(enhancementScript.contains("if (hasSiteVideoCapability(video, 'setPlaybackSpeed')) return;"))
+        assertFalse(script.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
     }
 
     /**

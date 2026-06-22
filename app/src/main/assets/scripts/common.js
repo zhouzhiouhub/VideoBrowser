@@ -626,17 +626,13 @@
      * @param {*} speed 表示参与几何计算、播放控制或列表定位的数值。
      */
     setPlaybackSpeed: function (speed) {
-      stopDirectionalPlayback();
-      const normalizedSpeed = Number(speed || 1);
-      state.fullscreenPlaybackSpeed =
-        Number.isFinite(normalizedSpeed) && normalizedSpeed > 0 ? normalizedSpeed : 1;
-      const video = activeFullscreenVideo();
-      if (video && !(document.fullscreenElement || document.webkitFullscreenElement)) {
-        state.nativeFullscreenVideo = video;
-      }
-      const siteResult = invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed]);
-      if (siteResult.handled) return;
-      videoQueryTools.forEach(applyVideoSpeed);
+      videoEnhancementTools.setPlaybackSpeed(speed, state, {
+        stopDirectionalPlayback: stopDirectionalPlayback,
+        activeFullscreenVideo: activeFullscreenVideo,
+        invokeSiteVideoCapability: invokeSiteVideoCapability,
+        videoQueryTools: videoQueryTools,
+        applyVideoSpeed: applyVideoSpeed
+      });
     },
     /**
      * 函数 `startDirectionalPlayback`：封装 `start Directional Playback` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。

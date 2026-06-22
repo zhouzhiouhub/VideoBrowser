@@ -108,6 +108,34 @@
     return false;
   };
 
+  tools.setPlaybackSpeed = tools.setPlaybackSpeed || function (speed, state, options) {
+    const targetState = state || {};
+    const config = options || {};
+    call(config, 'stopDirectionalPlayback');
+
+    const normalizedSpeed = Number(speed || 1);
+    targetState.fullscreenPlaybackSpeed =
+      Number.isFinite(normalizedSpeed) && normalizedSpeed > 0 ? normalizedSpeed : 1;
+
+    const video = activeVideo(config);
+    if (video && !(document.fullscreenElement || document.webkitFullscreenElement)) {
+      targetState.nativeFullscreenVideo = video;
+    }
+
+    const siteResult = invokeSiteVideoCapability(
+      video,
+      'setPlaybackSpeed',
+      [targetState.fullscreenPlaybackSpeed],
+      config
+    );
+    if (siteResult.handled) return true;
+
+    forEachVideo(config, function (targetVideo) {
+      applyVideoSpeed(targetVideo, targetState, config);
+    });
+    return true;
+  };
+
   function hasSiteVideoCapability(video, action, options) {
     const config = options || {};
     return typeof config.hasSiteVideoCapability === 'function'
@@ -121,6 +149,35 @@
       return config.invokeSiteVideoCapability(video, action, args);
     }
     return { handled: false, value: undefined };
+  }
+
+  function activeVideo(options) {
+    const config = options || {};
+    return typeof config.activeFullscreenVideo === 'function'
+      ? config.activeFullscreenVideo()
+      : null;
+  }
+
+  function applyVideoSpeed(video, state, options) {
+    const config = options || {};
+    if (typeof config.applyVideoSpeed === 'function') {
+      config.applyVideoSpeed(video);
+      return;
+    }
+    tools.applySpeed(video, state, config);
+  }
+
+  function forEachVideo(options, callback) {
+    const config = options || {};
+    if (config.videoQueryTools && typeof config.videoQueryTools.forEach === 'function') {
+      config.videoQueryTools.forEach(callback);
+    }
+  }
+
+  function call(callbacks, name) {
+    if (callbacks && typeof callbacks[name] === 'function') {
+      callbacks[name]();
+    }
   }
 
   function logVideoDiagnostic(event, video, extra, options) {

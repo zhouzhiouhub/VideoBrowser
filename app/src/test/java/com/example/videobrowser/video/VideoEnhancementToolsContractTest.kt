@@ -20,7 +20,10 @@ class VideoEnhancementToolsContractTest {
         assertTrue(enhancementScript.contains("tools.desiredSpeed = tools.desiredSpeed || function (video, state, options)"))
         assertTrue(enhancementScript.contains("tools.applySpeed = tools.applySpeed || function (video, state, options)"))
         assertTrue(enhancementScript.contains("tools.preferBestQuality = tools.preferBestQuality || function (video, state, options)"))
+        assertTrue(enhancementScript.contains("tools.setPlaybackSpeed = tools.setPlaybackSpeed || function (speed, state, options)"))
         assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
+        assertTrue(enhancementScript.contains("[targetState.fullscreenPlaybackSpeed]"))
+        assertTrue(enhancementScript.contains("forEachVideo(config, function (targetVideo)"))
         assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'preferBestQuality', [], config)"))
         assertTrue(commonScript.contains("const videoEnhancementTools = window.VideoBrowserVideoEnhancementTools"))
         assertTrue(commonScript.contains("return videoEnhancementTools.installPlaybackSpeedHooks(video, state, {"))
@@ -29,6 +32,7 @@ class VideoEnhancementToolsContractTest {
         assertTrue(commonScript.contains("return videoEnhancementTools.isFullscreenPlaybackTarget(video, state, {"))
         assertTrue(commonScript.contains("return videoEnhancementTools.applySpeed(video, state, {"))
         assertTrue(commonScript.contains("return videoEnhancementTools.preferBestQuality(video, state, {"))
+        assertTrue(commonScript.contains("videoEnhancementTools.setPlaybackSpeed(speed, state, {"))
         assertTrue(scriptLoader.contains("VIDEO_ENHANCEMENT_TOOLS_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("VIDEO_ENHANCEMENT_TOOLS_SCRIPT_ASSET") <
@@ -37,6 +41,9 @@ class VideoEnhancementToolsContractTest {
         assertFalse(commonScript.contains("state.speedHookedVideos.add(video);"))
         assertFalse(commonScript.contains("video.playbackRate = speed;"))
         assertFalse(commonScript.contains("state.bestQualityAttempts.set(video, { at: now"))
+        assertFalse(commonScript.contains("const normalizedSpeed = Number(speed || 1);"))
+        assertFalse(commonScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
+        assertFalse(commonScript.contains("videoQueryTools.forEach(applyVideoSpeed);"))
     }
 
     private fun projectFile(path: String): File {
