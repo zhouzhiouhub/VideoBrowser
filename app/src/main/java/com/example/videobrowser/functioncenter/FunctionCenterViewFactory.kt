@@ -7,15 +7,9 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
 
 /**
@@ -29,6 +23,7 @@ class FunctionCenterViewFactory(
     private val dp: (Int) -> Int
 ) {
     private val surfaceFactory = FunctionCenterSurfaceFactory(activity, dp)
+    private val pageFactory = FunctionCenterPageViewFactory(activity, dp, surfaceFactory)
     private val rowFactory = FunctionCenterRowFactory(activity, dp, surfaceFactory)
     private val gridFactory = FunctionCenterGridFactory(activity, dp)
     private val headerFactory = FunctionCenterHeaderFactory(activity, dp, surfaceFactory, rowFactory)
@@ -48,47 +43,7 @@ class FunctionCenterViewFactory(
         onBack: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ): View {
-        val page = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            isClickable = true
-            isFocusable = true
-            setBackgroundColor(
-                ContextCompat.getColor(activity, R.color.browser_background)
-            )
-        }
-        page.addView(
-            surfaceFactory.createToolbar(title, onBack),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(56)
-            )
-        )
-
-        val content = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(12), dp(14), dp(24))
-        }
-        buildContent(content)
-
-        val scrollView = ScrollView(activity).apply {
-            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
-            addView(
-                content,
-                ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            )
-        }
-        page.addView(
-            scrollView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
-        )
-        return page
+        return pageFactory.createPage(title, onBack, buildContent)
     }
 
     /**
@@ -107,79 +62,7 @@ class FunctionCenterViewFactory(
         onClose: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ): View {
-        // overlay 是整屏半透明遮罩，sheet 是底部面板；点击遮罩会关闭功能中心。
-        val overlay = FrameLayout(activity).apply {
-            isClickable = true
-            isFocusable = true
-            setBackgroundColor(ContextCompat.getColor(activity, R.color.browser_sheet_scrim))
-            setOnClickListener { onClose() }
-        }
-
-        val sheet = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            isClickable = true
-            isFocusable = true
-            elevation = dp(12).toFloat()
-            background = surfaceFactory.createBottomSheetBackground(
-                ContextCompat.getColor(activity, R.color.browser_surface)
-            )
-        }
-
-        sheet.addView(
-            surfaceFactory.createSheetHandle(),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(18)
-            )
-        )
-        sheet.addView(
-            surfaceFactory.createSheetToolbar(title, onBack, onClose),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(50)
-            )
-        )
-
-        val content = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), 0, dp(14), dp(20))
-        }
-        buildContent(content)
-
-        val scrollView = ScrollView(activity).apply {
-            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
-            addView(
-                content,
-                ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            )
-        }
-        sheet.addView(
-            scrollView,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
-        )
-
-        val displayHeight = activity.resources.displayMetrics.heightPixels
-        val sheetHeight = (displayHeight * 0.54f)
-            .toInt()
-            .coerceAtLeast(dp(360))
-            .coerceAtMost(displayHeight - dp(24))
-        overlay.addView(
-            sheet,
-            FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                sheetHeight
-            ).apply {
-                gravity = Gravity.BOTTOM
-            }
-        )
-        return overlay
+        return pageFactory.createBottomSheetPage(title, onBack, onClose, buildContent)
     }
 
     /**
