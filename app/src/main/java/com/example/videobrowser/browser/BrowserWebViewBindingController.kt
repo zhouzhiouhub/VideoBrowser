@@ -47,9 +47,7 @@ internal class BrowserWebViewBindingController(
     }
 
     fun detachFrom(targetWebView: WebView) {
-        targetWebView.webChromeClient = null
-        targetWebView.webViewClient = WebViewClient()
-        targetWebView.setDownloadListener(null)
+        BrowserWebViewCallbackCleaner.detachCallbacks(targetWebView)
     }
 
     fun attachToCurrentWebView() {

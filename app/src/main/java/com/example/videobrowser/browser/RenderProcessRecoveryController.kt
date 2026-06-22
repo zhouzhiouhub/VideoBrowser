@@ -9,7 +9,6 @@ package com.example.videobrowser.browser
  */
 import android.view.ViewGroup
 import android.webkit.WebView
-import android.webkit.WebViewClient
 
 /**
  * WebView 渲染进程退出恢复控制器。
@@ -145,9 +144,7 @@ class RenderProcessRecoveryController(
         } else {
             (goneWebView.parent as? ViewGroup)?.removeView(goneWebView)
         }
-        goneWebView.webChromeClient = null
-        goneWebView.webViewClient = WebViewClient()
-        goneWebView.setDownloadListener(null)
+        BrowserWebViewCallbackCleaner.detachCallbacks(goneWebView)
         goneWebView.removeAllViews()
         goneWebView.destroy()
     }

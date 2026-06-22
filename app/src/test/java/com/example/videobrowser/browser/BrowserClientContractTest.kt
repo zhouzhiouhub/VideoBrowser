@@ -201,6 +201,9 @@ class BrowserClientContractTest {
         val renderProcessRecoveryController = projectFile(
             "src/main/java/com/example/videobrowser/browser/RenderProcessRecoveryController.kt"
         ).readText()
+        val callbackCleaner = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewCallbackCleaner.kt"
+        ).readText()
         val sessionCoordinator = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSessionCoordinator.kt"
         ).readText()
@@ -225,7 +228,8 @@ class BrowserClientContractTest {
         assertTrue(renderProcessRecoveryController.contains("standardTabWebViews.replaceView(tabId, replacementWebView)"))
         assertTrue(renderProcessRecoveryController.contains("sessionCoordinator.replacePrivateWebView()"))
         assertTrue(renderProcessRecoveryController.contains("private fun disposeGoneWebView(goneWebView: WebView)"))
-        assertTrue(renderProcessRecoveryController.contains("goneWebView.webViewClient = WebViewClient()"))
+        assertTrue(renderProcessRecoveryController.contains("BrowserWebViewCallbackCleaner.detachCallbacks(goneWebView)"))
+        assertTrue(callbackCleaner.contains("targetWebView.webViewClient = WebViewClient()"))
         assertTrue(sessionCoordinator.contains("fun replacePrivateWebView(): WebView?"))
         assertTrue(sessionCoordinator.contains("detachCurrent = false"))
         assertTrue(tabRegistry.contains("data class ReplaceResult"))

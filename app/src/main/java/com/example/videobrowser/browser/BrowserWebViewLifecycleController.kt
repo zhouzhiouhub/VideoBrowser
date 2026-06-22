@@ -25,7 +25,7 @@ internal class BrowserWebViewLifecycleController(
         activeWebView: WebView,
         clearSharedStores: Boolean = true
     ) {
-        targetWebView.webChromeClient = null
+        BrowserWebViewCallbackCleaner.detachCallbacks(targetWebView)
         if (targetWebView === activeWebView) {
             BrowserPageLifecycleScriptController.disposeCurrentPage(activeWebView)
         }

@@ -14,6 +14,9 @@ class BrowserWebViewLifecycleControllerContractTest {
         val lifecycleController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebViewLifecycleController.kt"
         ).readText()
+        val callbackCleaner = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewCallbackCleaner.kt"
+        ).readText()
 
         assertTrue(browserManager.contains("BrowserWebViewLifecycleController(webViewSettings)"))
         assertTrue(browserManager.contains("webViewLifecycle.clearBrowsingData(webView, clearSharedStores)"))
@@ -25,6 +28,7 @@ class BrowserWebViewLifecycleControllerContractTest {
 
         assertTrue(lifecycleController.contains("BrowserWebViewDataCleaner.clear(targetWebView, clearSharedStores)"))
         assertTrue(lifecycleController.contains("targetWebView.clearCache(true)"))
+        assertTrue(lifecycleController.contains("BrowserWebViewCallbackCleaner.detachCallbacks(targetWebView)"))
         assertTrue(lifecycleController.contains("BrowserPageLifecycleScriptController.disposeCurrentPage(activeWebView)"))
         assertTrue(lifecycleController.contains("targetWebView.stopLoading()"))
         assertTrue(lifecycleController.contains("targetWebView.loadUrl(\"about:blank\")"))
@@ -32,6 +36,10 @@ class BrowserWebViewLifecycleControllerContractTest {
         assertTrue(lifecycleController.contains("webViewSettings.forget(targetWebView)"))
         assertTrue(lifecycleController.contains("targetWebView.destroy()"))
         assertTrue(lifecycleController.contains("clearBrowsingData(targetWebView, clearSharedStores = false)"))
+
+        assertTrue(callbackCleaner.contains("targetWebView.webChromeClient = null"))
+        assertTrue(callbackCleaner.contains("targetWebView.webViewClient = WebViewClient()"))
+        assertTrue(callbackCleaner.contains("targetWebView.setDownloadListener(null)"))
     }
 
     private fun projectFile(path: String): File {
