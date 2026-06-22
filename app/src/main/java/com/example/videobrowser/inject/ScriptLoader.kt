@@ -92,6 +92,7 @@ class ScriptLoader(
         const val SCRIPTLET_HOOKS_SCRIPT_ASSET = "scripts/scriptlet_hooks.js"
         const val STYLE_MANAGER_SCRIPT_ASSET = "scripts/style_manager.js"
         const val CONFIGURED_CLEANUP_SCRIPT_ASSET = "scripts/configured_cleanup.js"
+        const val PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET = "scripts/page_lifecycle_tools.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
         val COMMON_SCRIPT_ASSETS = listOf(
@@ -118,6 +119,7 @@ class ScriptLoader(
             SCRIPTLET_HOOKS_SCRIPT_ASSET,
             STYLE_MANAGER_SCRIPT_ASSET,
             CONFIGURED_CLEANUP_SCRIPT_ASSET,
+            PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET,
             COMMON_SCRIPT_ASSET
         )
         private const val SCRIPT_ASSET_DIRECTORY = "scripts/"

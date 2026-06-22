@@ -57,11 +57,10 @@
   const customControlDetector = window.VideoBrowserVideoCustomControlDetector;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
+  const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;
 
   const normalCleanupIntervalMs = 3000;
   const activeVideoCleanupIntervalMs = 15000;
-  const normalWorkDelayMs = 250;
-  const activeVideoWorkDelayMs = 750;
   /**
    * 函数 `logVideoDiagnostic`：封装 `log Video Diagnostic` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
@@ -149,18 +148,7 @@
    * @param {*} work 表示稍后执行的回调、清理函数或调用参数。
    */
   function runWithMutationSuppressed(work) {
-    state.suppressMutationWork = true;
-    try {
-      return work();
-    } finally {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       */
-      window.setTimeout(function () {
-        state.suppressMutationWork = false;
-      }, 0);
-    }
+    return pageLifecycleTools.runWithMutationSuppressed(state, work);
   }
 
   /**
@@ -609,23 +597,11 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function installFullscreenEventHooks() {
-    document.addEventListener('fullscreenchange', syncDocumentFullscreenState);
-    document.addEventListener('webkitfullscreenchange', syncDocumentFullscreenState);
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    window.addEventListener('pagehide', function () {
-      suspendPageFeatures({ pauseVideos: true });
-    });
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    window.addEventListener('pageshow', function () {
-      state.disposed = false;
-      startWorkers();
-      schedulePageWork();
+    return pageLifecycleTools.installFullscreenEventHooks(state, {
+      syncDocumentFullscreenState: syncDocumentFullscreenState,
+      suspendPageFeatures: suspendPageFeatures,
+      startWorkers: startWorkers,
+      schedulePageWork: schedulePageWork
     });
   }
 
@@ -695,13 +671,10 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function schedulePageWork() {
-    if (state.disposed || state.pendingWork) return;
-
-    const elapsed = Date.now() - Number(state.lastWorkAt || 0);
-    const workDelay = hasActiveVideo() ? activeVideoWorkDelayMs : normalWorkDelayMs;
-    const delay = Math.max(60, workDelay - elapsed);
-    state.pendingWork = true;
-    window.setTimeout(runPageWork, delay);
+    return pageLifecycleTools.schedulePageWork(state, {
+      hasActiveVideo: hasActiveVideo,
+      runPageWork: runPageWork
+    });
   }
 
   /**
@@ -777,18 +750,9 @@
    * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
    */
   function disposePageFeatures(options) {
-    suspendPageFeatures(options);
-    state.disposed = true;
-    state.pendingWork = false;
-
-    if (state.observer) {
-      state.observer.disconnect();
-      state.observer = null;
-    }
-    if (state.intervalId) {
-      window.clearInterval(state.intervalId);
-      state.intervalId = null;
-    }
+    return pageLifecycleTools.disposePageFeatures(state, options, {
+      suspendPageFeatures: suspendPageFeatures
+    });
   }
 
   /**
@@ -797,37 +761,10 @@
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
    */
   function startWorkers() {
-    if (state.disposed) return;
-
-    if (isBilibiliHost() && state.observer) {
-      state.observer.disconnect();
-      state.observer = null;
-    }
-
-    if (!state.observer && document.documentElement && !isBilibiliHost()) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       */
-      state.observer = new MutationObserver(function () {
-        if (state.suppressMutationWork) return;
-        schedulePageWork();
-      });
-      state.observer.observe(document.documentElement, {
-        childList: true,
-        subtree: true
-      });
-    }
-
-    if (!state.intervalId) {
-      /*
-       * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-       * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-       */
-      state.intervalId = window.setInterval(function () {
-        schedulePageWork();
-      }, 1500);
-    }
+    return pageLifecycleTools.startWorkers(state, {
+      shouldDisableObserver: isBilibiliHost,
+      schedulePageWork: schedulePageWork
+    });
   }
 
   window.VideoBrowserEnhancer = {

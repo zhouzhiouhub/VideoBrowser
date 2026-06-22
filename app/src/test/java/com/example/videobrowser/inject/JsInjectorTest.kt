@@ -418,6 +418,7 @@ class JsInjectorTest {
             ScriptLoader.SCRIPTLET_HOOKS_SCRIPT_ASSET -> "window.__scriptletHooksLoaded = true;"
             ScriptLoader.STYLE_MANAGER_SCRIPT_ASSET -> "window.__styleManagerLoaded = true;"
             ScriptLoader.CONFIGURED_CLEANUP_SCRIPT_ASSET -> "window.__configuredCleanupLoaded = true;"
+            ScriptLoader.PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET -> "window.__pageLifecycleToolsLoaded = true;"
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
             ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET -> "window.__siteHelpersLoaded = true;"
             "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"
