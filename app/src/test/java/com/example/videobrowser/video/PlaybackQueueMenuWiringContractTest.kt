@@ -21,21 +21,26 @@ class PlaybackQueueMenuWiringContractTest {
         val source = File(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val dialogController = File(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackQueueDialogController.kt"
+        ).readText()
         val formatter = File(
             "src/main/java/com/example/videobrowser/video/PlaybackQueueLabelFormatter.kt"
         ).readText()
 
         assertTrue(source.contains("PlaybackCommand.ShowQueue"))
-        assertTrue(source.contains("private fun showPlaybackQueueMenu()"))
+        assertTrue(source.contains("playbackQueueDialogController.showMenu()"))
+        assertTrue(dialogController.contains("fun showMenu()"))
+        assertTrue(dialogController.contains("private fun showRemoveMenu()"))
         assertTrue(source.contains("private fun removeMediaFromQueue(index: Int)"))
-        assertTrue(source.contains("PlaybackCommand.SelectQueueItem(index)"))
-        assertTrue(source.contains("PlaybackCommand.ToggleShuffle"))
+        assertTrue(source.contains("handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))"))
+        assertTrue(source.contains("handlePlaybackCommand(PlaybackCommand.ToggleShuffle)"))
         assertTrue(source.contains("playbackQueue = playbackQueue.select(index)"))
         assertTrue(source.contains("playbackQueue = playbackQueue.removeAt(index)"))
-        assertTrue(source.contains("playbackQueue.hasMultipleItems"))
+        assertTrue(dialogController.contains("queue.hasMultipleItems"))
         assertTrue(source.contains("playbackQueue.canRemoveAt(index)"))
-        assertTrue(source.contains("showPlaybackQueueMenu()"))
-        assertTrue(source.contains("PlaybackQueueLabelFormatter.labels("))
+        assertTrue(dialogController.contains("showMenu()"))
+        assertTrue(dialogController.contains("PlaybackQueueLabelFormatter.labels("))
         assertTrue(formatter.contains("object PlaybackQueueLabelFormatter"))
         assertTrue(formatter.contains("fun labels(queue: PlaybackQueue, nowPlayingLabel: String)"))
         assertFalse(source.contains("playbackQueue.items.size <= 1"))

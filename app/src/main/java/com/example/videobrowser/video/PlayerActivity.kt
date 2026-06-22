@@ -18,7 +18,6 @@ import android.view.KeyEvent
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
@@ -60,6 +59,20 @@ class PlayerActivity : AppCompatActivity() {
             onTrackTypeSelected = { trackType ->
                 handlePlaybackCommand(PlaybackCommand.SelectTrack(trackType))
             }
+        )
+    }
+    private val playbackQueueDialogController by lazy {
+        NativePlaybackQueueDialogController(
+            activity = this,
+            queueProvider = { playbackQueue },
+            wakePlayerControls = ::wakePlayerControls,
+            onSelectQueueItem = { index ->
+                handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))
+            },
+            onToggleShuffle = {
+                handlePlaybackCommand(PlaybackCommand.ToggleShuffle)
+            },
+            onRemoveMedia = ::removeMediaFromQueue
         )
     }
     private val directionalLongPressController = NativeDirectionalLongPressController(
@@ -508,7 +521,7 @@ class PlayerActivity : AppCompatActivity() {
                 Unit
             }
             PlaybackCommand.ShowQueue -> {
-                showPlaybackQueueMenu()
+                playbackQueueDialogController.showMenu()
                 Unit
             }
             PlaybackCommand.ToggleShuffle -> toggleShuffleMode()
@@ -837,65 +850,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `showPlaybackQueueMenu`：控制 `show Playback Queue Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showPlaybackQueueMenu() {
-        if (!playbackQueue.hasMultipleItems) {
-            wakePlayerControls()
-            return
-        }
-        wakePlayerControls()
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.video_queue_title, playbackQueue.items.size))
-            .setItems(playbackQueueLabels()) { _, index ->
-                handlePlaybackCommand(PlaybackCommand.SelectQueueItem(index))
-            }
-            .setPositiveButton(shuffleActionLabel()) { _, _ ->
-                handlePlaybackCommand(PlaybackCommand.ToggleShuffle)
-                showPlaybackQueueMenu()
-            }
-            .setNeutralButton(R.string.video_queue_remove) { _, _ ->
-                showPlaybackQueueRemoveMenu()
-            }
-            .show()
-    }
-
-    /**
-     * 函数 `shuffleActionLabel`：封装 `shuffle Action Label` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun shuffleActionLabel(): Int {
-        return if (playbackQueue.isShuffled) {
-            R.string.video_queue_restore_order
-        } else {
-            R.string.video_queue_shuffle
-        }
-    }
-
-    /**
-     * 函数 `showPlaybackQueueRemoveMenu`：控制 `show Playback Queue Remove Menu` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun showPlaybackQueueRemoveMenu() {
-        if (!playbackQueue.hasMultipleItems) {
-            wakePlayerControls()
-            return
-        }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.video_queue_remove)
-            .setItems(playbackQueueLabels()) { _, index ->
-                removeMediaFromQueue(index)
-                showPlaybackQueueMenu()
-            }
-            .show()
-    }
-
-    /**
      * 函数 `removeMediaFromQueue`：封装 `remove Media From Queue` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -924,19 +878,6 @@ class PlayerActivity : AppCompatActivity() {
         title = playbackQueue.currentItem()?.title.orEmpty()
         updateQueueControls()
         wakePlayerControls()
-    }
-
-    /**
-     * 函数 `playbackQueueLabels`：封装 `playback Queue Labels` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun playbackQueueLabels(): Array<String> {
-        return PlaybackQueueLabelFormatter.labels(
-            queue = playbackQueue,
-            nowPlayingLabel = getString(R.string.video_queue_now_playing)
-        ).toTypedArray()
     }
 
     /**

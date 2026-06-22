@@ -21,6 +21,9 @@ class NativePlaybackShuffleWiringContractTest {
         val source = File(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val queueDialog = File(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackQueueDialogController.kt"
+        ).readText()
         val queue = File(
             "src/main/java/com/example/videobrowser/video/PlaybackQueue.kt"
         ).readText()
@@ -34,7 +37,7 @@ class NativePlaybackShuffleWiringContractTest {
         assertTrue(queue.contains("shuffle("))
         assertTrue(source.contains("private fun syncPlayerQueueToPlaybackQueue()"))
         assertTrue(source.contains("playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)"))
-        assertTrue(source.contains(".setPositiveButton(shuffleActionLabel())"))
+        assertTrue(queueDialog.contains(".setPositiveButton(shuffleActionLabel(queue))"))
         assertTrue(source.contains("outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(playbackQueue))"))
         assertTrue(source.contains("savedInstanceState.getString(STATE_PLAYBACK_QUEUE)"))
     }
