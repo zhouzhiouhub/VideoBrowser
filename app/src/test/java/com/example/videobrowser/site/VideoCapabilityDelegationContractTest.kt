@@ -19,10 +19,13 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonScriptDelegatesVideoActionsToSiteCapabilitiesBeforeGenericVideoFallback() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val brokerScript = projectFile("src/main/assets/scripts/site_video_capability_broker.js").readText()
         val playbackScript = projectFile("src/main/assets/scripts/video_playback_tools.js").readText()
 
-        assertTrue(script.contains("function invokeSiteVideoCapability(video, action, args)"))
-        assertTrue(script.contains("function hasSiteVideoCapability(video, action)"))
+        assertTrue(brokerScript.contains("broker.invoke = broker.invoke || function (video, action, args)"))
+        assertTrue(brokerScript.contains("broker.has = broker.has || function (video, action)"))
+        assertTrue(script.contains("const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke"))
+        assertTrue(script.contains("const hasSiteVideoCapability = siteVideoCapabilityBroker.has"))
         assertTrue(script.contains("invokeSiteVideoCapability(video, 'enableControls', [])"))
         assertTrue(script.contains("videoPlaybackTools.togglePlayPause(video, {"))
         assertTrue(playbackScript.contains("invokeSiteVideoCapability(video, 'togglePlayPause', [], options)"))

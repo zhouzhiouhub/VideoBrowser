@@ -55,6 +55,9 @@
   const videoControlTools = window.VideoBrowserVideoControlTools;
   const videoQueryTools = window.VideoBrowserVideoQueryTools;
   const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools;
+  const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
+  const hasSiteVideoCapability = siteVideoCapabilityBroker.has;
+  const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke;
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
   const styleManager = window.VideoBrowserStyleManager;
@@ -681,84 +684,6 @@
    */
   function isFullscreenPlaybackTarget(video) {
     return Boolean(video && (isVideoFullscreen(video) || state.nativeFullscreenVideo === video));
-  }
-
-  /**
-   * 函数 `siteVideoCapabilitiesFor`：封装 `site Video Capabilities For` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function siteVideoCapabilitiesFor(video, action) {
-    const adapters = window.VideoBrowserSiteAdapters || {};
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param key 表示当前回调正在处理的名称、键或文本值。
-     */
-    return Object.keys(adapters).map(function (key) {
-      const adapter = adapters[key];
-      return adapter && adapter.videoCapabilities;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     * @param capabilities 表示当前回调收到的 `capabilities` 参数。
-     */
-    }).filter(function (capabilities) {
-      if (!capabilities || typeof capabilities !== 'object') return false;
-      if (action && typeof capabilities[action] !== 'function') return false;
-      if (typeof capabilities.supports === 'function') {
-        try {
-          if (!capabilities.supports(video)) return false;
-        } catch (_) {
-          return false;
-        }
-      }
-      if (action && typeof capabilities.canUse === 'function') {
-        try {
-          if (!capabilities.canUse(action, video)) return false;
-        } catch (_) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }
-
-  /**
-   * 函数 `hasSiteVideoCapability`：封装 `has Site Video Capability` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function hasSiteVideoCapability(video, action) {
-    return siteVideoCapabilitiesFor(video, action).length > 0;
-  }
-
-  /**
-   * 函数 `invokeSiteVideoCapability`：封装 `invoke Site Video Capability` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
-   * @param {*} action 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   * @param {*} args 表示稍后执行的回调、清理函数或调用参数。
-   */
-  function invokeSiteVideoCapability(video, action, args) {
-    const capabilitiesList = siteVideoCapabilitiesFor(video, action);
-    for (let index = 0; index < capabilitiesList.length; index += 1) {
-      const capabilities = capabilitiesList[index];
-      const method = capabilities && capabilities[action];
-      if (typeof method !== 'function') continue;
-      try {
-        const result = method.apply(capabilities, [video].concat(args || []));
-        if (result !== null && typeof result !== 'undefined') {
-          return { handled: true, value: result };
-        }
-      } catch (_) {}
-    }
-    return { handled: false, value: undefined };
   }
 
   /**
