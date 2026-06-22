@@ -14,10 +14,14 @@ class BrowserWebViewBindingControllerContractTest {
         val bindingController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebViewBindingController.kt"
         ).readText()
+        val webViewSwitcher = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSwitcher.kt"
+        ).readText()
 
         assertTrue(browserManager.contains("BrowserWebViewBindingController("))
-        assertTrue(browserManager.contains("webViewBindingController.detachFrom(webView)"))
-        assertTrue(browserManager.contains("webViewBindingController.attachToCurrentWebView()"))
+        assertTrue(browserManager.contains("BrowserWebViewSwitcher("))
+        assertTrue(webViewSwitcher.contains("bindingController.detachFrom(currentWebView)"))
+        assertTrue(webViewSwitcher.contains("bindingController.attachToCurrentWebView()"))
         assertTrue(browserManager.contains("webViewBindingController.setChromeClient(client)"))
         assertTrue(browserManager.contains("webViewBindingController.setBrowserClient(client)"))
         assertTrue(browserManager.contains("webViewBindingController.setDownloadListener(listener)"))

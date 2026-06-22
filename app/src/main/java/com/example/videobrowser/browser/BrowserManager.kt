@@ -33,7 +33,15 @@ class BrowserManager(
     private val webViewBindingController = BrowserWebViewBindingController(
         activeWebView = { webView }
     )
-    private var privateBrowsingEnabled = false
+    private val webViewSwitcher = BrowserWebViewSwitcher(
+        activeWebView = { webView },
+        setActiveWebView = { nextWebView -> webView = nextWebView },
+        bindingController = webViewBindingController,
+        setupWebView = { targetWebView -> webViewSettings.setup(targetWebView) },
+        setPrivateBrowsingEnabled = { enabled, targetWebView ->
+            webViewSettings.setPrivateBrowsingEnabled(enabled, targetWebView)
+        }
+    )
 
     val activeWebView: WebView
         get() = webView
@@ -58,24 +66,14 @@ class BrowserManager(
      */
     fun switchWebView(
         nextWebView: WebView,
-        privateBrowsingEnabled: Boolean = this.privateBrowsingEnabled,
+        privateBrowsingEnabled: Boolean = webViewSettings.isPrivateBrowsingEnabled,
         detachCurrent: Boolean = true
     ) {
-        // 标签页切换时，BrowserManager 的“当前 WebView”会换成另一个实例。
-        // 这里重新挂回之前保存的 ChromeClient、WebViewClient、下载监听器和原生桥。
-        if (webView === nextWebView) {
-            setPrivateBrowsingEnabled(privateBrowsingEnabled)
-            return
-        }
-        if (detachCurrent) {
-            webViewBindingController.detachFrom(webView)
-        }
-
-        webView = nextWebView
-        this.privateBrowsingEnabled = privateBrowsingEnabled
-        setup()
-        setPrivateBrowsingEnabled(privateBrowsingEnabled)
-        webViewBindingController.attachToCurrentWebView()
+        webViewSwitcher.switchWebView(
+            nextWebView = nextWebView,
+            privateBrowsingEnabled = privateBrowsingEnabled,
+            detachCurrent = detachCurrent
+        )
     }
 
     /**
@@ -261,7 +259,6 @@ class BrowserManager(
      * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
      */
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
-        privateBrowsingEnabled = enabled
         webViewSettings.setPrivateBrowsingEnabled(enabled, webView)
     }
 

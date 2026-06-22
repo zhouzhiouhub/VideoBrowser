@@ -21,6 +21,9 @@ internal class BrowserWebViewSettingsController {
     private var mixedContentBlocked = true
     private var textZoomPercent = 100
 
+    val isPrivateBrowsingEnabled: Boolean
+        get() = privateBrowsingEnabled
+
     fun setup(webView: WebView) {
         if (!configuredWebViews.add(webView)) {
             return
