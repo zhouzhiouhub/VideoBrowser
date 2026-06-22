@@ -85,6 +85,9 @@ class VideoDiagnosticsContractTest {
         val playerActivitySource = projectFile(
             "src/main/java/com/example/videobrowser/video/PlayerActivity.kt"
         ).readText()
+        val controlVisibilityController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerControlsVisibilityController.kt"
+        ).readText()
         val dispatchBody = functionBody(
             overlaySource,
             "override fun dispatchTouchEvent(event: MotionEvent): Boolean"
@@ -102,7 +105,8 @@ class VideoDiagnosticsContractTest {
                 handleTapBody.indexOf("onTogglePlayPause?.invoke()")
         )
         assertTrue(playerActivitySource.contains("arePlaybackControlsVisible = ::arePlayerControlsVisible"))
-        assertTrue(playerActivitySource.contains("playerView.isControllerFullyVisible"))
+        assertTrue(playerActivitySource.contains("playerControlsVisibilityController.areControlsVisible()"))
+        assertTrue(controlVisibilityController.contains("playerView.isControllerFullyVisible"))
     }
 
     /**

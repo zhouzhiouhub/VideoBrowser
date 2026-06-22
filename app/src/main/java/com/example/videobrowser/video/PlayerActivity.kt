@@ -20,7 +20,6 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.AudioAttributes
-import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -44,6 +43,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
     private lateinit var nativePlaybackHistoryController: NativePlaybackHistoryController
+    private lateinit var playerControlsVisibilityController: NativePlayerControlsVisibilityController
     private lateinit var playbackQueue: PlaybackQueue
     private var player: ExoPlayer? = null
     private val nativePlayerWindowController by lazy {
@@ -132,8 +132,13 @@ class PlayerActivity : AppCompatActivity() {
 
         playerRoot = findViewById(R.id.playerRoot)
         playerView = findViewById(R.id.playerView)
+        playerControlsVisibilityController = NativePlayerControlsVisibilityController(
+            playerView = playerView,
+            playerProvider = { player },
+            logTag = VIDEO_LOG_TAG
+        )
         playerView.keepScreenOn = true
-        playerView.setControllerShowTimeoutMs(CONTROLS_HIDE_DELAY_MS)
+        playerControlsVisibilityController.applyDefaultHideTimeout()
 
         if (restoredState != null) {
             // 系统重建时恢复内存状态，避免旋转或后台回收后从头播放。
@@ -499,20 +504,7 @@ class PlayerActivity : AppCompatActivity() {
         if (!::playerView.isInitialized) {
             return
         }
-        val keepVisible = shouldKeepPlayerControlsVisible()
-        Log.d(
-            VIDEO_LOG_TAG,
-            "event=native-wake-controls keepVisible=$keepVisible " +
-                "state=${player?.playbackState} playWhenReady=${player?.playWhenReady}"
-        )
-        playerView.setControllerShowTimeoutMs(
-            if (keepVisible) {
-                0
-            } else {
-                CONTROLS_HIDE_DELAY_MS
-            }
-        )
-        playerView.showController()
+        playerControlsVisibilityController.wakeControls()
     }
 
     /**
@@ -522,20 +514,7 @@ class PlayerActivity : AppCompatActivity() {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun arePlayerControlsVisible(): Boolean {
-        return ::playerView.isInitialized && playerView.isControllerFullyVisible
-    }
-
-    /**
-     * 函数 `shouldKeepPlayerControlsVisible`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun shouldKeepPlayerControlsVisible(): Boolean {
-        val exoPlayer = player ?: return false
-        return !exoPlayer.playWhenReady ||
-            exoPlayer.playbackState == Player.STATE_IDLE ||
-            exoPlayer.playbackState == Player.STATE_ENDED
+        return ::playerView.isInitialized && playerControlsVisibilityController.areControlsVisible()
     }
 
     /**
@@ -854,7 +833,6 @@ class PlayerActivity : AppCompatActivity() {
     companion object {
         private const val VIDEO_LOG_TAG = "VideoBrowserVideo"
         private const val DEFAULT_PLAYBACK_SPEED = 1f
-        private const val CONTROLS_HIDE_DELAY_MS = 3000
         /**
          * 函数 `createIntent`：创建 `create Intent` 需要的对象、视图或配置，并返回给后续流程使用。
          *
