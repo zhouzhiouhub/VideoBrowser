@@ -27,6 +27,7 @@ class SettingsManager(
     private val sitePermissions = PersistentSitePermissionStore(preferenceStore, hostSets)
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
     private val customShortcutStore = CustomShortcutStore(preferenceStore)
+    private val preferenceResetter = SettingsPreferenceResetter(preferenceStore)
 
     /**
      * 函数 `isAdBlockEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
@@ -730,7 +731,7 @@ class SettingsManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun restoreDefaults(): Boolean {
-        return preferenceStore.remove(RESET_KEYS, commit = true)
+        return preferenceResetter.restoreDefaults()
     }
 
     companion object {
