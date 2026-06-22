@@ -1,6 +1,7 @@
 package com.example.videobrowser.browser
 
-import java.io.File
+import com.example.videobrowser.testutil.projectFile
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -50,12 +51,4 @@ class BrowserWebViewBindingControllerContractTest {
         assertTrue(callbackCleaner.contains("targetWebView.setDownloadListener(null)"))
     }
 
-    private fun projectFile(path: String): File {
-        val workingDirectory = File("").absoluteFile
-        return listOfNotNull(
-            File(workingDirectory, path),
-            File(workingDirectory, "app/$path"),
-            workingDirectory.parentFile?.let { parent -> File(parent, path) }
-        ).first { it.exists() }
-    }
 }
