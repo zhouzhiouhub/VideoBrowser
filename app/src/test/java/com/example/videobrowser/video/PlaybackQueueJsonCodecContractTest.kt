@@ -1,6 +1,7 @@
 package com.example.videobrowser.video
 
-import java.io.File
+import com.example.videobrowser.testutil.projectFile
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -47,11 +48,4 @@ class PlaybackQueueJsonCodecContractTest {
         assertFalse(playerActivity.contains("private fun subtitleArrayFromJson"))
     }
 
-    private fun projectFile(path: String): File {
-        val workingDirectory = File("").absoluteFile
-        return listOf(
-            File(workingDirectory, path),
-            File(workingDirectory, "app/$path")
-        ).first { it.exists() }
-    }
 }
