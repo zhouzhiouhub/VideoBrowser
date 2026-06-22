@@ -11,7 +11,6 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
@@ -27,7 +26,6 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
@@ -90,7 +88,6 @@ class FullscreenVideoGestureOverlay(
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
     private val feedbackView = TextView(context)
-    private var speedPopup: PopupWindow? = null
 
     private var locked = false
     private var landscape = true
@@ -118,6 +115,17 @@ class FullscreenVideoGestureOverlay(
     private var pendingTapTime = 0L
     private var seekAccumulatorDirection = 0
     private var seekAccumulatorCount = 0
+    private val speedPopupController = FullscreenVideoSpeedPopupController(
+        context = context,
+        anchorView = speedButton,
+        speedOptions = speedOptions,
+        dp = ::dp,
+        currentPlaybackSpeed = { playbackSpeed },
+        notifyUserInteraction = ::notifyUserInteraction,
+        setPlaybackSpeed = ::setPlaybackSpeed,
+        onPlaybackSpeedSelected = { speed -> onPlaybackSpeedSelected?.invoke(speed) },
+        showFeedback = ::showFeedback
+    )
 
     private val hideFeedbackRunnable = Runnable {
         feedbackView.visibility = View.GONE
@@ -172,8 +180,7 @@ class FullscreenVideoGestureOverlay(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun hideOverlay() {
-        speedPopup?.dismiss()
-        speedPopup = null
+        speedPopupController.dismiss()
         stopLongPress()
         restoreWindowBrightness()
         setLocked(false, announce = false)
@@ -938,51 +945,7 @@ class FullscreenVideoGestureOverlay(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showSpeedPopup() {
-        speedPopup?.dismiss()
-        val content = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, dp(6), 0, dp(6))
-            background = BrowserDrawableFactory.roundedBackground(
-                Color.argb(235, 18, 18, 18),
-                dp(8)
-            )
-        }
-
-        speedOptions.forEach { speed ->
-            content.addView(
-                TextView(context).apply {
-                    gravity = Gravity.CENTER
-                    includeFontPadding = false
-                    minHeight = dp(38)
-                    text = VideoGestureFeedbackFormatter.formatSpeed(speed)
-                    setTextColor(if (abs(speed - playbackSpeed) < 0.01f) Color.WHITE else Color.LTGRAY)
-                    setTypeface(typeface, if (abs(speed - playbackSpeed) < 0.01f) Typeface.BOLD else Typeface.NORMAL)
-                    textSize = 14f
-                    setOnClickListener {
-                        notifyUserInteraction()
-                        setPlaybackSpeed(speed)
-                        onPlaybackSpeedSelected?.invoke(speed)
-                        speedPopup?.dismiss()
-                        showFeedback(VideoGestureFeedbackFormatter.formatSpeed(speed))
-                    }
-                },
-                LinearLayout.LayoutParams(dp(96), dp(38))
-            )
-        }
-
-        speedPopup = PopupWindow(
-            content,
-            dp(96),
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            true
-        ).apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            isOutsideTouchable = true
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                elevation = dp(8).toFloat()
-            }
-        }
-        speedPopup?.showAsDropDown(speedButton, 0, dp(6))
+        speedPopupController.show()
     }
 
     /**
@@ -1026,8 +989,7 @@ class FullscreenVideoGestureOverlay(
         ViewCompat.setTooltipText(lockButton, controlLabel)
         controlsGroup.visibility = if (locked) View.GONE else View.VISIBLE
         if (locked) {
-            speedPopup?.dismiss()
-            speedPopup = null
+            speedPopupController.dismiss()
         }
     }
 
