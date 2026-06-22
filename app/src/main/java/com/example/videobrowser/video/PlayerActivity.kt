@@ -78,6 +78,11 @@ class PlayerActivity : AppCompatActivity() {
         logTag = VIDEO_LOG_TAG,
         wakePlayerControls = ::wakePlayerControls
     )
+    private val nativePlayerVideoZoomController = NativePlayerVideoZoomController(
+        playerView = { if (::playerView.isInitialized) playerView else null },
+        gestureOverlay = { if (::gestureOverlay.isInitialized) gestureOverlay else null },
+        wakePlayerControls = ::wakePlayerControls
+    )
     private val directionalLongPressController = NativeDirectionalLongPressController(
         scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
         seekBy = nativePlayerTransportController::seekBy
@@ -90,7 +95,6 @@ class PlayerActivity : AppCompatActivity() {
     private var videoEffectsEnabled = true
     private var retriedPlaybackWithoutVideoEffects = false
     private var repeatMode = PlaybackRepeatMode.NONE
-    private var videoZoomMode = VideoZoomMode.FIT
     private val intentReader: PlayerIntentReader by lazy { PlayerIntentReader(intent) }
 
     /**
@@ -123,7 +127,7 @@ class PlayerActivity : AppCompatActivity() {
             savedInstanceState = savedInstanceState,
             fallbackPlaybackQueue = intentPlaybackQueue,
             fallbackPlaybackSpeed = defaultPlaybackSpeed,
-            fallbackVideoZoomMode = videoZoomMode
+            fallbackVideoZoomMode = nativePlayerVideoZoomController.currentMode()
         )
         playbackQueue = restoredState?.playbackQueue ?: intentPlaybackQueue
         currentMediaItemIndex = restoredState?.currentMediaItemIndex ?: playbackQueue.currentIndex
@@ -145,14 +149,14 @@ class PlayerActivity : AppCompatActivity() {
             playbackPosition = restoredState.playbackPosition
             playWhenReady = restoredState.playWhenReady
             isLandscape = restoredState.isLandscape
-            videoZoomMode = restoredState.videoZoomMode
+            nativePlayerVideoZoomController.setMode(restoredState.videoZoomMode)
             videoEffectsEnabled = restoredState.videoEffectsEnabled
             retriedPlaybackWithoutVideoEffects = restoredState.retriedPlaybackWithoutVideoEffects
         } else {
             restorePlaybackHistory()
         }
         applyRequestedOrientation()
-        applyVideoZoomMode()
+        nativePlayerVideoZoomController.apply()
         setupGestureOverlay()
 
         if (intentReader.mediaUri().isBlank()) {
@@ -396,7 +400,7 @@ class PlayerActivity : AppCompatActivity() {
             onPlaybackQueueRequested = { handlePlaybackCommand(PlaybackCommand.ShowQueue) }
             onVideoZoomRequested = {
                 handlePlaybackCommand(PlaybackCommand.CycleZoom) as? VideoZoomMode
-                    ?: videoZoomMode
+                    ?: nativePlayerVideoZoomController.currentMode()
             }
             onPreviousMediaRequested = { handlePlaybackCommand(PlaybackCommand.Previous) }
             onNextMediaRequested = { handlePlaybackCommand(PlaybackCommand.Next) }
@@ -408,7 +412,7 @@ class PlayerActivity : AppCompatActivity() {
             setLandscape(isLandscape)
             setQueueControlsVisible(playbackQueue.hasMultipleItems)
             setRepeatMode(repeatMode)
-            setVideoZoomMode(videoZoomMode)
+            setVideoZoomMode(nativePlayerVideoZoomController.currentMode())
         }
         playerRoot.addView(
             gestureOverlay,
@@ -462,7 +466,7 @@ class PlayerActivity : AppCompatActivity() {
                 Unit
             }
             PlaybackCommand.ToggleShuffle -> toggleShuffleMode()
-            PlaybackCommand.CycleZoom -> cycleVideoZoomMode()
+            PlaybackCommand.CycleZoom -> nativePlayerVideoZoomController.cycle()
             PlaybackCommand.ShowTrackSelection -> {
                 trackSelectionDialogController.showMenu()
                 Unit
@@ -491,7 +495,7 @@ class PlayerActivity : AppCompatActivity() {
             durationMs = durationMs,
             speed = selectedPlaybackSpeed,
             playWhenReady = exoPlayer?.playWhenReady ?: playWhenReady,
-            zoomMode = videoZoomMode
+            zoomMode = nativePlayerVideoZoomController.currentMode()
         )
     }
 
@@ -601,33 +605,6 @@ class PlayerActivity : AppCompatActivity() {
         }
         gestureOverlay.setQueueControlsVisible(playbackQueue.hasMultipleItems)
         gestureOverlay.setRepeatMode(repeatMode)
-    }
-
-    /**
-     * 函数 `cycleVideoZoomMode`：封装 `cycle Video Zoom Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun cycleVideoZoomMode(): VideoZoomMode {
-        videoZoomMode = videoZoomMode.next()
-        applyVideoZoomMode()
-        wakePlayerControls()
-        return videoZoomMode
-    }
-
-    /**
-     * 函数 `applyVideoZoomMode`：根据最新状态刷新 `apply Video Zoom Mode` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun applyVideoZoomMode() {
-        if (::playerView.isInitialized) {
-            playerView.resizeMode = videoZoomMode.resizeMode
-        }
-        if (::gestureOverlay.isInitialized) {
-            gestureOverlay.setVideoZoomMode(videoZoomMode)
-        }
     }
 
     /**
