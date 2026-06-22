@@ -9,7 +9,6 @@ package com.example.videobrowser.video
  */
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.media.AudioManager
 import android.os.Bundle
 import android.os.Handler
@@ -21,9 +20,6 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -53,6 +49,9 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var nativePlaybackHistoryController: NativePlaybackHistoryController
     private lateinit var playbackQueue: PlaybackQueue
     private var player: ExoPlayer? = null
+    private val nativePlayerWindowController by lazy {
+        NativePlayerWindowController(this)
+    }
     private val trackSelectionDialogController by lazy {
         NativeTrackSelectionDialogController(
             activity = this,
@@ -87,7 +86,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 播放器默认横屏，并把系统音量键绑定到媒体音量。
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        nativePlayerWindowController.applyOrientation(isLandscape = true)
         volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_player)
         val preferenceStore = PreferenceStore.from(this)
@@ -984,11 +983,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun applyRequestedOrientation() {
-        requestedOrientation = if (isLandscape) {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        }
+        nativePlayerWindowController.applyOrientation(isLandscape)
         if (::gestureOverlay.isInitialized) {
             gestureOverlay.setLandscape(isLandscape)
         }
@@ -1061,11 +1056,7 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun hideSystemBars() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        nativePlayerWindowController.hideSystemBars()
     }
 
     /**
