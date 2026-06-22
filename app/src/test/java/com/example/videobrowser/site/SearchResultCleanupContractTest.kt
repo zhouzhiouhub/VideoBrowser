@@ -19,9 +19,10 @@ class SearchResultCleanupContractTest {
         assertTrue(searchScript.contains("cleanup.removeAds = cleanup.removeAds || function (options)"))
         assertTrue(searchScript.contains("function findSearchAdDisclosureMarkers()"))
         assertTrue(searchScript.contains("function findSearchResultRoot(marker)"))
-        assertTrue(searchScript.contains("return selectorTools.normalizeText(value);"))
-        assertTrue(searchScript.contains("return domTools.queryAll(selector);"))
-        assertTrue(searchScript.contains("domActions.hideElement(element, {"))
+        assertTrue(searchScript.contains("selectorTools.normalizeText("))
+        assertTrue(searchScript.contains("domTools.queryAll('span,i,em,b,a,button,[role=\"button\"],[aria-label],[title],[class*=\"ad\"],[class*=\"adv\"]')"))
+        assertTrue(searchScript.contains("const descriptor = domTools.elementDescriptor(element);"))
+        assertTrue(searchScript.contains("domActions.hideElement("))
         assertTrue(coordinatorScript.contains("const searchResultCleanup = window.VideoBrowserSearchResultCleanup || {}"))
         assertTrue(coordinatorScript.contains("return isBilibiliHost(options) || searchResultCleanup.isResultPage();"))
         assertTrue(coordinatorScript.contains("searchResultCleanup.removeAds({"))
@@ -37,6 +38,9 @@ class SearchResultCleanupContractTest {
         assertFalse(commonScript.contains("searchResultCleanup.removeAds({"))
         assertFalse(searchScript.contains("document.querySelectorAll(selector)"))
         assertFalse(searchScript.contains("replace(/\\s+/g, ' ').trim()"))
+        assertFalse(searchScript.contains("function normalizeText(value)"))
+        assertFalse(searchScript.contains("function hideElement(element, reason)"))
+        assertFalse(searchScript.contains("function queryAll(selector)"))
     }
 
     private fun projectFile(path: String): File {

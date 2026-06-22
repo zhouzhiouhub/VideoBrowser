@@ -37,7 +37,12 @@
       hideKnownSearchAdContainers();
       findSearchAdDisclosureMarkers().forEach(function (marker) {
         const root = findSearchResultRoot(marker);
-        if (root) hideElement(root, 'search-result-ad');
+        if (root) {
+          domActions.hideElement(root, {
+            reason: 'search-result-ad',
+            protectAppContainers: true
+          });
+        }
       });
     };
     if (typeof config.runWithMutationSuppressed === 'function') {
@@ -65,26 +70,27 @@
       '[class*="wise-ad"]',
       '[class*="wise_ad"]'
     ].forEach(function (selector) {
-      queryAll(selector).forEach(function (element) {
+      domTools.queryAll(selector).forEach(function (element) {
         const root = findSearchResultRoot(element) || element;
-        hideElement(root, 'search-result-ad-container');
+        domActions.hideElement(root, {
+          reason: 'search-result-ad-container',
+          protectAppContainers: true
+        });
       });
     });
   }
 
   function findSearchAdDisclosureMarkers() {
     const markers = [];
-    queryAll('span,i,em,b,a,button,[role="button"],[aria-label],[title],[class*="ad"],[class*="adv"]')
+    domTools.queryAll('span,i,em,b,a,button,[role="button"],[aria-label],[title],[class*="ad"],[class*="adv"]')
       .forEach(function (element) {
-        const text = normalizeText(
+        const text = selectorTools.normalizeText(
           element.innerText ||
           element.textContent ||
           element.getAttribute('aria-label') ||
           element.getAttribute('title')
         );
-        const descriptor = String(element.id || '') + ' ' + String(element.className || '') + ' ' +
-          String(element.getAttribute('aria-label') || '') + ' ' +
-          String(element.getAttribute('title') || '');
+        const descriptor = domTools.elementDescriptor(element);
         if (isSearchAdDisclosure(text, descriptor)) markers.push(element);
       });
     return markers;
@@ -121,7 +127,7 @@
       if (rect.height < 36) continue;
       if (rect.height > Math.min(window.innerHeight * 0.72, 520)) continue;
 
-      const text = normalizeText(current.innerText || current.textContent);
+      const text = selectorTools.normalizeText(current.innerText || current.textContent);
       if (text.length < 2 || text.length > 1200) continue;
       const hasContent = current.querySelectorAll('a,img,h1,h2,h3,[role="heading"]').length > 0 ||
         text.length >= 8;
@@ -136,25 +142,10 @@
     if (element.querySelector('input,textarea,select,form')) return true;
 
     const rect = element.getBoundingClientRect();
-    const text = normalizeText(element.innerText || element.textContent);
-    const descriptor = String(element.id || '') + ' ' + String(element.className || '');
+    const text = selectorTools.normalizeText(element.innerText || element.textContent);
+    const descriptor = domTools.elementDescriptor(element);
     const topChromeLike = rect.top < 120 &&
       /综合|资讯|视频|图片|知道|文库|贴吧|地图|更多|搜索|百度一下|网页|问答/.test(text);
     return topChromeLike || /searchbox|search-box|searchbar|search-bar|tab|tabs|navbar|nav-bar/i.test(descriptor);
-  }
-
-  function normalizeText(value) {
-    return selectorTools.normalizeText(value);
-  }
-
-  function hideElement(element, reason) {
-    domActions.hideElement(element, {
-      reason: reason || 'search-result-ad',
-      protectAppContainers: true
-    });
-  }
-
-  function queryAll(selector) {
-    return domTools.queryAll(selector);
   }
 })();

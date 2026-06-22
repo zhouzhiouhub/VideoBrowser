@@ -13,7 +13,7 @@
     function addCandidate(element) {
       if (element && candidates.indexOf(element) === -1) candidates.push(element);
     }
-    queryAll(
+    domTools.queryAll(
       'header,[role="banner"],[id*="top"],[class*="top"],[id*="head"],[class*="head"],body>div,body>div>div'
     ).forEach(addCandidate);
 
@@ -28,7 +28,12 @@
       const iconBarLike = element.querySelectorAll('a,button,[role="button"],svg,i').length >= 1 &&
         /menu|grid|app|user|profile|account|more|更多|应用/i.test(html);
       if (rect.width < Math.min(window.innerWidth * 0.45, 180) && !accountLike && !iconBarLike) return;
-      if (accountLike || iconBarLike) hideElement(element, 'top-account-bar');
+      if (accountLike || iconBarLike) {
+        domActions.hideElement(element, {
+          reason: 'top-account-bar',
+          protectAppContainers: true
+        });
+      }
     });
     return true;
   };
@@ -36,7 +41,7 @@
   cleanup.removeNoiseBlocks = cleanup.removeNoiseBlocks || function () {
     if (!cleanup.isSearchProviderHomePage()) return false;
 
-    queryAll(
+    domTools.queryAll(
       'body>div,body>section,header,[role="banner"],[id*="top"],[class*="top"],[id*="banner"],[class*="banner"]'
     ).forEach(function (element) {
       if (!element || element.querySelector('input,textarea,select,form,video,canvas')) return;
@@ -59,7 +64,12 @@
         text.length <= 18 &&
         element.querySelectorAll('a,button,img,svg').length <= 2;
 
-      if (!brandLogoLike && (adLike || sparseTopSlot)) hideElement(element, 'top-noise-block');
+      if (!brandLogoLike && (adLike || sparseTopSlot)) {
+        domActions.hideElement(element, {
+          reason: 'top-noise-block',
+          protectAppContainers: true
+        });
+      }
     });
     return true;
   };
@@ -69,15 +79,4 @@
     const path = String(location.pathname || '/').replace(/\/+$/, '') || '/';
     return path === '/' && /^(m\.baidu\.com|m\.sogou\.com|m\.so\.com|quark\.sm\.cn|so\.m\.sm\.cn|www\.bing\.com)$/i.test(host);
   };
-
-  function hideElement(element, reason) {
-    domActions.hideElement(element, {
-      reason: reason || 'top-page-cleanup',
-      protectAppContainers: true
-    });
-  }
-
-  function queryAll(selector) {
-    return domTools.queryAll(selector);
-  }
 })();

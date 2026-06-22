@@ -18,7 +18,8 @@ class TopPageCleanupContractTest {
         assertTrue(cleanupScript.contains("cleanup.removeAccountBars = cleanup.removeAccountBars || function ()"))
         assertTrue(cleanupScript.contains("cleanup.removeNoiseBlocks = cleanup.removeNoiseBlocks || function ()"))
         assertTrue(cleanupScript.contains("cleanup.isSearchProviderHomePage = cleanup.isSearchProviderHomePage || function ()"))
-        assertTrue(cleanupScript.contains("return domTools.queryAll(selector);"))
+        assertTrue(cleanupScript.contains("domTools.queryAll("))
+        assertTrue(cleanupScript.contains("domActions.hideElement(element, {"))
         assertTrue(coordinatorScript.contains("const topPageCleanup = window.VideoBrowserTopPageCleanup || {}"))
         assertTrue(coordinatorScript.contains("topPageCleanup.removeAccountBars();"))
         assertTrue(coordinatorScript.contains("topPageCleanup.removeNoiseBlocks();"))
@@ -33,6 +34,8 @@ class TopPageCleanupContractTest {
         assertFalse(commonScript.contains("const topPageCleanup = window.VideoBrowserTopPageCleanup"))
         assertFalse(commonScript.contains("topPageCleanup.removeAccountBars();"))
         assertFalse(commonScript.contains("topPageCleanup.removeNoiseBlocks();"))
+        assertFalse(cleanupScript.contains("function hideElement(element, reason)"))
+        assertFalse(cleanupScript.contains("function queryAll(selector)"))
     }
 
     private fun projectFile(path: String): File {
