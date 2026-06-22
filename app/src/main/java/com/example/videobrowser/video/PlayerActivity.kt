@@ -50,6 +50,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var gestureOverlay: FullscreenVideoGestureOverlay
     private lateinit var settingsManager: SettingsManager
     private lateinit var playbackHistoryRepository: PlaybackHistoryRepository
+    private lateinit var nativePlaybackHistoryController: NativePlaybackHistoryController
     private lateinit var playbackQueue: PlaybackQueue
     private var player: ExoPlayer? = null
     private val trackSelectionDialogController by lazy {
@@ -92,6 +93,15 @@ class PlayerActivity : AppCompatActivity() {
         val preferenceStore = PreferenceStore.from(this)
         settingsManager = SettingsManager(preferenceStore)
         playbackHistoryRepository = PlaybackHistoryRepository(preferenceStore)
+        nativePlaybackHistoryController = NativePlaybackHistoryController(
+            alwaysStartVideosFromBeginning = settingsManager::alwaysStartVideosFromBeginning,
+            progressFor = playbackHistoryRepository::progressFor,
+            resumePositionFor = playbackHistoryRepository::resumePositionFor,
+            saveProgress = { progress, privateBrowsing ->
+                playbackHistoryRepository.save(progress, privateBrowsing)
+            },
+            privateBrowsing = { intentReader.isPrivateBrowsing() }
+        )
         val savedPlaybackQueue = if (savedInstanceState != null) {
             savedInstanceState.getString(STATE_PLAYBACK_QUEUE)?.let(PlaybackQueueJsonCodec::decode)
         } else {
@@ -1017,17 +1027,12 @@ class PlayerActivity : AppCompatActivity() {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun restorePlaybackHistory() {
-        if (settingsManager.alwaysStartVideosFromBeginning()) {
-            playbackPosition = 0L
-            return
+        val restored = nativePlaybackHistoryController.restore(playbackHistoryIdentity())
+        restored.positionMs?.let { positionMs ->
+            playbackPosition = positionMs
         }
-        val progress = playbackHistoryRepository.progressFor(playbackHistoryIdentity())
-        val resumePosition = playbackHistoryRepository.resumePositionFor(playbackHistoryIdentity())
-        if (resumePosition != null) {
-            playbackPosition = resumePosition
-        }
-        if (progress != null) {
-            selectedPlaybackSpeed = PlaybackSpeedNormalizer.normalize(progress.speed)
+        restored.playbackSpeed?.let { playbackSpeed ->
+            selectedPlaybackSpeed = playbackSpeed
         }
     }
 
@@ -1038,23 +1043,15 @@ class PlayerActivity : AppCompatActivity() {
      * @param exoPlayer 参数类型为 `ExoPlayer`，表示函数执行 `exoPlayer` 相关逻辑时需要读取或处理的输入。
      */
     private fun savePlaybackHistory(exoPlayer: ExoPlayer) {
-        val identity = playbackHistoryIdentity()
-        if (identity.isBlank()) {
-            return
-        }
-        val duration = Media3Duration.durationOrZero(exoPlayer.duration)
-        playbackHistoryRepository.save(
-            PlaybackProgress(
-                mediaIdentity = identity,
+        nativePlaybackHistoryController.save(
+            NativePlaybackHistorySnapshot(
+                mediaIdentity = playbackHistoryIdentity(),
                 positionMs = exoPlayer.currentPosition.coerceAtLeast(0L),
-                durationMs = duration,
+                durationMs = Media3Duration.durationOrZero(exoPlayer.duration),
                 speed = selectedPlaybackSpeed,
-                updatedAtMillis = System.currentTimeMillis(),
                 title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title
-                    ?: intentReader.mediaTitle(),
-                source = PlaybackHistorySource.NATIVE_MEDIA
-            ),
-            privateBrowsing = intentReader.isPrivateBrowsing()
+                    ?: intentReader.mediaTitle()
+            )
         )
     }
 

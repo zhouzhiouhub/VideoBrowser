@@ -19,12 +19,18 @@ class PlaybackHistoryWiringContractTest {
     fun playerActivityRestoresAndSavesPlaybackHistory() {
         val source = projectFile("src/main/java/com/example/videobrowser/video/PlayerActivity.kt")
             .readText()
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlaybackHistoryController.kt"
+        ).readText()
 
         assertTrue(source.contains("PlaybackHistoryRepository"))
+        assertTrue(source.contains("NativePlaybackHistoryController("))
         assertTrue(source.contains("restorePlaybackHistory()"))
-        assertTrue(source.contains("resumePositionFor(playbackHistoryIdentity())"))
-        assertTrue(source.contains("playbackHistoryRepository.save("))
-        assertTrue(source.contains("source = PlaybackHistorySource.NATIVE_MEDIA"))
+        assertTrue(source.contains("nativePlaybackHistoryController.restore(playbackHistoryIdentity())"))
+        assertTrue(source.contains("nativePlaybackHistoryController.save("))
+        assertTrue(controller.contains("resumePositionFor(mediaIdentity)"))
+        assertTrue(controller.contains("saveProgress("))
+        assertTrue(controller.contains("source = PlaybackHistorySource.NATIVE_MEDIA"))
         assertTrue(source.contains("intentReader.isPrivateBrowsing()"))
     }
 
