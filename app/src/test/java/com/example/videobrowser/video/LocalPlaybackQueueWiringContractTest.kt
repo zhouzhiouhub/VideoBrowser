@@ -60,6 +60,9 @@ class LocalPlaybackQueueWiringContractTest {
         val repeatModeConverter = projectFile(
             "src/main/java/com/example/videobrowser/video/PlaybackRepeatModeMedia3Converter.kt"
         ).readText()
+        val repeatModeController = projectFile(
+            "src/main/java/com/example/videobrowser/video/NativePlayerRepeatModeController.kt"
+        ).readText()
         val savedState = projectFile(
             "src/main/java/com/example/videobrowser/video/NativePlayerSavedState.kt"
         ).readText()
@@ -70,7 +73,10 @@ class LocalPlaybackQueueWiringContractTest {
         assertTrue(playerActivity.contains("PlaybackCommand.Previous"))
         assertTrue(playerActivity.contains("PlaybackCommand.Next"))
         assertTrue(playerActivity.contains("PlaybackCommand.ToggleRepeat"))
-        assertTrue(playerActivity.contains("PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode"))
+        assertTrue(playerActivity.contains("NativePlayerRepeatModeController("))
+        assertTrue(repeatModeController.contains("PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode"))
+        assertTrue(repeatModeController.contains("fun cycle(queue: PlaybackQueue): PlaybackQueue"))
+        assertTrue(repeatModeController.contains("return queue.copy(repeatMode = repeatMode)"))
         assertTrue(repeatModeConverter.contains("Player.REPEAT_MODE_ONE"))
         assertTrue(playerActivity.contains("NativePlayerSavedState.restore("))
         assertTrue(savedState.contains("STATE_REPEAT_MODE"))

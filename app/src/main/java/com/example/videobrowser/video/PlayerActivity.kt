@@ -89,6 +89,10 @@ class PlayerActivity : AppCompatActivity() {
         gestureOverlay = { if (::gestureOverlay.isInitialized) gestureOverlay else null },
         wakePlayerControls = ::wakePlayerControls
     )
+    private val nativePlayerRepeatModeController = NativePlayerRepeatModeController(
+        playerProvider = { player },
+        gestureOverlay = { if (::gestureOverlay.isInitialized) gestureOverlay else null }
+    )
     private val directionalLongPressController = NativeDirectionalLongPressController(
         scheduler = HandlerPlaybackScanScheduler(Handler(Looper.getMainLooper())),
         seekBy = nativePlayerTransportController::seekBy
@@ -99,7 +103,6 @@ class PlayerActivity : AppCompatActivity() {
     private var selectedPlaybackSpeed = DEFAULT_PLAYBACK_SPEED
     private var videoEffectsEnabled = true
     private var retriedPlaybackWithoutVideoEffects = false
-    private var repeatMode = PlaybackRepeatMode.NONE
     private val intentReader: PlayerIntentReader by lazy { PlayerIntentReader(intent) }
 
     /**
@@ -136,7 +139,7 @@ class PlayerActivity : AppCompatActivity() {
         )
         playbackQueue = restoredState?.playbackQueue ?: intentPlaybackQueue
         currentMediaItemIndex = restoredState?.currentMediaItemIndex ?: playbackQueue.currentIndex
-        repeatMode = restoredState?.repeatMode ?: playbackQueue.repeatMode
+        nativePlayerRepeatModeController.setMode(restoredState?.repeatMode ?: playbackQueue.repeatMode)
         selectedPlaybackSpeed = restoredState?.selectedPlaybackSpeed ?: defaultPlaybackSpeed
 
         playerRoot = findViewById(R.id.playerRoot)
@@ -342,7 +345,7 @@ class PlayerActivity : AppCompatActivity() {
                 playerView.player = exoPlayer
                 exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true)
                 exoPlayer.setMediaItems(mediaItems, currentMediaItemIndex, playbackPosition)
-                exoPlayer.repeatMode = PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode(repeatMode)
+                nativePlayerRepeatModeController.applyToPlayer(exoPlayer)
                 exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.prepare()
@@ -368,9 +371,9 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun handleMediaItemTransition(index: Int) {
         currentMediaItemIndex = index
-        playbackQueue = playbackQueue
-            .select(currentMediaItemIndex)
-            .copy(repeatMode = repeatMode)
+        playbackQueue = nativePlayerRepeatModeController.applyToQueue(
+            playbackQueue.select(currentMediaItemIndex)
+        )
         playbackPosition = 0L
         title = playbackQueue.items.getOrNull(currentMediaItemIndex)?.title.orEmpty()
         updateQueueControls()
@@ -411,12 +414,12 @@ class PlayerActivity : AppCompatActivity() {
             onNextMediaRequested = { handlePlaybackCommand(PlaybackCommand.Next) }
             onRepeatModeRequested = {
                 handlePlaybackCommand(PlaybackCommand.ToggleRepeat) as? PlaybackRepeatMode
-                    ?: repeatMode
+                    ?: nativePlayerRepeatModeController.currentMode()
             }
             setPlaybackSpeed(selectedPlaybackSpeed)
             setLandscape(nativePlayerOrientationController.isLandscape())
             setQueueControlsVisible(playbackQueue.hasMultipleItems)
-            setRepeatMode(repeatMode)
+            setRepeatMode(nativePlayerRepeatModeController.currentMode())
             setVideoZoomMode(nativePlayerVideoZoomController.currentMode())
         }
         playerRoot.addView(
@@ -461,7 +464,11 @@ class PlayerActivity : AppCompatActivity() {
                 playNextMedia()
                 Unit
             }
-            PlaybackCommand.ToggleRepeat -> cycleRepeatMode()
+            PlaybackCommand.ToggleRepeat -> {
+                playbackQueue = nativePlayerRepeatModeController.cycle(playbackQueue)
+                updateQueueControls()
+                nativePlayerRepeatModeController.currentMode()
+            }
             is PlaybackCommand.SelectQueueItem -> {
                 playMediaAt(command.index)
                 Unit
@@ -586,20 +593,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     /**
-     * 函数 `cycleRepeatMode`：封装 `cycle Repeat Mode` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun cycleRepeatMode(): PlaybackRepeatMode {
-        repeatMode = repeatMode.next()
-        playbackQueue = playbackQueue.copy(repeatMode = repeatMode)
-        player?.repeatMode = PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode(repeatMode)
-        updateQueueControls()
-        return repeatMode
-    }
-
-    /**
      * 函数 `updateQueueControls`：根据最新状态刷新 `update Queue Controls` 相关数据或界面，让调用方看到一致结果。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -609,7 +602,7 @@ class PlayerActivity : AppCompatActivity() {
             return
         }
         gestureOverlay.setQueueControlsVisible(playbackQueue.hasMultipleItems)
-        gestureOverlay.setRepeatMode(repeatMode)
+        gestureOverlay.setRepeatMode(nativePlayerRepeatModeController.currentMode())
     }
 
     /**
@@ -644,7 +637,7 @@ class PlayerActivity : AppCompatActivity() {
             currentMediaItemIndex,
             playbackPosition
         )
-        exoPlayer.repeatMode = PlaybackRepeatModeMedia3Converter.toPlayerRepeatMode(repeatMode)
+        nativePlayerRepeatModeController.applyToPlayer(exoPlayer)
         exoPlayer.setPlaybackSpeed(selectedPlaybackSpeed)
         exoPlayer.playWhenReady = playWhenReady
         exoPlayer.prepare()
