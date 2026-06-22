@@ -76,9 +76,12 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonWakeControlsRoutesControlVisibilityThroughSiteCapabilities() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val wakeScript = projectFile("src/main/assets/scripts/video_wake_tools.js").readText()
         val wakeControlsBody = functionBody(script, "function wakeVideoControls(video)")
 
-        assertTrue(wakeControlsBody.contains("enableVideoControls(target);"))
+        assertTrue(wakeControlsBody.contains("return videoWakeTools.wake(video, {"))
+        assertTrue(wakeControlsBody.contains("enableVideoControls: enableVideoControls"))
+        assertTrue(wakeScript.contains("callbacks.enableVideoControls(target);"))
         assertFalse(wakeControlsBody.contains("enableNativeVideoControls(target);"))
     }
 

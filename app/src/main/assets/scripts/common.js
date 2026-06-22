@@ -49,6 +49,7 @@
   const videoQueryTools = window.VideoBrowserVideoQueryTools;
   const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools;
   const videoFullscreenTools = window.VideoBrowserVideoFullscreenTools;
+  const videoWakeTools = window.VideoBrowserVideoWakeTools;
   const siteVideoCapabilityBroker = window.VideoBrowserSiteVideoCapabilityBroker;
   const hasSiteVideoCapability = siteVideoCapabilityBroker.has;
   const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke;
@@ -505,76 +506,11 @@
    * @param {*} video 表示当前正在检查或操作的 DOM/媒体元素。
    */
   function wakeVideoControls(video) {
-    const target = video || activeFullscreenVideo();
-    if (!target) return false;
-
-    enableVideoControls(target);
-    reportPlaybackTimeline(target);
-
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
-    const root = fullscreenElement || target.parentElement || target;
-    const rect = root && typeof root.getBoundingClientRect === 'function'
-      ? root.getBoundingClientRect()
-      : null;
-    const clientX = rect && Number.isFinite(rect.left + rect.width / 2)
-      ? rect.left + rect.width / 2
-      : Math.max(1, window.innerWidth / 2);
-    const clientY = rect && Number.isFinite(rect.top + rect.height / 2)
-      ? rect.top + rect.height / 2
-      : Math.max(1, window.innerHeight / 2);
-
-    dispatchControlWakeEvent(root, 'mousemove', clientX, clientY);
-    dispatchControlWakeEvent(target, 'mousemove', clientX, clientY);
-    dispatchPointerWakeEvent(root, clientX, clientY);
-    dispatchPointerWakeEvent(target, clientX, clientY);
-    try { if (typeof target.focus === 'function') target.focus({ preventScroll: true }); } catch (_) {}
-    return true;
-  }
-
-  /**
-   * 函数 `dispatchControlWakeEvent`：封装 `dispatch Control Wake Event` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} target 表示函数执行 `target` 相关逻辑时需要读取或处理的输入。
-   * @param {*} type 表示函数执行 `type` 相关逻辑时需要读取或处理的输入。
-   * @param {*} clientX 表示函数执行 `clientX` 相关逻辑时需要读取或处理的输入。
-   * @param {*} clientY 表示函数执行 `clientY` 相关逻辑时需要读取或处理的输入。
-   */
-  function dispatchControlWakeEvent(target, type, clientX, clientY) {
-    if (!target || typeof target.dispatchEvent !== 'function') return;
-    try {
-      target.dispatchEvent(new MouseEvent(type, {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        clientX: clientX,
-        clientY: clientY
-      }));
-    } catch (_) {}
-  }
-
-  /**
-   * 函数 `dispatchPointerWakeEvent`：封装 `dispatch Pointer Wake Event` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} target 表示函数执行 `target` 相关逻辑时需要读取或处理的输入。
-   * @param {*} clientX 表示函数执行 `clientX` 相关逻辑时需要读取或处理的输入。
-   * @param {*} clientY 表示函数执行 `clientY` 相关逻辑时需要读取或处理的输入。
-   */
-  function dispatchPointerWakeEvent(target, clientX, clientY) {
-    if (!target || typeof target.dispatchEvent !== 'function' || typeof PointerEvent !== 'function') {
-      return;
-    }
-    try {
-      target.dispatchEvent(new PointerEvent('pointermove', {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        pointerType: 'touch',
-        clientX: clientX,
-        clientY: clientY
-      }));
-    } catch (_) {}
+    return videoWakeTools.wake(video, {
+      activeFullscreenVideo: activeFullscreenVideo,
+      enableVideoControls: enableVideoControls,
+      reportPlaybackTimeline: reportPlaybackTimeline
+    });
   }
 
   /**
