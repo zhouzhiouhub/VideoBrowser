@@ -82,6 +82,12 @@ class FullscreenVideoGestureOverlay(
     private val zoomButton = controlTextView()
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
+    private val controlHitTester = FullscreenVideoControlHitTester(
+        exitButton = exitButton,
+        lockButton = lockButton,
+        controlsGroup = controlsGroup,
+        isLocked = { locked }
+    )
     private val controlsGroupController = FullscreenVideoControlsGroupController(
         context = context,
         controlsGroup = controlsGroup,
@@ -267,7 +273,7 @@ class FullscreenVideoGestureOverlay(
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             touchSession.beginDispatchDown(
                 playbackControlsVisible = arePlaybackControlsVisible?.invoke() ?: true,
-                startedOnControl = isControlPoint(event.x, event.y),
+                startedOnControl = controlHitTester.isControlPoint(event.x, event.y),
                 startedInBottomPassthrough =
                     !locked && event.y >= height - bottomPassthroughHeight()
             )
@@ -590,37 +596,6 @@ class FullscreenVideoGestureOverlay(
             finishHorizontalSeek(commit = false)
         }
         sideTapSeekController.clearAll()
-    }
-
-    /**
-     * 函数 `isControlPoint`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param x 参数类型为 `Float`，表示函数执行 `x` 相关逻辑时需要读取或处理的输入。
-     * @param y 参数类型为 `Float`，表示函数执行 `y` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isControlPoint(x: Float, y: Float): Boolean {
-        return isPointInside(exitButton, x, y) ||
-            isPointInside(lockButton, x, y) ||
-            (!locked && isPointInside(controlsGroup, x, y))
-    }
-
-    /**
-     * 函数 `isPointInside`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param view 参数类型为 `View`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
-     * @param x 参数类型为 `Float`，表示函数执行 `x` 相关逻辑时需要读取或处理的输入。
-     * @param y 参数类型为 `Float`，表示函数执行 `y` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun isPointInside(view: View, x: Float, y: Float): Boolean {
-        if (view.visibility != View.VISIBLE) return false
-        return x >= view.left &&
-            x <= view.right &&
-            y >= view.top &&
-            y <= view.bottom
     }
 
     /**
