@@ -19,6 +19,7 @@ class ElementPickerScriptContractTest {
     @Test
     fun elementPickerKeepsPageClickSuppressionUntilNativeConfirmFinishes() {
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val runtimeScript = projectFile("src/main/assets/scripts/enhancer_runtime.js").readText()
         val selectorScript = projectFile("src/main/assets/scripts/element_picker_selector_tools.js").readText()
         val pickerScript = projectFile("src/main/assets/scripts/element_picker.js").readText()
         val nativeBridgeScript = projectFile("src/main/assets/scripts/native_bridge.js").readText()
@@ -33,8 +34,11 @@ class ElementPickerScriptContractTest {
         assertTrue(pickerScript.contains("window.VideoBrowserElementPicker = pickerModule"))
         assertTrue(pickerScript.contains("const pickerSelectorTools = window.VideoBrowserElementPickerSelectorTools || {};"))
         assertTrue(commonScript.contains("const elementPicker = window.VideoBrowserElementPicker"))
-        assertTrue(commonScript.contains("return elementPicker.start(state);"))
-        assertTrue(commonScript.contains("elementPicker.stop(state);"))
+        assertTrue(commonScript.contains("elementPicker: elementPicker"))
+        assertTrue(runtimeScript.contains("return elementPicker.start(state);"))
+        assertTrue(runtimeScript.contains("elementPicker.stop(state);"))
+        assertFalse(commonScript.contains("return elementPicker.start(state);"))
+        assertFalse(commonScript.contains("elementPicker.stop(state);"))
         assertFalse(commonScript.contains("function handleElementPickerSelection(state, event)"))
         assertTrue(scriptLoader.contains("ELEMENT_PICKER_SELECTOR_TOOLS_SCRIPT_ASSET"))
         assertTrue(

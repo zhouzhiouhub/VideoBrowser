@@ -163,6 +163,7 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonScriptAvoidsNativeControlsWhenUnknownSiteAlreadyHasCustomPlayerControls() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val runtimeScript = projectFile("src/main/assets/scripts/enhancer_runtime.js").readText()
         val geometryScript = projectFile("src/main/assets/scripts/geometry.js").readText()
         val controlCoordinatorScript = projectFile("src/main/assets/scripts/video_control_coordinator.js").readText()
         val videoControlToolsScript = projectFile("src/main/assets/scripts/video_control_tools.js").readText()
@@ -189,7 +190,8 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(controlCoordinatorScript.contains("videoControlTools.removeNativeControls(video)"))
         assertTrue(controlCoordinatorScript.contains("videoControlTools.enableNativeControls(video)"))
         assertTrue(controlCoordinatorScript.contains("videoControlTools.cleanupLegacyOverlays(state, options);"))
-        assertTrue(script.contains("videoControlCoordinator.cleanupLegacyOverlays(state, {"))
+        assertTrue(runtimeScript.contains("videoControlCoordinator.cleanupLegacyOverlays(state, {"))
+        assertFalse(script.contains("videoControlCoordinator.cleanupLegacyOverlays(state, {"))
         assertFalse(script.contains("document.querySelectorAll('.__videobrowser_video_controls__')"))
         assertFalse(script.contains("try { video.controls = false; }"))
         assertFalse(script.contains("try { video.removeAttribute('controls'); }"))

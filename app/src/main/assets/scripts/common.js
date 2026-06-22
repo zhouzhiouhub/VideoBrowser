@@ -23,45 +23,25 @@
   const elementPicker = window.VideoBrowserElementPicker;
   const scriptletHooks = window.VideoBrowserScriptletHooks;
   const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;
+  const enhancerRuntime = window.VideoBrowserEnhancerRuntime;
   const enhancerApi = window.VideoBrowserEnhancerApi;
 
-  const normalCleanupIntervalMs = 3000;
-  const activeVideoCleanupIntervalMs = 15000;
-
-  /**
-   * 函数 `cleanupLegacyVideoOverlays`：封装 `cleanup Legacy Video Overlays` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function cleanupLegacyVideoOverlays() {
-    videoControlCoordinator.cleanupLegacyOverlays(state, {
-      runWithMutationSuppressed: runWithMutationSuppressed
-    });
-  }
-
-  /**
-   * 函数 `runWithMutationSuppressed`：封装 `run With Mutation Suppressed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} work 表示稍后执行的回调、清理函数或调用参数。
-   */
-  function runWithMutationSuppressed(work) {
-    return pageLifecycleTools.runWithMutationSuppressed(state, work);
-  }
-
-  /**
-   * 函数 `startElementPicker`：启动元素选择器模块。
-   */
-  function startElementPicker() {
-    return elementPicker.start(state);
-  }
-
-  /**
-   * 函数 `stopElementPicker`：停止元素选择器模块。
-   */
-  function stopElementPicker() {
-    elementPicker.stop(state);
-  }
+  const pageRuntime = enhancerRuntime.create({
+    state: state,
+    pageCleanupCoordinator: pageCleanupCoordinator,
+    skipButtonTools: skipButtonTools,
+    pageLifecycleTools: pageLifecycleTools,
+    elementPicker: elementPicker,
+    videoQueryTools: videoQueryTools,
+    videoPlaybackTools: videoPlaybackTools,
+    videoControlCoordinator: videoControlCoordinator,
+    callbacks: {
+      enhanceVideos: enhanceVideos,
+      syncDocumentFullscreenState: syncDocumentFullscreenState,
+      stopDirectionalPlayback: stopDirectionalPlayback,
+      exitVideoFullscreen: exitVideoFullscreen
+    }
+  });
 
   /**
    * 函数 `enhanceVideos`：封装 `enhance Videos` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -214,15 +194,6 @@
   }
 
   /**
-   * 函数 `isBilibiliHost`：封装 `is Bilibili Host` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function isBilibiliHost() {
-    return /(\.|^)bilibili\.com$/i.test(location.hostname);
-  }
-
-  /**
    * 函数 `seekVideo`：封装 `seek Video` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -330,39 +301,6 @@
   }
 
   /**
-   * 函数 `clickSkipButtons`：封装 `click Skip Buttons` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function clickSkipButtons() {
-    if (!state.config.videoEnabled && !state.config.scriptletSkipButtonsEnabled) return;
-    skipButtonTools.click();
-  }
-
-  /**
-   * 函数 `hasActiveVideo`：封装 `has Active Video` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function hasActiveVideo() {
-    return videoQueryTools.hasActive();
-  }
-
-  /**
-   * 函数 `installFullscreenEventHooks`：封装 `install Fullscreen Event Hooks` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function installFullscreenEventHooks() {
-    return pageLifecycleTools.installFullscreenEventHooks(state, {
-      syncDocumentFullscreenState: syncDocumentFullscreenState,
-      suspendPageFeatures: suspendPageFeatures,
-      startWorkers: startWorkers,
-      schedulePageWork: schedulePageWork
-    });
-  }
-
-  /**
    * 函数 `syncDocumentFullscreenState`：封装 `sync Document Fullscreen State` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -386,60 +324,8 @@
    */
   function installHooks() {
     scriptletHooks.install(state, {
-      installFullscreenEventHooks: installFullscreenEventHooks
+      installFullscreenEventHooks: pageRuntime.installFullscreenEventHooks
     });
-  }
-
-  /**
-   * 函数 `runPageWork`：封装 `run Page Work` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function runPageWork() {
-    state.pendingWork = false;
-    if (state.disposed) return;
-
-    const now = Date.now();
-    const cleanupInterval = hasActiveVideo() ? activeVideoCleanupIntervalMs : normalCleanupIntervalMs;
-    state.lastWorkAt = now;
-    if (state.config.cleanupEnabled) {
-      pageCleanupCoordinator.runGenerated(state, {
-        now: now,
-        isBilibiliHost: isBilibiliHost
-      });
-      if (now - Number(state.lastCleanupAt || 0) >= cleanupInterval) {
-        state.lastCleanupAt = now;
-        pageCleanupCoordinator.run(state, {
-          isBilibiliHost: isBilibiliHost,
-          runWithMutationSuppressed: runWithMutationSuppressed
-        });
-      }
-    } else {
-      pageCleanupCoordinator.applyDisabledState(state);
-    }
-    clickSkipButtons();
-    enhanceVideos();
-  }
-
-  /**
-   * 函数 `schedulePageWork`：封装 `schedule Page Work` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function schedulePageWork() {
-    return pageLifecycleTools.schedulePageWork(state, {
-      hasActiveVideo: hasActiveVideo,
-      runPageWork: runPageWork
-    });
-  }
-
-  /**
-   * 函数 `pausePageVideos`：封装 `pause Page Videos` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function pausePageVideos() {
-    videoPlaybackTools.pauseAll(videoQueryTools);
   }
 
   /**
@@ -483,55 +369,15 @@
     });
   }
 
-  /**
-   * 函数 `suspendPageFeatures`：封装 `suspend Page Features` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
-   */
-  function suspendPageFeatures(options) {
-    stopDirectionalPlayback();
-    stopElementPicker();
-    if (options && options.pauseVideos) {
-      pausePageVideos();
-    }
-    exitVideoFullscreen();
-    cleanupLegacyVideoOverlays();
-  }
-
-  /**
-   * 函数 `disposePageFeatures`：封装 `dispose Page Features` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} options 表示函数执行 `options` 相关逻辑时需要读取或处理的输入。
-   */
-  function disposePageFeatures(options) {
-    return pageLifecycleTools.disposePageFeatures(state, options, {
-      suspendPageFeatures: suspendPageFeatures
-    });
-  }
-
-  /**
-   * 函数 `startWorkers`：封装 `start Workers` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function startWorkers() {
-    return pageLifecycleTools.startWorkers(state, {
-      shouldDisableObserver: isBilibiliHost,
-      schedulePageWork: schedulePageWork
-    });
-  }
-
   window.VideoBrowserEnhancer = enhancerApi.create({
     state: state,
     videoEnhancementTools: videoEnhancementTools,
     videoQueryTools: videoQueryTools,
     invokeSiteVideoCapability: invokeSiteVideoCapability,
-    cleanupLegacyVideoOverlays: cleanupLegacyVideoOverlays,
+    cleanupLegacyVideoOverlays: pageRuntime.cleanupLegacyVideoOverlays,
     installHooks: installHooks,
-    runPageWork: runPageWork,
-    startWorkers: startWorkers,
+    runPageWork: pageRuntime.runPageWork,
+    startWorkers: pageRuntime.startWorkers,
     exitVideoFullscreen: exitVideoFullscreen,
     seekVideoBy: seekVideoBy,
     seekVideoTo: seekVideoTo,
@@ -542,9 +388,9 @@
     applyVideoSpeed: applyVideoSpeed,
     startDirectionalPlayback: startDirectionalPlayback,
     stopDirectionalPlayback: stopDirectionalPlayback,
-    startElementPicker: startElementPicker,
-    stopElementPicker: stopElementPicker,
-    suspendPageFeatures: suspendPageFeatures,
-    disposePageFeatures: disposePageFeatures
+    startElementPicker: pageRuntime.startElementPicker,
+    stopElementPicker: pageRuntime.stopElementPicker,
+    suspendPageFeatures: pageRuntime.suspendPageFeatures,
+    disposePageFeatures: pageRuntime.disposePageFeatures
   });
 })();

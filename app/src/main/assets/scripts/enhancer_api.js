@@ -1,8 +1,8 @@
 /*
  * Public API factory for window.VideoBrowserEnhancer.
  *
- * common.js owns page orchestration and passes its callbacks here; this file owns
- * the stable method names called from Kotlin and injected page commands.
+ * enhancer_runtime.js owns page orchestration; this file owns the stable method
+ * names called from Kotlin and injected page commands.
  */
 (function () {
   const api = window.VideoBrowserEnhancerApi || {};

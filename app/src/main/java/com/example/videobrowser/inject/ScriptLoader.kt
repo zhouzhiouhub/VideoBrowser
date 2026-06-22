@@ -100,6 +100,7 @@ class ScriptLoader(
         const val STYLE_MANAGER_SCRIPT_ASSET = "scripts/style_manager.js"
         const val CONFIGURED_CLEANUP_SCRIPT_ASSET = "scripts/configured_cleanup.js"
         const val PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET = "scripts/page_cleanup_coordinator.js"
+        const val ENHANCER_RUNTIME_SCRIPT_ASSET = "scripts/enhancer_runtime.js"
         const val ENHANCER_API_SCRIPT_ASSET = "scripts/enhancer_api.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
@@ -135,6 +136,7 @@ class ScriptLoader(
             STYLE_MANAGER_SCRIPT_ASSET,
             CONFIGURED_CLEANUP_SCRIPT_ASSET,
             PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET,
+            ENHANCER_RUNTIME_SCRIPT_ASSET,
             ENHANCER_API_SCRIPT_ASSET,
             COMMON_SCRIPT_ASSET
         )

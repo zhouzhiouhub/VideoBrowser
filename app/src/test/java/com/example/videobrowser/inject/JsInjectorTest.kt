@@ -439,6 +439,7 @@ class JsInjectorTest {
             ScriptLoader.STYLE_MANAGER_SCRIPT_ASSET -> "window.__styleManagerLoaded = true;"
             ScriptLoader.CONFIGURED_CLEANUP_SCRIPT_ASSET -> "window.__configuredCleanupLoaded = true;"
             ScriptLoader.PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET -> "window.__pageCleanupCoordinatorLoaded = true;"
+            ScriptLoader.ENHANCER_RUNTIME_SCRIPT_ASSET -> "window.__enhancerRuntimeLoaded = true;"
             ScriptLoader.PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET -> "window.__pageLifecycleToolsLoaded = true;"
             ScriptLoader.ENHANCER_API_SCRIPT_ASSET -> "window.__enhancerApiLoaded = true;"
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
