@@ -19,7 +19,7 @@
       logVideoDiagnostic: typeof adapter.logVideoDiagnostic === 'function' ? adapter.logVideoDiagnostic : noop,
       readPlayerMethod: typeof api.read === 'function' ? api.read : nullReader,
       callPlayerMethod: typeof api.call === 'function' ? api.call : nullCaller,
-      handledValue: typeof api.handledValue === 'function' ? api.handledValue : handledValue
+      handledValue: typeof api.handledValue === 'function' ? api.handledValue : nullCaller
     };
   }
 
@@ -171,11 +171,6 @@
       } catch (_) {}
     }, 0);
     return true;
-  }
-
-  function handledValue(callResult, fallbackValue) {
-    if (!callResult || !callResult.handled) return null;
-    return typeof callResult.value === 'undefined' ? fallbackValue : callResult.value;
   }
 
   function textOf(element) {

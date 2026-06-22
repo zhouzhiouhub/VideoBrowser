@@ -87,19 +87,6 @@
   }
 
   /**
-   * 函数 `handledValue`：封装 `handled Value` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   * @param {*} callResult 表示函数执行 `callResult` 相关逻辑时需要读取或处理的输入。
-   * @param {*} fallbackValue 表示要判断、转换或传给播放器/规则逻辑的输入值。
-   */
-  function handledValue(callResult, fallbackValue) {
-    return typeof playerApi.handledValue === 'function'
-      ? playerApi.handledValue(callResult, fallbackValue)
-      : null;
-  }
-
-  /**
    * 函数 `currentVideoTime`：封装 `current Video Time` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
    *
    * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
@@ -215,7 +202,7 @@
       var offset = Number(offsetSeconds);
       if (!Number.isFinite(offset)) return null;
       var target = currentVideoTime(video) + offset;
-      return handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
+      return playerApi.handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
     },
     /**
      * 函数 `seekTo`：封装 `seek To` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -227,7 +214,7 @@
     seekTo: function (video, targetSeconds) {
       var target = Number(targetSeconds);
       if (!Number.isFinite(target)) return null;
-      return handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
+      return playerApi.handledValue(callPlayerMethod(['seek', 'seekTo', 'setCurrentTime'], [target]), true);
     },
     /**
      * 函数 `setPlaybackSpeed`：封装 `set Playback Speed` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
@@ -239,7 +226,7 @@
     setPlaybackSpeed: function (video, speed) {
       var normalizedSpeed = Number(speed);
       if (!Number.isFinite(normalizedSpeed) || normalizedSpeed <= 0) return null;
-      return handledValue(callPlayerMethod(['setPlaybackRate', 'setPlaybackSpeed'], [normalizedSpeed]), true);
+      return playerApi.handledValue(callPlayerMethod(['setPlaybackRate', 'setPlaybackSpeed'], [normalizedSpeed]), true);
     },
     /**
      * 函数 `preferBestQuality`：封装 `prefer Best Quality` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
