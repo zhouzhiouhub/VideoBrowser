@@ -49,6 +49,12 @@ class PlayerActivity : AppCompatActivity() {
     private val nativePlayerWindowController by lazy {
         NativePlayerWindowController(this)
     }
+    private val nativePlayerOrientationController by lazy {
+        NativePlayerOrientationController(
+            windowController = nativePlayerWindowController,
+            gestureOverlay = { if (::gestureOverlay.isInitialized) gestureOverlay else null }
+        )
+    }
     private val trackSelectionDialogController by lazy {
         NativeTrackSelectionDialogController(
             activity = this,
@@ -91,7 +97,6 @@ class PlayerActivity : AppCompatActivity() {
     private var playWhenReady = true
     private var currentMediaItemIndex = 0
     private var selectedPlaybackSpeed = DEFAULT_PLAYBACK_SPEED
-    private var isLandscape = true
     private var videoEffectsEnabled = true
     private var retriedPlaybackWithoutVideoEffects = false
     private var repeatMode = PlaybackRepeatMode.NONE
@@ -106,7 +111,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 播放器默认横屏，并把系统音量键绑定到媒体音量。
-        nativePlayerWindowController.applyOrientation(isLandscape = true)
+        nativePlayerOrientationController.setLandscape(isLandscape = true)
         volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_player)
         val preferenceStore = PreferenceStore.from(this)
@@ -148,14 +153,14 @@ class PlayerActivity : AppCompatActivity() {
             // 系统重建时恢复内存状态，避免旋转或后台回收后从头播放。
             playbackPosition = restoredState.playbackPosition
             playWhenReady = restoredState.playWhenReady
-            isLandscape = restoredState.isLandscape
+            nativePlayerOrientationController.setLandscape(restoredState.isLandscape)
             nativePlayerVideoZoomController.setMode(restoredState.videoZoomMode)
             videoEffectsEnabled = restoredState.videoEffectsEnabled
             retriedPlaybackWithoutVideoEffects = restoredState.retriedPlaybackWithoutVideoEffects
         } else {
             restorePlaybackHistory()
         }
-        applyRequestedOrientation()
+        nativePlayerOrientationController.apply()
         nativePlayerVideoZoomController.apply()
         setupGestureOverlay()
 
@@ -245,7 +250,7 @@ class PlayerActivity : AppCompatActivity() {
             outState = outState,
             sessionState = sessionState,
             playbackQueue = playbackQueue,
-            isLandscape = isLandscape,
+            isLandscape = nativePlayerOrientationController.isLandscape(),
             videoEffectsEnabled = videoEffectsEnabled,
             retriedPlaybackWithoutVideoEffects = retriedPlaybackWithoutVideoEffects
         )
@@ -390,7 +395,7 @@ class PlayerActivity : AppCompatActivity() {
             }
             onDirectionalLongPressStart = ::startDirectionalLongPress
             onDirectionalLongPressEnd = ::stopDirectionalLongPress
-            onToggleOrientation = ::togglePlayerOrientation
+            onToggleOrientation = nativePlayerOrientationController::toggle
             onUserInteraction = ::wakePlayerControls
             arePlaybackControlsVisible = ::arePlayerControlsVisible
             onExitFullscreen = ::finish
@@ -409,7 +414,7 @@ class PlayerActivity : AppCompatActivity() {
                     ?: repeatMode
             }
             setPlaybackSpeed(selectedPlaybackSpeed)
-            setLandscape(isLandscape)
+            setLandscape(nativePlayerOrientationController.isLandscape())
             setQueueControlsVisible(playbackQueue.hasMultipleItems)
             setRepeatMode(repeatMode)
             setVideoZoomMode(nativePlayerVideoZoomController.currentMode())
@@ -699,30 +704,6 @@ class PlayerActivity : AppCompatActivity() {
     private fun stopDirectionalLongPress() {
         directionalLongPressController.stop()?.let { restoredSpeed ->
             selectedPlaybackSpeed = restoredSpeed
-        }
-    }
-
-    /**
-     * 函数 `togglePlayerOrientation`：封装 `toggle Player Orientation` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun togglePlayerOrientation(): Boolean {
-        isLandscape = !isLandscape
-        applyRequestedOrientation()
-        return isLandscape
-    }
-
-    /**
-     * 函数 `applyRequestedOrientation`：根据最新状态刷新 `apply Requested Orientation` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun applyRequestedOrientation() {
-        nativePlayerWindowController.applyOrientation(isLandscape)
-        if (::gestureOverlay.isInitialized) {
-            gestureOverlay.setLandscape(isLandscape)
         }
     }
 
