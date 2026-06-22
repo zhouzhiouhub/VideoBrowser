@@ -19,19 +19,33 @@ class ElementPickerScriptContractTest {
     @Test
     fun elementPickerKeepsPageClickSuppressionUntilNativeConfirmFinishes() {
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val selectorScript = projectFile("src/main/assets/scripts/element_picker_selector_tools.js").readText()
         val pickerScript = projectFile("src/main/assets/scripts/element_picker.js").readText()
         val nativeBridgeScript = projectFile("src/main/assets/scripts/native_bridge.js").readText()
+        val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
+        val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
         val selectionBody = functionBody(pickerScript, "handleElementPickerSelection")
         val stopBody = functionBody(pickerScript, "stopElementPicker")
 
+        assertTrue(selectorScript.contains("window.VideoBrowserElementPickerSelectorTools = tools"))
+        assertTrue(selectorScript.contains("tools.buildSelector = tools.buildSelector || function (element)"))
+        assertTrue(selectorScript.contains("tools.describeElement = tools.describeElement || function (element)"))
         assertTrue(pickerScript.contains("window.VideoBrowserElementPicker = pickerModule"))
+        assertTrue(pickerScript.contains("const pickerSelectorTools = window.VideoBrowserElementPickerSelectorTools || {};"))
         assertTrue(commonScript.contains("const elementPicker = window.VideoBrowserElementPicker"))
         assertTrue(commonScript.contains("return elementPicker.start(state);"))
         assertTrue(commonScript.contains("elementPicker.stop(state);"))
         assertFalse(commonScript.contains("function handleElementPickerSelection(state, event)"))
+        assertTrue(scriptLoader.contains("ELEMENT_PICKER_SELECTOR_TOOLS_SCRIPT_ASSET"))
+        assertTrue(
+            commonAssetList.indexOf("ELEMENT_PICKER_SELECTOR_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("ELEMENT_PICKER_SCRIPT_ASSET")
+        )
         assertTrue(selectionBody.contains("picker.waitingForNative = true;"))
         assertTrue(pickerScript.contains("const nativeBridge = window.VideoBrowserNativeBridge || {};"))
-        assertTrue(selectionBody.contains("nativeBridge.requestElementBlock(selector, describePickedElement(element))"))
+        assertTrue(selectionBody.contains("pickerSelectorTools.buildSelector(element)"))
+        assertTrue(selectionBody.contains("pickerSelectorTools.describeElement(element)"))
+        assertTrue(selectionBody.contains("nativeBridge.requestElementBlock(selector, description)"))
         assertTrue(
             nativeBridgeScript.contains(
                 "bridgeTools.requestElementBlock = bridgeTools.requestElementBlock || function (selector, description)"
@@ -44,6 +58,9 @@ class ElementPickerScriptContractTest {
             selectionBody.contains("detachElementPickerListeners(picker);")
         )
         assertTrue(stopBody.contains("detachElementPickerListeners(picker);"))
+        assertFalse(pickerScript.contains("function buildElementPickerSelector(element)"))
+        assertFalse(pickerScript.contains("function describePickedElement(element)"))
+        assertFalse(pickerScript.contains("function isStableSelectorToken(value)"))
     }
 
     /**
