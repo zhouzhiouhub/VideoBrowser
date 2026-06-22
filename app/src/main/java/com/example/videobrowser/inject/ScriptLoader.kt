@@ -102,6 +102,7 @@ class ScriptLoader(
         const val PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET = "scripts/page_cleanup_coordinator.js"
         const val ENHANCER_RUNTIME_SCRIPT_ASSET = "scripts/enhancer_runtime.js"
         const val ENHANCER_API_SCRIPT_ASSET = "scripts/enhancer_api.js"
+        const val VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET = "scripts/video_enhancer_callbacks.js"
         const val COMMON_SCRIPT_ASSET = "scripts/common.js"
         const val SITE_ADAPTER_HELPERS_SCRIPT_ASSET = "scripts/site_adapter_helpers.js"
         val COMMON_SCRIPT_ASSETS = listOf(
@@ -138,6 +139,7 @@ class ScriptLoader(
             PAGE_CLEANUP_COORDINATOR_SCRIPT_ASSET,
             ENHANCER_RUNTIME_SCRIPT_ASSET,
             ENHANCER_API_SCRIPT_ASSET,
+            VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET,
             COMMON_SCRIPT_ASSET
         )
         private const val SCRIPT_ASSET_DIRECTORY = "scripts/"

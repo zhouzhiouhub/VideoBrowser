@@ -9,6 +9,7 @@ class VideoEnhancementToolsContractTest {
     @Test
     fun `video enhancement behavior is owned by shared enhancement module`() {
         val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
+        val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val enhancerApiScript = projectFile("src/main/assets/scripts/enhancer_api.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
@@ -36,12 +37,13 @@ class VideoEnhancementToolsContractTest {
         assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.hasFromOptions(config, video, 'preferBestQuality')"))
         assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'preferBestQuality', [])"))
         assertTrue(commonScript.contains("const videoEnhancementTools = window.VideoBrowserVideoEnhancementTools"))
-        assertTrue(commonScript.contains("return videoEnhancementTools.installPlaybackSpeedHooks(video, state, {"))
-        assertTrue(commonScript.contains("return videoEnhancementTools.desiredSpeed(video, state, {"))
-        assertTrue(commonScript.contains("return videoEnhancementTools.currentFullscreenPlaybackSpeed(state);"))
-        assertTrue(commonScript.contains("return videoEnhancementTools.isFullscreenPlaybackTarget(video, state, {"))
-        assertTrue(commonScript.contains("return videoEnhancementTools.applySpeed(video, state, {"))
-        assertTrue(commonScript.contains("return videoEnhancementTools.preferBestQuality(video, state, {"))
+        assertTrue(commonScript.contains("applyVideoSpeed: videoCallbacks.applyVideoSpeed"))
+        assertTrue(callbacksScript.contains("return videoEnhancementTools.installPlaybackSpeedHooks(video, state, {"))
+        assertTrue(callbacksScript.contains("return videoEnhancementTools.desiredSpeed(video, state, {"))
+        assertTrue(callbacksScript.contains("return videoEnhancementTools.currentFullscreenPlaybackSpeed(state);"))
+        assertTrue(callbacksScript.contains("return videoEnhancementTools.isFullscreenPlaybackTarget(video, state, {"))
+        assertTrue(callbacksScript.contains("return videoEnhancementTools.applySpeed(video, state, {"))
+        assertTrue(callbacksScript.contains("return videoEnhancementTools.preferBestQuality(video, state, {"))
         assertTrue(commonScript.contains("const enhancerApi = window.VideoBrowserEnhancerApi"))
         assertTrue(commonScript.contains("window.VideoBrowserEnhancer = enhancerApi.create({"))
         assertTrue(enhancerApiScript.contains("window.VideoBrowserEnhancerApi = api"))
@@ -54,6 +56,10 @@ class VideoEnhancementToolsContractTest {
         )
         assertTrue(
             commonAssetList.indexOf("ENHANCER_API_SCRIPT_ASSET") <
+                commonAssetList.indexOf("VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET")
+        )
+        assertTrue(
+            commonAssetList.indexOf("VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
         )
         assertFalse(commonScript.contains("state.speedHookedVideos.add(video);"))

@@ -19,6 +19,7 @@ class VideoCapabilityDelegationContractTest {
     @Test
     fun commonScriptDelegatesVideoActionsToSiteCapabilitiesBeforeGenericVideoFallback() {
         val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val brokerScript = projectFile("src/main/assets/scripts/site_video_capability_broker.js").readText()
         val controlCoordinatorScript = projectFile("src/main/assets/scripts/video_control_coordinator.js").readText()
         val playbackScript = projectFile("src/main/assets/scripts/video_playback_tools.js").readText()
@@ -30,8 +31,8 @@ class VideoCapabilityDelegationContractTest {
         assertTrue(script.contains("const invokeSiteVideoCapability = siteVideoCapabilityBroker.invoke"))
         assertTrue(script.contains("const hasSiteVideoCapability = siteVideoCapabilityBroker.has"))
         assertTrue(controlCoordinatorScript.contains("siteVideoCapabilityBroker.invoke(video, 'enableControls', [])"))
-        assertTrue(script.contains("videoControlCoordinator.enableControls(video);"))
-        assertTrue(script.contains("videoPlaybackTools.togglePlayPause(video, {"))
+        assertTrue(callbacksScript.contains("videoControlCoordinator.enableControls(video);"))
+        assertTrue(callbacksScript.contains("videoPlaybackTools.togglePlayPause(video, {"))
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'togglePlayPause', [])"))
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekBy', [offsetSeconds])"))
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekTo', [targetSeconds])"))
@@ -54,8 +55,8 @@ class VideoCapabilityDelegationContractTest {
      */
     @Test
     fun commonVideoEnhancementRoutesControlsThroughSiteCapabilities() {
-        val script = projectFile("src/main/assets/scripts/common.js").readText()
-        val enhanceVideosBody = functionBody(script, "function enhanceVideos()")
+        val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
+        val enhanceVideosBody = functionBody(callbacksScript, "function enhanceVideos()")
 
         assertTrue(enhanceVideosBody.contains("videoControlCoordinator.enableControls(video);"))
         assertFalse(enhanceVideosBody.contains("enableVideoControls(video);"))
@@ -69,7 +70,7 @@ class VideoCapabilityDelegationContractTest {
      */
     @Test
     fun commonVideoEnhancementRequestsBestQualityThroughSiteCapabilitiesWithoutCustomUi() {
-        val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val script = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val enhancementScript = projectFile("src/main/assets/scripts/video_enhancement_tools.js").readText()
         val enhanceVideosBody = functionBody(script, "function enhanceVideos()")
 
@@ -88,7 +89,7 @@ class VideoCapabilityDelegationContractTest {
      */
     @Test
     fun commonWakeControlsRoutesControlVisibilityThroughSiteCapabilities() {
-        val script = projectFile("src/main/assets/scripts/common.js").readText()
+        val script = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val wakeScript = projectFile("src/main/assets/scripts/video_wake_tools.js").readText()
         val wakeControlsBody = functionBody(script, "function wakeVideoControls(video)")
 

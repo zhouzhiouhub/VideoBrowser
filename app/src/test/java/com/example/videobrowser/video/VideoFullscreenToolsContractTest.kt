@@ -9,6 +9,7 @@ class VideoFullscreenToolsContractTest {
     @Test
     fun `video fullscreen behavior is owned by shared fullscreen module`() {
         val fullscreenScript = projectFile("src/main/assets/scripts/video_fullscreen_tools.js").readText()
+        val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
@@ -29,15 +30,20 @@ class VideoFullscreenToolsContractTest {
         assertTrue(fullscreenScript.contains("video.addEventListener('webkitendfullscreen', function ()"))
         assertTrue(fullscreenScript.contains("document.exitFullscreen()"))
         assertTrue(commonScript.contains("const videoFullscreenTools = window.VideoBrowserVideoFullscreenTools"))
-        assertTrue(commonScript.contains("return videoFullscreenTools.installVideoHooks(video, state, {"))
-        assertTrue(commonScript.contains("return videoFullscreenTools.activeVideo(state, videoQueryTools);"))
-        assertTrue(commonScript.contains("videoFullscreenTools.request(video, {"))
-        assertTrue(commonScript.contains("videoFullscreenTools.exit(state, {"))
-        assertTrue(commonScript.contains("return videoFullscreenTools.isVideoFullscreen(video);"))
-        assertTrue(commonScript.contains("videoFullscreenTools.syncDocumentState(state, {"))
+        assertTrue(commonScript.contains("exitVideoFullscreen: videoCallbacks.exitVideoFullscreen"))
+        assertTrue(callbacksScript.contains("return videoFullscreenTools.installVideoHooks(video, state, {"))
+        assertTrue(callbacksScript.contains("return videoFullscreenTools.activeVideo(state, videoQueryTools);"))
+        assertTrue(callbacksScript.contains("videoFullscreenTools.request(video, {"))
+        assertTrue(callbacksScript.contains("videoFullscreenTools.exit(state, {"))
+        assertTrue(callbacksScript.contains("return videoFullscreenTools.isVideoFullscreen(video);"))
+        assertTrue(callbacksScript.contains("videoFullscreenTools.syncDocumentState(state, {"))
         assertTrue(scriptLoader.contains("VIDEO_FULLSCREEN_TOOLS_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("VIDEO_FULLSCREEN_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET")
+        )
+        assertTrue(
+            commonAssetList.indexOf("VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
         )
         assertFalse(commonScript.contains("target.requestFullscreen || target.webkitRequestFullscreen"))

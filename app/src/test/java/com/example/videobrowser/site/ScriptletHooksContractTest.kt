@@ -10,6 +10,7 @@ class ScriptletHooksContractTest {
     fun `scriptlet URL hooks are owned by shared module`() {
         val scriptletHooksScript = projectFile("src/main/assets/scripts/scriptlet_hooks.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
 
         assertTrue(scriptletHooksScript.contains("window.VideoBrowserScriptletHooks = hooks"))
         assertTrue(scriptletHooksScript.contains("hooks.defaultBlockedKeywords = hooks.defaultBlockedKeywords || ["))
@@ -19,7 +20,7 @@ class ScriptletHooksContractTest {
         assertTrue(scriptletHooksScript.contains("window.fetch = function ()"))
         assertTrue(scriptletHooksScript.contains("callbacks.installFullscreenEventHooks()"))
         assertTrue(commonScript.contains("const scriptletHooks = window.VideoBrowserScriptletHooks"))
-        assertTrue(commonScript.contains("scriptletHooks.install(state, {"))
+        assertTrue(callbacksScript.contains("scriptletHooks.install(state, {"))
         assertFalse(commonScript.contains("const blockedKeywords = ["))
         assertFalse(commonScript.contains("const originalOpen = window.open"))
         assertFalse(commonScript.contains("const originalFetch = window.fetch"))

@@ -442,6 +442,7 @@ class JsInjectorTest {
             ScriptLoader.ENHANCER_RUNTIME_SCRIPT_ASSET -> "window.__enhancerRuntimeLoaded = true;"
             ScriptLoader.PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET -> "window.__pageLifecycleToolsLoaded = true;"
             ScriptLoader.ENHANCER_API_SCRIPT_ASSET -> "window.__enhancerApiLoaded = true;"
+            ScriptLoader.VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET -> "window.__videoEnhancerCallbacksLoaded = true;"
             ScriptLoader.COMMON_SCRIPT_ASSET -> COMMON_SCRIPT
             ScriptLoader.SITE_ADAPTER_HELPERS_SCRIPT_ASSET -> "window.__siteHelpersLoaded = true;"
             "scripts/youtube.js" -> "window.__siteYoutubeLoaded = true;"

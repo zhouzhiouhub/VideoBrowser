@@ -11,6 +11,7 @@ class PageLifecycleToolsContractTest {
         val lifecycleScript = projectFile("src/main/assets/scripts/page_lifecycle_tools.js").readText()
         val runtimeScript = projectFile("src/main/assets/scripts/enhancer_runtime.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
+        val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
 
@@ -36,7 +37,7 @@ class PageLifecycleToolsContractTest {
         assertTrue(commonScript.contains("const pageLifecycleTools = window.VideoBrowserPageLifecycleTools"))
         assertTrue(commonScript.contains("const enhancerRuntime = window.VideoBrowserEnhancerRuntime"))
         assertTrue(commonScript.contains("const pageRuntime = enhancerRuntime.create({"))
-        assertTrue(commonScript.contains("installFullscreenEventHooks: pageRuntime.installFullscreenEventHooks"))
+        assertTrue(callbacksScript.contains("installFullscreenEventHooks: pageRuntime.installFullscreenEventHooks"))
         assertTrue(scriptLoader.contains("ENHANCER_RUNTIME_SCRIPT_ASSET"))
         assertTrue(scriptLoader.contains("PAGE_LIFECYCLE_TOOLS_SCRIPT_ASSET"))
         assertTrue(

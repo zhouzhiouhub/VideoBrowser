@@ -9,6 +9,7 @@ class VideoWakeToolsContractTest {
     @Test
     fun `video control wake events are owned by shared wake module`() {
         val wakeScript = projectFile("src/main/assets/scripts/video_wake_tools.js").readText()
+        val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
@@ -21,11 +22,16 @@ class VideoWakeToolsContractTest {
         assertTrue(wakeScript.contains("new PointerEvent('pointermove', {"))
         assertTrue(wakeScript.contains("callbacks.enableVideoControls(target);"))
         assertTrue(commonScript.contains("const videoWakeTools = window.VideoBrowserVideoWakeTools"))
-        assertTrue(commonScript.contains("return videoWakeTools.wake(video, {"))
-        assertTrue(commonScript.contains("enableVideoControls: videoControlCoordinator.enableControls"))
+        assertTrue(commonScript.contains("wakeVideoControls: videoCallbacks.wakeVideoControls"))
+        assertTrue(callbacksScript.contains("return videoWakeTools.wake(video, {"))
+        assertTrue(callbacksScript.contains("enableVideoControls: videoControlCoordinator.enableControls"))
         assertTrue(scriptLoader.contains("VIDEO_WAKE_TOOLS_SCRIPT_ASSET"))
         assertTrue(
             commonAssetList.indexOf("VIDEO_WAKE_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET")
+        )
+        assertTrue(
+            commonAssetList.indexOf("VIDEO_ENHANCER_CALLBACKS_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
         )
         assertFalse(commonScript.contains("function dispatchControlWakeEvent(target, type, clientX, clientY)"))
