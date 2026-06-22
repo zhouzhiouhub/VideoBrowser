@@ -89,7 +89,6 @@ class FullscreenVideoGestureOverlay(
     private val controlsGroup = LinearLayout(context)
     private val feedbackView = TextView(context)
 
-    private var locked = false
     private var landscape = true
     private var playbackSpeed = DEFAULT_PLAYBACK_SPEED
     private var repeatMode = PlaybackRepeatMode.NONE
@@ -126,6 +125,16 @@ class FullscreenVideoGestureOverlay(
         onPlaybackSpeedSelected = { speed -> onPlaybackSpeedSelected?.invoke(speed) },
         showFeedback = ::showFeedback
     )
+    private val lockUiController = FullscreenVideoLockUiController(
+        context = context,
+        lockButton = lockButton,
+        controlsGroup = controlsGroup,
+        dismissSpeedPopup = speedPopupController::dismiss,
+        clearGestureStateWhenLocked = ::clearGestureStateWhenLocked,
+        showFeedback = ::showFeedback
+    )
+    private val locked: Boolean
+        get() = lockUiController.locked
 
     private val hideFeedbackRunnable = Runnable {
         feedbackView.visibility = View.GONE
@@ -155,7 +164,7 @@ class FullscreenVideoGestureOverlay(
         setupLockButton()
         setupControlsGroup()
         setupFeedbackView()
-        updateLockUi()
+        lockUiController.update()
         setPlaybackSpeed(DEFAULT_PLAYBACK_SPEED)
         setLandscape(true)
     }
@@ -171,7 +180,7 @@ class FullscreenVideoGestureOverlay(
         }
         visibility = View.VISIBLE
         bringToFront()
-        setLocked(false, announce = false)
+        lockUiController.setLocked(false, announce = false)
     }
 
     /**
@@ -183,7 +192,7 @@ class FullscreenVideoGestureOverlay(
         speedPopupController.dismiss()
         stopLongPress()
         restoreWindowBrightness()
-        setLocked(false, announce = false)
+        lockUiController.setLocked(false, announce = false)
         resetTouchState()
         feedbackHandler.removeCallbacks(hideFeedbackRunnable)
         feedbackHandler.removeCallbacks(clearPendingTapRunnable)
@@ -404,7 +413,7 @@ class FullscreenVideoGestureOverlay(
     private fun setupLockButton() {
         lockButton.setOnClickListener {
             notifyUserInteraction()
-            setLocked(!locked, announce = true)
+            lockUiController.toggle(announce = true)
         }
         addView(
             lockButton,
@@ -948,49 +957,13 @@ class FullscreenVideoGestureOverlay(
         speedPopupController.show()
     }
 
-    /**
-     * 函数 `setLocked`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param value 参数类型为 `Boolean`，表示参与计算或写入的数值，函数会据此更新状态或返回结果。
-     * @param announce 参数类型为 `Boolean`，表示函数执行 `announce` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun setLocked(value: Boolean, announce: Boolean) {
-        if (locked == value && announce) {
-            showFeedback(if (locked) LOCKED_ICON else UNLOCKED_ICON)
-            return
+    private fun clearGestureStateWhenLocked() {
+        stopLongPress()
+        if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
+            finishHorizontalSeek(commit = false)
         }
-        locked = value
-        if (locked) {
-            stopLongPress()
-            if (activeGesture == VerticalGesture.HORIZONTAL_SEEK) {
-                finishHorizontalSeek(commit = false)
-            }
-            clearPendingSideTap()
-            clearSeekAccumulator()
-        }
-        updateLockUi()
-        if (announce) {
-            showFeedback(if (locked) LOCKED_ICON else UNLOCKED_ICON)
-        }
-    }
-
-    /**
-     * 函数 `updateLockUi`：根据最新状态刷新 `update Lock Ui` 相关数据或界面，让调用方看到一致结果。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
-    private fun updateLockUi() {
-        val controlLabel = context.getString(
-            if (locked) R.string.video_control_unlock else R.string.video_control_lock
-        )
-        lockButton.text = if (locked) UNLOCKED_ICON else LOCKED_ICON
-        lockButton.contentDescription = controlLabel
-        ViewCompat.setTooltipText(lockButton, controlLabel)
-        controlsGroup.visibility = if (locked) View.GONE else View.VISIBLE
-        if (locked) {
-            speedPopupController.dismiss()
-        }
+        clearPendingSideTap()
+        clearSeekAccumulator()
     }
 
     /**
@@ -1209,8 +1182,6 @@ class FullscreenVideoGestureOverlay(
         private const val BOTTOM_PASSTHROUGH_DP = 92
         private const val MIN_SWIPE_DISTANCE_DP = 10
         private const val VERTICAL_GESTURE_RATIO = 1.15f
-        private const val LOCKED_ICON = "\ud83d\udd12"
-        private const val UNLOCKED_ICON = "\ud83d\udd13"
         private const val ROTATE_ICON = "\u21bb"
         private const val TRACK_ICON = "轨"
         private const val PREVIOUS_ICON = "\u23ee"
