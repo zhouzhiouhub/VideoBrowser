@@ -23,12 +23,16 @@ class BrowserControlsControllerContractTest {
         val browserManager = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserManager.kt"
         ).readText()
+        val navigationController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewNavigationController.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val stopIcon = projectFile("src/main/res/drawable/ic_stop_24.xml").readText()
         val readme = projectFile("README.md").readText()
 
         assertTrue(browserManager.contains("fun stopLoading()"))
-        assertTrue(browserManager.contains("webView.stopLoading()"))
+        assertTrue(browserManager.contains("webViewNavigationController.stopLoading()"))
+        assertTrue(navigationController.contains("webView().stopLoading()"))
         assertTrue(controller.contains("private var isPageLoading = false"))
         assertTrue(controller.contains("if (isPageLoading)"))
         assertTrue(controller.contains("browserManager().stopLoading()"))

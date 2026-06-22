@@ -32,6 +32,9 @@ class BrowserManager(
         webView = { webView },
         webViewSettings = webViewSettings
     )
+    private val webViewNavigationController = BrowserWebViewNavigationController(
+        webView = { webView }
+    )
     private val javascriptInterfaces = mutableListOf<JavascriptInterfaceBinding>()
     private var chromeClient: WebChromeClient? = null
     private var browserClient: WebViewClient? = null
@@ -151,8 +154,7 @@ class BrowserManager(
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     fun load(url: String) {
-        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
-        webView.loadUrl(url)
+        webViewNavigationController.load(url)
     }
 
     /**
@@ -162,14 +164,7 @@ class BrowserManager(
      * @param error 参数类型为 `BrowserPageError`，表示函数执行 `error` 相关逻辑时需要读取或处理的输入。
      */
     fun loadErrorPage(error: BrowserPageError) {
-        BrowserPageLifecycleScriptController.disposeCurrentPage(webView)
-        webView.loadDataWithBaseURL(
-            "about:blank",
-            BrowserErrorPage.render(error),
-            "text/html",
-            "UTF-8",
-            null
-        )
+        webViewNavigationController.loadErrorPage(error)
     }
 
     /**
@@ -179,12 +174,7 @@ class BrowserManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun goBack(): Boolean {
-        if (!webView.canGoBack()) {
-            return false
-        }
-        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
-        webView.goBack()
-        return true
+        return webViewNavigationController.goBack()
     }
 
     /**
@@ -194,12 +184,7 @@ class BrowserManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun goForward(): Boolean {
-        if (!webView.canGoForward()) {
-            return false
-        }
-        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
-        webView.goForward()
-        return true
+        return webViewNavigationController.goForward()
     }
 
     /**
@@ -208,8 +193,7 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun reload() {
-        BrowserPageLifecycleScriptController.suspendCurrentPage(webView)
-        webView.reload()
+        webViewNavigationController.reload()
     }
 
     /**
@@ -218,7 +202,7 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun stopLoading() {
-        webView.stopLoading()
+        webViewNavigationController.stopLoading()
     }
 
     /**
@@ -228,7 +212,7 @@ class BrowserManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun canGoBack(): Boolean {
-        return webView.canGoBack()
+        return webViewNavigationController.canGoBack()
     }
 
     /**
@@ -238,7 +222,7 @@ class BrowserManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun canGoForward(): Boolean {
-        return webView.canGoForward()
+        return webViewNavigationController.canGoForward()
     }
 
     /**
@@ -248,7 +232,7 @@ class BrowserManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun currentUrl(): String? {
-        return webView.url
+        return webViewNavigationController.currentUrl()
     }
 
     /**
@@ -258,7 +242,7 @@ class BrowserManager(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun userAgentString(): String? {
-        return webView.settings.userAgentString
+        return webViewNavigationController.userAgentString()
     }
 
     /**
