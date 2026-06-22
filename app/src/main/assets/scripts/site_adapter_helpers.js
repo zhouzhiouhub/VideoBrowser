@@ -140,6 +140,14 @@
     };
   };
 
+  tools.startAdapterWorker = function (state, runner, intervalMs) {
+    if (!state || state.intervalId || typeof runner !== 'function') return false;
+    state.intervalId = window.setInterval(function () {
+      runner(state.config || {});
+    }, intervalMs || 1800);
+    return true;
+  };
+
   tools.registerBasicAdapter = function (options) {
     var adapters = window.VideoBrowserSiteAdapters || {};
     window.VideoBrowserSiteAdapters = adapters;
@@ -174,13 +182,6 @@
       }
     }
 
-    function startWorker() {
-      if (state.intervalId) return;
-      state.intervalId = window.setInterval(function () {
-        run(state.config || {});
-      }, intervalMs);
-    }
-
     adapters[adapterId] = adapters[adapterId] || {};
     adapters[adapterId].videoCapabilities = {
       supports: function (video) {
@@ -198,7 +199,7 @@
       this.lastConfig = config || {};
       state.config = this.lastConfig;
       run(state.config);
-      startWorker();
+      tools.startAdapterWorker(state, run, intervalMs);
     };
 
     return adapters[adapterId];

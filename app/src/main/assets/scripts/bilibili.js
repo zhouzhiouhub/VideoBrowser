@@ -70,22 +70,6 @@
     }
   }
 
-  /**
-   * 函数 `startWorker`：封装 `start Worker` 这一段网页脚本逻辑，让调用方不用关心内部 DOM 查询、状态判断或桥接细节。
-   *
-   * 初学者阅读提示：先看参数说明，再看函数体如何读取页面元素、脚本状态或原生桥接对象。
-   */
-  function startWorker() {
-    if (state.intervalId) return;
-    /*
-     * 内联回调函数：这一行把函数作为参数交给数组遍历、事件监听、定时器或异步 API。
-     * 初学者阅读提示：先看回调参数，再看回调体如何处理当前这一项数据。
-     */
-    state.intervalId = window.setInterval(function () {
-      run(state.config || {});
-    }, 1800);
-  }
-
   adapters.bilibili = adapters.bilibili || {};
   adapters.bilibili.videoCapabilities = typeof videoCapabilities.create === 'function'
     ? videoCapabilities.create(adapterTools, playerApi, qualityTools, overlayCleanup)
@@ -100,6 +84,6 @@
     this.lastConfig = config || {};
     state.config = this.lastConfig;
     run(state.config);
-    startWorker();
+    siteTools.startAdapterWorker(state, run, 1800);
   };
 })();
