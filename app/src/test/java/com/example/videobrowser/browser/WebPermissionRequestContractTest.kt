@@ -86,6 +86,9 @@ class WebPermissionRequestContractTest {
         val webPermissionPendingRequestStore = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionPendingRequestStore.kt"
         ).readText()
+        val androidPermissionGate = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserAndroidPermissionGate.kt"
+        ).readText()
         val sitePermissionDecisionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSitePermissionDecisionController.kt"
         ).readText()
@@ -104,9 +107,15 @@ class WebPermissionRequestContractTest {
         assertTrue(webRequestAssembly.contains("requestAndroidPermissions = activityResultLaunchers::requestWebPermissions"))
         assertTrue(webPermissionController.contains("WebPermissionPendingRequestStore()"))
         assertTrue(webPermissionController.contains("pendingRequestStore.replaceWith(request)"))
-        assertTrue(webPermissionController.contains("pendingRequestStore.take()"))
+        assertTrue(webPermissionController.contains("takePendingRequest = pendingRequestStore::take"))
         assertTrue(webPermissionController.contains("pendingRequestStore.cancelPending()"))
         assertFalse(webPermissionController.contains("pendingWebPermissionRequest: PermissionRequest?"))
+        assertTrue(webPermissionController.contains("BrowserAndroidPermissionGate("))
+        assertTrue(webPermissionController.contains("BrowserAndroidPermissionResultPolicy.ALL_REQUIRED"))
+        assertTrue(webPermissionController.contains("androidPermissionGate.continueOrRequest(request)"))
+        assertTrue(webPermissionController.contains("androidPermissionGate.handleResult(grants)"))
+        assertTrue(androidPermissionGate.contains("fun continueOrRequest(request: T)"))
+        assertTrue(androidPermissionGate.contains("fun handleResult(grants: Map<String, Boolean>)"))
         assertTrue(webPermissionPendingRequestStore.contains("pendingWebPermissionRequest: PermissionRequest?"))
         assertTrue(webPermissionPendingRequestStore.contains("pendingWebPermissionRequest?.deny()"))
         assertTrue(webPermissionPromptController.contains("pendingWebPermissionPromptRequest: PermissionRequest?"))

@@ -30,8 +30,8 @@ class WebPermissionRequestController(
     settingsManager: SettingsManager,
     sessionSitePermissionStore: SessionSitePermissionStore,
     isPrivateBrowsingEnabled: () -> Boolean,
-    private val hasAndroidPermission: (String) -> Boolean,
-    private val requestAndroidPermissions: (Array<String>) -> Unit
+    hasAndroidPermission: (String) -> Boolean,
+    requestAndroidPermissions: (Array<String>) -> Unit
 ) {
     private val pendingRequestStore = WebPermissionPendingRequestStore()
     private val sitePermissionDecisionController = BrowserSitePermissionDecisionController(
@@ -45,6 +45,21 @@ class WebPermissionRequestController(
         allowForSession = ::allowWebPermissionForSession,
         grantSupportedResources = ::grantSupportedWebPermissionResources
     )
+    private val androidPermissionGate = BrowserAndroidPermissionGate(
+        hasAndroidPermission = hasAndroidPermission,
+        requestAndroidPermissions = requestAndroidPermissions,
+        requiredPermissionsFor = { request: PermissionRequest ->
+            WebPermissionResourceMapper.androidPermissionsFor(request.resources)?.toTypedArray()
+        },
+        resultPolicy = BrowserAndroidPermissionResultPolicy.ALL_REQUIRED,
+        replacePendingRequest = { request ->
+            pendingRequestStore.replaceWith(request)
+            webPermissionPromptController.cancelPendingPrompt()
+        },
+        takePendingRequest = pendingRequestStore::take,
+        continueAfterPermission = ::handlePermissionRequestAfterAndroidPermission,
+        denyRequest = PermissionRequest::deny
+    )
 
     /**
      * 函数 `handlePermissionRequest`：处理 WebView 发来的网页权限请求。
@@ -55,26 +70,11 @@ class WebPermissionRequestController(
      */
     fun handlePermissionRequest(request: PermissionRequest?) {
         request ?: return
-        val requiredPermissions = WebPermissionResourceMapper.androidPermissionsFor(request.resources)
-        if (requiredPermissions == null) {
-            request.deny()
-            return
-        }
         if (webPermissionDecision(request) == SitePermissionDecision.BLOCK) {
             request.deny()
             return
         }
-        val missingPermissions = requiredPermissions
-            .filterNot(hasAndroidPermission)
-            .toTypedArray()
-        if (missingPermissions.isEmpty()) {
-            handlePermissionRequestAfterAndroidPermission(request)
-            return
-        }
-
-        pendingRequestStore.replaceWith(request)
-        webPermissionPromptController.cancelPendingPrompt()
-        requestAndroidPermissions(missingPermissions)
+        androidPermissionGate.continueOrRequest(request)
     }
 
     /**
@@ -85,16 +85,7 @@ class WebPermissionRequestController(
      * @param grants 参数类型为 `Map<String, Boolean>`，表示 Android 权限名到是否授予的映射，由 ActivityResultLauncher 返回。
      */
     fun handleAndroidPermissionResult(grants: Map<String, Boolean>) {
-        val request = pendingRequestStore.take() ?: return
-        val requiredPermissions = WebPermissionResourceMapper.androidPermissionsFor(request.resources)
-        if (requiredPermissions != null && requiredPermissions.all { permission ->
-                grants[permission] == true || hasAndroidPermission(permission)
-            }
-        ) {
-            handlePermissionRequestAfterAndroidPermission(request)
-        } else {
-            request.deny()
-        }
+        androidPermissionGate.handleResult(grants)
     }
 
     /**

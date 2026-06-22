@@ -34,8 +34,8 @@ class GeolocationPermissionController(
     private val settingsManager: SettingsManager,
     private val sessionSitePermissionStore: SessionSitePermissionStore,
     private val isPrivateBrowsingEnabled: () -> Boolean,
-    private val hasAndroidPermission: (String) -> Boolean,
-    private val requestAndroidPermissions: (Array<String>) -> Unit
+    hasAndroidPermission: (String) -> Boolean,
+    requestAndroidPermissions: (Array<String>) -> Unit
 ) {
     private var pendingPermissionPrompt: GeolocationPermissionPrompt? = null
     private var pendingSitePrompt: GeolocationPermissionPrompt? = null
@@ -44,6 +44,23 @@ class GeolocationPermissionController(
         settingsManager = settingsManager,
         sessionSitePermissionStore = sessionSitePermissionStore,
         isPrivateBrowsingEnabled = isPrivateBrowsingEnabled
+    )
+    private val androidPermissionGate = BrowserAndroidPermissionGate(
+        hasAndroidPermission = hasAndroidPermission,
+        requestAndroidPermissions = requestAndroidPermissions,
+        requiredPermissionsFor = { _: GeolocationPermissionPrompt -> androidLocationPermissions() },
+        resultPolicy = BrowserAndroidPermissionResultPolicy.ANY_REQUIRED,
+        replacePendingRequest = { prompt ->
+            cancelPending()
+            pendingPermissionPrompt = prompt
+        },
+        takePendingRequest = {
+            val prompt = pendingPermissionPrompt
+            pendingPermissionPrompt = null
+            prompt
+        },
+        continueAfterPermission = ::handleAfterAndroidPermission,
+        denyRequest = { prompt -> denyPermissionPrompt(prompt.origin, prompt.callback) }
     )
 
     /**
@@ -64,17 +81,7 @@ class GeolocationPermissionController(
             denyPermissionPrompt(origin, callback)
             return
         }
-        val permissions = androidLocationPermissions()
-        if (permissions.any(hasAndroidPermission)) {
-            handleAfterAndroidPermission(
-                GeolocationPermissionPrompt(origin, callback)
-            )
-            return
-        }
-
-        cancelPending()
-        pendingPermissionPrompt = GeolocationPermissionPrompt(origin, callback)
-        requestAndroidPermissions(permissions)
+        androidPermissionGate.continueOrRequest(GeolocationPermissionPrompt(origin, callback))
     }
 
     /**
@@ -85,16 +92,7 @@ class GeolocationPermissionController(
      * @param grants 参数类型为 `Map<String, Boolean>`，表示 Android 权限名到是否授予的映射，由 ActivityResultLauncher 返回。
      */
     fun handleAndroidPermissionResult(grants: Map<String, Boolean>) {
-        val prompt = pendingPermissionPrompt ?: return
-        pendingPermissionPrompt = null
-        val allowed = androidLocationPermissions().any { permission ->
-            grants[permission] == true || hasAndroidPermission(permission)
-        }
-        if (allowed) {
-            handleAfterAndroidPermission(prompt)
-        } else {
-            denyPermissionPrompt(prompt.origin, prompt.callback)
-        }
+        androidPermissionGate.handleResult(grants)
     }
 
     /**

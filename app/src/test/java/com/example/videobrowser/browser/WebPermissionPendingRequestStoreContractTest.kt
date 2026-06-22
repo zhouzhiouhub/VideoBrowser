@@ -17,7 +17,7 @@ class WebPermissionPendingRequestStoreContractTest {
 
         assertTrue(webPermissionController.contains("WebPermissionPendingRequestStore()"))
         assertTrue(webPermissionController.contains("pendingRequestStore.replaceWith(request)"))
-        assertTrue(webPermissionController.contains("pendingRequestStore.take()"))
+        assertTrue(webPermissionController.contains("takePendingRequest = pendingRequestStore::take"))
         assertTrue(webPermissionController.contains("pendingRequestStore.clearIfPending(request)"))
         assertTrue(webPermissionController.contains("pendingRequestStore.cancelPending()"))
         assertFalse(webPermissionController.contains("private var pendingWebPermissionRequest"))
