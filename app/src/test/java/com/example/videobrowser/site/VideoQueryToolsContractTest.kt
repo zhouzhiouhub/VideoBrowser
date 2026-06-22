@@ -13,8 +13,9 @@ class VideoQueryToolsContractTest {
         val fullscreenScript = projectFile("src/main/assets/scripts/video_fullscreen_tools.js").readText()
 
         assertTrue(videoQueryScript.contains("window.VideoBrowserVideoQueryTools = tools"))
+        assertTrue(videoQueryScript.contains("const domTools = window.VideoBrowserDomTools || {}"))
         assertTrue(videoQueryScript.contains("tools.all = tools.all || function ()"))
-        assertTrue(videoQueryScript.contains("document.querySelectorAll('video')"))
+        assertTrue(videoQueryScript.contains("domTools.queryAll('video')"))
         assertTrue(videoQueryScript.contains("tools.forEach = tools.forEach || function (callback)"))
         assertTrue(videoQueryScript.contains("tools.some = tools.some || function (predicate)"))
         assertTrue(videoQueryScript.contains("tools.isActive = tools.isActive || function (video)"))
@@ -25,6 +26,7 @@ class VideoQueryToolsContractTest {
         assertTrue(commonScript.contains("return videoQueryTools.hasActive();"))
         assertFalse(commonScript.contains("return videoQueryTools.some(function (video)"))
         assertFalse(commonScript.contains("document.querySelectorAll('video')"))
+        assertFalse(videoQueryScript.contains("document.querySelectorAll('video')"))
     }
 
     private fun projectFile(path: String): File {

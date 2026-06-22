@@ -3,6 +3,7 @@
  */
 (function () {
   const tools = window.VideoBrowserVideoControlTools || {};
+  const domTools = window.VideoBrowserDomTools || {};
   window.VideoBrowserVideoControlTools = tools;
 
   tools.enableNativeControls = tools.enableNativeControls || function (video) {
@@ -44,7 +45,7 @@
     targetState.videoOverlays = null;
 
     runWithMutationSuppressed(config, function () {
-      document.querySelectorAll('.__videobrowser_video_controls__').forEach(function (overlay) {
+      domTools.queryAll('.__videobrowser_video_controls__').forEach(function (overlay) {
         overlay.remove();
       });
     });

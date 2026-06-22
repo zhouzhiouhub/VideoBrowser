@@ -3,10 +3,11 @@
  */
 (function () {
   const tools = window.VideoBrowserVideoQueryTools || {};
+  const domTools = window.VideoBrowserDomTools || {};
   window.VideoBrowserVideoQueryTools = tools;
 
   tools.all = tools.all || function () {
-    return Array.prototype.slice.call(document.querySelectorAll('video'));
+    return Array.prototype.slice.call(domTools.queryAll('video'));
   };
 
   tools.forEach = tools.forEach || function (callback) {

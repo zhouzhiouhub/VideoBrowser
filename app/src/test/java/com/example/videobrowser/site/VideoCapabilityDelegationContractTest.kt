@@ -168,10 +168,12 @@ class VideoCapabilityDelegationContractTest {
         )
 
         assertTrue(videoControlToolsScript.contains("window.VideoBrowserVideoControlTools = tools"))
+        assertTrue(videoControlToolsScript.contains("const domTools = window.VideoBrowserDomTools || {}"))
         assertTrue(videoControlToolsScript.contains("tools.enableNativeControls = tools.enableNativeControls || function (video)"))
         assertTrue(videoControlToolsScript.contains("tools.removeNativeControls = tools.removeNativeControls || function (video)"))
         assertTrue(videoControlToolsScript.contains("tools.cleanupLegacyOverlays = tools.cleanupLegacyOverlays || function (state, options)"))
-        assertTrue(videoControlToolsScript.contains("document.querySelectorAll('.__videobrowser_video_controls__')"))
+        assertTrue(videoControlToolsScript.contains("domTools.queryAll('.__videobrowser_video_controls__').forEach(function (overlay)"))
+        assertFalse(videoControlToolsScript.contains("document.querySelectorAll('.__videobrowser_video_controls__')"))
         assertTrue(controlCoordinatorScript.contains("const videoControlTools = window.VideoBrowserVideoControlTools || {}"))
         assertTrue(controlCoordinatorScript.contains("window.VideoBrowserVideoControlCoordinator = coordinator"))
         assertTrue(customControlDetectorScript.contains("detector.hasControls = detector.hasControls || function (video)"))
