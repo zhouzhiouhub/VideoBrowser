@@ -3,6 +3,7 @@
  */
 (function () {
   const tools = window.VideoBrowserVideoFullscreenTools || {};
+  const enhancerState = window.VideoBrowserEnhancerState;
   window.VideoBrowserVideoFullscreenTools = tools;
 
   tools.activeVideo = tools.activeVideo || function (state, videoQueryTools) {
@@ -106,11 +107,9 @@
   tools.installVideoHooks = tools.installVideoHooks || function (video, state, options) {
     const targetState = state || {};
     const callbacks = options || {};
-    if (!targetState.fullscreenHookedVideos || typeof targetState.fullscreenHookedVideos.add !== 'function') {
-      targetState.fullscreenHookedVideos = new WeakSet();
-    }
-    if (!video || targetState.fullscreenHookedVideos.has(video)) return;
-    targetState.fullscreenHookedVideos.add(video);
+    const hookedVideos = enhancerState.ensureWeakSet(targetState, 'fullscreenHookedVideos');
+    if (!video || hookedVideos.has(video)) return;
+    hookedVideos.add(video);
 
     const timelineReporter = function () {
       const position = Number(video.currentTime || 0);

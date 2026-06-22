@@ -5,6 +5,20 @@
   const manager = window.VideoBrowserEnhancerState || {};
   window.VideoBrowserEnhancerState = manager;
 
+  manager.ensureWeakSet = manager.ensureWeakSet || function (state, key) {
+    if (!state[key] || typeof state[key].add !== 'function') {
+      state[key] = new WeakSet();
+    }
+    return state[key];
+  };
+
+  manager.ensureWeakMap = manager.ensureWeakMap || function (state, key) {
+    if (!state[key] || typeof state[key].get !== 'function') {
+      state[key] = new WeakMap();
+    }
+    return state[key];
+  };
+
   manager.current = manager.current || function () {
     const state = window.__videobrowserState || {
       observer: null,
@@ -25,9 +39,9 @@
     state.suppressMutationWork = false;
     state.lastCleanupAt = Number(state.lastCleanupAt || 0);
     if (!Number.isFinite(state.lastCleanupAt)) state.lastCleanupAt = 0;
-    state.fullscreenHookedVideos = weakSetOrNew(state.fullscreenHookedVideos);
-    state.speedHookedVideos = weakSetOrNew(state.speedHookedVideos);
-    state.bestQualityAttempts = weakMapOrNew(state.bestQualityAttempts);
+    manager.ensureWeakSet(state, 'fullscreenHookedVideos');
+    manager.ensureWeakSet(state, 'speedHookedVideos');
+    manager.ensureWeakMap(state, 'bestQualityAttempts');
     state.nativeFullscreenVideo = state.nativeFullscreenVideo || null;
     state.documentFullscreenActive = Boolean(state.documentFullscreenActive);
     state.directionalPlayback = state.directionalPlayback || null;
@@ -38,12 +52,4 @@
     }
     return state;
   };
-
-  function weakSetOrNew(value) {
-    return value && typeof value.add === 'function' ? value : new WeakSet();
-  }
-
-  function weakMapOrNew(value) {
-    return value && typeof value.get === 'function' ? value : new WeakMap();
-  }
 })();

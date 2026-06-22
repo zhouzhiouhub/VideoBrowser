@@ -18,9 +18,11 @@ class EnhancerStateContractTest {
         assertTrue(stateScript.contains("const state = window.__videobrowserState || {"))
         assertTrue(stateScript.contains("window.__videobrowserState = state;"))
         assertTrue(stateScript.contains("manager.normalize = manager.normalize || function (state)"))
-        assertTrue(stateScript.contains("state.fullscreenHookedVideos = weakSetOrNew(state.fullscreenHookedVideos);"))
-        assertTrue(stateScript.contains("state.speedHookedVideos = weakSetOrNew(state.speedHookedVideos);"))
-        assertTrue(stateScript.contains("state.bestQualityAttempts = weakMapOrNew(state.bestQualityAttempts);"))
+        assertTrue(stateScript.contains("manager.ensureWeakSet = manager.ensureWeakSet || function (state, key)"))
+        assertTrue(stateScript.contains("manager.ensureWeakMap = manager.ensureWeakMap || function (state, key)"))
+        assertTrue(stateScript.contains("manager.ensureWeakSet(state, 'fullscreenHookedVideos');"))
+        assertTrue(stateScript.contains("manager.ensureWeakSet(state, 'speedHookedVideos');"))
+        assertTrue(stateScript.contains("manager.ensureWeakMap(state, 'bestQualityAttempts');"))
         assertTrue(stateScript.contains("state.fullscreenPlaybackSpeed = Number(state.fullscreenPlaybackSpeed || 1);"))
         assertTrue(commonScript.contains("const enhancerState = window.VideoBrowserEnhancerState;"))
         assertTrue(commonScript.contains("const state = enhancerState.current();"))
@@ -35,6 +37,8 @@ class EnhancerStateContractTest {
         assertFalse(commonScript.contains("state.speedHookedVideos = new WeakSet();"))
         assertFalse(commonScript.contains("state.bestQualityAttempts = new WeakMap();"))
         assertFalse(commonScript.contains("state.fullscreenPlaybackSpeed = Number(state.fullscreenPlaybackSpeed || 1);"))
+        assertFalse(stateScript.contains("function weakSetOrNew(value)"))
+        assertFalse(stateScript.contains("function weakMapOrNew(value)"))
     }
 
     private fun projectFile(path: String): File {

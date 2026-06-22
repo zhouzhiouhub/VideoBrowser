@@ -21,6 +21,9 @@ class VideoEnhancementToolsContractTest {
         assertTrue(enhancementScript.contains("tools.applySpeed = tools.applySpeed || function (video, state, options)"))
         assertTrue(enhancementScript.contains("tools.preferBestQuality = tools.preferBestQuality || function (video, state, options)"))
         assertTrue(enhancementScript.contains("tools.setPlaybackSpeed = tools.setPlaybackSpeed || function (speed, state, options)"))
+        assertTrue(enhancementScript.contains("const enhancerState = window.VideoBrowserEnhancerState;"))
+        assertTrue(enhancementScript.contains("const hookedVideos = enhancerState.ensureWeakSet(targetState, 'speedHookedVideos');"))
+        assertTrue(enhancementScript.contains("enhancerState.ensureWeakMap(targetState, 'bestQualityAttempts');"))
         assertTrue(enhancementScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [speed], config)"))
         assertTrue(enhancementScript.contains("[targetState.fullscreenPlaybackSpeed]"))
         assertTrue(enhancementScript.contains("forEachVideo(config, function (targetVideo)"))
@@ -44,6 +47,8 @@ class VideoEnhancementToolsContractTest {
         assertFalse(commonScript.contains("const normalizedSpeed = Number(speed || 1);"))
         assertFalse(commonScript.contains("invokeSiteVideoCapability(video, 'setPlaybackSpeed', [state.fullscreenPlaybackSpeed])"))
         assertFalse(commonScript.contains("videoQueryTools.forEach(applyVideoSpeed);"))
+        assertFalse(enhancementScript.contains("targetState.speedHookedVideos = new WeakSet();"))
+        assertFalse(enhancementScript.contains("targetState.bestQualityAttempts = new WeakMap();"))
     }
 
     private fun projectFile(path: String): File {

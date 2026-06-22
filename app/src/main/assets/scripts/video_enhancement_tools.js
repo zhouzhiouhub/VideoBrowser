@@ -3,15 +3,14 @@
  */
 (function () {
   const tools = window.VideoBrowserVideoEnhancementTools || {};
+  const enhancerState = window.VideoBrowserEnhancerState;
   window.VideoBrowserVideoEnhancementTools = tools;
 
   tools.installPlaybackSpeedHooks = tools.installPlaybackSpeedHooks || function (video, state, options) {
     const targetState = state || {};
-    if (!targetState.speedHookedVideos || typeof targetState.speedHookedVideos.add !== 'function') {
-      targetState.speedHookedVideos = new WeakSet();
-    }
-    if (!video || targetState.speedHookedVideos.has(video)) return;
-    targetState.speedHookedVideos.add(video);
+    const hookedVideos = enhancerState.ensureWeakSet(targetState, 'speedHookedVideos');
+    if (!video || hookedVideos.has(video)) return;
+    hookedVideos.add(video);
 
     const callbacks = options || {};
     const enforceSpeed = function () {
@@ -76,9 +75,7 @@
     if (!targetState.config || !targetState.config.videoEnabled || !video || !video.isConnected) return false;
     if (!hasSiteVideoCapability(video, 'preferBestQuality', config)) return false;
 
-    if (!targetState.bestQualityAttempts || typeof targetState.bestQualityAttempts.get !== 'function') {
-      targetState.bestQualityAttempts = new WeakMap();
-    }
+    enhancerState.ensureWeakMap(targetState, 'bestQualityAttempts');
 
     const intervalMs = Number(config.bestQualityAttemptIntervalMs || 30000);
     const now = Date.now();
