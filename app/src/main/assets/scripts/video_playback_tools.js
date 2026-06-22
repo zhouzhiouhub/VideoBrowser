@@ -135,7 +135,7 @@
   tools.startDirectional = tools.startDirectional || function (direction, state, options) {
     const targetState = state || {};
     const callbacks = options || {};
-    const video = activeVideo(callbacks);
+    const video = callbackTools.call(callbacks, 'activeFullscreenVideo') || null;
     if (!video) return false;
     tools.stopDirectional(targetState, callbacks);
 
@@ -182,7 +182,9 @@
       ? Number(scan.previousSpeed)
       : 1;
 
-    const video = scan.video && scan.video.isConnected ? scan.video : activeVideo(callbacks);
+    const video = scan.video && scan.video.isConnected
+      ? scan.video
+      : (callbackTools.call(callbacks, 'activeFullscreenVideo') || null);
     if (video) {
       callbackTools.call(callbacks, 'applyVideoSpeed', video);
       if (scan.wasPaused) {
@@ -216,13 +218,6 @@
     } catch (_) {
       try { video.currentTime = targetTime; } catch (__) {}
     }
-  }
-
-  function activeVideo(options) {
-    const config = options || {};
-    return typeof config.activeFullscreenVideo === 'function'
-      ? config.activeFullscreenVideo()
-      : null;
   }
 
   function currentPlaybackSpeed(state, options) {

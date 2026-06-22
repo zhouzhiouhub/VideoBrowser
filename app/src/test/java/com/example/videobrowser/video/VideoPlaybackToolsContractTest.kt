@@ -30,6 +30,7 @@ class VideoPlaybackToolsContractTest {
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'seekBy', [offsetSeconds])"))
         assertTrue(playbackScript.contains("siteVideoCapabilityBroker.invokeFromOptions(options, video, 'togglePlayPause', [])"))
         assertTrue(playbackScript.contains("callbackTools.call(callbacks, 'applyVideoSpeed', video);"))
+        assertTrue(playbackScript.contains("callbackTools.call(callbacks, 'activeFullscreenVideo') || null"))
         assertTrue(playbackScript.contains("targetState.directionalPlayback.intervalId = window.setInterval(function ()"))
         assertTrue(commonScript.contains("const videoPlaybackTools = window.VideoBrowserVideoPlaybackTools"))
         assertTrue(commonScript.contains("return videoPlaybackTools.timeline(video);"))
@@ -53,6 +54,7 @@ class VideoPlaybackToolsContractTest {
         assertFalse(commonScript.contains("state.directionalPlayback.intervalId = window.setInterval(function ()"))
         assertFalse(playbackScript.contains("function invokeSiteVideoCapability(video, action, args, options)"))
         assertFalse(playbackScript.contains("function call(callbacks, name, value)"))
+        assertFalse(playbackScript.contains("function activeVideo(options)"))
     }
 
     private fun projectFile(path: String): File {

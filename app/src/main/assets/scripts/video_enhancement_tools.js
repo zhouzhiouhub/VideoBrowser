@@ -116,7 +116,7 @@
     targetState.fullscreenPlaybackSpeed =
       Number.isFinite(normalizedSpeed) && normalizedSpeed > 0 ? normalizedSpeed : 1;
 
-    const video = activeVideo(config);
+    const video = callbackTools.call(config, 'activeFullscreenVideo') || null;
     if (video && !(document.fullscreenElement || document.webkitFullscreenElement)) {
       targetState.nativeFullscreenVideo = video;
     }
@@ -134,13 +134,6 @@
     });
     return true;
   };
-
-  function activeVideo(options) {
-    const config = options || {};
-    return typeof config.activeFullscreenVideo === 'function'
-      ? config.activeFullscreenVideo()
-      : null;
-  }
 
   function applyVideoSpeed(video, state, options) {
     const config = options || {};

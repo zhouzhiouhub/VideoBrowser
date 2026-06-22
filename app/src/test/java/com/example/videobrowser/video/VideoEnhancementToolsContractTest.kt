@@ -29,6 +29,7 @@ class VideoEnhancementToolsContractTest {
         assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.invokeFromOptions(config, video, 'setPlaybackSpeed', [speed])"))
         assertTrue(enhancementScript.contains("const callbackTools = window.VideoBrowserCallbackTools;"))
         assertTrue(enhancementScript.contains("callbackTools.call(config, 'stopDirectionalPlayback');"))
+        assertTrue(enhancementScript.contains("callbackTools.call(config, 'activeFullscreenVideo') || null"))
         assertTrue(enhancementScript.contains("[targetState.fullscreenPlaybackSpeed]"))
         assertTrue(enhancementScript.contains("forEachVideo(config, function (targetVideo)"))
         assertTrue(enhancementScript.contains("siteVideoCapabilityBroker.hasFromOptions(config, video, 'preferBestQuality')"))
@@ -57,6 +58,7 @@ class VideoEnhancementToolsContractTest {
         assertFalse(enhancementScript.contains("function invokeSiteVideoCapability(video, action, args, options)"))
         assertFalse(enhancementScript.contains("function hasSiteVideoCapability(video, action, options)"))
         assertFalse(enhancementScript.contains("function call(callbacks, name)"))
+        assertFalse(enhancementScript.contains("function activeVideo(options)"))
     }
 
     private fun projectFile(path: String): File {
