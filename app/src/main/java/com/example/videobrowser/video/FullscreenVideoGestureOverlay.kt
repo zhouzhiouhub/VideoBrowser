@@ -12,7 +12,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -81,7 +80,11 @@ class FullscreenVideoGestureOverlay(
     private val zoomButton = controlTextView()
     private val rotateButton = controlTextView()
     private val controlsGroup = LinearLayout(context)
-    private val feedbackView = TextView(context)
+    private val feedbackController = FullscreenVideoFeedbackController(
+        context = context,
+        feedbackHandler = feedbackHandler,
+        dp = ::dp
+    )
 
     private var landscape = true
     private var playbackSpeed = DEFAULT_PLAYBACK_SPEED
@@ -132,10 +135,6 @@ class FullscreenVideoGestureOverlay(
     )
     private val locked: Boolean
         get() = lockUiController.locked
-
-    private val hideFeedbackRunnable = Runnable {
-        feedbackView.visibility = View.GONE
-    }
 
     private val clearPendingTapRunnable = Runnable {
         pendingTapZone = VideoGestureScreenZone.NONE
@@ -191,11 +190,10 @@ class FullscreenVideoGestureOverlay(
         systemGestureController.restoreWindowBrightness()
         lockUiController.setLocked(false, announce = false)
         resetTouchState()
-        feedbackHandler.removeCallbacks(hideFeedbackRunnable)
         feedbackHandler.removeCallbacks(clearPendingTapRunnable)
         feedbackHandler.removeCallbacks(clearSeekAccumulatorRunnable)
         feedbackHandler.removeCallbacks(longPressRunnable)
-        feedbackView.visibility = View.GONE
+        feedbackController.hide()
         visibility = View.GONE
     }
 
@@ -588,24 +586,8 @@ class FullscreenVideoGestureOverlay(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun setupFeedbackView() {
-        feedbackView.apply {
-            visibility = View.GONE
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            minHeight = dp(46)
-            maxLines = 2
-            ellipsize = TextUtils.TruncateAt.END
-            setTextColor(Color.WHITE)
-            setTypeface(typeface, Typeface.BOLD)
-            textSize = 18f
-            setPadding(dp(20), dp(8), dp(20), dp(8))
-            background = BrowserDrawableFactory.roundedBackground(
-                Color.argb(196, 0, 0, 0),
-                dp(20)
-            )
-        }
         addView(
-            feedbackView,
+            feedbackController.view,
             LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -800,7 +782,7 @@ class FullscreenVideoGestureOverlay(
      */
     private fun finishHorizontalSeek(commit: Boolean) {
         // 抬手时才真正 seek，移动过程只显示反馈，避免每一帧都让播放器跳转。
-        val feedbackText = feedbackView.text?.toString().orEmpty()
+        val feedbackText = feedbackController.currentText()
         if (commit && pendingHorizontalSeekMs != 0L) {
             pendingSeekTargetMs?.let { onSeekTo?.invoke(it) }
                 ?: onSeekBy?.invoke(pendingHorizontalSeekMs)
@@ -809,8 +791,7 @@ class FullscreenVideoGestureOverlay(
         if (commit && feedbackText.isNotBlank()) {
             showFeedback(feedbackText)
         } else {
-            feedbackHandler.removeCallbacks(hideFeedbackRunnable)
-            feedbackView.visibility = View.GONE
+            feedbackController.hide()
         }
 
         seekStartPositionMs = null
@@ -911,8 +892,7 @@ class FullscreenVideoGestureOverlay(
         if (!longPressActive) return
         longPressActive = false
         onDirectionalLongPressEnd?.invoke()
-        feedbackHandler.removeCallbacks(hideFeedbackRunnable)
-        feedbackView.visibility = View.GONE
+        feedbackController.hide()
     }
 
     /**
@@ -972,13 +952,7 @@ class FullscreenVideoGestureOverlay(
      * @param autoHide 参数类型为 `Boolean`，表示函数执行 `autoHide` 相关逻辑时需要读取或处理的输入。
      */
     private fun showFeedback(text: String, autoHide: Boolean = true) {
-        feedbackView.text = text
-        feedbackView.visibility = View.VISIBLE
-        feedbackView.bringToFront()
-        feedbackHandler.removeCallbacks(hideFeedbackRunnable)
-        if (autoHide) {
-            feedbackHandler.postDelayed(hideFeedbackRunnable, FEEDBACK_DURATION_MS)
-        }
+        feedbackController.show(text, autoHide)
     }
 
     /**
@@ -1098,7 +1072,6 @@ class FullscreenVideoGestureOverlay(
         private const val DOUBLE_TAP_TIMEOUT_MS = 280L
         private const val LONG_PRESS_TIMEOUT_MS = 520L
         private const val SEEK_ACCUMULATE_RESET_MS = 850L
-        private const val FEEDBACK_DURATION_MS = 900L
         private const val BOTTOM_PASSTHROUGH_DP = 92
         private const val MIN_SWIPE_DISTANCE_DP = 10
         private const val VERTICAL_GESTURE_RATIO = 1.15f
