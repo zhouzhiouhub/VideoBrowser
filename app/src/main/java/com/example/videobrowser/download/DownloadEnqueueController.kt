@@ -2,7 +2,6 @@ package com.example.videobrowser.download
 
 import android.app.DownloadManager
 import android.content.Context
-import android.net.Uri
 import android.os.Environment
 import android.webkit.CookieManager
 import android.webkit.URLUtil
@@ -10,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.utils.AndroidUriParser
 import com.example.videobrowser.utils.ConfirmationDialog
 
 /**
@@ -129,7 +129,7 @@ internal class DownloadEnqueueController(
         runCatching {
             val resolvedUserAgent = userAgent?.takeIf { it.isNotBlank() }
                 ?: browserManager().userAgentString()?.takeIf { it.isNotBlank() }
-            val request = DownloadManager.Request(Uri.parse(url)).apply {
+            val request = DownloadManager.Request(AndroidUriParser.parse(url)).apply {
                 setTitle(fileName)
                 setDescription(activity.getString(R.string.toast_download_started))
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)

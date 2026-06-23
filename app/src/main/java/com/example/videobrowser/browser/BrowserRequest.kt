@@ -9,6 +9,7 @@ package com.example.videobrowser.browser
  */
 import android.net.Uri
 import android.webkit.WebResourceRequest
+import com.example.videobrowser.utils.AndroidUriParser
 
 /**
  * 统一的 WebView 请求模型，供广告拦截和后续规则匹配使用。
@@ -64,11 +65,8 @@ data class BrowserRequest(
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         fun from(url: String?, isForMainFrame: Boolean = false, pageUrl: String? = null): BrowserRequest? {
-            val value = url?.trim().orEmpty()
-            if (value.isEmpty()) {
-                return null
-            }
-            return from(Uri.parse(value), isForMainFrame, pageUrl)
+            val uri = AndroidUriParser.parseTrimmedOrNull(url) ?: return null
+            return from(uri, isForMainFrame, pageUrl)
         }
     }
 }

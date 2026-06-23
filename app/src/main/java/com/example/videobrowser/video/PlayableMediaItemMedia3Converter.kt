@@ -1,13 +1,13 @@
 package com.example.videobrowser.video
 
-import android.net.Uri
 import androidx.media3.common.MediaItem
+import com.example.videobrowser.utils.AndroidUriParser
 import com.example.videobrowser.utils.MimeTypeNormalizer
 
 internal object PlayableMediaItemMedia3Converter {
     fun toMediaItem(item: PlayableMediaItem): MediaItem {
         return MediaItem.Builder()
-            .setUri(Uri.parse(item.uri))
+            .setUri(AndroidUriParser.parse(item.uri))
             .setMimeType(normalizedMimeType(item.mimeType))
             .setSubtitleConfigurations(
                 item.subtitleCandidates.map(::toSubtitleConfiguration)
@@ -18,7 +18,7 @@ internal object PlayableMediaItemMedia3Converter {
     private fun toSubtitleConfiguration(
         candidate: ExternalSubtitleCandidate
     ): MediaItem.SubtitleConfiguration {
-        val builder = MediaItem.SubtitleConfiguration.Builder(Uri.parse(candidate.uri))
+        val builder = MediaItem.SubtitleConfiguration.Builder(AndroidUriParser.parse(candidate.uri))
         candidate.mimeType?.takeIf { it.isNotBlank() }?.let(builder::setMimeType)
         candidate.language?.takeIf { it.isNotBlank() }?.let(builder::setLanguage)
         candidate.label?.takeIf { it.isNotBlank() }?.let(builder::setLabel)
