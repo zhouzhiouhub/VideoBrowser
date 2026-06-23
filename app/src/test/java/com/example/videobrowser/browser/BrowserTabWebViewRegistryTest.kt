@@ -1,5 +1,7 @@
 package com.example.videobrowser.browser
 
+import com.example.videobrowser.testutil.projectFile
+
 /**
  * 测试阅读提示：
  * 这个测试文件验证“Browser Tab Web View Registry Test”相关行为。
@@ -10,6 +12,18 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class BrowserTabWebViewRegistryTest {
+    @Test
+    fun missingTabViewCreationUsesSharedHelper() {
+        val registry = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabWebViewRegistry.kt"
+        ).readText()
+
+        assertEquals(1, Regex("viewsByTabId\\.getOrPut").findAll(registry).count())
+        assertEquals(7, Regex("ensureViewFor\\(").findAll(registry).count())
+        assertEquals(1, Regex("requireCreateWebView\\(\\)\\.invoke\\(\\)").findAll(registry).count())
+        assertEquals(1, Regex("private fun ensureViewFor\\(tabId: Long\\): T").findAll(registry).count())
+    }
+
     /**
      * 测试函数 `startsWithInitialViewForInitialActiveTab`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `starts With Initial View For Initial Active Tab` 这条行为是否成立。
      *

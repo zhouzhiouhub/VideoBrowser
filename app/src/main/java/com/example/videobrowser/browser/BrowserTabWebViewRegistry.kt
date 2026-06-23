@@ -201,9 +201,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
      */
     fun activate(tabId: Long): T {
         val currentWebView = activeWebView()
-        val nextWebView = viewsByTabId.getOrPut(tabId) {
-            requireCreateWebView().invoke()
-        }
+        val nextWebView = ensureViewFor(tabId)
         activeViewTabId = tabId
         if (currentWebView !== nextWebView) {
             hideWebView(currentWebView)
@@ -223,9 +221,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
     fun close(tabId: Long, fallbackActiveTabId: Long): T? {
         val closedWebView = viewsByTabId.remove(tabId) ?: return null
         val fallbackWebView = if (activeViewTabId == tabId) {
-            viewsByTabId.getOrPut(fallbackActiveTabId) {
-                requireCreateWebView().invoke()
-            }.also { nextWebView ->
+            ensureViewFor(fallbackActiveTabId).also { nextWebView ->
                 activeViewTabId = fallbackActiveTabId
                 if (closedWebView !== nextWebView) {
                     showWebView(nextWebView)
@@ -272,9 +268,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         if (!tabStore.switchTo(tabId)) {
             return null
         }
-        val nextView = viewsByTabId.getOrPut(tabId) {
-            requireCreateWebView().invoke()
-        }
+        val nextView = ensureViewFor(tabId)
         activeViewTabId = tabId
         return SwitchResult(
             previousView = previousView,
@@ -301,9 +295,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         }
         if (activeViewTabId == tabId) {
             activeViewTabId = tabStore.activeTabId
-            viewsByTabId.getOrPut(activeViewTabId) {
-                requireCreateWebView().invoke()
-            }
+            ensureViewFor(activeViewTabId)
         }
         return CloseResult(
             closedView = closedView,
@@ -326,9 +318,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
             return null
         }
         val closedViews = closedTabs.mapNotNull { tab -> viewsByTabId.remove(tab.id) }
-        val activeView = viewsByTabId.getOrPut(tabId) {
-            requireCreateWebView().invoke()
-        }
+        val activeView = ensureViewFor(tabId)
         activeViewTabId = tabId
         return CloseOthersResult(
             closedViews = closedViews,
@@ -348,8 +338,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         val closedTabs = tabStore.closeAllTabs()
         val closedViews = closedTabs.mapNotNull { tab -> viewsByTabId.remove(tab.id) }
         val activeTab = tabStore.activeTab()
-        val activeView = requireCreateWebView().invoke()
-        viewsByTabId[activeTab.id] = activeView
+        val activeView = ensureViewFor(activeTab.id)
         activeViewTabId = activeTab.id
         return CloseAllResult(
             closedViews = closedViews,
@@ -378,6 +367,12 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
      */
     private fun requireTabs(): BrowserTabStore {
         return requireNotNull(tabs) { "BrowserTabStore is required for this operation." }
+    }
+
+    private fun ensureViewFor(tabId: Long): T {
+        return viewsByTabId.getOrPut(tabId) {
+            requireCreateWebView().invoke()
+        }
     }
 
     /**
