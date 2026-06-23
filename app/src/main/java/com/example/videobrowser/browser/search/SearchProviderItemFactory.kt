@@ -27,71 +27,64 @@ internal class SearchProviderItemFactory(
     private val onAddShortcut: () -> Unit
 ) {
     fun createProviderItem(provider: SearchProvider): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
+        return createSelectableHomeItem(
             contentDescription = activity.getString(
                 R.string.action_select_search_provider,
                 provider.name
-            )
-            setPadding(dp(4), 0, dp(4), 0)
-            setBoundedSelectableItemBackground()
-            setOnClickListener { onProviderSelected(provider) }
-        }
+            ),
+            onClick = { onProviderSelected(provider) }
+        )
     }
 
     fun createCustomShortcutItem(shortcut: CustomShortcut): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
+        return createSelectableHomeItem(
             contentDescription = activity.getString(
                 R.string.action_open_custom_shortcut,
                 shortcut.name
-            )
-            setPadding(dp(4), 0, dp(4), 0)
-            setBoundedSelectableItemBackground()
-            setOnClickListener { onCustomShortcutOpen(shortcut.url) }
-            setOnLongClickListener {
-                onCustomShortcutLongClick(shortcut)
-                true
-            }
-        }
+            ),
+            onClick = { onCustomShortcutOpen(shortcut.url) },
+            onLongClick = { onCustomShortcutLongClick(shortcut) }
+        )
     }
 
     fun createRecentHistoryItem(quickLink: HomeQuickLink): LinearLayout {
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = true
+        return createSelectableHomeItem(
             contentDescription = activity.getString(
                 R.string.action_open_recent_site,
                 quickLink.title
-            )
-            setPadding(dp(4), 0, dp(4), 0)
-            setBoundedSelectableItemBackground()
-            setOnClickListener { onRecentHistoryOpen(quickLink.url) }
-            setOnLongClickListener {
-                onRecentHistoryLongClick(quickLink)
-                true
-            }
-        }
+            ),
+            onClick = { onRecentHistoryOpen(quickLink.url) },
+            onLongClick = { onRecentHistoryLongClick(quickLink) }
+        )
     }
 
     fun createAddShortcutItem(): LinearLayout {
+        return createSelectableHomeItem(
+            contentDescription = activity.getString(R.string.action_add_custom_shortcut),
+            onClick = { onAddShortcut() }
+        )
+    }
+
+    private fun createSelectableHomeItem(
+        contentDescription: String,
+        onClick: () -> Unit,
+        onLongClick: (() -> Unit)? = null
+    ): LinearLayout {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             isClickable = true
             isFocusable = true
-            contentDescription = activity.getString(R.string.action_add_custom_shortcut)
+            this.contentDescription = contentDescription
             setPadding(dp(4), 0, dp(4), 0)
             setBoundedSelectableItemBackground()
-            setOnClickListener { onAddShortcut() }
+            setOnClickListener { onClick() }
+            onLongClick?.let { handler ->
+                setOnLongClickListener {
+                    handler()
+                    true
+                }
+            }
         }
     }
 
