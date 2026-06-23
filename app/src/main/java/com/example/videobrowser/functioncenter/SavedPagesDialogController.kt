@@ -82,8 +82,8 @@ internal class SavedPagesDialogController(
                 ).show()
                 showSavedPagesPage(
                     collection,
-                    collectionTitle(collection),
-                    collectionEmptyMessage(collection),
+                    SavedPageCollectionDisplayText.title(activity, collection),
+                    SavedPageCollectionDisplayText.emptyMessage(activity, collection),
                     true,
                     null
                 )
@@ -208,20 +208,6 @@ internal class SavedPagesDialogController(
             }
         }
         dialog.show()
-    }
-
-    private fun collectionTitle(collection: SavedPageCollection): String {
-        return when (collection) {
-            SavedPageCollection.BOOKMARKS -> activity.getString(R.string.title_bookmarks)
-            SavedPageCollection.HISTORY -> activity.getString(R.string.title_history)
-        }
-    }
-
-    private fun collectionEmptyMessage(collection: SavedPageCollection): String {
-        return when (collection) {
-            SavedPageCollection.BOOKMARKS -> activity.getString(R.string.toast_bookmarks_empty)
-            SavedPageCollection.HISTORY -> activity.getString(R.string.toast_history_empty)
-        }
     }
 
     private data class SavedPageAction(

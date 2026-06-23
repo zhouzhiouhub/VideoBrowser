@@ -339,11 +339,7 @@ class FunctionCenterPages(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showBookmarks() {
-        savedPagesPage.show(
-            collection = SavedPageCollection.BOOKMARKS,
-            title = activity.getString(R.string.title_bookmarks),
-            emptyMessage = activity.getString(R.string.toast_bookmarks_empty)
-        )
+        showSavedPagesCollection(SavedPageCollection.BOOKMARKS)
     }
 
     /**
@@ -352,10 +348,14 @@ class FunctionCenterPages(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showHistory() {
+        showSavedPagesCollection(SavedPageCollection.HISTORY)
+    }
+
+    private fun showSavedPagesCollection(collection: SavedPageCollection) {
         savedPagesPage.show(
-            collection = SavedPageCollection.HISTORY,
-            title = activity.getString(R.string.title_history),
-            emptyMessage = activity.getString(R.string.toast_history_empty)
+            collection = collection,
+            title = SavedPageCollectionDisplayText.title(activity, collection),
+            emptyMessage = SavedPageCollectionDisplayText.emptyMessage(activity, collection)
         )
     }
 }

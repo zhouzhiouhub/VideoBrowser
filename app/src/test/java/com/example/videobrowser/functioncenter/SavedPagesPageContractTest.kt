@@ -7,10 +7,47 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Saved Pages Page Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SavedPagesPageContractTest {
+    @Test
+    fun savedPageCollectionDisplayTextOwnsCollectionLabels() {
+        val pages = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
+        ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
+        ).readText()
+        val displayText = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageCollectionDisplayText.kt"
+        ).readText()
+
+        assertTrue(pages.contains("private fun showSavedPagesCollection(collection: SavedPageCollection)"))
+        assertTrue(pages.contains("SavedPageCollectionDisplayText.title(activity, collection)"))
+        assertTrue(pages.contains("SavedPageCollectionDisplayText.emptyMessage(activity, collection)"))
+        assertTrue(dialogController.contains("SavedPageCollectionDisplayText.title(activity, collection)"))
+        assertTrue(dialogController.contains("SavedPageCollectionDisplayText.emptyMessage(activity, collection)"))
+
+        assertTrue(displayText.contains("internal object SavedPageCollectionDisplayText"))
+        assertTrue(displayText.contains("SavedPageCollection.BOOKMARKS -> context.getString(R.string.title_bookmarks)"))
+        assertTrue(displayText.contains("SavedPageCollection.HISTORY -> context.getString(R.string.title_history)"))
+        assertTrue(
+            displayText.contains(
+                "SavedPageCollection.BOOKMARKS -> context.getString(R.string.toast_bookmarks_empty)"
+            )
+        )
+        assertTrue(
+            displayText.contains(
+                "SavedPageCollection.HISTORY -> context.getString(R.string.toast_history_empty)"
+            )
+        )
+
+        assertFalse(dialogController.contains("private fun collectionTitle("))
+        assertFalse(dialogController.contains("private fun collectionEmptyMessage("))
+    }
+
     /**
      * 测试函数 `savedPagesPageSupportsSearchFiltering`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Supports Search Filtering` 这条行为是否成立。
      *
