@@ -10,12 +10,12 @@ package com.example.videobrowser.localfiles
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.functioncenter.FunctionCenterController
 import com.example.videobrowser.functioncenter.FunctionCenterPageHost
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.PlaybackQueue
 
@@ -120,7 +120,7 @@ class LocalFilesController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showLocalFolderUnavailableToast() {
-        Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_local_folder_unavailable)
     }
 
     /**
@@ -135,7 +135,7 @@ class LocalFilesController(
         if (rootDocumentId == null) {
             directoryPermissions.releaseReadWritePermission(treeUri)
             directoryPermissions.clearSavedDirectoryUri()
-            Toast.makeText(activity, R.string.toast_local_folder_unavailable, Toast.LENGTH_SHORT).show()
+            showLocalFolderUnavailableToast()
             showFileOperationsPage()
             return
         }
@@ -173,11 +173,7 @@ class LocalFilesController(
             Log.w(logTag, "Unable to query local directory $treeUri", it)
             directoryPermissions.releaseReadWritePermission(treeUri)
             directoryPermissions.clearSavedDirectoryUri()
-            Toast.makeText(
-                activity,
-                R.string.toast_local_folder_unavailable,
-                Toast.LENGTH_SHORT
-            ).show()
+            showLocalFolderUnavailableToast()
             showFileOperationsPage()
             return
         }

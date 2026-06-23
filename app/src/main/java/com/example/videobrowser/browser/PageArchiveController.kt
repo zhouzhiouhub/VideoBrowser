@@ -9,9 +9,9 @@ package com.example.videobrowser.browser
  */
 import android.net.Uri
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ShortToast
 import java.io.File
 
 /**
@@ -42,7 +42,7 @@ class PageArchiveController(
     fun saveCurrentPageArchive() {
         val pageUrl = currentActionableUrl()
         if (pageUrl == null) {
-            Toast.makeText(activity, R.string.toast_page_archive_unavailable, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_page_archive_unavailable)
             return
         }
 
@@ -62,7 +62,7 @@ class PageArchiveController(
                 ?.takeIf { file -> file.isFile }
             if (savedFile == null) {
                 archiveFile.delete()
-                Toast.makeText(activity, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
+                ShortToast.show(activity, R.string.toast_page_archive_failed)
                 return@saveWebArchive
             }
 
@@ -71,7 +71,7 @@ class PageArchiveController(
                 launchArchiveExport(archiveFileName(pageUrl))
             }.onFailure {
                 clearPendingArchive()
-                Toast.makeText(activity, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
+                ShortToast.show(activity, R.string.toast_page_archive_failed)
             }
         }
     }
@@ -133,9 +133,9 @@ class PageArchiveController(
                 }
             } ?: error("Unable to open page archive export target")
         }.onSuccess {
-            Toast.makeText(activity, R.string.toast_page_archive_saved, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_page_archive_saved)
         }.onFailure {
-            Toast.makeText(activity, R.string.toast_page_archive_failed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_page_archive_failed)
         }
     }
 

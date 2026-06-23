@@ -41,7 +41,7 @@ class PageUrlActionsContractTest {
         assertTrue(clipboardActions.contains("object ClipboardTextActions"))
         assertTrue(clipboardActions.contains("Context.CLIPBOARD_SERVICE"))
         assertTrue(clipboardActions.contains("ClipData.newPlainText(activity.getString(labelResId), text)"))
-        assertTrue(clipboardActions.contains("Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()"))
+        assertTrue(clipboardActions.contains("ShortToast.show(activity, toastResId)"))
         assertTrue(actions.contains("fun sharePageUrl(activity: AppCompatActivity, url: String)"))
         assertTrue(actions.contains("fun shareLinkUrl(activity: AppCompatActivity, url: String)"))
         assertTrue(actions.contains("fun shareImageLinkUrl(activity: AppCompatActivity, url: String)"))

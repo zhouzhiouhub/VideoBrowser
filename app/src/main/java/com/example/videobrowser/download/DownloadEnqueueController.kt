@@ -5,12 +5,12 @@ import android.content.Context
 import android.os.Environment
 import android.webkit.CookieManager
 import android.webkit.URLUtil
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.utils.AndroidUriParser
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 
 /**
  * 系统下载入队控制器。
@@ -30,11 +30,11 @@ internal class DownloadEnqueueController(
     ) {
         // 真正创建系统下载前先做 URL 和文件名安全检查，必要时弹出确认对话框。
         if (url.isNullOrBlank()) {
-            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_download_failed)
             return
         }
         if (!DownloadSafetyPolicy.isDownloadableNetworkUrl(url)) {
-            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_download_failed)
             return
         }
 
@@ -153,9 +153,9 @@ internal class DownloadEnqueueController(
                 )
             )
         }.onSuccess {
-            Toast.makeText(activity, R.string.toast_download_started, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_download_started)
         }.onFailure {
-            Toast.makeText(activity, R.string.toast_download_failed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_download_failed)
         }
     }
 }
