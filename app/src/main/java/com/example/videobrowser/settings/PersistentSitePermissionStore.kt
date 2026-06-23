@@ -33,17 +33,18 @@ internal class PersistentSitePermissionStore(
             SitePermissionDecision.ASK -> Unit
         }
 
-        hostSets.save(allowedKey(permission), allowedHosts)
-        hostSets.save(blockedKey(permission), blockedHosts)
+        val keys = hostKeys(permission)
+        hostSets.save(keys.allowed, allowedHosts)
+        hostSets.save(keys.blocked, blockedHosts)
         return true
     }
 
     fun allowedHosts(permission: SitePermission): Set<String> {
-        return hostSets.load(allowedKey(permission))
+        return hostSets.load(hostKeys(permission).allowed)
     }
 
     fun blockedHosts(permission: SitePermission): Set<String> {
-        return hostSets.load(blockedKey(permission))
+        return hostSets.load(hostKeys(permission).blocked)
     }
 
     fun records(): List<SitePermissionRecord> {
@@ -70,24 +71,42 @@ internal class PersistentSitePermissionStore(
 
     fun clear() {
         SitePermission.entries.forEach { permission ->
-            preferenceStore.remove(allowedKey(permission))
-            preferenceStore.remove(blockedKey(permission))
+            hostKeys(permission).all.forEach { key ->
+                preferenceStore.remove(key)
+            }
         }
     }
 
-    private fun allowedKey(permission: SitePermission): String {
-        return when (permission) {
-            SitePermission.CAMERA -> KEY_SITE_PERMISSION_CAMERA_ALLOWED_HOSTS
-            SitePermission.MICROPHONE -> KEY_SITE_PERMISSION_MICROPHONE_ALLOWED_HOSTS
-            SitePermission.LOCATION -> KEY_SITE_PERMISSION_LOCATION_ALLOWED_HOSTS
-        }
+    private fun hostKeys(permission: SitePermission): SitePermissionHostKeys {
+        return hostKeysByPermission.getValue(permission)
     }
 
-    private fun blockedKey(permission: SitePermission): String {
-        return when (permission) {
-            SitePermission.CAMERA -> KEY_SITE_PERMISSION_CAMERA_BLOCKED_HOSTS
-            SitePermission.MICROPHONE -> KEY_SITE_PERMISSION_MICROPHONE_BLOCKED_HOSTS
-            SitePermission.LOCATION -> KEY_SITE_PERMISSION_LOCATION_BLOCKED_HOSTS
+    private data class SitePermissionHostKeys(
+        val allowed: String,
+        val blocked: String
+    ) {
+        val all: List<String>
+            get() = listOf(allowed, blocked)
+    }
+
+    private companion object {
+        private val hostKeysByPermission = SitePermission.entries.associateWith { permission ->
+            when (permission) {
+                SitePermission.CAMERA -> SitePermissionHostKeys(
+                    allowed = KEY_SITE_PERMISSION_CAMERA_ALLOWED_HOSTS,
+                    blocked = KEY_SITE_PERMISSION_CAMERA_BLOCKED_HOSTS
+                )
+
+                SitePermission.MICROPHONE -> SitePermissionHostKeys(
+                    allowed = KEY_SITE_PERMISSION_MICROPHONE_ALLOWED_HOSTS,
+                    blocked = KEY_SITE_PERMISSION_MICROPHONE_BLOCKED_HOSTS
+                )
+
+                SitePermission.LOCATION -> SitePermissionHostKeys(
+                    allowed = KEY_SITE_PERMISSION_LOCATION_ALLOWED_HOSTS,
+                    blocked = KEY_SITE_PERMISSION_LOCATION_BLOCKED_HOSTS
+                )
+            }
         }
     }
 }
