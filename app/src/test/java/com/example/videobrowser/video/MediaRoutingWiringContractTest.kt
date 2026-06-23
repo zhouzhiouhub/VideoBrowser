@@ -70,6 +70,8 @@ class MediaRoutingWiringContractTest {
 
         assertTrue(source.contains("MediaRoutingController.route("))
         assertTrue(source.contains("MediaRouteSource.LOCAL_DOCUMENT"))
+        assertTrue(source.contains("MediaUrlUtils.isPlayableMediaUri(url)"))
+        assertFalse(source.contains("MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))"))
     }
 
 }

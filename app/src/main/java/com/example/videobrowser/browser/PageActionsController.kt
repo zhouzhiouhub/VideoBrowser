@@ -180,7 +180,7 @@ class PageActionsController(
      */
     fun openCurrentUrlInNativePlayer() {
         val url = currentShareableUrlOrShowUnavailable() ?: return
-        if (!MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
+        if (!MediaUrlUtils.isPlayableMediaUri(url)) {
             Toast.makeText(activity, R.string.toast_media_url_unsupported, Toast.LENGTH_SHORT).show()
             return
         }
