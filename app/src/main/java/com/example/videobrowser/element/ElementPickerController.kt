@@ -15,6 +15,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.PageUnavailableToast
 
 /**
  * 用户手动屏蔽网页元素的控制器。
@@ -46,7 +47,7 @@ class ElementPickerController(
         // 没有当前站点时不能保存站点级 selector；JS 注入关闭时也无法让网页进入选择模式。
         val host = currentSiteHost()
         if (host == null) {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            PageUnavailableToast.showNoPageUrl(activity)
             return
         }
         if (!isJsInjectionEnabled() || isCurrentSiteJsInjectionDisabled()) {
@@ -111,7 +112,7 @@ class ElementPickerController(
 
         val host = currentSiteHost() ?: run {
             finishSession()
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            PageUnavailableToast.showNoPageUrl(activity)
             return
         }
         showConfirmElementBlockDialog(host, selector, description)

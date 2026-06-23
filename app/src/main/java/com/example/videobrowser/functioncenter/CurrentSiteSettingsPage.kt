@@ -13,6 +13,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermission
+import com.example.videobrowser.utils.PageUnavailableToast
 
 class CurrentSiteSettingsPage(
     private val host: FunctionCenterPageHost,
@@ -252,7 +253,7 @@ class CurrentSiteSettingsPage(
      */
     private fun toggleCurrentSiteWhitelist() {
         val hostName = currentSiteHost() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
+            PageUnavailableToast.showNoPageUrl(activity)
             return
         }
         val shouldWhitelist = !settingsManager.isUserWhitelistedSite(hostName)

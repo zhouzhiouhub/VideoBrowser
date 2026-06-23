@@ -21,6 +21,7 @@ import com.example.videobrowser.utils.ChooserIntentLauncher
 import com.example.videobrowser.utils.FileOpenIntentFactory
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.PageUrlActions
+import com.example.videobrowser.utils.PageUnavailableToast
 import com.example.videobrowser.utils.columnValueReader
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.MediaRouteAction
@@ -246,20 +247,16 @@ class PageActionsController(
 
     private fun currentShareableUrlOrShowUnavailable(): String? {
         return currentShareableUrl() ?: run {
-            showNoPageUrlToast()
+            PageUnavailableToast.showNoPageUrl(activity)
             null
         }
     }
 
     private fun currentSavedPageOrShowUnavailable(): SavedPage? {
         return currentSavedPage() ?: run {
-            showNoPageUrlToast()
+            PageUnavailableToast.showNoPageUrl(activity)
             null
         }
-    }
-
-    private fun showNoPageUrlToast() {
-        Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
     }
 
     /**
