@@ -4,13 +4,12 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.text.InputType
-import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.FileShareIntentFactory
+import com.example.videobrowser.utils.ValidatedTextInputDialog
 
 internal class LocalDocumentOperationController(
     private val activity: AppCompatActivity,
@@ -109,27 +108,18 @@ internal class LocalDocumentOperationController(
         positiveButtonText: String,
         onConfirm: (String) -> Unit
     ) {
-        val input = EditText(activity).apply {
-            setText(initialValue)
-            setSelectAllOnFocus(true)
-            selectAll()
-            setSingleLine(true)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-        }
-
-        AlertDialog.Builder(activity)
-            .setTitle(title)
-            .setView(input)
-            .setPositiveButton(positiveButtonText) { _, _ ->
-                val name = input.text?.toString()?.trim().orEmpty()
-                if (name.isBlank()) {
-                    Toast.makeText(activity, R.string.toast_local_file_name_invalid, Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                onConfirm(name)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ValidatedTextInputDialog.show(
+            activity = activity,
+            title = title,
+            initialValue = initialValue,
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+            positiveButtonText = positiveButtonText,
+            invalidToastRes = R.string.toast_local_file_name_invalid,
+            selectAllOnFocus = true,
+            valueTransform = { value -> value.trim() },
+            saveValue = { name -> name.isNotBlank() },
+            onSaved = onConfirm
+        )
     }
 
     private fun showOperationFailedToast() {

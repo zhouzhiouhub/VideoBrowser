@@ -7,6 +7,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.search.SearchProviders
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.utils.ValidatedTextInputDialog
 
 class BrowserSettingsDialogController(
     private val activity: AppCompatActivity,

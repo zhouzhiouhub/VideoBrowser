@@ -10,6 +10,7 @@ import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.ValidatedTextInputDialog
 
 internal class SavedPagesDialogController(
     private val activity: AppCompatActivity,
