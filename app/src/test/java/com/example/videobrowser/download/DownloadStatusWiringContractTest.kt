@@ -7,6 +7,7 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Download Status Wiring Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -268,7 +269,13 @@ class DownloadStatusWiringContractTest {
         assertTrue(launcher.contains("FileShareIntentFactory.create("))
         assertTrue(launcher.contains("displayName = record.fileName"))
         assertTrue(launcher.contains("mimeType = record.mimeType"))
-        assertTrue(launcher.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_file))"))
+        assertTrue(launcher.contains("startDownloadedFileIntent(intent, R.string.action_share_file)"))
+        assertTrue(launcher.contains("startDownloadedFileIntent(intent, R.string.action_open_file)"))
+        assertTrue(launcher.contains("private fun startDownloadedFileIntent(intent: Intent, chooserTitleRes: Int)"))
+        assertTrue(launcher.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
+        assertEquals(1, Regex("Intent\\.createChooser\\(intent").findAll(launcher).count())
+        assertEquals(1, Regex("catch \\(_: ActivityNotFoundException\\)").findAll(launcher).count())
+        assertEquals(1, Regex("catch \\(_: SecurityException\\)").findAll(launcher).count())
     }
 
 

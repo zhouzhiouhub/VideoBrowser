@@ -22,23 +22,19 @@ internal class DownloadedFileLauncher(
             displayName = record.fileName,
             mimeType = record.mimeType
         )
-        try {
-            activity.startActivity(
-                Intent.createChooser(intent, activity.getString(R.string.action_share_file))
-            )
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        } catch (_: SecurityException) {
-            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
-        }
+        startDownloadedFileIntent(intent, R.string.action_share_file)
     }
 
     fun openDownloadedFile(record: DownloadRecord) {
         val uri = downloadedFileUri(record) ?: return
         val intent = FileOpenIntentFactory.create(uri, record.mimeType)
+        startDownloadedFileIntent(intent, R.string.action_open_file)
+    }
+
+    private fun startDownloadedFileIntent(intent: Intent, chooserTitleRes: Int) {
         try {
             activity.startActivity(
-                Intent.createChooser(intent, activity.getString(R.string.action_open_file))
+                Intent.createChooser(intent, activity.getString(chooserTitleRes))
             )
         } catch (_: ActivityNotFoundException) {
             Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
