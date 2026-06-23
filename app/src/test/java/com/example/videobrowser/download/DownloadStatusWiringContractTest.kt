@@ -148,6 +148,7 @@ class DownloadStatusWiringContractTest {
         assertTrue(downloadsPage.contains("dialogController.showCategoryFilterDialog(query, statusFilter, categoryFilter)"))
         assertTrue(dialogController.contains("fun showStatusFilterDialog"))
         assertTrue(dialogController.contains("fun showCategoryFilterDialog"))
+        assertTrue(dialogController.contains("private fun <T> showSingleChoiceFilterDialog("))
         assertTrue(dialogController.contains("setSingleChoiceItems(labels.toTypedArray(), checkedIndex)"))
         assertTrue(dialogController.contains("DownloadStatus.entries"))
         assertTrue(dialogController.contains("DownloadCategory.entries"))

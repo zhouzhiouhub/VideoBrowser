@@ -56,24 +56,15 @@ internal class DownloadsPageDialogController(
         currentStatus: DownloadStatus?,
         categoryFilter: DownloadCategory?
     ) {
-        val statuses = DownloadStatus.entries
-        val labels = listOf(activity.getString(R.string.download_filter_all_status)) +
-            statuses.map { status -> activity.getString(textFormatter.downloadStatusTitleResId(status)) }
-        val checkedIndex = currentStatus?.let { status -> statuses.indexOf(status) + 1 } ?: 0
-
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_filter_download_status)
-            .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, index ->
-                dialog.dismiss()
-                showDownloadsPage(
-                    true,
-                    query,
-                    statuses.getOrNull(index - 1),
-                    categoryFilter
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showSingleChoiceFilterDialog(
+            titleRes = R.string.action_filter_download_status,
+            allLabelRes = R.string.download_filter_all_status,
+            values = DownloadStatus.entries,
+            currentValue = currentStatus,
+            labelFor = { status -> activity.getString(textFormatter.downloadStatusTitleResId(status)) }
+        ) { selectedStatus ->
+            showDownloadsPage(true, query, selectedStatus, categoryFilter)
+        }
     }
 
     fun showCategoryFilterDialog(
@@ -81,24 +72,15 @@ internal class DownloadsPageDialogController(
         statusFilter: DownloadStatus?,
         currentCategory: DownloadCategory?
     ) {
-        val categories = DownloadCategory.entries
-        val labels = listOf(activity.getString(R.string.download_filter_all_categories)) +
-            categories.map { category -> activity.getString(textFormatter.categoryTitleResId(category)) }
-        val checkedIndex = currentCategory?.let { category -> categories.indexOf(category) + 1 } ?: 0
-
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_filter_download_category)
-            .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, index ->
-                dialog.dismiss()
-                showDownloadsPage(
-                    true,
-                    query,
-                    statusFilter,
-                    categories.getOrNull(index - 1)
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showSingleChoiceFilterDialog(
+            titleRes = R.string.action_filter_download_category,
+            allLabelRes = R.string.download_filter_all_categories,
+            values = DownloadCategory.entries,
+            currentValue = currentCategory,
+            labelFor = { category -> activity.getString(textFormatter.categoryTitleResId(category)) }
+        ) { selectedCategory ->
+            showDownloadsPage(true, query, statusFilter, selectedCategory)
+        }
     }
 
     fun showDownloadActionsDialog(
@@ -127,6 +109,27 @@ internal class DownloadsPageDialogController(
             Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
             showDownloadsPage(true, null, null, null)
         }
+    }
+
+    private fun <T> showSingleChoiceFilterDialog(
+        titleRes: Int,
+        allLabelRes: Int,
+        values: List<T>,
+        currentValue: T?,
+        labelFor: (T) -> String,
+        onSelected: (T?) -> Unit
+    ) {
+        val labels = listOf(activity.getString(allLabelRes)) + values.map(labelFor)
+        val checkedIndex = currentValue?.let { value -> values.indexOf(value) + 1 } ?: 0
+
+        AlertDialog.Builder(activity)
+            .setTitle(titleRes)
+            .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, index ->
+                dialog.dismiss()
+                onSelected(values.getOrNull(index - 1))
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun downloadRecordActions(
