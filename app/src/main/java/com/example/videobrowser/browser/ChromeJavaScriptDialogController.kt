@@ -3,6 +3,7 @@ package com.example.videobrowser.browser
 import android.app.Activity
 import android.net.Uri
 import android.text.InputType
+import android.view.View
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.WebView
@@ -26,18 +27,14 @@ internal class ChromeJavaScriptDialogController(
         result: JsResult?
     ): Boolean {
         // 网页弹窗必须调用 confirm/cancel 结束，否则网页里的 JavaScript 会一直等待。
-        val jsResult = result ?: return false
-        if (!canShowDialog()) {
-            jsResult.cancel()
-            return true
-        }
-
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_dialog))
-            .setMessage(javascriptDialogMessage(message))
-            .setPositiveButton(android.R.string.ok) { _, _ -> jsResult.confirm() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
+        val jsResult = activeJavaScriptResult(result) ?: return result != null
+        showJavaScriptDialog(
+            title = javascriptDialogTitle(view, url, R.string.title_javascript_dialog),
+            message = javascriptDialogMessage(message),
+            positiveButtonRes = android.R.string.ok,
+            onConfirmed = { jsResult.confirm() },
+            onCanceled = { jsResult.cancel() }
+        )
         return true
     }
 
@@ -47,19 +44,15 @@ internal class ChromeJavaScriptDialogController(
         message: String?,
         result: JsResult?
     ): Boolean {
-        val jsResult = result ?: return false
-        if (!canShowDialog()) {
-            jsResult.cancel()
-            return true
-        }
-
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_confirm))
-            .setMessage(javascriptDialogMessage(message))
-            .setPositiveButton(android.R.string.ok) { _, _ -> jsResult.confirm() }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> jsResult.cancel() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
+        val jsResult = activeJavaScriptResult(result) ?: return result != null
+        showJavaScriptDialog(
+            title = javascriptDialogTitle(view, url, R.string.title_javascript_confirm),
+            message = javascriptDialogMessage(message),
+            positiveButtonRes = android.R.string.ok,
+            negativeButtonRes = android.R.string.cancel,
+            onConfirmed = { jsResult.confirm() },
+            onCanceled = { jsResult.cancel() }
+        )
         return true
     }
 
@@ -70,11 +63,7 @@ internal class ChromeJavaScriptDialogController(
         defaultValue: String?,
         result: JsPromptResult?
     ): Boolean {
-        val jsResult = result ?: return false
-        if (!canShowDialog()) {
-            jsResult.cancel()
-            return true
-        }
+        val jsResult = activeJavaScriptResult(result) ?: return result != null
 
         val input = EditText(activity).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
@@ -82,16 +71,15 @@ internal class ChromeJavaScriptDialogController(
             setText(defaultValue.orEmpty())
             selectAll()
         }
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_prompt))
-            .setMessage(javascriptDialogMessage(message))
-            .setView(input)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                jsResult.confirm(input.text?.toString().orEmpty())
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> jsResult.cancel() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
+        showJavaScriptDialog(
+            title = javascriptDialogTitle(view, url, R.string.title_javascript_prompt),
+            message = javascriptDialogMessage(message),
+            customView = input,
+            positiveButtonRes = android.R.string.ok,
+            negativeButtonRes = android.R.string.cancel,
+            onConfirmed = { jsResult.confirm(input.text?.toString().orEmpty()) },
+            onCanceled = { jsResult.cancel() }
+        )
         return true
     }
 
@@ -101,20 +89,47 @@ internal class ChromeJavaScriptDialogController(
         @Suppress("UNUSED_PARAMETER") message: String?,
         result: JsResult?
     ): Boolean {
-        val jsResult = result ?: return false
+        val jsResult = activeJavaScriptResult(result) ?: return result != null
+        showJavaScriptDialog(
+            title = javascriptDialogTitle(view, url, R.string.title_javascript_before_unload),
+            message = activity.getString(R.string.dialog_javascript_before_unload_message),
+            positiveButtonRes = R.string.action_leave_page,
+            negativeButtonRes = R.string.action_stay_on_page,
+            onConfirmed = { jsResult.confirm() },
+            onCanceled = { jsResult.cancel() }
+        )
+        return true
+    }
+
+    private fun <T : JsResult> activeJavaScriptResult(result: T?): T? {
+        val jsResult = result ?: return null
         if (!canShowDialog()) {
             jsResult.cancel()
-            return true
+            return null
         }
+        return jsResult
+    }
 
-        AlertDialog.Builder(activity)
-            .setTitle(javascriptDialogTitle(view, url, R.string.title_javascript_before_unload))
-            .setMessage(R.string.dialog_javascript_before_unload_message)
-            .setPositiveButton(R.string.action_leave_page) { _, _ -> jsResult.confirm() }
-            .setNegativeButton(R.string.action_stay_on_page) { _, _ -> jsResult.cancel() }
-            .setOnCancelListener { jsResult.cancel() }
-            .show()
-        return true
+    private fun showJavaScriptDialog(
+        title: String,
+        message: String,
+        positiveButtonRes: Int,
+        negativeButtonRes: Int? = null,
+        customView: View? = null,
+        onConfirmed: () -> Unit,
+        onCanceled: () -> Unit
+    ) {
+        val builder = AlertDialog.Builder(activity)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }
+            .setOnCancelListener { onCanceled() }
+
+        customView?.let { view -> builder.setView(view) }
+        negativeButtonRes?.let { buttonRes ->
+            builder.setNegativeButton(buttonRes) { _, _ -> onCanceled() }
+        }
+        builder.show()
     }
 
     private fun canShowDialog(): Boolean {

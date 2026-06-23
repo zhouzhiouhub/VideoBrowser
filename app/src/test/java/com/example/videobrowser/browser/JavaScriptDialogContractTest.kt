@@ -7,6 +7,7 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Java Script Dialog Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -40,7 +41,9 @@ class JavaScriptDialogContractTest {
             )
         )
         assertTrue(chromeClient.contains("javaScriptDialogs.showBeforeUnload(view, url, message, result)"))
-        assertTrue(dialogController.contains("AlertDialog.Builder(activity)"))
+        assertTrue(dialogController.contains("private fun showJavaScriptDialog("))
+        assertTrue(dialogController.contains("private fun <T : JsResult> activeJavaScriptResult(result: T?): T?"))
+        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(dialogController).count())
         assertTrue(dialogController.contains("jsResult.confirm(input.text?.toString().orEmpty())"))
         assertTrue(dialogController.contains("R.string.action_leave_page"))
         assertTrue(dialogController.contains("R.string.action_stay_on_page"))
