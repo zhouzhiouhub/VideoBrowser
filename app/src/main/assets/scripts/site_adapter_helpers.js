@@ -18,6 +18,10 @@
     return domTools.queryAll(selector);
   };
 
+  tools.queryWithin = function (root, selector) {
+    return domTools.queryAllWithin(root, selector);
+  };
+
   tools.emptyQuery = tools.emptyQuery || function () {
     return [];
   };
@@ -93,6 +97,10 @@
   tools.rectCenterY = geometry.rectCenterY;
   tools.centerDistance = geometry.centerDistance;
 
+  tools.visibleElement = function (element) {
+    return typeof tools.safeRect === 'function' && Boolean(tools.safeRect(element));
+  };
+
   tools.removeNativeVideoControls = function (video, adapterId) {
     var hadNativeControls = videoControlTools.removeNativeControls(video);
     if (hadNativeControls) {
@@ -114,6 +122,7 @@
     var clickSelector = config.clickSelector || 'button,a,[role="button"],.close,.skip';
     return {
       query: tools.query,
+      queryWithin: tools.queryWithin,
       textOf: tools.textOf,
       normalizeText: tools.normalizeText,
       hideElement: function (element, reason) {
@@ -136,7 +145,8 @@
       rectsOverlap: tools.rectsOverlap,
       rectCenterX: tools.rectCenterX,
       rectCenterY: tools.rectCenterY,
-      centerDistance: tools.centerDistance
+      centerDistance: tools.centerDistance,
+      visibleElement: tools.visibleElement
     };
   };
 

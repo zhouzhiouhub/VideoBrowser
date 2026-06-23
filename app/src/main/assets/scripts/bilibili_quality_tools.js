@@ -16,7 +16,9 @@
     var api = playerApi || {};
     return {
       query: typeof adapter.query === 'function' ? adapter.query : adapterDefaults.emptyQuery,
+      queryWithin: typeof adapter.queryWithin === 'function' ? adapter.queryWithin : adapterDefaults.emptyQuery,
       textOf: typeof adapter.textOf === 'function' ? adapter.textOf : adapterDefaults.textOf,
+      visibleElement: typeof adapter.visibleElement === 'function' ? adapter.visibleElement : adapterDefaults.noop,
       logVideoDiagnostic: typeof adapter.logVideoDiagnostic === 'function' ? adapter.logVideoDiagnostic : adapterDefaults.noop,
       readPlayerMethod: typeof api.read === 'function' ? api.read : adapterDefaults.nullResult,
       callPlayerMethod: typeof api.call === 'function' ? api.call : adapterDefaults.nullResult,
@@ -85,13 +87,6 @@
     return 0;
   }
 
-  function visibleElement(element) {
-    var rect = element && typeof element.getBoundingClientRect === 'function'
-      ? element.getBoundingClientRect()
-      : null;
-    return Boolean(rect && rect.width > 0 && rect.height > 0);
-  }
-
   function clickableQualityElement(element) {
     var current = element;
     for (var depth = 0; current && depth < 4; depth += 1, current = current.parentElement) {
@@ -107,14 +102,14 @@
     var candidates = [];
     helpers.query('[class*="quality"],[class*="Quality"],[aria-label*="\u753b\u8d28"],[title*="\u753b\u8d28"]').forEach(function (root) {
       if (!root || root.querySelector('video')) return;
-      var elements = Array.prototype.slice.call(root.querySelectorAll(
+      var elements = helpers.queryWithin(root,
         'button,a,li,span,div,[role="button"],[role="menuitem"]'
-      ));
+      );
       if (root.matches && root.matches('button,a,li,[role="button"],[role="menuitem"]')) {
         elements.unshift(root);
       }
       elements.forEach(function (element) {
-        if (!visibleElement(element)) return;
+        if (!helpers.visibleElement(element)) return;
         var text = helpers.textOf(element);
         var score = qualityScore(text);
         if (score <= 0) return;
@@ -139,7 +134,7 @@
     ));
     for (var index = 0; index < controls.length; index += 1) {
       var control = controls[index];
-      if (!visibleElement(control) || control.querySelector('video')) continue;
+      if (!helpers.visibleElement(control) || control.querySelector('video')) continue;
       var text = helpers.textOf(control);
       if (!/\u753b\u8d28|quality|清晰|720|1080|4k|8k/i.test(text + ' ' + String(control.className || ''))) continue;
       try {

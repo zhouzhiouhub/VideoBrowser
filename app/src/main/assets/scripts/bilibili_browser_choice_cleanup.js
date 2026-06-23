@@ -26,7 +26,7 @@
       if (!(/浏览方式|browse mode/i.test(text) && /推荐使用|recommended/i.test(text))) return;
       if (!/哔哩哔哩|bilibili|b站/i.test(text)) return;
 
-      var root = findBrowserChoicePromptRoot(element);
+      var root = findBrowserChoicePromptRoot(element, helpers);
       if (!root) return;
       helpers.hideElement(root, 'bilibili-browser-choice');
       hideBrowserChoiceBackdrops(root, helpers);
@@ -40,17 +40,18 @@
     return {
       query: typeof tools.query === 'function' ? tools.query : adapterDefaults.emptyQuery,
       hideElement: typeof tools.hideElement === 'function' ? tools.hideElement : adapterDefaults.noop,
-      normalizeText: typeof tools.normalizeText === 'function' ? tools.normalizeText : adapterDefaults.normalizeText
+      normalizeText: typeof tools.normalizeText === 'function' ? tools.normalizeText : adapterDefaults.normalizeText,
+      safeRect: typeof tools.safeRect === 'function' ? tools.safeRect : adapterDefaults.nullResult
     };
   }
 
-  function findBrowserChoicePromptRoot(element) {
+  function findBrowserChoicePromptRoot(element, helpers) {
     var current = element;
     for (var depth = 0; current && depth < 8; depth += 1, current = current.parentElement) {
       if (current === document.body || current === document.documentElement) break;
       if (isBilibiliContentContainer(current)) break;
-      var rect = current.getBoundingClientRect();
-      if (!rect.width || !rect.height) continue;
+      var rect = helpers.safeRect(current);
+      if (!rect) continue;
 
       var style = getComputedStyle(current);
       var positioned = /fixed|absolute|sticky/i.test(style.position);
@@ -79,8 +80,8 @@
       if (!element || element === promptRoot || element.contains(promptRoot) || promptRoot.contains(element)) {
         return;
       }
-      var rect = element.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
+      var rect = helpers.safeRect(element);
+      if (!rect) return;
 
       var style = getComputedStyle(element);
       if (!/fixed|absolute|sticky/i.test(style.position)) return;
