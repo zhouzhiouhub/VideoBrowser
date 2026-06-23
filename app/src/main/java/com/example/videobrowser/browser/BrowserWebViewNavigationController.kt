@@ -13,8 +13,9 @@ internal class BrowserWebViewNavigationController(
     private val webView: () -> WebView
 ) {
     fun load(url: String) {
-        BrowserPageLifecycleScriptController.suspendCurrentPage(webView())
-        webView().loadUrl(url)
+        runWithSuspendedCurrentPage { targetWebView ->
+            targetWebView.loadUrl(url)
+        }
     }
 
     fun loadErrorPage(error: BrowserPageError) {
@@ -34,8 +35,9 @@ internal class BrowserWebViewNavigationController(
         if (!targetWebView.canGoBack()) {
             return false
         }
-        BrowserPageLifecycleScriptController.suspendCurrentPage(targetWebView)
-        targetWebView.goBack()
+        runWithSuspendedCurrentPage(targetWebView) { suspendedWebView ->
+            suspendedWebView.goBack()
+        }
         return true
     }
 
@@ -44,15 +46,16 @@ internal class BrowserWebViewNavigationController(
         if (!targetWebView.canGoForward()) {
             return false
         }
-        BrowserPageLifecycleScriptController.suspendCurrentPage(targetWebView)
-        targetWebView.goForward()
+        runWithSuspendedCurrentPage(targetWebView) { suspendedWebView ->
+            suspendedWebView.goForward()
+        }
         return true
     }
 
     fun reload() {
-        val targetWebView = webView()
-        BrowserPageLifecycleScriptController.suspendCurrentPage(targetWebView)
-        targetWebView.reload()
+        runWithSuspendedCurrentPage { targetWebView ->
+            targetWebView.reload()
+        }
     }
 
     fun stopLoading() {
@@ -73,5 +76,13 @@ internal class BrowserWebViewNavigationController(
 
     fun userAgentString(): String? {
         return webView().settings.userAgentString
+    }
+
+    private fun runWithSuspendedCurrentPage(
+        targetWebView: WebView = webView(),
+        action: (WebView) -> Unit
+    ) {
+        BrowserPageLifecycleScriptController.suspendCurrentPage(targetWebView)
+        action(targetWebView)
     }
 }

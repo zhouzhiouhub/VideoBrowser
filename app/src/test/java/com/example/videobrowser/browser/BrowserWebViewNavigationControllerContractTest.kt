@@ -2,6 +2,7 @@ package com.example.videobrowser.browser
 
 import com.example.videobrowser.testutil.projectFile
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -28,11 +29,18 @@ class BrowserWebViewNavigationControllerContractTest {
         assertFalse(browserManager.contains("BrowserErrorPage.render(error)"))
         assertFalse(browserManager.contains("BrowserPageLifecycleScriptController.suspendCurrentPage(webView)"))
 
-        assertTrue(navigationController.contains("BrowserPageLifecycleScriptController.suspendCurrentPage"))
+        assertTrue(navigationController.contains("private fun runWithSuspendedCurrentPage("))
+        assertTrue(navigationController.contains("BrowserPageLifecycleScriptController.suspendCurrentPage(targetWebView)"))
+        assertEquals(
+            1,
+            Regex("BrowserPageLifecycleScriptController\\.suspendCurrentPage")
+                .findAll(navigationController)
+                .count()
+        )
         assertTrue(navigationController.contains("BrowserPageLifecycleScriptController.disposeCurrentPage"))
         assertTrue(navigationController.contains("BrowserErrorPage.render(error)"))
-        assertTrue(navigationController.contains("targetWebView.goBack()"))
-        assertTrue(navigationController.contains("targetWebView.goForward()"))
+        assertTrue(navigationController.contains("suspendedWebView.goBack()"))
+        assertTrue(navigationController.contains("suspendedWebView.goForward()"))
         assertTrue(navigationController.contains("targetWebView.reload()"))
         assertTrue(navigationController.contains("webView().stopLoading()"))
         assertTrue(navigationController.contains("webView().settings.userAgentString"))
