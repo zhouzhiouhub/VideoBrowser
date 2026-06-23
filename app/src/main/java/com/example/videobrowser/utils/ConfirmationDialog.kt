@@ -52,7 +52,7 @@ object ConfirmationDialog {
         onCanceled: (() -> Unit)? = null,
         onConfirmed: () -> Unit
     ): AlertDialog {
-        val builder = AlertDialog.Builder(activity)
+        val builder = AppDialog.builder(activity)
             .setTitle(titleRes)
             .setMessage(message)
             .setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }

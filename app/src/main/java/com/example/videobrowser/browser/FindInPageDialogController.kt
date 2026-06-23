@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.AppDialog
 import com.example.videobrowser.utils.ShortToast
 
 /**
@@ -54,7 +55,7 @@ class FindInPageDialogController(
             addView(input)
             addView(status)
         }
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = AppDialog.builder(activity)
             .setTitle(R.string.action_find_in_page)
             .setView(content)
             .setPositiveButton(R.string.action_find, null)

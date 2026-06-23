@@ -52,11 +52,11 @@ class ConfirmationDialogContractTest {
 
         assertTrue(confirmationDialog.contains("object ConfirmationDialog"))
         assertTrue(confirmationDialog.contains("fun create("))
-        assertTrue(confirmationDialog.contains("AlertDialog.Builder(activity)"))
+        assertTrue(confirmationDialog.contains("AppDialog.builder(activity)"))
         assertTrue(confirmationDialog.contains("messageRes: Int"))
         assertTrue(confirmationDialog.contains("message: String"))
         assertTrue(confirmationDialog.contains(".setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }"))
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(confirmationDialog).count())
+        assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(confirmationDialog).count())
 
         listOf(
             dataManagementDialogs,

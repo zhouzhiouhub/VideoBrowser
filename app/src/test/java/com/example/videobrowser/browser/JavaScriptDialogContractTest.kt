@@ -43,7 +43,7 @@ class JavaScriptDialogContractTest {
         assertTrue(chromeClient.contains("javaScriptDialogs.showBeforeUnload(view, url, message, result)"))
         assertTrue(dialogController.contains("private fun showJavaScriptDialog("))
         assertTrue(dialogController.contains("private fun <T : JsResult> activeJavaScriptResult(result: T?): T?"))
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(dialogController).count())
+        assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(dialogController).count())
         assertTrue(dialogController.contains("jsResult.confirm(input.text?.toString().orEmpty())"))
         assertTrue(dialogController.contains("R.string.action_leave_page"))
         assertTrue(dialogController.contains("R.string.action_stay_on_page"))

@@ -3,8 +3,8 @@ package com.example.videobrowser.functioncenter
 import android.text.InputType
 import android.widget.EditText
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.videobrowser.utils.AppDialog
 
 internal object SearchQueryDialog {
     fun show(
@@ -22,7 +22,7 @@ internal object SearchQueryDialog {
             setSelection(text?.length ?: 0)
         }
 
-        AlertDialog.Builder(activity)
+        AppDialog.builder(activity)
             .setTitle(titleRes)
             .setView(input)
             .setPositiveButton(titleRes) { _, _ ->

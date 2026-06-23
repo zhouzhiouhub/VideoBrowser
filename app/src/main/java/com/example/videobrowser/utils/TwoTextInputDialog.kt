@@ -40,7 +40,7 @@ object TwoTextInputDialog {
             addView(secondInput)
         }
 
-        val builder = AlertDialog.Builder(activity)
+        val builder = AppDialog.builder(activity)
             .setTitle(titleRes)
             .setView(content)
             .setPositiveButton(positiveButtonRes, null)

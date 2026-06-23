@@ -27,7 +27,7 @@ class SingleChoiceDialogContractTest {
         assertTrue(singleChoiceDialog.contains("titleRes: Int"))
         assertTrue(singleChoiceDialog.contains("title: String"))
         assertTrue(singleChoiceDialog.contains("setSingleChoiceItems(labels.toTypedArray(), checkedIndex)"))
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(singleChoiceDialog).count())
+        assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(singleChoiceDialog).count())
 
         assertEquals(2, Regex("SingleChoiceDialog\\.show\\(").findAll(browserSettingsDialogs).count())
         assertEquals(1, Regex("SingleChoiceDialog\\.show\\(").findAll(currentSitePermissionSection).count())

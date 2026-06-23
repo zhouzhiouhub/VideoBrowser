@@ -1,7 +1,6 @@
 package com.example.videobrowser.utils
 
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 data class DialogAction(
@@ -41,7 +40,7 @@ object ActionListDialog {
         positiveButton: DialogButtonAction? = null,
         neutralButton: DialogButtonAction? = null
     ) {
-        val builder = AlertDialog.Builder(activity)
+        val builder = AppDialog.builder(activity)
             .setTitle(title)
             .setItems(actions.map { action -> action.title }.toTypedArray()) { _, index ->
                 actions.getOrNull(index)?.perform?.invoke()

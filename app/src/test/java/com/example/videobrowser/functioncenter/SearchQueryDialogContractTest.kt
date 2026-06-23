@@ -26,7 +26,7 @@ class SearchQueryDialogContractTest {
         assertTrue(searchDialog.contains("InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS"))
         assertTrue(searchDialog.contains("currentQuery.orEmpty()"))
         assertTrue(searchDialog.contains("input.text?.toString()?.trim().orEmpty()"))
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(searchDialog).count())
+        assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(searchDialog).count())
 
         listOf(dataManagementDialogs, downloadsDialogs, savedPagesDialogs).forEach { source ->
             assertTrue(source.contains("SearchQueryDialog.show("))

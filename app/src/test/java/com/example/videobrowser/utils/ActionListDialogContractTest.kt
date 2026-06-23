@@ -37,12 +37,12 @@ class ActionListDialogContractTest {
         assertTrue(actionListDialog.contains("object ActionListDialog"))
         assertTrue(actionListDialog.contains("data class DialogAction("))
         assertTrue(actionListDialog.contains("data class DialogButtonAction("))
-        assertTrue(actionListDialog.contains("AlertDialog.Builder(activity)"))
+        assertTrue(actionListDialog.contains("AppDialog.builder(activity)"))
         assertTrue(actionListDialog.contains(".setItems(actions.map { action -> action.title }.toTypedArray())"))
         assertTrue(actionListDialog.contains("negativeButtonRes: Int? = null"))
         assertTrue(actionListDialog.contains("positiveButton: DialogButtonAction? = null"))
         assertTrue(actionListDialog.contains("neutralButton: DialogButtonAction? = null"))
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(actionListDialog).count())
+        assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(actionListDialog).count())
 
         listOf(
             downloadsDialogs,

@@ -22,9 +22,9 @@ class TwoTextInputDialogContractTest {
         assertTrue(twoTextInputDialog.contains("object TwoTextInputDialog"))
         assertTrue(twoTextInputDialog.contains("data class TextInputDialogField("))
         assertTrue(twoTextInputDialog.contains("data class TwoTextInputValues("))
-        assertTrue(twoTextInputDialog.contains("AlertDialog.Builder(activity)"))
+        assertTrue(twoTextInputDialog.contains("AppDialog.builder(activity)"))
         assertTrue(twoTextInputDialog.contains("dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener"))
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(twoTextInputDialog).count())
+        assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(twoTextInputDialog).count())
 
         assertTrue(searchProviderDialogs.contains("TwoTextInputDialog.show("))
         assertTrue(httpAuthController.contains("TwoTextInputDialog.create("))

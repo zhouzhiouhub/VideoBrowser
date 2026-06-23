@@ -7,9 +7,9 @@ import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.WebView
 import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.site.SiteHost
+import com.example.videobrowser.utils.AppDialog
 
 /**
  * WebChromeClient 的 JavaScript 弹窗控制器。
@@ -119,7 +119,7 @@ internal class ChromeJavaScriptDialogController(
         onConfirmed: () -> Unit,
         onCanceled: () -> Unit
     ) {
-        val builder = AlertDialog.Builder(activity)
+        val builder = AppDialog.builder(activity)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }

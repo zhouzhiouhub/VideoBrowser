@@ -1,8 +1,8 @@
 package com.example.videobrowser.functioncenter
 
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.videobrowser.utils.AppDialog
 
 internal object SingleChoiceDialog {
     fun show(
@@ -28,7 +28,7 @@ internal object SingleChoiceDialog {
         checkedIndex: Int,
         onSelected: (Int) -> Unit
     ) {
-        AlertDialog.Builder(activity)
+        AppDialog.builder(activity)
             .setTitle(title)
             .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, index ->
                 dialog.dismiss()

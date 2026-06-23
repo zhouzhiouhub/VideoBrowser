@@ -9,13 +9,13 @@ package com.example.videobrowser.browser
  */
 import android.view.View
 import android.widget.ImageView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.site.SiteHost
+import com.example.videobrowser.utils.AppDialog
 import com.example.videobrowser.utils.UrlUtils
 
 /**
@@ -94,7 +94,7 @@ class SiteSecurityController(
         }
 
         val message = securityMessage(pageUrl, status)
-        val builder = AlertDialog.Builder(activity)
+        val builder = AppDialog.builder(activity)
             .setTitle(R.string.title_site_security_info)
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)

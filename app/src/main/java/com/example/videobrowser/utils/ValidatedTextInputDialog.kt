@@ -85,7 +85,7 @@ internal object ValidatedTextInputDialog {
                 setSelection(text?.length ?: 0)
             }
         }
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = AppDialog.builder(activity)
             .setTitle(title)
             .setView(input)
             .setPositiveButton(positiveButtonText, null)

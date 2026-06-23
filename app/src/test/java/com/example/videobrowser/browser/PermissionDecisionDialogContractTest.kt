@@ -20,12 +20,12 @@ class PermissionDecisionDialogContractTest {
         ).readText()
 
         assertTrue(permissionDecisionDialog.contains("internal object PermissionDecisionDialog"))
-        assertTrue(permissionDecisionDialog.contains("AlertDialog.Builder(activity)"))
+        assertTrue(permissionDecisionDialog.contains("AppDialog.builder(activity)"))
         assertTrue(permissionDecisionDialog.contains("R.string.action_allow"))
         assertTrue(permissionDecisionDialog.contains("R.string.action_allow_once"))
         assertTrue(permissionDecisionDialog.contains("R.string.action_deny"))
         assertTrue(permissionDecisionDialog.contains("dialog.setOnCancelListener"))
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(permissionDecisionDialog).count())
+        assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(permissionDecisionDialog).count())
 
         listOf(webPermissionPrompt, geolocationPermission).forEach { source ->
             assertTrue(source.contains("PermissionDecisionDialog.create("))

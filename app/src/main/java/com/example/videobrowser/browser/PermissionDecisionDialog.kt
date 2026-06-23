@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.AppDialog
 
 internal object PermissionDecisionDialog {
     fun create(
@@ -14,7 +15,7 @@ internal object PermissionDecisionDialog {
         onAllowOnce: () -> Unit,
         onDeny: () -> Unit
     ): AlertDialog {
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = AppDialog.builder(activity)
             .setTitle(titleRes)
             .setMessage(message)
             .setPositiveButton(R.string.action_allow) { _, _ -> onAllow() }
