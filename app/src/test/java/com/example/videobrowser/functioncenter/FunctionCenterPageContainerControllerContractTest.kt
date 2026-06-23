@@ -2,6 +2,7 @@ package com.example.videobrowser.functioncenter
 
 import com.example.videobrowser.testutil.projectFile
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -40,6 +41,20 @@ class FunctionCenterPageContainerControllerContractTest {
         assertFalse(controller.contains("private fun restorePage"))
         assertFalse(controller.contains("private fun addPageToContainer"))
         assertFalse(controller.contains("ConstraintLayout.LayoutParams("))
+    }
+
+    @Test
+    fun functionCenterControllerSharesPageCreationBeforeAttach() {
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterController.kt"
+        ).readText()
+
+        assertTrue(controller.contains("private fun attachStandardPage("))
+        assertTrue(controller.contains("private fun attachBottomSheetPage("))
+        assertTrue(controller.contains("attachStandardPage(title, onBack, saveCurrentPage = true, buildContent)"))
+        assertTrue(controller.contains("attachStandardPage(title, onBack, saveCurrentPage = false, buildContent)"))
+        assertEquals(1, Regex("viewFactory\\.createPage\\(").findAll(controller).count())
+        assertEquals(1, Regex("viewFactory\\.createBottomSheetPage\\(").findAll(controller).count())
     }
 
 }

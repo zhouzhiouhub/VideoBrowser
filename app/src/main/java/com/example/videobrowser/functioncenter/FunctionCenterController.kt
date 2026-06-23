@@ -39,11 +39,7 @@ class FunctionCenterController(
         onBack: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ) {
-        attachPage(
-            viewFactory.createPage(title, { handleBack() }, buildContent),
-            onBack,
-            saveCurrentPage = true
-        )
+        attachStandardPage(title, onBack, saveCurrentPage = true, buildContent)
     }
 
     /**
@@ -59,11 +55,7 @@ class FunctionCenterController(
         onBack: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ) {
-        attachPage(
-            viewFactory.createPage(title, { handleBack() }, buildContent),
-            onBack,
-            saveCurrentPage = false
-        )
+        attachStandardPage(title, onBack, saveCurrentPage = false, buildContent)
     }
 
     /**
@@ -80,10 +72,13 @@ class FunctionCenterController(
         buildContent: (LinearLayout) -> Unit
     ) {
         pageHistory.clear()
-        attachPage(
-            viewFactory.createBottomSheetPage(title, null, onClose, buildContent),
-            onClose,
-            saveCurrentPage = false
+        attachBottomSheetPage(
+            title = title,
+            toolbarBackAction = null,
+            pageBackAction = onClose,
+            onClose = onClose,
+            saveCurrentPage = false,
+            buildContent = buildContent
         )
     }
 
@@ -102,10 +97,13 @@ class FunctionCenterController(
         onClose: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ) {
-        attachPage(
-            viewFactory.createBottomSheetPage(title, { handleBack() }, onClose, buildContent),
-            onBack,
-            saveCurrentPage = true
+        attachBottomSheetPage(
+            title = title,
+            toolbarBackAction = { handleBack() },
+            pageBackAction = onBack,
+            onClose = onClose,
+            saveCurrentPage = true,
+            buildContent = buildContent
         )
     }
 
@@ -124,10 +122,41 @@ class FunctionCenterController(
         onClose: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ) {
+        attachBottomSheetPage(
+            title = title,
+            toolbarBackAction = { handleBack() },
+            pageBackAction = onBack,
+            onClose = onClose,
+            saveCurrentPage = false,
+            buildContent = buildContent
+        )
+    }
+
+    private fun attachStandardPage(
+        title: String,
+        onBack: () -> Unit,
+        saveCurrentPage: Boolean,
+        buildContent: (LinearLayout) -> Unit
+    ) {
         attachPage(
-            viewFactory.createBottomSheetPage(title, { handleBack() }, onClose, buildContent),
+            viewFactory.createPage(title, { handleBack() }, buildContent),
             onBack,
-            saveCurrentPage = false
+            saveCurrentPage = saveCurrentPage
+        )
+    }
+
+    private fun attachBottomSheetPage(
+        title: String,
+        toolbarBackAction: (() -> Unit)?,
+        pageBackAction: () -> Unit,
+        onClose: () -> Unit,
+        saveCurrentPage: Boolean,
+        buildContent: (LinearLayout) -> Unit
+    ) {
+        attachPage(
+            viewFactory.createBottomSheetPage(title, toolbarBackAction, onClose, buildContent),
+            pageBackAction,
+            saveCurrentPage = saveCurrentPage
         )
     }
 
