@@ -8,6 +8,7 @@ import com.example.videobrowser.testutil.projectFile
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import javax.xml.parsers.DocumentBuilderFactory
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -127,6 +128,21 @@ class WebPermissionRequestContractTest {
         assertTrue(webPermissionResourceMapper.contains("Manifest.permission.RECORD_AUDIO"))
         assertTrue(webPermissionResourceMapper.contains("SitePermission.CAMERA"))
         assertTrue(webPermissionResourceMapper.contains("SitePermission.MICROPHONE"))
+        assertTrue(webPermissionResourceMapper.contains("private data class WebPermissionResourceDefinition("))
+        assertTrue(webPermissionResourceMapper.contains("private val resourceDefinitionsByResource"))
+        assertFalse(webPermissionResourceMapper.contains("private fun sitePermissionFor"))
+        assertEquals(
+            1,
+            Regex("PermissionRequest\\.RESOURCE_VIDEO_CAPTURE")
+                .findAll(webPermissionResourceMapper)
+                .count()
+        )
+        assertEquals(
+            1,
+            Regex("PermissionRequest\\.RESOURCE_AUDIO_CAPTURE")
+                .findAll(webPermissionResourceMapper)
+                .count()
+        )
         assertTrue(activityScaffoldAssembly.contains("SessionSitePermissionStore"))
         assertTrue(activityScaffoldAssembly.contains("val sessionSitePermissionStore = SessionSitePermissionStore()"))
         assertTrue(sitePermissionDecisionController.contains("settingsManager.sitePermissionDecision(hostName, permission)"))

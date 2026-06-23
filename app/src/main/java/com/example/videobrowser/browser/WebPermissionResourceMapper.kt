@@ -12,56 +12,60 @@ import com.example.videobrowser.settings.SitePermission
  */
 object WebPermissionResourceMapper {
     fun supportedResources(resources: Array<String>): Array<String>? {
-        val supportedResources = mutableListOf<String>()
-        resources.forEach { resource ->
-            when (resource) {
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE,
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
-                    if (resource !in supportedResources) {
-                        supportedResources += resource
-                    }
-                }
-
-                else -> return null
+        val supportedResources = resources
+            .map { resource ->
+                resourceDefinitionFor(resource)?.resource ?: return null
             }
-        }
+            .distinct()
         return supportedResources.toTypedArray().takeIf { it.isNotEmpty() }
     }
 
     fun androidPermissionsFor(resources: Array<String>): List<String>? {
-        val androidPermissions = mutableListOf<String>()
-        resources.forEach { resource ->
-            val permission = when (resource) {
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE -> Manifest.permission.CAMERA
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> Manifest.permission.RECORD_AUDIO
-                else -> return null
+        val androidPermissions = resources
+            .map { resource ->
+                resourceDefinitionFor(resource)?.androidPermission ?: return null
             }
-            if (permission !in androidPermissions) {
-                androidPermissions += permission
-            }
-        }
+            .distinct()
         return androidPermissions.takeIf { it.isNotEmpty() }
     }
 
     fun sitePermissionsFor(resources: Array<String>): List<SitePermission> {
         return resources
-            .mapNotNull(::sitePermissionFor)
+            .mapNotNull { resource -> resourceDefinitionFor(resource)?.sitePermission }
             .distinct()
     }
 
     fun labelResourceIdFor(resource: String): Int? {
-        return when (resource) {
-            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> R.string.web_permission_camera
-            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> R.string.web_permission_microphone
-            else -> null
-        }
+        return resourceDefinitionFor(resource)?.labelResourceId
     }
 
-    private fun sitePermissionFor(resource: String): SitePermission? {
-        return when (resource) {
-            PermissionRequest.RESOURCE_VIDEO_CAPTURE -> SitePermission.CAMERA
-            PermissionRequest.RESOURCE_AUDIO_CAPTURE -> SitePermission.MICROPHONE
-            else -> null
-        }
+    private fun resourceDefinitionFor(resource: String): WebPermissionResourceDefinition? {
+        return resourceDefinitionsByResource[resource]
+    }
+
+    private data class WebPermissionResourceDefinition(
+        val resource: String,
+        val androidPermission: String,
+        val sitePermission: SitePermission,
+        val labelResourceId: Int
+    )
+
+    private val resourceDefinitions = listOf(
+        WebPermissionResourceDefinition(
+            resource = PermissionRequest.RESOURCE_VIDEO_CAPTURE,
+            androidPermission = Manifest.permission.CAMERA,
+            sitePermission = SitePermission.CAMERA,
+            labelResourceId = R.string.web_permission_camera
+        ),
+        WebPermissionResourceDefinition(
+            resource = PermissionRequest.RESOURCE_AUDIO_CAPTURE,
+            androidPermission = Manifest.permission.RECORD_AUDIO,
+            sitePermission = SitePermission.MICROPHONE,
+            labelResourceId = R.string.web_permission_microphone
+        )
+    )
+
+    private val resourceDefinitionsByResource = resourceDefinitions.associateBy { definition ->
+        definition.resource
     }
 }
