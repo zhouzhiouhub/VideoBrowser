@@ -3,6 +3,7 @@
  */
 (function () {
   const cleanup = window.VideoBrowserSearchResultCleanup || {};
+  const geometry = window.VideoBrowserGeometry || {};
   const domTools = window.VideoBrowserDomTools || {};
   const domActions = window.VideoBrowserDomActions || {};
   const selectorTools = window.VideoBrowserSelectorTools || {};
@@ -121,15 +122,15 @@
       if (current === document.body || current === document.documentElement) break;
       if (isSearchControlContainer(current)) break;
 
-      const rect = current.getBoundingClientRect();
-      if (!rect.width || !rect.height) continue;
+      const rect = geometry.safeRect(current);
+      if (!rect) continue;
       if (rect.width < window.innerWidth * 0.45) continue;
       if (rect.height < 36) continue;
       if (rect.height > Math.min(window.innerHeight * 0.72, 520)) continue;
 
       const text = selectorTools.normalizeText(current.innerText || current.textContent);
       if (text.length < 2 || text.length > 1200) continue;
-      const hasContent = current.querySelectorAll('a,img,h1,h2,h3,[role="heading"]').length > 0 ||
+      const hasContent = domTools.queryAllWithin(current, 'a,img,h1,h2,h3,[role="heading"]').length > 0 ||
         text.length >= 8;
       if (hasContent) candidate = current;
     }
@@ -141,10 +142,10 @@
     if (!element || typeof element.querySelector !== 'function') return false;
     if (element.querySelector('input,textarea,select,form')) return true;
 
-    const rect = element.getBoundingClientRect();
+    const rect = geometry.safeRect(element);
     const text = selectorTools.normalizeText(element.innerText || element.textContent);
     const descriptor = domTools.elementDescriptor(element);
-    const topChromeLike = rect.top < 120 &&
+    const topChromeLike = rect && rect.top < 120 &&
       /综合|资讯|视频|图片|知道|文库|贴吧|地图|更多|搜索|百度一下|网页|问答/.test(text);
     return topChromeLike || /searchbox|search-box|searchbar|search-bar|tab|tabs|navbar|nav-bar/i.test(descriptor);
   }

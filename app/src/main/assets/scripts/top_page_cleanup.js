@@ -3,6 +3,7 @@
  */
 (function () {
   const cleanup = window.VideoBrowserTopPageCleanup || {};
+  const geometry = window.VideoBrowserGeometry || {};
   const domTools = window.VideoBrowserDomTools || {};
   const domActions = window.VideoBrowserDomActions || {};
   window.VideoBrowserTopPageCleanup = cleanup;
@@ -19,13 +20,13 @@
 
     candidates.forEach(function (element) {
       if (!element || element.querySelector('input,textarea,form')) return;
-      const rect = element.getBoundingClientRect();
-      if (rect.top < 0 || rect.top > 220 || rect.height <= 0 || rect.height > 72) return;
+      const rect = geometry.safeRect(element);
+      if (!rect || rect.top < 0 || rect.top > 220 || rect.height > 72) return;
 
       const text = String(element.innerText || element.textContent || '');
       const html = String(element.innerHTML || '');
       const accountLike = /登录|账号|账户|我的|用户|passport|login|signin|user|profile/i.test(text + html);
-      const iconBarLike = element.querySelectorAll('a,button,[role="button"],svg,i').length >= 1 &&
+      const iconBarLike = domTools.queryAllWithin(element, 'a,button,[role="button"],svg,i').length >= 1 &&
         /menu|grid|app|user|profile|account|more|更多|应用/i.test(html);
       if (rect.width < Math.min(window.innerWidth * 0.45, 180) && !accountLike && !iconBarLike) return;
       if (accountLike || iconBarLike) {
@@ -46,8 +47,8 @@
     ).forEach(function (element) {
       if (!element || element.querySelector('input,textarea,select,form,video,canvas')) return;
 
-      const rect = element.getBoundingClientRect();
-      if (rect.top < 0 || rect.top > 180 || rect.height < 32 || rect.height > 150) return;
+      const rect = geometry.safeRect(element);
+      if (!rect || rect.top < 0 || rect.top > 180 || rect.height < 32 || rect.height > 150) return;
       if (rect.width < window.innerWidth * 0.58) return;
 
       const text = String(element.innerText || element.textContent || '').replace(/\s+/g, '');
@@ -62,7 +63,7 @@
         rect.height >= 48 &&
         rect.width > window.innerWidth * 0.82 &&
         text.length <= 18 &&
-        element.querySelectorAll('a,button,img,svg').length <= 2;
+        domTools.queryAllWithin(element, 'a,button,img,svg').length <= 2;
 
       if (!brandLogoLike && (adLike || sparseTopSlot)) {
         domActions.hideElement(element, {

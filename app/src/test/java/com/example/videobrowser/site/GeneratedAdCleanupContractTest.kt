@@ -25,6 +25,7 @@ class GeneratedAdCleanupContractTest {
         assertTrue(generatedScript.contains("function isGeneratedImageSlice(element, style, rect, viewportWidth, viewportHeight)"))
         assertTrue(generatedScript.contains("function isGeneratedClickGridCell(element, style, rect, viewportWidth, viewportHeight)"))
         assertTrue(generatedScript.contains("function isGeneratedAdAdjunctControl(element, style, rect)"))
+        assertTrue(generatedScript.contains("const rect = geometry.safeRect(element);"))
         assertTrue(generatedScript.contains("geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)"))
         assertTrue(generatedScript.contains("domTools.parseZIndex(style.zIndex)"))
         assertTrue(generatedScript.contains("domTools.elementDescriptor(element)"))
@@ -52,6 +53,7 @@ class GeneratedAdCleanupContractTest {
         assertFalse(commonScript.contains("const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup"))
         assertFalse(commonScript.contains("pageCleanupCoordinator.runGenerated(state, {"))
         assertFalse(commonScript.contains("generatedAdCleanup.run(state, { now: now, force: false });"))
+        assertFalse(generatedScript.contains("getBoundingClientRect()"))
         assertFalse(generatedScript.contains("function hideElement(element, reason)"))
     }
 

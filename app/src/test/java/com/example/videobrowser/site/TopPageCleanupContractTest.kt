@@ -19,7 +19,11 @@ class TopPageCleanupContractTest {
         assertTrue(cleanupScript.contains("cleanup.removeAccountBars = cleanup.removeAccountBars || function ()"))
         assertTrue(cleanupScript.contains("cleanup.removeNoiseBlocks = cleanup.removeNoiseBlocks || function ()"))
         assertTrue(cleanupScript.contains("cleanup.isSearchProviderHomePage = cleanup.isSearchProviderHomePage || function ()"))
+        assertTrue(cleanupScript.contains("const geometry = window.VideoBrowserGeometry || {}"))
         assertTrue(cleanupScript.contains("domTools.queryAll("))
+        assertTrue(cleanupScript.contains("domTools.queryAllWithin(element, 'a,button,[role=\"button\"],svg,i')"))
+        assertTrue(cleanupScript.contains("domTools.queryAllWithin(element, 'a,button,img,svg')"))
+        assertTrue(cleanupScript.contains("const rect = geometry.safeRect(element);"))
         assertTrue(cleanupScript.contains("domActions.hideElement(element, {"))
         assertTrue(coordinatorScript.contains("const topPageCleanup = window.VideoBrowserTopPageCleanup || {}"))
         assertTrue(coordinatorScript.contains("topPageCleanup.removeAccountBars();"))
@@ -37,6 +41,8 @@ class TopPageCleanupContractTest {
         assertFalse(commonScript.contains("topPageCleanup.removeNoiseBlocks();"))
         assertFalse(cleanupScript.contains("function hideElement(element, reason)"))
         assertFalse(cleanupScript.contains("function queryAll(selector)"))
+        assertFalse(cleanupScript.contains("getBoundingClientRect()"))
+        assertFalse(cleanupScript.contains("querySelectorAll("))
     }
 
 }

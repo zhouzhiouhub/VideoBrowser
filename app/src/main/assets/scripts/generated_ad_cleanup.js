@@ -36,8 +36,8 @@
       const style = getComputedStyle(element);
       if (style.position !== 'fixed') return;
 
-      const rect = element.getBoundingClientRect();
-      if (!geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)) return;
+      const rect = geometry.safeRect(element);
+      if (!rect || !geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)) return;
 
       if (isGeneratedImageSlice(element, style, rect, viewportWidth, viewportHeight)) {
         imageSlices.push(element);
