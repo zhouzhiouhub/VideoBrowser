@@ -33,4 +33,18 @@ class SettingsGlobalPreferenceStoreContractTest {
         assertEquals(1, Regex("preferenceStore\\.getFloat\\(").findAll(source).count())
         assertEquals(1, Regex("preferenceStore\\.putFloat\\(").findAll(source).count())
     }
+
+    @Test
+    fun stringPreferenceAccessUsesSharedReaderAndWriter() {
+        val source = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsGlobalPreferenceStore.kt"
+        ).readText()
+
+        assertTrue(source.contains("private data class StringPreference("))
+        assertTrue(source.contains("private fun getStringPreference(preference: StringPreference): String?"))
+        assertTrue(source.contains("private fun setStringPreference(preference: StringPreference, value: String)"))
+        assertEquals(2, Regex("= StringPreference\\(").findAll(source).count())
+        assertEquals(1, Regex("preferenceStore\\.getString\\(").findAll(source).count())
+        assertEquals(1, Regex("preferenceStore\\.putString\\(").findAll(source).count())
+    }
 }

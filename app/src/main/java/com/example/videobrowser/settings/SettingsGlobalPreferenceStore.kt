@@ -51,6 +51,11 @@ internal class SettingsGlobalPreferenceStore(
         KEY_TEXT_ZOOM_PERCENT,
         SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT.toFloat()
     )
+    private val homeUrlPreference = StringPreference(KEY_HOME_URL, null)
+    private val searchEnginePreference = StringPreference(
+        KEY_SEARCH_ENGINE,
+        SettingsManager.DEFAULT_SEARCH_ENGINE_ID
+    )
 
     fun isAdBlockEnabled(): Boolean {
         return getBooleanPreference(adBlockPreference)
@@ -141,14 +146,14 @@ internal class SettingsGlobalPreferenceStore(
 
     fun homeUrl(): String {
         return SettingsValueNormalizer.homeUrl(
-            preferenceStore.getString(KEY_HOME_URL, null),
+            getStringPreference(homeUrlPreference),
             SettingsManager.DEFAULT_HOME_URL
         )
     }
 
     fun homeUrlOr(defaultValue: String): String {
         return SettingsValueNormalizer.homeUrl(
-            preferenceStore.getString(KEY_HOME_URL, null),
+            getStringPreference(homeUrlPreference),
             defaultValue
         )
     }
@@ -162,17 +167,14 @@ internal class SettingsGlobalPreferenceStore(
     }
 
     fun setHomeUrl(url: String) {
-        preferenceStore.putString(
-            KEY_HOME_URL,
+        setStringPreference(
+            homeUrlPreference,
             SettingsValueNormalizer.homeUrl(url, SettingsManager.DEFAULT_HOME_URL)
         )
     }
 
     fun searchEngineId(): String {
-        return preferenceStore.getString(
-            KEY_SEARCH_ENGINE,
-            SettingsManager.DEFAULT_SEARCH_ENGINE_ID
-        )
+        return getStringPreference(searchEnginePreference)
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
             ?: SettingsManager.DEFAULT_SEARCH_ENGINE_ID
@@ -181,7 +183,7 @@ internal class SettingsGlobalPreferenceStore(
     fun setSearchEngineId(id: String) {
         val normalizedId = id.trim().takeIf { it.isNotEmpty() }
             ?: SettingsManager.DEFAULT_SEARCH_ENGINE_ID
-        preferenceStore.putString(KEY_SEARCH_ENGINE, normalizedId)
+        setStringPreference(searchEnginePreference, normalizedId)
     }
 
     fun isDesktopModeEnabled(): Boolean {
@@ -217,6 +219,14 @@ internal class SettingsGlobalPreferenceStore(
         preferenceStore.putFloat(preference.key, value)
     }
 
+    private fun getStringPreference(preference: StringPreference): String? {
+        return preferenceStore.getString(preference.key, preference.defaultValue)
+    }
+
+    private fun setStringPreference(preference: StringPreference, value: String) {
+        preferenceStore.putString(preference.key, value)
+    }
+
     private data class BooleanPreference(
         val key: String,
         val defaultValue: Boolean
@@ -225,5 +235,10 @@ internal class SettingsGlobalPreferenceStore(
     private data class FloatPreference(
         val key: String,
         val defaultValue: Float
+    )
+
+    private data class StringPreference(
+        val key: String,
+        val defaultValue: String?
     )
 }
