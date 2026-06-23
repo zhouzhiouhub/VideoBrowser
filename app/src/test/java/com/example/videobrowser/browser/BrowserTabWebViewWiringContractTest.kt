@@ -47,10 +47,10 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(startupFeatureAssembly.contains("browserTabActionsController = browserSessions.browserTabActionsController"))
         assertTrue(tabActionsController.contains("standardTabWebViews.openTab"))
+        assertTrue(tabActionsController.contains("private fun openStandardTab(url: String? = null, title: String = \"\")"))
         assertTrue(tabActionsController.contains("standardTabWebViews.switchTo"))
         assertTrue(tabActionsController.contains("standardTabWebViews.closeTab"))
         assertTrue(tabActionsController.contains("standardTabWebViews.closeOtherTabs"))
-        assertTrue(tabActionsController.contains("standardTabWebViews.openTab("))
         assertTrue(runtimeFeatureAssembly.contains("createStandardTabWebView"))
     }
 
@@ -139,8 +139,7 @@ class BrowserTabWebViewWiringContractTest {
         val duplicateTabBody = tabActionsController.substringAfter("fun duplicateTab(tabId: Long)")
             .substringBefore("fun openUrlInNewTab")
 
-        assertTrue(duplicateTabBody.contains("standardTabWebViews.openTab("))
-        assertTrue(duplicateTabBody.contains("view = createStandardTabWebView()"))
+        assertTrue(duplicateTabBody.contains("openStandardTab("))
         assertTrue(duplicateTabBody.contains("url = sourceTab.url"))
         assertTrue(duplicateTabBody.contains("title = sourceTab.title"))
         assertTrue(duplicateTabBody.contains("sourceTab.url?.let(loadUrl) ?: openHomePage()"))
@@ -158,12 +157,29 @@ class BrowserTabWebViewWiringContractTest {
         )
             .readText()
         val openUrlInNewTabBody = tabActionsController.substringAfter("fun openUrlInNewTab(url: String)")
+            .substringBefore("private fun openStandardTab")
+
+        assertTrue(openUrlInNewTabBody.contains("openStandardTab(url = url)"))
+        assertTrue(openUrlInNewTabBody.contains("loadUrl(url)"))
+    }
+
+    @Test
+    fun standardTabCreationIsOwnedBySharedHelper() {
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        ).readText()
+        val openNewTabBody = tabActionsController.substringAfter("fun openNewTab()")
+            .substringBefore("fun canReopenClosedTab")
+        val helperBody = tabActionsController.substringAfter("private fun openStandardTab")
             .substringBefore("private fun showActiveTab")
 
-        assertTrue(openUrlInNewTabBody.contains("standardTabWebViews.openTab("))
-        assertTrue(openUrlInNewTabBody.contains("view = createStandardTabWebView()"))
-        assertTrue(openUrlInNewTabBody.contains("url = url"))
-        assertTrue(openUrlInNewTabBody.contains("loadUrl(url)"))
+        assertTrue(openNewTabBody.contains("openStandardTab()"))
+        assertTrue(helperBody.contains("standardTabWebViews.openTab("))
+        assertTrue(helperBody.contains("view = createStandardTabWebView()"))
+        assertTrue(helperBody.contains("hideStandardTabWebView(result.previousView)"))
+        assertTrue(helperBody.contains("showStandardTabWebView(result.activeView)"))
+        assertTrue(helperBody.contains("saveStandardTabSession()"))
+        assertFalse(openNewTabBody.contains("standardTabWebViews.openTab("))
     }
 
 }

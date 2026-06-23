@@ -69,13 +69,11 @@ class BrowserTabActionsController(
     fun openNewTab() {
         closeFunctionCenter()
         if (!isPrivateBrowsingActive()) {
-            val result = standardTabWebViews.openTab(createStandardTabWebView())
-            hideStandardTabWebView(result.previousView)
-            showStandardTabWebView(result.activeView)
+            openStandardTab()
         } else {
             currentTabStore().openTab()
+            saveStandardTabSession()
         }
-        saveStandardTabSession()
         openHomePage()
     }
 
@@ -210,14 +208,10 @@ class BrowserTabActionsController(
     fun duplicateTab(tabId: Long) {
         val sourceTab = currentTabStore().tabs().firstOrNull { tab -> tab.id == tabId } ?: return
         if (!isPrivateBrowsingActive()) {
-            val result = standardTabWebViews.openTab(
-                view = createStandardTabWebView(),
+            openStandardTab(
                 url = sourceTab.url,
                 title = sourceTab.title
             )
-            hideStandardTabWebView(result.previousView)
-            showStandardTabWebView(result.activeView)
-            saveStandardTabSession()
         } else {
             currentTabStore().openTab(url = sourceTab.url, title = sourceTab.title)
         }
@@ -231,17 +225,22 @@ class BrowserTabActionsController(
      */
     fun openUrlInNewTab(url: String) {
         if (!isPrivateBrowsingActive()) {
-            val result = standardTabWebViews.openTab(
-                view = createStandardTabWebView(),
-                url = url
-            )
-            hideStandardTabWebView(result.previousView)
-            showStandardTabWebView(result.activeView)
-            saveStandardTabSession()
+            openStandardTab(url = url)
         } else {
             currentTabStore().openTab(url = url)
         }
         loadUrl(url)
+    }
+
+    private fun openStandardTab(url: String? = null, title: String = "") {
+        val result = standardTabWebViews.openTab(
+            view = createStandardTabWebView(),
+            url = url,
+            title = title
+        )
+        hideStandardTabWebView(result.previousView)
+        showStandardTabWebView(result.activeView)
+        saveStandardTabSession()
     }
 
     /**
