@@ -33,13 +33,7 @@ internal class FunctionCenterContentFactory(
             )
         }
         buildContent(section)
-        parent.addView(
-            section,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
+        addFullWidthView(parent, section)
     }
 
     fun addInfoRow(
@@ -51,17 +45,12 @@ internal class FunctionCenterContentFactory(
             minimumHeight = dp(58)
             setPadding(0, dp(9), 0, dp(9))
         }
-        parent.addView(
-            row,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
+        addFullWidthView(parent, row)
     }
 
     fun addFunctionMessage(parent: LinearLayout, message: String) {
-        parent.addView(
+        addFullWidthView(
+            parent,
             TextView(activity).apply {
                 text = message
                 setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
@@ -72,17 +61,13 @@ internal class FunctionCenterContentFactory(
                     ContextCompat.getColor(activity, R.color.browser_surface)
                 )
             },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(10)
-            }
+            topMargin = dp(10)
         )
     }
 
     fun addEmptyState(parent: LinearLayout, message: String) {
-        parent.addView(
+        addFullWidthView(
+            parent,
             TextView(activity).apply {
                 text = message
                 gravity = Gravity.CENTER
@@ -93,12 +78,7 @@ internal class FunctionCenterContentFactory(
                     ContextCompat.getColor(activity, R.color.browser_surface)
                 )
             },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(18)
-            }
+            topMargin = dp(18)
         )
     }
 
@@ -141,17 +121,14 @@ internal class FunctionCenterContentFactory(
         enabled: Boolean = true,
         onChanged: (Boolean) -> Unit
     ) {
-        parent.addView(
+        addFullWidthView(
+            parent,
             rowFactory.createSwitchRow(
                 title = title,
                 summary = summary,
                 checked = checked,
                 enabled = enabled,
                 onChanged = onChanged
-            ),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
     }
@@ -163,16 +140,13 @@ internal class FunctionCenterContentFactory(
         enabled: Boolean = true,
         onClick: () -> Unit
     ) {
-        parent.addView(
+        addFullWidthView(
+            parent,
             rowFactory.createActionRow(
                 title = title,
                 summary = summary,
                 enabled = enabled,
                 onClick = onClick
-            ),
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
     }
@@ -195,7 +169,8 @@ internal class FunctionCenterContentFactory(
     }
 
     private fun addSectionTitle(parent: LinearLayout, title: String) {
-        parent.addView(
+        addFullWidthView(
+            parent,
             TextView(activity).apply {
                 text = title
                 setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
@@ -203,14 +178,31 @@ internal class FunctionCenterContentFactory(
                 typeface = Typeface.DEFAULT_BOLD
                 includeFontPadding = false
             },
+            topMargin = dp(18),
+            bottomMargin = dp(8),
+            marginStart = dp(4),
+            marginEnd = dp(4)
+        )
+    }
+
+    private fun addFullWidthView(
+        parent: LinearLayout,
+        view: View,
+        topMargin: Int = 0,
+        bottomMargin: Int = 0,
+        marginStart: Int = 0,
+        marginEnd: Int = 0
+    ) {
+        parent.addView(
+            view,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = dp(18)
-                bottomMargin = dp(8)
-                marginStart = dp(4)
-                marginEnd = dp(4)
+                this.topMargin = topMargin
+                this.bottomMargin = bottomMargin
+                this.marginStart = marginStart
+                this.marginEnd = marginEnd
             }
         )
     }
