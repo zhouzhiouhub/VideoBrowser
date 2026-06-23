@@ -10,74 +10,102 @@ import com.example.videobrowser.storage.PreferenceStore
 internal class SettingsGlobalPreferenceStore(
     private val preferenceStore: PreferenceStore
 ) {
+    private val adBlockPreference = BooleanPreference(KEY_AD_BLOCK, DEFAULT_AD_BLOCK_ENABLED)
+    private val jsInjectionPreference = BooleanPreference(
+        KEY_JS_INJECTION,
+        DEFAULT_JS_INJECTION_ENABLED
+    )
+    private val domAdBlockPreference = BooleanPreference(
+        KEY_DOM_AD_BLOCK,
+        DEFAULT_DOM_AD_BLOCK_ENABLED
+    )
+    private val videoEnhancementPreference = BooleanPreference(
+        KEY_VIDEO_ENHANCEMENT,
+        DEFAULT_VIDEO_ENHANCEMENT_ENABLED
+    )
+    private val startVideosFromBeginningPreference = BooleanPreference(
+        KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING,
+        DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING
+    )
+    private val smartNoImagePreference = BooleanPreference(
+        KEY_SMART_NO_IMAGE,
+        DEFAULT_SMART_NO_IMAGE_ENABLED
+    )
+    private val thirdPartyCookiesPreference = BooleanPreference(
+        KEY_THIRD_PARTY_COOKIES,
+        DEFAULT_THIRD_PARTY_COOKIES_ENABLED
+    )
+    private val mixedContentBlockedPreference = BooleanPreference(
+        KEY_MIXED_CONTENT_BLOCKED,
+        DEFAULT_MIXED_CONTENT_BLOCKED
+    )
+    private val desktopModePreference = BooleanPreference(
+        KEY_DESKTOP_MODE,
+        DEFAULT_DESKTOP_MODE_ENABLED
+    )
+
     fun isAdBlockEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_AD_BLOCK, DEFAULT_AD_BLOCK_ENABLED)
+        return getBooleanPreference(adBlockPreference)
     }
 
     fun setAdBlockEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_AD_BLOCK, enabled)
+        setBooleanPreference(adBlockPreference, enabled)
     }
 
     fun isJsInjectionEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_JS_INJECTION, DEFAULT_JS_INJECTION_ENABLED)
+        return getBooleanPreference(jsInjectionPreference)
     }
 
     fun setJsInjectionEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_JS_INJECTION, enabled)
+        setBooleanPreference(jsInjectionPreference, enabled)
     }
 
     fun isDomAdBlockEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_DOM_AD_BLOCK, DEFAULT_DOM_AD_BLOCK_ENABLED)
+        return getBooleanPreference(domAdBlockPreference)
     }
 
     fun setDomAdBlockEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_DOM_AD_BLOCK, enabled)
+        setBooleanPreference(domAdBlockPreference, enabled)
     }
 
     fun isVideoEnhancementEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_VIDEO_ENHANCEMENT, DEFAULT_VIDEO_ENHANCEMENT_ENABLED)
+        return getBooleanPreference(videoEnhancementPreference)
     }
 
     fun setVideoEnhancementEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_VIDEO_ENHANCEMENT, enabled)
+        setBooleanPreference(videoEnhancementPreference, enabled)
     }
 
     fun alwaysStartVideosFromBeginning(): Boolean {
-        return preferenceStore.getBoolean(
-            KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING,
-            DEFAULT_ALWAYS_START_VIDEOS_FROM_BEGINNING
-        )
+        return getBooleanPreference(startVideosFromBeginningPreference)
     }
 
     fun setAlwaysStartVideosFromBeginning(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_ALWAYS_START_VIDEOS_FROM_BEGINNING, enabled)
+        setBooleanPreference(startVideosFromBeginningPreference, enabled)
     }
 
     fun isSmartNoImageEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_SMART_NO_IMAGE, DEFAULT_SMART_NO_IMAGE_ENABLED)
+        return getBooleanPreference(smartNoImagePreference)
     }
 
     fun setSmartNoImageEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_SMART_NO_IMAGE, enabled)
+        setBooleanPreference(smartNoImagePreference, enabled)
     }
 
     fun areThirdPartyCookiesEnabled(): Boolean {
-        return preferenceStore.getBoolean(
-            KEY_THIRD_PARTY_COOKIES,
-            DEFAULT_THIRD_PARTY_COOKIES_ENABLED
-        )
+        return getBooleanPreference(thirdPartyCookiesPreference)
     }
 
     fun setThirdPartyCookiesEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_THIRD_PARTY_COOKIES, enabled)
+        setBooleanPreference(thirdPartyCookiesPreference, enabled)
     }
 
     fun isMixedContentBlocked(): Boolean {
-        return preferenceStore.getBoolean(KEY_MIXED_CONTENT_BLOCKED, DEFAULT_MIXED_CONTENT_BLOCKED)
+        return getBooleanPreference(mixedContentBlockedPreference)
     }
 
     fun setMixedContentBlocked(blocked: Boolean) {
-        preferenceStore.putBoolean(KEY_MIXED_CONTENT_BLOCKED, blocked)
+        setBooleanPreference(mixedContentBlockedPreference, blocked)
     }
 
     fun defaultVideoSpeed(): Float {
@@ -152,11 +180,11 @@ internal class SettingsGlobalPreferenceStore(
     }
 
     fun isDesktopModeEnabled(): Boolean {
-        return preferenceStore.getBoolean(KEY_DESKTOP_MODE, DEFAULT_DESKTOP_MODE_ENABLED)
+        return getBooleanPreference(desktopModePreference)
     }
 
     fun setDesktopModeEnabled(enabled: Boolean) {
-        preferenceStore.putBoolean(KEY_DESKTOP_MODE, enabled)
+        setBooleanPreference(desktopModePreference, enabled)
     }
 
     fun isPrivateBrowsingEnabled(): Boolean {
@@ -167,4 +195,17 @@ internal class SettingsGlobalPreferenceStore(
     fun setPrivateBrowsingEnabled(enabled: Boolean) {
         preferenceStore.remove(KEY_PRIVATE_BROWSING)
     }
+
+    private fun getBooleanPreference(preference: BooleanPreference): Boolean {
+        return preferenceStore.getBoolean(preference.key, preference.defaultValue)
+    }
+
+    private fun setBooleanPreference(preference: BooleanPreference, value: Boolean) {
+        preferenceStore.putBoolean(preference.key, value)
+    }
+
+    private data class BooleanPreference(
+        val key: String,
+        val defaultValue: Boolean
+    )
 }
