@@ -1,23 +1,14 @@
 package com.example.videobrowser.browser.search
 
-import android.net.Uri
+import com.example.videobrowser.utils.WebPageIdentity
 
 internal object SearchProviderHomeMatcher {
     fun isProviderHomeUrl(url: String?, providers: Collection<SearchProvider>): Boolean {
-        if (url.isNullOrBlank()) {
-            return false
-        }
-
-        val currentUri = Uri.parse(url)
+        val currentPage = WebPageIdentity.from(url) ?: return false
         return providers.any { provider ->
-            val homeUri = Uri.parse(provider.homeUrl)
-            currentUri.scheme.equals(homeUri.scheme, ignoreCase = true) &&
-                currentUri.host.equals(homeUri.host, ignoreCase = true) &&
-                normalizedPath(currentUri) == normalizedPath(homeUri)
+            WebPageIdentity.from(provider.homeUrl)
+                ?.isSamePageAs(currentPage)
+                ?: false
         }
-    }
-
-    private fun normalizedPath(uri: Uri): String {
-        return uri.path.orEmpty().trim('/')
     }
 }

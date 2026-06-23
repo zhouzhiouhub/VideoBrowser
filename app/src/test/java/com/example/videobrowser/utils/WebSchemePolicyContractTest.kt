@@ -21,7 +21,7 @@ class WebSchemePolicyContractTest {
             projectFile("src/main/java/com/example/videobrowser/video/MediaRoutingController.kt"),
             projectFile("src/main/java/com/example/videobrowser/rules/RuleSubscriptionFetcher.kt"),
             projectFile("src/main/java/com/example/videobrowser/rules/RuleNavigationUrlCleaner.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/HistoryRecordPolicy.kt"),
+            projectFile("src/main/java/com/example/videobrowser/utils/WebPageIdentity.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/search/HomeQuickLinkBuilder.kt"),
             projectFile("src/main/java/com/example/videobrowser/utils/MediaUrlUtils.kt")
         ).map { file -> file.readText() }
