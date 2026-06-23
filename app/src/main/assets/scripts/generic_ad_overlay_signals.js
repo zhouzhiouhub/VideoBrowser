@@ -5,6 +5,7 @@
   const signals = window.VideoBrowserGenericAdOverlaySignals || {};
   const domTools = window.VideoBrowserDomTools || {};
   const selectorTools = window.VideoBrowserSelectorTools || {};
+  const geometry = window.VideoBrowserGeometry || {};
   window.VideoBrowserGenericAdOverlaySignals = signals;
 
   signals.promoTextLike = signals.promoTextLike || function (value) {
@@ -84,7 +85,7 @@
 
   signals.isCloseLikeControl = signals.isCloseLikeControl || function (element) {
     if (!element) return false;
-    const rect = element.getBoundingClientRect();
+    const rect = geometry.safeRect(element);
     const text = selectorTools.normalizeText(
       element.innerText ||
       element.textContent ||
@@ -97,7 +98,8 @@
     if (/^(×|x|X|✕|✖|关闭|關閉|取消|跳过|跳過|稍后|稍後|不再提示|close|skip|dismiss)$/i.test(compactText)) {
       return true;
     }
-    return rect.width <= 72 &&
+    return Boolean(rect) &&
+      rect.width <= 72 &&
       rect.height <= 72 &&
       /close|dismiss|cancel|skip|关闭|關閉|跳过|跳過/i.test(descriptor + ' ' + text);
   };

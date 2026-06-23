@@ -6,6 +6,7 @@
   const domTools = window.VideoBrowserDomTools || {};
   const domActions = window.VideoBrowserDomActions || {};
   const selectorTools = window.VideoBrowserSelectorTools || {};
+  const geometry = window.VideoBrowserGeometry || {};
   const overlaySignals = window.VideoBrowserGenericAdOverlaySignals || {};
   window.VideoBrowserGenericAdOverlayDetector = detector;
 
@@ -48,10 +49,10 @@
       if (overlaySignals.isCloseLikeControl(element)) addCandidate(element);
     });
     domTools.queryAll('img,picture,svg').forEach(function (element) {
-      const rect = element.getBoundingClientRect();
+      const rect = geometry.safeRect(element);
       const source = overlaySignals.mediaSourceValue(element);
       if (
-        (rect.width >= 32 && rect.height >= 32) ||
+        (rect && rect.width >= 32 && rect.height >= 32) ||
         overlaySignals.mediaSourceLikeAd(source)
       ) {
         addCandidate(element);
@@ -64,11 +65,11 @@
       const style = getComputedStyle(element);
       if (!/fixed|absolute|sticky/i.test(style.position)) return;
 
-      const rect = element.getBoundingClientRect();
+      const rect = geometry.safeRect(element);
       const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
       const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-      if (!rect.width || !rect.height || !viewportWidth || !viewportHeight) return;
-      if (rect.bottom <= 0 || rect.right <= 0 || rect.top >= viewportHeight || rect.left >= viewportWidth) return;
+      if (!rect || !viewportWidth || !viewportHeight) return;
+      if (!geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)) return;
       if (rect.width < 24 || rect.height < 24) return;
       if (rect.width > Math.min(viewportWidth * 0.9, 360)) return;
       if (rect.height > Math.min(viewportHeight * 0.55, 420)) return;
@@ -102,10 +103,10 @@
         return;
       }
 
-      const rect = element.getBoundingClientRect();
+      const rect = geometry.safeRect(element);
       const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
       const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-      if (!rect.width || !rect.height || !viewportWidth || !viewportHeight) {
+      if (!rect || !viewportWidth || !viewportHeight) {
         addCandidate(element);
         return;
       }
@@ -154,8 +155,9 @@
       );
     if (canPromoteLayer) return true;
 
-    const currentRect = currentRoot.getBoundingClientRect();
-    const candidateRect = candidateRoot.getBoundingClientRect();
+    const currentRect = geometry.safeRect(currentRoot);
+    const candidateRect = geometry.safeRect(candidateRoot);
+    if (!currentRect || !candidateRect) return false;
     const currentArea = currentRect.width * currentRect.height;
     const candidateArea = candidateRect.width * candidateRect.height;
     if (!currentArea || !candidateArea) return false;
@@ -181,10 +183,10 @@
       !adTextLike;
     if (formHeavy) return false;
 
-    const rect = element.getBoundingClientRect();
+    const rect = geometry.safeRect(element);
     const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
     const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-    if (!rect.width || !rect.height || !viewportWidth || !viewportHeight) {
+    if (!rect || !viewportWidth || !viewportHeight) {
       const zeroLayoutAdNameLike = overlaySignals.zeroLayoutNameLike(descriptor);
       if (promoTextLike && text.length <= 260) {
         return true;
@@ -193,7 +195,7 @@
         hasMediaOrAction &&
         (hasClose || hasMedia || adNameLike || adTextLike);
     }
-    if (rect.bottom <= 0 || rect.right <= 0 || rect.top >= viewportHeight || rect.left >= viewportWidth) {
+    if (!geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)) {
       return false;
     }
 

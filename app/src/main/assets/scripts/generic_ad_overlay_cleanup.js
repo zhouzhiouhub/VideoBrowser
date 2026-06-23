@@ -6,6 +6,7 @@
   const domTools = window.VideoBrowserDomTools || {};
   const domActions = window.VideoBrowserDomActions || {};
   const selectorTools = window.VideoBrowserSelectorTools || {};
+  const geometry = window.VideoBrowserGeometry || {};
   const generatedAdCleanup = window.VideoBrowserGeneratedAdCleanup || {};
   const overlaySignals = window.VideoBrowserGenericAdOverlaySignals || {};
   const overlayDetector = window.VideoBrowserGenericAdOverlayDetector || {};
@@ -50,8 +51,8 @@
       if (!element || element === root || element.contains(root) || root.contains(element)) return;
       if (domActions.isProtectedAppContainer(element)) return;
 
-      const rect = element.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
+      const rect = geometry.safeRect(element);
+      if (!rect) return;
 
       const style = getComputedStyle(element);
       if (!/fixed|absolute|sticky/i.test(style.position)) return;
