@@ -2,25 +2,25 @@ package com.example.videobrowser.functioncenter
 
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
-import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadRecord
+import com.example.videobrowser.utils.FileShareIntentFactory
 
 internal class DownloadedFileLauncher(
     private val activity: AppCompatActivity
 ) {
     fun shareDownloadedFile(record: DownloadRecord) {
         val uri = downloadedFileUri(record) ?: return
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = record.mimeType ?: "*/*"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            clipData = ClipData.newUri(activity.contentResolver, record.fileName, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = FileShareIntentFactory.create(
+            contentResolver = activity.contentResolver,
+            uri = uri,
+            displayName = record.fileName,
+            mimeType = record.mimeType
+        )
         try {
             activity.startActivity(
                 Intent.createChooser(intent, activity.getString(R.string.action_share_file))

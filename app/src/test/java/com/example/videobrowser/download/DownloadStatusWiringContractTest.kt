@@ -265,11 +265,10 @@ class DownloadStatusWiringContractTest {
 
         assertTrue(dialogController.contains("record.status == DownloadStatus.COMPLETED"))
         assertTrue(dialogController.contains("shareDownloadedFile(record)"))
-        assertTrue(launcher.contains("Intent(Intent.ACTION_SEND)"))
-        assertTrue(launcher.contains("putExtra(Intent.EXTRA_STREAM, uri)"))
-        assertTrue(launcher.contains("ClipData.newUri(activity.contentResolver, record.fileName, uri)"))
+        assertTrue(launcher.contains("FileShareIntentFactory.create("))
+        assertTrue(launcher.contains("displayName = record.fileName"))
+        assertTrue(launcher.contains("mimeType = record.mimeType"))
         assertTrue(launcher.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_file))"))
-        assertTrue(launcher.contains("Intent.FLAG_GRANT_READ_URI_PERMISSION"))
     }
 
 

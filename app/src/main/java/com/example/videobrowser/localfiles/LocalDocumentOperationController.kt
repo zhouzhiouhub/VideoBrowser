@@ -1,7 +1,6 @@
 package com.example.videobrowser.localfiles
 
 import android.content.ActivityNotFoundException
-import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import android.text.InputType
@@ -10,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.FileShareIntentFactory
 
 internal class LocalDocumentOperationController(
     private val activity: AppCompatActivity,
@@ -96,12 +96,12 @@ internal class LocalDocumentOperationController(
     }
 
     fun share(document: LocalDocument) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = document.mimeType?.takeUnless { document.isDirectory } ?: "*/*"
-            putExtra(Intent.EXTRA_STREAM, document.uri)
-            clipData = ClipData.newUri(activity.contentResolver, document.name, document.uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = FileShareIntentFactory.create(
+            contentResolver = activity.contentResolver,
+            uri = document.uri,
+            displayName = document.name,
+            mimeType = document.mimeType?.takeUnless { document.isDirectory }
+        )
         try {
             activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_file)))
         } catch (_: ActivityNotFoundException) {
