@@ -22,6 +22,9 @@ class BrowserTabWebViewRegistryTest {
         assertEquals(7, Regex("ensureViewFor\\(").findAll(registry).count())
         assertEquals(1, Regex("requireCreateWebView\\(\\)\\.invoke\\(\\)").findAll(registry).count())
         assertEquals(1, Regex("private fun ensureViewFor\\(tabId: Long\\): T").findAll(registry).count())
+        assertEquals(1, Regex("private fun removeViewsFor\\(closedTabs: List<BrowserTab>\\): List<T>").findAll(registry).count())
+        assertEquals(2, Regex("removeViewsFor\\(closedTabs\\)").findAll(registry).count())
+        assertEquals(1, Regex("viewsByTabId\\.remove\\(tab\\.id\\)").findAll(registry).count())
     }
 
     /**

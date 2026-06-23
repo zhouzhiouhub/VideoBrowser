@@ -317,7 +317,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         if (closedTabs.isEmpty()) {
             return null
         }
-        val closedViews = closedTabs.mapNotNull { tab -> viewsByTabId.remove(tab.id) }
+        val closedViews = removeViewsFor(closedTabs)
         val activeView = ensureViewFor(tabId)
         activeViewTabId = tabId
         return CloseOthersResult(
@@ -336,7 +336,7 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
     fun closeAllTabs(): CloseAllResult<T> {
         val tabStore = requireTabs()
         val closedTabs = tabStore.closeAllTabs()
-        val closedViews = closedTabs.mapNotNull { tab -> viewsByTabId.remove(tab.id) }
+        val closedViews = removeViewsFor(closedTabs)
         val activeTab = tabStore.activeTab()
         val activeView = ensureViewFor(activeTab.id)
         activeViewTabId = activeTab.id
@@ -373,6 +373,10 @@ class BrowserTabWebViewRegistry<T : Any> private constructor(
         return viewsByTabId.getOrPut(tabId) {
             requireCreateWebView().invoke()
         }
+    }
+
+    private fun removeViewsFor(closedTabs: List<BrowserTab>): List<T> {
+        return closedTabs.mapNotNull { tab -> viewsByTabId.remove(tab.id) }
     }
 
     /**
