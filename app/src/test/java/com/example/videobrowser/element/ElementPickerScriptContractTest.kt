@@ -33,6 +33,7 @@ class ElementPickerScriptContractTest {
         assertTrue(selectorScript.contains("tools.buildSelector = tools.buildSelector || function (element)"))
         assertTrue(selectorScript.contains("tools.describeElement = tools.describeElement || function (element)"))
         assertTrue(pickerScript.contains("window.VideoBrowserElementPicker = pickerModule"))
+        assertTrue(pickerScript.contains("const geometry = window.VideoBrowserGeometry || {};"))
         assertTrue(pickerScript.contains("const pickerSelectorTools = window.VideoBrowserElementPickerSelectorTools || {};"))
         assertTrue(commonScript.contains("const elementPicker = window.VideoBrowserElementPicker"))
         assertTrue(commonScript.contains("elementPicker: elementPicker"))
@@ -66,6 +67,7 @@ class ElementPickerScriptContractTest {
         assertFalse(pickerScript.contains("function buildElementPickerSelector(element)"))
         assertFalse(pickerScript.contains("function describePickedElement(element)"))
         assertFalse(pickerScript.contains("function isStableSelectorToken(value)"))
+        assertFalse(pickerScript.contains("getBoundingClientRect"))
     }
 
     /**

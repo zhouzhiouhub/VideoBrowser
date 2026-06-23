@@ -3,6 +3,7 @@
  */
 (function () {
   const pickerModule = window.VideoBrowserElementPicker || {};
+  const geometry = window.VideoBrowserGeometry || {};
   const domActions = window.VideoBrowserDomActions || {};
   const pickerSelectorTools = window.VideoBrowserElementPickerSelectorTools || {};
   const nativeBridge = window.VideoBrowserNativeBridge || {};
@@ -165,10 +166,14 @@
 
   function highlightPickedElement(state, element) {
     const picker = state && state.elementPicker;
-    if (!picker || !picker.overlay || !element || !element.getBoundingClientRect) return;
-    const rect = element.getBoundingClientRect();
+    if (!picker || !picker.overlay || !element) return;
+    const rect = geometry.safeRect(element);
     picker.selectedElement = element;
-    picker.overlay.style.display = rect.width > 0 && rect.height > 0 ? 'block' : 'none';
+    if (!rect) {
+      picker.overlay.style.display = 'none';
+      return;
+    }
+    picker.overlay.style.display = 'block';
     picker.overlay.style.left = Math.max(0, rect.left) + 'px';
     picker.overlay.style.top = Math.max(0, rect.top) + 'px';
     picker.overlay.style.width = Math.max(0, rect.width) + 'px';
