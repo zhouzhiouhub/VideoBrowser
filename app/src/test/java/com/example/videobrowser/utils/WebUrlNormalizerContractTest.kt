@@ -15,6 +15,7 @@ class WebUrlNormalizerContractTest {
         val sources = listOf(
             projectFile("src/main/java/com/example/videobrowser/storage/SavedPageCodec.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/BrowserTabSessionRepository.kt"),
+            projectFile("src/main/java/com/example/videobrowser/browser/ExternalProtocolPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/HttpNavigationSafetyPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/download/DownloadSafetyPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/settings/SettingsHttpUrlValidator.kt"),

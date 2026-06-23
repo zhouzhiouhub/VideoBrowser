@@ -14,7 +14,6 @@ class WebSchemePolicyContractTest {
             projectFile("src/main/java/com/example/videobrowser/adblock/RuleDecisionResolver.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/SmartNoImageRequestPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/ExternalProtocolPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/HttpNavigationSafetyPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/BrowserUrlStateController.kt"),
             projectFile("src/main/java/com/example/videobrowser/video/MediaRoutingController.kt"),

@@ -10,7 +10,7 @@ package com.example.videobrowser.browser
 import java.util.Locale
 import com.example.videobrowser.utils.SafeUriParser
 import com.example.videobrowser.utils.Utf8UrlCodec
-import com.example.videobrowser.utils.WebSchemePolicy
+import com.example.videobrowser.utils.WebUrlNormalizer
 
 object ExternalProtocolPolicy {
     private val blockedSchemes = setOf(
@@ -57,12 +57,7 @@ object ExternalProtocolPolicy {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun isWebUrl(url: String?): Boolean {
-        val normalizedUrl = url?.trim()?.takeIf { it.isNotBlank() } ?: return false
-        val uri = SafeUriParser.parse(normalizedUrl) ?: return false
-        if (!WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)) {
-            return false
-        }
-        return !uri.host.isNullOrBlank()
+        return WebUrlNormalizer.isHttpOrHttpsUrl(url)
     }
 
     /**
