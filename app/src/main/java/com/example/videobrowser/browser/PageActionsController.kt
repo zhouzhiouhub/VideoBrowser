@@ -18,6 +18,7 @@ import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.utils.FileOpenIntentFactory
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.PageUrlActions
 import com.example.videobrowser.utils.stringOrNull
@@ -269,10 +270,7 @@ class PageActionsController(
      * @param mimeType 参数类型为 `String?`，表示函数执行 `mimeType` 相关逻辑时需要读取或处理的输入。
      */
     private fun openExternalDocument(uri: Uri, mimeType: String?) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, mimeType ?: "*/*")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = FileOpenIntentFactory.create(uri, mimeType)
         try {
             activity.startActivity(
                 Intent.createChooser(intent, activity.getString(R.string.action_open_file))

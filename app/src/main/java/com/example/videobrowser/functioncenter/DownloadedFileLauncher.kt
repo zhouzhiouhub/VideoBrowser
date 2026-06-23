@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadRecord
+import com.example.videobrowser.utils.FileOpenIntentFactory
 import com.example.videobrowser.utils.FileShareIntentFactory
 
 internal class DownloadedFileLauncher(
@@ -34,10 +35,7 @@ internal class DownloadedFileLauncher(
 
     fun openDownloadedFile(record: DownloadRecord) {
         val uri = downloadedFileUri(record) ?: return
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, record.mimeType ?: "*/*")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = FileOpenIntentFactory.create(uri, record.mimeType)
         try {
             activity.startActivity(
                 Intent.createChooser(intent, activity.getString(R.string.action_open_file))
