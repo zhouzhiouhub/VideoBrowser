@@ -8,8 +8,8 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackProgress
 
@@ -79,15 +79,15 @@ class PlaybackHistoryPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun confirmClearRecords() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_playback_history_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                playbackHistoryRepository.clear()
-                Toast.makeText(activity, R.string.toast_playback_history_cleared, Toast.LENGTH_SHORT).show()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_playback_history_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            playbackHistoryRepository.clear()
+            Toast.makeText(activity, R.string.toast_playback_history_cleared, Toast.LENGTH_SHORT).show()
+            show(replaceCurrent = true)
+        }
     }
 }

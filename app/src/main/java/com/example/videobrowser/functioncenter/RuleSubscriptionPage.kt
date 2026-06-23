@@ -19,6 +19,7 @@ import com.example.videobrowser.rules.RuleFileLoader
 import com.example.videobrowser.rules.RuleSubscriptionFetcher
 import com.example.videobrowser.rules.RuleSubscriptionImportResult
 import com.example.videobrowser.rules.RuleSubscriptionImporter
+import com.example.videobrowser.utils.ConfirmationDialog
 import java.io.File
 import java.util.Properties
 
@@ -191,17 +192,17 @@ class RuleSubscriptionPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showClearCacheDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear_rule_subscription_cache)
-            .setMessage(R.string.dialog_clear_rule_subscription_cache_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                if (RuleEngineFactory.clearRuleCache(filesDir)) {
-                    Toast.makeText(activity, R.string.toast_rule_subscription_cache_cleared, Toast.LENGTH_SHORT).show()
-                    onRulesChanged()
-                }
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear_rule_subscription_cache,
+            messageRes = R.string.dialog_clear_rule_subscription_cache_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            if (RuleEngineFactory.clearRuleCache(filesDir)) {
+                Toast.makeText(activity, R.string.toast_rule_subscription_cache_cleared, Toast.LENGTH_SHORT).show()
+                onRulesChanged()
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
     }
 
     /**

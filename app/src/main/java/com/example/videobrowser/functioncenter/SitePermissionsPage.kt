@@ -8,11 +8,11 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermissionDecision
 import com.example.videobrowser.settings.SitePermissionRecord
+import com.example.videobrowser.utils.ConfirmationDialog
 
 class SitePermissionsPage(
     private val host: FunctionCenterPageHost,
@@ -83,31 +83,29 @@ class SitePermissionsPage(
      * @param record 参数类型为 `SitePermissionRecord`，表示函数执行 `record` 相关逻辑时需要读取或处理的输入。
      */
     private fun showRemoveSitePermissionDialog(record: SitePermissionRecord) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_site_permission)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_remove_site_permission_message,
-                    record.host,
-                    sitePermissionTextFormatter.title(record.permission),
-                    sitePermissionTextFormatter.decisionText(record.decision)
-                )
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_remove_site_permission,
+            message = activity.getString(
+                R.string.dialog_remove_site_permission_message,
+                record.host,
+                sitePermissionTextFormatter.title(record.permission),
+                sitePermissionTextFormatter.decisionText(record.decision)
+            ),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            settingsManager.setSitePermissionDecision(
+                record.host,
+                record.permission,
+                SitePermissionDecision.ASK
             )
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                settingsManager.setSitePermissionDecision(
-                    record.host,
-                    record.permission,
-                    SitePermissionDecision.ASK
-                )
-                Toast.makeText(
-                    activity,
-                    R.string.toast_site_permission_removed,
-                    Toast.LENGTH_SHORT
-                ).show()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            Toast.makeText(
+                activity,
+                R.string.toast_site_permission_removed,
+                Toast.LENGTH_SHORT
+            ).show()
+            show(replaceCurrent = true)
+        }
     }
 
     /**
@@ -116,20 +114,20 @@ class SitePermissionsPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showClearSitePermissionsDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_site_permissions_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                settingsManager.clearSitePermissionDecisions()
-                Toast.makeText(
-                    activity,
-                    R.string.toast_site_permissions_cleared,
-                    Toast.LENGTH_SHORT
-                ).show()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_site_permissions_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            settingsManager.clearSitePermissionDecisions()
+            Toast.makeText(
+                activity,
+                R.string.toast_site_permissions_cleared,
+                Toast.LENGTH_SHORT
+            ).show()
+            show(replaceCurrent = true)
+        }
     }
 
 }

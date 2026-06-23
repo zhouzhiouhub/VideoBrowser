@@ -8,10 +8,10 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.utils.ConfirmationDialog
 
 class UserWhitelistPage(
     private val host: FunctionCenterPageHost,
@@ -103,21 +103,21 @@ class UserWhitelistPage(
      * @param hostName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
      */
     private fun showRemoveUserWhitelistHostPage(hostName: String) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_user_whitelist)
-            .setMessage(activity.getString(R.string.dialog_remove_user_whitelist_message, hostName))
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                settingsManager.setUserWhitelistedSite(hostName, false)
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.toast_user_whitelist_removed, hostName),
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager().reload()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_remove_user_whitelist,
+            message = activity.getString(R.string.dialog_remove_user_whitelist_message, hostName),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            settingsManager.setUserWhitelistedSite(hostName, false)
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.toast_user_whitelist_removed, hostName),
+                Toast.LENGTH_SHORT
+            ).show()
+            browserManager().reload()
+            show(replaceCurrent = true)
+        }
     }
 
     /**
@@ -126,20 +126,20 @@ class UserWhitelistPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showClearUserWhitelistDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_user_whitelist_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                settingsManager.clearUserWhitelistedSites()
-                Toast.makeText(
-                    activity,
-                    R.string.toast_user_whitelist_cleared,
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager().reload()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_user_whitelist_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            settingsManager.clearUserWhitelistedSites()
+            Toast.makeText(
+                activity,
+                R.string.toast_user_whitelist_cleared,
+                Toast.LENGTH_SHORT
+            ).show()
+            browserManager().reload()
+            show(replaceCurrent = true)
+        }
     }
 }

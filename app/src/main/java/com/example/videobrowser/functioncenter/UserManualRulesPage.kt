@@ -8,11 +8,11 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.UserElementHideRule
+import com.example.videobrowser.utils.ConfirmationDialog
 
 class UserManualRulesPage(
     private val host: FunctionCenterPageHost,
@@ -79,28 +79,26 @@ class UserManualRulesPage(
      * @param rule 参数类型为 `UserElementHideRule`，表示函数执行 `rule` 相关逻辑时需要读取或处理的输入。
      */
     private fun showRemoveUserManualRuleDialog(rule: UserElementHideRule) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_user_manual_rule)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_remove_user_manual_rule_message,
-                    rule.host,
-                    rule.selector
-                )
-            )
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                if (settingsManager.removeUserElementHideRule(rule)) {
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_user_manual_rule_removed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    browserManager().reload()
-                }
-                show(replaceCurrent = true)
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_remove_user_manual_rule,
+            message = activity.getString(
+                R.string.dialog_remove_user_manual_rule_message,
+                rule.host,
+                rule.selector
+            ),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            if (settingsManager.removeUserElementHideRule(rule)) {
+                Toast.makeText(
+                    activity,
+                    R.string.toast_user_manual_rule_removed,
+                    Toast.LENGTH_SHORT
+                ).show()
+                browserManager().reload()
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            show(replaceCurrent = true)
+        }
     }
 
     /**
@@ -109,20 +107,20 @@ class UserManualRulesPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showClearUserManualRulesDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_user_manual_rules_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                settingsManager.clearUserElementHideRules()
-                Toast.makeText(
-                    activity,
-                    R.string.toast_user_manual_rules_cleared,
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager().reload()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_user_manual_rules_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            settingsManager.clearUserElementHideRules()
+            Toast.makeText(
+                activity,
+                R.string.toast_user_manual_rules_cleared,
+                Toast.LENGTH_SHORT
+            ).show()
+            browserManager().reload()
+            show(replaceCurrent = true)
+        }
     }
 }

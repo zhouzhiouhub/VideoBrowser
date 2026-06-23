@@ -9,7 +9,6 @@ package com.example.videobrowser.functioncenter
  */
 import android.net.Uri
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogEntryFormatter
 import com.example.videobrowser.adblock.AdBlockLogAction
@@ -18,6 +17,7 @@ import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockLogRecoveryActionType
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.utils.ConfirmationDialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -142,20 +142,20 @@ class AdBlockLogPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showClearAdBlockLogDialog() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_ad_block_log_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                adBlockLogger.clear()
-                Toast.makeText(
-                    activity,
-                    R.string.toast_ad_block_log_cleared,
-                    Toast.LENGTH_SHORT
-                ).show()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_ad_block_log_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            adBlockLogger.clear()
+            Toast.makeText(
+                activity,
+                R.string.toast_ad_block_log_cleared,
+                Toast.LENGTH_SHORT
+            ).show()
+            show(replaceCurrent = true)
+        }
     }
 
     /**
@@ -174,21 +174,21 @@ class AdBlockLogPage(
             return
         }
 
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_add_user_whitelist)
-            .setMessage(activity.getString(R.string.dialog_add_user_whitelist_message, hostName))
-            .setPositiveButton(R.string.action_add) { _, _ ->
-                settingsManager.setUserWhitelistedSite(hostName, true)
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.toast_user_whitelist_added, hostName),
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager().reload()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_add_user_whitelist,
+            message = activity.getString(R.string.dialog_add_user_whitelist_message, hostName),
+            positiveButtonRes = R.string.action_add
+        ) {
+            settingsManager.setUserWhitelistedSite(hostName, true)
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.toast_user_whitelist_added, hostName),
+                Toast.LENGTH_SHORT
+            ).show()
+            browserManager().reload()
+            show(replaceCurrent = true)
+        }
     }
 
     /**
@@ -208,20 +208,20 @@ class AdBlockLogPage(
             return
         }
 
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.setting_current_site_ad_block)
-            .setMessage(activity.getString(R.string.dialog_restore_site_ad_block_message, hostName))
-            .setPositiveButton(R.string.action_restore) { _, _ ->
-                settingsManager.setAdBlockDisabledForSite(hostName, false)
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.toast_current_site_ad_block_restored, hostName),
-                    Toast.LENGTH_SHORT
-                ).show()
-                browserManager().reload()
-                show(replaceCurrent = true)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.setting_current_site_ad_block,
+            message = activity.getString(R.string.dialog_restore_site_ad_block_message, hostName),
+            positiveButtonRes = R.string.action_restore
+        ) {
+            settingsManager.setAdBlockDisabledForSite(hostName, false)
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.toast_current_site_ad_block_restored, hostName),
+                Toast.LENGTH_SHORT
+            ).show()
+            browserManager().reload()
+            show(replaceCurrent = true)
+        }
     }
 }
