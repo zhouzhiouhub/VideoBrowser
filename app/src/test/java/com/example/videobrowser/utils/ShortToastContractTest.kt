@@ -42,7 +42,11 @@ class ShortToastContractTest {
             projectFile("src/main/java/com/example/videobrowser/functioncenter/UserWhitelistPage.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/UserManualRulesPage.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/SitePermissionsPage.kt"),
-            projectFile("src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt")
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/element/ElementPickerController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/storage/BookmarkImportExportController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/utils/ValidatedTextInputDialog.kt"),
+            projectFile("src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt")
         ).map { file -> file.readText() }
 
         assertTrue(shortToast.contains("object ShortToast"))

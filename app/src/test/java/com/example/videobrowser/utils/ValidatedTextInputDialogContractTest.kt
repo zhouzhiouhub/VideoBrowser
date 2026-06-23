@@ -36,7 +36,8 @@ class ValidatedTextInputDialogContractTest {
         assertTrue(validatedDialog.contains("saveValue: (String) -> Boolean"))
         assertTrue(validatedDialog.contains("onSaved: (String) -> Unit"))
         assertTrue(validatedDialog.contains("dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener"))
-        assertTrue(validatedDialog.contains("Toast.makeText(activity, invalidToastRes, Toast.LENGTH_SHORT).show()"))
+        assertTrue(validatedDialog.contains("ShortToast.show(activity, invalidToastRes)"))
+        assertTrue(validatedDialog.contains("ShortToast.show(activity, successToastRes)"))
         assertTrue(validatedDialog.contains("if (successToastRes != null)"))
         assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(validatedDialog).count())
 

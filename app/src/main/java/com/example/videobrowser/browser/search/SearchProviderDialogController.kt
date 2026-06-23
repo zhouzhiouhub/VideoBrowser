@@ -1,7 +1,6 @@
 package com.example.videobrowser.browser.search
 
 import android.text.InputType
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
@@ -10,6 +9,7 @@ import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.TextInputDialogField
 import com.example.videobrowser.utils.TwoTextInputDialog
 
@@ -72,11 +72,7 @@ internal class SearchProviderDialogController(
         ) {
             if (settingsManager.removeCustomShortcut(shortcut)) {
                 onDataChanged()
-                Toast.makeText(
-                    activity,
-                    R.string.toast_custom_shortcut_removed,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(activity, R.string.toast_custom_shortcut_removed)
             }
         }
     }
@@ -97,11 +93,7 @@ internal class SearchProviderDialogController(
             )
             if (removed) {
                 onDataChanged()
-                Toast.makeText(
-                    activity,
-                    R.string.toast_recent_site_removed,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(activity, R.string.toast_recent_site_removed)
             }
         }
     }
@@ -133,17 +125,9 @@ internal class SearchProviderDialogController(
             val saved = saveShortcut(values.first, values.second)
             if (saved) {
                 onDataChanged()
-                Toast.makeText(
-                    activity,
-                    successToastResId,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(activity, successToastResId)
             } else {
-                Toast.makeText(
-                    activity,
-                    R.string.toast_custom_shortcut_invalid,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(activity, R.string.toast_custom_shortcut_invalid)
             }
             saved
         }

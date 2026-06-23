@@ -8,7 +8,6 @@ package com.example.videobrowser.element
  * 阅读顺序：先看数据类/策略类表达什么规则，再看控制器如何把规则接到 WebView 请求或页面脚本上。
  */
 import android.os.SystemClock
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
@@ -16,6 +15,7 @@ import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.PageUnavailableToast
+import com.example.videobrowser.utils.ShortToast
 
 /**
  * 用户手动屏蔽网页元素的控制器。
@@ -51,11 +51,7 @@ class ElementPickerController(
             return
         }
         if (!isJsInjectionEnabled() || isCurrentSiteJsInjectionDisabled()) {
-            Toast.makeText(
-                activity,
-                R.string.toast_element_picker_js_disabled,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_element_picker_js_disabled)
             return
         }
 
@@ -66,7 +62,7 @@ class ElementPickerController(
         startedAt = SystemClock.elapsedRealtime()
         injectPageFeatures()
         browserManager().evaluateJavascript(START_ELEMENT_PICKER_SCRIPT)
-        Toast.makeText(activity, R.string.toast_element_picker_started, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_element_picker_started)
     }
 
     /**
@@ -80,7 +76,7 @@ class ElementPickerController(
         }
         dialog?.dismiss()
         finishSession()
-        Toast.makeText(activity, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_element_picker_cancelled)
     }
 
     /**
@@ -93,7 +89,7 @@ class ElementPickerController(
             return
         }
         finishSession()
-        Toast.makeText(activity, R.string.toast_element_picker_cancelled, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_element_picker_cancelled)
     }
 
     /**
@@ -186,20 +182,19 @@ class ElementPickerController(
         val saved = alreadySaved || settingsManager.addUserElementHideSelectorForSite(host, selector)
         finishSession()
         if (!saved) {
-            Toast.makeText(activity, R.string.toast_element_picker_invalid, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_element_picker_invalid)
             return
         }
 
         injectPageFeatures()
-        Toast.makeText(
+        ShortToast.show(
             activity,
             if (alreadySaved) {
                 R.string.toast_element_picker_already_saved
             } else {
                 R.string.toast_element_picker_saved
-            },
-            Toast.LENGTH_SHORT
-        ).show()
+            }
+        )
     }
 
     /**

@@ -8,9 +8,9 @@ package com.example.videobrowser.storage
  * 阅读顺序：先看 companion object 的文件名/MIME 类型，再看 exportToUri 和 importFromUri 两个入口。
  */
 import android.net.Uri
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ShortToast
 import java.nio.charset.StandardCharsets
 
 /**
@@ -42,11 +42,10 @@ class BookmarkImportExportController(
             } ?: error("Unable to open bookmark export target")
         }.isSuccess
 
-        Toast.makeText(
+        ShortToast.show(
             activity,
-            if (exported) R.string.toast_bookmarks_exported else R.string.toast_bookmarks_export_failed,
-            Toast.LENGTH_SHORT
-        ).show()
+            if (exported) R.string.toast_bookmarks_exported else R.string.toast_bookmarks_export_failed
+        )
     }
 
     /**
@@ -63,7 +62,7 @@ class BookmarkImportExportController(
             } ?: error("Unable to open bookmark import source")
             savedPageRepository.importBookmarks(payload)
         }.getOrElse {
-            Toast.makeText(activity, R.string.toast_bookmarks_import_failed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_bookmarks_import_failed)
             return
         }
 
@@ -72,7 +71,7 @@ class BookmarkImportExportController(
         } else {
             activity.getString(R.string.toast_bookmarks_import_empty)
         }
-        Toast.makeText(activity, toastText, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, toastText)
         updateBookmarkButton()
     }
 

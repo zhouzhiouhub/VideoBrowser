@@ -1,7 +1,6 @@
 package com.example.videobrowser.utils
 
 import android.widget.EditText
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -97,12 +96,12 @@ internal object ValidatedTextInputDialog {
                 val value = valueTransform(input.text?.toString().orEmpty())
                 if (!saveValue(value)) {
                     if (invalidToastRes != null) {
-                        Toast.makeText(activity, invalidToastRes, Toast.LENGTH_SHORT).show()
+                        ShortToast.show(activity, invalidToastRes)
                     }
                     return@setOnClickListener
                 }
                 if (successToastRes != null) {
-                    Toast.makeText(activity, successToastRes, Toast.LENGTH_SHORT).show()
+                    ShortToast.show(activity, successToastRes)
                 }
                 dialog.dismiss()
                 onSaved(value)
