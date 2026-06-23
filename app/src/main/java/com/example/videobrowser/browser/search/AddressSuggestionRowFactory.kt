@@ -67,14 +67,14 @@ internal class AddressSuggestionRowFactory(
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
             when (suggestion) {
-                is AddressSuggestion.Bookmark -> {
-                    addView(createPrimaryText(suggestion.title))
-                    addView(createSecondaryText(suggestion.displayUrl))
-                }
-                is AddressSuggestion.History -> {
-                    addView(createPrimaryText(suggestion.title))
-                    addView(createSecondaryText(suggestion.displayUrl))
-                }
+                is AddressSuggestion.Bookmark -> addSavedPageTextRows(
+                    title = suggestion.title,
+                    displayUrl = suggestion.displayUrl
+                )
+                is AddressSuggestion.History -> addSavedPageTextRows(
+                    title = suggestion.title,
+                    displayUrl = suggestion.displayUrl
+                )
                 is AddressSuggestion.Remote -> addView(createPrimaryText(suggestion.keyword))
                 is AddressSuggestion.Fallback -> {
                     addView(
@@ -85,6 +85,11 @@ internal class AddressSuggestionRowFactory(
                 }
             }
         }
+    }
+
+    private fun LinearLayout.addSavedPageTextRows(title: String, displayUrl: String) {
+        addView(createPrimaryText(title))
+        addView(createSecondaryText(displayUrl))
     }
 
     private fun createPrimaryText(textValue: String): TextView {
