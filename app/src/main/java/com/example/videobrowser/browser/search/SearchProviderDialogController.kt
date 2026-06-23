@@ -10,7 +10,9 @@ import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.DialogAction
 
 internal class SearchProviderDialogController(
     private val activity: AppCompatActivity,
@@ -33,15 +35,18 @@ internal class SearchProviderDialogController(
 
     fun showCustomShortcutActionsDialog(shortcut: CustomShortcut) {
         val actions = listOf(
-            activity.getString(R.string.action_edit) to { showEditCustomShortcutDialog(shortcut) },
-            activity.getString(R.string.action_remove) to { showRemoveCustomShortcutDialog(shortcut) }
-        )
-        AlertDialog.Builder(activity)
-            .setTitle(shortcut.name)
-            .setItems(actions.map { action -> action.first }.toTypedArray()) { _, index ->
-                actions.getOrNull(index)?.second?.invoke()
+            DialogAction(activity.getString(R.string.action_edit)) {
+                showEditCustomShortcutDialog(shortcut)
+            },
+            DialogAction(activity.getString(R.string.action_remove)) {
+                showRemoveCustomShortcutDialog(shortcut)
             }
-            .show()
+        )
+        ActionListDialog.show(
+            activity = activity,
+            title = shortcut.name,
+            actions = actions
+        )
     }
 
     fun showEditCustomShortcutDialog(shortcut: CustomShortcut) {

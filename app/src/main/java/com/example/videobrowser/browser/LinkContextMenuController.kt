@@ -8,9 +8,10 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看 configure，再看 linkHitTestUrl/imageHitTestUrl，最后看 showLinkContextMenu/showImageContextMenu。
  */
 import android.webkit.WebView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ActionListDialog
+import com.example.videobrowser.utils.DialogAction
 import com.example.videobrowser.utils.PageUrlActions
 
 /**
@@ -81,10 +82,10 @@ class LinkContextMenuController(
         showUrlContextMenu(
             titleRes = R.string.title_image_context_menu,
             actions = listOf(
-                UrlContextMenuAction(R.string.action_open_image_new_tab) { openUrlInNewTab(url) },
-                UrlContextMenuAction(R.string.action_download_image) { downloadImageUrl(url) },
-                UrlContextMenuAction(R.string.action_copy_image_link) { copyImageUrl(url) },
-                UrlContextMenuAction(R.string.action_share_image_link) { shareImageUrl(url) }
+                DialogAction(activity.getString(R.string.action_open_image_new_tab)) { openUrlInNewTab(url) },
+                DialogAction(activity.getString(R.string.action_download_image)) { downloadImageUrl(url) },
+                DialogAction(activity.getString(R.string.action_copy_image_link)) { copyImageUrl(url) },
+                DialogAction(activity.getString(R.string.action_share_image_link)) { shareImageUrl(url) }
             )
         )
     }
@@ -153,23 +154,20 @@ class LinkContextMenuController(
         showUrlContextMenu(
             titleRes = R.string.title_link_context_menu,
             actions = listOf(
-                UrlContextMenuAction(R.string.action_open_link_new_tab) { openUrlInNewTab(url) },
-                UrlContextMenuAction(R.string.action_download_link) { downloadLinkUrl(url) },
-                UrlContextMenuAction(R.string.action_copy_link) { copyLinkUrl(url) },
-                UrlContextMenuAction(R.string.action_share_link) { shareLinkUrl(url) }
+                DialogAction(activity.getString(R.string.action_open_link_new_tab)) { openUrlInNewTab(url) },
+                DialogAction(activity.getString(R.string.action_download_link)) { downloadLinkUrl(url) },
+                DialogAction(activity.getString(R.string.action_copy_link)) { copyLinkUrl(url) },
+                DialogAction(activity.getString(R.string.action_share_link)) { shareLinkUrl(url) }
             )
         )
     }
 
-    private fun showUrlContextMenu(titleRes: Int, actions: List<UrlContextMenuAction>) {
-        val labels = actions.map { action -> activity.getString(action.labelRes) }.toTypedArray()
-        AlertDialog.Builder(activity)
-            .setTitle(titleRes)
-            .setItems(labels) { dialog, which ->
-                actions.getOrNull(which)?.perform?.invoke()
-                dialog.dismiss()
-            }
-            .show()
+    private fun showUrlContextMenu(titleRes: Int, actions: List<DialogAction>) {
+        ActionListDialog.show(
+            activity = activity,
+            titleRes = titleRes,
+            actions = actions
+        )
     }
 
     /**
@@ -204,9 +202,4 @@ class LinkContextMenuController(
     private fun shareLinkUrl(url: String) {
         PageUrlActions.shareLinkUrl(activity, url)
     }
-
-    private data class UrlContextMenuAction(
-        val labelRes: Int,
-        val perform: () -> Unit
-    )
 }

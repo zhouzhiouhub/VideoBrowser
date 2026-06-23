@@ -1,0 +1,43 @@
+package com.example.videobrowser.utils
+
+import com.example.videobrowser.testutil.projectFile
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class ActionListDialogContractTest {
+    @Test
+    fun actionListDialogsShareSetItemsShell() {
+        val actionListDialog = projectFile(
+            "src/main/java/com/example/videobrowser/utils/ActionListDialog.kt"
+        ).readText()
+        val downloadsDialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"
+        ).readText()
+        val savedPagesDialogs = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
+        ).readText()
+        val searchProviderDialogs = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt"
+        ).readText()
+        val linkContextMenu = projectFile(
+            "src/main/java/com/example/videobrowser/browser/LinkContextMenuController.kt"
+        ).readText()
+
+        assertTrue(actionListDialog.contains("object ActionListDialog"))
+        assertTrue(actionListDialog.contains("data class DialogAction("))
+        assertTrue(actionListDialog.contains("AlertDialog.Builder(activity)"))
+        assertTrue(actionListDialog.contains(".setItems(actions.map { action -> action.title }.toTypedArray())"))
+        assertTrue(actionListDialog.contains("negativeButtonRes: Int? = null"))
+        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(actionListDialog).count())
+
+        listOf(downloadsDialogs, savedPagesDialogs, searchProviderDialogs, linkContextMenu).forEach { source ->
+            assertTrue(source.contains("ActionListDialog.show("))
+            assertFalse(source.contains(".setItems(actions.map { action -> action.title }.toTypedArray())"))
+        }
+        assertFalse(downloadsDialogs.contains("private data class DownloadRecordAction"))
+        assertFalse(savedPagesDialogs.contains("private data class SavedPageAction"))
+        assertFalse(linkContextMenu.contains("private data class UrlContextMenuAction"))
+    }
+}

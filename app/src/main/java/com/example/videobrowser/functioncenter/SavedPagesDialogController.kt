@@ -2,13 +2,14 @@ package com.example.videobrowser.functioncenter
 
 import android.text.InputType
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
+import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.DialogAction
 
 internal class SavedPagesDialogController(
     private val activity: AppCompatActivity,
@@ -47,13 +48,12 @@ internal class SavedPagesDialogController(
         emptyMessage: String
     ) {
         val actions = savedPageActions(collection, page, title, emptyMessage)
-        AlertDialog.Builder(activity)
-            .setTitle(page.title.ifBlank { page.url })
-            .setItems(actions.map { action -> action.title }.toTypedArray()) { _, index ->
-                actions.getOrNull(index)?.perform?.invoke()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ActionListDialog.show(
+            activity = activity,
+            title = page.title.ifBlank { page.url },
+            actions = actions,
+            negativeButtonRes = android.R.string.cancel
+        )
     }
 
     fun showClearSavedPagesDialog(collection: SavedPageCollection) {
@@ -84,35 +84,35 @@ internal class SavedPagesDialogController(
         page: SavedPage,
         title: String,
         emptyMessage: String
-    ): List<SavedPageAction> {
+    ): List<DialogAction> {
         return listOf(
-            SavedPageAction(activity.getString(R.string.action_open_page)) {
+            DialogAction(activity.getString(R.string.action_open_page)) {
                 loadUrl(page.url)
             },
-            SavedPageAction(activity.getString(R.string.action_open_in_new_tab)) {
+            DialogAction(activity.getString(R.string.action_open_in_new_tab)) {
                 openUrlInNewTab(page.url)
             },
             if (collection == SavedPageCollection.BOOKMARKS) {
-                SavedPageAction(activity.getString(R.string.action_rename)) {
+                DialogAction(activity.getString(R.string.action_rename)) {
                     showRenameBookmarkDialog(page, title, emptyMessage)
                 }
             } else {
                 null
             },
             if (collection == SavedPageCollection.BOOKMARKS) {
-                SavedPageAction(activity.getString(R.string.action_move_bookmark_folder)) {
+                DialogAction(activity.getString(R.string.action_move_bookmark_folder)) {
                     showMoveBookmarkFolderDialog(page, title, emptyMessage)
                 }
             } else {
                 null
             },
-            SavedPageAction(activity.getString(R.string.action_copy_link)) {
+            DialogAction(activity.getString(R.string.action_copy_link)) {
                 linkActions.copyUrl(page)
             },
-            SavedPageAction(activity.getString(R.string.action_share_page)) {
+            DialogAction(activity.getString(R.string.action_share_page)) {
                 linkActions.shareUrl(page)
             },
-            SavedPageAction(activity.getString(R.string.action_remove)) {
+            DialogAction(activity.getString(R.string.action_remove)) {
                 savedPageRepository.remove(collection, page.url)
                 Toast.makeText(
                     activity,
@@ -176,9 +176,4 @@ internal class SavedPagesDialogController(
             }
         )
     }
-
-    private data class SavedPageAction(
-        val title: String,
-        val perform: () -> Unit
-    )
 }

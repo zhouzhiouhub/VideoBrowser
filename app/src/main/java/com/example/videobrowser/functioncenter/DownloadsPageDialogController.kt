@@ -1,13 +1,14 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadCategory
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadStatus
+import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.DialogAction
 
 internal class DownloadsPageDialogController(
     private val activity: AppCompatActivity,
@@ -75,13 +76,12 @@ internal class DownloadsPageDialogController(
         cancelable: Boolean
     ) {
         val actions = downloadRecordActions(record, retryable, cancelable)
-        AlertDialog.Builder(activity)
-            .setTitle(downloadRecordDisplayName(record))
-            .setItems(actions.map { action -> action.title }.toTypedArray()) { _, index ->
-                actions.getOrNull(index)?.perform?.invoke()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ActionListDialog.show(
+            activity = activity,
+            title = downloadRecordDisplayName(record),
+            actions = actions,
+            negativeButtonRes = android.R.string.cancel
+        )
     }
 
     fun confirmClearRecords() {
@@ -122,25 +122,25 @@ internal class DownloadsPageDialogController(
         record: DownloadRecord,
         retryable: Boolean,
         cancelable: Boolean
-    ): List<DownloadRecordAction> {
+    ): List<DialogAction> {
         return buildList {
             if (!retryable && !cancelable) {
                 add(
-                    DownloadRecordAction(activity.getString(R.string.action_open_file)) {
+                    DialogAction(activity.getString(R.string.action_open_file)) {
                         openDownloadedFile(record)
                     }
                 )
             }
             if (record.status == DownloadStatus.COMPLETED) {
                 add(
-                    DownloadRecordAction(activity.getString(R.string.action_share_file)) {
+                    DialogAction(activity.getString(R.string.action_share_file)) {
                         shareDownloadedFile(record)
                     }
                 )
             }
             if (retryable) {
                 add(
-                    DownloadRecordAction(activity.getString(R.string.action_retry_download)) {
+                    DialogAction(activity.getString(R.string.action_retry_download)) {
                         retryDownload(record)
                         Toast.makeText(
                             activity,
@@ -153,18 +153,18 @@ internal class DownloadsPageDialogController(
             }
             if (cancelable) {
                 add(
-                    DownloadRecordAction(activity.getString(R.string.action_cancel_download)) {
+                    DialogAction(activity.getString(R.string.action_cancel_download)) {
                         confirmCancelDownload(record)
                     }
                 )
             }
             add(
-                DownloadRecordAction(activity.getString(R.string.action_copy_download_source)) {
+                DialogAction(activity.getString(R.string.action_copy_download_source)) {
                     recordOperations.copyDownloadSourceUrl(record)
                 }
             )
             add(
-                DownloadRecordAction(activity.getString(R.string.action_remove_download_record)) {
+                DialogAction(activity.getString(R.string.action_remove_download_record)) {
                     confirmRemoveDownloadRecord(record)
                 }
             )
@@ -224,9 +224,4 @@ internal class DownloadsPageDialogController(
     private fun openDownloadedFile(record: DownloadRecord) {
         downloadedFileLauncher.openDownloadedFile(record)
     }
-
-    private data class DownloadRecordAction(
-        val title: String,
-        val perform: () -> Unit
-    )
 }
