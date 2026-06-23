@@ -168,17 +168,23 @@ class MainActivityLayoutContractTest {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     @Test
-    fun addressSuggestionPanelSitsBetweenProgressAndSearchProviders() {
+    fun legacySearchProviderStripStaysHiddenBelowSuggestions() {
         val layout = activityMainLayout()
         val suggestionPanel = layout.elementById("addressSuggestionPanel")
         val providerScroll = layout.elementById("searchProviderScroll")
         val webViewContainer = layout.elementById("webViewContainer")
+        val searchProviderController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
+        ).readText()
 
         assertEquals("LinearLayout", suggestionPanel.tagName)
         assertEquals("gone", suggestionPanel.androidAttribute("visibility"))
+        assertEquals("gone", providerScroll.androidAttribute("visibility"))
         assertEquals("@id/pageProgress", suggestionPanel.appAttribute("layout_constraintTop_toBottomOf"))
         assertEquals("@id/addressSuggestionPanel", providerScroll.appAttribute("layout_constraintTop_toBottomOf"))
         assertEquals("@id/searchProviderScroll", webViewContainer.appAttribute("layout_constraintTop_toBottomOf"))
+        assertTrue(searchProviderController.contains("providerScroll.visibility = View.GONE"))
+        assertTrue(searchProviderController.contains("providerList.removeAllViews()"))
     }
 
     /**

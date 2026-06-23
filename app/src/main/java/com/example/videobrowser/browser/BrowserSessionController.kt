@@ -21,7 +21,6 @@ class BrowserSessionController(
     private val isActive: () -> Boolean,
     private val clearElementPickerState: () -> Unit,
     private val exitPageFullscreenIfNeeded: () -> Unit,
-    private val isProviderHomeUrl: (String?) -> Boolean,
     private val updateAddressBar: (String?) -> Unit,
     private val showHomeContent: (Boolean) -> Unit,
     private val setPageProgress: (Int) -> Unit,
@@ -54,7 +53,7 @@ class BrowserSessionController(
             exitPageFullscreenIfNeeded()
         }
         currentPageUrl = url ?: currentPageUrl
-        isHomePageVisible = isProviderHomeUrl(url)
+        isHomePageVisible = false
         resetPageTitle()
         isPageLoading = true
         pageProgress = 0
@@ -71,7 +70,7 @@ class BrowserSessionController(
     fun handlePageFinished(url: String?) {
         // 页面结束加载后才写历史并注入页面增强脚本，避免还没加载完就操作 DOM。
         currentPageUrl = url ?: currentPageUrl
-        isHomePageVisible = isProviderHomeUrl(url)
+        isHomePageVisible = false
         isPageLoading = false
         pageProgress = 100
         addHistoryEntry(url)
@@ -173,7 +172,7 @@ class BrowserSessionController(
     fun restorePageMetadata(url: String?, title: String) {
         currentPageUrl = url
         currentPageTitle = title.trim()
-        isHomePageVisible = url?.let(isProviderHomeUrl) ?: true
+        isHomePageVisible = url.isNullOrBlank()
         isPageLoading = false
         pageProgress = if (url == null) 0 else 100
         notifyPageMetadataChanged()

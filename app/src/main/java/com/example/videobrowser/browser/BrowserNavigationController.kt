@@ -34,7 +34,6 @@ import com.example.videobrowser.video.MediaRoutingController
  * @param externalNavigator 参数类型为 `BrowserExternalNavigator`，表示外部协议导航器，用来处理 intent、mailto 等非网页 scheme。
  * @param closeFunctionCenter 参数类型为 `() -> Boolean`，表示关闭功能中心面板的回调，避免页面加载时面板遮挡内容。
  * @param openNativePlayer 参数类型为 `(MediaRouteDecision) -> Unit`，表示打开原生播放器的回调。
- * @param isProviderHomeUrl 参数类型为 `(String?) -> Boolean`，表示判断 URL 是否为搜索提供方首页的回调。
  * @param updateAddressBar 参数类型为 `(String?) -> Unit`，表示刷新地址栏展示文本的回调。
  * @param hideKeyboard 参数类型为 `() -> Unit`，表示收起软键盘和地址建议面板的回调。
  * @param showHomeContent 参数类型为 `(Boolean) -> Unit`，表示按首页状态刷新主页/浏览器内容区域的回调。
@@ -47,7 +46,6 @@ class BrowserNavigationController(
     private val externalNavigator: BrowserExternalNavigator,
     private val closeFunctionCenter: () -> Boolean,
     private val openNativePlayer: (MediaRouteDecision) -> Unit,
-    private val isProviderHomeUrl: (String?) -> Boolean,
     private val updateAddressBar: (String?) -> Unit,
     private val hideKeyboard: () -> Unit,
     private val showHomeContent: (Boolean) -> Unit
@@ -155,10 +153,9 @@ class BrowserNavigationController(
         }
 
         sessionController().currentPageUrl = cleanedUrl
-        val isProviderHome = isProviderHomeUrl(cleanedUrl)
         updateAddressBar(cleanedUrl)
         hideKeyboard()
-        showHomeContent(isProviderHome)
+        showHomeContent(false)
         browserManager().load(cleanedUrl)
     }
 

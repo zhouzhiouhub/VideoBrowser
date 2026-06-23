@@ -38,7 +38,7 @@ data class BrowserSessionComponents(
  * @param privateTabStore 参数类型为 `BrowserTabStore`，表示无痕模式标签页数据源。
  * @param standardTabWebViews 参数类型为 `BrowserTabWebViewRegistry<WebView>`，表示标准标签页 ID 到 WebView 的映射表。
  * @param browserSessionCoordinator 参数类型为 `BrowserSessionCoordinator`，表示标准/无痕 WebView 切换协调器。
- * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示更新地址栏和判断搜索提供商主页的控制器。
+ * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示更新地址栏和站点安全状态的控制器。
  * @param browserShellUiController 参数类型为 `BrowserShellUiController`，表示更新首页内容和导航按钮状态的控制器。
  * @param browserControlsController 参数类型为 `BrowserControlsController`，表示更新页面加载进度的控制器。
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示更新进度条可见性的控制器。
@@ -101,7 +101,6 @@ class BrowserSessionAssemblyController(
             isActive = { !isPrivateBrowsingActive() },
             clearElementPickerState = clearElementPickerState,
             exitPageFullscreenIfNeeded = exitPageFullscreenIfNeeded,
-            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
             showHomeContent = browserShellUiController::showHomeContent,
             setPageProgress = browserControlsController::setProgress,
@@ -116,7 +115,6 @@ class BrowserSessionAssemblyController(
             isActive = isPrivateBrowsingActive,
             clearElementPickerState = clearElementPickerState,
             exitPageFullscreenIfNeeded = exitPageFullscreenIfNeeded,
-            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
             showHomeContent = browserShellUiController::showHomeContent,
             setPageProgress = browserControlsController::setProgress,

@@ -4,7 +4,7 @@ package com.example.videobrowser.browser
  * 初学者阅读提示：
  * 这个文件属于“浏览器启动和地址栏入口模块”。
  * 用户在地址栏输入内容、点击主页、打开文心入口，或者系统把外部网页链接交给应用时，都会通过这里转换成 loadUrl 调用。
- * 主要职责：解析地址栏文本、拼接搜索 URL、打开配置主页、恢复首次标准标签页 URL，并过滤外部 Intent。
+ * 主要职责：解析地址栏文本、拼接搜索 URL、显示 App 自定义首页、恢复首次标准标签页 URL，并过滤外部 Intent。
  * 阅读顺序：先看 loadAddressInput，再看 openInitialStandardPage，最后看 handleLaunchIntent。
  */
 import android.content.Intent
@@ -20,8 +20,8 @@ import com.example.videobrowser.utils.UrlUtils
  * @param addressText 参数类型为 `() -> String`，表示读取地址栏当前文本的回调。
  * @param runWithSuggestionsSuppressed 参数类型为 `((() -> Unit) -> Unit)`，表示临时关闭地址建议刷新并执行动作的回调。
  * @param searchUrlPrefix 参数类型为 `() -> String`，表示读取当前搜索引擎搜索 URL 前缀的回调。
- * @param homeUrl 参数类型为 `() -> String`，表示读取当前应该打开的主页 URL 的回调。
  * @param activeStandardTabUrl 参数类型为 `() -> String?`，表示读取标准模式当前标签页恢复 URL 的回调。
+ * @param showHomePage 参数类型为 `() -> Unit`，表示切回 App 自定义首页的回调。
  * @param loadUrl 参数类型为 `(String) -> Unit`，表示加载目标 URL 的回调。
  * @param isShareableUrl 参数类型为 `(String) -> Boolean`，表示判断外部 Intent URL 是否是可在浏览器中打开的网页 URL。
  */
@@ -29,8 +29,8 @@ class BrowserLaunchController(
     private val addressText: () -> String,
     private val runWithSuggestionsSuppressed: ((() -> Unit) -> Unit),
     private val searchUrlPrefix: () -> String,
-    private val homeUrl: () -> String,
     private val activeStandardTabUrl: () -> String?,
+    private val showHomePage: () -> Unit,
     private val loadUrl: (String) -> Unit,
     private val isShareableUrl: (String) -> Boolean
 ) {
@@ -62,10 +62,12 @@ class BrowserLaunchController(
     }
 
     /**
-     * 函数 `openHomePage`：打开设置中配置的主页。
+     * 函数 `openHomePage`：显示 App 自定义首页，不加载第三方搜索引擎首页。
      */
     fun openHomePage() {
-        loadUrl(homeUrl())
+        runWithSuggestionsSuppressed {
+            showHomePage()
+        }
     }
 
     /**

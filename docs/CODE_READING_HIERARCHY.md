@@ -9,7 +9,7 @@
 | 0. 构建和声明层 | 项目如何被 Android/Gradle 识别 | `settings.gradle.kts`, `build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml` | 这是单模块 Android 应用；入口 Activity、播放器 Activity、权限、主题和网络安全声明在哪里 | 进入主界面入口 |
 | 1. 主入口接线层 | App 启动后如何把模块连接起来 | `MainActivity.kt`, `MainActivityViews.kt`, `MainActivityBrowsingModeTheme.kt`, `res/layout/activity_main.xml` | 主界面控件、WebView、搜索、标签、拦截、注入、下载、播放器、功能中心如何被创建和绑定 | 进入浏览器核心 |
 | 2. 浏览器核心层 | WebView 如何加载网页和维护状态 | `browser/` | 页面加载、前进后退、错误页、权限、弹窗、标签页、地址栏状态、页面工具如何工作 | 进入搜索/站点/增强 |
-| 3. 搜索和首页层 | 地址栏如何从输入变成网址或搜索 | `browser/search/` | 搜索引擎、地址建议、最近访问、快捷入口如何生成和排序 | 回到浏览器加载流程 |
+| 3. 搜索和首页层 | 地址栏如何从输入变成网址或搜索 | `browser/search/`, `BrowserLaunchController.kt`, `BrowserSessionController.kt` | 默认搜索引擎、地址建议和 App 自定义首页状态如何协作 | 回到浏览器加载流程 |
 | 4. 站点适配层 | 不同视频网站的差异如何处理 | `site/`, `assets/scripts/*.js` | Kotlin 侧如何识别站点能力，JS 侧如何处理站点播放器结构 | 进入脚本注入 |
 | 5. 内容增强层 | 广告拦截、页面净化和元素屏蔽如何串起来 | `adblock/`, `adguard/`, `rules/`, `inject/`, `element/`, `assets/scripts/common.js` | 请求拦截、规则解析、JS 注入、DOM 清理、元素选择器如何协作 | 进入视频能力 |
 | 6. 视频播放层 | 网页视频和原生播放器如何互通 | `video/`, `browser/VideoBrowserNativeBridge.kt`, `assets/scripts/common.js` | 网页视频桥接、全屏手势、原生播放器、播放队列、字幕、播放历史如何实现 | 进入数据和功能中心 |
@@ -28,8 +28,9 @@
 | 前进/后退/刷新/停止 | `MainActivity` 底部按钮监听 | `BrowserControlsController.kt`, `BrowserControlsScrollController.kt` | 无独立存储 | `BrowserControlsControllerContractTest`, `BottomBarButtonVisibilityTest` | 先看按钮可见性和启用状态，再看点击动作 |
 | 标签页管理 | `MainActivity` 标签相关 region | `BrowserTabStore.kt`, `BrowserTabWebViewRegistry.kt`, `BrowserSessionCoordinator.kt` | `BrowserTabSessionRepository.kt` | `BrowserTabStoreTest`, `BrowserTabWebViewRegistryTest`, `BrowserTabSessionRepositoryTest` | 按“标签模型 -> WebView 绑定 -> 会话恢复”阅读 |
 | 新窗口和网页弹窗 | `ChromeClient.onCreateWindow()` | `ChromeClient.kt`, `BrowserTabWebViewRegistry.kt` | 标签页会话存储 | `WebViewNewWindowContractTest`, `BrowserTabWebViewWiringContractTest` | 关注用户手势、弹窗 WebView 绑定和关闭请求 |
-| 地址栏搜索 | `SearchProviderController` 入口 | `browser/search/SearchProviderController.kt`, `SearchProviders` | `SettingsManager` 默认搜索引擎 | `SearchProviderControllerContractTest` | 先看搜索引擎定义，再看输入如何转成搜索 URL |
-| 地址建议和首页入口 | 地址输入监听 | `AddressSuggestionController.kt`, `AddressSuggestionRanker.kt`, `HomeQuickLinkBuilder.kt` | 收藏、历史、自定义快捷入口 | `AddressSuggestionRankerTest`, `HomeQuickLinkBuilderTest` | 按“候选来源 -> 排序 -> UI 展示”阅读 |
+| 地址栏搜索 | `SearchProviderController` 入口 | `browser/search/SearchProviderController.kt`, `SearchProviders` | `SettingsManager` 默认搜索引擎 | `SearchProviderControllerContractTest` | 先看搜索引擎定义，再看地址栏 badge 和搜索 URL 如何复用同一 provider |
+| App 自定义首页 | `BrowserLaunchController.openHomePage()` | `BrowserLaunchController.kt`, `BrowserSessionController.kt`, `BrowserShellUiController.kt` | 当前会话状态 | `BrowserLaunchControllerContractTest`, `MainActivityLayoutContractTest` | 看主页入口如何 reset 会话，而不是加载搜索引擎首页 |
+| 地址建议 | 地址输入监听 | `AddressSuggestionController.kt`, `AddressSuggestionRanker.kt` | 收藏、历史、远程建议 | `AddressSuggestionRankerTest` | 按“候选来源 -> 排序 -> UI 展示”阅读 |
 | 站点安全状态 | 页面 URL 变化后刷新 | `SiteSecurityStatus.kt`, `MainActivity.updateSiteSecurityStatus()` | WebView/URL 状态 | `SiteSecurityStatusTest` | 看 HTTPS/HTTP/about/file 等状态如何映射到图标和文案 |
 | 网页权限 | `ChromeClient` 权限回调 | `MainActivity` 权限 region, `SessionSitePermissionStore.kt` | `SettingsManager` 站点权限 | `WebPermissionRequestContractTest`, `WebGeolocationPermissionContractTest` | 按“网页请求 -> Android 权限 -> 站点决策 -> 回调网页”阅读 |
 | 文件选择和客户端证书 | `ChromeClient` 回调到 `MainActivity` | `MainActivity` 文件选择/证书 region | Android 系统选择器 | `WebFileChooserContractTest` | 重点看 pending callback 如何保存和释放 |
@@ -71,7 +72,7 @@ com.example.videobrowser
 ├── MainActivityViews.kt             # activity_main.xml 的 View 绑定清单
 ├── MainActivityBrowsingModeTheme.kt # 普通/无痕模式的主界面配色选择
 ├── browser/                         # WebView、导航、标签页、权限、页面工具、浏览器 UI 控制
-│   └── search/                      # 搜索引擎、地址建议、首页快捷入口
+│   └── search/                      # 搜索引擎、地址建议、地址栏搜索源标识
 ├── site/                            # 站点识别和站点能力描述
 ├── adblock/                         # 请求级广告拦截策略、日志、合成响应
 ├── adguard/                         # AdGuard 规则文本解析
@@ -166,7 +167,7 @@ com.example.videobrowser
 | 测试目录 | 覆盖内容 | 修改代码后优先跑 |
 | --- | --- | --- |
 | `app/src/test/java/com/example/videobrowser/browser/` | WebView 客户端、标签页、权限、页面工具、导航策略 | 改 `browser/` 或 `MainActivity` 浏览器相关逻辑 |
-| `app/src/test/java/com/example/videobrowser/browser/search/` | 搜索引擎、地址建议、快捷入口 | 改 `browser/search/` |
+| `app/src/test/java/com/example/videobrowser/browser/search/` | 搜索引擎、地址建议、首页搜索源横排隐藏约束 | 改 `browser/search/` |
 | `app/src/test/java/com/example/videobrowser/adblock/` | 请求拦截、日志、合成响应 | 改 `adblock/` |
 | `app/src/test/java/com/example/videobrowser/rules/` | 规则解析、编译、索引、订阅 | 改 `rules/` 或 `adguard/` |
 | `app/src/test/java/com/example/videobrowser/inject/` | JS 注入配置和脚本加载 | 改 `inject/` 或 `assets/scripts/` |

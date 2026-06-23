@@ -19,7 +19,7 @@ import android.view.View
  * @param siteSecurityController 参数类型为 `() -> SiteSecurityController?`，表示返回站点安全图标控制器的函数，尚未初始化时返回 null。
  * @param browserControlsScrollController 参数类型为 `() -> BrowserControlsScrollController?`，表示返回滚动隐藏控制器的函数，尚未初始化时返回 null。
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示浏览器控制栏外壳协调器，用来隐藏/显示控制栏和搜索入口。
- * @param activeWebView 参数类型为 `() -> View`，表示返回当前活动 WebView 的函数，显示浏览器内容时会把它设为可见。
+ * @param activeWebView 参数类型为 `() -> View`，表示返回当前活动 WebView 的函数，首页状态会隐藏它，显示网页内容时会把它设为可见。
  * @param browsingModeThemeController 参数类型为 `BrowsingModeThemeController`，表示普通/无痕主题控制器，用于主页状态变化后重新应用颜色。
  */
 class BrowserShellUiController(
@@ -62,13 +62,13 @@ class BrowserShellUiController(
      * 按首页状态刷新 WebView 内容区和浏览器外壳。
      *
      * @param show 参数类型为 `Boolean`，true 表示当前显示首页内容，false 表示当前显示 WebView 页面内容。
-     * @return 无返回值；函数会重置滚动隐藏状态、显示控制栏、刷新搜索入口/进度条/导航按钮和主题。
+     * @return 无返回值；函数会重置滚动隐藏状态、显示控制栏、隐藏或显示 WebView、刷新搜索入口/进度条/导航按钮和主题。
      */
     fun showHomeContent(show: Boolean) {
         browserControlsScrollController()?.resetTracking()
         browserControlsShellController.setBrowserControlsHidden(false)
         browserControlsShellController.syncSearchProviderVisibility()
-        activeWebView().visibility = View.VISIBLE
+        activeWebView().visibility = if (show) View.GONE else View.VISIBLE
         browserControlsShellController.updatePageProgressVisibility(forceHidden = show)
         updateNavigationButtons()
         browsingModeThemeController.applyBrowsingModeTheme()

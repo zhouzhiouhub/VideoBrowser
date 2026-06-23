@@ -14,7 +14,6 @@ import com.example.videobrowser.browser.search.AddressSuggestionController
 import com.example.videobrowser.browser.search.SearchProviderController
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.rules.RuleEngineFactory
-import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.video.NativePlayerEntryController
 import java.io.File
 
@@ -46,14 +45,13 @@ data class BrowserNavigationComponents(
  * @param activity 参数类型为 `AppCompatActivity`，表示显示确认弹窗、Toast 和设置屏幕方向的宿主 Activity。
  * @param assets 参数类型为 `AssetManager`，表示读取内置规则资源的 Android assets 入口。
  * @param filesDir 参数类型为 `File`，表示应用私有目录，用于读取用户规则订阅缓存。
- * @param settingsManager 参数类型为 `SettingsManager`，表示读取主页 URL、默认视频速度和显示模式等设置。
  * @param addressInput 参数类型为 `EditText`，表示地址栏输入框，用于启动控制器读取用户输入。
  * @param standardTabStore 参数类型为 `BrowserTabStore`，表示标准模式标签页数据源，用于启动时恢复当前标签 URL。
  * @param browserStandardWebViewHostController 参数类型为 `BrowserStandardWebViewHostController`，表示当前 WebView 和所有 BrowserManager 的宿主控制器。
  * @param browserSessionStateController 参数类型为 `BrowserSessionStateController`，表示读取当前模式页面会话状态的控制器。
  * @param browserUrlStateController 参数类型为 `BrowserUrlStateController`，表示提供可分享 URL 和 URL 类型判断的控制器。
  * @param browserFeatureStateController 参数类型为 `BrowserFeatureStateController`，表示提供无痕状态和桌面模式状态的控制器。
- * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示判断搜索主页 URL 并刷新地址栏的控制器。
+ * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示刷新地址栏展示文本和站点安全状态的控制器。
  * @param browserKeyboardController 参数类型为 `BrowserKeyboardController`，表示加载页面前隐藏软键盘的控制器。
  * @param browserShellUiController 参数类型为 `BrowserShellUiController`，表示切换首页和 WebView 内容区域的控制器。
  * @param browserChromeClientStateController 参数类型为 `BrowserChromeClientStateController`，表示读取当前 ChromeClient 全屏状态的控制器。
@@ -66,7 +64,6 @@ class BrowserNavigationAssemblyController(
     private val activity: AppCompatActivity,
     private val assets: AssetManager,
     private val filesDir: File,
-    private val settingsManager: SettingsManager,
     private val addressInput: EditText,
     private val standardTabStore: BrowserTabStore,
     private val browserStandardWebViewHostController: BrowserStandardWebViewHostController,
@@ -118,7 +115,6 @@ class BrowserNavigationAssemblyController(
             externalNavigator = externalNavigator,
             closeFunctionCenter = closeFunctionCenter,
             openNativePlayer = nativePlayerEntryController::openNativePlayer,
-            isProviderHomeUrl = browserAddressBarStateController::isProviderHomeUrl,
             updateAddressBar = browserAddressBarStateController::updateAddressBar,
             hideKeyboard = browserKeyboardController::hideKeyboard,
             showHomeContent = browserShellUiController::showHomeContent
@@ -127,10 +123,16 @@ class BrowserNavigationAssemblyController(
             addressText = { addressInput.text?.toString().orEmpty() },
             runWithSuggestionsSuppressed = addressSuggestionController::runWithSuggestionsSuppressed,
             searchUrlPrefix = { searchProviderController.selectedProvider.searchUrlPrefix },
-            homeUrl = {
-                settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)
-            },
             activeStandardTabUrl = { standardTabStore.activeTab().url },
+            showHomePage = {
+                closeFunctionCenter()
+                browserKeyboardController.hideKeyboard()
+                if (browserSessionStateController.areBrowserSessionsInitialized()) {
+                    browserSessionStateController.currentSessionController().reset()
+                } else {
+                    browserShellUiController.showHomeContent(true)
+                }
+            },
             loadUrl = browserNavigationController::loadUrl,
             isShareableUrl = browserUrlStateController::isShareableUrl
         )

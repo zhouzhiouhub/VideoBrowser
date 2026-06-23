@@ -176,7 +176,6 @@ class BrowserCoreFeatureAssemblyController(
                 browserStartupFeatures()?.siteSecurityController
             },
             dp = dp,
-            isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
             isPrivateBrowsingEnabled =
                 browserShell.browserFeatureStateController::isPrivateBrowsingEnabled,
             areBrowserControlsHidden = {
@@ -186,8 +185,6 @@ class BrowserCoreFeatureAssemblyController(
                     )
             },
             isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
-            openProviderHome = { browserNavigation.browserLaunchController.openHomePage() },
-            openCustomShortcut = { url -> browserNavigation.browserNavigationController.loadUrl(url) },
             openUrl = { url -> browserNavigation.browserNavigationController.loadUrl(url) },
             searchKeyword = { keyword ->
                 browserNavigation.browserLaunchController.searchAddressKeyword(keyword)
@@ -235,7 +232,6 @@ class BrowserCoreFeatureAssemblyController(
             activity = activity,
             assets = assets,
             filesDir = filesDir,
-            settingsManager = browserPersistence.settingsManager,
             addressInput = views.addressInput,
             standardTabStore = browserTabState.standardTabStore,
             browserStandardWebViewHostController =
