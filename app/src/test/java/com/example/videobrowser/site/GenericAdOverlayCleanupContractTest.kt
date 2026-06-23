@@ -34,6 +34,7 @@ class GenericAdOverlayCleanupContractTest {
         assertTrue(detectorScript.contains("function shouldUseGenericAdOverlayRoot(currentRoot, candidateRoot)"))
         assertTrue(detectorScript.contains("function isLikelyGenericAdOverlay(element)"))
         assertTrue(detectorScript.contains("domTools.queryAll(selector).forEach(addCandidate);"))
+        assertTrue(detectorScript.contains("domTools.queryAllWithin(element, 'input,textarea,select')"))
         assertTrue(detectorScript.contains("const rect = geometry.safeRect(element);"))
         assertTrue(detectorScript.contains("geometry.visibleRectInViewport(rect, viewportWidth, viewportHeight)"))
         assertTrue(detectorScript.contains("selectorTools.normalizeText(element.innerText || element.textContent)"))
@@ -92,6 +93,7 @@ class GenericAdOverlayCleanupContractTest {
         assertFalse(overlayScript.contains("function shouldUseGenericAdOverlayRoot(currentRoot, candidateRoot)"))
         listOf(signalScript, detectorScript, overlayScript).forEach { script ->
             assertFalse(script.contains("getBoundingClientRect()"))
+            assertFalse(script.contains("querySelectorAll("))
             assertFalse(script.contains("function normalizeText(value)"))
             assertFalse(script.contains("function elementDescriptor(element)"))
             assertFalse(script.contains("function queryAll(selector)"))

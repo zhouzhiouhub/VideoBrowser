@@ -44,7 +44,7 @@
   signals.mediaSourceLooksLikeAd = signals.mediaSourceLooksLikeAd || function (element) {
     if (!element || !element.querySelectorAll) return false;
     return Array.prototype.some.call(
-      element.querySelectorAll('img,source'),
+      domTools.queryAllWithin(element, 'img,source'),
       function (media) {
         return signals.mediaSourceLikeAd(signals.mediaSourceValue(media));
       }
@@ -75,7 +75,8 @@
     if (signals.isCloseLikeControl(element)) return true;
     if (!element.querySelectorAll) return false;
     return Array.prototype.some.call(
-      element.querySelectorAll(
+      domTools.queryAllWithin(
+        element,
         'button,a,i,[role="button"],[aria-label],[title],' +
         '[class*="close"],[class*="Close"],[class*="icon-close"]'
       ),

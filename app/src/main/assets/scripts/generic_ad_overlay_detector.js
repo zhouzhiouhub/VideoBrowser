@@ -178,7 +178,7 @@
       element.querySelector('img,picture,svg,a[href],button,i,[role="button"],[onclick],[class*="icon-"]')
     );
     const hasMedia = Boolean(element.querySelector('img,picture,svg'));
-    const formHeavy = element.querySelectorAll('input,textarea,select').length > 0 &&
+    const formHeavy = domTools.queryAllWithin(element, 'input,textarea,select').length > 0 &&
       !adNameLike &&
       !adTextLike;
     if (formHeavy) return false;
