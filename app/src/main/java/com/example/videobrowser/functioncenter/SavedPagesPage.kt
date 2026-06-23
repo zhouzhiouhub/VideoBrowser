@@ -58,15 +58,15 @@ class SavedPagesPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (allPages.isEmpty()) {
-                host.addEmptyState(content, emptyMessage)
+                host.contentFactory.addEmptyState(content, emptyMessage)
                 return@showPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_search_saved_pages),
                     summary = SearchSummaryFormatter.current(
@@ -77,7 +77,7 @@ class SavedPagesPage(
                     dialogController.showSearchDialog(collection, title, emptyMessage, query)
                 }
                 if (!query.isNullOrBlank()) {
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_clear_search),
                         summary = query
@@ -90,7 +90,7 @@ class SavedPagesPage(
                         )
                     }
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_saved_pages_summary)
@@ -99,12 +99,12 @@ class SavedPagesPage(
                 }
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 parent = content,
                 title = activity.getString(R.string.function_center_section_records)
             ) { section ->
                 if (pages.isEmpty()) {
-                    host.addEmptyState(section, activity.getString(R.string.dialog_saved_pages_search_empty))
+                    host.contentFactory.addEmptyState(section, activity.getString(R.string.dialog_saved_pages_search_empty))
                     return@addFunctionSection
                 }
                 if (collection == SavedPageCollection.BOOKMARKS) {
@@ -133,9 +133,9 @@ class SavedPagesPage(
     ) {
         bookmarkGroups(pages).forEachIndexed { index, group ->
             if (index > 0) {
-                host.addDivider(section)
+                host.contentFactory.addDivider(section)
             }
-            host.addInfoRow(
+            host.contentFactory.addInfoRow(
                 parent = section,
                 title = group.title,
                 summary = activity.getString(R.string.bookmark_folder_count, group.pages.size)
@@ -162,7 +162,7 @@ class SavedPagesPage(
         emptyMessage: String
     ) {
         pages.forEach { page ->
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = page.title.ifBlank { page.url },
                 summary = pageSummary(page)

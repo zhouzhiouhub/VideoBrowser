@@ -36,11 +36,11 @@ class PlaybackHistoryPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (records.isNotEmpty()) {
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_clear),
                         summary = activity.getString(R.string.action_clear_playback_history_summary)
@@ -51,16 +51,16 @@ class PlaybackHistoryPage(
             }
 
             if (records.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_playback_history_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_playback_history_empty))
                 return@showPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_records)
             ) { section ->
                 records.forEach { record ->
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = PlaybackHistoryDisplayText.title(record),
                         summary = PlaybackHistoryDisplayText.summary(record)

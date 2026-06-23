@@ -40,12 +40,12 @@ class UserWhitelistPage(
             val addableCurrentHost = currentHost
                 ?.takeIf { hostName -> !settingsManager.isUserWhitelistedSite(hostName) }
             if (addableCurrentHost != null || hosts.isNotEmpty()) {
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
                     if (addableCurrentHost != null) {
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_add_current_site),
                             summary = addableCurrentHost
@@ -64,7 +64,7 @@ class UserWhitelistPage(
                         }
                     }
                     if (hosts.isNotEmpty()) {
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_clear),
                             summary = activity.getString(R.string.action_clear_user_whitelist_summary)
@@ -76,14 +76,14 @@ class UserWhitelistPage(
             }
 
             if (hosts.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_user_whitelist_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_user_whitelist_empty))
             } else {
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_sites)
                 ) { section ->
                     hosts.forEach { hostName ->
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = hostName,
                             summary = ""

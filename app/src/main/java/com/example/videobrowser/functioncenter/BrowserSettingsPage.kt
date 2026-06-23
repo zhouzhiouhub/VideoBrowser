@@ -101,7 +101,7 @@ class BrowserSettingsPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     fun addExpandedDataManagement(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_data)
         ) { section ->
@@ -116,7 +116,7 @@ class BrowserSettingsPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     fun addProfileDataManagement(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_data)
         ) { section ->
@@ -131,25 +131,25 @@ class BrowserSettingsPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     private fun addToolboxSection(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_toolbox)
         ) { section ->
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_show_bookmarks),
                 summary = activity.getString(R.string.action_show_bookmarks_summary)
             ) {
                 showBookmarks()
             }
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_show_history),
                 summary = activity.getString(R.string.action_show_history_summary)
             ) {
                 showHistory()
             }
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_file_operations),
                 summary = activity.getString(R.string.action_file_operations_summary)
@@ -180,18 +180,18 @@ class BrowserSettingsPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     private fun addBrowserBasicsSection(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_browser_basics)
         ) { section ->
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.setting_home_page),
                 summary = settingsManager.homeUrl()
             ) {
                 dialogController.showHomeUrlDialog()
             }
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.setting_search_engine),
                 summary = currentSearchProviderName()
@@ -208,11 +208,11 @@ class BrowserSettingsPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     private fun addGlobalEnhancementSection(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_settings)
         ) { section ->
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_private_browsing),
                 summary = activity.getString(R.string.setting_private_browsing_summary),
@@ -225,7 +225,7 @@ class BrowserSettingsPage(
                 return@addFunctionSection
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_ad_block),
                 summary = activity.getString(R.string.setting_ad_block_summary),
@@ -235,7 +235,7 @@ class BrowserSettingsPage(
                 browserManager().reload()
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_smart_no_image),
                 summary = activity.getString(R.string.setting_smart_no_image_summary),
@@ -245,7 +245,7 @@ class BrowserSettingsPage(
                 browserManager().reload()
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_third_party_cookies),
                 summary = activity.getString(R.string.setting_third_party_cookies_summary),
@@ -256,7 +256,7 @@ class BrowserSettingsPage(
                 browserManager().reload()
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_mixed_content_blocking),
                 summary = activity.getString(R.string.setting_mixed_content_blocking_summary),
@@ -267,7 +267,7 @@ class BrowserSettingsPage(
                 browserManager().reload()
             }
 
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.setting_text_zoom),
                 summary = activity.getString(
@@ -278,7 +278,7 @@ class BrowserSettingsPage(
                 dialogController.showTextZoomDialog()
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_js_injection),
                 summary = activity.getString(R.string.setting_js_injection_summary),
@@ -288,7 +288,7 @@ class BrowserSettingsPage(
                 browserManager().reload()
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_page_cleanup),
                 summary = activity.getString(R.string.setting_page_cleanup_summary),
@@ -298,7 +298,7 @@ class BrowserSettingsPage(
                 injectPageFeatures()
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_video_enhancement),
                 summary = activity.getString(R.string.setting_video_enhancement_summary),
@@ -308,7 +308,7 @@ class BrowserSettingsPage(
                 injectPageFeatures()
             }
 
-            host.addSwitchRow(
+            host.contentFactory.addSwitchRow(
                 parent = section,
                 title = activity.getString(R.string.setting_always_start_videos_from_beginning),
                 summary = activity.getString(

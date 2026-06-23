@@ -35,7 +35,7 @@ internal class BrowserSettingsDataManagementSection(
             }
             .forEachIndexed { index, action ->
                 if (index > 0 && action == FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS) {
-                    host.addDivider(section)
+                    host.contentFactory.addDivider(section)
                 }
                 addActionRow(section, action)
             }
@@ -52,7 +52,7 @@ internal class BrowserSettingsDataManagementSection(
     ) {
         when (action) {
             FunctionCenterDataManagementAction.AD_BLOCK_LOG -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_show_ad_block_log),
                     summary = activity.getString(R.string.action_show_ad_block_log_summary)
@@ -62,7 +62,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.USER_WHITELIST -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_manage_user_whitelist),
                     summary = activity.getString(R.string.action_manage_user_whitelist_summary)
@@ -72,7 +72,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.USER_MANUAL_RULES -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_manage_user_manual_rules),
                     summary = activity.getString(R.string.action_manage_user_manual_rules_summary)
@@ -82,7 +82,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.SITE_PERMISSIONS -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_manage_site_permissions),
                     summary = activity.getString(R.string.action_manage_site_permissions_summary)
@@ -92,7 +92,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.RULE_SUBSCRIPTIONS -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_manage_rule_subscriptions),
                     summary = activity.getString(R.string.action_manage_rule_subscriptions_summary)
@@ -102,7 +102,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.BOOKMARKS -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.title_bookmarks),
                     summary = activity.getString(R.string.action_manage_bookmarks_summary)
@@ -112,7 +112,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.HISTORY -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.title_history),
                     summary = activity.getString(R.string.action_manage_history_summary)
@@ -122,7 +122,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.DOWNLOADS -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.title_downloads),
                     summary = activity.getString(R.string.action_manage_download_records_summary)
@@ -132,7 +132,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.COOKIES -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_manage_cookies),
                     summary = activity.getString(R.string.action_manage_cookies_summary)
@@ -142,7 +142,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.CACHE -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_manage_cache),
                     summary = activity.getString(R.string.action_manage_cache_summary)
@@ -152,7 +152,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.SITE_DATA -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_manage_site_data),
                     summary = activity.getString(R.string.action_manage_site_data_summary)
@@ -162,7 +162,7 @@ internal class BrowserSettingsDataManagementSection(
             }
 
             FunctionCenterDataManagementAction.RESTORE_DEFAULT_SETTINGS -> {
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_restore_default_settings),
                     summary = activity.getString(R.string.action_restore_default_settings_summary)

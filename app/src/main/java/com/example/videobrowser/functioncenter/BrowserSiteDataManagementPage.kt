@@ -37,11 +37,11 @@ internal class BrowserSiteDataManagementPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (origins.isNotEmpty()) {
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_search_site_data),
                         summary = SearchSummaryFormatter.current(
@@ -57,7 +57,7 @@ internal class BrowserSiteDataManagementPage(
                         }
                     }
                     if (!query.isNullOrBlank()) {
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_clear_search),
                             summary = query
@@ -65,7 +65,7 @@ internal class BrowserSiteDataManagementPage(
                             show(replaceCurrent = true)
                         }
                     }
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_clear),
                         summary = activity.getString(R.string.action_clear_site_data_summary)
@@ -78,18 +78,18 @@ internal class BrowserSiteDataManagementPage(
             }
 
             if (origins.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_site_data_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_site_data_empty))
             } else {
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_records)
                 ) { section ->
                     if (filteredOrigins.isEmpty()) {
-                        host.addEmptyState(section, activity.getString(R.string.dialog_site_data_search_empty))
+                        host.contentFactory.addEmptyState(section, activity.getString(R.string.dialog_site_data_search_empty))
                         return@addFunctionSection
                     }
                     filteredOrigins.forEach { origin ->
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = origin.origin,
                             summary = activity.getString(

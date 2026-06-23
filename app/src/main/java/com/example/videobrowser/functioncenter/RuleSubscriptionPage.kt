@@ -57,21 +57,21 @@ class RuleSubscriptionPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     private fun addStatusSection(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_records)
         ) { section ->
             val metadata = readMetadata()
             if (metadata.isEmpty) {
-                host.addEmptyState(section, activity.getString(R.string.rule_subscription_empty))
+                host.contentFactory.addEmptyState(section, activity.getString(R.string.rule_subscription_empty))
                 return@addFunctionSection
             }
-            host.addInfoRow(
+            host.contentFactory.addInfoRow(
                 parent = section,
                 title = activity.getString(R.string.rule_subscription_source),
                 summary = metadata.getProperty(RuleFileLoader.METADATA_SOURCE_LABEL).orEmpty()
             )
-            host.addInfoRow(
+            host.contentFactory.addInfoRow(
                 parent = section,
                 title = activity.getString(R.string.rule_subscription_counts),
                 summary = activity.getString(
@@ -93,26 +93,26 @@ class RuleSubscriptionPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     private fun addActionSection(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_actions)
         ) { section ->
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_update_rule_subscription_url),
                 summary = activity.getString(R.string.action_update_rule_subscription_url_summary)
             ) {
                 showUpdateUrlDialog()
             }
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_import_rule_subscription_text),
                 summary = activity.getString(R.string.action_import_rule_subscription_text_summary)
             ) {
                 showImportTextDialog()
             }
-            host.addDivider(section)
-            host.addActionRow(
+            host.contentFactory.addDivider(section)
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_clear_rule_subscription_cache),
                 summary = activity.getString(R.string.action_clear_rule_subscription_cache_summary),

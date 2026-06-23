@@ -18,6 +18,15 @@ class FunctionCenterViewFactoryContractTest {
         val pageHost = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPageHost.kt"
         ).readText()
+        val aboutPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/AboutPage.kt"
+        ).readText()
+        val profilePage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfilePage.kt"
+        ).readText()
+        val rootActionSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRootActionSection.kt"
+        ).readText()
 
         assertTrue(viewFactory.contains("FunctionCenterPageViewFactory(activity, dp, surfaceFactory)"))
         assertTrue(viewFactory.contains("return pageFactory.createPage(title, onBack, buildContent)"))
@@ -48,12 +57,27 @@ class FunctionCenterViewFactoryContractTest {
         assertTrue(viewFactory.contains("internal val headerFactory = FunctionCenterHeaderFactory("))
         assertTrue(viewFactory.contains("internal val gridFactory = FunctionCenterGridFactory(activity, dp)"))
         assertTrue(viewFactory.contains("private val rowFactory = FunctionCenterRowFactory(activity, dp, surfaceFactory)"))
-        assertTrue(pageHost.contains("private val contentFactory = viewFactory.contentFactory"))
-        assertTrue(pageHost.contains("private val headerFactory = viewFactory.headerFactory"))
-        assertTrue(pageHost.contains("private val gridFactory = viewFactory.gridFactory"))
-        assertTrue(pageHost.contains("contentFactory.addFunctionSection(parent, title, buildContent)"))
-        assertTrue(pageHost.contains("headerFactory.addProfileHeader(parent, title, summary, onClick)"))
-        assertTrue(pageHost.contains("gridFactory.addActionGrid(parent, actions)"))
+        assertTrue(pageHost.contains("internal val contentFactory = viewFactory.contentFactory"))
+        assertTrue(pageHost.contains("internal val headerFactory = viewFactory.headerFactory"))
+        assertTrue(pageHost.contains("internal val gridFactory = viewFactory.gridFactory"))
+
+        assertFalse(pageHost.contains("fun addFunctionSection("))
+        assertFalse(pageHost.contains("fun addInfoRow("))
+        assertFalse(pageHost.contains("fun addFunctionMessage("))
+        assertFalse(pageHost.contains("fun addProfileHeader("))
+        assertFalse(pageHost.contains("fun addBenefitStrip("))
+        assertFalse(pageHost.contains("fun addHistoryPreview("))
+        assertFalse(pageHost.contains("fun addEmptyState("))
+        assertFalse(pageHost.contains("fun addFunctionActionButton("))
+        assertFalse(pageHost.contains("fun addActionGrid("))
+        assertFalse(pageHost.contains("fun addSwitchRow("))
+        assertFalse(pageHost.contains("fun addActionRow("))
+        assertFalse(pageHost.contains("fun addDivider("))
+
+        assertTrue(aboutPage.contains("host.contentFactory.addFunctionSection("))
+        assertTrue(aboutPage.contains("host.contentFactory.addInfoRow("))
+        assertTrue(profilePage.contains("host.headerFactory.addProfileHeader("))
+        assertTrue(rootActionSection.contains("host.gridFactory.addActionGrid("))
     }
 
 }

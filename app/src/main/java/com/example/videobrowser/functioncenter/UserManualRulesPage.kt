@@ -38,15 +38,15 @@ class UserManualRulesPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (rules.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_user_manual_rules_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_user_manual_rules_empty))
                 return@showPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_user_manual_rules_summary)
@@ -55,12 +55,12 @@ class UserManualRulesPage(
                 }
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_records)
             ) { section ->
                 rules.forEach { rule ->
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = rule.host,
                         summary = rule.selector

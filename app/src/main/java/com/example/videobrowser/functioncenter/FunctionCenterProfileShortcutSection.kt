@@ -17,11 +17,11 @@ internal class FunctionCenterProfileShortcutSection(
     private val activity = host.activity
 
     fun add(parent: LinearLayout) {
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_toolbox)
         ) { section ->
-            host.addActionGrid(
+            host.gridFactory.addActionGrid(
                 section,
                 FunctionCenterProfileActionCatalog.shortcuts(
                     isPrivateBrowsing = isPrivateBrowsingEnabled()

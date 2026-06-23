@@ -78,11 +78,11 @@ class LocalFilesController(
             title = activity.getString(R.string.title_file_operations),
             onBack = showMainFunctionCenterPage
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_open_local_file),
                     summary = activity.getString(R.string.action_open_local_file_summary)
@@ -90,7 +90,7 @@ class LocalFilesController(
                     fileLaunchers.openFile()
                 }
 
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_browse_local_folder),
                     summary = activity.getString(R.string.action_browse_local_folder_summary)
@@ -103,7 +103,7 @@ class LocalFilesController(
                     }
                 }
 
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_choose_local_folder),
                     summary = activity.getString(R.string.action_choose_local_folder_summary)
@@ -186,11 +186,11 @@ class LocalFilesController(
             title = current.title,
             onBack = onBack
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_new_folder),
                     summary = activity.getString(R.string.action_new_folder_summary)
@@ -204,7 +204,7 @@ class LocalFilesController(
                     )
                 }
 
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_new_text_file),
                     summary = activity.getString(R.string.action_new_text_file_summary)
@@ -218,7 +218,7 @@ class LocalFilesController(
                     )
                 }
 
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_refresh),
                     summary = activity.getString(R.string.action_refresh_local_folder_summary)
@@ -228,16 +228,16 @@ class LocalFilesController(
             }
 
             if (documents.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_local_folder_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_local_folder_empty))
                 return@showPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_files)
             ) { section ->
                 documents.forEach { document ->
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = document.name,
                         summary = documentFormatter.summary(document)
@@ -276,12 +276,12 @@ class LocalFilesController(
             title = document.name,
             onBack = { showLocalDirectoryPage(treeUri, path) }
         ) { content ->
-            host.addFunctionMessage(content, documentFormatter.summary(document))
-            host.addFunctionSection(
+            host.contentFactory.addFunctionMessage(content, documentFormatter.summary(document))
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_open_file),
                     summary = activity.getString(R.string.action_open_file_summary)
@@ -297,7 +297,7 @@ class LocalFilesController(
                     )
                 }
 
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_share_file),
                     summary = activity.getString(R.string.action_share_file_summary)
@@ -306,7 +306,7 @@ class LocalFilesController(
                 }
 
                 if (document.canRename) {
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_rename_file),
                         summary = activity.getString(R.string.action_rename_file_summary)
@@ -316,7 +316,7 @@ class LocalFilesController(
                 }
 
                 if (document.canDelete) {
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_delete_file),
                         summary = activity.getString(R.string.action_delete_file_summary)

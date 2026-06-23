@@ -26,11 +26,11 @@ class AboutPage(
             title = activity.getString(R.string.title_about),
             onBack = showProfilePage
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 parent = content,
                 title = activity.getString(R.string.function_center_section_about)
             ) { section ->
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.about_version),
                     summary = BuildConfig.VERSION_NAME

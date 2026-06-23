@@ -129,7 +129,7 @@ internal class CurrentSiteFeatureSection(
         onChanged: () -> Unit
     ) {
         val title = activity.getString(titleResId)
-        host.addSwitchRow(
+        host.contentFactory.addSwitchRow(
             parent = section,
             title = title,
             summary = summary(siteHost, globalEnabled),

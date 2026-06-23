@@ -42,8 +42,8 @@ internal class FunctionCenterRootActionSection(
             ?: activity.getString(R.string.function_center_site_action_unavailable)
         val hasPage = pageUrl != null
 
-        host.addFunctionSection(parent, "") { section ->
-            host.addActionGrid(
+        host.contentFactory.addFunctionSection(parent, "") { section ->
+            host.gridFactory.addActionGrid(
                 section,
                 FunctionCenterRootActionCatalog.actions(
                     hasPage = hasPage,

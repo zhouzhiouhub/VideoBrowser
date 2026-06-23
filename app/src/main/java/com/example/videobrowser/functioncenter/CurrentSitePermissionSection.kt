@@ -42,7 +42,7 @@ internal class CurrentSitePermissionSection(
         hasSite: Boolean,
         permission: SitePermission
     ) {
-        host.addActionRow(
+        host.contentFactory.addActionRow(
             parent = section,
             title = title(permission),
             summary = summary(siteHost, permission),

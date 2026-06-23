@@ -68,11 +68,11 @@ class DownloadsPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (allRecords.isNotEmpty()) {
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_actions)
                 ) { section ->
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_search_download_records),
                             summary = SearchSummaryFormatter.current(
@@ -82,14 +82,14 @@ class DownloadsPage(
                         ) {
                             dialogController.showSearchDialog(query, statusFilter, categoryFilter)
                         }
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_filter_download_status),
                             summary = textFormatter.statusFilterSummary(statusFilter)
                         ) {
                             dialogController.showStatusFilterDialog(query, statusFilter, categoryFilter)
                         }
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_filter_download_category),
                             summary = textFormatter.categoryFilterSummary(categoryFilter)
@@ -97,7 +97,7 @@ class DownloadsPage(
                             dialogController.showCategoryFilterDialog(query, statusFilter, categoryFilter)
                         }
                     if (!query.isNullOrBlank()) {
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_clear_search),
                             summary = query
@@ -110,7 +110,7 @@ class DownloadsPage(
                         }
                     }
                     if (statusFilter != null || categoryFilter != null) {
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_clear_download_filters),
                             summary = textFormatter.currentFilterSummary(statusFilter, categoryFilter)
@@ -118,7 +118,7 @@ class DownloadsPage(
                             show(replaceCurrent = true, query = query)
                         }
                     }
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_refresh),
                         summary = activity.getString(R.string.action_refresh_download_records_summary)
@@ -130,7 +130,7 @@ class DownloadsPage(
                             categoryFilter = categoryFilter
                         )
                     }
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_clear),
                         summary = activity.getString(R.string.action_clear_download_records_summary)
@@ -141,23 +141,23 @@ class DownloadsPage(
             }
 
             if (allRecords.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_download_records_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_download_records_empty))
                 return@showPage
             }
             if (records.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_download_records_search_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_download_records_search_empty))
                 return@showPage
             }
 
             DownloadCategoryGroup.from(records).forEach { group ->
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(textFormatter.categoryTitleResId(group.category))
                 ) { section ->
                     group.records.forEach { record ->
                         val retryable = DownloadRetryPolicy.canRetry(record)
                         val cancelable = DownloadCancellationPolicy.canCancel(record)
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = record.title.ifBlank { record.fileName },
                             summary = textFormatter.recordSummary(record, retryable, cancelable)

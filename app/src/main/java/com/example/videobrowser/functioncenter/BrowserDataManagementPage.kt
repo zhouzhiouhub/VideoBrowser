@@ -59,16 +59,16 @@ class BrowserDataManagementPage(
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.title_bookmarks),
                     summary = activity.getString(R.string.bookmark_record_count, bookmarkCount)
                 )
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_show_bookmarks),
                     summary = activity.getString(R.string.action_show_bookmarks_summary),
@@ -76,7 +76,7 @@ class BrowserDataManagementPage(
                 ) {
                     showBookmarkList()
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_export_bookmarks),
                     summary = activity.getString(R.string.action_export_bookmarks_summary),
@@ -84,14 +84,14 @@ class BrowserDataManagementPage(
                 ) {
                     exportBookmarks()
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_import_bookmarks),
                     summary = activity.getString(R.string.action_import_bookmarks_summary)
                 ) {
                     importBookmarks()
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_bookmarks_summary),
@@ -104,7 +104,7 @@ class BrowserDataManagementPage(
             }
 
             if (bookmarkCount == 0) {
-                host.addEmptyState(content, activity.getString(R.string.toast_bookmarks_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.toast_bookmarks_empty))
             }
         }
     }
@@ -122,16 +122,16 @@ class BrowserDataManagementPage(
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.title_downloads),
                     summary = activity.getString(R.string.download_record_count, downloadCount)
                 )
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.title_downloads),
                     summary = activity.getString(R.string.action_show_downloads_summary),
@@ -139,7 +139,7 @@ class BrowserDataManagementPage(
                 ) {
                     showDownloadList()
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_download_records_summary),
@@ -152,7 +152,7 @@ class BrowserDataManagementPage(
             }
 
             if (downloadCount == 0) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_download_records_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_download_records_empty))
             }
         }
     }
@@ -170,16 +170,16 @@ class BrowserDataManagementPage(
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.title_history),
                     summary = activity.getString(R.string.history_record_count, historyCount)
                 )
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_show_history),
                     summary = activity.getString(R.string.action_show_history_summary),
@@ -187,7 +187,7 @@ class BrowserDataManagementPage(
                 ) {
                     showHistoryList()
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_history_range_summary),
@@ -200,7 +200,7 @@ class BrowserDataManagementPage(
             }
 
             if (historyCount == 0) {
-                host.addEmptyState(content, activity.getString(R.string.toast_history_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.toast_history_empty))
             }
         }
     }
@@ -223,20 +223,20 @@ class BrowserDataManagementPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (pageUrl == null) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_cookie_management_no_site))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_cookie_management_no_site))
                 return@showPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.function_center_site_host),
                     summary = UrlUtils.displayUrl(pageUrl)
                 )
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_all_cookies_summary)
@@ -248,14 +248,14 @@ class BrowserDataManagementPage(
             }
 
             if (cookies.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_cookie_management_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_cookie_management_empty))
             } else {
-                host.addFunctionSection(
+                host.contentFactory.addFunctionSection(
                     content,
                     activity.getString(R.string.function_center_section_records)
                 ) { section ->
                     cookies.forEach { cookie ->
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = cookie.name,
                             summary = ""
@@ -282,11 +282,11 @@ class BrowserDataManagementPage(
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_cache_summary)

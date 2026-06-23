@@ -46,15 +46,15 @@ class AdBlockLogPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (entries.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.toast_ad_block_log_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.toast_ad_block_log_empty))
                 return@showPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_ad_block_log_summary)
@@ -63,7 +63,7 @@ class AdBlockLogPage(
                 }
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_records)
             ) { section ->
@@ -82,8 +82,8 @@ class AdBlockLogPage(
                             }
                         )
                     ) {
-                        null -> host.addInfoRow(section, rowTitle, rowSummary)
-                        else -> host.addActionRow(section, rowTitle, rowSummary) {
+                        null -> host.contentFactory.addInfoRow(section, rowTitle, rowSummary)
+                        else -> host.contentFactory.addActionRow(section, rowTitle, rowSummary) {
                             when (recoveryAction.type) {
                                 AdBlockLogRecoveryActionType.ADD_TO_USER_WHITELIST -> {
                                     showAddWhitelistFromLogDialog(recoveryAction.host)

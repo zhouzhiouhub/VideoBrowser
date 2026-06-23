@@ -45,11 +45,11 @@ class BrowserTabsPage(
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_new_tab),
                     summary = activity.getString(R.string.action_show_tabs_summary)
@@ -57,7 +57,7 @@ class BrowserTabsPage(
                     openNewTab()
                     show(replaceCurrent = true)
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_reopen_closed_tab),
                     summary = activity.getString(R.string.action_reopen_closed_tab_summary),
@@ -66,7 +66,7 @@ class BrowserTabsPage(
                     reopenClosedTab()
                     show(replaceCurrent = true)
                 }
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_close_all_tabs),
                     summary = activity.getString(R.string.action_close_all_tabs_summary)
@@ -76,7 +76,7 @@ class BrowserTabsPage(
                 }
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.title_tabs)
             ) { section ->
@@ -86,7 +86,7 @@ class BrowserTabsPage(
                         untitledText = activity.getString(R.string.tab_untitled)
                     )
                     val active = tab.id == activeTabId()
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = title,
                         summary = tabSummary(tab, active),
@@ -96,14 +96,14 @@ class BrowserTabsPage(
                         host.close()
                     }
                     tab.url?.let { url ->
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_copy_link),
                             summary = UrlUtils.displayUrl(url)
                         ) {
                             copyTabUrl(url)
                         }
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_share_page),
                             summary = UrlUtils.displayUrl(url)
@@ -111,7 +111,7 @@ class BrowserTabsPage(
                             shareTabUrl(url)
                         }
                     }
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = activity.getString(R.string.action_duplicate_tab),
                         summary = title
@@ -120,7 +120,7 @@ class BrowserTabsPage(
                         show(replaceCurrent = true)
                     }
                     if (tabs.size > 1) {
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_close_other_tabs),
                             summary = title
@@ -128,7 +128,7 @@ class BrowserTabsPage(
                             closeOtherTabs(tab.id)
                             show(replaceCurrent = true)
                         }
-                        host.addActionRow(
+                        host.contentFactory.addActionRow(
                             parent = section,
                             title = activity.getString(R.string.action_close_tab),
                             summary = title

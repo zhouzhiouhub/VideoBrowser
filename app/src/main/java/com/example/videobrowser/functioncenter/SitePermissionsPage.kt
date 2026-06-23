@@ -42,15 +42,15 @@ class SitePermissionsPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (records.isEmpty()) {
-                host.addEmptyState(content, activity.getString(R.string.dialog_site_permissions_empty))
+                host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_site_permissions_empty))
                 return@showPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_actions)
             ) { section ->
-                host.addActionRow(
+                host.contentFactory.addActionRow(
                     parent = section,
                     title = activity.getString(R.string.action_clear),
                     summary = activity.getString(R.string.action_clear_site_permissions_summary)
@@ -59,12 +59,12 @@ class SitePermissionsPage(
                 }
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_records)
             ) { section ->
                 records.forEach { record ->
-                    host.addActionRow(
+                    host.contentFactory.addActionRow(
                         parent = section,
                         title = record.host,
                         summary = sitePermissionTextFormatter.recordSummary(record)

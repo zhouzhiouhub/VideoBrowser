@@ -64,12 +64,12 @@ class CurrentSiteSettingsPage(
             replaceCurrent = replaceCurrent
         ) { content ->
             if (siteHost != null) {
-                host.addFunctionMessage(
+                host.contentFactory.addFunctionMessage(
                     content,
                     activity.getString(R.string.function_center_current_site, siteHost)
                 )
             } else {
-                host.addEmptyState(
+                host.contentFactory.addEmptyState(
                     content,
                     activity.getString(R.string.function_center_site_action_unavailable)
                 )
@@ -87,7 +87,7 @@ class CurrentSiteSettingsPage(
      */
     private fun addCurrentSiteActionSection(parent: LinearLayout, siteHost: String?) {
         if (isPrivateBrowsingEnabled()) {
-            host.addEmptyState(
+            host.contentFactory.addEmptyState(
                 parent,
                 activity.getString(R.string.function_center_site_action_unavailable)
             )
@@ -97,19 +97,19 @@ class CurrentSiteSettingsPage(
         val hasSite = siteHost != null
         val isWhitelisted = siteHost?.let(settingsManager::isUserWhitelistedSite) ?: false
 
-        host.addFunctionSection(
+        host.contentFactory.addFunctionSection(
             parent,
             activity.getString(R.string.function_center_section_site_actions)
         ) { section ->
             siteFeatureSection.addRows(section, siteHost, hasSite)
 
-            host.addDivider(section)
+            host.contentFactory.addDivider(section)
 
             sitePermissionSection.addRows(section, siteHost, hasSite)
 
-            host.addDivider(section)
+            host.contentFactory.addDivider(section)
 
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_add_site_rule),
                 summary = siteSummary,
@@ -118,7 +118,7 @@ class CurrentSiteSettingsPage(
                 host.close()
                 startElementPicker()
             }
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(
                     if (isWhitelisted) R.string.action_leave_whitelist else R.string.action_join_whitelist
@@ -129,7 +129,7 @@ class CurrentSiteSettingsPage(
                 toggleCurrentSiteWhitelist()
                 show(replaceCurrent = true)
             }
-            host.addActionRow(
+            host.contentFactory.addActionRow(
                 parent = section,
                 title = activity.getString(R.string.action_view_site_config),
                 summary = siteSummary,
@@ -153,23 +153,23 @@ class CurrentSiteSettingsPage(
             onClose = { host.close() }
         ) { content ->
             if (siteHost == null) {
-                host.addEmptyState(
+                host.contentFactory.addEmptyState(
                     content,
                     activity.getString(R.string.function_center_site_action_unavailable)
                 )
                 return@showBottomSheetPage
             }
 
-            host.addFunctionSection(
+            host.contentFactory.addFunctionSection(
                 content,
                 activity.getString(R.string.function_center_section_site_actions)
             ) { section ->
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.function_center_site_host),
                     summary = siteHost
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_current_site_ad_block),
                     summary = siteFeatureSection.status(
@@ -177,7 +177,7 @@ class CurrentSiteSettingsPage(
                         siteDisabled = settingsManager.isAdBlockDisabledForSite(siteHost)
                     )
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_current_site_smart_no_image),
                     summary = siteFeatureSection.status(
@@ -185,7 +185,7 @@ class CurrentSiteSettingsPage(
                         siteDisabled = settingsManager.isSmartNoImageDisabledForSite(siteHost)
                     )
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_current_site_js_injection),
                     summary = siteFeatureSection.status(
@@ -193,7 +193,7 @@ class CurrentSiteSettingsPage(
                         siteDisabled = settingsManager.isJsInjectionDisabledForSite(siteHost)
                     )
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_page_cleanup),
                     summary = siteFeatureSection.status(
@@ -201,7 +201,7 @@ class CurrentSiteSettingsPage(
                         siteDisabled = settingsManager.isDomAdBlockDisabledForSite(siteHost)
                     )
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.setting_video_enhancement),
                     summary = siteFeatureSection.status(
@@ -209,7 +209,7 @@ class CurrentSiteSettingsPage(
                         siteDisabled = settingsManager.isVideoEnhancementDisabledForSite(siteHost)
                     )
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.action_join_whitelist),
                     summary = if (settingsManager.isUserWhitelistedSite(siteHost)) {
@@ -218,22 +218,22 @@ class CurrentSiteSettingsPage(
                         activity.getString(R.string.site_config_not_whitelisted)
                     }
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = sitePermissionSection.title(SitePermission.CAMERA),
                     summary = sitePermissionSection.summary(siteHost, SitePermission.CAMERA)
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = sitePermissionSection.title(SitePermission.MICROPHONE),
                     summary = sitePermissionSection.summary(siteHost, SitePermission.MICROPHONE)
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = sitePermissionSection.title(SitePermission.LOCATION),
                     summary = sitePermissionSection.summary(siteHost, SitePermission.LOCATION)
                 )
-                host.addInfoRow(
+                host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.action_add_site_rule),
                     summary = activity.getString(

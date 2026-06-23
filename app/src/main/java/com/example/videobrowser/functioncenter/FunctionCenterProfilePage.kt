@@ -27,7 +27,7 @@ internal class FunctionCenterProfilePage(
     }
 
     private fun addProfileHeader(parent: LinearLayout) {
-        host.addProfileHeader(
+        host.headerFactory.addProfileHeader(
             parent = parent,
             title = activity.getString(R.string.function_center_profile_name),
             summary = activity.getString(R.string.function_center_profile_summary)
