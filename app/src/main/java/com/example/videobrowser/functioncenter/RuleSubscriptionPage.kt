@@ -18,6 +18,7 @@ import com.example.videobrowser.rules.RuleSubscriptionFetcher
 import com.example.videobrowser.rules.RuleSubscriptionImportResult
 import com.example.videobrowser.rules.RuleSubscriptionImporter
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.ValidatedTextInputDialog
 import java.io.File
 import java.util.Properties
@@ -197,7 +198,7 @@ class RuleSubscriptionPage(
             positiveButtonRes = R.string.action_clear
         ) {
             if (RuleEngineFactory.clearRuleCache(filesDir)) {
-                Toast.makeText(activity, R.string.toast_rule_subscription_cache_cleared, Toast.LENGTH_SHORT).show()
+                ShortToast.show(activity, R.string.toast_rule_subscription_cache_cleared)
                 onRulesChanged()
             }
         }

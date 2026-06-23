@@ -7,11 +7,11 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 
 class UserWhitelistPage(
     private val host: FunctionCenterPageHost,
@@ -51,14 +51,13 @@ class UserWhitelistPage(
                             summary = addableCurrentHost
                         ) {
                             settingsManager.setUserWhitelistedSite(addableCurrentHost, true)
-                            Toast.makeText(
+                            ShortToast.show(
                                 activity,
                                 activity.getString(
                                     R.string.toast_user_whitelist_added,
                                     addableCurrentHost
-                                ),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                )
+                            )
                             browserManager().reload()
                             show(replaceCurrent = true)
                         }
@@ -110,11 +109,10 @@ class UserWhitelistPage(
             positiveButtonRes = R.string.action_remove
         ) {
             settingsManager.setUserWhitelistedSite(hostName, false)
-            Toast.makeText(
+            ShortToast.show(
                 activity,
-                activity.getString(R.string.toast_user_whitelist_removed, hostName),
-                Toast.LENGTH_SHORT
-            ).show()
+                activity.getString(R.string.toast_user_whitelist_removed, hostName)
+            )
             browserManager().reload()
             show(replaceCurrent = true)
         }
@@ -133,11 +131,7 @@ class UserWhitelistPage(
             positiveButtonRes = R.string.action_clear
         ) {
             settingsManager.clearUserWhitelistedSites()
-            Toast.makeText(
-                activity,
-                R.string.toast_user_whitelist_cleared,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_user_whitelist_cleared)
             browserManager().reload()
             show(replaceCurrent = true)
         }

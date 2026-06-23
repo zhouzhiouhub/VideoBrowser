@@ -7,9 +7,9 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.video.PlaybackHistoryRepository
 import com.example.videobrowser.video.PlaybackProgress
 
@@ -86,7 +86,7 @@ class PlaybackHistoryPage(
             positiveButtonRes = R.string.action_clear
         ) {
             playbackHistoryRepository.clear()
-            Toast.makeText(activity, R.string.toast_playback_history_cleared, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_playback_history_cleared)
             show(replaceCurrent = true)
         }
     }

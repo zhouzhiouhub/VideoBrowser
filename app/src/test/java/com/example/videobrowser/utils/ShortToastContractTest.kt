@@ -29,7 +29,20 @@ class ShortToastContractTest {
             projectFile("src/main/java/com/example/videobrowser/browser/PrivateBrowsingSwitchController.kt"),
             projectFile("src/main/java/com/example/videobrowser/localfiles/LocalDocumentOperationController.kt"),
             projectFile("src/main/java/com/example/videobrowser/video/NativeTrackSelectionDialogController.kt"),
-            projectFile("src/main/java/com/example/videobrowser/video/PlayerActivity.kt")
+            projectFile("src/main/java/com/example/videobrowser/video/PlayerActivity.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementDialogController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/AdBlockLogPage.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDialogController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/CurrentSiteSettingsPage.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/CurrentSitePermissionSection.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/FeatureToggleToast.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/DownloadedFileLauncher.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/PlaybackHistoryPage.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/UserWhitelistPage.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/UserManualRulesPage.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/SitePermissionsPage.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt")
         ).map { file -> file.readText() }
 
         assertTrue(shortToast.contains("object ShortToast"))

@@ -1,11 +1,11 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermission
 import com.example.videobrowser.settings.SitePermissionDecision
+import com.example.videobrowser.utils.ShortToast
 
 internal class CurrentSitePermissionSection(
     private val host: FunctionCenterPageHost,
@@ -66,15 +66,14 @@ internal class CurrentSitePermissionSection(
         ) { index ->
             val decision = decisions[index]
             settingsManager.setSitePermissionDecision(hostName, permission, decision)
-            Toast.makeText(
+            ShortToast.show(
                 activity,
                 activity.getString(
                     R.string.toast_site_permission_updated,
                     title(permission),
                     hostName
-                ),
-                Toast.LENGTH_SHORT
-            ).show()
+                )
+            )
             onPermissionChanged()
         }
     }

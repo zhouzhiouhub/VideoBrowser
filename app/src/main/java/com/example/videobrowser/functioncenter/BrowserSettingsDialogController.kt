@@ -1,12 +1,12 @@
 package com.example.videobrowser.functioncenter
 
 import android.text.InputType
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.search.SearchProviders
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.ValidatedTextInputDialog
 
 class BrowserSettingsDialogController(
@@ -58,7 +58,7 @@ class BrowserSettingsDialogController(
             } else {
                 R.string.toast_search_engine_invalid
             }
-            Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, toastResId)
             onSettingsChanged()
         }
     }
@@ -80,7 +80,7 @@ class BrowserSettingsDialogController(
             val percent = options[index]
             settingsManager.setTextZoomPercent(percent)
             browserManager().setTextZoomPercent(percent)
-            Toast.makeText(activity, R.string.toast_text_zoom_updated, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_text_zoom_updated)
             onSettingsChanged()
         }
     }

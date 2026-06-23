@@ -1,7 +1,6 @@
 package com.example.videobrowser.functioncenter
 
 import android.text.InputType
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
@@ -10,6 +9,7 @@ import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.ValidatedTextInputDialog
 
 internal class SavedPagesDialogController(
@@ -65,11 +65,7 @@ internal class SavedPagesDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             savedPageRepository.clear(collection)
-            Toast.makeText(
-                activity,
-                R.string.toast_saved_pages_cleared,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_saved_pages_cleared)
             showSavedPagesPage(
                 collection,
                 SavedPageCollectionDisplayText.title(activity, collection),
@@ -115,11 +111,7 @@ internal class SavedPagesDialogController(
             },
             DialogAction(activity.getString(R.string.action_remove)) {
                 savedPageRepository.remove(collection, page.url)
-                Toast.makeText(
-                    activity,
-                    R.string.toast_saved_page_removed,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(activity, R.string.toast_saved_page_removed)
                 showSavedPagesPage(collection, title, emptyMessage, true, null)
             }
         ).filterNotNull()

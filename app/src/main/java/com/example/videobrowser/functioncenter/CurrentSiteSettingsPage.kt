@@ -8,12 +8,12 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import android.widget.LinearLayout
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermission
 import com.example.videobrowser.utils.PageUnavailableToast
+import com.example.videobrowser.utils.ShortToast
 
 class CurrentSiteSettingsPage(
     private val host: FunctionCenterPageHost,
@@ -258,15 +258,14 @@ class CurrentSiteSettingsPage(
         }
         val shouldWhitelist = !settingsManager.isUserWhitelistedSite(hostName)
         settingsManager.setUserWhitelistedSite(hostName, shouldWhitelist)
-        Toast.makeText(
+        ShortToast.show(
             activity,
             if (shouldWhitelist) {
                 activity.getString(R.string.toast_user_whitelist_added, hostName)
             } else {
                 activity.getString(R.string.toast_user_whitelist_removed, hostName)
-            },
-            Toast.LENGTH_SHORT
-        ).show()
+            }
+        )
         browserManager().reload()
     }
 }

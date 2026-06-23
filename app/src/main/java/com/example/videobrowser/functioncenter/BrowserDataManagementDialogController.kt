@@ -1,11 +1,11 @@
 package com.example.videobrowser.functioncenter
 
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.ShortToast
 
 class BrowserDataManagementDialogController(
     private val activity: AppCompatActivity,
@@ -30,7 +30,7 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_remove
         ) {
             clearActions.removeCookie(pageUrl, cookieName)
-            Toast.makeText(activity, R.string.toast_cookie_removed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_cookie_removed)
             reloadBrowser()
             onRemoved()
         }
@@ -44,7 +44,7 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             clearActions.clearAllCookies()
-            Toast.makeText(activity, R.string.toast_cookies_cleared, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_cookies_cleared)
             reloadBrowser()
             onCleared()
         }
@@ -58,7 +58,7 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             clearActions.clearCache()
-            Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_cache_cleared)
             onCleared()
         }
     }
@@ -71,7 +71,7 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             clearActions.clearBookmarks()
-            Toast.makeText(activity, R.string.toast_bookmarks_cleared, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_bookmarks_cleared)
             onCleared()
         }
     }
@@ -84,7 +84,7 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             clearActions.clearDownloadRecordsAndFiles()
-            Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_download_records_cleared)
             onCleared()
         }
     }
@@ -111,7 +111,7 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_remove
         ) {
             clearActions.removeSiteData(origin)
-            Toast.makeText(activity, R.string.toast_site_data_removed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_site_data_removed)
             onRemoved()
         }
     }
@@ -124,7 +124,7 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             clearActions.clearSiteData()
-            Toast.makeText(activity, R.string.toast_site_data_cleared, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_site_data_cleared)
             onCleared()
         }
     }
@@ -138,11 +138,10 @@ class BrowserDataManagementDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             val removedCount = clearActions.clearHistory(range)
-            Toast.makeText(
+            ShortToast.show(
                 activity,
-                activity.getString(R.string.toast_history_range_cleared, rangeLabel, removedCount),
-                Toast.LENGTH_SHORT
-            ).show()
+                activity.getString(R.string.toast_history_range_cleared, rangeLabel, removedCount)
+            )
             onCleared()
         }
     }

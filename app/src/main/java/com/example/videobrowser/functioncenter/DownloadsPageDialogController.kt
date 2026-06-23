@@ -1,6 +1,5 @@
 package com.example.videobrowser.functioncenter
 
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadCategory
@@ -9,6 +8,7 @@ import com.example.videobrowser.download.DownloadStatus
 import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.ShortToast
 
 internal class DownloadsPageDialogController(
     private val activity: AppCompatActivity,
@@ -92,7 +92,7 @@ internal class DownloadsPageDialogController(
             positiveButtonRes = R.string.action_clear
         ) {
             recordOperations.clearRecordsAndFiles()
-            Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_download_records_cleared)
             showDownloadsPage(true, null, null, null)
         }
     }
@@ -142,11 +142,7 @@ internal class DownloadsPageDialogController(
                 add(
                     DialogAction(activity.getString(R.string.action_retry_download)) {
                         retryDownload(record)
-                        Toast.makeText(
-                            activity,
-                            R.string.toast_download_retry_started,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        ShortToast.show(activity, R.string.toast_download_retry_started)
                         showDownloadsPage(true, null, null, null)
                     }
                 )
@@ -187,7 +183,7 @@ internal class DownloadsPageDialogController(
             } else {
                 R.string.toast_download_cancel_failed
             }
-            Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, toastResId)
             showDownloadsPage(true, null, null, null)
         }
     }
@@ -208,7 +204,7 @@ internal class DownloadsPageDialogController(
             } else {
                 R.string.toast_download_record_remove_failed
             }
-            Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, toastResId)
             showDownloadsPage(true, null, null, null)
         }
     }

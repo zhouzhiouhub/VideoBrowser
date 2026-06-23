@@ -7,12 +7,12 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.UserElementHideRule
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 
 class UserManualRulesPage(
     private val host: FunctionCenterPageHost,
@@ -90,11 +90,7 @@ class UserManualRulesPage(
             positiveButtonRes = R.string.action_remove
         ) {
             if (settingsManager.removeUserElementHideRule(rule)) {
-                Toast.makeText(
-                    activity,
-                    R.string.toast_user_manual_rule_removed,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(activity, R.string.toast_user_manual_rule_removed)
                 browserManager().reload()
             }
             show(replaceCurrent = true)
@@ -114,11 +110,7 @@ class UserManualRulesPage(
             positiveButtonRes = R.string.action_clear
         ) {
             settingsManager.clearUserElementHideRules()
-            Toast.makeText(
-                activity,
-                R.string.toast_user_manual_rules_cleared,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_user_manual_rules_cleared)
             browserManager().reload()
             show(replaceCurrent = true)
         }

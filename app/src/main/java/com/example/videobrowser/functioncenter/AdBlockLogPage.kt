@@ -7,7 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogEntryFormatter
 import com.example.videobrowser.adblock.AdBlockLogAction
@@ -18,6 +17,7 @@ import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -149,11 +149,7 @@ class AdBlockLogPage(
             positiveButtonRes = R.string.action_clear
         ) {
             adBlockLogger.clear()
-            Toast.makeText(
-                activity,
-                R.string.toast_ad_block_log_cleared,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_ad_block_log_cleared)
             show(replaceCurrent = true)
         }
     }
@@ -166,11 +162,10 @@ class AdBlockLogPage(
      */
     private fun showAddWhitelistFromLogDialog(hostName: String) {
         if (settingsManager.isUserWhitelistedSite(hostName)) {
-            Toast.makeText(
+            ShortToast.show(
                 activity,
-                activity.getString(R.string.toast_user_whitelist_already_added, hostName),
-                Toast.LENGTH_SHORT
-            ).show()
+                activity.getString(R.string.toast_user_whitelist_already_added, hostName)
+            )
             return
         }
 
@@ -181,11 +176,10 @@ class AdBlockLogPage(
             positiveButtonRes = R.string.action_add
         ) {
             settingsManager.setUserWhitelistedSite(hostName, true)
-            Toast.makeText(
+            ShortToast.show(
                 activity,
-                activity.getString(R.string.toast_user_whitelist_added, hostName),
-                Toast.LENGTH_SHORT
-            ).show()
+                activity.getString(R.string.toast_user_whitelist_added, hostName)
+            )
             browserManager().reload()
             show(replaceCurrent = true)
         }
@@ -199,11 +193,10 @@ class AdBlockLogPage(
      */
     private fun showRestoreSiteAdBlockFromLogDialog(hostName: String) {
         if (!settingsManager.isAdBlockDisabledForSite(hostName)) {
-            Toast.makeText(
+            ShortToast.show(
                 activity,
-                activity.getString(R.string.toast_current_site_ad_block_restored, hostName),
-                Toast.LENGTH_SHORT
-            ).show()
+                activity.getString(R.string.toast_current_site_ad_block_restored, hostName)
+            )
             show(replaceCurrent = true)
             return
         }
@@ -215,11 +208,10 @@ class AdBlockLogPage(
             positiveButtonRes = R.string.action_restore
         ) {
             settingsManager.setAdBlockDisabledForSite(hostName, false)
-            Toast.makeText(
+            ShortToast.show(
                 activity,
-                activity.getString(R.string.toast_current_site_ad_block_restored, hostName),
-                Toast.LENGTH_SHORT
-            ).show()
+                activity.getString(R.string.toast_current_site_ad_block_restored, hostName)
+            )
             browserManager().reload()
             show(replaceCurrent = true)
         }

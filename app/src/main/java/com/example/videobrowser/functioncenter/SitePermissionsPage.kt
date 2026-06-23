@@ -7,12 +7,12 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermissionDecision
 import com.example.videobrowser.settings.SitePermissionRecord
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 
 class SitePermissionsPage(
     private val host: FunctionCenterPageHost,
@@ -99,11 +99,7 @@ class SitePermissionsPage(
                 record.permission,
                 SitePermissionDecision.ASK
             )
-            Toast.makeText(
-                activity,
-                R.string.toast_site_permission_removed,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_site_permission_removed)
             show(replaceCurrent = true)
         }
     }
@@ -121,11 +117,7 @@ class SitePermissionsPage(
             positiveButtonRes = R.string.action_clear
         ) {
             settingsManager.clearSitePermissionDecisions()
-            Toast.makeText(
-                activity,
-                R.string.toast_site_permissions_cleared,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_site_permissions_cleared)
             show(replaceCurrent = true)
         }
     }
