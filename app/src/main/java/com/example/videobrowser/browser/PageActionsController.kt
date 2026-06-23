@@ -111,10 +111,7 @@ class PageActionsController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun downloadCurrentUrl() {
-        val url = currentShareableUrl() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val url = currentShareableUrlOrShowUnavailable() ?: return
         downloadController.enqueue(
             url = url,
             userAgent = browserManager().userAgentString(),
@@ -129,10 +126,7 @@ class PageActionsController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun toggleCurrentBookmark() {
-        val page = currentSavedPage() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val page = currentSavedPageOrShowUnavailable() ?: return
 
         if (savedPageRepository.isBookmarked(page.url)) {
             savedPageRepository.removeBookmark(page.url)
@@ -150,10 +144,7 @@ class PageActionsController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun copyCurrentUrl() {
-        val url = currentShareableUrl() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val url = currentShareableUrlOrShowUnavailable() ?: return
         PageUrlActions.copyPageUrl(activity, url)
     }
 
@@ -163,10 +154,7 @@ class PageActionsController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun shareCurrentUrl() {
-        val url = currentShareableUrl() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val url = currentShareableUrlOrShowUnavailable() ?: return
         PageUrlActions.sharePageUrl(activity, url)
     }
 
@@ -176,10 +164,7 @@ class PageActionsController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun setCurrentPageAsHomePage() {
-        val url = currentShareableUrl() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val url = currentShareableUrlOrShowUnavailable() ?: return
         if (!settingsManager.isValidHomeUrl(url)) {
             Toast.makeText(activity, R.string.toast_home_page_invalid, Toast.LENGTH_SHORT).show()
             return
@@ -194,10 +179,7 @@ class PageActionsController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun openCurrentUrlInNativePlayer() {
-        val url = currentShareableUrl() ?: run {
-            Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val url = currentShareableUrlOrShowUnavailable() ?: return
         if (!MediaUrlUtils.isPlayableMediaUri(Uri.parse(url))) {
             Toast.makeText(activity, R.string.toast_media_url_unsupported, Toast.LENGTH_SHORT).show()
             return
@@ -260,6 +242,24 @@ class PageActionsController(
             return
         }
         savedPageRepository.addHistory(page)
+    }
+
+    private fun currentShareableUrlOrShowUnavailable(): String? {
+        return currentShareableUrl() ?: run {
+            showNoPageUrlToast()
+            null
+        }
+    }
+
+    private fun currentSavedPageOrShowUnavailable(): SavedPage? {
+        return currentSavedPage() ?: run {
+            showNoPageUrlToast()
+            null
+        }
+    }
+
+    private fun showNoPageUrlToast() {
+        Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
     }
 
     /**
