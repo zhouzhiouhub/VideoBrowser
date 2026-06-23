@@ -9,10 +9,8 @@ package com.example.videobrowser.functioncenter
  */
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.rules.RuleFileLoader
@@ -20,6 +18,7 @@ import com.example.videobrowser.rules.RuleSubscriptionFetcher
 import com.example.videobrowser.rules.RuleSubscriptionImportResult
 import com.example.videobrowser.rules.RuleSubscriptionImporter
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ValidatedTextInputDialog
 import java.io.File
 import java.util.Properties
 
@@ -130,17 +129,17 @@ class RuleSubscriptionPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showUpdateUrlDialog() {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            imeOptions = EditorInfo.IME_ACTION_DONE
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_rule_subscription_url)
-        }
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_update_rule_subscription_url)
-            .setView(input)
-            .setPositiveButton(R.string.action_update) { _, _ ->
-                val url = input.text?.toString()?.trim().orEmpty()
+        ValidatedTextInputDialog.show(
+            activity = activity,
+            titleRes = R.string.action_update_rule_subscription_url,
+            hintRes = R.string.hint_rule_subscription_url,
+            initialValue = "",
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
+            positiveButtonRes = R.string.action_update,
+            imeOptions = EditorInfo.IME_ACTION_DONE,
+            valueTransform = { value -> value.trim() },
+            saveValue = { true },
+            onSaved = { url ->
                 if (url.isNotEmpty()) {
                     runImport {
                         RuleSubscriptionImporter(cacheDirectory).update(
@@ -150,8 +149,7 @@ class RuleSubscriptionPage(
                     }
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        )
     }
 
     /**
@@ -160,19 +158,20 @@ class RuleSubscriptionPage(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     private fun showImportTextDialog() {
-        val input = EditText(activity).apply {
+        ValidatedTextInputDialog.show(
+            activity = activity,
+            titleRes = R.string.action_import_rule_subscription_text,
+            hintRes = R.string.hint_rule_subscription_text,
+            initialValue = "",
             inputType = InputType.TYPE_CLASS_TEXT or
                 InputType.TYPE_TEXT_FLAG_MULTI_LINE or
-                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            minLines = 6
-            maxLines = 12
-            hint = activity.getString(R.string.hint_rule_subscription_text)
-        }
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_import_rule_subscription_text)
-            .setView(input)
-            .setPositiveButton(R.string.action_import) { _, _ ->
-                val text = input.text?.toString().orEmpty()
+                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+            positiveButtonRes = R.string.action_import,
+            singleLine = false,
+            minLines = 6,
+            maxLines = 12,
+            saveValue = { true },
+            onSaved = { text ->
                 if (text.isNotBlank()) {
                     runImport {
                         RuleSubscriptionImporter(cacheDirectory).importText(
@@ -182,8 +181,7 @@ class RuleSubscriptionPage(
                     }
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        )
     }
 
     /**

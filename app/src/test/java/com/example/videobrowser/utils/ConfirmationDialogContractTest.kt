@@ -72,7 +72,7 @@ class ConfirmationDialogContractTest {
         assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(dataManagementDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadsDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(savedPagesDialogs).count())
-        assertEquals(2, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(ruleSubscriptionPage).count())
+        assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(ruleSubscriptionPage).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(localDocumentOperations).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadEnqueueController).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(browserNavigationController).count())

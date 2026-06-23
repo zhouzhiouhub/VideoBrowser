@@ -14,8 +14,12 @@ internal object ValidatedTextInputDialog {
         initialValue: String,
         inputType: Int,
         @StringRes positiveButtonRes: Int,
-        @StringRes invalidToastRes: Int,
+        @StringRes invalidToastRes: Int? = null,
         @StringRes successToastRes: Int? = null,
+        singleLine: Boolean = true,
+        minLines: Int? = null,
+        maxLines: Int? = null,
+        imeOptions: Int? = null,
         selectAllOnFocus: Boolean = false,
         valueTransform: (String) -> String = { value -> value },
         saveValue: (String) -> Boolean,
@@ -30,6 +34,10 @@ internal object ValidatedTextInputDialog {
             positiveButtonText = activity.getString(positiveButtonRes),
             invalidToastRes = invalidToastRes,
             successToastRes = successToastRes,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
+            imeOptions = imeOptions,
             selectAllOnFocus = selectAllOnFocus,
             valueTransform = valueTransform,
             saveValue = saveValue,
@@ -44,8 +52,12 @@ internal object ValidatedTextInputDialog {
         initialValue: String,
         inputType: Int,
         positiveButtonText: String,
-        @StringRes invalidToastRes: Int,
+        @StringRes invalidToastRes: Int? = null,
         @StringRes successToastRes: Int? = null,
+        singleLine: Boolean = true,
+        minLines: Int? = null,
+        maxLines: Int? = null,
+        imeOptions: Int? = null,
         selectAllOnFocus: Boolean = false,
         valueTransform: (String) -> String = { value -> value },
         saveValue: (String) -> Boolean,
@@ -53,7 +65,16 @@ internal object ValidatedTextInputDialog {
     ) {
         val input = EditText(activity).apply {
             this.inputType = inputType
-            setSingleLine(true)
+            setSingleLine(singleLine)
+            if (minLines != null) {
+                this.minLines = minLines
+            }
+            if (maxLines != null) {
+                this.maxLines = maxLines
+            }
+            if (imeOptions != null) {
+                this.imeOptions = imeOptions
+            }
             if (hint != null) {
                 this.hint = hint
             }
@@ -75,7 +96,9 @@ internal object ValidatedTextInputDialog {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val value = valueTransform(input.text?.toString().orEmpty())
                 if (!saveValue(value)) {
-                    Toast.makeText(activity, invalidToastRes, Toast.LENGTH_SHORT).show()
+                    if (invalidToastRes != null) {
+                        Toast.makeText(activity, invalidToastRes, Toast.LENGTH_SHORT).show()
+                    }
                     return@setOnClickListener
                 }
                 if (successToastRes != null) {
