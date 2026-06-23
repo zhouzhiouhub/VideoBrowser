@@ -10,7 +10,6 @@ package com.example.videobrowser.functioncenter
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.rules.RuleEngineFactory
 import com.example.videobrowser.rules.RuleFileLoader
@@ -18,6 +17,7 @@ import com.example.videobrowser.rules.RuleSubscriptionFetcher
 import com.example.videobrowser.rules.RuleSubscriptionImportResult
 import com.example.videobrowser.rules.RuleSubscriptionImporter
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.LongToast
 import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.ValidatedTextInputDialog
 import java.io.File
@@ -221,7 +221,7 @@ class RuleSubscriptionPage(
             }
             activity.runOnUiThread {
                 if (result.updated) {
-                    Toast.makeText(
+                    LongToast.show(
                         activity,
                         activity.getString(
                             R.string.toast_rule_subscription_imported,
@@ -230,19 +230,17 @@ class RuleSubscriptionPage(
                             result.scriptletRuleCount,
                             result.removeParamRuleCount,
                             result.skippedRuleCount
-                        ),
-                        Toast.LENGTH_LONG
-                    ).show()
+                        )
+                    )
                     onRulesChanged()
                 } else {
-                    Toast.makeText(
+                    LongToast.show(
                         activity,
                         activity.getString(
                             R.string.toast_rule_subscription_update_failed,
                             result.errorMessage.orEmpty()
-                        ),
-                        Toast.LENGTH_LONG
-                    ).show()
+                        )
+                    )
                     show(replaceCurrent = true)
                 }
             }

@@ -8,8 +8,14 @@ import org.junit.Test
 class ShortToastContractTest {
     @Test
     fun shortToastCreationIsSharedByMigratedCallers() {
+        val appToast = projectFile(
+            "src/main/java/com/example/videobrowser/utils/AppToast.kt"
+        ).readText()
         val shortToast = projectFile(
             "src/main/java/com/example/videobrowser/utils/ShortToast.kt"
+        ).readText()
+        val longToast = projectFile(
+            "src/main/java/com/example/videobrowser/utils/LongToast.kt"
         ).readText()
         val sources = listOf(
             projectFile("src/main/java/com/example/videobrowser/utils/ClipboardTextActions.kt"),
@@ -46,17 +52,24 @@ class ShortToastContractTest {
             projectFile("src/main/java/com/example/videobrowser/element/ElementPickerController.kt"),
             projectFile("src/main/java/com/example/videobrowser/storage/BookmarkImportExportController.kt"),
             projectFile("src/main/java/com/example/videobrowser/utils/ValidatedTextInputDialog.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt")
+            projectFile("src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/RuleSubscriptionPage.kt")
         ).map { file -> file.readText() }
 
+        assertTrue(appToast.contains("object AppToast"))
+        assertTrue(appToast.contains("Toast.makeText(context, message, duration).show()"))
         assertTrue(shortToast.contains("object ShortToast"))
-        assertTrue(shortToast.contains("Toast.makeText(context, messageResId, Toast.LENGTH_SHORT).show()"))
-        assertTrue(shortToast.contains("Toast.makeText(context, message, Toast.LENGTH_SHORT).show()"))
+        assertTrue(shortToast.contains("AppToast.show(context, messageResId, Toast.LENGTH_SHORT)"))
+        assertTrue(shortToast.contains("AppToast.show(context, message, Toast.LENGTH_SHORT)"))
+        assertTrue(longToast.contains("object LongToast"))
+        assertTrue(longToast.contains("AppToast.show(context, messageResId, Toast.LENGTH_LONG)"))
+        assertTrue(longToast.contains("AppToast.show(context, message, Toast.LENGTH_LONG)"))
 
         sources.forEach { source ->
-            assertTrue(source.contains("ShortToast.show("))
+            assertTrue(source.contains("ShortToast.show(") || source.contains("LongToast.show("))
             assertFalse(source.contains("Toast.makeText("))
             assertFalse(source.contains("Toast.LENGTH_SHORT"))
+            assertFalse(source.contains("Toast.LENGTH_LONG"))
         }
     }
 }
