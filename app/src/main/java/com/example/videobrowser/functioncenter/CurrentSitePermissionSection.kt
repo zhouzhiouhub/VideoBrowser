@@ -2,7 +2,6 @@ package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.settings.SitePermission
@@ -57,27 +56,26 @@ internal class CurrentSitePermissionSection(
         val decisions = SitePermissionDecision.entries
         val labels = decisions
             .map { decision -> sitePermissionTextFormatter.decisionText(decision) }
-            .toTypedArray()
         val checkedIndex = decisions.indexOf(settingsManager.sitePermissionDecision(hostName, permission))
 
-        AlertDialog.Builder(activity)
-            .setTitle(title(permission))
-            .setSingleChoiceItems(labels, checkedIndex) { dialog, index ->
-                val decision = decisions[index]
-                settingsManager.setSitePermissionDecision(hostName, permission, decision)
-                Toast.makeText(
-                    activity,
-                    activity.getString(
-                        R.string.toast_site_permission_updated,
-                        title(permission),
-                        hostName
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-                dialog.dismiss()
-                onPermissionChanged()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        SingleChoiceDialog.show(
+            activity = activity,
+            title = title(permission),
+            labels = labels,
+            checkedIndex = checkedIndex
+        ) { index ->
+            val decision = decisions[index]
+            settingsManager.setSitePermissionDecision(hostName, permission, decision)
+            Toast.makeText(
+                activity,
+                activity.getString(
+                    R.string.toast_site_permission_updated,
+                    title(permission),
+                    hostName
+                ),
+                Toast.LENGTH_SHORT
+            ).show()
+            onPermissionChanged()
+        }
     }
 }

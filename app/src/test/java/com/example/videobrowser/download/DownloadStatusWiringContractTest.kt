@@ -149,7 +149,7 @@ class DownloadStatusWiringContractTest {
         assertTrue(dialogController.contains("fun showStatusFilterDialog"))
         assertTrue(dialogController.contains("fun showCategoryFilterDialog"))
         assertTrue(dialogController.contains("private fun <T> showSingleChoiceFilterDialog("))
-        assertTrue(dialogController.contains("setSingleChoiceItems(labels.toTypedArray(), checkedIndex)"))
+        assertTrue(dialogController.contains("SingleChoiceDialog.show("))
         assertTrue(dialogController.contains("DownloadStatus.entries"))
         assertTrue(dialogController.contains("DownloadCategory.entries"))
         assertTrue(filter.contains("DownloadCategory.from(record.mimeType, record.fileName)"))

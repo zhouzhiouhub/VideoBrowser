@@ -2,7 +2,6 @@ package com.example.videobrowser.functioncenter
 
 import android.text.InputType
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
@@ -46,24 +45,21 @@ class BrowserSettingsDialogController(
             .indexOfFirst { provider -> provider.id == settingsManager.searchEngineId() }
             .takeIf { index -> index >= 0 }
             ?: 0
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.setting_search_engine)
-            .setSingleChoiceItems(
-                providers.map { provider -> provider.name }.toTypedArray(),
-                selectedIndex
-            ) { dialog, index ->
-                val provider = providers[index]
-                val toastResId = if (selectSearchProvider(provider.id)) {
-                    R.string.toast_search_engine_updated
-                } else {
-                    R.string.toast_search_engine_invalid
-                }
-                Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                onSettingsChanged()
+        SingleChoiceDialog.show(
+            activity = activity,
+            titleRes = R.string.setting_search_engine,
+            labels = providers.map { provider -> provider.name },
+            checkedIndex = selectedIndex
+        ) { index ->
+            val provider = providers[index]
+            val toastResId = if (selectSearchProvider(provider.id)) {
+                R.string.toast_search_engine_updated
+            } else {
+                R.string.toast_search_engine_invalid
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+            onSettingsChanged()
+        }
     }
 
     fun showTextZoomDialog() {
@@ -72,22 +68,19 @@ class BrowserSettingsDialogController(
             .indexOf(settingsManager.textZoomPercent())
             .takeIf { index -> index >= 0 }
             ?: options.indexOf(SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT).coerceAtLeast(0)
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.setting_text_zoom)
-            .setSingleChoiceItems(
-                options.map { percent ->
-                    activity.getString(R.string.text_zoom_percent, percent)
-                }.toTypedArray(),
-                selectedIndex
-            ) { dialog, index ->
-                val percent = options[index]
-                settingsManager.setTextZoomPercent(percent)
-                browserManager().setTextZoomPercent(percent)
-                Toast.makeText(activity, R.string.toast_text_zoom_updated, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                onSettingsChanged()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        SingleChoiceDialog.show(
+            activity = activity,
+            titleRes = R.string.setting_text_zoom,
+            labels = options.map { percent ->
+                activity.getString(R.string.text_zoom_percent, percent)
+            },
+            checkedIndex = selectedIndex
+        ) { index ->
+            val percent = options[index]
+            settingsManager.setTextZoomPercent(percent)
+            browserManager().setTextZoomPercent(percent)
+            Toast.makeText(activity, R.string.toast_text_zoom_updated, Toast.LENGTH_SHORT).show()
+            onSettingsChanged()
+        }
     }
 }

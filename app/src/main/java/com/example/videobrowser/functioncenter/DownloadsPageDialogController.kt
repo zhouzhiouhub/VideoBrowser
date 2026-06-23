@@ -108,14 +108,14 @@ internal class DownloadsPageDialogController(
         val labels = listOf(activity.getString(allLabelRes)) + values.map(labelFor)
         val checkedIndex = currentValue?.let { value -> values.indexOf(value) + 1 } ?: 0
 
-        AlertDialog.Builder(activity)
-            .setTitle(titleRes)
-            .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, index ->
-                dialog.dismiss()
-                onSelected(values.getOrNull(index - 1))
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        SingleChoiceDialog.show(
+            activity = activity,
+            titleRes = titleRes,
+            labels = labels,
+            checkedIndex = checkedIndex
+        ) { index ->
+            onSelected(values.getOrNull(index - 1))
+        }
     }
 
     private fun downloadRecordActions(
