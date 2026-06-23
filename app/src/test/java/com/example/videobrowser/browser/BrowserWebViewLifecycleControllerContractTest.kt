@@ -2,6 +2,7 @@ package com.example.videobrowser.browser
 
 import com.example.videobrowser.testutil.projectFile
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -31,12 +32,16 @@ class BrowserWebViewLifecycleControllerContractTest {
         assertTrue(lifecycleController.contains("targetWebView.clearCache(true)"))
         assertTrue(lifecycleController.contains("BrowserWebViewCallbackCleaner.detachCallbacks(targetWebView)"))
         assertTrue(lifecycleController.contains("BrowserPageLifecycleScriptController.disposeCurrentPage(activeWebView)"))
+        assertTrue(lifecycleController.contains("private fun clearLoadedPageData("))
+        assertTrue(lifecycleController.contains("clearLoadedPageData(targetWebView, clearSharedStores)"))
+        assertTrue(lifecycleController.contains("clearLoadedPageData(targetWebView, clearSharedStores = false)"))
         assertTrue(lifecycleController.contains("targetWebView.stopLoading()"))
         assertTrue(lifecycleController.contains("targetWebView.loadUrl(\"about:blank\")"))
+        assertEquals(1, Regex("targetWebView\\.stopLoading\\(\\)").findAll(lifecycleController).count())
+        assertEquals(1, Regex("targetWebView\\.loadUrl\\(\"about:blank\"\\)").findAll(lifecycleController).count())
         assertTrue(lifecycleController.contains("targetWebView.removeAllViews()"))
         assertTrue(lifecycleController.contains("webViewSettings.forget(targetWebView)"))
         assertTrue(lifecycleController.contains("targetWebView.destroy()"))
-        assertTrue(lifecycleController.contains("clearBrowsingData(targetWebView, clearSharedStores = false)"))
 
         assertTrue(callbackCleaner.contains("targetWebView.webChromeClient = null"))
         assertTrue(callbackCleaner.contains("targetWebView.webViewClient = WebViewClient()"))

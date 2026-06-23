@@ -29,9 +29,7 @@ internal class BrowserWebViewLifecycleController(
         if (targetWebView === activeWebView) {
             BrowserPageLifecycleScriptController.disposeCurrentPage(activeWebView)
         }
-        targetWebView.stopLoading()
-        targetWebView.loadUrl("about:blank")
-        clearBrowsingData(targetWebView, clearSharedStores)
+        clearLoadedPageData(targetWebView, clearSharedStores)
         targetWebView.removeAllViews()
         webViewSettings.forget(targetWebView)
         targetWebView.destroy()
@@ -39,8 +37,12 @@ internal class BrowserWebViewLifecycleController(
 
     fun clearTransientBrowsingData(targetWebView: WebView) {
         BrowserPageLifecycleScriptController.disposeCurrentPage(targetWebView)
+        clearLoadedPageData(targetWebView, clearSharedStores = false)
+    }
+
+    private fun clearLoadedPageData(targetWebView: WebView, clearSharedStores: Boolean) {
         targetWebView.stopLoading()
         targetWebView.loadUrl("about:blank")
-        clearBrowsingData(targetWebView, clearSharedStores = false)
+        clearBrowsingData(targetWebView, clearSharedStores)
     }
 }
