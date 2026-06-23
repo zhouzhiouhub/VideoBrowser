@@ -187,11 +187,9 @@ class SearchProviderController(
         val item = itemFactory.createProviderItem(provider)
         val badge = itemFactory.createProviderBadge(provider)
         val label = itemFactory.createProviderLabel(provider)
-        item.addView(badge, LinearLayout.LayoutParams(dp(48), dp(48)))
-        item.addView(label)
 
         providerViews[provider.id] = SearchProviderViews(item, badge, label)
-        providerList.addView(item, itemFactory.providerItemLayoutParams())
+        addProviderListItem(item, badge, label)
     }
 
     /**
@@ -202,12 +200,11 @@ class SearchProviderController(
      */
     private fun addCustomShortcutItem(shortcut: CustomShortcut) {
         val item = itemFactory.createCustomShortcutItem(shortcut)
-        item.addView(
-            itemFactory.createCustomShortcutBadge(shortcut),
-            LinearLayout.LayoutParams(dp(48), dp(48))
+        addProviderListItem(
+            item = item,
+            badge = itemFactory.createCustomShortcutBadge(shortcut),
+            label = itemFactory.createCustomShortcutLabel(shortcut.name)
         )
-        item.addView(itemFactory.createCustomShortcutLabel(shortcut.name))
-        providerList.addView(item, itemFactory.providerItemLayoutParams())
     }
 
     /**
@@ -218,9 +215,11 @@ class SearchProviderController(
      */
     private fun addRecentHistoryItem(quickLink: HomeQuickLink) {
         val item = createRecentHistoryItem(quickLink)
-        item.addView(itemFactory.createRecentHistoryBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
-        item.addView(itemFactory.createCustomShortcutLabel(quickLink.title))
-        providerList.addView(item, itemFactory.providerItemLayoutParams())
+        addProviderListItem(
+            item = item,
+            badge = itemFactory.createRecentHistoryBadge(),
+            label = itemFactory.createCustomShortcutLabel(quickLink.title)
+        )
     }
 
     /**
@@ -230,13 +229,21 @@ class SearchProviderController(
      */
     private fun addAddShortcutItem() {
         val item = itemFactory.createAddShortcutItem()
-        item.addView(itemFactory.createAddShortcutBadge(), LinearLayout.LayoutParams(dp(48), dp(48)))
-        item.addView(itemFactory.createCustomShortcutLabel(activity.getString(R.string.action_add)))
-        providerList.addView(item, itemFactory.providerItemLayoutParams())
+        addProviderListItem(
+            item = item,
+            badge = itemFactory.createAddShortcutBadge(),
+            label = itemFactory.createCustomShortcutLabel(activity.getString(R.string.action_add))
+        )
     }
 
     private fun createRecentHistoryItem(quickLink: HomeQuickLink): LinearLayout {
         return itemFactory.createRecentHistoryItem(quickLink)
+    }
+
+    private fun addProviderListItem(item: LinearLayout, badge: View, label: View) {
+        item.addView(badge, LinearLayout.LayoutParams(dp(48), dp(48)))
+        item.addView(label)
+        providerList.addView(item, itemFactory.providerItemLayoutParams())
     }
 
     /**

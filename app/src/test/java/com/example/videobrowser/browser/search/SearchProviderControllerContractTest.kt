@@ -8,6 +8,7 @@ import com.example.videobrowser.testutil.projectFile
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -113,6 +114,24 @@ class SearchProviderControllerContractTest {
         assertTrue(strings.contains("toast_recent_site_removed"))
         assertTrue(readme.contains("首页会从浏览历史生成最近访问入口"))
         assertTrue(readme.contains("最近访问入口可长按移除"))
+    }
+
+    @Test
+    fun providerListItemAssemblyIsShared() {
+        val controller = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
+        ).readText()
+
+        assertTrue(controller.contains("private fun addProviderListItem(item: LinearLayout, badge: View, label: View)"))
+        assertTrue(controller.contains("addProviderListItem(item, badge, label)"))
+        assertTrue(controller.contains("badge = itemFactory.createCustomShortcutBadge(shortcut)"))
+        assertTrue(controller.contains("badge = itemFactory.createRecentHistoryBadge()"))
+        assertTrue(controller.contains("badge = itemFactory.createAddShortcutBadge()"))
+        assertEquals(
+            1,
+            Regex("LinearLayout\\.LayoutParams\\(dp\\(48\\), dp\\(48\\)\\)").findAll(controller).count()
+        )
+        assertEquals(1, Regex("providerList\\.addView\\(item, itemFactory\\.providerItemLayoutParams\\(\\)\\)").findAll(controller).count())
     }
 
 }
