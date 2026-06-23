@@ -16,6 +16,7 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.PageUnavailableToast
 import com.example.videobrowser.utils.ShortToast
+import com.example.videobrowser.utils.WebViewEnhancerScript
 
 /**
  * 用户手动屏蔽网页元素的控制器。
@@ -219,14 +220,8 @@ class ElementPickerController(
     }
 
     private companion object {
-        private const val START_ELEMENT_PICKER_SCRIPT =
-            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.startElementPicker==='function'){" +
-                "window.VideoBrowserEnhancer.startElementPicker();" +
-                "}"
-        private const val FINISH_ELEMENT_PICKER_SCRIPT =
-            "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.finishElementPicker==='function'){" +
-                "window.VideoBrowserEnhancer.finishElementPicker();" +
-                "}"
+        private val START_ELEMENT_PICKER_SCRIPT = WebViewEnhancerScript.call("startElementPicker")
+        private val FINISH_ELEMENT_PICKER_SCRIPT = WebViewEnhancerScript.call("finishElementPicker")
         private const val ELEMENT_PICKER_TIMEOUT_MS = 60_000L
     }
 }

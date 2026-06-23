@@ -1,6 +1,7 @@
 package com.example.videobrowser.browser
 
 import android.webkit.WebView
+import com.example.videobrowser.utils.WebViewEnhancerScript
 
 internal object BrowserPageLifecycleScriptController {
     fun suspendCurrentPage(webView: WebView) {
@@ -17,12 +18,12 @@ internal object BrowserPageLifecycleScriptController {
         BrowserWebViewScriptEvaluator.evaluate(webView, PAGE_DISPOSE_SCRIPT)
     }
 
-    private const val PAGE_SUSPEND_SCRIPT =
-        "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.suspend==='function'){" +
-            "window.VideoBrowserEnhancer.suspend({pauseVideos:true});" +
-            "}"
-    private const val PAGE_DISPOSE_SCRIPT =
-        "if(window.VideoBrowserEnhancer&&typeof window.VideoBrowserEnhancer.dispose==='function'){" +
-            "window.VideoBrowserEnhancer.dispose({pauseVideos:true});" +
-            "}"
+    private val PAGE_SUSPEND_SCRIPT = WebViewEnhancerScript.call(
+        "suspend",
+        "{pauseVideos:true}"
+    )
+    private val PAGE_DISPOSE_SCRIPT = WebViewEnhancerScript.call(
+        "dispose",
+        "{pauseVideos:true}"
+    )
 }

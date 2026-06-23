@@ -8,6 +8,7 @@ package com.example.videobrowser.video
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
 import com.example.videobrowser.utils.PlaybackSpeedNormalizer
+import com.example.videobrowser.utils.WebViewEnhancerScript
 import java.util.Locale
 
 /**
@@ -62,35 +63,25 @@ sealed class WebViewVideoCommand {
     fun toJavascript(): String {
         // 命令只在这里转换成 JavaScript，调用方不需要知道网页增强脚本的函数名细节。
         return when (this) {
-            WakeControls -> enhancerCall("wakeControls")
-            RequestTimeline -> enhancerCall("reportPlaybackTimeline")
+            WakeControls -> WebViewEnhancerScript.call("wakeControls")
+            RequestTimeline -> WebViewEnhancerScript.call("reportPlaybackTimeline")
             TogglePlayPause -> togglePlayPauseScript()
-            ExitFullscreen -> enhancerCall("exitFullscreen")
-            is SeekBy -> enhancerCall("seekBy", secondsArgument(offsetMs))
-            is SeekTo -> enhancerCall("seekTo", secondsArgument(positionMs.coerceAtLeast(0L)))
-            is SetPlaybackSpeed -> enhancerCall("setPlaybackSpeed", speedArgument(speed))
-            is StartDirectionalPlayback -> enhancerCall(
+            ExitFullscreen -> WebViewEnhancerScript.call("exitFullscreen")
+            is SeekBy -> WebViewEnhancerScript.call("seekBy", secondsArgument(offsetMs))
+            is SeekTo -> WebViewEnhancerScript.call(
+                "seekTo",
+                secondsArgument(positionMs.coerceAtLeast(0L))
+            )
+            is SetPlaybackSpeed -> WebViewEnhancerScript.call(
+                "setPlaybackSpeed",
+                speedArgument(speed)
+            )
+            is StartDirectionalPlayback -> WebViewEnhancerScript.call(
                 "startDirectionalPlayback",
                 if (direction < 0) "-1" else "1"
             )
-            StopDirectionalPlayback -> enhancerCall("stopDirectionalPlayback")
+            StopDirectionalPlayback -> WebViewEnhancerScript.call("stopDirectionalPlayback")
         }
-    }
-
-    /**
-     * 函数 `enhancerCall`：封装 `enhancer Call` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param functionName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param arguments 参数类型为 `String`，表示函数执行 `arguments` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun enhancerCall(functionName: String, vararg arguments: String): String {
-        return "(function(){var enhancer=window.VideoBrowserEnhancer;" +
-            "if(!enhancer)return;" +
-            "if(typeof enhancer.$functionName==='function'){" +
-            "enhancer.$functionName(${arguments.joinToString()});" +
-            "}})();"
     }
 
     /**
@@ -100,15 +91,10 @@ sealed class WebViewVideoCommand {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun togglePlayPauseScript(): String {
-        return "(function(){var enhancer=window.VideoBrowserEnhancer;" +
-            "if(!enhancer)return;" +
-            "if(typeof enhancer.togglePlayPause==='function'){" +
-            "enhancer.togglePlayPause();" +
-            "}" +
-            "if(typeof enhancer.wakeControls==='function'){" +
-            "enhancer.wakeControls();" +
-            "}" +
-            "})();"
+        return WebViewEnhancerScript.callAll(
+            WebViewEnhancerScript.Call("togglePlayPause"),
+            WebViewEnhancerScript.Call("wakeControls")
+        )
     }
 
     /**
