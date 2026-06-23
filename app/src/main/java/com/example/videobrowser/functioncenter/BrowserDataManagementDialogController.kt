@@ -31,70 +31,65 @@ class BrowserDataManagementDialogController(
     }
 
     fun showRemoveCookieDialog(pageUrl: String, cookieName: String, onRemoved: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_cookie)
-            .setMessage(activity.getString(R.string.dialog_remove_cookie_message, cookieName))
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                clearActions.removeCookie(pageUrl, cookieName)
-                Toast.makeText(activity, R.string.toast_cookie_removed, Toast.LENGTH_SHORT).show()
-                reloadBrowser()
-                onRemoved()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showConfirmationDialog(
+            titleRes = R.string.title_remove_cookie,
+            message = activity.getString(R.string.dialog_remove_cookie_message, cookieName),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            clearActions.removeCookie(pageUrl, cookieName)
+            Toast.makeText(activity, R.string.toast_cookie_removed, Toast.LENGTH_SHORT).show()
+            reloadBrowser()
+            onRemoved()
+        }
     }
 
     fun showClearAllCookiesDialog(onCleared: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_all_cookies_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearAllCookies()
-                Toast.makeText(activity, R.string.toast_cookies_cleared, Toast.LENGTH_SHORT).show()
-                reloadBrowser()
-                onCleared()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showConfirmationDialog(
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_all_cookies_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            clearActions.clearAllCookies()
+            Toast.makeText(activity, R.string.toast_cookies_cleared, Toast.LENGTH_SHORT).show()
+            reloadBrowser()
+            onCleared()
+        }
     }
 
     fun showClearCacheDialog(onCleared: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_cache_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearCache()
-                Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
-                onCleared()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showConfirmationDialog(
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_cache_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            clearActions.clearCache()
+            Toast.makeText(activity, R.string.toast_cache_cleared, Toast.LENGTH_SHORT).show()
+            onCleared()
+        }
     }
 
     fun showClearBookmarksDialog(onCleared: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_bookmarks_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearBookmarks()
-                Toast.makeText(activity, R.string.toast_bookmarks_cleared, Toast.LENGTH_SHORT).show()
-                onCleared()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showConfirmationDialog(
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_bookmarks_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            clearActions.clearBookmarks()
+            Toast.makeText(activity, R.string.toast_bookmarks_cleared, Toast.LENGTH_SHORT).show()
+            onCleared()
+        }
     }
 
     fun showClearDownloadDataDialog(onCleared: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_download_records_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearDownloadRecordsAndFiles()
-                Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
-                onCleared()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showConfirmationDialog(
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_download_records_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            clearActions.clearDownloadRecordsAndFiles()
+            Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
+            onCleared()
+        }
     }
 
     fun showClearHistoryRangeDialog(onCleared: () -> Unit) {
@@ -113,45 +108,70 @@ class BrowserDataManagementDialogController(
     }
 
     fun showRemoveSiteDataDialog(origin: String, onRemoved: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_site_data)
-            .setMessage(activity.getString(R.string.dialog_remove_site_data_message, origin))
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                clearActions.removeSiteData(origin)
-                Toast.makeText(activity, R.string.toast_site_data_removed, Toast.LENGTH_SHORT).show()
-                onRemoved()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showConfirmationDialog(
+            titleRes = R.string.title_remove_site_data,
+            message = activity.getString(R.string.dialog_remove_site_data_message, origin),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            clearActions.removeSiteData(origin)
+            Toast.makeText(activity, R.string.toast_site_data_removed, Toast.LENGTH_SHORT).show()
+            onRemoved()
+        }
     }
 
     fun showClearSiteDataDialog(onCleared: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_site_data_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                clearActions.clearSiteData()
-                Toast.makeText(activity, R.string.toast_site_data_cleared, Toast.LENGTH_SHORT).show()
-                onCleared()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        showConfirmationDialog(
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_site_data_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            clearActions.clearSiteData()
+            Toast.makeText(activity, R.string.toast_site_data_cleared, Toast.LENGTH_SHORT).show()
+            onCleared()
+        }
     }
 
     private fun showClearHistoryDialog(range: BrowserHistoryClearRange, onCleared: () -> Unit) {
         val rangeLabel = historyClearRangeLabel(range)
+        showConfirmationDialog(
+            titleRes = R.string.action_clear,
+            message = activity.getString(R.string.dialog_clear_history_range_message, rangeLabel),
+            positiveButtonRes = R.string.action_clear
+        ) {
+            val removedCount = clearActions.clearHistory(range)
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.toast_history_range_cleared, rangeLabel, removedCount),
+                Toast.LENGTH_SHORT
+            ).show()
+            onCleared()
+        }
+    }
+
+    private fun showConfirmationDialog(
+        titleRes: Int,
+        messageRes: Int,
+        positiveButtonRes: Int,
+        onConfirmed: () -> Unit
+    ) {
+        showConfirmationDialog(
+            titleRes = titleRes,
+            message = activity.getString(messageRes),
+            positiveButtonRes = positiveButtonRes,
+            onConfirmed = onConfirmed
+        )
+    }
+
+    private fun showConfirmationDialog(
+        titleRes: Int,
+        message: String,
+        positiveButtonRes: Int,
+        onConfirmed: () -> Unit
+    ) {
         AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(activity.getString(R.string.dialog_clear_history_range_message, rangeLabel))
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                val removedCount = clearActions.clearHistory(range)
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.toast_history_range_cleared, rangeLabel, removedCount),
-                    Toast.LENGTH_SHORT
-                ).show()
-                onCleared()
-            }
+            .setTitle(titleRes)
+            .setMessage(message)
+            .setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
