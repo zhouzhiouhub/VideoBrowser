@@ -181,8 +181,9 @@ class DownloadStatusWiringContractTest {
 
         assertTrue(downloadsPage.contains("DownloadCancellationPolicy.canCancel(record)"))
         assertTrue(dialogController.contains("confirmCancelDownload(record)"))
-        assertTrue(operations.contains("DownloadCanceller(downloadRecordRepository)"))
-        assertTrue(operations.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(operations.contains("AndroidSystemDownloadRemover(activity)"))
+        assertTrue(operations.contains("DownloadCanceller(downloadRecordRepository, systemDownloadRemover)"))
+        assertTrue(operations.contains("downloadCanceller.cancel(record)"))
         assertTrue(dialogController.contains("R.string.action_cancel_download"))
         assertTrue(strings.contains("action_cancel_download"))
         assertTrue(strings.contains("download_status_canceled"))
@@ -213,9 +214,9 @@ class DownloadStatusWiringContractTest {
 
         assertTrue(repository.contains("fun remove(downloadId: Long): Boolean"))
         assertTrue(downloadsPage.contains("showDownloadActionsDialog(record, retryable, cancelable)"))
-        assertTrue(operations.contains("DownloadRecordRemover(downloadRecordRepository)"))
+        assertTrue(operations.contains("DownloadRecordRemover(downloadRecordRepository, systemDownloadRemover)"))
         assertTrue(dialogController.contains("confirmRemoveDownloadRecord(record)"))
-        assertTrue(operations.contains("downloadManager.remove(*downloadIds)"))
+        assertTrue(operations.contains("downloadRecordRemover.remove(record)"))
         assertTrue(strings.contains("action_remove_download_record"))
         assertTrue(strings.contains("dialog_remove_download_record_message"))
         assertTrue(strings.contains("toast_download_record_removed"))

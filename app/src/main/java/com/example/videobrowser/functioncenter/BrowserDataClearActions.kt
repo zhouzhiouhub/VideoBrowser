@@ -1,10 +1,10 @@
 package com.example.videobrowser.functioncenter
 
-import android.app.DownloadManager
 import android.content.Context
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.download.AndroidSystemDownloadRemover
 import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.storage.SavedPageRepository
@@ -15,15 +15,18 @@ class BrowserDataClearActions(
     private val savedPageRepository: SavedPageRepository,
     private val downloadRecordRepository: DownloadRecordRepository
 ) {
+    private val systemDownloadRemover = AndroidSystemDownloadRemover(context)
+    private val downloadRecordCleaner = DownloadRecordCleaner(
+        downloadRecordRepository,
+        systemDownloadRemover
+    )
+
     fun clearBookmarks() {
         savedPageRepository.clear(SavedPageRepository.SavedPageCollection.BOOKMARKS)
     }
 
     fun clearDownloadRecordsAndFiles() {
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        DownloadRecordCleaner(downloadRecordRepository) { downloadIds ->
-            downloadManager.remove(*downloadIds)
-        }.clearRecordsAndFiles()
+        downloadRecordCleaner.clearRecordsAndFiles()
     }
 
     fun clearHistory(range: BrowserHistoryClearRange, nowMillis: Long = System.currentTimeMillis()): Int {
