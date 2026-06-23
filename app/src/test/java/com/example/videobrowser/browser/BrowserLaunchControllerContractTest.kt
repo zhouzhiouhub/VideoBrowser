@@ -70,6 +70,26 @@ class BrowserLaunchControllerContractTest {
         assertTrue(addressBarStateController.contains("addressInput.setText(\"\")"))
     }
 
+    @Test
+    fun homePageShowsOnlySearchChromeWithoutUrlText() {
+        val shellUiController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserShellUiController.kt"
+        ).readText()
+        val shellAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserShellAssemblyController.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(shellAssembly.contains("rootView = views.rootView"))
+        assertTrue(shellAssembly.contains("topBar = views.topBar"))
+        assertTrue(shellAssembly.contains("bottomBar = views.bottomBar"))
+        assertTrue(shellUiController.contains("bottomBar.visibility = if (show) View.GONE else View.VISIBLE"))
+        assertTrue(shellUiController.contains("setVerticalBias(topBar.id, HOME_SEARCH_VERTICAL_BIAS)"))
+        assertTrue(shellUiController.contains("topBar.setBackgroundColor(Color.TRANSPARENT)"))
+        assertTrue(strings.contains("<string name=\"hint_address_bar\">搜索</string>"))
+        assertFalse(strings.contains("输入网址或搜索"))
+    }
+
     private fun openHomePageBody(source: String): String {
         return functionBody(source, "fun openHomePage()")
     }

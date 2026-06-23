@@ -7,7 +7,10 @@ package com.example.videobrowser.browser
  * 本类把 MainActivity 中分散的外壳刷新入口集中起来。
  * 阅读顺序：先看构造参数了解它拿到哪些 UI 控制器，再看 showHomeContent() 如何统一刷新主页/浏览器内容状态。
  */
+import android.graphics.Color
 import android.view.View
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 
 /**
  * 浏览器外壳 UI 控制器。
@@ -19,6 +22,9 @@ import android.view.View
  * @param siteSecurityController 参数类型为 `() -> SiteSecurityController?`，表示返回站点安全图标控制器的函数，尚未初始化时返回 null。
  * @param browserControlsScrollController 参数类型为 `() -> BrowserControlsScrollController?`，表示返回滚动隐藏控制器的函数，尚未初始化时返回 null。
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示浏览器控制栏外壳协调器，用来隐藏/显示控制栏和搜索入口。
+ * @param rootView 参数类型为 `View`，表示主界面根布局，首页状态会用它重新约束搜索栏位置。
+ * @param topBar 参数类型为 `View`，表示顶部地址栏区域，首页状态会把它作为居中搜索栏显示。
+ * @param bottomBar 参数类型为 `View`，表示底部工具栏，首页状态会隐藏它以避免出现多余入口。
  * @param activeWebView 参数类型为 `() -> View`，表示返回当前活动 WebView 的函数，首页状态会隐藏它，显示网页内容时会把它设为可见。
  * @param browsingModeThemeController 参数类型为 `BrowsingModeThemeController`，表示普通/无痕主题控制器，用于主页状态变化后重新应用颜色。
  */
@@ -27,6 +33,9 @@ class BrowserShellUiController(
     private val siteSecurityController: () -> SiteSecurityController?,
     private val browserControlsScrollController: () -> BrowserControlsScrollController?,
     private val browserControlsShellController: BrowserControlsShellController,
+    private val rootView: View,
+    private val topBar: View,
+    private val bottomBar: View,
     private val activeWebView: () -> View,
     private val browsingModeThemeController: BrowsingModeThemeController
 ) {
@@ -72,5 +81,33 @@ class BrowserShellUiController(
         browserControlsShellController.updatePageProgressVisibility(forceHidden = show)
         updateNavigationButtons()
         browsingModeThemeController.applyBrowsingModeTheme()
+        applyHomeChrome(show)
+    }
+
+    private fun applyHomeChrome(show: Boolean) {
+        bottomBar.visibility = if (show) View.GONE else View.VISIBLE
+        positionSearchBarForHome(show)
+        if (show) {
+            topBar.setBackgroundColor(Color.TRANSPARENT)
+        }
+    }
+
+    private fun positionSearchBarForHome(show: Boolean) {
+        val rootLayout = rootView as? ConstraintLayout ?: return
+        ConstraintSet().apply {
+            clone(rootLayout)
+            clear(topBar.id, ConstraintSet.TOP)
+            clear(topBar.id, ConstraintSet.BOTTOM)
+            connect(topBar.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
+            if (show) {
+                connect(topBar.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
+                setVerticalBias(topBar.id, HOME_SEARCH_VERTICAL_BIAS)
+            }
+            applyTo(rootLayout)
+        }
+    }
+
+    private companion object {
+        private const val HOME_SEARCH_VERTICAL_BIAS = 0.42f
     }
 }

@@ -140,6 +140,9 @@ class BrowserShellAssemblyController(
             siteSecurityController = siteSecurityController,
             browserControlsScrollController = browserControlsScrollController,
             browserControlsShellController = browserControlsShellController,
+            rootView = views.rootView,
+            topBar = views.topBar,
+            bottomBar = views.bottomBar,
             activeWebView = {
                 browserStandardWebViewHostController().currentBrowserManager().activeWebView
             },
