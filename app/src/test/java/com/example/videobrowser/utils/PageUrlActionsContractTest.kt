@@ -17,6 +17,9 @@ class PageUrlActionsContractTest {
         val chooserLauncher = projectFile(
             "src/main/java/com/example/videobrowser/utils/ChooserIntentLauncher.kt"
         ).readText()
+        val chooserFactory = projectFile(
+            "src/main/java/com/example/videobrowser/utils/ChooserIntentFactory.kt"
+        ).readText()
         val pageActionsController = projectFile(
             "src/main/java/com/example/videobrowser/browser/PageActionsController.kt"
         ).readText()
@@ -47,7 +50,9 @@ class PageUrlActionsContractTest {
         assertTrue(actions.contains("putExtra(Intent.EXTRA_TEXT, url)"))
         assertTrue(actions.contains("ChooserIntentLauncher.start("))
         assertFalse(actions.contains("Intent.createChooser("))
-        assertTrue(chooserLauncher.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
+        assertTrue(chooserLauncher.contains("ChooserIntentFactory.create(activity, intent, chooserTitleRes)"))
+        assertFalse(chooserLauncher.contains("Intent.createChooser("))
+        assertTrue(chooserFactory.contains("Intent.createChooser(intent, context.getString(chooserTitleRes))"))
 
         assertTrue(pageActionsController.contains("PageUrlActions.sharePageUrl(activity, url)"))
         assertTrue(savedPageLinkActions.contains("PageUrlActions.sharePageUrl(activity, page.url)"))

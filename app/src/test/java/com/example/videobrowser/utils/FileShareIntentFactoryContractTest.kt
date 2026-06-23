@@ -20,13 +20,19 @@ class FileShareIntentFactoryContractTest {
         val chooserLauncher = projectFile(
             "src/main/java/com/example/videobrowser/utils/ChooserIntentLauncher.kt"
         ).readText()
+        val chooserFactory = projectFile(
+            "src/main/java/com/example/videobrowser/utils/ChooserIntentFactory.kt"
+        ).readText()
 
         assertTrue(factory.contains("object FileShareIntentFactory"))
         assertTrue(factory.contains("Intent(Intent.ACTION_SEND)"))
         assertTrue(factory.contains("putExtra(Intent.EXTRA_STREAM, uri)"))
         assertTrue(factory.contains("ClipData.newUri(contentResolver, displayName, uri)"))
         assertTrue(factory.contains("Intent.FLAG_GRANT_READ_URI_PERMISSION"))
-        assertTrue(chooserLauncher.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
+        assertTrue(chooserFactory.contains("object ChooserIntentFactory"))
+        assertTrue(chooserFactory.contains("Intent.createChooser(intent, context.getString(chooserTitleRes))"))
+        assertTrue(chooserLauncher.contains("ChooserIntentFactory.create(activity, intent, chooserTitleRes)"))
+        assertFalse(chooserLauncher.contains("Intent.createChooser("))
         assertTrue(chooserLauncher.contains("catch (_: ActivityNotFoundException)"))
 
         listOf(downloadedFileLauncher, localDocumentOperationController).forEach { source ->

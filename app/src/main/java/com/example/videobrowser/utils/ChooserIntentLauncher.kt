@@ -16,7 +16,7 @@ object ChooserIntentLauncher {
     ) {
         try {
             activity.startActivity(
-                Intent.createChooser(intent, activity.getString(chooserTitleRes))
+                ChooserIntentFactory.create(activity, intent, chooserTitleRes)
             )
         } catch (_: ActivityNotFoundException) {
             Toast.makeText(activity, activityNotFoundToastRes, Toast.LENGTH_SHORT).show()

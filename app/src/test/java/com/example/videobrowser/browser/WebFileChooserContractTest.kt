@@ -7,6 +7,7 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Web File Chooser Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -53,6 +54,9 @@ class WebFileChooserContractTest {
         val fileChooserController = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebFileChooserController.kt"
         ).readText()
+        val chooserFactory = projectFile(
+            "src/main/java/com/example/videobrowser/utils/ChooserIntentFactory.kt"
+        ).readText()
         val webRequestAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserWebRequestAssemblyController.kt"
         ).readText()
@@ -71,6 +75,9 @@ class WebFileChooserContractTest {
         assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))
         assertTrue(lifecycleController.contains("browserChromeClientController()?.cancelPendingWebFileChooser()"))
         assertTrue(fileChooserController.contains("R.string.toast_file_chooser_unavailable"))
+        assertTrue(fileChooserController.contains("ChooserIntentFactory.create(activity, pickerIntent, R.string.action_open_file)"))
+        assertFalse(fileChooserController.contains("Intent.createChooser("))
+        assertTrue(chooserFactory.contains("Intent.createChooser(intent, context.getString(chooserTitleRes))"))
     }
 
 }

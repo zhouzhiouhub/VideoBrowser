@@ -15,6 +15,7 @@ import android.webkit.WebChromeClient.FileChooserParams
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ChooserIntentFactory
 
 /**
  * WebView 文件选择控制器。
@@ -68,7 +69,7 @@ class WebFileChooserController(
 
         return try {
             launchChooser(
-                Intent.createChooser(pickerIntent, activity.getString(R.string.action_open_file))
+                ChooserIntentFactory.create(activity, pickerIntent, R.string.action_open_file)
             )
             true
         } catch (_: ActivityNotFoundException) {

@@ -20,12 +20,18 @@ class FileOpenIntentFactoryContractTest {
         val chooserLauncher = projectFile(
             "src/main/java/com/example/videobrowser/utils/ChooserIntentLauncher.kt"
         ).readText()
+        val chooserFactory = projectFile(
+            "src/main/java/com/example/videobrowser/utils/ChooserIntentFactory.kt"
+        ).readText()
 
         assertTrue(factory.contains("object FileOpenIntentFactory"))
         assertTrue(factory.contains("Intent(Intent.ACTION_VIEW)"))
         assertTrue(factory.contains("setDataAndType(uri, mimeType ?: \"*/*\")"))
         assertTrue(factory.contains("Intent.FLAG_GRANT_READ_URI_PERMISSION"))
-        assertTrue(chooserLauncher.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
+        assertTrue(chooserFactory.contains("object ChooserIntentFactory"))
+        assertTrue(chooserFactory.contains("Intent.createChooser(intent, context.getString(chooserTitleRes))"))
+        assertTrue(chooserLauncher.contains("ChooserIntentFactory.create(activity, intent, chooserTitleRes)"))
+        assertFalse(chooserLauncher.contains("Intent.createChooser("))
         assertTrue(chooserLauncher.contains("catch (_: ActivityNotFoundException)"))
 
         listOf(downloadedFileLauncher, pageActionsController).forEach { source ->
