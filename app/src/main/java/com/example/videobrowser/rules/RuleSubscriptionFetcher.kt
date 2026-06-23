@@ -9,7 +9,7 @@ package com.example.videobrowser.rules
  */
 import com.example.videobrowser.utils.HostNameNormalizer
 import com.example.videobrowser.utils.SafeUriParser
-import com.example.videobrowser.utils.WebSchemePolicy
+import com.example.videobrowser.utils.WebUrlNormalizer
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -101,14 +101,8 @@ class RuleSubscriptionFetcher(
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         fun normalizeSubscriptionUrl(url: String): String? {
-            val normalizedUrl = url.trim().takeIf { it.isNotBlank() } ?: return null
+            val normalizedUrl = WebUrlNormalizer.normalizeHttpOrHttpsUrl(url) ?: return null
             val uri = SafeUriParser.parse(normalizedUrl) ?: return null
-            if (!WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)) {
-                return null
-            }
-            if (uri.host.isNullOrBlank()) {
-                return null
-            }
             if (!uri.userInfo.isNullOrBlank()) {
                 return null
             }

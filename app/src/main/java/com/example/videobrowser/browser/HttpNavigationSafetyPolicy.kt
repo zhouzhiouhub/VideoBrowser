@@ -9,6 +9,7 @@ package com.example.videobrowser.browser
  */
 import com.example.videobrowser.utils.SafeUriParser
 import com.example.videobrowser.utils.WebSchemePolicy
+import com.example.videobrowser.utils.WebUrlNormalizer
 
 object HttpNavigationSafetyPolicy {
     /**
@@ -31,7 +32,6 @@ object HttpNavigationSafetyPolicy {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun isHttpNetworkUrl(url: String): Boolean {
-        val uri = SafeUriParser.parse(url) ?: return false
-        return WebSchemePolicy.isHttpScheme(uri.scheme) && !uri.host.isNullOrBlank()
+        return WebUrlNormalizer.isHttpUrl(url)
     }
 }
