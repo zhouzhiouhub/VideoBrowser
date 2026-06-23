@@ -7,6 +7,8 @@ import com.example.videobrowser.utils.TextWhitespaceNormalizer
 internal class UserElementHideRuleStore(
     private val preferenceStore: PreferenceStore
 ) {
+    private val lineStore = PreferenceLineStore(preferenceStore, KEY_USER_ELEMENT_HIDE_RULES)
+
     fun selectorsForSite(host: String?): List<String> {
         val normalizedHost = SiteHost.normalize(host) ?: return emptyList()
         return load()
@@ -36,12 +38,10 @@ internal class UserElementHideRuleStore(
     }
 
     fun load(): List<UserElementHideRule> {
-        return preferenceStore.getString(KEY_USER_ELEMENT_HIDE_RULES, null)
-            ?.lineSequence()
-            ?.mapNotNull(::parseLine)
-            ?.distinct()
-            ?.toList()
-            ?: emptyList()
+        return lineStore.loadLines()
+            .mapNotNull(::parseLine)
+            .distinct()
+            .toList()
     }
 
     fun remove(rule: UserElementHideRule): Boolean {
@@ -60,7 +60,7 @@ internal class UserElementHideRuleStore(
     }
 
     fun clear() {
-        preferenceStore.remove(KEY_USER_ELEMENT_HIDE_RULES)
+        lineStore.clear()
     }
 
     private fun parseLine(line: String): UserElementHideRule? {
@@ -81,11 +81,7 @@ internal class UserElementHideRuleStore(
             .sortedWith(compareBy<UserElementHideRule> { it.host }.thenBy { it.selector })
             .map { rule -> TabSeparatedLineCodec.joinPair(rule.host, rule.selector) }
 
-        if (lines.isEmpty()) {
-            preferenceStore.remove(KEY_USER_ELEMENT_HIDE_RULES)
-        } else {
-            preferenceStore.putString(KEY_USER_ELEMENT_HIDE_RULES, lines.joinToString(separator = "\n"))
-        }
+        lineStore.saveLines(lines)
     }
 
     private fun normalizeSelector(selector: String): String? {

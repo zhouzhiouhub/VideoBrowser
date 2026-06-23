@@ -7,21 +7,17 @@ internal class SettingsHostSetStore(
     private val preferenceStore: PreferenceStore
 ) {
     fun load(key: String): Set<String> {
-        return preferenceStore.getString(key, null)
-            ?.lineSequence()
-            ?.mapNotNull(SiteHost::normalize)
-            ?.toSet()
-            ?: emptySet()
+        return lineStore(key)
+            .loadLines()
+            .mapNotNull(SiteHost::normalize)
+            .toSet()
     }
 
     fun save(key: String, hosts: Set<String>) {
-        if (hosts.isEmpty()) {
-            preferenceStore.remove(key)
-        } else {
-            preferenceStore.putString(
-                key,
-                hosts.sorted().joinToString(separator = "\n")
-            )
-        }
+        lineStore(key).saveLines(hosts.sorted())
+    }
+
+    private fun lineStore(key: String): PreferenceLineStore {
+        return PreferenceLineStore(preferenceStore, key)
     }
 }

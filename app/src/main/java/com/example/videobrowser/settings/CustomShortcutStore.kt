@@ -6,14 +6,14 @@ import com.example.videobrowser.utils.TextWhitespaceNormalizer
 internal class CustomShortcutStore(
     private val preferenceStore: PreferenceStore
 ) {
+    private val lineStore = PreferenceLineStore(preferenceStore, KEY_CUSTOM_SHORTCUTS)
+
     fun load(): List<CustomShortcut> {
-        return preferenceStore.getString(KEY_CUSTOM_SHORTCUTS, null)
-            ?.lineSequence()
-            ?.mapNotNull(::parseLine)
-            ?.distinct()
-            ?.toList()
-            ?.takeLast(MAX_CUSTOM_SHORTCUTS)
-            ?: emptyList()
+        return lineStore.loadLines()
+            .mapNotNull(::parseLine)
+            .distinct()
+            .toList()
+            .takeLast(MAX_CUSTOM_SHORTCUTS)
     }
 
     fun add(name: String, url: String): Boolean {
@@ -66,11 +66,7 @@ internal class CustomShortcutStore(
             .takeLast(MAX_CUSTOM_SHORTCUTS)
             .map { shortcut -> TabSeparatedLineCodec.joinPair(shortcut.name, shortcut.url) }
 
-        if (lines.isEmpty()) {
-            preferenceStore.remove(KEY_CUSTOM_SHORTCUTS)
-        } else {
-            preferenceStore.putString(KEY_CUSTOM_SHORTCUTS, lines.joinToString(separator = "\n"))
-        }
+        lineStore.saveLines(lines)
     }
 
     private fun normalize(name: String, url: String): CustomShortcut? {
