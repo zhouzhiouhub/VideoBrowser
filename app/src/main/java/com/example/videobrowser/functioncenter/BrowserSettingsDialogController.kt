@@ -1,7 +1,6 @@
 package com.example.videobrowser.functioncenter
 
 import android.text.InputType
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,33 +17,27 @@ class BrowserSettingsDialogController(
     private val onSettingsChanged: () -> Unit
 ) {
     fun showHomeUrlDialog() {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_home_page_url)
-            setText(settingsManager.homeUrl())
-            setSelection(text?.length ?: 0)
-        }
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.setting_home_page)
-            .setView(input)
-            .setPositiveButton(R.string.action_save, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val homeUrl = input.text?.toString().orEmpty()
+        ValidatedTextInputDialog.show(
+            activity = activity,
+            titleRes = R.string.setting_home_page,
+            hintRes = R.string.hint_home_page_url,
+            initialValue = settingsManager.homeUrl(),
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
+            positiveButtonRes = R.string.action_save,
+            invalidToastRes = R.string.toast_home_page_invalid,
+            successToastRes = R.string.toast_home_page_updated,
+            saveValue = { homeUrl ->
                 if (!settingsManager.isValidHomeUrl(homeUrl)) {
-                    Toast.makeText(activity, R.string.toast_home_page_invalid, Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
+                    false
+                } else {
+                    settingsManager.setHomeUrl(homeUrl)
+                    true
                 }
-                settingsManager.setHomeUrl(homeUrl)
-                Toast.makeText(activity, R.string.toast_home_page_updated, Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
+            },
+            onSaved = {
                 onSettingsChanged()
             }
-        }
-        dialog.show()
+        )
     }
 
     fun showSearchEngineDialog() {
