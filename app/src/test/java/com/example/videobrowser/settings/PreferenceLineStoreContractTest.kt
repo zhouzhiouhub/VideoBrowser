@@ -21,6 +21,12 @@ class PreferenceLineStoreContractTest {
         val userElementHideRuleStore = projectFile(
             "src/main/java/com/example/videobrowser/settings/UserElementHideRuleStore.kt"
         ).readText()
+        val downloadRecordRepository = projectFile(
+            "src/main/java/com/example/videobrowser/download/DownloadRecordRepository.kt"
+        ).readText()
+        val playbackHistoryRepository = projectFile(
+            "src/main/java/com/example/videobrowser/video/PlaybackHistoryRepository.kt"
+        ).readText()
 
         assertTrue(lineStore.contains("fun loadLines(): Sequence<String>"))
         assertTrue(lineStore.contains("fun saveLines(lines: Collection<String>)"))
@@ -28,7 +34,13 @@ class PreferenceLineStoreContractTest {
         assertEquals(1, Regex("preferenceStore\\.putString\\(").findAll(lineStore).count())
         assertEquals(1, Regex("joinToString\\(separator = \"\\\\n\"\\)").findAll(lineStore).count())
 
-        listOf(hostSetStore, customShortcutStore, userElementHideRuleStore).forEach { source ->
+        listOf(
+            hostSetStore,
+            customShortcutStore,
+            userElementHideRuleStore,
+            downloadRecordRepository,
+            playbackHistoryRepository
+        ).forEach { source ->
             assertTrue(source.contains("PreferenceLineStore("))
             assertFalse(source.contains("preferenceStore.getString("))
             assertFalse(source.contains("preferenceStore.putString("))

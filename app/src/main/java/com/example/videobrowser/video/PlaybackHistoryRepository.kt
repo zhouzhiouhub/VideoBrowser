@@ -7,6 +7,7 @@ package com.example.videobrowser.video
  * 主要职责：连接网页视频手势、原生 ExoPlayer 播放、播放队列、字幕、播放历史或媒体路由。
  * 阅读顺序：先看数据模型表达什么播放状态，再看控制器如何响应用户手势和播放器回调。
  */
+import com.example.videobrowser.settings.PreferenceLineStore
 import com.example.videobrowser.settings.TabSeparatedLineCodec
 import com.example.videobrowser.storage.PreferenceStore
 import com.example.videobrowser.utils.PlaybackSpeedNormalizer
@@ -31,8 +32,10 @@ enum class PlaybackHistorySource {
 }
 
 class PlaybackHistoryRepository(
-    private val preferenceStore: PreferenceStore
+    preferenceStore: PreferenceStore
 ) {
+    private val lineStore = PreferenceLineStore(preferenceStore, KEY_PLAYBACK_HISTORY)
+
     /**
      * 函数 `save`：把传入数据写入内存、配置或持久化存储，并保持相关状态一致。
      *
@@ -60,9 +63,8 @@ class PlaybackHistoryRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun records(): List<PlaybackProgress> {
-        val rawValue = preferenceStore.getString(KEY_PLAYBACK_HISTORY, null) ?: return emptyList()
-        return rawValue
-            .lineSequence()
+        return lineStore
+            .loadLines()
             .mapNotNull(::parseProgress)
             .toList()
     }
@@ -105,7 +107,7 @@ class PlaybackHistoryRepository(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clear() {
-        preferenceStore.remove(KEY_PLAYBACK_HISTORY)
+        lineStore.clear()
     }
 
     /**
@@ -115,14 +117,7 @@ class PlaybackHistoryRepository(
      * @param records 参数类型为 `List<PlaybackProgress>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
      */
     private fun save(records: List<PlaybackProgress>) {
-        if (records.isEmpty()) {
-            preferenceStore.remove(KEY_PLAYBACK_HISTORY)
-            return
-        }
-        preferenceStore.putString(
-            KEY_PLAYBACK_HISTORY,
-            records.joinToString(separator = "\n", transform = ::encodeProgress)
-        )
+        lineStore.saveLines(records.map(::encodeProgress))
     }
 
     /**

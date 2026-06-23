@@ -7,6 +7,7 @@ package com.example.videobrowser.download
  * 主要职责：创建下载任务、记录下载状态、支持重试/取消/清理和下载列表过滤。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
+import com.example.videobrowser.settings.PreferenceLineStore
 import com.example.videobrowser.settings.TabSeparatedLineCodec
 import com.example.videobrowser.storage.PreferenceStore
 
@@ -17,8 +18,10 @@ import com.example.videobrowser.storage.PreferenceStore
  * 包括文件名、来源 URL、状态、失败原因和进度字节数。
  */
 class DownloadRecordRepository(
-    private val preferenceStore: PreferenceStore
+    preferenceStore: PreferenceStore
 ) {
+    private val lineStore = PreferenceLineStore(preferenceStore, KEY_DOWNLOAD_RECORDS)
+
     /**
      * 函数 `add`：封装 `add` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
@@ -102,9 +105,8 @@ class DownloadRecordRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun records(): List<DownloadRecord> {
-        val rawValue = preferenceStore.getString(KEY_DOWNLOAD_RECORDS, null) ?: return emptyList()
-        return rawValue
-            .lineSequence()
+        return lineStore
+            .loadLines()
             .mapNotNull(::parseRecord)
             .toList()
     }
@@ -143,7 +145,7 @@ class DownloadRecordRepository(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun clear() {
-        preferenceStore.remove(KEY_DOWNLOAD_RECORDS)
+        lineStore.clear()
     }
 
     /**
@@ -153,15 +155,7 @@ class DownloadRecordRepository(
      * @param records 参数类型为 `List<DownloadRecord>`，表示一组待处理数据，函数会遍历、过滤或转换这些内容。
      */
     private fun save(records: List<DownloadRecord>) {
-        if (records.isEmpty()) {
-            preferenceStore.remove(KEY_DOWNLOAD_RECORDS)
-            return
-        }
-
-        preferenceStore.putString(
-            KEY_DOWNLOAD_RECORDS,
-            records.joinToString(separator = "\n", transform = ::encodeRecord)
-        )
+        lineStore.saveLines(records.map(::encodeRecord))
     }
 
     /**
