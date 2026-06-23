@@ -31,6 +31,10 @@ object PageUrlActions {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, url)
         }
-        activity.startActivity(Intent.createChooser(intent, activity.getString(chooserTitleRes)))
+        ChooserIntentLauncher.start(
+            activity = activity,
+            intent = intent,
+            chooserTitleRes = chooserTitleRes
+        )
     }
 }

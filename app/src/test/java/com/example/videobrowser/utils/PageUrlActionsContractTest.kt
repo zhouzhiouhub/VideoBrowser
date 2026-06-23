@@ -14,6 +14,9 @@ class PageUrlActionsContractTest {
         val clipboardActions = projectFile(
             "src/main/java/com/example/videobrowser/utils/ClipboardTextActions.kt"
         ).readText()
+        val chooserLauncher = projectFile(
+            "src/main/java/com/example/videobrowser/utils/ChooserIntentLauncher.kt"
+        ).readText()
         val pageActionsController = projectFile(
             "src/main/java/com/example/videobrowser/browser/PageActionsController.kt"
         ).readText()
@@ -42,7 +45,9 @@ class PageUrlActionsContractTest {
         assertTrue(actions.contains("private fun shareTextUrl(activity: AppCompatActivity, url: String, chooserTitleRes: Int)"))
         assertTrue(actions.contains("Intent(Intent.ACTION_SEND)"))
         assertTrue(actions.contains("putExtra(Intent.EXTRA_TEXT, url)"))
-        assertTrue(actions.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
+        assertTrue(actions.contains("ChooserIntentLauncher.start("))
+        assertFalse(actions.contains("Intent.createChooser("))
+        assertTrue(chooserLauncher.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
 
         assertTrue(pageActionsController.contains("PageUrlActions.sharePageUrl(activity, url)"))
         assertTrue(savedPageLinkActions.contains("PageUrlActions.sharePageUrl(activity, page.url)"))
