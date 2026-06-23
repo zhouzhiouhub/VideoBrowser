@@ -91,6 +91,7 @@ class BrowserSettingsPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     fun addExpandedBrowserSettings(parent: LinearLayout) {
+        addBrowserBasicsSection(parent)
         addGlobalEnhancementSection(parent)
     }
 

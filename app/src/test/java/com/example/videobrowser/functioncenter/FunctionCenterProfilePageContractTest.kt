@@ -28,7 +28,25 @@ class FunctionCenterProfilePageContractTest {
         assertTrue(profilePage.contains("FunctionCenterProfilePageBlock.SHORTCUTS -> profileShortcutSection.add(content)"))
         assertTrue(profilePage.contains("FunctionCenterProfilePageBlock.FEATURES -> addProfileFeatureSection(content)"))
         assertTrue(profilePage.contains("browserSettingsPage.addExpandedBrowserSettings(parent)"))
+        assertTrue(settingsPageExposesBasicsInExpandedSettings())
         assertTrue(profilePage.contains("browserSettingsPage.addProfileDataManagement(parent)"))
+    }
+
+    private fun settingsPageExposesBasicsInExpandedSettings(): Boolean {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
+        ).readText()
+        val functionStart = page.indexOf("fun addExpandedBrowserSettings(parent: LinearLayout)")
+        if (functionStart < 0) {
+            return false
+        }
+        val nextFunctionStart = page.indexOf("fun addExpandedDataManagement", functionStart)
+        if (nextFunctionStart < 0) {
+            return false
+        }
+        val functionBody = page.substring(functionStart, nextFunctionStart)
+        return functionBody.contains("addBrowserBasicsSection(parent)") &&
+            functionBody.contains("addGlobalEnhancementSection(parent)")
     }
 
 }
