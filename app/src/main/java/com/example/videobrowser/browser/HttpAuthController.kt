@@ -5,15 +5,15 @@ package com.example.videobrowser.browser
  * 这个文件属于“HTTP 认证弹窗模块”。
  * 文件名 HttpAuthController 可以拆开理解为“HTTP Auth Controller”，表示它专门负责 WebView 遇到 HTTP Basic Auth 时的用户名/密码弹窗。
  * 主要职责：只保留一个待处理认证弹窗，把用户输入交给 HttpAuthHandler.proceed，或在取消/销毁时调用 cancel。
- * 阅读顺序：先看 handleRequest，再看 cancelPending，最后看 createCredentialForm。
+ * 阅读顺序：先看 handleRequest，再看 cancelPending。
  */
 import android.text.InputType
 import android.webkit.HttpAuthHandler
-import android.widget.EditText
-import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.TextInputDialogField
+import com.example.videobrowser.utils.TwoTextInputDialog
 
 /**
  * HTTP Basic Auth 弹窗控制器。
@@ -47,33 +47,36 @@ class HttpAuthController(
         val authHandler = handler ?: return
         cancelPending()
         pendingHandler = authHandler
-        val (form, usernameInput, passwordInput) = createCredentialForm()
         val displayHost = host?.takeIf { it.isNotBlank() }
             ?: activity.getString(R.string.permission_origin_unknown)
         val displayRealm = realm?.takeIf { it.isNotBlank() }
+        val message = displayRealm?.let { value ->
+            activity.getString(R.string.dialog_http_auth_request_message_with_realm, displayHost, value)
+        } ?: activity.getString(R.string.dialog_http_auth_request_message, displayHost)
         var completed = false
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_http_auth_request)
-            .setMessage(
-                displayRealm?.let { value ->
-                    activity.getString(R.string.dialog_http_auth_request_message_with_realm, displayHost, value)
-                } ?: activity.getString(R.string.dialog_http_auth_request_message, displayHost)
+        val dialog = TwoTextInputDialog.create(
+            activity = activity,
+            titleRes = R.string.title_http_auth_request,
+            message = message,
+            firstField = TextInputDialogField(
+                hintRes = R.string.hint_http_auth_username,
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
+            ),
+            secondField = TextInputDialogField(
+                hintRes = R.string.hint_http_auth_password,
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            ),
+            positiveButtonRes = R.string.action_http_auth_sign_in,
+            dp = dp
+        ) { values ->
+            completed = true
+            pendingHandler = null
+            pendingDialog = null
+            authHandler.proceed(
+                values.first,
+                values.second
             )
-            .setView(form)
-            .setPositiveButton(R.string.action_http_auth_sign_in, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                completed = true
-                pendingHandler = null
-                pendingDialog = null
-                authHandler.proceed(
-                    usernameInput.text?.toString().orEmpty(),
-                    passwordInput.text?.toString().orEmpty()
-                )
-                dialog.dismiss()
-            }
+            true
         }
         dialog.setOnDismissListener {
             if (!completed) {
@@ -106,30 +109,4 @@ class HttpAuthController(
         handler?.cancel()
     }
 
-    /**
-     * 函数 `createCredentialForm`：创建 HTTP 认证用户名/密码输入表单。
-     *
-     * 初学者阅读提示：用户名使用普通文本输入，密码使用密码输入类型；返回输入框是为了提交时读取用户输入。
-     *
-     * @return 返回三元组：表单容器、用户名输入框、密码输入框。
-     */
-    private fun createCredentialForm(): Triple<LinearLayout, EditText, EditText> {
-        val usernameInput = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_http_auth_username)
-        }
-        val passwordInput = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_http_auth_password)
-        }
-        val form = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(8), dp(20), 0)
-            addView(usernameInput)
-            addView(passwordInput)
-        }
-        return Triple(form, usernameInput, passwordInput)
-    }
 }

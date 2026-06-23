@@ -76,7 +76,7 @@ class ConfirmationDialogContractTest {
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(localDocumentOperations).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadEnqueueController).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(browserNavigationController).count())
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(searchProviderDialogs).count())
+        assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(searchProviderDialogs).count())
         simpleConfirmationPages.forEach { source ->
             assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(source).count())
             assertFalse(source.contains("import androidx.appcompat.app.AlertDialog"))

@@ -47,6 +47,7 @@ class SearchProviderControllerContractTest {
         assertFalse(controller.contains("private fun showEditCustomShortcutDialog(shortcut: CustomShortcut)"))
         assertFalse(controller.contains("private fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut)"))
         assertTrue(dialogController.contains("private fun showCustomShortcutEditorDialog("))
+        assertTrue(dialogController.contains("TwoTextInputDialog.show("))
         assertTrue(dialogController.contains("ConfirmationDialog.show("))
         assertEquals(2, Regex("ConfirmationDialog\\.show\\(").findAll(dialogController).count())
         assertTrue(dialogController.contains("R.string.title_edit_custom_shortcut"))

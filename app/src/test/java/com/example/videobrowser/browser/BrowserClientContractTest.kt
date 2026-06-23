@@ -108,6 +108,7 @@ class BrowserClientContractTest {
         assertTrue(runtimeFeatureAssembly.contains("httpAuthController = pageActions.httpAuthController"))
         assertTrue(httpAuthController.contains("private var pendingHandler: HttpAuthHandler?"))
         assertTrue(httpAuthController.contains("private var pendingDialog: AlertDialog?"))
+        assertTrue(httpAuthController.contains("TwoTextInputDialog.create("))
         assertTrue(browserWebClientController.contains("httpAuthRequested = { _, handler, host, realm ->"))
         assertTrue(browserWebClientController.contains("httpAuthController.handleRequest(handler, host, realm)"))
         assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))

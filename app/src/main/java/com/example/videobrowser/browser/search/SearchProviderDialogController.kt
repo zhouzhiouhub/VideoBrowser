@@ -1,10 +1,7 @@
 package com.example.videobrowser.browser.search
 
 import android.text.InputType
-import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
@@ -13,6 +10,8 @@ import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.TextInputDialogField
+import com.example.videobrowser.utils.TwoTextInputDialog
 
 internal class SearchProviderDialogController(
     private val activity: AppCompatActivity,
@@ -115,54 +114,38 @@ internal class SearchProviderDialogController(
         successToastResId: Int,
         saveShortcut: (String, String) -> Boolean
     ) {
-        val nameInput = EditText(activity).apply {
-            hint = activity.getString(R.string.hint_custom_shortcut_name)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
-            isSingleLine = true
-            setText(initialName)
-        }
-        val urlInput = EditText(activity).apply {
-            hint = activity.getString(R.string.hint_custom_shortcut_url)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            isSingleLine = true
-            setText(initialUrl)
-        }
-        val content = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(8), dp(20), 0)
-            addView(nameInput)
-            addView(urlInput)
-        }
-
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(titleResId)
-            .setView(content)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(positiveButtonResId, null)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val saved = saveShortcut(
-                    nameInput.text?.toString().orEmpty(),
-                    urlInput.text?.toString().orEmpty()
-                )
-                if (saved) {
-                    onDataChanged()
-                    Toast.makeText(
-                        activity,
-                        successToastResId,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    dialog.dismiss()
-                } else {
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_custom_shortcut_invalid,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+        TwoTextInputDialog.show(
+            activity = activity,
+            titleRes = titleResId,
+            firstField = TextInputDialogField(
+                hintRes = R.string.hint_custom_shortcut_name,
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS,
+                initialValue = initialName
+            ),
+            secondField = TextInputDialogField(
+                hintRes = R.string.hint_custom_shortcut_url,
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
+                initialValue = initialUrl
+            ),
+            positiveButtonRes = positiveButtonResId,
+            dp = dp
+        ) { values ->
+            val saved = saveShortcut(values.first, values.second)
+            if (saved) {
+                onDataChanged()
+                Toast.makeText(
+                    activity,
+                    successToastResId,
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    activity,
+                    R.string.toast_custom_shortcut_invalid,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
+            saved
         }
-        dialog.show()
     }
 }
