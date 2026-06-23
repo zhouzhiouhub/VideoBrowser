@@ -78,24 +78,15 @@ class LinkContextMenuController(
      * @param url 参数类型为 `String`，表示用户长按命中的图片地址，会传给打开、下载、复制或分享动作。
      */
     private fun showImageContextMenu(url: String) {
-        val actions = arrayOf(
-            activity.getString(R.string.action_open_image_new_tab),
-            activity.getString(R.string.action_download_image),
-            activity.getString(R.string.action_copy_image_link),
-            activity.getString(R.string.action_share_image_link)
+        showUrlContextMenu(
+            titleRes = R.string.title_image_context_menu,
+            actions = listOf(
+                UrlContextMenuAction(R.string.action_open_image_new_tab) { openUrlInNewTab(url) },
+                UrlContextMenuAction(R.string.action_download_image) { downloadImageUrl(url) },
+                UrlContextMenuAction(R.string.action_copy_image_link) { copyImageUrl(url) },
+                UrlContextMenuAction(R.string.action_share_image_link) { shareImageUrl(url) }
+            )
         )
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_image_context_menu)
-            .setItems(actions) { dialog, which ->
-                when (which) {
-                    0 -> openUrlInNewTab(url)
-                    1 -> downloadImageUrl(url)
-                    2 -> copyImageUrl(url)
-                    3 -> shareImageUrl(url)
-                }
-                dialog.dismiss()
-            }
-            .show()
     }
 
     /**
@@ -159,21 +150,23 @@ class LinkContextMenuController(
      * @param url 参数类型为 `String`，表示用户长按命中的链接地址，会传给打开、下载、复制或分享动作。
      */
     private fun showLinkContextMenu(url: String) {
-        val actions = arrayOf(
-            activity.getString(R.string.action_open_link_new_tab),
-            activity.getString(R.string.action_download_link),
-            activity.getString(R.string.action_copy_link),
-            activity.getString(R.string.action_share_link)
+        showUrlContextMenu(
+            titleRes = R.string.title_link_context_menu,
+            actions = listOf(
+                UrlContextMenuAction(R.string.action_open_link_new_tab) { openUrlInNewTab(url) },
+                UrlContextMenuAction(R.string.action_download_link) { downloadLinkUrl(url) },
+                UrlContextMenuAction(R.string.action_copy_link) { copyLinkUrl(url) },
+                UrlContextMenuAction(R.string.action_share_link) { shareLinkUrl(url) }
+            )
         )
+    }
+
+    private fun showUrlContextMenu(titleRes: Int, actions: List<UrlContextMenuAction>) {
+        val labels = actions.map { action -> activity.getString(action.labelRes) }.toTypedArray()
         AlertDialog.Builder(activity)
-            .setTitle(R.string.title_link_context_menu)
-            .setItems(actions) { dialog, which ->
-                when (which) {
-                    0 -> openUrlInNewTab(url)
-                    1 -> downloadLinkUrl(url)
-                    2 -> copyLinkUrl(url)
-                    3 -> shareLinkUrl(url)
-                }
+            .setTitle(titleRes)
+            .setItems(labels) { dialog, which ->
+                actions.getOrNull(which)?.perform?.invoke()
                 dialog.dismiss()
             }
             .show()
@@ -211,4 +204,9 @@ class LinkContextMenuController(
     private fun shareLinkUrl(url: String) {
         PageUrlActions.shareLinkUrl(activity, url)
     }
+
+    private data class UrlContextMenuAction(
+        val labelRes: Int,
+        val perform: () -> Unit
+    )
 }

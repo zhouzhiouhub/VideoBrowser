@@ -7,6 +7,7 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Link Context Menu Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -52,6 +53,10 @@ class LinkContextMenuContractTest {
         assertTrue(linkContextMenuController.contains("WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE"))
         assertTrue(linkContextMenuController.contains("WebView.HitTestResult.IMAGE_TYPE"))
         assertTrue(linkContextMenuController.contains("private fun showLinkContextMenu(url: String)"))
+        assertTrue(linkContextMenuController.contains("private fun showUrlContextMenu("))
+        assertTrue(linkContextMenuController.contains("private data class UrlContextMenuAction("))
+        assertTrue(linkContextMenuController.contains("actions.getOrNull(which)?.perform?.invoke()"))
+        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(linkContextMenuController).count())
         assertTrue(linkContextMenuController.contains("R.string.action_open_link_new_tab"))
         assertTrue(linkContextMenuController.contains("R.string.action_download_link"))
         assertTrue(linkContextMenuController.contains("openUrlInNewTab(url)"))
