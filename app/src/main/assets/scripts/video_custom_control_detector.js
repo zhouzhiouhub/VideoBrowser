@@ -67,14 +67,12 @@
     if (!element || element === video || element.querySelector('video')) return false;
     if (element.getAttribute('data-videobrowser-dismissed')) return false;
 
-    const rect = element.getBoundingClientRect();
-    const videoRect = video && typeof video.getBoundingClientRect === 'function'
-      ? video.getBoundingClientRect()
-      : null;
-    if (!rect || rect.width <= 0 || rect.height <= 0) {
+    const rect = geometry.safeRect(element);
+    const videoRect = geometry.safeRect(video);
+    if (!rect) {
       return true;
     }
-    if (!videoRect || videoRect.width <= 0 || videoRect.height <= 0) {
+    if (!videoRect) {
       return true;
     }
     return geometry.rectsOverlap(rect, geometry.expandedRect(videoRect, 12));

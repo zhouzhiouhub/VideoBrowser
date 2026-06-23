@@ -16,9 +16,13 @@ class VideoWakeToolsContractTest {
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
 
         assertTrue(wakeScript.contains("window.VideoBrowserVideoWakeTools = tools"))
+        assertTrue(wakeScript.contains("const geometry = window.VideoBrowserGeometry || {}"))
         assertTrue(wakeScript.contains("tools.wake = tools.wake || function (video, options)"))
         assertTrue(wakeScript.contains("function dispatchMouseWakeEvent(target, type, clientX, clientY)"))
         assertTrue(wakeScript.contains("function dispatchPointerWakeEvent(target, clientX, clientY)"))
+        assertTrue(wakeScript.contains("const rect = geometry.safeRect(root);"))
+        assertTrue(wakeScript.contains("geometry.rectCenterX(rect)"))
+        assertTrue(wakeScript.contains("geometry.rectCenterY(rect)"))
         assertTrue(wakeScript.contains("new MouseEvent(type, {"))
         assertTrue(wakeScript.contains("new PointerEvent('pointermove', {"))
         assertTrue(wakeScript.contains("callbacks.enableVideoControls(target);"))
@@ -39,6 +43,7 @@ class VideoWakeToolsContractTest {
         assertFalse(commonScript.contains("function dispatchPointerWakeEvent(target, clientX, clientY)"))
         assertFalse(commonScript.contains("new MouseEvent(type, {"))
         assertFalse(commonScript.contains("new PointerEvent('pointermove', {"))
+        assertFalse(wakeScript.contains("getBoundingClientRect"))
     }
 
 }

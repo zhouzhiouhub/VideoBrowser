@@ -23,6 +23,8 @@ class VideoCustomControlDetectorContractTest {
         assertTrue(detectorScript.contains("'.art-controls'"))
         assertTrue(detectorScript.contains("'.vjs-control-bar'"))
         assertTrue(detectorScript.contains("'[class*=\"player-control\"]'"))
+        assertTrue(detectorScript.contains("const rect = geometry.safeRect(element);"))
+        assertTrue(detectorScript.contains("const videoRect = geometry.safeRect(video);"))
         assertTrue(detectorScript.contains("geometry.rectsOverlap(rect, geometry.expandedRect(videoRect, 12))"))
         assertTrue(detectorScript.contains("selectorTools.queryAllWithin(root, selector).some(function (element)"))
         assertTrue(detectorScript.contains("domTools.elementDescriptor(element).toLowerCase()"))
@@ -49,6 +51,7 @@ class VideoCustomControlDetectorContractTest {
         assertFalse(detectorScript.contains("function normalizeText(value)"))
         assertFalse(detectorScript.contains("function elementDescriptor(element)"))
         assertFalse(detectorScript.contains("function queryAllWithin(root, selector)"))
+        assertFalse(detectorScript.contains("getBoundingClientRect"))
     }
 
 }

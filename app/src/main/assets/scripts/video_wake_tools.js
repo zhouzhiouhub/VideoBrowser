@@ -3,6 +3,7 @@
  */
 (function () {
   const tools = window.VideoBrowserVideoWakeTools || {};
+  const geometry = window.VideoBrowserGeometry || {};
   window.VideoBrowserVideoWakeTools = tools;
 
   tools.wake = tools.wake || function (video, options) {
@@ -23,14 +24,12 @@
 
     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
     const root = fullscreenElement || target.parentElement || target;
-    const rect = root && typeof root.getBoundingClientRect === 'function'
-      ? root.getBoundingClientRect()
-      : null;
-    const clientX = rect && Number.isFinite(rect.left + rect.width / 2)
-      ? rect.left + rect.width / 2
+    const rect = geometry.safeRect(root);
+    const clientX = rect && Number.isFinite(geometry.rectCenterX(rect))
+      ? geometry.rectCenterX(rect)
       : Math.max(1, window.innerWidth / 2);
-    const clientY = rect && Number.isFinite(rect.top + rect.height / 2)
-      ? rect.top + rect.height / 2
+    const clientY = rect && Number.isFinite(geometry.rectCenterY(rect))
+      ? geometry.rectCenterY(rect)
       : Math.max(1, window.innerHeight / 2);
 
     dispatchMouseWakeEvent(root, 'mousemove', clientX, clientY);
