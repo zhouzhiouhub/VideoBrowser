@@ -300,26 +300,26 @@ class FullscreenVideoGestureOverlay(
 
         if (touchSession.touchStartedOnControl) {
             super.dispatchTouchEvent(event)
-            if (event.isFinishedAction()) {
+            if (FullscreenVideoMotionEvents.isFinishedAction(event)) {
                 touchSession.clearControlStart()
             }
             return true
         }
 
         if (touchSession.touchStartedInBottomPassthrough) {
-            if (event.isFinishedAction()) {
+            if (FullscreenVideoMotionEvents.isFinishedAction(event)) {
                 touchSession.clearBottomPassthroughStart()
             }
             return false
         }
 
-        if (event.isWakeControlsAction()) {
+        if (FullscreenVideoMotionEvents.isWakeControlsAction(event)) {
             notifyUserInteraction()
         }
 
         if (locked) {
             // 锁定后只吞掉触摸并保留解锁按钮，避免误触改变播放状态。
-            if (event.isFinishedAction()) {
+            if (FullscreenVideoMotionEvents.isFinishedAction(event)) {
                 resetTouchState()
             }
             return true
@@ -336,7 +336,7 @@ class FullscreenVideoGestureOverlay(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     override fun dispatchHoverEvent(event: MotionEvent): Boolean {
-        if (visibility == View.VISIBLE && event.isWakeControlsAction()) {
+        if (visibility == View.VISIBLE && FullscreenVideoMotionEvents.isWakeControlsAction(event)) {
             notifyUserInteraction()
         }
         return super.dispatchHoverEvent(event)
@@ -488,31 +488,6 @@ class FullscreenVideoGestureOverlay(
      */
     private fun bottomPassthroughHeight(): Int {
         return dp(BOTTOM_PASSTHROUGH_DP)
-    }
-
-    /**
-     * 函数 `isFinishedAction`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun MotionEvent.isFinishedAction(): Boolean {
-        return actionMasked == MotionEvent.ACTION_UP ||
-            actionMasked == MotionEvent.ACTION_CANCEL
-    }
-
-    /**
-     * 函数 `isWakeControlsAction`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun MotionEvent.isWakeControlsAction(): Boolean {
-        return actionMasked == MotionEvent.ACTION_DOWN ||
-            actionMasked == MotionEvent.ACTION_MOVE ||
-            actionMasked == MotionEvent.ACTION_UP ||
-            actionMasked == MotionEvent.ACTION_HOVER_ENTER ||
-            actionMasked == MotionEvent.ACTION_HOVER_MOVE
     }
 
     /**

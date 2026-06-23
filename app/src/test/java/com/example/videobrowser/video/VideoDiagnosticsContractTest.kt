@@ -68,12 +68,36 @@ class VideoDiagnosticsContractTest {
         val bottomPassthroughIndex = dispatchBody.indexOf(
             "if (touchSession.touchStartedInBottomPassthrough)"
         )
-        val wakeControlsIndex = dispatchBody.indexOf("if (event.isWakeControlsAction())")
+        val wakeControlsIndex = dispatchBody.indexOf(
+            "if (FullscreenVideoMotionEvents.isWakeControlsAction(event))"
+        )
 
         assertTrue(bottomPassthroughIndex >= 0)
         assertTrue(wakeControlsIndex >= 0)
         assertTrue(bottomPassthroughIndex < wakeControlsIndex)
         assertTrue(dispatchBody.substring(bottomPassthroughIndex, wakeControlsIndex).contains("return false"))
+    }
+
+    @Test
+    fun fullscreenGestureOverlayDelegatesMotionEventClassification() {
+        val overlaySource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoGestureOverlay.kt"
+        ).readText()
+        val motionEventsSource = projectFile(
+            "src/main/java/com/example/videobrowser/video/FullscreenVideoMotionEvents.kt"
+        ).readText()
+
+        assertTrue(overlaySource.contains("FullscreenVideoMotionEvents.isFinishedAction(event)"))
+        assertTrue(overlaySource.contains("FullscreenVideoMotionEvents.isWakeControlsAction(event)"))
+        assertFalse(overlaySource.contains("private fun MotionEvent.isFinishedAction()"))
+        assertFalse(overlaySource.contains("private fun MotionEvent.isWakeControlsAction()"))
+
+        assertTrue(motionEventsSource.contains("internal object FullscreenVideoMotionEvents"))
+        assertTrue(motionEventsSource.contains("fun isFinishedAction(event: MotionEvent): Boolean"))
+        assertTrue(motionEventsSource.contains("MotionEvent.ACTION_CANCEL"))
+        assertTrue(motionEventsSource.contains("fun isWakeControlsAction(event: MotionEvent): Boolean"))
+        assertTrue(motionEventsSource.contains("MotionEvent.ACTION_HOVER_ENTER"))
+        assertTrue(motionEventsSource.contains("MotionEvent.ACTION_HOVER_MOVE"))
     }
 
     @Test
