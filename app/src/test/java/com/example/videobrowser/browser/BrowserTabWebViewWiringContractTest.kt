@@ -122,7 +122,7 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(reopenClosedTabBody.contains("standardTabStore.reopenClosedTab()"))
         assertTrue(reopenClosedTabBody.contains("standardTabWebViews.activate(reopenedTab.id)"))
         assertTrue(reopenClosedTabBody.contains("saveStandardTabSession()"))
-        assertTrue(reopenClosedTabBody.contains("reopenedTab.url?.let(loadUrl) ?: openHomePage()"))
+        assertTrue(reopenClosedTabBody.contains("loadTabUrlOrHome(reopenedTab)"))
     }
 
     /**
@@ -142,7 +142,7 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(duplicateTabBody.contains("openStandardTab("))
         assertTrue(duplicateTabBody.contains("url = sourceTab.url"))
         assertTrue(duplicateTabBody.contains("title = sourceTab.title"))
-        assertTrue(duplicateTabBody.contains("sourceTab.url?.let(loadUrl) ?: openHomePage()"))
+        assertTrue(duplicateTabBody.contains("loadTabUrlOrHome(sourceTab)"))
     }
 
     /**
@@ -180,6 +180,21 @@ class BrowserTabWebViewWiringContractTest {
         assertTrue(helperBody.contains("showStandardTabWebView(result.activeView)"))
         assertTrue(helperBody.contains("saveStandardTabSession()"))
         assertFalse(openNewTabBody.contains("standardTabWebViews.openTab("))
+    }
+
+    @Test
+    fun tabUrlLoadingIsOwnedBySharedHelper() {
+        val tabActionsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserTabActionsController.kt"
+        ).readText()
+        val helperBody = tabActionsController.substringAfter("private fun loadTabUrlOrHome(tab: BrowserTab)")
+            .substringBefore("private fun showActiveTab")
+        val showActiveTabBody = tabActionsController.substringAfter("private fun showActiveTab(tab: BrowserTab)")
+            .substringBefore("private fun currentTabStore")
+
+        assertTrue(helperBody.contains("tab.url?.let(loadUrl) ?: openHomePage()"))
+        assertTrue(showActiveTabBody.contains("loadTabUrlOrHome(tab)"))
+        assertFalse(showActiveTabBody.contains("tab.url?.let(loadUrl) ?: openHomePage()"))
     }
 
 }

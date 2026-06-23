@@ -96,12 +96,12 @@ class BrowserTabActionsController(
             val reopenedTab = standardTabStore.reopenClosedTab() ?: return
             standardTabWebViews.activate(reopenedTab.id)
             saveStandardTabSession()
-            reopenedTab.url?.let(loadUrl) ?: openHomePage()
+            loadTabUrlOrHome(reopenedTab)
             return
         }
 
         val reopenedTab = currentTabStore().reopenClosedTab() ?: return
-        reopenedTab.url?.let(loadUrl) ?: openHomePage()
+        loadTabUrlOrHome(reopenedTab)
     }
 
     /**
@@ -215,7 +215,7 @@ class BrowserTabActionsController(
         } else {
             currentTabStore().openTab(url = sourceTab.url, title = sourceTab.title)
         }
-        sourceTab.url?.let(loadUrl) ?: openHomePage()
+        loadTabUrlOrHome(sourceTab)
     }
 
     /**
@@ -243,6 +243,10 @@ class BrowserTabActionsController(
         saveStandardTabSession()
     }
 
+    private fun loadTabUrlOrHome(tab: BrowserTab) {
+        tab.url?.let(loadUrl) ?: openHomePage()
+    }
+
     /**
      * 函数 `showActiveTab`：把标签页数据同步到当前浏览显示状态。
      *
@@ -255,7 +259,7 @@ class BrowserTabActionsController(
             return
         }
 
-        tab.url?.let(loadUrl) ?: openHomePage()
+        loadTabUrlOrHome(tab)
     }
 
     /**
