@@ -29,8 +29,8 @@ class RuleSubscriptionPageContractTest {
         assertTrue(page.contains("private val ruleSubscriptionFetcher = RuleSubscriptionFetcher()"))
         assertTrue(page.contains("RuleSubscriptionFetcher.subscriptionIdForUrl(url)"))
         assertTrue(page.contains("ruleSubscriptionFetcher.fetchText(url)"))
-        assertTrue(fetcher.contains("WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)"))
-        assertTrue(fetcher.contains("uri.host.isNullOrBlank()"))
+        assertTrue(fetcher.contains("WebUrlNormalizer.normalizeHttpOrHttpsUrl(url)"))
+        assertTrue(fetcher.contains("uri.userInfo.isNullOrBlank()"))
         assertTrue(fetcher.contains("readTextWithByteLimit"))
         assertTrue(readme.contains("规则订阅 URL 仅接受带主机名的 HTTP/HTTPS 地址"))
     }

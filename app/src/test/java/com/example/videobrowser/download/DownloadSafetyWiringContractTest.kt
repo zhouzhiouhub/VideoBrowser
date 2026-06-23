@@ -38,7 +38,7 @@ class DownloadSafetyWiringContractTest {
         assertTrue(policy.contains("WebSchemePolicy.isHttpsScheme(SafeUriParser.scheme(pageUrl))"))
         assertTrue(policy.contains("WebSchemePolicy.isHttpScheme(SafeUriParser.scheme(downloadUrl))"))
         assertTrue(policy.contains("fun isDownloadableNetworkUrl(url: String): Boolean"))
-        assertTrue(policy.contains("WebSchemePolicy.isHttpOrHttpsScheme(uri.scheme)"))
+        assertTrue(policy.contains("WebUrlNormalizer.isHttpOrHttpsUrl(url)"))
         assertTrue(policy.contains("fun safeDownloadFileName(fileName: String): String"))
         assertTrue(policy.contains("FileNameSanitizer.replaceInvalidCharacters"))
         assertTrue(controller.contains("DownloadEnqueueController("))
