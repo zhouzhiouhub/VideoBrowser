@@ -98,6 +98,9 @@ class WebGeolocationPermissionContractTest {
         val geolocationController = projectFile(
             "src/main/java/com/example/videobrowser/browser/GeolocationPermissionController.kt"
         ).readText()
+        val permissionDecisionDialog = projectFile(
+            "src/main/java/com/example/videobrowser/browser/PermissionDecisionDialog.kt"
+        ).readText()
         val sitePermissionDecisionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserSitePermissionDecisionController.kt"
         ).readText()
@@ -139,10 +142,11 @@ class WebGeolocationPermissionContractTest {
         assertTrue(geolocationController.contains("showPermissionPrompt"))
         assertTrue(geolocationController.contains("R.string.title_geolocation_permission_request"))
         assertTrue(geolocationController.contains("R.string.dialog_geolocation_permission_request_message"))
-        assertTrue(geolocationController.contains("R.string.action_allow"))
-        assertTrue(geolocationController.contains("R.string.action_allow_once"))
+        assertTrue(geolocationController.contains("PermissionDecisionDialog.create("))
+        assertTrue(permissionDecisionDialog.contains("R.string.action_allow"))
+        assertTrue(permissionDecisionDialog.contains("R.string.action_allow_once"))
         assertTrue(geolocationController.contains("rememberDecision = false"))
-        assertTrue(geolocationController.contains("R.string.action_deny"))
+        assertTrue(permissionDecisionDialog.contains("R.string.action_deny"))
         assertTrue(geolocationController.contains("prompt.callback.invoke(prompt.origin, allowed, false)"))
         assertTrue(geolocationController.contains("callback.invoke(origin, false, false)"))
         assertTrue(mainActivity.contains("browserActivityLifecycleController.handleDestroy()"))

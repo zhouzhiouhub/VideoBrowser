@@ -17,28 +17,24 @@ class WebPermissionPromptController(
     fun show(request: PermissionRequest) {
         cancelPendingPrompt()
         pendingWebPermissionPromptRequest = request
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_web_permission_request)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_web_permission_request_message,
-                    webPermissionOrigin(request),
-                    webPermissionResourceSummary(request.resources)
-                )
-            )
-            .setPositiveButton(R.string.action_allow) { _, _ ->
+        val dialog = PermissionDecisionDialog.create(
+            activity = activity,
+            titleRes = R.string.title_web_permission_request,
+            message = activity.getString(
+                R.string.dialog_web_permission_request_message,
+                webPermissionOrigin(request),
+                webPermissionResourceSummary(request.resources)
+            ),
+            onAllow = {
                 answerPermissionPrompt(request, allowed = true)
-            }
-            .setNeutralButton(R.string.action_allow_once) { _, _ ->
+            },
+            onAllowOnce = {
                 answerPermissionPrompt(request, allowed = true, rememberDecision = false)
-            }
-            .setNegativeButton(R.string.action_deny) { _, _ ->
+            },
+            onDeny = {
                 answerPermissionPrompt(request, allowed = false)
             }
-            .create()
-        dialog.setOnCancelListener {
-            answerPermissionPrompt(request, allowed = false)
-        }
+        )
         pendingWebPermissionDialog = dialog
         dialog.show()
     }

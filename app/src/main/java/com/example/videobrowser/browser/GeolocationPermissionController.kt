@@ -148,28 +148,24 @@ class GeolocationPermissionController(
     private fun showPermissionPrompt(prompt: GeolocationPermissionPrompt) {
         cancelPending()
         pendingSitePrompt = prompt
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_geolocation_permission_request)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_geolocation_permission_request_message,
-                    prompt.origin?.takeIf { origin -> origin.isNotBlank() }
-                        ?: activity.getString(R.string.permission_origin_unknown)
-                )
-            )
-            .setPositiveButton(R.string.action_allow) { _, _ ->
+        val dialog = PermissionDecisionDialog.create(
+            activity = activity,
+            titleRes = R.string.title_geolocation_permission_request,
+            message = activity.getString(
+                R.string.dialog_geolocation_permission_request_message,
+                prompt.origin?.takeIf { origin -> origin.isNotBlank() }
+                    ?: activity.getString(R.string.permission_origin_unknown)
+            ),
+            onAllow = {
                 answerPermissionPrompt(prompt, allowed = true)
-            }
-            .setNeutralButton(R.string.action_allow_once) { _, _ ->
+            },
+            onAllowOnce = {
                 answerPermissionPrompt(prompt, allowed = true, rememberDecision = false)
-            }
-            .setNegativeButton(R.string.action_deny) { _, _ ->
+            },
+            onDeny = {
                 answerPermissionPrompt(prompt, allowed = false)
             }
-            .create()
-        dialog.setOnCancelListener {
-            answerPermissionPrompt(prompt, allowed = false)
-        }
+        )
         pendingDialog = dialog
         dialog.show()
     }

@@ -82,6 +82,9 @@ class WebPermissionRequestContractTest {
         val webPermissionPromptController = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionPromptController.kt"
         ).readText()
+        val permissionDecisionDialog = projectFile(
+            "src/main/java/com/example/videobrowser/browser/PermissionDecisionDialog.kt"
+        ).readText()
         val webPermissionResourceMapper = projectFile(
             "src/main/java/com/example/videobrowser/browser/WebPermissionResourceMapper.kt"
         ).readText()
@@ -160,10 +163,11 @@ class WebPermissionRequestContractTest {
         assertTrue(webPermissionController.contains("request.grant(resources)"))
         assertTrue(webPermissionPromptController.contains("R.string.title_web_permission_request"))
         assertTrue(webPermissionPromptController.contains("R.string.dialog_web_permission_request_message"))
-        assertTrue(webPermissionPromptController.contains("R.string.action_allow"))
-        assertTrue(webPermissionPromptController.contains("R.string.action_allow_once"))
+        assertTrue(webPermissionPromptController.contains("PermissionDecisionDialog.create("))
+        assertTrue(permissionDecisionDialog.contains("R.string.action_allow"))
+        assertTrue(permissionDecisionDialog.contains("R.string.action_allow_once"))
         assertTrue(webPermissionPromptController.contains("rememberDecision = false"))
-        assertTrue(webPermissionPromptController.contains("R.string.action_deny"))
+        assertTrue(permissionDecisionDialog.contains("R.string.action_deny"))
         assertFalse(webPermissionController.contains("request.grant(request.resources)"))
         assertTrue(webPermissionController.contains("request.deny()"))
         assertTrue(webPermissionPromptController.contains("request.deny()"))
