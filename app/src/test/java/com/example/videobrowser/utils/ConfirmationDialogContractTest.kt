@@ -46,8 +46,12 @@ class ConfirmationDialogContractTest {
         val searchProviderDialogs = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt"
         ).readText()
+        val elementPickerController = projectFile(
+            "src/main/java/com/example/videobrowser/element/ElementPickerController.kt"
+        ).readText()
 
         assertTrue(confirmationDialog.contains("object ConfirmationDialog"))
+        assertTrue(confirmationDialog.contains("fun create("))
         assertTrue(confirmationDialog.contains("AlertDialog.Builder(activity)"))
         assertTrue(confirmationDialog.contains("messageRes: Int"))
         assertTrue(confirmationDialog.contains("message: String"))
@@ -68,6 +72,9 @@ class ConfirmationDialogContractTest {
             assertFalse(source.contains("private fun showConfirmationDialog("))
             assertFalse(source.contains(".setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }"))
         }
+        assertTrue(elementPickerController.contains("ConfirmationDialog.create("))
+        assertFalse(elementPickerController.contains("AlertDialog.Builder(activity)"))
+        assertFalse(elementPickerController.contains(".setPositiveButton(R.string.action_block_element)"))
 
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(dataManagementDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadsDialogs).count())
@@ -77,6 +84,7 @@ class ConfirmationDialogContractTest {
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadEnqueueController).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(browserNavigationController).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(searchProviderDialogs).count())
+        assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(elementPickerController).count())
         simpleConfirmationPages.forEach { source ->
             assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(source).count())
             assertFalse(source.contains("import androidx.appcompat.app.AlertDialog"))

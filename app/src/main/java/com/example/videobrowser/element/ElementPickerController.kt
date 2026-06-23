@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.utils.ConfirmationDialog
 
 /**
  * 用户手动屏蔽网页元素的控制器。
@@ -151,21 +152,19 @@ class ElementPickerController(
             .filter { value -> value.isNotBlank() }
             .distinct()
             .joinToString(separator = "\n")
-        val activeDialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.title_confirm_element_block)
-            .setMessage(activity.getString(R.string.dialog_confirm_element_block_message, host, detail))
-            .setPositiveButton(R.string.action_block_element) { _, _ ->
-                savePickedElement(host, selector)
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
+        val activeDialog = ConfirmationDialog.create(
+            activity = activity,
+            titleRes = R.string.title_confirm_element_block,
+            message = activity.getString(R.string.dialog_confirm_element_block_message, host, detail),
+            positiveButtonRes = R.string.action_block_element,
+            onCanceled = {
                 cancel()
             }
-            .create()
+        ) {
+            savePickedElement(host, selector)
+        }
         dialog?.dismiss()
         dialog = activeDialog
-        activeDialog.setOnCancelListener {
-            cancel()
-        }
         activeDialog.setOnDismissListener {
             if (dialog === activeDialog) {
                 dialog = null
