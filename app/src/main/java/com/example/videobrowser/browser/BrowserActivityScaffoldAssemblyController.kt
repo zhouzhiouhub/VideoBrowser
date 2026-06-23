@@ -17,22 +17,26 @@ import com.example.videobrowser.settings.SessionSitePermissionStore
  * @param browserActivityLifecycleController 参数类型为 `BrowserActivityLifecycleController`，表示处理 Activity 生命周期回调的控制器。
  * @param browserTabState 参数类型为 `BrowserTabStateComponents`，表示标准/无痕标签页 store 和会话绑定组件。
  * @param findInPageController 参数类型为 `FindInPageController`，表示页内查找弹窗使用的查找控制器。
- * @param requestInterceptionProvider 参数类型为 `BrowserRequestInterceptionProvider`，表示广告拦截和请求拦截相关 provider。
  * @param activityResultLaunchers 参数类型为 `BrowserActivityResultLaunchers`，表示文件选择、权限申请、导入导出使用的 launcher 集合。
  * @param sessionSitePermissionStore 参数类型为 `SessionSitePermissionStore`，表示单次会话内记住的网站权限决定。
  * @param browserRuntimeStateController 参数类型为 `BrowserRuntimeStateController`，表示无痕、首页、全屏和默认 User-Agent 状态控制器。
  * @param browserSessionStateController 参数类型为 `BrowserSessionStateController`，表示读取当前浏览模式会话状态的控制器。
+ * @param bindCoreFeatures 参数类型为 `(BrowserCoreFeatureComponents) -> Unit`，表示核心 feature 创建完成后绑定给脚手架延迟回调。
+ * @param bindRuntimeFeatures 参数类型为 `(BrowserRuntimeFeatureComponents) -> Unit`，表示运行期 feature 创建完成后绑定给脚手架延迟回调。
+ * @param bindStartupFeatures 参数类型为 `(BrowserStartupFeatureComponents) -> Unit`，表示启动期 feature 创建完成后绑定给脚手架延迟回调。
  */
 data class BrowserActivityScaffoldComponents(
     val browserChromeClientStateController: BrowserChromeClientStateController,
     val browserActivityLifecycleController: BrowserActivityLifecycleController,
     val browserTabState: BrowserTabStateComponents,
     val findInPageController: FindInPageController,
-    val requestInterceptionProvider: BrowserRequestInterceptionProvider,
     val activityResultLaunchers: BrowserActivityResultLaunchers,
     val sessionSitePermissionStore: SessionSitePermissionStore,
     val browserRuntimeStateController: BrowserRuntimeStateController,
-    val browserSessionStateController: BrowserSessionStateController
+    val browserSessionStateController: BrowserSessionStateController,
+    val bindCoreFeatures: (BrowserCoreFeatureComponents) -> Unit,
+    val bindRuntimeFeatures: (BrowserRuntimeFeatureComponents) -> Unit,
+    val bindStartupFeatures: (BrowserStartupFeatureComponents) -> Unit
 )
 
 /**
@@ -59,44 +63,65 @@ class BrowserActivityScaffoldAssemblyController(
      */
     fun create(): BrowserActivityScaffoldComponents {
         lateinit var browserSessionStateController: BrowserSessionStateController
+        var createdCoreFeatures: BrowserCoreFeatureComponents? = null
+        var createdRuntimeFeatures: BrowserRuntimeFeatureComponents? = null
+        var createdStartupFeatures: BrowserStartupFeatureComponents? = null
+
+        fun currentCoreFeatures(): BrowserCoreFeatureComponents? {
+            return createdCoreFeatures ?: browserCoreFeatures()
+        }
+
+        fun currentRuntimeFeatures(): BrowserRuntimeFeatureComponents? {
+            return createdRuntimeFeatures ?: browserRuntimeFeatures()
+        }
+
+        fun currentStartupFeatures(): BrowserStartupFeatureComponents? {
+            return createdStartupFeatures ?: browserStartupFeatures()
+        }
+
+        fun requireCoreFeatures(): BrowserCoreFeatureComponents {
+            return requireNotNull(currentCoreFeatures()) {
+                "BrowserCoreFeatureComponents has not been initialized."
+            }
+        }
 
         val browserChromeClientStateController = BrowserChromeClientStateAssemblyController(
             browserChromeClientController = {
-                browserRuntimeFeatures()?.browserClients?.browserChromeClientController
+                currentRuntimeFeatures()?.browserClients?.browserChromeClientController
             }
         ).create()
 
         val browserActivityLifecycleController = BrowserActivityLifecycleAssemblyController(
             browserChromeClientController = {
-                browserRuntimeFeatures()?.browserClients?.browserChromeClientController
+                currentRuntimeFeatures()?.browserClients?.browserChromeClientController
             },
             browserWebClientController = {
-                browserRuntimeFeatures()?.browserClients?.browserWebClientController
+                currentRuntimeFeatures()?.browserClients?.browserWebClientController
             },
             pageArchiveController = {
-                browserCoreFeatures()?.pageActions?.pageArchiveController
+                currentCoreFeatures()?.pageActions?.pageArchiveController
             },
             addressSuggestionController = {
-                browserCoreFeatures()?.browserSearch?.addressSuggestionController
+                currentCoreFeatures()?.browserSearch?.addressSuggestionController
             },
             downloadController = {
-                browserCoreFeatures()?.pageActions?.downloadController
+                currentCoreFeatures()?.pageActions?.downloadController
             },
             elementPickerController = {
-                browserStartupFeatures()?.pageFeatures?.elementPickerController
+                currentStartupFeatures()?.pageFeatures?.elementPickerController
             },
             functionCenterEntryController = {
-                browserStartupFeatures()?.functionCenterEntryController
+                currentStartupFeatures()?.functionCenterEntryController
             },
             browserChromeClientStateController = browserChromeClientStateController,
             browserStandardTabSessionController = {
-                browserCoreFeatures()?.browserPersistence?.browserStandardTabSessionController
+                currentCoreFeatures()?.browserPersistence?.browserStandardTabSessionController
             },
             browserStandardWebViewHostController = {
-                browserCoreFeatures()?.browserSurface?.browserStandardWebViewHostController
+                currentCoreFeatures()?.browserSurface?.browserStandardWebViewHostController
             },
             browserLaunchController = {
-                browserCoreFeatures()?.browserNavigation?.browserLaunchController
+                currentCoreFeatures()?.browserNavigation?.browserLaunchController
             }
         ).create()
 
@@ -106,17 +131,6 @@ class BrowserActivityScaffoldAssemblyController(
                 requireCoreFeatures().browserSurface.browserStandardWebViewHostController
             }
         ).create()
-        val requestInterceptionProvider = BrowserRequestInterceptionProvider(
-            browserFeatureStateController = {
-                requireCoreFeatures().browserShell.browserFeatureStateController
-            },
-            settingsManager = { requireCoreFeatures().browserPersistence.settingsManager },
-            browserSessionStateController = { browserSessionStateController },
-            browserUrlStateController = {
-                requireCoreFeatures().browserShell.browserUrlStateController
-            },
-            ruleEngine = { requireCoreFeatures().browserNavigation.ruleEngine }
-        )
         val activityResultLaunchers = BrowserActivityResultLaunchersAssemblyController(
             activity = activity,
             webFileChooserController = {
@@ -137,20 +151,23 @@ class BrowserActivityScaffoldAssemblyController(
         ).create()
         val sessionSitePermissionStore = SessionSitePermissionStore()
         val browserRuntimeStateController = BrowserRuntimeStateController(
+            areBrowserSessionsInitialized = {
+                browserSessionStateController.areBrowserSessionsInitialized()
+            },
             currentSessionController = {
                 browserSessionStateController.currentSessionController()
             },
             fullscreenVideoController = {
-                browserRuntimeFeatures()?.browserFullscreen?.fullscreenVideoController
+                currentRuntimeFeatures()?.browserFullscreen?.fullscreenVideoController
             }
         )
         browserSessionStateController = BrowserSessionStateAssemblyController(
             isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
             standardSessionController = {
-                browserRuntimeFeatures()?.browserSessions?.standardSessionController
+                currentRuntimeFeatures()?.browserSessions?.standardSessionController
             },
             privateSessionController = {
-                browserRuntimeFeatures()?.browserSessions?.privateSessionController
+                currentRuntimeFeatures()?.browserSessions?.privateSessionController
             }
         ).create()
 
@@ -159,17 +176,13 @@ class BrowserActivityScaffoldAssemblyController(
             browserActivityLifecycleController = browserActivityLifecycleController,
             browserTabState = browserTabState,
             findInPageController = findInPageController,
-            requestInterceptionProvider = requestInterceptionProvider,
             activityResultLaunchers = activityResultLaunchers,
             sessionSitePermissionStore = sessionSitePermissionStore,
             browserRuntimeStateController = browserRuntimeStateController,
-            browserSessionStateController = browserSessionStateController
+            browserSessionStateController = browserSessionStateController,
+            bindCoreFeatures = { coreFeatures -> createdCoreFeatures = coreFeatures },
+            bindRuntimeFeatures = { runtimeFeatures -> createdRuntimeFeatures = runtimeFeatures },
+            bindStartupFeatures = { startupFeatures -> createdStartupFeatures = startupFeatures }
         )
-    }
-
-    private fun requireCoreFeatures(): BrowserCoreFeatureComponents {
-        return requireNotNull(browserCoreFeatures()) {
-            "BrowserCoreFeatureComponents has not been initialized."
-        }
     }
 }

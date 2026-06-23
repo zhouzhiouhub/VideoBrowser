@@ -53,7 +53,6 @@ data class BrowserCoreFeatureComponents(
  * @param browserSessionStateController 参数类型为 `BrowserSessionStateController`，表示读取当前浏览模式会话状态的控制器。
  * @param browserRuntimeStateController 参数类型为 `BrowserRuntimeStateController`，表示读取无痕、首页、全屏和默认 User-Agent 状态的控制器。
  * @param browserChromeClientStateController 参数类型为 `BrowserChromeClientStateController`，表示读取和同步当前 ChromeClient 状态的控制器。
- * @param requestInterceptionProvider 参数类型为 `BrowserRequestInterceptionProvider`，表示广告拦截和请求拦截相关 provider。
  * @param activityResultLaunchers 参数类型为 `BrowserActivityResultLaunchers`，表示功能中心和页面动作使用的 Activity Result launcher 集合。
  * @param findInPageController 参数类型为 `FindInPageController`，表示页内查找弹窗使用的查找控制器。
  * @param browserRuntimeFeatures 参数类型为 `() -> BrowserRuntimeFeatureComponents?`，表示安全读取运行期组件的回调；尚未初始化时返回 null。
@@ -71,7 +70,6 @@ class BrowserCoreFeatureAssemblyController(
     private val browserSessionStateController: BrowserSessionStateController,
     private val browserRuntimeStateController: BrowserRuntimeStateController,
     private val browserChromeClientStateController: BrowserChromeClientStateController,
-    private val requestInterceptionProvider: BrowserRequestInterceptionProvider,
     private val activityResultLaunchers: BrowserActivityResultLaunchers,
     private val findInPageController: FindInPageController,
     private val browserRuntimeFeatures: () -> BrowserRuntimeFeatureComponents?,
@@ -151,7 +149,8 @@ class BrowserCoreFeatureAssemblyController(
             },
             pageActionsController = { pageActions.pageActionsController },
             closeFunctionCenter = {
-                requireStartupFeatures().functionCenterEntryController.closeFunctionCenter()
+                browserStartupFeatures()?.functionCenterEntryController?.closeFunctionCenter()
+                    ?: false
             },
             currentSessionController = browserSessionStateController::currentSessionController,
             currentBrowserManager = {
@@ -251,7 +250,8 @@ class BrowserCoreFeatureAssemblyController(
             addressSuggestionController = browserSearch.addressSuggestionController,
             searchProviderController = browserSearch.searchProviderController,
             closeFunctionCenter = {
-                requireStartupFeatures().functionCenterEntryController.closeFunctionCenter()
+                browserStartupFeatures()?.functionCenterEntryController?.closeFunctionCenter()
+                    ?: false
             },
             defaultUserAgent = browserRuntimeStateController::defaultUserAgent
         ).create()
@@ -280,7 +280,8 @@ class BrowserCoreFeatureAssemblyController(
             findInPageController = findInPageController,
             browserNavigationController = browserNavigation.browserNavigationController,
             closeFunctionCenter = {
-                requireStartupFeatures().functionCenterEntryController.closeFunctionCenter()
+                browserStartupFeatures()?.functionCenterEntryController?.closeFunctionCenter()
+                    ?: false
             },
             recreateActivity = recreateActivity,
             dp = dp

@@ -16,10 +16,12 @@ import com.example.videobrowser.video.FullscreenVideoController
  * MainActivity 仍然负责接收 Android 生命周期和按键事件；本类负责把“当前是否无痕、首页是否可见、
  * 视频全屏 UI 是否激活、默认 User-Agent 是什么”这些运行时状态集中管理。
  *
+ * @param areBrowserSessionsInitialized 参数类型为 `() -> Boolean`，表示标准和无痕会话控制器是否已经可读。
  * @param currentSessionController 参数类型为 `() -> BrowserSessionController`，表示读取当前浏览模式会话控制器的回调。
  * @param fullscreenVideoController 参数类型为 `() -> FullscreenVideoController?`，表示安全读取视频全屏控制器的回调。
  */
 class BrowserRuntimeStateController(
+    private val areBrowserSessionsInitialized: () -> Boolean,
     private val currentSessionController: () -> BrowserSessionController,
     private val fullscreenVideoController: () -> FullscreenVideoController?
 ) {
@@ -50,6 +52,9 @@ class BrowserRuntimeStateController(
      * @return true 表示当前页面仍在首页内容状态，false 表示已经显示普通网页或本地内容。
      */
     fun isHomePageVisible(): Boolean {
+        if (!areBrowserSessionsInitialized()) {
+            return true
+        }
         return currentSessionController().isHomePageVisible
     }
 

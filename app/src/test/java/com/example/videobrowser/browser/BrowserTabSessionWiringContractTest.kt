@@ -8,6 +8,7 @@ import com.example.videobrowser.testutil.projectFile
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class BrowserTabSessionWiringContractTest {
@@ -20,6 +21,9 @@ class BrowserTabSessionWiringContractTest {
     fun mainActivityOwnsBrowserTabsAndSessionBinding() {
         val mainActivity = projectFile("src/main/java/com/example/videobrowser/MainActivity.kt")
             .readText()
+        val activityFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserActivityFeatureAssemblyController.kt"
+        ).readText()
         val standardTabSessionController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserStandardTabSessionController.kt"
         ).readText()
@@ -62,6 +66,20 @@ class BrowserTabSessionWiringContractTest {
         assertTrue(persistenceAssembly.contains("BrowserStandardTabSessionController("))
         assertTrue(activityScaffoldAssembly.contains("BrowserSessionStateAssemblyController"))
         assertTrue(activityScaffoldAssembly.contains("browserSessionStateController.currentSessionController()"))
+        assertTrue(activityScaffoldAssembly.contains("currentRuntimeFeatures()?.browserSessions?.standardSessionController"))
+        assertTrue(activityScaffoldAssembly.contains("currentRuntimeFeatures()?.browserSessions?.privateSessionController"))
+        assertTrue(activityScaffoldAssembly.contains("bindRuntimeFeatures = { runtimeFeatures ->"))
+        assertTrue(activityFeatureAssembly.contains("activityScaffold.bindRuntimeFeatures(createdRuntimeFeatures)"))
+        assertTrue(
+            coreFeatureAssembly.contains(
+                "browserStartupFeatures()?.functionCenterEntryController?.closeFunctionCenter()"
+            )
+        )
+        assertFalse(
+            coreFeatureAssembly.contains(
+                "requireStartupFeatures().functionCenterEntryController.closeFunctionCenter()"
+            )
+        )
         assertTrue(sessionStateAssembly.contains("BrowserSessionStateController("))
         assertTrue(sessionStateAssembly.contains("isPrivateBrowsingActive = isPrivateBrowsingActive"))
         assertTrue(sessionStateAssembly.contains("standardSessionController = standardSessionController"))

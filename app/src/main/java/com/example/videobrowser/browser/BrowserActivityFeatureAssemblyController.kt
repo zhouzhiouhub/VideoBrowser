@@ -39,7 +39,7 @@ data class BrowserActivityFeatureComponents(
  * @param filesDir 参数类型为 `File`，表示规则缓存、导出文件和页面归档使用的应用私有目录。
  * @param views 参数类型为 `MainActivityViews`，表示 activity_main.xml 中主界面控件的绑定集合。
  * @param decorView 参数类型为 `View`，表示 Activity 窗口的 decorView，用于 ChromeClient 和全屏 UI 操作。
- * @param activityScaffold 参数类型为 `BrowserActivityScaffoldComponents`，表示生命周期、Activity Result、会话状态和请求拦截等脚手架组件。
+ * @param activityScaffold 参数类型为 `BrowserActivityScaffoldComponents`，表示生命周期、Activity Result 和会话状态等脚手架组件。
  * @param nativeBridgeName 参数类型为 `String`，表示注入 WebView 的 JavaScript native bridge 名称。
  * @param logTag 参数类型为 `String`，表示本地文件和规则日志使用的日志标签。
  * @param recreateActivity 参数类型为 `() -> Unit`，表示恢复默认设置等场景下重建 Activity 的回调。
@@ -79,7 +79,6 @@ class BrowserActivityFeatureAssemblyController(
             browserRuntimeStateController = activityScaffold.browserRuntimeStateController,
             browserChromeClientStateController =
                 activityScaffold.browserChromeClientStateController,
-            requestInterceptionProvider = activityScaffold.requestInterceptionProvider,
             activityResultLaunchers = activityScaffold.activityResultLaunchers,
             findInPageController = activityScaffold.findInPageController,
             browserRuntimeFeatures = { browserRuntimeFeatures },
@@ -88,6 +87,19 @@ class BrowserActivityFeatureAssemblyController(
             recreateActivity = recreateActivity,
             dp = dp
         ).create()
+        activityScaffold.bindCoreFeatures(browserCoreFeatures)
+
+        val requestInterceptionProvider = BrowserRequestInterceptionProvider(
+            browserFeatureStateController = {
+                browserCoreFeatures.browserShell.browserFeatureStateController
+            },
+            settingsManager = { browserCoreFeatures.browserPersistence.settingsManager },
+            browserSessionStateController = { activityScaffold.browserSessionStateController },
+            browserUrlStateController = {
+                browserCoreFeatures.browserShell.browserUrlStateController
+            },
+            ruleEngine = { browserCoreFeatures.browserNavigation.ruleEngine }
+        )
 
         val createdRuntimeFeatures = BrowserRuntimeFeatureAssemblyController(
             activity = activity,
@@ -105,7 +117,7 @@ class BrowserActivityFeatureAssemblyController(
             browserRuntimeStateController = activityScaffold.browserRuntimeStateController,
             browserChromeClientStateController =
                 activityScaffold.browserChromeClientStateController,
-            requestInterceptionProvider = activityScaffold.requestInterceptionProvider,
+            requestInterceptionProvider = requestInterceptionProvider,
             activityResultLaunchers = activityScaffold.activityResultLaunchers,
             findInPageController = activityScaffold.findInPageController,
             browserStartupFeatures = { browserStartupFeatures },
@@ -113,6 +125,7 @@ class BrowserActivityFeatureAssemblyController(
             dp = dp
         ).create()
         browserRuntimeFeatures = createdRuntimeFeatures
+        activityScaffold.bindRuntimeFeatures(createdRuntimeFeatures)
 
         val createdStartupFeatures = BrowserStartupFeatureAssemblyController(
             activity = activity,
@@ -129,7 +142,7 @@ class BrowserActivityFeatureAssemblyController(
             pageActions = browserCoreFeatures.pageActions,
             browserClients = createdRuntimeFeatures.browserClients,
             browserFullscreen = createdRuntimeFeatures.browserFullscreen,
-            requestInterceptionProvider = activityScaffold.requestInterceptionProvider,
+            requestInterceptionProvider = requestInterceptionProvider,
             activityResultLaunchers = activityScaffold.activityResultLaunchers,
             localFiles = browserCoreFeatures.localFiles,
             browserSessionStateController = activityScaffold.browserSessionStateController,
@@ -141,6 +154,7 @@ class BrowserActivityFeatureAssemblyController(
             postToUi = postToUi
         ).start()
         browserStartupFeatures = createdStartupFeatures
+        activityScaffold.bindStartupFeatures(createdStartupFeatures)
 
         return BrowserActivityFeatureComponents(
             browserCoreFeatures = browserCoreFeatures,
