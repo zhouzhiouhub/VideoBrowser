@@ -219,7 +219,7 @@ class MainActivityLayoutContractTest {
         assertTrue(controller.contains("savedPageRepository.history()"))
         assertTrue(controller.contains("suggestionClient.fetch"))
         assertTrue(controller.contains("AddressSuggestionRanker.build"))
-        assertTrue(controller.contains("AddressSuggestion.Bookmark"))
+        assertTrue(controller.contains("AddressSuggestion.SavedPageSuggestion"))
         assertTrue(controller.contains("AddressSuggestionRowFactory("))
         assertTrue(controller.contains("rowFactory.create(suggestion)"))
         assertTrue(rowFactory.contains("AddressSuggestion.Bookmark"))

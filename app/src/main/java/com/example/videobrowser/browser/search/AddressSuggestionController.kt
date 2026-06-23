@@ -238,10 +238,8 @@ class AddressSuggestionController(
     private fun selectSuggestion(suggestion: AddressSuggestion) {
         runWithSuggestionsSuppressed {
             when (suggestion) {
-                is AddressSuggestion.Bookmark -> openUrl(suggestion.url)
-                is AddressSuggestion.History -> openUrl(suggestion.url)
-                is AddressSuggestion.Remote -> searchKeyword(suggestion.keyword)
-                is AddressSuggestion.Fallback -> searchKeyword(suggestion.keyword)
+                is AddressSuggestion.SavedPageSuggestion -> openUrl(suggestion.url)
+                is AddressSuggestion.KeywordSuggestion -> searchKeyword(suggestion.keyword)
             }
         }
     }

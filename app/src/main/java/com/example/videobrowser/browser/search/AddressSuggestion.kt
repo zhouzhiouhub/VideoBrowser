@@ -8,23 +8,33 @@ package com.example.videobrowser.browser.search
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 sealed class AddressSuggestion {
+    sealed class SavedPageSuggestion : AddressSuggestion() {
+        abstract val title: String
+        abstract val url: String
+        abstract val displayUrl: String
+    }
+
+    sealed class KeywordSuggestion : AddressSuggestion() {
+        abstract val keyword: String
+    }
+
     data class Bookmark(
-        val title: String,
-        val url: String,
-        val displayUrl: String
-    ) : AddressSuggestion()
+        override val title: String,
+        override val url: String,
+        override val displayUrl: String
+    ) : SavedPageSuggestion()
 
     data class History(
-        val title: String,
-        val url: String,
-        val displayUrl: String
-    ) : AddressSuggestion()
+        override val title: String,
+        override val url: String,
+        override val displayUrl: String
+    ) : SavedPageSuggestion()
 
     data class Remote(
-        val keyword: String
-    ) : AddressSuggestion()
+        override val keyword: String
+    ) : KeywordSuggestion()
 
     data class Fallback(
-        val keyword: String
-    ) : AddressSuggestion()
+        override val keyword: String
+    ) : KeywordSuggestion()
 }
