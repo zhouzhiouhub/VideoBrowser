@@ -20,7 +20,7 @@ import com.example.videobrowser.utils.ChooserIntentLauncher
 import com.example.videobrowser.utils.FileOpenIntentFactory
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.PageUrlActions
-import com.example.videobrowser.utils.stringOrNull
+import com.example.videobrowser.utils.columnValueReader
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.MediaRouteAction
 import com.example.videobrowser.video.MediaRouteRequest
@@ -295,7 +295,7 @@ class PageActionsController(
             if (!cursor.moveToFirst()) {
                 null
             } else {
-                cursor.stringOrNull(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                cursor.columnValueReader().stringOrNull(OpenableColumns.DISPLAY_NAME)
             }
         }
     }

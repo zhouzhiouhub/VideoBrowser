@@ -3,8 +3,7 @@ package com.example.videobrowser.download
 import android.app.DownloadManager
 import android.content.Context
 import android.database.Cursor
-import com.example.videobrowser.utils.intOrNull
-import com.example.videobrowser.utils.longOrNull
+import com.example.videobrowser.utils.columnValueReader
 
 class AndroidDownloadStatusSnapshotReader(
     private val context: Context
@@ -26,14 +25,14 @@ class AndroidDownloadStatusSnapshotReader(
         if (!cursor.moveToFirst()) {
             return null
         }
-        val status = cursor.intOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-            ?: return null
-        val statusReason = cursor.intOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-        val bytesDownloaded = cursor
-            .longOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+        val reader = cursor.columnValueReader()
+        val status = reader.intOrNull(DownloadManager.COLUMN_STATUS) ?: return null
+        val statusReason = reader.intOrNull(DownloadManager.COLUMN_REASON)
+        val bytesDownloaded = reader
+            .longOrNull(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
             ?.takeIf { value -> value >= 0L }
-        val totalBytes = cursor
-            .longOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+        val totalBytes = reader
+            .longOrNull(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
             ?.takeIf { value -> value >= 0L }
 
         return when (status) {

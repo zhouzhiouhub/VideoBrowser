@@ -10,9 +10,7 @@ package com.example.videobrowser.localfiles
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
-import com.example.videobrowser.utils.intOrNull
-import com.example.videobrowser.utils.longOrNull
-import com.example.videobrowser.utils.stringOrNull
+import com.example.videobrowser.utils.columnValueReader
 import java.util.Locale
 
 class LocalDocumentRepository(
@@ -53,26 +51,21 @@ class LocalDocumentRepository(
         val cursor = context.contentResolver.query(childrenUri, projection, null, null, null)
             ?: throw IllegalStateException("Unable to query child documents for $childrenUri")
         cursor.use { cursor ->
-            val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-            val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-            val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
-            val sizeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
-            val modifiedIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-            val flagsIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_FLAGS)
+            val reader = cursor.columnValueReader()
 
             while (cursor.moveToNext()) {
-                val documentId = cursor.stringOrNull(idIndex) ?: continue
-                val name = cursor.stringOrNull(nameIndex)
+                val documentId = reader.stringOrNull(DocumentsContract.Document.COLUMN_DOCUMENT_ID) ?: continue
+                val name = reader.stringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
                     ?.takeIf { it.isNotBlank() }
                     ?: documentId.substringAfterLast(':')
                 documents += LocalDocument(
                     uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId),
                     documentId = documentId,
                     name = name,
-                    mimeType = cursor.stringOrNull(mimeIndex),
-                    size = cursor.longOrNull(sizeIndex),
-                    modifiedAt = cursor.longOrNull(modifiedIndex),
-                    flags = cursor.intOrNull(flagsIndex) ?: 0
+                    mimeType = reader.stringOrNull(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                    size = reader.longOrNull(DocumentsContract.Document.COLUMN_SIZE),
+                    modifiedAt = reader.longOrNull(DocumentsContract.Document.COLUMN_LAST_MODIFIED),
+                    flags = reader.intOrNull(DocumentsContract.Document.COLUMN_FLAGS) ?: 0
                 )
             }
         }
