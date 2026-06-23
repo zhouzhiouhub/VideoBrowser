@@ -54,6 +54,7 @@ class DownloadController(
         browserManager = browserManager,
         downloadRecordRepository = downloadRecordRepository
     )
+    private val statusSnapshotReader = AndroidDownloadStatusSnapshotReader(activity)
     private var receiverRegistered = false
 
     init {
@@ -215,62 +216,10 @@ class DownloadController(
      * @param downloadId 参数类型为 `Long`，表示函数执行 `downloadId` 相关逻辑时需要读取或处理的输入。
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
-    private fun queryDownloadStatus(downloadId: Long): DownloadCompletionStatus? {
-        val downloadManager =
-            activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val cursor = runCatching {
-            downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
-        }.getOrNull() ?: return DownloadCompletionStatus(
-            status = DownloadStatus.FAILED,
-            statusReason = null,
-            bytesDownloaded = null,
-            totalBytes = null
+    private fun queryDownloadStatus(downloadId: Long): DownloadStatusSnapshot? {
+        return statusSnapshotReader.query(
+            downloadId = downloadId,
+            queryFailureSnapshot = DownloadStatusSnapshot(status = DownloadStatus.FAILED)
         )
-
-        cursor.use {
-            if (!it.moveToFirst()) {
-                return null
-            }
-            val statusColumn = it.getColumnIndex(DownloadManager.COLUMN_STATUS)
-            if (statusColumn < 0) {
-                return null
-            }
-            val reasonColumn = it.getColumnIndex(DownloadManager.COLUMN_REASON)
-            val statusReason = reasonColumn
-                .takeIf { column -> column >= 0 }
-                ?.let { column -> it.getInt(column) }
-            val downloadedColumn = it.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-            val totalColumn = it.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-            val bytesDownloaded = downloadedColumn
-                .takeIf { column -> column >= 0 }
-                ?.let { column -> it.getLong(column) }
-                ?.takeIf { value -> value >= 0L }
-            val totalBytes = totalColumn
-                .takeIf { column -> column >= 0 }
-                ?.let { column -> it.getLong(column) }
-                ?.takeIf { value -> value >= 0L }
-            return when (it.getInt(statusColumn)) {
-                DownloadManager.STATUS_SUCCESSFUL -> DownloadCompletionStatus(
-                    status = DownloadStatus.COMPLETED,
-                    statusReason = null,
-                    bytesDownloaded = bytesDownloaded,
-                    totalBytes = totalBytes
-                )
-                DownloadManager.STATUS_FAILED -> DownloadCompletionStatus(
-                    status = DownloadStatus.FAILED,
-                    statusReason = statusReason,
-                    bytesDownloaded = bytesDownloaded,
-                    totalBytes = totalBytes
-                )
-                else -> null
-            }
-        }
     }
-
-    private data class DownloadCompletionStatus(
-        val status: DownloadStatus,
-        val statusReason: Int?,
-        val bytesDownloaded: Long?,
-        val totalBytes: Long?
-    )
 }

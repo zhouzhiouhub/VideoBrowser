@@ -22,6 +22,9 @@ class DownloadStatusWiringContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadController.kt"
         ).readText()
+        val snapshotReader = projectFile(
+            "src/main/java/com/example/videobrowser/download/AndroidDownloadStatusSnapshotReader.kt"
+        ).readText()
         val enqueueController = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadEnqueueController.kt"
         ).readText()
@@ -29,12 +32,14 @@ class DownloadStatusWiringContractTest {
 
         assertTrue(enqueueController.contains("DownloadStatus.IN_PROGRESS"))
         assertTrue(controller.contains("DownloadManager.ACTION_DOWNLOAD_COMPLETE"))
-        assertTrue(controller.contains("DownloadManager.Query().setFilterById(downloadId)"))
-        assertTrue(controller.contains("DownloadManager.STATUS_SUCCESSFUL"))
-        assertTrue(controller.contains("DownloadManager.STATUS_FAILED"))
-        assertTrue(controller.contains("DownloadManager.COLUMN_REASON"))
-        assertTrue(controller.contains("DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR"))
-        assertTrue(controller.contains("DownloadManager.COLUMN_TOTAL_SIZE_BYTES"))
+        assertTrue(controller.contains("AndroidDownloadStatusSnapshotReader(activity)"))
+        assertTrue(controller.contains("queryFailureSnapshot = DownloadStatusSnapshot(status = DownloadStatus.FAILED)"))
+        assertTrue(snapshotReader.contains("DownloadManager.Query().setFilterById(downloadId)"))
+        assertTrue(snapshotReader.contains("DownloadManager.STATUS_SUCCESSFUL"))
+        assertTrue(snapshotReader.contains("DownloadManager.STATUS_FAILED"))
+        assertTrue(snapshotReader.contains("DownloadManager.COLUMN_REASON"))
+        assertTrue(snapshotReader.contains("DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR"))
+        assertTrue(snapshotReader.contains("DownloadManager.COLUMN_TOTAL_SIZE_BYTES"))
         assertTrue(controller.contains("statusReason"))
         assertTrue(controller.contains("downloadRecordRepository.contains(downloadId)"))
         assertTrue(controller.contains("downloadRecordRepository.updateSnapshot"))

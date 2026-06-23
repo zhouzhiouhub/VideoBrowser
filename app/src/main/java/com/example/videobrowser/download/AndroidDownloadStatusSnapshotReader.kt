@@ -7,11 +7,16 @@ import android.database.Cursor
 class AndroidDownloadStatusSnapshotReader(
     private val context: Context
 ) {
-    fun query(downloadId: Long): DownloadStatusSnapshot? {
+    fun query(
+        downloadId: Long,
+        queryFailureSnapshot: DownloadStatusSnapshot? = null
+    ): DownloadStatusSnapshot? {
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val cursor = runCatching {
             downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
-        }.getOrNull() ?: return null
+        }.getOrElse {
+            return queryFailureSnapshot
+        }
         return cursor.use(::snapshotFromCursor)
     }
 
