@@ -25,7 +25,7 @@
       ? videoQueryTools.all()
       : [];
     return videos.find(function (video) {
-      return video && video.isConnected && !video.paused && !video.ended;
+      return typeof videoQueryTools.isActive === 'function' && videoQueryTools.isActive(video);
     }) || videos[0] || null;
   };
 

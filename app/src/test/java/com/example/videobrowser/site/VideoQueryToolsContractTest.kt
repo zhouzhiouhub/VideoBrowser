@@ -14,6 +14,7 @@ class VideoQueryToolsContractTest {
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val callbacksScript = projectFile("src/main/assets/scripts/video_enhancer_callbacks.js").readText()
         val fullscreenScript = projectFile("src/main/assets/scripts/video_fullscreen_tools.js").readText()
+        val bilibiliOverlayScript = projectFile("src/main/assets/scripts/bilibili_overlay_cleanup.js").readText()
 
         assertTrue(videoQueryScript.contains("window.VideoBrowserVideoQueryTools = tools"))
         assertTrue(videoQueryScript.contains("const domTools = window.VideoBrowserDomTools || {}"))
@@ -26,11 +27,16 @@ class VideoQueryToolsContractTest {
         assertTrue(commonScript.contains("const videoQueryTools = window.VideoBrowserVideoQueryTools"))
         assertTrue(callbacksScript.contains("videoQueryTools.forEach(function (video)"))
         assertTrue(fullscreenScript.contains("videoQueryTools.all()"))
+        assertTrue(fullscreenScript.contains("videoQueryTools.isActive(video)"))
+        assertTrue(bilibiliOverlayScript.contains("var videoQueryTools = window.VideoBrowserVideoQueryTools || {};"))
+        assertTrue(bilibiliOverlayScript.contains("return helpers.isActiveVideo(video);"))
         assertTrue(runtimeScript.contains("return videoQueryTools.hasActive();"))
         assertFalse(commonScript.contains("return videoQueryTools.hasActive();"))
         assertFalse(commonScript.contains("return videoQueryTools.some(function (video)"))
         assertFalse(commonScript.contains("document.querySelectorAll('video')"))
         assertFalse(videoQueryScript.contains("document.querySelectorAll('video')"))
+        assertFalse(fullscreenScript.contains("return video && video.isConnected && !video.paused && !video.ended;"))
+        assertFalse(bilibiliOverlayScript.contains("return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;"))
     }
 
 }

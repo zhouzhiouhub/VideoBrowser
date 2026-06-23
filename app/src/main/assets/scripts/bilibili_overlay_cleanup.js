@@ -4,6 +4,7 @@
 (function () {
   var tools = window.VideoBrowserBilibiliOverlayCleanup || {};
   var adapterDefaults = window.VideoBrowserSiteAdapterTools || {};
+  var videoQueryTools = window.VideoBrowserVideoQueryTools || {};
   window.VideoBrowserBilibiliOverlayCleanup = tools;
 
   var playbackOverlaySelectors = [
@@ -27,7 +28,7 @@
   tools.hideVideoPlayPauseOverlays = tools.hideVideoPlayPauseOverlays || function (adapterTools) {
     var helpers = overlayHelpers(adapterTools);
     var videos = Array.prototype.slice.call(helpers.query('video')).filter(function (video) {
-      return video && video.isConnected && !video.paused && !video.ended && video.readyState > 1;
+      return helpers.isActiveVideo(video);
     });
     if (!videos.length) return;
 
@@ -50,7 +51,8 @@
       rectsOverlap: tools.rectsOverlap,
       rectCenterX: tools.rectCenterX,
       rectCenterY: tools.rectCenterY,
-      centerDistance: tools.centerDistance
+      centerDistance: tools.centerDistance,
+      isActiveVideo: typeof videoQueryTools.isActive === 'function' ? videoQueryTools.isActive : adapterDefaults.noop
     };
   }
 
