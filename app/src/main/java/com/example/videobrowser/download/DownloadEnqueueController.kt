@@ -7,10 +7,10 @@ import android.os.Environment
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
+import com.example.videobrowser.utils.ConfirmationDialog
 
 /**
  * 系统下载入队控制器。
@@ -100,21 +100,23 @@ internal class DownloadEnqueueController(
     }
 
     private fun showRiskyDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_confirm_app_download)
-            .setMessage(activity.getString(R.string.dialog_confirm_app_download_message, fileName))
-            .setPositiveButton(R.string.action_download_anyway) { _, _ -> confirmed() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_confirm_app_download,
+            message = activity.getString(R.string.dialog_confirm_app_download_message, fileName),
+            positiveButtonRes = R.string.action_download_anyway,
+            onConfirmed = confirmed
+        )
     }
 
     private fun showInsecureDownloadConfirmation(fileName: String, confirmed: () -> Unit) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_confirm_insecure_download)
-            .setMessage(activity.getString(R.string.dialog_confirm_insecure_download_message, fileName))
-            .setPositiveButton(R.string.action_download_anyway) { _, _ -> confirmed() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_confirm_insecure_download,
+            message = activity.getString(R.string.dialog_confirm_insecure_download_message, fileName),
+            positiveButtonRes = R.string.action_download_anyway,
+            onConfirmed = confirmed
+        )
     }
 
     private fun enqueueConfirmed(

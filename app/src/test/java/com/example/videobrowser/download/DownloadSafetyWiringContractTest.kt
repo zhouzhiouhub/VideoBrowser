@@ -7,6 +7,8 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Download Safety Wiring Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -52,7 +54,9 @@ class DownloadSafetyWiringContractTest {
         assertTrue(enqueueController.contains("private fun confirmDownloadIfNeeded("))
         assertTrue(enqueueController.contains("private fun showRiskyDownloadConfirmation"))
         assertTrue(enqueueController.contains("private fun showInsecureDownloadConfirmation"))
-        assertTrue(enqueueController.contains("AlertDialog.Builder(activity)"))
+        assertTrue(enqueueController.contains("ConfirmationDialog.show("))
+        assertEquals(2, Regex("ConfirmationDialog\\.show\\(").findAll(enqueueController).count())
+        assertFalse(enqueueController.contains("AlertDialog.Builder(activity)"))
         assertTrue(enqueueController.contains("R.string.title_confirm_app_download"))
         assertTrue(enqueueController.contains("R.string.dialog_confirm_app_download_message"))
         assertTrue(enqueueController.contains("R.string.title_confirm_insecure_download"))

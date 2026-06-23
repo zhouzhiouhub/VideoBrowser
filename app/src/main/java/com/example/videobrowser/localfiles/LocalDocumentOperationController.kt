@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.FileShareIntentFactory
 
 internal class LocalDocumentOperationController(
@@ -37,7 +38,7 @@ internal class LocalDocumentOperationController(
             )
 
             if (createdUri == null) {
-                Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
+                showOperationFailedToast()
                 return@showNameInputDialog
             }
 
@@ -59,7 +60,7 @@ internal class LocalDocumentOperationController(
             val renamedUri = documentRepository.renameDocument(document, name)
 
             if (renamedUri == null) {
-                Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
+                showOperationFailedToast()
                 return@showNameInputDialog
             }
 
@@ -73,26 +74,19 @@ internal class LocalDocumentOperationController(
         treeUri: Uri,
         path: List<LocalDirectoryPathItem>
     ) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_delete_file)
-            .setMessage(activity.getString(R.string.dialog_delete_local_file_message, document.name))
-            .setPositiveButton(R.string.action_delete_file) { _, _ ->
-                val deleted = documentRepository.deleteDocument(document)
-
-                if (!deleted) {
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_local_file_operation_failed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@setPositiveButton
-                }
-
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_delete_file,
+            message = activity.getString(R.string.dialog_delete_local_file_message, document.name),
+            positiveButtonRes = R.string.action_delete_file
+        ) {
+            if (documentRepository.deleteDocument(document)) {
                 Toast.makeText(activity, R.string.toast_local_file_deleted, Toast.LENGTH_SHORT).show()
                 showLocalDirectoryPage(treeUri, path)
+            } else {
+                showOperationFailedToast()
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
     }
 
     fun share(document: LocalDocument) {
@@ -136,5 +130,9 @@ internal class LocalDocumentOperationController(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun showOperationFailedToast() {
+        Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
     }
 }
