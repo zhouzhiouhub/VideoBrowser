@@ -1,7 +1,5 @@
 package com.example.videobrowser.functioncenter
 
-import android.text.InputType
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -29,26 +27,14 @@ internal class DownloadsPageDialogController(
         statusFilter: DownloadStatus?,
         categoryFilter: DownloadCategory?
     ) {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_download_records_search)
-            setText(currentQuery.orEmpty())
-            setSelection(text?.length ?: 0)
+        SearchQueryDialog.show(
+            activity = activity,
+            titleRes = R.string.action_search_download_records,
+            hintRes = R.string.hint_download_records_search,
+            currentQuery = currentQuery
+        ) { query ->
+            showDownloadsPage(true, query, statusFilter, categoryFilter)
         }
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_search_download_records)
-            .setView(input)
-            .setPositiveButton(R.string.action_search_download_records) { _, _ ->
-                showDownloadsPage(
-                    true,
-                    input.text?.toString()?.trim().orEmpty(),
-                    statusFilter,
-                    categoryFilter
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     fun showStatusFilterDialog(

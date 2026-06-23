@@ -31,27 +31,14 @@ internal class SavedPagesDialogController(
         emptyMessage: String,
         currentQuery: String?
     ) {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_saved_pages_search)
-            setText(currentQuery.orEmpty())
-            setSelection(text?.length ?: 0)
+        SearchQueryDialog.show(
+            activity = activity,
+            titleRes = R.string.action_search_saved_pages,
+            hintRes = R.string.hint_saved_pages_search,
+            currentQuery = currentQuery
+        ) { query ->
+            showSavedPagesPage(collection, title, emptyMessage, true, query)
         }
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_search_saved_pages)
-            .setView(input)
-            .setPositiveButton(R.string.action_search_saved_pages) { _, _ ->
-                showSavedPagesPage(
-                    collection,
-                    title,
-                    emptyMessage,
-                    true,
-                    input.text?.toString()?.trim().orEmpty()
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     fun showSavedPageActionsDialog(

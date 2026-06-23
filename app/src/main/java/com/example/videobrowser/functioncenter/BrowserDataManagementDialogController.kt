@@ -1,7 +1,5 @@
 package com.example.videobrowser.functioncenter
 
-import android.text.InputType
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -14,21 +12,13 @@ class BrowserDataManagementDialogController(
     private val reloadBrowser: () -> Unit
 ) {
     fun showSiteDataSearchDialog(currentQuery: String?, onSearch: (String) -> Unit) {
-        val input = EditText(activity).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            setSingleLine(true)
-            hint = activity.getString(R.string.hint_site_data_search)
-            setText(currentQuery.orEmpty())
-            setSelection(text?.length ?: 0)
-        }
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_search_site_data)
-            .setView(input)
-            .setPositiveButton(R.string.action_search_site_data) { _, _ ->
-                onSearch(input.text?.toString()?.trim().orEmpty())
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        SearchQueryDialog.show(
+            activity = activity,
+            titleRes = R.string.action_search_site_data,
+            hintRes = R.string.hint_site_data_search,
+            currentQuery = currentQuery,
+            onSearch = onSearch
+        )
     }
 
     fun showRemoveCookieDialog(pageUrl: String, cookieName: String, onRemoved: () -> Unit) {

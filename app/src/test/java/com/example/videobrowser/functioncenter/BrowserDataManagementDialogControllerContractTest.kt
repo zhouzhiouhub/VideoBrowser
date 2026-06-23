@@ -16,6 +16,6 @@ class BrowserDataManagementDialogControllerContractTest {
         assertTrue(source.contains("ConfirmationDialog.show("))
         assertFalse(source.contains("private fun showConfirmationDialog("))
         assertEquals(8, Regex("ConfirmationDialog\\.show\\(").findAll(source).count())
-        assertEquals(2, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(source).count())
+        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(source).count())
     }
 }
