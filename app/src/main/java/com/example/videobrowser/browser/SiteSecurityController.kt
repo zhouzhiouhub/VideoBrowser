@@ -7,7 +7,6 @@ package com.example.videobrowser.browser
  * 主要职责：根据当前网页 URL 展示 HTTPS/HTTP 安全状态，并把证书说明、混合内容策略和站点设置入口组织成用户可读信息。
  * 阅读顺序：先看构造参数知道它依赖 MainActivity 提供哪些数据，再看 setup/updateStatus/showInfoDialog 三个入口。
  */
-import android.net.Uri
 import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
@@ -165,7 +164,7 @@ class SiteSecurityController(
         }
         val displayUrl = UrlUtils.displayUrl(pageUrl)
         val host = SiteHost.fromUrl(pageUrl)
-            ?: Uri.parse(pageUrl).host.orEmpty().ifBlank { displayUrl }
+            ?: displayUrl
         return listOf(
             activity.getString(statusTitleResId),
             activity.getString(R.string.site_security_host, host),

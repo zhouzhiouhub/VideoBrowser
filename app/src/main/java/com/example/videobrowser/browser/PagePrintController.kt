@@ -8,13 +8,13 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看 printCurrentPage，再看 printJobName 了解打印任务标题如何生成。
  */
 import android.content.Context
-import android.net.Uri
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
 
 /**
@@ -65,7 +65,7 @@ class PagePrintController(
     private fun printJobName(pageUrl: String): String {
         val title = TextWhitespaceNormalizer
             .collapse(currentPageTitle())
-            .ifBlank { Uri.parse(pageUrl).host.orEmpty() }
+            .ifBlank { SiteHost.fromUrl(pageUrl).orEmpty() }
             .ifBlank { activity.getString(R.string.app_name) }
             .take(MAX_JOB_TITLE_LENGTH)
         return activity.getString(R.string.print_job_name, title)

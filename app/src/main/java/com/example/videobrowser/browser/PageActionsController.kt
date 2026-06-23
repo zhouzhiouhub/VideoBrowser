@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.ChooserIntentLauncher
@@ -314,7 +315,7 @@ class PageActionsController(
         }
         val title = currentPageTitle()
             .takeIf { it.isNotBlank() && !it.equals(url, ignoreCase = true) }
-            ?: Uri.parse(url).host
+            ?: SiteHost.fromUrl(url)
             ?: url
         return SavedPage(title = title, url = url)
     }

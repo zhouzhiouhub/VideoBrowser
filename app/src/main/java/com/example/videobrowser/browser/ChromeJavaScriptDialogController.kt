@@ -1,7 +1,6 @@
 package com.example.videobrowser.browser
 
 import android.app.Activity
-import android.net.Uri
 import android.text.InputType
 import android.view.View
 import android.webkit.JsPromptResult
@@ -10,6 +9,7 @@ import android.webkit.WebView
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
+import com.example.videobrowser.site.SiteHost
 
 /**
  * WebChromeClient 的 JavaScript 弹窗控制器。
@@ -146,9 +146,7 @@ internal class ChromeJavaScriptDialogController(
     }
 
     private fun javascriptDialogOrigin(url: String?): String? {
-        return runCatching { Uri.parse(url).host }
-            .getOrNull()
-            ?.takeIf { host -> host.isNotBlank() }
+        return SiteHost.fromUrl(url)
     }
 
     private fun javascriptDialogMessage(message: String?): String {

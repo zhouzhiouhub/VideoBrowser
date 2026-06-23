@@ -7,7 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.net.Uri
 import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogEntryFormatter
@@ -17,6 +16,7 @@ import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockLogRecoveryActionType
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.site.SiteHost
 import com.example.videobrowser.utils.ConfirmationDialog
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -133,7 +133,7 @@ class AdBlockLogPage(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun adBlockLogHost(entry: AdBlockLogEntry): String {
-        return entry.host ?: Uri.parse(entry.url).host ?: entry.url
+        return entry.host ?: SiteHost.fromUrl(entry.url) ?: entry.url
     }
 
     /**
