@@ -10,6 +10,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.settings.CustomShortcut
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.utils.ConfirmationDialog
 
 internal class SearchProviderDialogController(
     private val activity: AppCompatActivity,
@@ -56,53 +57,49 @@ internal class SearchProviderDialogController(
     }
 
     fun showRemoveCustomShortcutDialog(shortcut: CustomShortcut) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_custom_shortcut)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_remove_custom_shortcut_message,
-                    shortcut.name
-                )
-            )
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                if (settingsManager.removeCustomShortcut(shortcut)) {
-                    onDataChanged()
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_custom_shortcut_removed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_remove_custom_shortcut,
+            message = activity.getString(
+                R.string.dialog_remove_custom_shortcut_message,
+                shortcut.name
+            ),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            if (settingsManager.removeCustomShortcut(shortcut)) {
+                onDataChanged()
+                Toast.makeText(
+                    activity,
+                    R.string.toast_custom_shortcut_removed,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
     }
 
     fun showRemoveRecentHistoryDialog(quickLink: HomeQuickLink) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_remove_recent_site)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_remove_recent_site_message,
-                    quickLink.title
-                )
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_remove_recent_site,
+            message = activity.getString(
+                R.string.dialog_remove_recent_site_message,
+                quickLink.title
+            ),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            val removed = savedPageRepository.remove(
+                SavedPageRepository.SavedPageCollection.HISTORY,
+                quickLink.url
             )
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                val removed = savedPageRepository.remove(
-                    SavedPageRepository.SavedPageCollection.HISTORY,
-                    quickLink.url
-                )
-                if (removed) {
-                    onDataChanged()
-                    Toast.makeText(
-                        activity,
-                        R.string.toast_recent_site_removed,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            if (removed) {
+                onDataChanged()
+                Toast.makeText(
+                    activity,
+                    R.string.toast_recent_site_removed,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
     }
 
     private fun showCustomShortcutEditorDialog(

@@ -40,6 +40,12 @@ class ConfirmationDialogContractTest {
         val downloadEnqueueController = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadEnqueueController.kt"
         ).readText()
+        val browserNavigationController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"
+        ).readText()
+        val searchProviderDialogs = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt"
+        ).readText()
 
         assertTrue(confirmationDialog.contains("object ConfirmationDialog"))
         assertTrue(confirmationDialog.contains("AlertDialog.Builder(activity)"))
@@ -54,7 +60,9 @@ class ConfirmationDialogContractTest {
             savedPagesDialogs,
             ruleSubscriptionPage,
             localDocumentOperations,
-            downloadEnqueueController
+            downloadEnqueueController,
+            browserNavigationController,
+            searchProviderDialogs
         ).plus(simpleConfirmationPages).forEach { source ->
             assertTrue(source.contains("ConfirmationDialog.show("))
             assertFalse(source.contains("private fun showConfirmationDialog("))
@@ -67,6 +75,8 @@ class ConfirmationDialogContractTest {
         assertEquals(2, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(ruleSubscriptionPage).count())
         assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(localDocumentOperations).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadEnqueueController).count())
+        assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(browserNavigationController).count())
+        assertEquals(2, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(searchProviderDialogs).count())
         simpleConfirmationPages.forEach { source ->
             assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(source).count())
             assertFalse(source.contains("import androidx.appcompat.app.AlertDialog"))
@@ -77,6 +87,8 @@ class ConfirmationDialogContractTest {
             Regex("R\\.string\\.toast_local_file_operation_failed").findAll(localDocumentOperations).count()
         )
         assertEquals(2, Regex("ConfirmationDialog\\.show\\(").findAll(downloadEnqueueController).count())
+        assertEquals(1, Regex("ConfirmationDialog\\.show\\(").findAll(browserNavigationController).count())
+        assertEquals(2, Regex("ConfirmationDialog\\.show\\(").findAll(searchProviderDialogs).count())
         assertFalse(downloadsDialogs.contains(".setMessage(R.string.dialog_clear_download_records_message)"))
         assertFalse(savedPagesDialogs.contains(".setMessage(R.string.dialog_clear_saved_pages_message)"))
     }

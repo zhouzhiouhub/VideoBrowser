@@ -10,10 +10,10 @@ package com.example.videobrowser.browser
 import android.net.Uri
 import android.webkit.WebView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.rules.RuleEngine
+import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.utils.WebSchemePolicy
 import com.example.videobrowser.video.MediaRouteAction
@@ -230,19 +230,17 @@ class BrowserNavigationController(
      * @param url 参数类型为 `String`，表示需要用户确认后才能继续打开的 HTTP 地址。
      */
     private fun showInsecureNavigationConfirmation(url: String) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.title_confirm_insecure_navigation)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_confirm_insecure_navigation_message,
-                    UrlUtils.displayUrl(url)
-                )
-            )
-            .setPositiveButton(R.string.action_open_page) { _, _ ->
-                loadUrlAfterInsecureNavigationConfirmation(url)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_confirm_insecure_navigation,
+            message = activity.getString(
+                R.string.dialog_confirm_insecure_navigation_message,
+                UrlUtils.displayUrl(url)
+            ),
+            positiveButtonRes = R.string.action_open_page
+        ) {
+            loadUrlAfterInsecureNavigationConfirmation(url)
+        }
     }
 
     /**
