@@ -25,7 +25,8 @@ class SafeUriParserContractTest {
             projectFile("src/main/java/com/example/videobrowser/functioncenter/PlaybackHistoryDisplayText.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/RequestContext.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/ResourceTypeResolver.kt"),
-            projectFile("src/main/java/com/example/videobrowser/utils/MediaUrlUtils.kt")
+            projectFile("src/main/java/com/example/videobrowser/utils/MediaUrlUtils.kt"),
+            projectFile("src/main/java/com/example/videobrowser/utils/HostNameNormalizer.kt")
         ).map { file -> file.readText() }
 
         sources.forEach { source ->

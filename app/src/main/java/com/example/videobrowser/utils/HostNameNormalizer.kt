@@ -1,6 +1,5 @@
 package com.example.videobrowser.utils
 
-import java.net.URI
 import java.util.Locale
 
 object HostNameNormalizer {
@@ -18,7 +17,7 @@ object HostNameNormalizer {
         if (value.isEmpty()) {
             return null
         }
-        return normalize(runCatching { URI(value).host }.getOrNull())
+        return normalize(SafeUriParser.parse(value)?.host)
     }
 
     fun fromUrlOrBareHost(url: String?): String? {
@@ -31,7 +30,7 @@ object HostNameNormalizer {
         } else {
             "https://$value"
         }
-        return normalize(runCatching { URI(urlWithScheme).host }.getOrNull())
+        return normalize(SafeUriParser.parse(urlWithScheme)?.host)
     }
 
     fun matchesDomainOrSubdomain(host: String?, domain: String?): Boolean {
