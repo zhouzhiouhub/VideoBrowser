@@ -2,12 +2,13 @@ package com.example.videobrowser.video
 
 import android.widget.Toast
 import androidx.annotation.OptIn
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ActionListDialog
+import com.example.videobrowser.utils.DialogAction
 
 internal class NativeTrackSelectionDialogController(
     private val activity: AppCompatActivity,
@@ -22,15 +23,16 @@ internal class NativeTrackSelectionDialogController(
         }
         wakePlayerControls()
         val options = NativeTrackSelectionOptions.menuOptions()
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.video_control_tracks)
-            .setItems(
-                options.map { option -> activity.getString(option.titleResId) }
-                    .toTypedArray()
-            ) { _, which ->
-                onTrackTypeSelected(options[which].playbackTrackType)
+        val actions = options.map { option ->
+            DialogAction(activity.getString(option.titleResId)) {
+                onTrackTypeSelected(option.playbackTrackType)
             }
-            .show()
+        }
+        ActionListDialog.show(
+            activity = activity,
+            titleRes = R.string.video_control_tracks,
+            actions = actions
+        )
     }
 
     @OptIn(UnstableApi::class)

@@ -1,10 +1,11 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.DialogAction
 
 class BrowserDataManagementDialogController(
     private val activity: AppCompatActivity,
@@ -89,18 +90,17 @@ class BrowserDataManagementDialogController(
     }
 
     fun showClearHistoryRangeDialog(onCleared: () -> Unit) {
-        val ranges = BrowserHistoryClearRange.entries
-        val labels = ranges
-            .map { range -> historyClearRangeLabel(range) }
-            .toTypedArray()
-
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setItems(labels) { _, index ->
-                ranges.getOrNull(index)?.let { range -> showClearHistoryDialog(range, onCleared) }
+        val actions = BrowserHistoryClearRange.entries.map { range ->
+            DialogAction(historyClearRangeLabel(range)) {
+                showClearHistoryDialog(range, onCleared)
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
+        ActionListDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            actions = actions,
+            negativeButtonRes = android.R.string.cancel
+        )
     }
 
     fun showRemoveSiteDataDialog(origin: String, onRemoved: () -> Unit) {

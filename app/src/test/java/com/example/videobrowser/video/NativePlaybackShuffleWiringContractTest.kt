@@ -50,7 +50,7 @@ class NativePlaybackShuffleWiringContractTest {
         assertTrue(queue.contains("shuffle("))
         assertTrue(queueController.contains("fun syncPlayerQueueToPlaybackQueue()"))
         assertTrue(queueController.contains("playbackQueue.items.map(PlayableMediaItemMedia3Converter::toMediaItem)"))
-        assertTrue(queueDialog.contains(".setPositiveButton(shuffleActionLabel(queue))"))
+        assertTrue(queueDialog.contains("DialogButtonAction(shuffleActionLabel(queue))"))
         assertTrue(playerActivity.contains("NativePlayerSavedState.save("))
         assertTrue(savedState.contains("outState.putString(STATE_PLAYBACK_QUEUE, PlaybackQueueJsonCodec.encode(playbackQueue))"))
         assertTrue(savedState.contains("savedInstanceState.getString(STATE_PLAYBACK_QUEUE)"))

@@ -69,7 +69,7 @@ class ConfirmationDialogContractTest {
             assertFalse(source.contains(".setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }"))
         }
 
-        assertEquals(1, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(dataManagementDialogs).count())
+        assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(dataManagementDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadsDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(savedPagesDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(ruleSubscriptionPage).count())

@@ -1,8 +1,10 @@
 package com.example.videobrowser.video
 
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ActionListDialog
+import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.DialogButtonAction
 
 internal class NativePlaybackQueueDialogController(
     private val activity: AppCompatActivity,
@@ -20,19 +22,18 @@ internal class NativePlaybackQueueDialogController(
         }
 
         wakePlayerControls()
-        AlertDialog.Builder(activity)
-            .setTitle(activity.getString(R.string.video_queue_title, queue.items.size))
-            .setItems(playbackQueueLabels(queue)) { _, index ->
-                onSelectQueueItem(index)
-            }
-            .setPositiveButton(shuffleActionLabel(queue)) { _, _ ->
+        ActionListDialog.show(
+            activity = activity,
+            title = activity.getString(R.string.video_queue_title, queue.items.size),
+            actions = playbackQueueActions(queue) { index -> onSelectQueueItem(index) },
+            positiveButton = DialogButtonAction(shuffleActionLabel(queue)) {
                 onToggleShuffle()
                 showMenu()
-            }
-            .setNeutralButton(R.string.video_queue_remove) { _, _ ->
+            },
+            neutralButton = DialogButtonAction(R.string.video_queue_remove) {
                 showRemoveMenu()
             }
-            .show()
+        )
     }
 
     private fun showRemoveMenu() {
@@ -42,13 +43,14 @@ internal class NativePlaybackQueueDialogController(
             return
         }
 
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.video_queue_remove)
-            .setItems(playbackQueueLabels(queue)) { _, index ->
+        ActionListDialog.show(
+            activity = activity,
+            titleRes = R.string.video_queue_remove,
+            actions = playbackQueueActions(queue) { index ->
                 onRemoveMedia(index)
                 showMenu()
             }
-            .show()
+        )
     }
 
     private fun shuffleActionLabel(queue: PlaybackQueue): Int {
@@ -64,5 +66,16 @@ internal class NativePlaybackQueueDialogController(
             queue = queue,
             nowPlayingLabel = activity.getString(R.string.video_queue_now_playing)
         ).toTypedArray()
+    }
+
+    private fun playbackQueueActions(
+        queue: PlaybackQueue,
+        onSelected: (Int) -> Unit
+    ): List<DialogAction> {
+        return playbackQueueLabels(queue).mapIndexed { index, label ->
+            DialogAction(label) {
+                onSelected(index)
+            }
+        }
     }
 }
