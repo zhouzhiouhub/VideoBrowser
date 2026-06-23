@@ -15,7 +15,10 @@ class FunctionCenterContentFactoryContractTest {
         assertTrue(source.contains("private fun addFullWidthView("))
         assertTrue(source.contains("addFullWidthView(parent, section)"))
         assertTrue(source.contains("addFullWidthView(parent, row)"))
-        assertEquals(7, Regex("addFullWidthView\\(").findAll(source).count() - 1)
-        assertEquals(1, Regex("ViewGroup\\.LayoutParams\\.WRAP_CONTENT").findAll(source).count())
+        assertTrue(source.contains("height: Int = ViewGroup.LayoutParams.WRAP_CONTENT"))
+        assertTrue(source.contains("height = dp(46)"))
+        assertTrue(source.contains("height = dp(1)"))
+        assertEquals(9, Regex("addFullWidthView\\(").findAll(source).count() - 1)
+        assertEquals(1, Regex("LinearLayout\\.LayoutParams\\(").findAll(source).count())
     }
 }

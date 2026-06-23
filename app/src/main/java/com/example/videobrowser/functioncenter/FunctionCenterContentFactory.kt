@@ -90,7 +90,8 @@ internal class FunctionCenterContentFactory(
     ) {
         val resolvedBackgroundColor =
             backgroundColor ?: ContextCompat.getColor(activity, R.color.browser_primary)
-        parent.addView(
+        addFullWidthView(
+            parent,
             TextView(activity).apply {
                 text = title
                 gravity = Gravity.CENTER
@@ -103,13 +104,9 @@ internal class FunctionCenterContentFactory(
                 background = surfaceFactory.createRoundedBackground(resolvedBackgroundColor)
                 setOnClickListener { onClick() }
             },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(46)
-            ).apply {
-                topMargin = dp(8)
-                bottomMargin = dp(8)
-            }
+            height = dp(46),
+            topMargin = dp(8),
+            bottomMargin = dp(8)
         )
     }
 
@@ -152,19 +149,16 @@ internal class FunctionCenterContentFactory(
     }
 
     fun addDivider(parent: LinearLayout) {
-        parent.addView(
+        addFullWidthView(
+            parent,
             View(activity).apply {
                 setBackgroundColor(
                     ContextCompat.getColor(activity, R.color.browser_control_pressed)
                 )
             },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(1)
-            ).apply {
-                topMargin = dp(8)
-                bottomMargin = dp(8)
-            }
+            height = dp(1),
+            topMargin = dp(8),
+            bottomMargin = dp(8)
         )
     }
 
@@ -188,6 +182,7 @@ internal class FunctionCenterContentFactory(
     private fun addFullWidthView(
         parent: LinearLayout,
         view: View,
+        height: Int = ViewGroup.LayoutParams.WRAP_CONTENT,
         topMargin: Int = 0,
         bottomMargin: Int = 0,
         marginStart: Int = 0,
@@ -197,7 +192,7 @@ internal class FunctionCenterContentFactory(
             view,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
+                height
             ).apply {
                 this.topMargin = topMargin
                 this.bottomMargin = bottomMargin
