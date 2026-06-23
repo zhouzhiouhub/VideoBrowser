@@ -36,6 +36,15 @@ class TextWhitespaceNormalizerContractTest {
         val browserLaunchController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserLaunchController.kt"
         ).readText()
+        val urlUtils = projectFile(
+            "src/main/java/com/example/videobrowser/utils/UrlUtils.kt"
+        ).readText()
+        val searchUrlQueryParser = projectFile(
+            "src/main/java/com/example/videobrowser/utils/SearchUrlQueryParser.kt"
+        ).readText()
+        val searchQueryTerms = projectFile(
+            "src/main/java/com/example/videobrowser/utils/SearchQueryTerms.kt"
+        ).readText()
 
         listOf(
             shortcutStore,
@@ -46,7 +55,10 @@ class TextWhitespaceNormalizerContractTest {
             nativeBridge,
             pageArchiveFileName,
             pagePrintController,
-            browserLaunchController
+            browserLaunchController,
+            urlUtils,
+            searchUrlQueryParser,
+            searchQueryTerms
         ).forEach { source ->
             assertTrue(source.contains("TextWhitespaceNormalizer"))
             assertFalse(source.contains("Regex(\"\\\\s+\")"))

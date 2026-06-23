@@ -13,8 +13,7 @@ internal object SearchUrlQueryParser {
         val queryParameterName = searchQueryParameterName(prefixUri) ?: return null
         val rawValue = rawQueryParameter(currentUri.rawQuery, queryParameterName) ?: return null
         return Utf8UrlCodec.decodeFormComponent(rawValue)
-            ?.replace(WHITESPACE_SEQUENCE, " ")
-            ?.trim()
+            ?.let(TextWhitespaceNormalizer::collapse)
             ?.takeIf { it.isNotEmpty() }
     }
 
@@ -51,6 +50,4 @@ internal object SearchUrlQueryParser {
                 }
             }
     }
-
-    private val WHITESPACE_SEQUENCE = Regex("\\s+")
 }

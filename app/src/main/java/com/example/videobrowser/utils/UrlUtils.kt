@@ -67,9 +67,7 @@ object UrlUtils {
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun encodeSearchQuery(value: String): String {
-        val query = value.replace(WHITESPACE_SEQUENCE, " ").trim()
+        val query = TextWhitespaceNormalizer.collapse(value)
         return Utf8UrlCodec.encodeFormComponent(query)
     }
-
-    private val WHITESPACE_SEQUENCE = Regex("\\s+")
 }
