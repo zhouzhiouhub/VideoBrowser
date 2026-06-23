@@ -41,6 +41,24 @@ class ExternalProtocolPolicyTest {
         assertFalse(ExternalProtocolPolicy.shouldOpenExternally(null))
     }
 
+    @Test
+    fun shouldOpenUrlExternally_extractsSchemeWithSharedParser() {
+        assertTrue(ExternalProtocolPolicy.shouldOpenUrlExternally("intent://scan/#Intent;end"))
+        assertTrue(ExternalProtocolPolicy.shouldOpenUrlExternally(" custom-app://open "))
+
+        assertFalse(ExternalProtocolPolicy.shouldOpenUrlExternally("https://example.com"))
+        assertFalse(ExternalProtocolPolicy.shouldOpenUrlExternally("not a url"))
+        assertFalse(ExternalProtocolPolicy.shouldOpenUrlExternally(null))
+    }
+
+    @Test
+    fun isIntentUrl_matchesIntentSchemeOnly() {
+        assertTrue(ExternalProtocolPolicy.isIntentUrl("intent://scan/#Intent;end"))
+
+        assertFalse(ExternalProtocolPolicy.isIntentUrl("custom-app://open"))
+        assertFalse(ExternalProtocolPolicy.isIntentUrl("https://example.com"))
+    }
+
     /**
      * 测试函数 `isWebUrl_requiresHttpOrHttpsUrlWithHost`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `is Web Url requires Http Or Https Url With Host` 这条行为是否成立。
      *

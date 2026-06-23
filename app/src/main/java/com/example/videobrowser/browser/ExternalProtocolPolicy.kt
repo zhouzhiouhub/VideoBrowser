@@ -41,6 +41,14 @@ object ExternalProtocolPolicy {
         return normalizedScheme !in blockedSchemes
     }
 
+    fun shouldOpenUrlExternally(url: String?): Boolean {
+        return shouldOpenExternally(SafeUriParser.scheme(url))
+    }
+
+    fun isIntentUrl(url: String?): Boolean {
+        return SafeUriParser.scheme(url).equals("intent", ignoreCase = true)
+    }
+
     /**
      * 函数 `isWebUrl`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
      *

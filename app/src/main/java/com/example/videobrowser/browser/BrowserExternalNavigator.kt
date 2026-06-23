@@ -8,7 +8,6 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import android.content.Intent
-import android.net.Uri
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.Toast
@@ -43,13 +42,11 @@ class BrowserExternalNavigator(
         url: String,
         loadFallbackUrl: (String) -> Unit = {}
     ): Boolean {
-        val uri = Uri.parse(url)
-        val scheme = uri.scheme
-        if (!ExternalProtocolPolicy.shouldOpenExternally(scheme)) {
+        if (!ExternalProtocolPolicy.shouldOpenUrlExternally(url)) {
             return false
         }
 
-        if (scheme.equals("intent", ignoreCase = true)) {
+        if (ExternalProtocolPolicy.isIntentUrl(url)) {
             return openIntentUri(url, loadFallbackUrl)
         }
 

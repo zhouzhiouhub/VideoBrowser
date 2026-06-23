@@ -61,6 +61,8 @@ class ExternalProtocolWiringContractTest {
         ).readText()
 
         assertTrue(navigator.contains("fun openExternalProtocolUrl"))
+        assertTrue(navigator.contains("ExternalProtocolPolicy.shouldOpenUrlExternally(url)"))
+        assertTrue(navigator.contains("ExternalProtocolPolicy.isIntentUrl(url)"))
         assertTrue(navigator.contains("Intent.parseUri(url, Intent.URI_INTENT_SCHEME)"))
         assertTrue(navigator.contains("ExternalProtocolPolicy.BROWSER_FALLBACK_URL"))
         assertTrue(navigator.contains("loadFallbackUrl(fallbackUrl)"))
@@ -75,6 +77,7 @@ class ExternalProtocolWiringContractTest {
         assertFalse(navigator.contains("Intent.CATEGORY_BROWSABLE"))
         assertFalse(navigator.contains("startExternalIntent"))
         assertFalse(navigator.contains("Intent(Intent.ACTION_VIEW"))
+        assertFalse(navigator.contains("Uri.parse(url)"))
     }
 
     /**
