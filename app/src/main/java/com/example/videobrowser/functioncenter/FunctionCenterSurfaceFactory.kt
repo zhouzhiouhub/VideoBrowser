@@ -37,18 +37,7 @@ internal class FunctionCenterSurfaceFactory(
                 toolbarButtonFactory.layoutParams()
             )
 
-            val titleView = TextView(activity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                textSize = 18f
-                typeface = Typeface.DEFAULT_BOLD
-                gravity = Gravity.CENTER_VERTICAL
-                includeFontPadding = false
-            }
-            addView(
-                titleView,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
-            )
+            addToolbarTitle(title)
         }
     }
 
@@ -74,18 +63,7 @@ internal class FunctionCenterSurfaceFactory(
                 )
             }
 
-            val titleView = TextView(activity).apply {
-                text = title
-                setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
-                textSize = 18f
-                typeface = Typeface.DEFAULT_BOLD
-                gravity = Gravity.CENTER_VERTICAL
-                includeFontPadding = false
-            }
-            addView(
-                titleView,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
-            )
+            addToolbarTitle(title)
 
             val closeButton = toolbarButtonFactory.createButton(
                 iconRes = R.drawable.ic_close_24,
@@ -120,5 +98,23 @@ internal class FunctionCenterSurfaceFactory(
 
     fun createBottomSheetBackground(color: Int): GradientDrawable {
         return BrowserDrawableFactory.topRoundedBackground(color, dp(18).toFloat())
+    }
+
+    private fun LinearLayout.addToolbarTitle(title: String) {
+        addView(
+            createToolbarTitle(title),
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+        )
+    }
+
+    private fun createToolbarTitle(title: String): TextView {
+        return TextView(activity).apply {
+            text = title
+            setTextColor(ContextCompat.getColor(activity, R.color.browser_text))
+            textSize = 18f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER_VERTICAL
+            includeFontPadding = false
+        }
     }
 }
