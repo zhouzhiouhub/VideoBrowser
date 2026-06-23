@@ -7,8 +7,6 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.widget.Toast
@@ -18,6 +16,7 @@ import com.example.videobrowser.download.DownloadController
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
+import com.example.videobrowser.utils.ChooserIntentLauncher
 import com.example.videobrowser.utils.FileOpenIntentFactory
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.PageUrlActions
@@ -271,13 +270,11 @@ class PageActionsController(
      */
     private fun openExternalDocument(uri: Uri, mimeType: String?) {
         val intent = FileOpenIntentFactory.create(uri, mimeType)
-        try {
-            activity.startActivity(
-                Intent.createChooser(intent, activity.getString(R.string.action_open_file))
-            )
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        }
+        ChooserIntentLauncher.start(
+            activity = activity,
+            intent = intent,
+            chooserTitleRes = R.string.action_open_file
+        )
     }
 
     /**

@@ -1,12 +1,11 @@
 package com.example.videobrowser.localfiles
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.net.Uri
 import android.text.InputType
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ChooserIntentLauncher
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.FileShareIntentFactory
 import com.example.videobrowser.utils.ValidatedTextInputDialog
@@ -95,11 +94,11 @@ internal class LocalDocumentOperationController(
             displayName = document.name,
             mimeType = document.mimeType?.takeUnless { document.isDirectory }
         )
-        try {
-            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_file)))
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        }
+        ChooserIntentLauncher.start(
+            activity = activity,
+            intent = intent,
+            chooserTitleRes = R.string.action_share_file
+        )
     }
 
     private fun showNameInputDialog(

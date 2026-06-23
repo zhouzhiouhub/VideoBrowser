@@ -278,10 +278,11 @@ class DownloadStatusWiringContractTest {
         assertTrue(launcher.contains("startDownloadedFileIntent(intent, R.string.action_share_file)"))
         assertTrue(launcher.contains("startDownloadedFileIntent(intent, R.string.action_open_file)"))
         assertTrue(launcher.contains("private fun startDownloadedFileIntent(intent: Intent, chooserTitleRes: Int)"))
-        assertTrue(launcher.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
-        assertEquals(1, Regex("Intent\\.createChooser\\(intent").findAll(launcher).count())
-        assertEquals(1, Regex("catch \\(_: ActivityNotFoundException\\)").findAll(launcher).count())
-        assertEquals(1, Regex("catch \\(_: SecurityException\\)").findAll(launcher).count())
+        assertTrue(launcher.contains("ChooserIntentLauncher.start("))
+        assertTrue(launcher.contains("securityExceptionToastRes = R.string.toast_download_file_unavailable"))
+        assertEquals(0, Regex("Intent\\.createChooser\\(intent").findAll(launcher).count())
+        assertEquals(0, Regex("catch \\(_: ActivityNotFoundException\\)").findAll(launcher).count())
+        assertEquals(0, Regex("catch \\(_: SecurityException\\)").findAll(launcher).count())
     }
 
 

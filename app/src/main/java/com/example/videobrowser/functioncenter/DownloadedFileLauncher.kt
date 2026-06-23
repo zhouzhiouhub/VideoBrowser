@@ -1,13 +1,13 @@
 package com.example.videobrowser.functioncenter
 
 import android.app.DownloadManager
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadRecord
+import com.example.videobrowser.utils.ChooserIntentLauncher
 import com.example.videobrowser.utils.FileOpenIntentFactory
 import com.example.videobrowser.utils.FileShareIntentFactory
 
@@ -32,15 +32,12 @@ internal class DownloadedFileLauncher(
     }
 
     private fun startDownloadedFileIntent(intent: Intent, chooserTitleRes: Int) {
-        try {
-            activity.startActivity(
-                Intent.createChooser(intent, activity.getString(chooserTitleRes))
-            )
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.toast_no_external_browser, Toast.LENGTH_SHORT).show()
-        } catch (_: SecurityException) {
-            Toast.makeText(activity, R.string.toast_download_file_unavailable, Toast.LENGTH_SHORT).show()
-        }
+        ChooserIntentLauncher.start(
+            activity = activity,
+            intent = intent,
+            chooserTitleRes = chooserTitleRes,
+            securityExceptionToastRes = R.string.toast_download_file_unavailable
+        )
     }
 
     private fun downloadedFileUri(record: DownloadRecord) =
