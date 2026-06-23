@@ -239,8 +239,7 @@ class DownloadStatusWiringContractTest {
         ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(operations.contains("ClipData.newPlainText"))
-        assertTrue(operations.contains("Context.CLIPBOARD_SERVICE"))
+        assertTrue(operations.contains("ClipboardTextActions.copyPlainText("))
         assertTrue(dialogController.contains("recordOperations.copyDownloadSourceUrl(record)"))
         assertTrue(operations.contains("record.sourceUrl"))
         assertTrue(strings.contains("action_copy_download_source"))

@@ -1,10 +1,7 @@
 package com.example.videobrowser.functioncenter
 
 import android.app.DownloadManager
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadCancellationResult
@@ -14,20 +11,19 @@ import com.example.videobrowser.download.DownloadRecordCleaner
 import com.example.videobrowser.download.DownloadRecordRemoveResult
 import com.example.videobrowser.download.DownloadRecordRemover
 import com.example.videobrowser.download.DownloadRecordRepository
+import com.example.videobrowser.utils.ClipboardTextActions
 
 class DownloadRecordPageOperations(
     private val activity: AppCompatActivity,
     private val downloadRecordRepository: DownloadRecordRepository
 ) {
     fun copyDownloadSourceUrl(record: DownloadRecord) {
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(
-            ClipData.newPlainText(
-                activity.getString(R.string.clipboard_download_source_url),
-                record.sourceUrl
-            )
+        ClipboardTextActions.copyPlainText(
+            activity = activity,
+            labelResId = R.string.clipboard_download_source_url,
+            text = record.sourceUrl,
+            toastResId = R.string.toast_download_source_copied
         )
-        Toast.makeText(activity, R.string.toast_download_source_copied, Toast.LENGTH_SHORT).show()
     }
 
     fun cancelDownload(record: DownloadRecord): DownloadCancellationResult {

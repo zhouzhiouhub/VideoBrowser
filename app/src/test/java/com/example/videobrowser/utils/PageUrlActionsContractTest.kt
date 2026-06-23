@@ -11,6 +11,9 @@ class PageUrlActionsContractTest {
         val actions = projectFile(
             "src/main/java/com/example/videobrowser/utils/PageUrlActions.kt"
         ).readText()
+        val clipboardActions = projectFile(
+            "src/main/java/com/example/videobrowser/utils/ClipboardTextActions.kt"
+        ).readText()
         val pageActionsController = projectFile(
             "src/main/java/com/example/videobrowser/browser/PageActionsController.kt"
         ).readText()
@@ -26,9 +29,13 @@ class PageUrlActionsContractTest {
 
         assertTrue(actions.contains("object PageUrlActions"))
         assertTrue(actions.contains("fun copyPageUrl(activity: AppCompatActivity, url: String)"))
-        assertTrue(actions.contains("Context.CLIPBOARD_SERVICE"))
-        assertTrue(actions.contains("ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)"))
-        assertTrue(actions.contains("Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()"))
+        assertTrue(actions.contains("ClipboardTextActions.copyPlainText("))
+        assertTrue(actions.contains("labelResId = R.string.clipboard_page_url"))
+        assertTrue(actions.contains("toastResId = R.string.toast_link_copied"))
+        assertTrue(clipboardActions.contains("object ClipboardTextActions"))
+        assertTrue(clipboardActions.contains("Context.CLIPBOARD_SERVICE"))
+        assertTrue(clipboardActions.contains("ClipData.newPlainText(activity.getString(labelResId), text)"))
+        assertTrue(clipboardActions.contains("Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()"))
         assertTrue(actions.contains("fun sharePageUrl(activity: AppCompatActivity, url: String)"))
         assertTrue(actions.contains("fun shareLinkUrl(activity: AppCompatActivity, url: String)"))
         assertTrue(actions.contains("fun shareImageLinkUrl(activity: AppCompatActivity, url: String)"))
