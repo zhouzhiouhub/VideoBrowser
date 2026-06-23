@@ -125,9 +125,9 @@ class BrowserTabsPageWiringContractTest {
 
         assertTrue(tabsPage.contains("R.string.action_share_page"))
         assertTrue(tabsPage.contains("private fun shareTabUrl(url: String)"))
-        assertTrue(tabsPage.contains("Intent(Intent.ACTION_SEND)"))
-        assertTrue(tabsPage.contains("putExtra(Intent.EXTRA_TEXT, url)"))
-        assertTrue(tabsPage.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
+        assertTrue(tabsPage.contains("PageUrlActions.sharePageUrl(activity, url)"))
+        assertFalse(tabsPage.contains("Intent(Intent.ACTION_SEND)"))
+        assertFalse(tabsPage.contains("putExtra(Intent.EXTRA_TEXT"))
     }
 
     /**

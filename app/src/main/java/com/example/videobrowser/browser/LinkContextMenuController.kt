@@ -7,7 +7,6 @@ package com.example.videobrowser.browser
  * 主要职责：识别 WebView 命中的链接/图片 URL，展示打开、下载、复制和分享菜单，并把具体动作分发给浏览器或系统能力。
  * 阅读顺序：先看 configure，再看 linkHitTestUrl/imageHitTestUrl，最后看 showLinkContextMenu/showImageContextMenu。
  */
-import android.content.Intent
 import android.webkit.WebView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -129,13 +128,7 @@ class LinkContextMenuController(
      * @param url 参数类型为 `String`，表示要分享的图片地址。
      */
     private fun shareImageUrl(url: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, url)
-        }
-        activity.startActivity(
-            Intent.createChooser(intent, activity.getString(R.string.action_share_image_link))
-        )
+        PageUrlActions.shareImageLinkUrl(activity, url)
     }
 
     /**
@@ -216,12 +209,6 @@ class LinkContextMenuController(
      * @param url 参数类型为 `String`，表示要分享的链接地址。
      */
     private fun shareLinkUrl(url: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, url)
-        }
-        activity.startActivity(
-            Intent.createChooser(intent, activity.getString(R.string.action_share_link))
-        )
+        PageUrlActions.shareLinkUrl(activity, url)
     }
 }

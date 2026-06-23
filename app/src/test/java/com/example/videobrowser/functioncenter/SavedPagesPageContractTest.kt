@@ -115,10 +115,9 @@ class SavedPagesPageContractTest {
 
         assertTrue(dialogController.contains("R.string.action_share_page"))
         assertTrue(dialogController.contains("linkActions.shareUrl(page)"))
-        assertTrue(linkActions.contains("Intent(Intent.ACTION_SEND)"))
-        assertTrue(linkActions.contains("type = \"text/plain\""))
-        assertTrue(linkActions.contains("putExtra(Intent.EXTRA_TEXT, page.url)"))
-        assertTrue(linkActions.contains("Intent.createChooser(intent, activity.getString(R.string.action_share_page))"))
+        assertTrue(linkActions.contains("PageUrlActions.sharePageUrl(activity, page.url)"))
+        assertFalse(linkActions.contains("Intent(Intent.ACTION_SEND)"))
+        assertFalse(linkActions.contains("putExtra(Intent.EXTRA_TEXT"))
     }
 
     /**

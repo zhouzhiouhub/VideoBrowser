@@ -7,7 +7,7 @@ import org.junit.Test
 
 class PageUrlActionsContractTest {
     @Test
-    fun pageUrlClipboardCopyingIsShared() {
+    fun pageUrlClipboardAndSharingActionsAreShared() {
         val actions = projectFile(
             "src/main/java/com/example/videobrowser/utils/PageUrlActions.kt"
         ).readText()
@@ -29,6 +29,19 @@ class PageUrlActionsContractTest {
         assertTrue(actions.contains("Context.CLIPBOARD_SERVICE"))
         assertTrue(actions.contains("ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)"))
         assertTrue(actions.contains("Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()"))
+        assertTrue(actions.contains("fun sharePageUrl(activity: AppCompatActivity, url: String)"))
+        assertTrue(actions.contains("fun shareLinkUrl(activity: AppCompatActivity, url: String)"))
+        assertTrue(actions.contains("fun shareImageLinkUrl(activity: AppCompatActivity, url: String)"))
+        assertTrue(actions.contains("private fun shareTextUrl(activity: AppCompatActivity, url: String, chooserTitleRes: Int)"))
+        assertTrue(actions.contains("Intent(Intent.ACTION_SEND)"))
+        assertTrue(actions.contains("putExtra(Intent.EXTRA_TEXT, url)"))
+        assertTrue(actions.contains("Intent.createChooser(intent, activity.getString(chooserTitleRes))"))
+
+        assertTrue(pageActionsController.contains("PageUrlActions.sharePageUrl(activity, url)"))
+        assertTrue(savedPageLinkActions.contains("PageUrlActions.sharePageUrl(activity, page.url)"))
+        assertTrue(browserTabsPage.contains("PageUrlActions.sharePageUrl(activity, url)"))
+        assertTrue(linkContextMenuController.contains("PageUrlActions.shareLinkUrl(activity, url)"))
+        assertTrue(linkContextMenuController.contains("PageUrlActions.shareImageLinkUrl(activity, url)"))
 
         listOf(
             pageActionsController,
@@ -40,6 +53,8 @@ class PageUrlActionsContractTest {
             assertFalse(source.contains("Context.CLIPBOARD_SERVICE"))
             assertFalse(source.contains("ClipData.newPlainText"))
             assertFalse(source.contains("R.string.toast_link_copied"))
+            assertFalse(source.contains("Intent(Intent.ACTION_SEND)"))
+            assertFalse(source.contains("putExtra(Intent.EXTRA_TEXT"))
         }
     }
 }

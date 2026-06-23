@@ -166,11 +166,7 @@ class PageActionsController(
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
             return
         }
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, url)
-        }
-        activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
+        PageUrlActions.sharePageUrl(activity, url)
     }
 
     /**

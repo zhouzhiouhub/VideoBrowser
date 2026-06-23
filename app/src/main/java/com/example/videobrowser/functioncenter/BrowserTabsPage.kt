@@ -7,7 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.content.Intent
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserTab
 import com.example.videobrowser.utils.PageUrlActions
@@ -156,11 +155,7 @@ class BrowserTabsPage(
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     private fun shareTabUrl(url: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, url)
-        }
-        activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.action_share_page)))
+        PageUrlActions.sharePageUrl(activity, url)
     }
 
     /**
