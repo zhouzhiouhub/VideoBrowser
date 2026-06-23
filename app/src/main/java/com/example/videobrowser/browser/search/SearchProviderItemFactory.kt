@@ -89,14 +89,7 @@ internal class SearchProviderItemFactory(
     }
 
     fun createRecentHistoryBadge(): ImageView {
-        return ImageView(activity).apply {
-            setImageResource(R.drawable.ic_history_24)
-            setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-            background = BrowserDrawableFactory.circleBackground(
-                ContextCompat.getColor(activity, R.color.browser_provider_circle)
-            )
-            setPadding(dp(12), dp(12), dp(12), dp(12))
-        }
+        return createIconBadge(R.drawable.ic_history_24)
     }
 
     fun createProviderBadge(provider: SearchProvider): TextView {
@@ -118,22 +111,26 @@ internal class SearchProviderItemFactory(
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, if (badgeText.length > 1) 12f else 16f)
-            background = BrowserDrawableFactory.circleBackground(
-                ContextCompat.getColor(activity, R.color.browser_provider_circle)
-            )
+            background = providerCircleBackground()
         }
     }
 
     fun createAddShortcutBadge(): ImageView {
+        return createIconBadge(R.drawable.ic_add_24)
+    }
+
+    private fun createIconBadge(iconResId: Int): ImageView {
         return ImageView(activity).apply {
-            setImageResource(R.drawable.ic_add_24)
+            setImageResource(iconResId)
             setColorFilter(ContextCompat.getColor(activity, R.color.browser_primary))
-            background = BrowserDrawableFactory.circleBackground(
-                ContextCompat.getColor(activity, R.color.browser_provider_circle)
-            )
+            background = providerCircleBackground()
             setPadding(dp(12), dp(12), dp(12), dp(12))
         }
     }
+
+    private fun providerCircleBackground() = BrowserDrawableFactory.circleBackground(
+        ContextCompat.getColor(activity, R.color.browser_provider_circle)
+    )
 
     fun createProviderLabel(provider: SearchProvider): TextView {
         return createCustomShortcutLabel(provider.name)
