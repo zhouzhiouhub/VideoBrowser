@@ -43,6 +43,14 @@ internal class SettingsGlobalPreferenceStore(
         KEY_DESKTOP_MODE,
         DEFAULT_DESKTOP_MODE_ENABLED
     )
+    private val defaultVideoSpeedPreference = FloatPreference(
+        KEY_DEFAULT_VIDEO_SPEED,
+        SettingsManager.DEFAULT_VIDEO_SPEED
+    )
+    private val textZoomPercentPreference = FloatPreference(
+        KEY_TEXT_ZOOM_PERCENT,
+        SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT.toFloat()
+    )
 
     fun isAdBlockEnabled(): Boolean {
         return getBooleanPreference(adBlockPreference)
@@ -110,26 +118,23 @@ internal class SettingsGlobalPreferenceStore(
 
     fun defaultVideoSpeed(): Float {
         return SettingsValueNormalizer.videoSpeed(
-            preferenceStore.getFloat(KEY_DEFAULT_VIDEO_SPEED, SettingsManager.DEFAULT_VIDEO_SPEED)
+            getFloatPreference(defaultVideoSpeedPreference)
         )
     }
 
     fun setDefaultVideoSpeed(speed: Float) {
-        preferenceStore.putFloat(KEY_DEFAULT_VIDEO_SPEED, SettingsValueNormalizer.videoSpeed(speed))
+        setFloatPreference(defaultVideoSpeedPreference, SettingsValueNormalizer.videoSpeed(speed))
     }
 
     fun textZoomPercent(): Int {
         return SettingsValueNormalizer.textZoomPercent(
-            preferenceStore.getFloat(
-                KEY_TEXT_ZOOM_PERCENT,
-                SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT.toFloat()
-            ).toInt()
+            getFloatPreference(textZoomPercentPreference).toInt()
         )
     }
 
     fun setTextZoomPercent(percent: Int) {
-        preferenceStore.putFloat(
-            KEY_TEXT_ZOOM_PERCENT,
+        setFloatPreference(
+            textZoomPercentPreference,
             SettingsValueNormalizer.textZoomPercent(percent).toFloat()
         )
     }
@@ -204,8 +209,21 @@ internal class SettingsGlobalPreferenceStore(
         preferenceStore.putBoolean(preference.key, value)
     }
 
+    private fun getFloatPreference(preference: FloatPreference): Float {
+        return preferenceStore.getFloat(preference.key, preference.defaultValue)
+    }
+
+    private fun setFloatPreference(preference: FloatPreference, value: Float) {
+        preferenceStore.putFloat(preference.key, value)
+    }
+
     private data class BooleanPreference(
         val key: String,
         val defaultValue: Boolean
+    )
+
+    private data class FloatPreference(
+        val key: String,
+        val defaultValue: Float
     )
 }
