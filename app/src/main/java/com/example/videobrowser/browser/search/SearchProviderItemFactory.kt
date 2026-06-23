@@ -93,25 +93,24 @@ internal class SearchProviderItemFactory(
     }
 
     fun createProviderBadge(provider: SearchProvider): TextView {
-        return TextView(activity).apply {
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            text = provider.badge
-            setTypeface(typeface, Typeface.BOLD)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, if (provider.badge.length > 1) 12f else 16f)
-        }
+        return createTextBadge(provider.badge)
     }
 
     fun createCustomShortcutBadge(shortcut: CustomShortcut): TextView {
         val badgeText = shortcutBadgeText(shortcut.name)
+        return createTextBadge(badgeText).apply {
+            setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
+            background = providerCircleBackground()
+        }
+    }
+
+    private fun createTextBadge(badgeText: String): TextView {
         return TextView(activity).apply {
             gravity = Gravity.CENTER
             includeFontPadding = false
             text = badgeText
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, if (badgeText.length > 1) 12f else 16f)
-            background = providerCircleBackground()
         }
     }
 

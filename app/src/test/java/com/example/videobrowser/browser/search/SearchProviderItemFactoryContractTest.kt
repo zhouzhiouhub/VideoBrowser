@@ -35,4 +35,21 @@ class SearchProviderItemFactoryContractTest {
         assertEquals(1, Regex("setColorFilter\\(ContextCompat\\.getColor\\(activity, R\\.color\\.browser_primary\\)\\)").findAll(itemFactory).count())
         assertEquals(1, Regex("setPadding\\(dp\\(12\\), dp\\(12\\), dp\\(12\\), dp\\(12\\)\\)").findAll(itemFactory).count())
     }
+
+    @Test
+    fun badgeTextSetupIsShared() {
+        val itemFactory = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderItemFactory.kt"
+        ).readText()
+
+        assertTrue(itemFactory.contains("private fun createTextBadge(badgeText: String): TextView"))
+        assertEquals(2, Regex("return createTextBadge\\(").findAll(itemFactory).count())
+        assertEquals(1, Regex("setTypeface\\(typeface, Typeface\\.BOLD\\)").findAll(itemFactory).count())
+        assertEquals(
+            1,
+            Regex("setTextSize\\(TypedValue\\.COMPLEX_UNIT_SP, if \\(badgeText\\.length > 1\\) 12f else 16f\\)")
+                .findAll(itemFactory)
+                .count()
+        )
+    }
 }
