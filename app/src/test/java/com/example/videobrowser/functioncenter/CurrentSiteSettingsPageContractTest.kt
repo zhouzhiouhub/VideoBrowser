@@ -55,6 +55,9 @@ class CurrentSiteSettingsPageContractTest {
         val featureSection = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/CurrentSiteFeatureSection.kt"
         ).readText()
+        val toggleToast = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FeatureToggleToast.kt"
+        ).readText()
 
         assertTrue(page.contains("CurrentSiteFeatureSection("))
         assertTrue(page.contains("siteFeatureSection.addRows(section, siteHost, hasSite)"))
@@ -66,8 +69,9 @@ class CurrentSiteSettingsPageContractTest {
         assertTrue(featureSection.contains("settingsManager::setVideoEnhancementDisabledForSite"))
         assertTrue(featureSection.contains("browserManager().reload()"))
         assertTrue(featureSection.contains("onChanged = injectPageFeatures"))
-        assertTrue(featureSection.contains("R.string.toast_current_site_feature_enabled"))
-        assertTrue(featureSection.contains("R.string.toast_current_site_feature_disabled"))
+        assertTrue(featureSection.contains("FeatureToggleToast.showForSite(activity, title, hostName, enabled)"))
+        assertTrue(toggleToast.contains("R.string.toast_current_site_feature_enabled"))
+        assertTrue(toggleToast.contains("R.string.toast_current_site_feature_disabled"))
     }
 
 }

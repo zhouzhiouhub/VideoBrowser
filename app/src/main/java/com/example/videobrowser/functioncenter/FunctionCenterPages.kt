@@ -7,7 +7,6 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogger
@@ -80,6 +79,7 @@ class FunctionCenterPages(
     private val recreateActivity: () -> Unit
 ) {
     private val host = FunctionCenterPageHost(activity, functionCenter)
+    private val activity = host.activity
     private val currentSiteSettingsPage = CurrentSiteSettingsPage(
         host = host,
         settingsManager = settingsManager,
@@ -242,7 +242,9 @@ class FunctionCenterPages(
         toggleCurrentBookmark = toggleCurrentBookmark,
         startElementPicker = startElementPicker,
         applyDesktopMode = applyDesktopMode,
-        showFeatureToggleToast = ::showFeatureToggleToast,
+        showFeatureToggleToast = { featureName, enabled ->
+            FeatureToggleToast.showGlobal(activity, featureName, enabled)
+        },
         showBrowserTabs = { browserTabsPage.show() },
         showBookmarks = ::showBookmarks,
         showHistory = ::showHistory,
@@ -251,9 +253,6 @@ class FunctionCenterPages(
         showFileOperationsPage = showFileOperationsPage,
         showCurrentSiteSettings = { currentSiteSettingsPage.show() }
     )
-
-    private val activity = host.activity
-
     /**
      * 函数 `showRootPage`：控制 `show Root Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
@@ -313,24 +312,6 @@ class FunctionCenterPages(
      */
     fun close(): Boolean {
         return host.close()
-    }
-
-    /**
-     * 函数 `showFeatureToggleToast`：控制 `show Feature Toggle Toast` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param featureName 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param enabled 参数类型为 `Boolean`，表示一个开关状态，用来决定函数内部走启用还是停用分支。
-     */
-    private fun showFeatureToggleToast(featureName: String, enabled: Boolean) {
-        Toast.makeText(
-            activity,
-            activity.getString(
-                if (enabled) R.string.toast_feature_enabled else R.string.toast_feature_disabled,
-                featureName
-            ),
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     /**

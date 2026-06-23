@@ -1,7 +1,6 @@
 package com.example.videobrowser.functioncenter
 
 import android.widget.LinearLayout
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
@@ -138,7 +137,7 @@ internal class CurrentSiteFeatureSection(
         ) { enabled ->
             val hostName = currentSiteHost() ?: return@addSwitchRow
             setSiteDisabled(hostName, !enabled)
-            showToast(enabled, title, hostName)
+            FeatureToggleToast.showForSite(activity, title, hostName, enabled)
             onChanged()
         }
     }
@@ -149,21 +148,5 @@ internal class CurrentSiteFeatureSection(
             !globalEnabled -> activity.getString(R.string.setting_disabled_in_browser_settings)
             else -> siteHost
         }
-    }
-
-    private fun showToast(enabled: Boolean, featureName: String, hostName: String) {
-        Toast.makeText(
-            activity,
-            activity.getString(
-                if (enabled) {
-                    R.string.toast_current_site_feature_enabled
-                } else {
-                    R.string.toast_current_site_feature_disabled
-                },
-                featureName,
-                hostName
-            ),
-            Toast.LENGTH_SHORT
-        ).show()
     }
 }
