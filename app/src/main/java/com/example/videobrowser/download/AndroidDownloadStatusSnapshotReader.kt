@@ -3,6 +3,8 @@ package com.example.videobrowser.download
 import android.app.DownloadManager
 import android.content.Context
 import android.database.Cursor
+import com.example.videobrowser.utils.intOrNull
+import com.example.videobrowser.utils.longOrNull
 
 class AndroidDownloadStatusSnapshotReader(
     private val context: Context
@@ -24,26 +26,17 @@ class AndroidDownloadStatusSnapshotReader(
         if (!cursor.moveToFirst()) {
             return null
         }
-        val statusColumn = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-        if (statusColumn < 0) {
-            return null
-        }
-        val reasonColumn = cursor.getColumnIndex(DownloadManager.COLUMN_REASON)
-        val downloadedColumn = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-        val totalColumn = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-        val statusReason = reasonColumn
-            .takeIf { column -> column >= 0 }
-            ?.let { column -> cursor.getInt(column) }
-        val bytesDownloaded = downloadedColumn
-            .takeIf { column -> column >= 0 }
-            ?.let { column -> cursor.getLong(column) }
+        val status = cursor.intOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+            ?: return null
+        val statusReason = cursor.intOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+        val bytesDownloaded = cursor
+            .longOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
             ?.takeIf { value -> value >= 0L }
-        val totalBytes = totalColumn
-            .takeIf { column -> column >= 0 }
-            ?.let { column -> cursor.getLong(column) }
+        val totalBytes = cursor
+            .longOrNull(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
             ?.takeIf { value -> value >= 0L }
 
-        return when (cursor.getInt(statusColumn)) {
+        return when (status) {
             DownloadManager.STATUS_SUCCESSFUL -> DownloadStatusSnapshot(
                 status = DownloadStatus.COMPLETED,
                 bytesDownloaded = bytesDownloaded,

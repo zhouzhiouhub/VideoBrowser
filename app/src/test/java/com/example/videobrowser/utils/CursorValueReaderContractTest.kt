@@ -11,11 +11,18 @@ class CursorValueReaderContractTest {
     fun `cursor callers share nullable cursor value readers`() {
         val sources = listOf(
             projectFile("src/main/java/com/example/videobrowser/localfiles/LocalDocumentRepository.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/PageActionsController.kt")
+            projectFile("src/main/java/com/example/videobrowser/browser/PageActionsController.kt"),
+            projectFile(
+                "src/main/java/com/example/videobrowser/download/AndroidDownloadStatusSnapshotReader.kt"
+            )
         ).map { file -> file.readText() }
 
         sources.forEach { source ->
-            assertTrue(source.contains("stringOrNull"))
+            assertTrue(
+                source.contains("stringOrNull") ||
+                    source.contains("intOrNull") ||
+                    source.contains("longOrNull")
+            )
             assertFalse(source.contains("private fun Cursor.getStringOrNull"))
             assertFalse(source.contains("private fun Cursor.getLongOrNull"))
             assertFalse(source.contains("private fun Cursor.getIntOrNull"))
