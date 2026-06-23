@@ -9,8 +9,6 @@ package com.example.videobrowser.browser
  */
 import android.graphics.Color
 import android.view.View
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 
 /**
  * 浏览器外壳 UI 控制器。
@@ -86,25 +84,18 @@ class BrowserShellUiController(
 
     private fun applyHomeChrome(show: Boolean) {
         bottomBar.visibility = if (show) View.GONE else View.VISIBLE
-        positionSearchBarForHome(show)
         if (show) {
             topBar.setBackgroundColor(Color.TRANSPARENT)
+            topBar.post { positionSearchBarForHome() }
+        } else {
+            topBar.translationY = 0f
         }
     }
 
-    private fun positionSearchBarForHome(show: Boolean) {
-        val rootLayout = rootView as? ConstraintLayout ?: return
-        ConstraintSet().apply {
-            clone(rootLayout)
-            clear(topBar.id, ConstraintSet.TOP)
-            clear(topBar.id, ConstraintSet.BOTTOM)
-            connect(topBar.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
-            if (show) {
-                connect(topBar.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
-                setVerticalBias(topBar.id, HOME_SEARCH_VERTICAL_BIAS)
-            }
-            applyTo(rootLayout)
-        }
+    private fun positionSearchBarForHome() {
+        val targetCenterY = rootView.height * HOME_SEARCH_VERTICAL_BIAS
+        val currentCenterY = topBar.top + topBar.height / 2f
+        topBar.translationY = targetCenterY - currentCenterY
     }
 
     private companion object {
