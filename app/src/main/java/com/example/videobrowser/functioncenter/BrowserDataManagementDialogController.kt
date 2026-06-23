@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ConfirmationDialog
 
 class BrowserDataManagementDialogController(
     private val activity: AppCompatActivity,
@@ -31,7 +32,8 @@ class BrowserDataManagementDialogController(
     }
 
     fun showRemoveCookieDialog(pageUrl: String, cookieName: String, onRemoved: () -> Unit) {
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.title_remove_cookie,
             message = activity.getString(R.string.dialog_remove_cookie_message, cookieName),
             positiveButtonRes = R.string.action_remove
@@ -44,7 +46,8 @@ class BrowserDataManagementDialogController(
     }
 
     fun showClearAllCookiesDialog(onCleared: () -> Unit) {
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.action_clear,
             messageRes = R.string.dialog_clear_all_cookies_message,
             positiveButtonRes = R.string.action_clear
@@ -57,7 +60,8 @@ class BrowserDataManagementDialogController(
     }
 
     fun showClearCacheDialog(onCleared: () -> Unit) {
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.action_clear,
             messageRes = R.string.dialog_clear_cache_message,
             positiveButtonRes = R.string.action_clear
@@ -69,7 +73,8 @@ class BrowserDataManagementDialogController(
     }
 
     fun showClearBookmarksDialog(onCleared: () -> Unit) {
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.action_clear,
             messageRes = R.string.dialog_clear_bookmarks_message,
             positiveButtonRes = R.string.action_clear
@@ -81,7 +86,8 @@ class BrowserDataManagementDialogController(
     }
 
     fun showClearDownloadDataDialog(onCleared: () -> Unit) {
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.action_clear,
             messageRes = R.string.dialog_clear_download_records_message,
             positiveButtonRes = R.string.action_clear
@@ -108,7 +114,8 @@ class BrowserDataManagementDialogController(
     }
 
     fun showRemoveSiteDataDialog(origin: String, onRemoved: () -> Unit) {
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.title_remove_site_data,
             message = activity.getString(R.string.dialog_remove_site_data_message, origin),
             positiveButtonRes = R.string.action_remove
@@ -120,7 +127,8 @@ class BrowserDataManagementDialogController(
     }
 
     fun showClearSiteDataDialog(onCleared: () -> Unit) {
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.action_clear,
             messageRes = R.string.dialog_clear_site_data_message,
             positiveButtonRes = R.string.action_clear
@@ -133,7 +141,8 @@ class BrowserDataManagementDialogController(
 
     private fun showClearHistoryDialog(range: BrowserHistoryClearRange, onCleared: () -> Unit) {
         val rangeLabel = historyClearRangeLabel(range)
-        showConfirmationDialog(
+        ConfirmationDialog.show(
+            activity = activity,
             titleRes = R.string.action_clear,
             message = activity.getString(R.string.dialog_clear_history_range_message, rangeLabel),
             positiveButtonRes = R.string.action_clear
@@ -146,34 +155,6 @@ class BrowserDataManagementDialogController(
             ).show()
             onCleared()
         }
-    }
-
-    private fun showConfirmationDialog(
-        titleRes: Int,
-        messageRes: Int,
-        positiveButtonRes: Int,
-        onConfirmed: () -> Unit
-    ) {
-        showConfirmationDialog(
-            titleRes = titleRes,
-            message = activity.getString(messageRes),
-            positiveButtonRes = positiveButtonRes,
-            onConfirmed = onConfirmed
-        )
-    }
-
-    private fun showConfirmationDialog(
-        titleRes: Int,
-        message: String,
-        positiveButtonRes: Int,
-        onConfirmed: () -> Unit
-    ) {
-        AlertDialog.Builder(activity)
-            .setTitle(titleRes)
-            .setMessage(message)
-            .setPositiveButton(positiveButtonRes) { _, _ -> onConfirmed() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     private fun historyClearRangeLabel(range: BrowserHistoryClearRange): String {

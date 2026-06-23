@@ -9,6 +9,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
+import com.example.videobrowser.utils.ConfirmationDialog
 
 internal class SavedPagesDialogController(
     private val activity: AppCompatActivity,
@@ -70,26 +71,26 @@ internal class SavedPagesDialogController(
     }
 
     fun showClearSavedPagesDialog(collection: SavedPageCollection) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_saved_pages_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                savedPageRepository.clear(collection)
-                Toast.makeText(
-                    activity,
-                    R.string.toast_saved_pages_cleared,
-                    Toast.LENGTH_SHORT
-                ).show()
-                showSavedPagesPage(
-                    collection,
-                    SavedPageCollectionDisplayText.title(activity, collection),
-                    SavedPageCollectionDisplayText.emptyMessage(activity, collection),
-                    true,
-                    null
-                )
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_saved_pages_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            savedPageRepository.clear(collection)
+            Toast.makeText(
+                activity,
+                R.string.toast_saved_pages_cleared,
+                Toast.LENGTH_SHORT
+            ).show()
+            showSavedPagesPage(
+                collection,
+                SavedPageCollectionDisplayText.title(activity, collection),
+                SavedPageCollectionDisplayText.emptyMessage(activity, collection),
+                true,
+                null
+            )
+        }
     }
 
     private fun savedPageActions(

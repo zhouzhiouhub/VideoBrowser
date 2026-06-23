@@ -9,6 +9,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadCategory
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadStatus
+import com.example.videobrowser.utils.ConfirmationDialog
 
 internal class DownloadsPageDialogController(
     private val activity: AppCompatActivity,
@@ -107,7 +108,7 @@ internal class DownloadsPageDialogController(
     ) {
         val actions = downloadRecordActions(record, retryable, cancelable)
         AlertDialog.Builder(activity)
-            .setTitle(record.title.ifBlank { record.fileName })
+            .setTitle(downloadRecordDisplayName(record))
             .setItems(actions.map { action -> action.title }.toTypedArray()) { _, index ->
                 actions.getOrNull(index)?.perform?.invoke()
             }
@@ -116,16 +117,16 @@ internal class DownloadsPageDialogController(
     }
 
     fun confirmClearRecords() {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_clear)
-            .setMessage(R.string.dialog_clear_download_records_message)
-            .setPositiveButton(R.string.action_clear) { _, _ ->
-                recordOperations.clearRecordsAndFiles()
-                Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
-                showDownloadsPage(true, null, null, null)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_clear,
+            messageRes = R.string.dialog_clear_download_records_message,
+            positiveButtonRes = R.string.action_clear
+        ) {
+            recordOperations.clearRecordsAndFiles()
+            Toast.makeText(activity, R.string.toast_download_records_cleared, Toast.LENGTH_SHORT).show()
+            showDownloadsPage(true, null, null, null)
+        }
     }
 
     private fun downloadRecordActions(
@@ -182,49 +183,49 @@ internal class DownloadsPageDialogController(
     }
 
     private fun confirmCancelDownload(record: DownloadRecord) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_cancel_download)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_cancel_download_message,
-                    record.title.ifBlank { record.fileName }
-                )
-            )
-            .setPositiveButton(R.string.action_cancel_download) { _, _ ->
-                val result = recordOperations.cancelDownload(record)
-                val toastResId = if (result.canceled) {
-                    R.string.toast_download_canceled
-                } else {
-                    R.string.toast_download_cancel_failed
-                }
-                Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
-                showDownloadsPage(true, null, null, null)
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_cancel_download,
+            message = activity.getString(
+                R.string.dialog_cancel_download_message,
+                downloadRecordDisplayName(record)
+            ),
+            positiveButtonRes = R.string.action_cancel_download
+        ) {
+            val result = recordOperations.cancelDownload(record)
+            val toastResId = if (result.canceled) {
+                R.string.toast_download_canceled
+            } else {
+                R.string.toast_download_cancel_failed
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+            showDownloadsPage(true, null, null, null)
+        }
     }
 
     private fun confirmRemoveDownloadRecord(record: DownloadRecord) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.action_remove_download_record)
-            .setMessage(
-                activity.getString(
-                    R.string.dialog_remove_download_record_message,
-                    record.title.ifBlank { record.fileName }
-                )
-            )
-            .setPositiveButton(R.string.action_remove) { _, _ ->
-                val result = recordOperations.removeDownloadRecord(record)
-                val toastResId = if (result.recordRemoved) {
-                    R.string.toast_download_record_removed
-                } else {
-                    R.string.toast_download_record_remove_failed
-                }
-                Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
-                showDownloadsPage(true, null, null, null)
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.action_remove_download_record,
+            message = activity.getString(
+                R.string.dialog_remove_download_record_message,
+                downloadRecordDisplayName(record)
+            ),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            val result = recordOperations.removeDownloadRecord(record)
+            val toastResId = if (result.recordRemoved) {
+                R.string.toast_download_record_removed
+            } else {
+                R.string.toast_download_record_remove_failed
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            Toast.makeText(activity, toastResId, Toast.LENGTH_SHORT).show()
+            showDownloadsPage(true, null, null, null)
+        }
+    }
+
+    private fun downloadRecordDisplayName(record: DownloadRecord): String {
+        return record.title.ifBlank { record.fileName }
     }
 
     private fun shareDownloadedFile(record: DownloadRecord) {
