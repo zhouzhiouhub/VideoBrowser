@@ -53,7 +53,7 @@ class BrowserExternalNavigator(
             return openIntentUri(url, loadFallbackUrl)
         }
 
-        Toast.makeText(activity, R.string.toast_external_app_blocked, Toast.LENGTH_SHORT).show()
+        showExternalAppBlockedToast()
         return true
     }
 
@@ -128,8 +128,12 @@ class BrowserExternalNavigator(
             return true
         }
 
-        Toast.makeText(activity, R.string.toast_external_app_blocked, Toast.LENGTH_SHORT).show()
+        showExternalAppBlockedToast()
         return true
+    }
+
+    private fun showExternalAppBlockedToast() {
+        Toast.makeText(activity, R.string.toast_external_app_blocked, Toast.LENGTH_SHORT).show()
     }
 
     /**
