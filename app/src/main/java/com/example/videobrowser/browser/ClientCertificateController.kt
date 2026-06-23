@@ -9,9 +9,9 @@ package com.example.videobrowser.browser
  */
 import android.security.KeyChain
 import android.webkit.ClientCertRequest
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ShortToast
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
 
@@ -106,11 +106,7 @@ class ClientCertificateController(
                         request.proceed(credential.privateKey, credential.certificateChain)
                     } else {
                         request.cancel()
-                        Toast.makeText(
-                            activity,
-                            R.string.toast_client_certificate_unavailable,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        ShortToast.show(activity, R.string.toast_client_certificate_unavailable)
                     }
                 }
             },

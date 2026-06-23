@@ -9,7 +9,6 @@ package com.example.videobrowser.browser
  */
 import android.net.Uri
 import android.provider.OpenableColumns
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.download.DownloadController
@@ -22,6 +21,7 @@ import com.example.videobrowser.utils.FileOpenIntentFactory
 import com.example.videobrowser.utils.MediaUrlUtils
 import com.example.videobrowser.utils.PageUrlActions
 import com.example.videobrowser.utils.PageUnavailableToast
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.columnValueReader
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.MediaRouteAction
@@ -131,10 +131,10 @@ class PageActionsController(
 
         if (savedPageRepository.isBookmarked(page.url)) {
             savedPageRepository.removeBookmark(page.url)
-            Toast.makeText(activity, R.string.toast_bookmark_removed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_bookmark_removed)
         } else {
             savedPageRepository.addBookmark(page)
-            Toast.makeText(activity, R.string.toast_bookmark_saved, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_bookmark_saved)
         }
         updateBookmarkButton()
     }
@@ -167,11 +167,11 @@ class PageActionsController(
     fun setCurrentPageAsHomePage() {
         val url = currentShareableUrlOrShowUnavailable() ?: return
         if (!settingsManager.isValidHomeUrl(url)) {
-            Toast.makeText(activity, R.string.toast_home_page_invalid, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_home_page_invalid)
             return
         }
         settingsManager.setHomeUrl(url)
-        Toast.makeText(activity, R.string.toast_home_page_updated, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_home_page_updated)
     }
 
     /**
@@ -182,7 +182,7 @@ class PageActionsController(
     fun openCurrentUrlInNativePlayer() {
         val url = currentShareableUrlOrShowUnavailable() ?: return
         if (!MediaUrlUtils.isPlayableMediaUri(url)) {
-            Toast.makeText(activity, R.string.toast_media_url_unsupported, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_media_url_unsupported)
             return
         }
         openNativePlayer(url, null, null, null, emptyList(), null)
@@ -203,15 +203,14 @@ class PageActionsController(
         switchPrivateBrowsing(enabled)
         updatePrivateBrowsingUi()
         updateNavigationButtons()
-        Toast.makeText(
+        ShortToast.show(
             activity,
             if (enabled) {
                 R.string.toast_private_browsing_enabled
             } else {
                 R.string.toast_private_browsing_disabled
-            },
-            Toast.LENGTH_SHORT
-        ).show()
+            }
+        )
     }
 
     /**
@@ -224,7 +223,7 @@ class PageActionsController(
             manager.clearBrowsingData(clearSharedStores = index == 0)
         }
         restoreBrowserDefaults()
-        Toast.makeText(activity, R.string.toast_default_settings_restored, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_default_settings_restored)
         recreateActivity()
     }
 

@@ -10,9 +10,9 @@ package com.example.videobrowser.browser
 import android.content.Intent
 import android.webkit.CookieManager
 import android.webkit.URLUtil
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.PlayerActivity
@@ -130,7 +130,7 @@ class BrowserExternalNavigator(
     }
 
     private fun showExternalAppBlockedToast() {
-        Toast.makeText(activity, R.string.toast_external_app_blocked, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_external_app_blocked)
     }
 
     /**

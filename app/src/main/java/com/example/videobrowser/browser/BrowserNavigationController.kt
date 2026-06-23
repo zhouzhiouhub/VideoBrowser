@@ -9,11 +9,11 @@ package com.example.videobrowser.browser
  */
 import android.net.Uri
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.utils.ConfirmationDialog
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.UrlUtils
 import com.example.videobrowser.utils.WebSchemePolicy
 import com.example.videobrowser.video.MediaRouteAction
@@ -87,11 +87,7 @@ class BrowserNavigationController(
 
         if (isUnavailableUcDownloadUrl(uri)) {
             view?.stopLoading()
-            Toast.makeText(
-                activity,
-                R.string.toast_uc_download_unavailable,
-                Toast.LENGTH_SHORT
-            ).show()
+            ShortToast.show(activity, R.string.toast_uc_download_unavailable)
             return true
         }
 

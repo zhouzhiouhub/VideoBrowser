@@ -16,13 +16,13 @@ import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.PreferenceStore
+import com.example.videobrowser.utils.ShortToast
 
 /**
  * 原生视频播放器界面。
@@ -262,7 +262,7 @@ class PlayerActivity : AppCompatActivity() {
         setupGestureOverlay()
 
         if (intentReader.mediaUri().isBlank()) {
-            Toast.makeText(this, R.string.toast_media_url_invalid, Toast.LENGTH_SHORT).show()
+            ShortToast.show(this, R.string.toast_media_url_invalid)
             finish()
             return
         }
@@ -387,11 +387,7 @@ class PlayerActivity : AppCompatActivity() {
                 nativePlayerVideoEffectsController::hasRetriedWithoutEffects,
             retryPlaybackWithoutVideoEffects = ::retryPlaybackWithoutVideoEffects,
             showPlaybackFailed = {
-                Toast.makeText(
-                    this@PlayerActivity,
-                    R.string.toast_media_playback_failed,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(this@PlayerActivity, R.string.toast_media_playback_failed)
             },
             savePlaybackHistory = { savePlaybackHistory(exoPlayer) },
             wakePlayerControls = ::wakePlayerControls,

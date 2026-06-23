@@ -12,10 +12,10 @@ import android.content.Intent
 import android.net.Uri
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient.FileChooserParams
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.ChooserIntentFactory
+import com.example.videobrowser.utils.ShortToast
 
 /**
  * WebView 文件选择控制器。
@@ -75,7 +75,7 @@ class WebFileChooserController(
         } catch (_: ActivityNotFoundException) {
             pendingFileChooserCallback = null
             callback.onReceiveValue(null)
-            Toast.makeText(activity, R.string.toast_file_chooser_unavailable, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_file_chooser_unavailable)
             false
         }
     }

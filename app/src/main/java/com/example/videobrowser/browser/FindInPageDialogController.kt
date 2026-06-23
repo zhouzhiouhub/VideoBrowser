@@ -10,10 +10,10 @@ package com.example.videobrowser.browser
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ShortToast
 
 /**
  * 页面内查找弹窗控制器。
@@ -124,6 +124,6 @@ class FindInPageDialogController(
      * 初学者阅读提示：查找、下一处和上一处都会复用这个提示，避免三个按钮各自写一遍 Toast。
      */
     private fun showEmptyQueryToast() {
-        Toast.makeText(activity, R.string.toast_find_query_empty, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_find_query_empty)
     }
 }

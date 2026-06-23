@@ -11,10 +11,10 @@ import android.content.Context
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.site.SiteHost
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
 
 /**
@@ -41,7 +41,7 @@ class PagePrintController(
     fun printCurrentPage() {
         val pageUrl = currentActionableUrl()
         if (pageUrl == null) {
-            Toast.makeText(activity, R.string.toast_print_page_unavailable, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_print_page_unavailable)
             return
         }
         val jobName = printJobName(pageUrl)
@@ -50,7 +50,7 @@ class PagePrintController(
             val printAdapter = activeWebView().createPrintDocumentAdapter(jobName)
             printManager.print(jobName, printAdapter, PrintAttributes.Builder().build())
         }.onFailure {
-            Toast.makeText(activity, R.string.toast_print_page_unavailable, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_print_page_unavailable)
         }
     }
 

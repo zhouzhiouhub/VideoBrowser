@@ -2,12 +2,12 @@ package com.example.videobrowser.localfiles
 
 import android.net.Uri
 import android.text.InputType
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.ChooserIntentLauncher
 import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.FileShareIntentFactory
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.ValidatedTextInputDialog
 
 internal class LocalDocumentOperationController(
@@ -40,7 +40,7 @@ internal class LocalDocumentOperationController(
                 return@showNameInputDialog
             }
 
-            Toast.makeText(activity, R.string.toast_local_file_created, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_local_file_created)
             showLocalDirectoryPage(treeUri, path)
         }
     }
@@ -62,7 +62,7 @@ internal class LocalDocumentOperationController(
                 return@showNameInputDialog
             }
 
-            Toast.makeText(activity, R.string.toast_local_file_renamed, Toast.LENGTH_SHORT).show()
+            ShortToast.show(activity, R.string.toast_local_file_renamed)
             showLocalDirectoryPage(treeUri, path)
         }
     }
@@ -79,7 +79,7 @@ internal class LocalDocumentOperationController(
             positiveButtonRes = R.string.action_delete_file
         ) {
             if (documentRepository.deleteDocument(document)) {
-                Toast.makeText(activity, R.string.toast_local_file_deleted, Toast.LENGTH_SHORT).show()
+                ShortToast.show(activity, R.string.toast_local_file_deleted)
                 showLocalDirectoryPage(treeUri, path)
             } else {
                 showOperationFailedToast()
@@ -122,6 +122,6 @@ internal class LocalDocumentOperationController(
     }
 
     private fun showOperationFailedToast() {
-        Toast.makeText(activity, R.string.toast_local_file_operation_failed, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_local_file_operation_failed)
     }
 }

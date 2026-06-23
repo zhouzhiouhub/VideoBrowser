@@ -8,10 +8,10 @@ package com.example.videobrowser.browser
  * 主要职责：关闭临时界面、清理本次会话权限、切换 WebView 会话，并刷新浏览器 UI。
  * 阅读顺序：先看构造参数了解它会调用哪些外部动作，再看 setPrivateBrowsingActive() 的分支顺序。
  */
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
 import com.example.videobrowser.settings.SessionSitePermissionStore
+import com.example.videobrowser.utils.ShortToast
 
 /**
  * 无痕浏览切换控制器。
@@ -65,11 +65,7 @@ class PrivateBrowsingSwitchController(
         if (enabled) {
             val started = browserSessionCoordinator.enterPrivate()
             if (!started) {
-                Toast.makeText(
-                    activity,
-                    R.string.toast_private_browsing_failed,
-                    Toast.LENGTH_SHORT
-                ).show()
+                ShortToast.show(activity, R.string.toast_private_browsing_failed)
                 return
             }
             privateSessionController.reset()

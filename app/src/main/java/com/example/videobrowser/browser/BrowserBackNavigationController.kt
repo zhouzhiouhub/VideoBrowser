@@ -10,10 +10,10 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看 handleBrowserBack() 的分支顺序。
  */
 import android.os.SystemClock
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.video.WebViewVideoCommand
 
 /**
@@ -128,11 +128,7 @@ class BrowserBackNavigationController(
         }
 
         lastBackExitPromptElapsedRealtime = now
-        Toast.makeText(
-            activity,
-            R.string.toast_press_back_again_to_exit,
-            Toast.LENGTH_SHORT
-        ).show()
+        ShortToast.show(activity, R.string.toast_press_back_again_to_exit)
     }
 
     private companion object {

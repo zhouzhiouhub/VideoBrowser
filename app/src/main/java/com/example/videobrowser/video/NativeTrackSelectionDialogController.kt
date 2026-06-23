@@ -1,6 +1,5 @@
 package com.example.videobrowser.video
 
-import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.util.UnstableApi
@@ -9,6 +8,7 @@ import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.example.videobrowser.R
 import com.example.videobrowser.utils.ActionListDialog
 import com.example.videobrowser.utils.DialogAction
+import com.example.videobrowser.utils.ShortToast
 
 internal class NativeTrackSelectionDialogController(
     private val activity: AppCompatActivity,
@@ -63,6 +63,6 @@ internal class NativeTrackSelectionDialogController(
     }
 
     private fun showUnavailableToast() {
-        Toast.makeText(activity, R.string.toast_video_tracks_unavailable, Toast.LENGTH_SHORT).show()
+        ShortToast.show(activity, R.string.toast_video_tracks_unavailable)
     }
 }
