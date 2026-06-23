@@ -21,4 +21,15 @@ class FunctionCenterContentFactoryContractTest {
         assertEquals(9, Regex("addFullWidthView\\(").findAll(source).count() - 1)
         assertEquals(1, Regex("LinearLayout\\.LayoutParams\\(").findAll(source).count())
     }
+
+    @Test
+    fun browserSurfaceBackgroundCreationIsShared() {
+        val source = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterContentFactory.kt"
+        ).readText()
+
+        assertTrue(source.contains("private fun createSurfaceBackground()"))
+        assertEquals(3, Regex("background = createSurfaceBackground\\(\\)").findAll(source).count())
+        assertEquals(1, Regex("R\\.color\\.browser_surface").findAll(source).count())
+    }
 }

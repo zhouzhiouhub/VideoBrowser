@@ -28,9 +28,7 @@ internal class FunctionCenterContentFactory(
         val section = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(4), dp(14), dp(4))
-            background = surfaceFactory.createRoundedBackground(
-                ContextCompat.getColor(activity, R.color.browser_surface)
-            )
+            background = createSurfaceBackground()
         }
         buildContent(section)
         addFullWidthView(parent, section)
@@ -57,9 +55,7 @@ internal class FunctionCenterContentFactory(
                 textSize = 15f
                 setLineSpacing(dp(2).toFloat(), 1f)
                 setPadding(dp(16), dp(16), dp(16), dp(16))
-                background = surfaceFactory.createRoundedBackground(
-                    ContextCompat.getColor(activity, R.color.browser_surface)
-                )
+                background = createSurfaceBackground()
             },
             topMargin = dp(10)
         )
@@ -74,9 +70,7 @@ internal class FunctionCenterContentFactory(
                 setTextColor(ContextCompat.getColor(activity, R.color.browser_text_hint))
                 textSize = 14f
                 setPadding(dp(16), dp(28), dp(16), dp(28))
-                background = surfaceFactory.createRoundedBackground(
-                    ContextCompat.getColor(activity, R.color.browser_surface)
-                )
+                background = createSurfaceBackground()
             },
             topMargin = dp(18)
         )
@@ -178,6 +172,10 @@ internal class FunctionCenterContentFactory(
             marginEnd = dp(4)
         )
     }
+
+    private fun createSurfaceBackground() = surfaceFactory.createRoundedBackground(
+        ContextCompat.getColor(activity, R.color.browser_surface)
+    )
 
     private fun addFullWidthView(
         parent: LinearLayout,
