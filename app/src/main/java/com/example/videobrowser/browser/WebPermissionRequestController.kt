@@ -97,8 +97,7 @@ class WebPermissionRequestController(
      */
     fun handlePermissionRequestCanceled(request: PermissionRequest?) {
         if (request == null) {
-            pendingRequestStore.cancelPending()
-            webPermissionPromptController.cancelPendingPrompt()
+            cancelAllPendingPermissionFlows()
             return
         }
         pendingRequestStore.clearIfPending(request)
@@ -111,6 +110,10 @@ class WebPermissionRequestController(
      * 初学者阅读提示：Activity 销毁时调用，避免 WebView 还在等待权限结果。
      */
     fun cancelPendingRequest() {
+        cancelAllPendingPermissionFlows()
+    }
+
+    private fun cancelAllPendingPermissionFlows() {
         pendingRequestStore.cancelPending()
         webPermissionPromptController.cancelPendingPrompt()
     }
