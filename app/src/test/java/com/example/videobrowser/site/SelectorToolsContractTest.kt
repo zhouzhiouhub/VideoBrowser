@@ -19,6 +19,7 @@ class SelectorToolsContractTest {
         assertTrue(selectorToolsScript.contains("selectorTools.isSafeSelector = selectorTools.isSafeSelector || function (selector)"))
         assertTrue(selectorToolsScript.contains("selectorTools.safeSelectorList = selectorTools.safeSelectorList || function (value)"))
         assertTrue(selectorToolsScript.contains("selectorTools.queryAll = selectorTools.queryAll || function (selector)"))
+        assertTrue(selectorToolsScript.contains("selectorTools.compactText = selectorTools.compactText || function (value)"))
         assertTrue(selectorToolsScript.contains("selectorTools.cssIdentifier = selectorTools.cssIdentifier || function (value)"))
         assertTrue(configuredCleanupScript.contains("const selectorTools = window.VideoBrowserSelectorTools || {}"))
         assertTrue(configuredCleanupScript.contains("return selectorTools.safeSelectorList(value);"))

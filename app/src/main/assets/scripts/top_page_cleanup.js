@@ -6,6 +6,7 @@
   const geometry = window.VideoBrowserGeometry || {};
   const domTools = window.VideoBrowserDomTools || {};
   const domActions = window.VideoBrowserDomActions || {};
+  const selectorTools = window.VideoBrowserSelectorTools || {};
   window.VideoBrowserTopPageCleanup = cleanup;
 
   cleanup.removeAccountBars = cleanup.removeAccountBars || function () {
@@ -51,7 +52,7 @@
       if (!rect || rect.top < 0 || rect.top > 180 || rect.height < 32 || rect.height > 150) return;
       if (rect.width < window.innerWidth * 0.58) return;
 
-      const text = String(element.innerText || element.textContent || '').replace(/\s+/g, '');
+      const text = selectorTools.compactText(element.innerText || element.textContent);
       const html = String(element.innerHTML || '');
       const descriptor = String(element.id || '') + ' ' + String(element.className || '') + ' ' + html;
       const brandLogoLike = /logo|search-logo|bdlogo|sogoulogo/i.test(descriptor) ||

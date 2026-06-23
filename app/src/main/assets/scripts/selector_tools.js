@@ -33,6 +33,10 @@
     return String(value || '').replace(/\s+/g, ' ').trim();
   };
 
+  selectorTools.compactText = selectorTools.compactText || function (value) {
+    return String(value || '').replace(/\s+/g, '');
+  };
+
   selectorTools.cssIdentifier = selectorTools.cssIdentifier || function (value) {
     if (window.CSS && typeof window.CSS.escape === 'function') {
       return window.CSS.escape(String(value));

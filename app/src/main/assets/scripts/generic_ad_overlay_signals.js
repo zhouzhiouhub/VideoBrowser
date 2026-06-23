@@ -95,7 +95,7 @@
       element.getAttribute('alt')
     );
     const descriptor = domTools.elementDescriptor(element);
-    const compactText = text.replace(/\s+/g, '');
+    const compactText = selectorTools.compactText(text);
     if (/^(×|x|X|✕|✖|关闭|關閉|取消|跳过|跳過|稍后|稍後|不再提示|close|skip|dismiss)$/i.test(compactText)) {
       return true;
     }

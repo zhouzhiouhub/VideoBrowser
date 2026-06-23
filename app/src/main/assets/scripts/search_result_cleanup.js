@@ -98,8 +98,8 @@
   }
 
   function isSearchAdDisclosure(text, descriptor) {
-    const compactText = String(text || '').replace(/\s+/g, '');
-    const compactDescriptor = String(descriptor || '').replace(/\s+/g, '');
+    const compactText = selectorTools.compactText(text);
+    const compactDescriptor = selectorTools.compactText(descriptor);
     if (/^(广告|廣告|推广|推廣|商业推广|商業推廣|赞助|贊助|sponsored|ad)$/i.test(compactText)) {
       return true;
     }

@@ -20,15 +20,21 @@ class TopPageCleanupContractTest {
         assertTrue(cleanupScript.contains("cleanup.removeNoiseBlocks = cleanup.removeNoiseBlocks || function ()"))
         assertTrue(cleanupScript.contains("cleanup.isSearchProviderHomePage = cleanup.isSearchProviderHomePage || function ()"))
         assertTrue(cleanupScript.contains("const geometry = window.VideoBrowserGeometry || {}"))
+        assertTrue(cleanupScript.contains("const selectorTools = window.VideoBrowserSelectorTools || {}"))
         assertTrue(cleanupScript.contains("domTools.queryAll("))
         assertTrue(cleanupScript.contains("domTools.queryAllWithin(element, 'a,button,[role=\"button\"],svg,i')"))
         assertTrue(cleanupScript.contains("domTools.queryAllWithin(element, 'a,button,img,svg')"))
         assertTrue(cleanupScript.contains("const rect = geometry.safeRect(element);"))
+        assertTrue(cleanupScript.contains("const text = selectorTools.compactText(element.innerText || element.textContent);"))
         assertTrue(cleanupScript.contains("domActions.hideElement(element, {"))
         assertTrue(coordinatorScript.contains("const topPageCleanup = window.VideoBrowserTopPageCleanup || {}"))
         assertTrue(coordinatorScript.contains("topPageCleanup.removeAccountBars();"))
         assertTrue(coordinatorScript.contains("topPageCleanup.removeNoiseBlocks();"))
         assertTrue(scriptLoader.contains("TOP_PAGE_CLEANUP_SCRIPT_ASSET"))
+        assertTrue(
+            commonAssetList.indexOf("SELECTOR_TOOLS_SCRIPT_ASSET") <
+                commonAssetList.indexOf("TOP_PAGE_CLEANUP_SCRIPT_ASSET")
+        )
         assertTrue(
             commonAssetList.indexOf("TOP_PAGE_CLEANUP_SCRIPT_ASSET") <
                 commonAssetList.indexOf("COMMON_SCRIPT_ASSET")
@@ -41,6 +47,7 @@ class TopPageCleanupContractTest {
         assertFalse(commonScript.contains("topPageCleanup.removeNoiseBlocks();"))
         assertFalse(cleanupScript.contains("function hideElement(element, reason)"))
         assertFalse(cleanupScript.contains("function queryAll(selector)"))
+        assertFalse(cleanupScript.contains("replace(/\\s+/g, '')"))
         assertFalse(cleanupScript.contains("getBoundingClientRect()"))
         assertFalse(cleanupScript.contains("querySelectorAll("))
     }
