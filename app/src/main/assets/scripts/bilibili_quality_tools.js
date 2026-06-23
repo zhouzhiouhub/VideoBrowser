@@ -18,6 +18,7 @@
       query: typeof adapter.query === 'function' ? adapter.query : adapterDefaults.emptyQuery,
       queryWithin: typeof adapter.queryWithin === 'function' ? adapter.queryWithin : adapterDefaults.emptyQuery,
       textOf: typeof adapter.textOf === 'function' ? adapter.textOf : adapterDefaults.textOf,
+      normalizeText: typeof adapter.normalizeText === 'function' ? adapter.normalizeText : adapterDefaults.normalizeText,
       visibleElement: typeof adapter.visibleElement === 'function' ? adapter.visibleElement : adapterDefaults.noop,
       logVideoDiagnostic: typeof adapter.logVideoDiagnostic === 'function' ? adapter.logVideoDiagnostic : adapterDefaults.noop,
       readPlayerMethod: typeof api.read === 'function' ? api.read : adapterDefaults.nullResult,
@@ -72,8 +73,8 @@
     );
   }
 
-  function qualityScore(text) {
-    var value = String(text || '').replace(/\s+/g, ' ').trim();
+  function qualityScore(text, helpers) {
+    var value = helpers.normalizeText(text);
     if (!value) return 0;
     if (/8k/i.test(value)) return 8000;
     if (/杜比|dolby/i.test(value)) return 7600;
@@ -111,7 +112,7 @@
       elements.forEach(function (element) {
         if (!helpers.visibleElement(element)) return;
         var text = helpers.textOf(element);
-        var score = qualityScore(text);
+        var score = qualityScore(text, helpers);
         if (score <= 0) return;
         var clickable = clickableQualityElement(element);
         if (!clickable || typeof clickable.click !== 'function') return;
