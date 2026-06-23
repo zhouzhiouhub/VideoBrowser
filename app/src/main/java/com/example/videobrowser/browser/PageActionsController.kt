@@ -8,9 +8,6 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
 import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -22,6 +19,7 @@ import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.utils.MediaUrlUtils
+import com.example.videobrowser.utils.PageUrlActions
 import com.example.videobrowser.utils.stringOrNull
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.MediaRouteAction
@@ -155,11 +153,7 @@ class PageActionsController(
             Toast.makeText(activity, R.string.toast_no_page_url, Toast.LENGTH_SHORT).show()
             return
         }
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(
-            ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)
-        )
-        Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
+        PageUrlActions.copyPageUrl(activity, url)
     }
 
     /**

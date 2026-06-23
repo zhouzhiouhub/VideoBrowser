@@ -7,15 +7,12 @@ package com.example.videobrowser.browser
  * 主要职责：识别 WebView 命中的链接/图片 URL，展示打开、下载、复制和分享菜单，并把具体动作分发给浏览器或系统能力。
  * 阅读顺序：先看 configure，再看 linkHitTestUrl/imageHitTestUrl，最后看 showLinkContextMenu/showImageContextMenu。
  */
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.R
+import com.example.videobrowser.utils.PageUrlActions
 
 /**
  * WebView 链接和图片长按菜单控制器。
@@ -203,16 +200,12 @@ class LinkContextMenuController(
     /**
      * 函数 `copyLinkUrl`：复制链接 URL 到剪贴板。
      *
-     * 初学者阅读提示：Android 剪贴板需要 ClipData，复制成功后用 Toast 告诉用户结果。
+     * 初学者阅读提示：复制链接统一交给共享页面 URL 工具，保持剪贴板标签和提示文案一致。
      *
      * @param url 参数类型为 `String`，表示要复制的链接地址。
      */
     private fun copyLinkUrl(url: String) {
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(
-            ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)
-        )
-        Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
+        PageUrlActions.copyPageUrl(activity, url)
     }
 
     /**

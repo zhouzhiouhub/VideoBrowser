@@ -91,10 +91,9 @@ class SavedPagesPageContractTest {
         assertTrue(dialogController.contains("private fun savedPageActions"))
         assertTrue(dialogController.contains("R.string.action_copy_link"))
         assertTrue(dialogController.contains("linkActions.copyUrl(page)"))
-        assertTrue(linkActions.contains("ClipData.newPlainText"))
-        assertTrue(linkActions.contains("Context.CLIPBOARD_SERVICE"))
-        assertTrue(linkActions.contains("R.string.clipboard_page_url"))
-        assertTrue(linkActions.contains("R.string.toast_link_copied"))
+        assertTrue(linkActions.contains("PageUrlActions.copyPageUrl(activity, page.url)"))
+        assertFalse(linkActions.contains("ClipData.newPlainText"))
+        assertFalse(linkActions.contains("Context.CLIPBOARD_SERVICE"))
     }
 
     /**

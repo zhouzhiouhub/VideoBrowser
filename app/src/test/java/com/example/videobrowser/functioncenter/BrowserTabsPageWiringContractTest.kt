@@ -7,6 +7,7 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Browser Tabs Page Wiring Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -106,9 +107,9 @@ class BrowserTabsPageWiringContractTest {
         assertTrue(tabsPage.contains("tab.url?.let { url ->"))
         assertTrue(tabsPage.contains("R.string.action_copy_link"))
         assertTrue(tabsPage.contains("private fun copyTabUrl(url: String)"))
-        assertTrue(tabsPage.contains("Context.CLIPBOARD_SERVICE"))
-        assertTrue(tabsPage.contains("ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)"))
-        assertTrue(tabsPage.contains("R.string.toast_link_copied"))
+        assertTrue(tabsPage.contains("PageUrlActions.copyPageUrl(activity, url)"))
+        assertFalse(tabsPage.contains("Context.CLIPBOARD_SERVICE"))
+        assertFalse(tabsPage.contains("ClipData.newPlainText"))
     }
 
     /**

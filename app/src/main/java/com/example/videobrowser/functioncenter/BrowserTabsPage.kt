@@ -7,13 +7,10 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserTab
+import com.example.videobrowser.utils.PageUrlActions
 import com.example.videobrowser.utils.UrlUtils
 
 class BrowserTabsPage(
@@ -149,11 +146,7 @@ class BrowserTabsPage(
      * @param url 参数类型为 `String`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
     private fun copyTabUrl(url: String) {
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(
-            ClipData.newPlainText(activity.getString(R.string.clipboard_page_url), url)
-        )
-        Toast.makeText(activity, R.string.toast_link_copied, Toast.LENGTH_SHORT).show()
+        PageUrlActions.copyPageUrl(activity, url)
     }
 
     /**
