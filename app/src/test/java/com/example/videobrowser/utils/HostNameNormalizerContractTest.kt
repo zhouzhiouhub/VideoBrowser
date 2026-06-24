@@ -17,6 +17,7 @@ class HostNameNormalizerContractTest {
             projectFile("src/main/java/com/example/videobrowser/rules/DomainScope.kt"),
             projectFile("src/main/java/com/example/videobrowser/rules/RuleSubscriptionFetcher.kt"),
             projectFile("src/main/java/com/example/videobrowser/utils/WebPageIdentity.kt"),
+            projectFile("src/main/java/com/example/videobrowser/browser/BrowserPageFeatureVisibilityPolicy.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/search/HomeQuickLinkBuilder.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/BrowserSiteDataOriginSearch.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/PageArchiveFileName.kt"),

@@ -13,7 +13,6 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
-import com.example.videobrowser.browser.search.BuiltInSearchResultPageVisibilityController
 
 /**
  * 浏览器 client 组件集合。
@@ -59,7 +58,7 @@ data class BrowserClientComponents(
  * @param adBlockRequestInterceptor 参数类型为 `AdBlockRequestInterceptor`，表示广告拦截请求处理器。
  * @param smartNoImageRequestInterceptor 参数类型为 `SmartNoImageRequestInterceptor`，表示智能无图请求处理器。
  * @param browserNavigationController 参数类型为 `BrowserNavigationController`，表示判断 URL 是否应拦截或外部打开的导航控制器。
- * @param builtInSearchResultPageVisibilityController 参数类型为 `BuiltInSearchResultPageVisibilityController`，表示内置搜索结果页首屏遮罩控制器。
+ * @param pageFeatureVisibilityController 参数类型为 `BrowserPageFeatureVisibilityController`，表示页面增强首屏遮罩控制器。
  * @param closeFunctionCenter 参数类型为 `() -> Boolean`，表示网页新窗口打开标签页前关闭功能中心的回调。
  * @param closeTab 参数类型为 `(Long) -> Unit`，表示网页关闭窗口时关闭对应标签页的回调。
  * @param fullscreenChanged 参数类型为 `(Boolean) -> Unit`，表示网页进入或退出全屏时同步全屏 UI 的回调。
@@ -91,7 +90,7 @@ class BrowserClientAssemblyController(
     private val adBlockRequestInterceptor: AdBlockRequestInterceptor,
     private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor,
     private val browserNavigationController: BrowserNavigationController,
-    private val builtInSearchResultPageVisibilityController: BuiltInSearchResultPageVisibilityController,
+    private val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
     private val closeFunctionCenter: () -> Boolean,
     private val closeTab: (Long) -> Unit,
     private val fullscreenChanged: (Boolean) -> Unit,
@@ -125,8 +124,7 @@ class BrowserClientAssemblyController(
             httpAuthController = httpAuthController,
             adBlockRequestInterceptor = adBlockRequestInterceptor,
             smartNoImageRequestInterceptor = smartNoImageRequestInterceptor,
-            builtInSearchResultPageVisibilityController =
-                builtInSearchResultPageVisibilityController,
+            pageFeatureVisibilityController = pageFeatureVisibilityController,
             shouldBlockUrl = browserNavigationController::shouldBlockUrl
         )
         val webWindowController = WebWindowController(

@@ -10,7 +10,6 @@ package com.example.videobrowser.browser
 import android.net.Uri
 import android.webkit.WebView
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
-import com.example.videobrowser.browser.search.BuiltInSearchResultPageVisibilityController
 
 /**
  * Browser WebViewClient 控制器。
@@ -25,7 +24,7 @@ import com.example.videobrowser.browser.search.BuiltInSearchResultPageVisibility
  * @param httpAuthController HTTP Basic Auth 控制器，负责认证弹窗和待处理 handler 清理。
  * @param adBlockRequestInterceptor 广告拦截请求处理器，优先决定是否拦截资源请求。
  * @param smartNoImageRequestInterceptor 智能无图请求处理器，在广告拦截未命中时尝试拦截图片请求。
- * @param builtInSearchResultPageVisibilityController 内置搜索结果页首屏遮罩控制器。
+ * @param pageFeatureVisibilityController 页面增强首屏遮罩控制器。
  * @param shouldBlockUrl URL 加载决策函数，处理外部协议、媒体路由和导航安全确认。
  */
 class BrowserWebClientController(
@@ -37,7 +36,7 @@ class BrowserWebClientController(
     private val httpAuthController: HttpAuthController,
     private val adBlockRequestInterceptor: AdBlockRequestInterceptor,
     private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor,
-    private val builtInSearchResultPageVisibilityController: BuiltInSearchResultPageVisibilityController,
+    private val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
     private val shouldBlockUrl: (WebView?, Uri, Boolean) -> Boolean
 ) {
     /**
@@ -47,7 +46,7 @@ class BrowserWebClientController(
         browserManager().setBrowserClient(
             BrowserClient(
                 pageStarted = { url ->
-                    builtInSearchResultPageVisibilityController.handlePageStarted(url)
+                    pageFeatureVisibilityController.handlePageStarted(url)
                     resetBackExitConfirmation()
                     sessionController().handlePageStarted(url)
                 },
@@ -70,7 +69,7 @@ class BrowserWebClientController(
      * @param error 浏览器加载失败、证书错误、安全浏览拦截或渲染进程退出的错误信息。
      */
     fun showBrowserErrorPage(error: BrowserPageError) {
-        builtInSearchResultPageVisibilityController.handlePageFailed(error.url)
+        pageFeatureVisibilityController.handlePageFailed(error.url)
         sessionController().handlePageFailed(error.url)
         browserManager().loadErrorPage(error)
     }

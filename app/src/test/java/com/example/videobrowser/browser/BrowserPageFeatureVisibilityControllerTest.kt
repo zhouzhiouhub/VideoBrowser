@@ -1,11 +1,11 @@
-package com.example.videobrowser.browser.search
+package com.example.videobrowser.browser
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class BuiltInSearchResultPageVisibilityControllerTest {
+class BrowserPageFeatureVisibilityControllerTest {
     @Test
-    fun handlePageStarted_hidesBuiltInSearchResultUntilFeaturesInjected() {
+    fun handlePageStarted_hidesMatchedPageUntilFeaturesInjected() {
         val alphaChanges = mutableListOf<Float>()
         val controller = controllerFor(alphaChanges)
 
@@ -28,7 +28,7 @@ class BuiltInSearchResultPageVisibilityControllerTest {
     }
 
     @Test
-    fun handlePageFeaturesInjected_ignoresEarlierSearchResultAfterNewSearchStarts() {
+    fun handlePageFeaturesInjected_ignoresEarlierHiddenPageAfterNewHiddenPageStarts() {
         val alphaChanges = mutableListOf<Float>()
         val controller = controllerFor(alphaChanges)
 
@@ -40,10 +40,10 @@ class BuiltInSearchResultPageVisibilityControllerTest {
         assertEquals(listOf(0f, 0f, 1f), alphaChanges)
     }
 
-    private fun controllerFor(alphaChanges: MutableList<Float>): BuiltInSearchResultPageVisibilityController {
-        return BuiltInSearchResultPageVisibilityController(
+    private fun controllerFor(alphaChanges: MutableList<Float>): BrowserPageFeatureVisibilityController {
+        return BrowserPageFeatureVisibilityController(
             setActiveWebViewAlpha = { alpha -> alphaChanges += alpha },
-            isBuiltInSearchResultUrl = { url ->
+            shouldHideUntilPageFeaturesInjected = { url ->
                 url?.startsWith("https://m.baidu.com/s?word=") == true
             }
         )

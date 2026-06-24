@@ -1,18 +1,18 @@
-package com.example.videobrowser.browser.search
+package com.example.videobrowser.browser
 
 /**
- * Keeps built-in search result pages hidden until the app-owned search shell
- * cleanup has been applied.
+ * Keeps pages hidden until app-owned page feature scripts have applied the
+ * cleanup that should be invisible to users.
  */
-class BuiltInSearchResultPageVisibilityController(
+class BrowserPageFeatureVisibilityController(
     private val setActiveWebViewAlpha: (Float) -> Unit,
-    private val isBuiltInSearchResultUrl: (String?) -> Boolean
+    private val shouldHideUntilPageFeaturesInjected: (String?) -> Boolean
 ) {
-    private var hiddenSearchResultUrl: String? = null
+    private var hiddenPageUrl: String? = null
 
     fun handlePageStarted(url: String?) {
-        if (isBuiltInSearchResultUrl(url)) {
-            hiddenSearchResultUrl = normalizedUrl(url)
+        if (shouldHideUntilPageFeaturesInjected(url)) {
+            hiddenPageUrl = normalizedUrl(url)
             setActiveWebViewAlpha(HIDDEN_ALPHA)
         } else {
             reveal()
@@ -20,24 +20,24 @@ class BuiltInSearchResultPageVisibilityController(
     }
 
     fun handlePageFeaturesInjected(url: String?) {
-        if (hiddenSearchResultUrl != null && isHiddenSearchResultUrl(url)) {
+        if (hiddenPageUrl != null && isHiddenPageUrl(url)) {
             reveal()
         }
     }
 
     fun handlePageFailed(url: String?) {
-        if (hiddenSearchResultUrl != null && isHiddenSearchResultUrl(url)) {
+        if (hiddenPageUrl != null && isHiddenPageUrl(url)) {
             reveal()
         }
     }
 
     private fun reveal() {
-        hiddenSearchResultUrl = null
+        hiddenPageUrl = null
         setActiveWebViewAlpha(VISIBLE_ALPHA)
     }
 
-    private fun isHiddenSearchResultUrl(url: String?): Boolean {
-        val hiddenUrl = hiddenSearchResultUrl ?: return false
+    private fun isHiddenPageUrl(url: String?): Boolean {
+        val hiddenUrl = hiddenPageUrl ?: return false
         val currentUrl = normalizedUrl(url)
         return currentUrl == null || currentUrl == hiddenUrl
     }

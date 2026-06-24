@@ -15,6 +15,8 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.browser.BrowserAddressBarStateController
 import com.example.videobrowser.browser.BrowserHomePageUrlPolicy
+import com.example.videobrowser.browser.BrowserPageFeatureVisibilityController
+import com.example.videobrowser.browser.BrowserPageFeatureVisibilityPolicy
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.settings.SettingsManager
@@ -25,7 +27,7 @@ import com.example.videobrowser.storage.SavedPageRepository
  *
  * @param searchProviderController 参数类型为 `SearchProviderController`，表示管理默认搜索引擎和地址栏搜索源标识的控制器。
  * @param builtInSearchResultPagePolicy 参数类型为 `BuiltInSearchResultPagePolicy`，表示识别 App 内置搜索引擎结果页的策略。
- * @param builtInSearchResultPageVisibilityController 参数类型为 `BuiltInSearchResultPageVisibilityController`，表示内置搜索结果页清理完成前的 WebView 可见性控制器。
+ * @param pageFeatureVisibilityController 参数类型为 `BrowserPageFeatureVisibilityController`，表示页面增强清理完成前的 WebView 可见性控制器。
  * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示同步地址栏文本和站点安全状态的控制器。
  * @param homePageUrlPolicy 参数类型为 `BrowserHomePageUrlPolicy`，表示识别哪些恢复 URL 应显示为 App 自定义首页的策略。
  * @param historyRecordPolicy 参数类型为 `HistoryRecordPolicy`，表示判断页面 URL 是否应该写入浏览历史的策略。
@@ -34,7 +36,7 @@ import com.example.videobrowser.storage.SavedPageRepository
 data class BrowserSearchComponents(
     val searchProviderController: SearchProviderController,
     val builtInSearchResultPagePolicy: BuiltInSearchResultPagePolicy,
-    val builtInSearchResultPageVisibilityController: BuiltInSearchResultPageVisibilityController,
+    val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
     val browserAddressBarStateController: BrowserAddressBarStateController,
     val homePageUrlPolicy: BrowserHomePageUrlPolicy,
     val historyRecordPolicy: HistoryRecordPolicy,
@@ -53,7 +55,7 @@ data class BrowserSearchComponents(
  * @param addressInput 参数类型为 `EditText`，表示浏览器地址栏输入框。
  * @param addressProviderBadge 参数类型为 `TextView`，表示地址栏旁当前搜索引擎标识。
  * @param addressSuggestionPanel 参数类型为 `LinearLayout`，表示地址栏建议项显示容器。
- * @param activeWebView 参数类型为 `() -> View`，表示读取当前 active WebView 的回调，用于内置搜索结果页首屏隐藏。
+ * @param activeWebView 参数类型为 `() -> View`，表示读取当前 active WebView 的回调，用于页面增强首屏隐藏。
  * @param settingsManager 参数类型为 `SettingsManager`，表示读取默认搜索引擎、主页 URL 和快捷入口的设置管理器。
  * @param savedPageRepository 参数类型为 `SavedPageRepository`，表示搜索入口和地址建议使用的收藏/历史仓库。
  * @param siteSecurityController 参数类型为 `() -> SiteSecurityController?`，表示返回站点安全控制器的函数，尚未初始化时返回 null。
@@ -101,11 +103,15 @@ class BrowserSearchAssemblyController(
             providers = providers,
             builtInSearchResultPagePolicy = builtInSearchResultPagePolicy
         )
-        val builtInSearchResultPageVisibilityController =
-            BuiltInSearchResultPageVisibilityController(
+        val pageFeatureVisibilityPolicy = BrowserPageFeatureVisibilityPolicy(
+            settingsManager = settingsManager,
+            isBuiltInSearchResultPage = builtInSearchResultPagePolicy::isBuiltInSearchResultUrl
+        )
+        val pageFeatureVisibilityController =
+            BrowserPageFeatureVisibilityController(
                 setActiveWebViewAlpha = { alpha -> activeWebView().alpha = alpha },
-                isBuiltInSearchResultUrl =
-                    builtInSearchResultPagePolicy::isBuiltInSearchResultUrl
+                shouldHideUntilPageFeaturesInjected =
+                    pageFeatureVisibilityPolicy::shouldHideUntilPageFeaturesInjected
             )
         val browserAddressBarStateController = BrowserAddressBarStateController(
             addressInput = addressInput,
@@ -138,8 +144,7 @@ class BrowserSearchAssemblyController(
         return BrowserSearchComponents(
             searchProviderController = searchProviderController,
             builtInSearchResultPagePolicy = builtInSearchResultPagePolicy,
-            builtInSearchResultPageVisibilityController =
-                builtInSearchResultPageVisibilityController,
+            pageFeatureVisibilityController = pageFeatureVisibilityController,
             browserAddressBarStateController = browserAddressBarStateController,
             homePageUrlPolicy = homePageUrlPolicy,
             historyRecordPolicy = historyRecordPolicy,

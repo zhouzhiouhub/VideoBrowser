@@ -9,7 +9,6 @@ package com.example.videobrowser.browser
  */
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.videobrowser.browser.search.BuiltInSearchResultPageVisibilityController
 import com.example.videobrowser.inject.PageFeatureInjectionController
 import com.example.videobrowser.settings.SessionSitePermissionStore
 
@@ -45,7 +44,7 @@ data class BrowserSessionComponents(
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示更新进度条可见性的控制器。
  * @param pageActionsController 参数类型为 `PageActionsController`，表示标准会话写入浏览历史的控制器。
  * @param pageFeatureInjectionController 参数类型为 `PageFeatureInjectionController`，表示页面完成加载后注入增强脚本的控制器。
- * @param builtInSearchResultPageVisibilityController 参数类型为 `BuiltInSearchResultPageVisibilityController`，表示内置搜索结果页首屏遮罩控制器。
+ * @param pageFeatureVisibilityController 参数类型为 `BrowserPageFeatureVisibilityController`，表示页面增强首屏遮罩控制器。
  * @param browsingModeThemeController 参数类型为 `BrowsingModeThemeController`，表示切换无痕模式时刷新主题 UI 的控制器。
  * @param sessionSitePermissionStore 参数类型为 `SessionSitePermissionStore`，表示切换无痕模式时清理会话站点权限的存储。
  * @param isPrivateBrowsingActive 参数类型为 `() -> Boolean`，表示读取当前是否处于无痕模式的回调。
@@ -75,7 +74,7 @@ class BrowserSessionAssemblyController(
     private val browserControlsShellController: BrowserControlsShellController,
     private val pageActionsController: PageActionsController,
     private val pageFeatureInjectionController: PageFeatureInjectionController,
-    private val builtInSearchResultPageVisibilityController: BuiltInSearchResultPageVisibilityController,
+    private val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
     private val browsingModeThemeController: BrowsingModeThemeController,
     private val sessionSitePermissionStore: SessionSitePermissionStore,
     private val isPrivateBrowsingActive: () -> Boolean,
@@ -112,7 +111,7 @@ class BrowserSessionAssemblyController(
             addHistoryEntry = pageActionsController::addHistoryEntry,
             injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
             onPageFeaturesInjected =
-                builtInSearchResultPageVisibilityController::handlePageFeaturesInjected,
+                pageFeatureVisibilityController::handlePageFeaturesInjected,
             onPageMetadataChanged = onStandardPageMetadataChanged
         )
         val privateSessionController = BrowserSessionController(
@@ -128,7 +127,7 @@ class BrowserSessionAssemblyController(
             addHistoryEntry = {},
             injectPageFeatures = pageFeatureInjectionController::injectPageFeatures,
             onPageFeaturesInjected =
-                builtInSearchResultPageVisibilityController::handlePageFeaturesInjected,
+                pageFeatureVisibilityController::handlePageFeaturesInjected,
             onPageMetadataChanged = onPrivatePageMetadataChanged
         )
         val privateBrowsingSwitchController = PrivateBrowsingSwitchController(

@@ -118,9 +118,12 @@ class SearchProviderControllerContractTest {
     }
 
     @Test
-    fun builtInSearchResultVisibilityHidesBeforePageDrawAndRevealsAfterInjection() {
+    fun pageFeatureVisibilityHidesBeforePageDrawAndRevealsAfterInjection() {
         val visibilityController = projectFile(
-            "src/main/java/com/example/videobrowser/browser/search/BuiltInSearchResultPageVisibilityController.kt"
+            "src/main/java/com/example/videobrowser/browser/BrowserPageFeatureVisibilityController.kt"
+        ).readText()
+        val visibilityPolicy = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageFeatureVisibilityPolicy.kt"
         ).readText()
         val searchAssembly = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
@@ -142,12 +145,16 @@ class SearchProviderControllerContractTest {
         assertTrue(visibilityController.contains("setActiveWebViewAlpha(HIDDEN_ALPHA)"))
         assertTrue(visibilityController.contains("fun handlePageFeaturesInjected(url: String?)"))
         assertTrue(visibilityController.contains("setActiveWebViewAlpha(VISIBLE_ALPHA)"))
-        assertTrue(searchAssembly.contains("val builtInSearchResultPageVisibilityController: BuiltInSearchResultPageVisibilityController"))
+        assertTrue(visibilityPolicy.contains("settingsManager.isDomAdBlockEnabled()"))
+        assertTrue(visibilityPolicy.contains("settingsManager.userElementHideSelectorsForSite(host).isNotEmpty()"))
+        assertTrue(visibilityPolicy.contains("isBuiltInSearchResultPage(url)"))
+        assertTrue(searchAssembly.contains("val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController"))
+        assertTrue(searchAssembly.contains("BrowserPageFeatureVisibilityPolicy("))
         assertTrue(searchAssembly.contains("setActiveWebViewAlpha = { alpha -> activeWebView().alpha = alpha }"))
         assertTrue(coreAssembly.contains("activeWebView = {"))
-        assertTrue(webClientController.contains("builtInSearchResultPageVisibilityController.handlePageStarted(url)"))
-        assertTrue(webClientController.contains("builtInSearchResultPageVisibilityController.handlePageFailed(error.url)"))
-        assertTrue(sessionAssembly.contains("builtInSearchResultPageVisibilityController::handlePageFeaturesInjected"))
+        assertTrue(webClientController.contains("pageFeatureVisibilityController.handlePageStarted(url)"))
+        assertTrue(webClientController.contains("pageFeatureVisibilityController.handlePageFailed(error.url)"))
+        assertTrue(sessionAssembly.contains("pageFeatureVisibilityController::handlePageFeaturesInjected"))
         assertTrue(sessionController.contains("injectPageFeatures {"))
         assertTrue(sessionController.contains("val completedPageUrl = currentPageUrl"))
         assertTrue(sessionController.contains("onPageFeaturesInjected(completedPageUrl)"))
