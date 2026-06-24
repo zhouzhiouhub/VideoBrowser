@@ -14,6 +14,9 @@ class WebPageIdentityContractTest {
         val historyPolicy = projectFile(
             "src/main/java/com/example/videobrowser/browser/HistoryRecordPolicy.kt"
         ).readText()
+        val homePageUrlPolicy = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserHomePageUrlPolicy.kt"
+        ).readText()
         val searchHomeMatcher = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderHomeMatcher.kt"
         ).readText()
@@ -24,7 +27,7 @@ class WebPageIdentityContractTest {
         assertTrue(identity.contains("WebSchemePolicy.isHttpOrHttpsScheme(scheme)"))
         assertTrue(identity.contains("private fun normalizedPort(scheme: String, port: Int): Int"))
 
-        listOf(historyPolicy, searchHomeMatcher).forEach { source ->
+        listOf(historyPolicy, homePageUrlPolicy).forEach { source ->
             assertTrue(source.contains("WebPageIdentity.from("))
             assertFalse(source.contains("data class WebUrl"))
             assertFalse(source.contains("android.net.Uri"))
@@ -32,5 +35,7 @@ class WebPageIdentityContractTest {
             assertFalse(source.contains("private fun normalizedPath("))
             assertFalse(source.contains("private fun normalizedPort("))
         }
+        assertTrue(searchHomeMatcher.contains("BrowserHomePageUrlPolicy("))
+        assertFalse(searchHomeMatcher.contains("WebPageIdentity.from("))
     }
 }

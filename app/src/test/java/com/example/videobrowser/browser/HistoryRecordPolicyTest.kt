@@ -18,7 +18,7 @@ class HistoryRecordPolicyTest {
     @Test
     fun shouldRecord_rejectsProviderHomeUrls() {
         val policy = HistoryRecordPolicy(
-            homeUrls = {
+            homePageUrlPolicy = BrowserHomePageUrlPolicy {
                 listOf(
                     "https://m.baidu.com/",
                     "https://m.sogou.com/",
@@ -40,7 +40,9 @@ class HistoryRecordPolicyTest {
     @Test
     fun shouldRecord_rejectsCustomHomeUrl() {
         val policy = HistoryRecordPolicy(
-            homeUrls = { listOf("https://portal.example.com/start") }
+            homePageUrlPolicy = BrowserHomePageUrlPolicy {
+                listOf("https://portal.example.com/start")
+            }
         )
 
         assertFalse(policy.shouldRecord("https://portal.example.com/start?source=browser"))
@@ -54,7 +56,7 @@ class HistoryRecordPolicyTest {
     @Test
     fun shouldRecord_acceptsSearchResultsAndContentPages() {
         val policy = HistoryRecordPolicy(
-            homeUrls = {
+            homePageUrlPolicy = BrowserHomePageUrlPolicy {
                 listOf(
                     "https://m.baidu.com/",
                     "https://portal.example.com/start"
@@ -65,5 +67,6 @@ class HistoryRecordPolicyTest {
         assertTrue(policy.shouldRecord("https://m.baidu.com/s?ie=utf-8&word=video"))
         assertTrue(policy.shouldRecord("https://portal.example.com/start/article"))
         assertTrue(policy.shouldRecord("https://video.example.com/watch/1"))
+        assertFalse(policy.shouldRecord("about:blank"))
     }
 }

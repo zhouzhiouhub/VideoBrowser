@@ -22,7 +22,7 @@ import android.view.View
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示浏览器控制栏外壳协调器，用来隐藏/显示控制栏和搜索入口。
  * @param rootView 参数类型为 `View`，表示主界面根布局，首页状态会用它重新约束搜索栏位置。
  * @param topBar 参数类型为 `View`，表示顶部地址栏区域，首页状态会把它作为居中搜索栏显示。
- * @param bottomBar 参数类型为 `View`，表示底部工具栏，首页状态会保留轻量入口。
+ * @param bottomBar 参数类型为 `View`，表示底部工具栏，首页状态会隐藏它，只保留搜索框。
  * @param activeWebView 参数类型为 `() -> View`，表示返回当前活动 WebView 的函数，首页状态会隐藏它，显示网页内容时会把它设为可见。
  * @param browsingModeThemeController 参数类型为 `BrowsingModeThemeController`，表示普通/无痕主题控制器，用于主页状态变化后重新应用颜色。
  */
@@ -83,7 +83,7 @@ class BrowserShellUiController(
     }
 
     private fun applyHomeChrome(show: Boolean) {
-        bottomBar.visibility = View.VISIBLE
+        bottomBar.visibility = if (show) View.GONE else View.VISIBLE
         if (show) {
             topBar.setBackgroundColor(Color.TRANSPARENT)
             topBar.post { positionSearchBarForHome() }

@@ -13,6 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.browser.BrowserAddressBarStateController
+import com.example.videobrowser.browser.BrowserHomePageUrlPolicy
 import com.example.videobrowser.browser.HistoryRecordPolicy
 import com.example.videobrowser.browser.SiteSecurityController
 import com.example.videobrowser.settings.SettingsManager
@@ -23,12 +24,14 @@ import com.example.videobrowser.storage.SavedPageRepository
  *
  * @param searchProviderController 参数类型为 `SearchProviderController`，表示管理默认搜索引擎和地址栏搜索源标识的控制器。
  * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示同步地址栏文本和站点安全状态的控制器。
+ * @param homePageUrlPolicy 参数类型为 `BrowserHomePageUrlPolicy`，表示识别哪些恢复 URL 应显示为 App 自定义首页的策略。
  * @param historyRecordPolicy 参数类型为 `HistoryRecordPolicy`，表示判断页面 URL 是否应该写入浏览历史的策略。
  * @param addressSuggestionController 参数类型为 `AddressSuggestionController`，表示地址栏输入建议面板控制器。
  */
 data class BrowserSearchComponents(
     val searchProviderController: SearchProviderController,
     val browserAddressBarStateController: BrowserAddressBarStateController,
+    val homePageUrlPolicy: BrowserHomePageUrlPolicy,
     val historyRecordPolicy: HistoryRecordPolicy,
     val addressSuggestionController: AddressSuggestionController
 )
@@ -92,11 +95,14 @@ class BrowserSearchAssemblyController(
             searchProviderController = searchProviderController,
             siteSecurityController = siteSecurityController
         )
-        val historyRecordPolicy = HistoryRecordPolicy(
+        val homePageUrlPolicy = BrowserHomePageUrlPolicy(
             homeUrls = {
                 SearchProviders.defaults.map { provider -> provider.homeUrl } +
                     settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)
             }
+        )
+        val historyRecordPolicy = HistoryRecordPolicy(
+            homePageUrlPolicy = homePageUrlPolicy
         )
         val addressSuggestionController = AddressSuggestionController(
             activity = activity,
@@ -115,6 +121,7 @@ class BrowserSearchAssemblyController(
         return BrowserSearchComponents(
             searchProviderController = searchProviderController,
             browserAddressBarStateController = browserAddressBarStateController,
+            homePageUrlPolicy = homePageUrlPolicy,
             historyRecordPolicy = historyRecordPolicy,
             addressSuggestionController = addressSuggestionController
         )

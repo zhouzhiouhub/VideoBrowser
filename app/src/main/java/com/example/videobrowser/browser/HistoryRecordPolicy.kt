@@ -7,10 +7,11 @@ package com.example.videobrowser.browser
  * 主要职责：封装 WebView 页面加载、标签页、导航安全、页面工具、权限回调或浏览器控件状态。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
+
 import com.example.videobrowser.utils.WebPageIdentity
 
 class HistoryRecordPolicy(
-    private val homeUrls: () -> List<String>
+    private val homePageUrlPolicy: BrowserHomePageUrlPolicy
 ) {
     /**
      * 函数 `shouldRecord`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
@@ -20,9 +21,6 @@ class HistoryRecordPolicy(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun shouldRecord(url: String?): Boolean {
-        val currentUrl = WebPageIdentity.from(url) ?: return false
-        return homeUrls()
-            .mapNotNull(WebPageIdentity::from)
-            .none { homeUrl -> homeUrl.isSamePageAs(currentUrl) }
+        return WebPageIdentity.from(url) != null && !homePageUrlPolicy.isHomeUrl(url)
     }
 }

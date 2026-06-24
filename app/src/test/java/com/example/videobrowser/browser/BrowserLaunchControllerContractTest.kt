@@ -36,13 +36,21 @@ class BrowserLaunchControllerContractTest {
         val launchController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserLaunchController.kt"
         ).readText()
+        val navigationAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserNavigationAssemblyController.kt"
+        ).readText()
+        val coreFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
         val initialPageBody = functionBody(launchController, "fun openInitialStandardPage()")
 
         assertTrue(initialPageBody.contains("val restoredUrl = activeStandardTabUrl()"))
-        assertTrue(initialPageBody.contains("if (restoredUrl.isNullOrBlank())"))
+        assertTrue(initialPageBody.contains("restoredUrl.isNullOrBlank() || shouldOpenAppHome(restoredUrl)"))
         assertTrue(initialPageBody.contains("openHomePage()"))
         assertTrue(initialPageBody.contains("loadUrl(restoredUrl)"))
         assertFalse(initialPageBody.contains("homeUrl"))
+        assertTrue(navigationAssembly.contains("shouldOpenAppHome = homePageUrlPolicy::isHomeUrl"))
+        assertTrue(coreFeatureAssembly.contains("homePageUrlPolicy = browserSearch.homePageUrlPolicy"))
     }
 
     @Test
@@ -71,7 +79,7 @@ class BrowserLaunchControllerContractTest {
     }
 
     @Test
-    fun homePageShowsCenteredSearchChromeWithBottomNavigation() {
+    fun homePageShowsOnlyCenteredSearchChrome() {
         val shellUiController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserShellUiController.kt"
         ).readText()
@@ -83,7 +91,7 @@ class BrowserLaunchControllerContractTest {
         assertTrue(shellAssembly.contains("rootView = views.rootView"))
         assertTrue(shellAssembly.contains("topBar = views.topBar"))
         assertTrue(shellAssembly.contains("bottomBar = views.bottomBar"))
-        assertTrue(shellUiController.contains("bottomBar.visibility = View.VISIBLE"))
+        assertTrue(shellUiController.contains("bottomBar.visibility = if (show) View.GONE else View.VISIBLE"))
         assertTrue(shellUiController.contains("topBar.post { positionSearchBarForHome() }"))
         assertTrue(shellUiController.contains("topBar.translationY = targetCenterY - currentCenterY"))
         assertTrue(shellUiController.contains("topBar.translationY = 0f"))

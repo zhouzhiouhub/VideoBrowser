@@ -55,6 +55,7 @@ data class BrowserNavigationComponents(
  * @param browserKeyboardController 参数类型为 `BrowserKeyboardController`，表示加载页面前隐藏软键盘的控制器。
  * @param browserShellUiController 参数类型为 `BrowserShellUiController`，表示切换首页和 WebView 内容区域的控制器。
  * @param browserChromeClientStateController 参数类型为 `BrowserChromeClientStateController`，表示读取当前 ChromeClient 全屏状态的控制器。
+ * @param homePageUrlPolicy 参数类型为 `BrowserHomePageUrlPolicy`，表示识别启动恢复 URL 是否应该回到 App 自定义首页的策略。
  * @param addressSuggestionController 参数类型为 `AddressSuggestionController`，表示地址栏建议控制器，用于加载地址栏时临时压制建议刷新。
  * @param searchProviderController 参数类型为 `SearchProviderController`，表示读取当前搜索引擎主页和搜索 URL 前缀的控制器。
  * @param closeFunctionCenter 参数类型为 `() -> Boolean`，表示页面加载前关闭功能中心面板的回调。
@@ -74,6 +75,7 @@ class BrowserNavigationAssemblyController(
     private val browserKeyboardController: BrowserKeyboardController,
     private val browserShellUiController: BrowserShellUiController,
     private val browserChromeClientStateController: BrowserChromeClientStateController,
+    private val homePageUrlPolicy: BrowserHomePageUrlPolicy,
     private val addressSuggestionController: AddressSuggestionController,
     private val searchProviderController: SearchProviderController,
     private val closeFunctionCenter: () -> Boolean,
@@ -124,6 +126,7 @@ class BrowserNavigationAssemblyController(
             runWithSuggestionsSuppressed = addressSuggestionController::runWithSuggestionsSuppressed,
             searchUrlPrefix = { searchProviderController.selectedProvider.searchUrlPrefix },
             activeStandardTabUrl = { standardTabStore.activeTab().url },
+            shouldOpenAppHome = homePageUrlPolicy::isHomeUrl,
             showHomePage = {
                 closeFunctionCenter()
                 browserKeyboardController.hideKeyboard()

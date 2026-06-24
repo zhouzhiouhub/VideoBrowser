@@ -243,6 +243,7 @@ class BrowserCoreFeatureAssemblyController(
             browserKeyboardController = browserShell.browserKeyboardController,
             browserShellUiController = browserShell.browserShellUiController,
             browserChromeClientStateController = browserChromeClientStateController,
+            homePageUrlPolicy = browserSearch.homePageUrlPolicy,
             addressSuggestionController = browserSearch.addressSuggestionController,
             searchProviderController = browserSearch.searchProviderController,
             closeFunctionCenter = {

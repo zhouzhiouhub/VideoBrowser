@@ -295,7 +295,11 @@ class MainActivityLayoutContractTest {
         assertTrue(pageActions.contains("if (!shouldRecordHistoryUrl(page.url))"))
         assertTrue(mainActivity.contains("private lateinit var browserFeatures: BrowserActivityFeatureComponents"))
         assertTrue(coreFeatureAssembly.contains("historyRecordPolicy = browserSearch.historyRecordPolicy"))
+        assertTrue(coreFeatureAssembly.contains("homePageUrlPolicy = browserSearch.homePageUrlPolicy"))
         assertTrue(pageActionAssembly.contains("shouldRecordHistoryUrl = historyRecordPolicy::shouldRecord"))
+        assertTrue(searchAssembly.contains("homePageUrlPolicy = BrowserHomePageUrlPolicy("))
+        assertTrue(searchAssembly.contains("historyRecordPolicy = HistoryRecordPolicy("))
+        assertTrue(searchAssembly.contains("homePageUrlPolicy = homePageUrlPolicy"))
         assertTrue(searchAssembly.contains("SearchProviders.defaults.map { provider -> provider.homeUrl }"))
         assertTrue(searchAssembly.contains("settingsManager.homeUrlOr(searchProviderController.selectedProvider.homeUrl)"))
     }
