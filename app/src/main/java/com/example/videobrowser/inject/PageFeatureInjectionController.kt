@@ -21,6 +21,15 @@ class PageFeatureInjectionController(
      * @return 无返回值；页面增强协调器尚未初始化时直接跳过。
      */
     fun injectPageFeatures() {
-        pageFeatureCoordinator()?.injectPageFeatures()
+        injectPageFeatures(onInjected = null)
+    }
+
+    fun injectPageFeatures(onInjected: (() -> Unit)?) {
+        val coordinator = pageFeatureCoordinator()
+        if (coordinator == null) {
+            onInjected?.invoke()
+            return
+        }
+        coordinator.injectPageFeatures(onInjected)
     }
 }

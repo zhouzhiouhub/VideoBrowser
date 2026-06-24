@@ -116,4 +116,40 @@ class SearchProviderControllerContractTest {
         assertTrue(coordinator.contains("builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl)"))
         assertTrue(injector.contains("val builtInSearchResultPage: Boolean = false"))
     }
+
+    @Test
+    fun builtInSearchResultVisibilityHidesBeforePageDrawAndRevealsAfterInjection() {
+        val visibilityController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BuiltInSearchResultPageVisibilityController.kt"
+        ).readText()
+        val searchAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
+        ).readText()
+        val coreAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserCoreFeatureAssemblyController.kt"
+        ).readText()
+        val webClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
+        ).readText()
+        val sessionAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserSessionAssemblyController.kt"
+        ).readText()
+        val sessionController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserSessionController.kt"
+        ).readText()
+
+        assertTrue(visibilityController.contains("fun handlePageStarted(url: String?)"))
+        assertTrue(visibilityController.contains("setActiveWebViewAlpha(HIDDEN_ALPHA)"))
+        assertTrue(visibilityController.contains("fun handlePageFeaturesInjected(url: String?)"))
+        assertTrue(visibilityController.contains("setActiveWebViewAlpha(VISIBLE_ALPHA)"))
+        assertTrue(searchAssembly.contains("val builtInSearchResultPageVisibilityController: BuiltInSearchResultPageVisibilityController"))
+        assertTrue(searchAssembly.contains("setActiveWebViewAlpha = { alpha -> activeWebView().alpha = alpha }"))
+        assertTrue(coreAssembly.contains("activeWebView = {"))
+        assertTrue(webClientController.contains("builtInSearchResultPageVisibilityController.handlePageStarted(url)"))
+        assertTrue(webClientController.contains("builtInSearchResultPageVisibilityController.handlePageFailed(error.url)"))
+        assertTrue(sessionAssembly.contains("builtInSearchResultPageVisibilityController::handlePageFeaturesInjected"))
+        assertTrue(sessionController.contains("injectPageFeatures {"))
+        assertTrue(sessionController.contains("val completedPageUrl = currentPageUrl"))
+        assertTrue(sessionController.contains("onPageFeaturesInjected(completedPageUrl)"))
+    }
 }

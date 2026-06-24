@@ -182,6 +182,24 @@ class PageFeatureCoordinatorTest {
         assertTrue(evaluatedScripts.isNotEmpty())
     }
 
+    @Test
+    fun injectPageFeatures_forwardsCompletionCallback() {
+        val evaluatedScripts = mutableListOf<String>()
+        var callbackInvoked = false
+        val coordinator = coordinatorFor(
+            settings = SettingsManager(InMemoryPreferenceStore()),
+            evaluatedScripts = evaluatedScripts,
+            currentSiteHost = "video.example.com",
+            currentPageUrl = "https://video.example.com/watch"
+        )
+
+        coordinator.injectPageFeatures {
+            callbackInvoked = true
+        }
+
+        assertTrue(callbackInvoked)
+    }
+
     /**
      * 测试函数 `coordinatorFor`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `coordinator For` 这条行为是否成立。
      *

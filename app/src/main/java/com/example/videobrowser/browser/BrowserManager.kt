@@ -298,8 +298,8 @@ class BrowserManager(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      * @param script 参数类型为 `String`，表示函数执行 `script` 相关逻辑时需要读取或处理的输入。
      */
-    fun evaluateJavascript(script: String) {
-        BrowserWebViewScriptEvaluator.evaluate(webView, script)
+    fun evaluateJavascript(script: String, onComplete: (() -> Unit)? = null) {
+        BrowserWebViewScriptEvaluator.evaluate(webView, script, onComplete)
     }
 
     /**

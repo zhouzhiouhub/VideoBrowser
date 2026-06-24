@@ -129,7 +129,7 @@ class PageFeatureCoordinator(
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
-    fun injectPageFeatures() {
+    fun injectPageFeatures(onInjected: (() -> Unit)? = null) {
         // 每次页面加载完成后重新计算当前站点配置，确保站点级开关立即生效。
         val pageUrl = currentPageUrl() ?: browserManager().currentUrl()
         jsInjector.inject(
@@ -140,7 +140,8 @@ class PageFeatureCoordinator(
                 builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl),
                 userCssSelectors = settingsManager.userElementHideSelectorsForSite(currentSiteHost())
             ),
-            pageUrl = pageUrl
+            pageUrl = pageUrl,
+            onInjected = onInjected
         )
     }
 }

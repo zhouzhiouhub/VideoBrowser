@@ -30,10 +30,25 @@ data class PageFeatureConfig(
  */
 class JsInjector(
     private val scriptLoader: ScriptLoader,
-    private val evaluateJavascript: (String) -> Unit,
+    private val evaluateJavascriptWithCompletion: (String, (() -> Unit)?) -> Unit,
     private val siteAdapterRegistry: SiteAdapterRegistry = SiteAdapterRegistry.default(),
     private val ruleEngine: RuleEngine = RuleEngine(emptyList())
 ) {
+    constructor(
+        scriptLoader: ScriptLoader,
+        evaluateJavascript: (String) -> Unit,
+        siteAdapterRegistry: SiteAdapterRegistry = SiteAdapterRegistry.default(),
+        ruleEngine: RuleEngine = RuleEngine(emptyList())
+    ) : this(
+        scriptLoader = scriptLoader,
+        evaluateJavascriptWithCompletion = { script, onComplete ->
+            evaluateJavascript(script)
+            onComplete?.invoke()
+        },
+        siteAdapterRegistry = siteAdapterRegistry,
+        ruleEngine = ruleEngine
+    )
+
     private val commonScript: String by lazy(LazyThreadSafetyMode.NONE) {
         scriptLoader.loadCommonScript()
     }
@@ -46,8 +61,13 @@ class JsInjector(
      * @param config 参数类型为 `PageFeatureConfig`，表示本次操作的配置集合，函数会按这些开关和参数调整行为。
      * @param pageUrl 参数类型为 `String?`，表示要处理的地址，用来加载网页、匹配规则或展示给用户。
      */
-    fun inject(config: PageFeatureConfig, pageUrl: String? = null) {
+    fun inject(
+        config: PageFeatureConfig,
+        pageUrl: String? = null,
+        onInjected: (() -> Unit)? = null
+    ) {
         if (!config.jsInjectionEnabled) {
+            onInjected?.invoke()
             return
         }
         // effectiveConfig 合并“用户设置”和“规则引擎计算结果”，后面的 JS 只需要读取一个 config。
@@ -92,13 +112,14 @@ class JsInjector(
                 )
             }
         }.distinctBy { script -> script.path }
-        evaluateJavascript(
+        evaluateJavascriptWithCompletion(
             buildInjectionScript(
                 commonScript = commonScriptContent,
                 config = effectiveConfig,
                 siteDependencyScripts = siteDependencyScripts,
                 siteScripts = siteScripts
-            )
+            ),
+            onInjected
         )
     }
 

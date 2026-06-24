@@ -27,7 +27,8 @@ class BrowserSessionController(
     private val updatePageProgressVisibility: (Boolean) -> Unit,
     private val updateNavigationButtons: () -> Unit,
     private val addHistoryEntry: (String?) -> Unit,
-    private val injectPageFeatures: () -> Unit,
+    private val injectPageFeatures: ((() -> Unit)?) -> Unit,
+    private val onPageFeaturesInjected: (String?) -> Unit = {},
     private val onPageMetadataChanged: (String?, String?) -> Unit = { _, _ -> }
 ) {
     var currentPageTitle = ""
@@ -76,8 +77,11 @@ class BrowserSessionController(
         addHistoryEntry(url)
         notifyPageMetadataChanged()
         if (isActive()) {
+            val completedPageUrl = currentPageUrl
             renderCurrentState(forceProgressHidden = true)
-            injectPageFeatures()
+            injectPageFeatures {
+                onPageFeaturesInjected(completedPageUrl)
+            }
         }
     }
 

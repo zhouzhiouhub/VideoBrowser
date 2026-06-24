@@ -20,9 +20,12 @@ class BrowserWebViewScriptEvaluatorContractTest {
         ).readText()
 
         assertTrue(scriptEvaluator.contains("internal object BrowserWebViewScriptEvaluator"))
-        assertTrue(scriptEvaluator.contains("targetWebView.evaluateJavascript(script, null)"))
+        assertTrue(scriptEvaluator.contains("fun evaluate(targetWebView: WebView, script: String, onComplete: (() -> Unit)? = null)"))
+        assertTrue(scriptEvaluator.contains("targetWebView.evaluateJavascript(script)"))
+        assertTrue(scriptEvaluator.contains("onComplete?.invoke()"))
 
-        assertTrue(browserManager.contains("BrowserWebViewScriptEvaluator.evaluate(webView, script)"))
+        assertTrue(browserManager.contains("fun evaluateJavascript(script: String, onComplete: (() -> Unit)? = null)"))
+        assertTrue(browserManager.contains("BrowserWebViewScriptEvaluator.evaluate(webView, script, onComplete)"))
         assertFalse(browserManager.contains("webView.evaluateJavascript(script, null)"))
 
         assertTrue(

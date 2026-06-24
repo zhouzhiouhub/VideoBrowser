@@ -170,6 +170,10 @@ class BrowserCoreFeatureAssemblyController(
             addressInput = views.addressInput,
             addressProviderBadge = views.addressProviderBadge,
             addressSuggestionPanel = views.addressSuggestionPanel,
+            activeWebView = {
+                browserSurface.browserStandardWebViewHostController.currentBrowserManager()
+                    .activeWebView
+            },
             settingsManager = browserPersistence.settingsManager,
             savedPageRepository = browserPersistence.savedPageRepository,
             siteSecurityController = {

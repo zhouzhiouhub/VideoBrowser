@@ -143,6 +143,8 @@ class BrowserRuntimeFeatureAssemblyController(
             browserControlsShellController = browserShell.browserControlsShellController,
             pageActionsController = pageActions.pageActionsController,
             pageFeatureInjectionController = browserShell.pageFeatureInjectionController,
+            builtInSearchResultPageVisibilityController =
+                browserSearch.builtInSearchResultPageVisibilityController,
             browsingModeThemeController = browserShell.browsingModeThemeController,
             sessionSitePermissionStore = sessionSitePermissionStore,
             isPrivateBrowsingActive = browserRuntimeStateController::isPrivateBrowsingActive,
@@ -221,6 +223,8 @@ class BrowserRuntimeFeatureAssemblyController(
             smartNoImageRequestInterceptor =
                 requestInterceptionProvider.smartNoImageRequestInterceptor,
             browserNavigationController = browserNavigation.browserNavigationController,
+            builtInSearchResultPageVisibilityController =
+                browserSearch.builtInSearchResultPageVisibilityController,
             closeFunctionCenter = {
                 requireStartupFeatures().functionCenterEntryController.closeFunctionCenter()
             },

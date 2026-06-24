@@ -98,6 +98,7 @@ class JsInjectorTest {
     fun inject_skipsCommonScriptWhenJsInjectionDisabled() {
         var loadCount = 0
         val evaluatedScripts = mutableListOf<String>()
+        var callbackInvoked = false
         val injector = JsInjector(
             scriptLoader = ScriptLoader {
                 loadCount += 1
@@ -112,10 +113,31 @@ class JsInjectorTest {
                 cleanupEnabled = true,
                 videoEnabled = true
             )
-        )
+        ) {
+            callbackInvoked = true
+        }
 
         assertEquals(0, loadCount)
         assertTrue(evaluatedScripts.isEmpty())
+        assertTrue(callbackInvoked)
+    }
+
+    @Test
+    fun inject_invokesCompletionAfterJavascriptEvaluationCompletes() {
+        val callbacks = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = scriptLoaderFor(COMMON_SCRIPT),
+            evaluateJavascriptWithCompletion = { _, onComplete ->
+                callbacks += "evaluate"
+                onComplete?.invoke()
+            }
+        )
+
+        injector.inject(PageFeatureConfig(cleanupEnabled = true, videoEnabled = true)) {
+            callbacks += "complete"
+        }
+
+        assertEquals(listOf("evaluate", "complete"), callbacks)
     }
 
     /**

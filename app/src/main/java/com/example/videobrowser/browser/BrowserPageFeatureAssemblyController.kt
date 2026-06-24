@@ -79,8 +79,8 @@ class BrowserPageFeatureAssemblyController(
     fun create(): BrowserPageFeatureComponents {
         val jsInjector = JsInjector(
             scriptLoader = ScriptLoader(assets),
-            evaluateJavascript = { script ->
-                browserManager().evaluateJavascript(script)
+            evaluateJavascriptWithCompletion = { script, onComplete ->
+                browserManager().evaluateJavascript(script, onComplete)
             },
             ruleEngine = ruleEngine
         )
