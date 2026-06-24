@@ -35,6 +35,7 @@ data class BrowserControlsComponents(
  * @param browserUrlStateController 参数类型为 `BrowserUrlStateController`，表示提供当前可操作 URL 的控制器。
  * @param browserLaunchController 参数类型为 `BrowserLaunchController`，表示处理地址栏加载和打开文心页面的导航入口。
  * @param pageActionsController 参数类型为 `PageActionsController`，表示执行收藏切换等当前页面动作的控制器。
+ * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示地址栏焦点变化时切换展示文本的控制器。
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示协调工具栏显示、地址栏焦点和搜索入口可见性的外壳控制器。
  * @param isHomePageVisible 参数类型为 `() -> Boolean`，表示读取当前首页内容是否可见的回调。
  * @param isVideoFullscreenUiActive 参数类型为 `() -> Boolean`，表示读取当前是否处于视频全屏 UI 的回调。
@@ -52,6 +53,7 @@ class BrowserControlsAssemblyController(
     private val browserUrlStateController: BrowserUrlStateController,
     private val browserLaunchController: BrowserLaunchController,
     private val pageActionsController: PageActionsController,
+    private val browserAddressBarStateController: BrowserAddressBarStateController,
     private val browserControlsShellController: BrowserControlsShellController,
     private val isHomePageVisible: () -> Boolean,
     private val isVideoFullscreenUiActive: () -> Boolean,
@@ -97,6 +99,7 @@ class BrowserControlsAssemblyController(
                 browserControlsShellController.setBrowserControlsHidden(false)
             },
             onAddressFocusChanged = { hasFocus ->
+                browserAddressBarStateController.handleAddressFocusChanged(hasFocus)
                 browserControlsShellController.handleAddressFocusChanged(hasFocus)
                 onAddressFocusChanged(hasFocus)
             },

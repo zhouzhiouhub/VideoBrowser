@@ -80,7 +80,9 @@ class SearchProviderController(
      */
     fun addressBarDisplayText(url: String): String {
         providers.forEach { provider ->
-            UrlUtils.searchQueryFromUrl(url, provider.searchUrlPrefix)?.let { return it }
+            provider.addressBarSearchUrlPrefixes.forEach { searchUrlPrefix ->
+                UrlUtils.searchQueryFromUrl(url, searchUrlPrefix)?.let { return it }
+            }
         }
         return UrlUtils.displayUrl(url)
     }

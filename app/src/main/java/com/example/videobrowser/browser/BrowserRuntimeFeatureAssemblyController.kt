@@ -106,6 +106,7 @@ class BrowserRuntimeFeatureAssemblyController(
             browserUrlStateController = browserShell.browserUrlStateController,
             browserLaunchController = browserNavigation.browserLaunchController,
             pageActionsController = pageActions.pageActionsController,
+            browserAddressBarStateController = browserSearch.browserAddressBarStateController,
             browserControlsShellController = browserShell.browserControlsShellController,
             isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
             isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,

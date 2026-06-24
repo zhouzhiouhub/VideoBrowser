@@ -58,9 +58,24 @@ class SearchProviderControllerContractTest {
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
         ).readText()
 
-        assertTrue(controller.contains("UrlUtils.searchQueryFromUrl(url, provider.searchUrlPrefix)"))
+        assertTrue(controller.contains("provider.addressBarSearchUrlPrefixes.forEach"))
+        assertTrue(controller.contains("UrlUtils.searchQueryFromUrl(url, searchUrlPrefix)"))
         assertTrue(controller.contains("UrlUtils.displayUrl(url)"))
         assertFalse(controller.contains("isProviderHomeUrl(url)"))
         assertFalse(controller.contains("return \"\""))
+    }
+
+    @Test
+    fun sogouMobileResultUrlIsAnAddressBarSearchPrefix() {
+        val providers = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProvider.kt"
+        ).readText()
+
+        assertTrue(providers.contains("val addressBarSearchUrlPrefixes: List<String>"))
+        assertTrue(
+            providers.contains(
+                "\"https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword=\""
+            )
+        )
     }
 }

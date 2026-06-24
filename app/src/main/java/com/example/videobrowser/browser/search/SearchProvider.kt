@@ -15,6 +15,7 @@ data class SearchProvider(
     val badge: String,
     val homeUrl: String,
     val searchUrlPrefix: String,
+    val addressBarSearchUrlPrefixes: List<String> = listOf(searchUrlPrefix),
     val accentColor: Int
 )
 
@@ -26,6 +27,10 @@ object SearchProviders {
             badge = "搜",
             homeUrl = "https://m.sogou.com/",
             searchUrlPrefix = "https://www.sogou.com/web?query=",
+            addressBarSearchUrlPrefixes = listOf(
+                "https://www.sogou.com/web?query=",
+                "https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword="
+            ),
             accentColor = Color.parseColor("#13B56B")
         ),
         SearchProvider(

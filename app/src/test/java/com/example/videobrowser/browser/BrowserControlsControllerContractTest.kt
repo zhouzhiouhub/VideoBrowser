@@ -107,11 +107,26 @@ class BrowserControlsControllerContractTest {
         ).readText()
 
         assertTrue(controlsAssembly.contains("private val onAddressFocusChanged: (Boolean) -> Unit"))
+        assertTrue(
+            controlsAssembly.contains(
+                "private val browserAddressBarStateController: BrowserAddressBarStateController"
+            )
+        )
+        assertTrue(
+            controlsAssembly.contains(
+                "browserAddressBarStateController.handleAddressFocusChanged(hasFocus)"
+            )
+        )
         assertTrue(controlsAssembly.contains("browserControlsShellController.handleAddressFocusChanged(hasFocus)"))
         assertTrue(controlsAssembly.contains("onAddressFocusChanged(hasFocus)"))
         assertTrue(
             runtimeFeatureAssembly.contains(
                 "onAddressFocusChanged = browserShell.browserShellUiController::handleAddressFocusChanged"
+            )
+        )
+        assertTrue(
+            runtimeFeatureAssembly.contains(
+                "browserAddressBarStateController = browserSearch.browserAddressBarStateController"
             )
         )
         assertTrue(shellUiController.contains("fun handleAddressFocusChanged(hasFocus: Boolean)"))

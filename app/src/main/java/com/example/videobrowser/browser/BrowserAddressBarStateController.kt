@@ -8,6 +8,7 @@ package com.example.videobrowser.browser
  */
 import android.widget.EditText
 import com.example.videobrowser.browser.search.SearchProviderController
+import com.example.videobrowser.utils.UrlUtils
 
 /**
  * 地址栏状态控制器。
@@ -23,6 +24,9 @@ class BrowserAddressBarStateController(
     private val searchProviderController: SearchProviderController,
     private val siteSecurityController: () -> SiteSecurityController?
 ) {
+    private var currentUrl: String? = null
+    private var isAddressInputFocused = false
+
     /**
      * 刷新地址栏文本和站点安全图标状态。
      *
@@ -30,6 +34,7 @@ class BrowserAddressBarStateController(
      */
     fun updateAddressBar(url: String?) {
         siteSecurityController()?.updateStatus(url)
+        currentUrl = url?.takeUnless { value -> value.isBlank() }
         if (url.isNullOrBlank()) {
             if (!addressInput.text.isNullOrEmpty()) {
                 addressInput.setText("")
@@ -37,12 +42,24 @@ class BrowserAddressBarStateController(
             return
         }
 
-        val displayUrl = addressBarDisplayText(url)
-        if (addressInput.text?.toString() == displayUrl) {
-            return
-        }
-        addressInput.setText(displayUrl)
-        addressInput.setSelection(addressInput.text?.length ?: 0)
+        updateAddressInput(
+            text = addressTextFor(url, isAddressInputFocused),
+            selectAll = isAddressInputFocused
+        )
+    }
+
+    /**
+     * 地址栏聚焦时临时显示完整链接，便于复制；失焦后恢复搜索结果关键词展示。
+     *
+     * @param hasFocus true 表示用户正在直接操作地址栏。
+     */
+    fun handleAddressFocusChanged(hasFocus: Boolean) {
+        isAddressInputFocused = hasFocus
+        val url = currentUrl ?: return
+        updateAddressInput(
+            text = addressTextFor(url, hasFocus),
+            selectAll = hasFocus
+        )
     }
 
     /**
@@ -53,6 +70,25 @@ class BrowserAddressBarStateController(
      */
     fun addressBarDisplayText(url: String): String {
         return searchProviderController.addressBarDisplayText(url)
+    }
+
+    private fun addressTextFor(url: String, hasFocus: Boolean): String {
+        return if (hasFocus) {
+            UrlUtils.displayUrl(url)
+        } else {
+            addressBarDisplayText(url)
+        }
+    }
+
+    private fun updateAddressInput(text: String, selectAll: Boolean) {
+        if (addressInput.text?.toString() != text) {
+            addressInput.setText(text)
+        }
+        if (selectAll) {
+            addressInput.selectAll()
+        } else {
+            addressInput.setSelection(addressInput.text?.length ?: 0)
+        }
     }
 
 }

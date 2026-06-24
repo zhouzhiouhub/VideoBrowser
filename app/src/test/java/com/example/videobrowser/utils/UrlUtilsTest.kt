@@ -224,6 +224,17 @@ class UrlUtilsTest {
         )
     }
 
+    @Test
+    fun searchQueryFromUrl_decodesSogouMobileResultKeyword() {
+        assertEquals(
+            "你好1983",
+            UrlUtils.searchQueryFromUrl(
+                "https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword=你好1983",
+                "https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword="
+            )
+        )
+    }
+
     /**
      * 测试函数 `searchQueryFromUrl_returnsNullForOtherUrls`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `search Query From Url returns Null For Other Urls` 这条行为是否成立。
      *
