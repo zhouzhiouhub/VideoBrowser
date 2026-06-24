@@ -41,6 +41,7 @@ data class BrowserControlsComponents(
  * @param onBack 参数类型为 `() -> Unit`，表示点击后退按钮时执行统一后退流程的回调。
  * @param showFunctionCenter 参数类型为 `() -> Unit`，表示点击页面工具按钮时打开功能中心的回调。
  * @param showProfilePage 参数类型为 `() -> Unit`，表示点击个人入口按钮时打开资料页的回调。
+ * @param onAddressFocusChanged 参数类型为 `(Boolean) -> Unit`，表示地址栏焦点变化后刷新首页搜索框位置的回调。
  * @param dp 参数类型为 `(Int) -> Int`，表示把 dp 数值转换为像素的回调。
  */
 class BrowserControlsAssemblyController(
@@ -57,6 +58,7 @@ class BrowserControlsAssemblyController(
     private val onBack: () -> Unit,
     private val showFunctionCenter: () -> Unit,
     private val showProfilePage: () -> Unit,
+    private val onAddressFocusChanged: (Boolean) -> Unit,
     private val dp: (Int) -> Int
 ) {
     /**
@@ -94,7 +96,10 @@ class BrowserControlsAssemblyController(
             onShowControlsRequested = {
                 browserControlsShellController.setBrowserControlsHidden(false)
             },
-            onAddressFocusChanged = browserControlsShellController::handleAddressFocusChanged,
+            onAddressFocusChanged = { hasFocus ->
+                browserControlsShellController.handleAddressFocusChanged(hasFocus)
+                onAddressFocusChanged(hasFocus)
+            },
             onVisibilityChanged = browserControlsShellController::syncSearchProviderVisibility
         )
         val browserControlsScrollController = BrowserControlsScrollController(

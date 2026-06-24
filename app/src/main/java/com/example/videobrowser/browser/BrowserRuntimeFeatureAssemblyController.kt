@@ -118,6 +118,7 @@ class BrowserRuntimeFeatureAssemblyController(
             showProfilePage = {
                 requireStartupFeatures().functionCenterEntryController.showProfilePage()
             },
+            onAddressFocusChanged = browserShell.browserShellUiController::handleAddressFocusChanged,
             dp = dp
         ).create()
 

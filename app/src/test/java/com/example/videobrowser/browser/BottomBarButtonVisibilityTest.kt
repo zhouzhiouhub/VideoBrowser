@@ -11,20 +11,20 @@ import org.junit.Test
 
 class BottomBarButtonVisibilityTest {
     /**
-     * 测试函数 `homePage_hidesNavigationToolsThatAreOnlyUsefulAfterOpeningPage`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `home Page hides Navigation Tools That Are Only Useful After Opening Page` 这条行为是否成立。
+     * 测试函数 `homePage_keepsBottomNavigationVisibleWithBackDisabled`：按测试名描述的场景准备输入、调用被测代码，并用断言验证首页保留底部菜单但禁用后退。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     @Test
-    fun homePage_hidesAllBottomNavigationActions() {
+    fun homePage_keepsBottomNavigationVisibleWithBackDisabled() {
         val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible = true)
 
-        assertFalse(visibility.showBack)
+        assertTrue(visibility.showBack)
         assertFalse(visibility.enableBack)
-        assertFalse(visibility.showPageTools)
-        assertFalse(visibility.showRefresh)
-        assertFalse(visibility.showWenxin)
-        assertFalse(visibility.showProfile)
+        assertTrue(visibility.showPageTools)
+        assertTrue(visibility.showRefresh)
+        assertTrue(visibility.showWenxin)
+        assertTrue(visibility.showProfile)
     }
 
     /**

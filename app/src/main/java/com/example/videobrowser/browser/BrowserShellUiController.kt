@@ -22,7 +22,7 @@ import android.view.View
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示浏览器控制栏外壳协调器，用来隐藏/显示控制栏和搜索入口。
  * @param rootView 参数类型为 `View`，表示主界面根布局，首页状态会用它重新约束搜索栏位置。
  * @param topBar 参数类型为 `View`，表示顶部地址栏区域，首页状态会把它作为居中搜索栏显示。
- * @param bottomBar 参数类型为 `View`，表示底部工具栏，首页状态会隐藏它，只保留搜索框。
+ * @param bottomBar 参数类型为 `View`，表示底部工具栏，首页状态会保留底部菜单入口。
  * @param activeWebView 参数类型为 `() -> View`，表示返回当前活动 WebView 的函数，首页状态会隐藏它，显示网页内容时会把它设为可见。
  * @param browsingModeThemeController 参数类型为 `BrowsingModeThemeController`，表示普通/无痕主题控制器，用于主页状态变化后重新应用颜色。
  */
@@ -37,6 +37,9 @@ class BrowserShellUiController(
     private val activeWebView: () -> View,
     private val browsingModeThemeController: BrowsingModeThemeController
 ) {
+    private var isHomeContentVisible = true
+    private var isAddressInputFocused = false
+
     /**
      * 初始化浏览器控制栏和站点安全图标。
      *
@@ -72,6 +75,7 @@ class BrowserShellUiController(
      * @return 无返回值；函数会重置滚动隐藏状态、显示控制栏、隐藏或显示 WebView、刷新搜索入口/进度条/导航按钮和主题。
      */
     fun showHomeContent(show: Boolean) {
+        isHomeContentVisible = show
         browserControlsScrollController()?.resetTracking()
         browserControlsShellController.setBrowserControlsHidden(false)
         browserControlsShellController.syncSearchProviderVisibility()
@@ -82,9 +86,22 @@ class BrowserShellUiController(
         applyHomeChrome(show)
     }
 
+    /**
+     * 地址栏聚焦时，首页搜索框回到顶部以留出输入和建议面板空间；失焦后回到首页居中位置。
+     *
+     * @param hasFocus true 表示用户正在准备输入搜索内容。
+     */
+    fun handleAddressFocusChanged(hasFocus: Boolean) {
+        isAddressInputFocused = hasFocus
+        applyHomeChrome(isHomeContentVisible)
+    }
+
     private fun applyHomeChrome(show: Boolean) {
-        bottomBar.visibility = if (show) View.GONE else View.VISIBLE
         if (show) {
+            bottomBar.visibility = View.VISIBLE
+        }
+        if (show && !isAddressInputFocused) {
+            topBar.bringToFront()
             topBar.setBackgroundColor(Color.TRANSPARENT)
             topBar.post { positionSearchBarForHome() }
         } else {

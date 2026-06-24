@@ -24,19 +24,9 @@ data class BottomBarButtonVisibility(
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         fun forPageState(isHomePageVisible: Boolean): BottomBarButtonVisibility {
-            if (isHomePageVisible) {
-                return BottomBarButtonVisibility(
-                    showBack = false,
-                    enableBack = false,
-                    showPageTools = false,
-                    showRefresh = false,
-                    showWenxin = false,
-                    showProfile = false
-                )
-            }
             return BottomBarButtonVisibility(
                 showBack = true,
-                enableBack = true,
+                enableBack = !isHomePageVisible,
                 showPageTools = true
             )
         }

@@ -94,4 +94,27 @@ class BrowserControlsControllerContractTest {
         assertTrue(strings.contains("toast_press_back_again_to_exit"))
     }
 
+    @Test
+    fun addressFocusUpdatesSuggestionsAndHomeSearchPosition() {
+        val controlsAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserControlsAssemblyController.kt"
+        ).readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
+        val shellUiController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserShellUiController.kt"
+        ).readText()
+
+        assertTrue(controlsAssembly.contains("private val onAddressFocusChanged: (Boolean) -> Unit"))
+        assertTrue(controlsAssembly.contains("browserControlsShellController.handleAddressFocusChanged(hasFocus)"))
+        assertTrue(controlsAssembly.contains("onAddressFocusChanged(hasFocus)"))
+        assertTrue(
+            runtimeFeatureAssembly.contains(
+                "onAddressFocusChanged = browserShell.browserShellUiController::handleAddressFocusChanged"
+            )
+        )
+        assertTrue(shellUiController.contains("fun handleAddressFocusChanged(hasFocus: Boolean)"))
+    }
+
 }
