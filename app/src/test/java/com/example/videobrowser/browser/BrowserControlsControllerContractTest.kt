@@ -78,7 +78,7 @@ class BrowserControlsControllerContractTest {
 
         assertTrue(controller.contains("private val onBack: () -> Unit"))
         assertTrue(controller.contains("backButton.setOnClickListener { onBack() }"))
-        assertTrue(controller.contains("backButton.isEnabled = visibility.showBack"))
+        assertTrue(controller.contains("backButton.isEnabled = visibility.enableBack"))
         assertTrue(runtimeFeatureAssembly.contains("requireStartupFeatures().browserBackNavigationController.handleBrowserBack()"))
         assertTrue(mainActivity.contains("BrowserActivityFeatureAssemblyController"))
         assertTrue(startupFeatureAssembly.contains("BrowserStartupControllerAssembly"))

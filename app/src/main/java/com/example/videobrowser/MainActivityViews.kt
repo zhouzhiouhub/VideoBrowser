@@ -47,7 +47,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
  * @param backButton 参数类型为 `ImageButton`，表示浏览器后退按钮。
  * @param refreshButton 参数类型为 `ImageButton`，表示刷新或停止加载按钮。
  * @param bookmarkButton 参数类型为 `ImageButton`，表示收藏当前页面的按钮。
- * @param loadButton 参数类型为 `ImageButton`，表示地址栏加载或跳转按钮。
+ * @param loadButton 参数类型为 `TextView`，表示地址栏加载或跳转按钮。
  * @param fullscreenContainer 参数类型为 `FrameLayout`，表示视频或页面全屏内容的承载容器。
  */
 data class MainActivityViews(
@@ -71,7 +71,7 @@ data class MainActivityViews(
     val backButton: ImageButton,
     val refreshButton: ImageButton,
     val bookmarkButton: ImageButton,
-    val loadButton: ImageButton,
+    val loadButton: TextView,
     val fullscreenContainer: FrameLayout
 ) {
     companion object {

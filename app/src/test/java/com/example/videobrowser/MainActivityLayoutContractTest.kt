@@ -28,8 +28,8 @@ class MainActivityLayoutContractTest {
         val addressInput = layout.elementById("addressInput")
 
         assertEquals("TextView", providerBadge.tagName)
-        assertEquals("24dp", providerBadge.androidAttribute("layout_width"))
-        assertEquals("24dp", providerBadge.androidAttribute("layout_height"))
+        assertEquals("34dp", providerBadge.androidAttribute("layout_width"))
+        assertEquals("34dp", providerBadge.androidAttribute("layout_height"))
         assertEquals("center", providerBadge.androidAttribute("gravity"))
         assertEquals("bold", providerBadge.androidAttribute("textStyle"))
         assertFalse(providerBadge.hasAndroidAttribute("src"))
@@ -160,6 +160,26 @@ class MainActivityLayoutContractTest {
 
         assertFalse(idNames.contains("voiceIcon"))
         assertFalse(layout.contains("@drawable/ic_camera_24"))
+    }
+
+    @Test
+    fun addressBarUsesTextSearchPillAsLoadAction() {
+        val layout = activityMainLayout()
+        val loadButton = layout.elementById("loadButton")
+        val viewBinding = projectFile("src/main/java/com/example/videobrowser/MainActivityViews.kt")
+            .readText()
+        val controlsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserControlsController.kt"
+        ).readText()
+
+        assertEquals("TextView", loadButton.tagName)
+        assertEquals("74dp", loadButton.androidAttribute("layout_width"))
+        assertEquals("40dp", loadButton.androidAttribute("layout_height"))
+        assertEquals("@drawable/bg_address_go_button", loadButton.androidAttribute("background"))
+        assertEquals("@string/hint_address_bar", loadButton.androidAttribute("text"))
+        assertTrue(viewBinding.contains("val loadButton: TextView"))
+        assertTrue(controlsController.contains("private val loadButton: TextView"))
+        assertTrue(controlsController.contains("loadButton.setOnClickListener { onLoadAddress() }"))
     }
 
     /**
@@ -341,10 +361,11 @@ class MainActivityLayoutContractTest {
         val profileAction = layout.elementById("profileButton")
 
         assertEquals("ImageButton", wenxinAction.tagName)
-        assertEquals(profileAction.androidAttribute("layout_width"), wenxinAction.androidAttribute("layout_width"))
-        assertEquals(profileAction.androidAttribute("layout_height"), wenxinAction.androidAttribute("layout_height"))
-        assertEquals(profileAction.androidAttribute("background"), wenxinAction.androidAttribute("background"))
-        assertEquals(profileAction.androidAttribute("tint"), wenxinAction.androidAttribute("tint"))
+        assertEquals("58dp", wenxinAction.androidAttribute("layout_width"))
+        assertEquals("58dp", wenxinAction.androidAttribute("layout_height"))
+        assertEquals("@drawable/bg_wenxin_pill", wenxinAction.androidAttribute("background"))
+        assertEquals("@color/address_go_icon", wenxinAction.androidAttribute("tint"))
+        assertEquals("52dp", profileAction.androidAttribute("layout_width"))
         assertEquals("@drawable/ic_wenxin_wave_24", wenxinAction.androidAttribute("src"))
         assertFalse(wenxinAction.hasAndroidAttribute("text"))
     }
@@ -367,12 +388,12 @@ class MainActivityLayoutContractTest {
         assertEquals("androidx.constraintlayout.widget.ConstraintLayout", bottomBar.tagName)
         assertFalse(layout.hasElementById("bottomBarCenterGuide"))
         assertEquals("parent", backAction.appAttribute("layout_constraintStart_toStartOf"))
-        assertEquals("@id/pageToolsButton", backAction.appAttribute("layout_constraintEnd_toStartOf"))
+        assertEquals("@id/refreshButton", backAction.appAttribute("layout_constraintEnd_toStartOf"))
         assertEquals("spread", backAction.appAttribute("layout_constraintHorizontal_chainStyle"))
-        assertEquals("@id/refreshButton", pageToolsAction.appAttribute("layout_constraintEnd_toStartOf"))
+        assertEquals("@id/profileButton", pageToolsAction.appAttribute("layout_constraintEnd_toStartOf"))
         assertEquals("@id/wenxinButton", refreshAction.appAttribute("layout_constraintEnd_toStartOf"))
-        assertEquals("@id/profileButton", wenxinAction.appAttribute("layout_constraintEnd_toStartOf"))
-        assertEquals("@id/wenxinButton", profileAction.appAttribute("layout_constraintStart_toEndOf"))
+        assertEquals("@id/pageToolsButton", wenxinAction.appAttribute("layout_constraintEnd_toStartOf"))
+        assertEquals("@id/pageToolsButton", profileAction.appAttribute("layout_constraintStart_toEndOf"))
         assertEquals("parent", profileAction.appAttribute("layout_constraintEnd_toEndOf"))
     }
 

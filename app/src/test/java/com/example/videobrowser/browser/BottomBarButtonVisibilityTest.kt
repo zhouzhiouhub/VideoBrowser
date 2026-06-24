@@ -16,11 +16,12 @@ class BottomBarButtonVisibilityTest {
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     @Test
-    fun homePage_hidesNavigationToolsThatAreOnlyUsefulAfterOpeningPage() {
+    fun homePage_keepsLightweightBottomNavigationVisible() {
         val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible = true)
 
-        assertFalse(visibility.showBack)
-        assertFalse(visibility.showPageTools)
+        assertTrue(visibility.showBack)
+        assertFalse(visibility.enableBack)
+        assertTrue(visibility.showPageTools)
         assertTrue(visibility.showRefresh)
         assertTrue(visibility.showWenxin)
         assertTrue(visibility.showProfile)
@@ -36,6 +37,7 @@ class BottomBarButtonVisibilityTest {
         val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible = false)
 
         assertTrue(visibility.showBack)
+        assertTrue(visibility.enableBack)
         assertTrue(visibility.showPageTools)
         assertTrue(visibility.showRefresh)
         assertTrue(visibility.showWenxin)

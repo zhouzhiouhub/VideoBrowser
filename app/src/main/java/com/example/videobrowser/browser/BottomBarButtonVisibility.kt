@@ -9,6 +9,7 @@ package com.example.videobrowser.browser
  */
 data class BottomBarButtonVisibility(
     val showBack: Boolean,
+    val enableBack: Boolean = showBack,
     val showPageTools: Boolean,
     val showRefresh: Boolean = true,
     val showWenxin: Boolean = true,
@@ -23,10 +24,10 @@ data class BottomBarButtonVisibility(
          * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
          */
         fun forPageState(isHomePageVisible: Boolean): BottomBarButtonVisibility {
-            val showPageNavigation = !isHomePageVisible
             return BottomBarButtonVisibility(
-                showBack = showPageNavigation,
-                showPageTools = showPageNavigation
+                showBack = true,
+                enableBack = !isHomePageVisible,
+                showPageTools = true
             )
         }
     }

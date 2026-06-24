@@ -71,7 +71,7 @@ class BrowserLaunchControllerContractTest {
     }
 
     @Test
-    fun homePageShowsOnlySearchChromeWithoutUrlText() {
+    fun homePageShowsCenteredSearchChromeWithBottomNavigation() {
         val shellUiController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserShellUiController.kt"
         ).readText()
@@ -83,7 +83,7 @@ class BrowserLaunchControllerContractTest {
         assertTrue(shellAssembly.contains("rootView = views.rootView"))
         assertTrue(shellAssembly.contains("topBar = views.topBar"))
         assertTrue(shellAssembly.contains("bottomBar = views.bottomBar"))
-        assertTrue(shellUiController.contains("bottomBar.visibility = if (show) View.GONE else View.VISIBLE"))
+        assertTrue(shellUiController.contains("bottomBar.visibility = View.VISIBLE"))
         assertTrue(shellUiController.contains("topBar.post { positionSearchBarForHome() }"))
         assertTrue(shellUiController.contains("topBar.translationY = targetCenterY - currentCenterY"))
         assertTrue(shellUiController.contains("topBar.translationY = 0f"))

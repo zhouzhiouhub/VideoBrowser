@@ -13,6 +13,7 @@ import android.view.KeyEvent
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -34,7 +35,7 @@ class BrowserControlsController(
     private val backButton: ImageButton,
     private val refreshButton: ImageButton,
     private val bookmarkButton: ImageButton,
-    private val loadButton: ImageButton,
+    private val loadButton: TextView,
     private val savedPageRepository: SavedPageRepository,
     private val currentActionableUrl: () -> String?,
     private val isHomePageVisible: () -> Boolean,
@@ -156,8 +157,8 @@ class BrowserControlsController(
      */
     fun updateNavigationButtons() {
         val visibility = BottomBarButtonVisibility.forPageState(isHomePageVisible())
-        backButton.isEnabled = visibility.showBack
-        backButton.alpha = if (visibility.showBack) 1f else 0.38f
+        backButton.isEnabled = visibility.enableBack
+        backButton.alpha = if (visibility.enableBack) 1f else 0.38f
         backButton.visibility = if (visibility.showBack) View.VISIBLE else View.GONE
         pageToolsButton.visibility = if (visibility.showPageTools) View.VISIBLE else View.GONE
         refreshButton.visibility = if (visibility.showRefresh) View.VISIBLE else View.GONE
@@ -178,9 +179,9 @@ class BrowserControlsController(
         val constraints = ConstraintSet().apply { clone(bottomBar) }
         val actionIds = intArrayOf(
             R.id.backButton,
-            R.id.pageToolsButton,
             R.id.refreshButton,
             R.id.wenxinButton,
+            R.id.pageToolsButton,
             R.id.profileButton
         )
 

@@ -8,6 +8,7 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看 updatePrivateBrowsingUi，再看 applyBrowsingModeTheme。
  */
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
@@ -64,7 +65,7 @@ class BrowsingModeThemeController(
         views.addressInput.setHintTextColor(colors.hint)
         views.addressBar.background = BrowserDrawableFactory.roundedBackground(
             color = colors.addressBackground,
-            radius = dp(22),
+            radius = dp(28),
             strokeWidth = dp(1),
             strokeColor = colors.addressStroke
         )
@@ -79,6 +80,7 @@ class BrowsingModeThemeController(
         ).forEach { button ->
             button.setColorFilter(colors.icon)
         }
+        views.wenxinButton.setColorFilter(Color.WHITE)
         views.pageProgress.progressTintList = ColorStateList.valueOf(colors.progress)
         WindowInsetsControllerCompat(activity.window, views.rootView).isAppearanceLightStatusBars =
             !isPrivateBrowsingEnabled()
