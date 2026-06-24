@@ -11,6 +11,7 @@ internal class FunctionCenterProfileShortcutSection(
     private val showBookmarks: () -> Unit,
     private val showDownloads: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
+    private val showSearchEngines: () -> Unit,
     private val showUserManualRules: () -> Unit,
     private val showAbout: () -> Unit
 ) {
@@ -70,6 +71,14 @@ internal class FunctionCenterProfileShortcutSection(
                     summary = activity.getString(R.string.action_file_operations_summary),
                     iconResId = R.drawable.ic_file_24
                 ) { showFileOperationsPage() }
+            }
+
+            FunctionCenterProfileAction.SEARCH_ENGINE -> {
+                FunctionCenterGridAction(
+                    title = activity.getString(R.string.action_search_engine_short),
+                    summary = activity.getString(R.string.action_search_engine_summary),
+                    iconResId = R.drawable.ic_search_24
+                ) { showSearchEngines() }
             }
 
             FunctionCenterProfileAction.USER_MANUAL_RULES -> {

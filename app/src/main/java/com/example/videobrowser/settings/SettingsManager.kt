@@ -27,6 +27,7 @@ class SettingsManager(
     private val sitePermissions = PersistentSitePermissionStore(preferenceStore, hostSets)
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
     private val customShortcutStore = CustomShortcutStore(preferenceStore)
+    private val customSearchEngineStore = CustomSearchEngineStore(preferenceStore)
     private val preferenceResetter = SettingsPreferenceResetter(preferenceStore)
 
     /**
@@ -682,6 +683,28 @@ class SettingsManager(
      */
     fun updateCustomShortcut(shortcut: CustomShortcut, name: String, url: String): Boolean {
         return customShortcutStore.update(shortcut, name, url)
+    }
+
+    /**
+     * 函数 `customSearchEngines`：封装 `custom Search Engines` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
+    fun customSearchEngines(): List<CustomSearchEngine> {
+        return customSearchEngineStore.load()
+    }
+
+    /**
+     * 函数 `addCustomSearchEngine`：封装 `add Custom Search Engine` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param searchUrlPrefix 参数类型为 `String`，表示搜索 URL 前缀，地址栏会在后面追加编码后的关键词。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
+    fun addCustomSearchEngine(name: String, searchUrlPrefix: String): Boolean {
+        return customSearchEngineStore.add(name, searchUrlPrefix)
     }
 
     /**

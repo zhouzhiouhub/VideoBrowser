@@ -178,6 +178,7 @@ class SettingsManagerTest {
         settings.setTextZoomPercent(150)
         settings.setHomeUrl("https://m.sogou.com/")
         settings.addCustomShortcut("Docs", "https://docs.example.com/")
+        settings.addCustomSearchEngine("Docs", "https://docs.example.com/search?q=")
         store.putString("bookmarks", "[]")
 
         assertTrue(settings.restoreDefaults())
@@ -211,6 +212,7 @@ class SettingsManagerTest {
         assertEquals(SettingsManager.DEFAULT_TEXT_ZOOM_PERCENT, settings.textZoomPercent())
         assertEquals(SettingsManager.DEFAULT_HOME_URL, settings.homeUrl())
         assertTrue(settings.customShortcuts().isEmpty())
+        assertTrue(settings.customSearchEngines().isEmpty())
         assertEquals("[]", store.getString("bookmarks", null))
     }
 
@@ -765,6 +767,89 @@ class SettingsManagerTest {
         settings.setHomeUrl("https://m.sogou.com/")
 
         assertTrue(settings.addCustomShortcut("Bing", "https://www.bing.com/"))
+
+        assertEquals("sogou", settings.searchEngineId())
+        assertEquals("https://m.sogou.com/", settings.homeUrl())
+    }
+
+    @Test
+    fun customSearchEngines_arePersistedInInsertionOrder() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.addCustomSearchEngine("  自定义  ", " https://search.example.com/?q= "))
+        assertTrue(settings.addCustomSearchEngine("Docs", "http://docs.example.com/search?q="))
+
+        val engines = SettingsManager(store).customSearchEngines()
+        assertEquals(listOf("自定义", "Docs"), engines.map { engine -> engine.name })
+        assertEquals(
+            listOf(
+                "https://search.example.com/?q=",
+                "http://docs.example.com/search?q="
+            ),
+            engines.map { engine -> engine.searchUrlPrefix }
+        )
+        assertTrue(engines.all { engine -> engine.id.startsWith("custom_") })
+        assertEquals(engines.size, engines.map { engine -> engine.id }.toSet().size)
+    }
+
+    @Test
+    fun customSearchEngines_keepMostRecentTenEntries() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+
+        (1..11).forEach { index ->
+            assertTrue(
+                settings.addCustomSearchEngine(
+                    "搜索$index",
+                    "https://example.com/search$index?q="
+                )
+            )
+        }
+
+        assertEquals(
+            (2..11).map { index -> "搜索$index" },
+            settings.customSearchEngines().map { engine -> engine.name }
+        )
+    }
+
+    @Test
+    fun customSearchEngines_rejectInvalidInputAndFilterCorruptStorage() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertFalse(settings.addCustomSearchEngine("", "https://example.com/search?q="))
+        assertFalse(settings.addCustomSearchEngine("Docs", ""))
+        assertFalse(settings.addCustomSearchEngine("Script", "javascript:alert(1)"))
+        store.putString(
+            "custom_search_engines",
+            listOf(
+                "custom_good\tGood\thttps://good.example.com/search?q=",
+                "bad_id\tBadId\thttps://bad-id.example.com/search?q=",
+                "custom_bad_url\tBadUrl\tftp://bad.example.com/search?q=",
+                "custom_missing_name\t\thttps://missing-name.example.com/search?q=",
+                "custom_good\tDuplicate\thttps://duplicate.example.com/search?q="
+            ).joinToString(separator = "\n")
+        )
+
+        assertEquals(
+            listOf(
+                CustomSearchEngine(
+                    id = "custom_good",
+                    name = "Good",
+                    searchUrlPrefix = "https://good.example.com/search?q="
+                )
+            ),
+            settings.customSearchEngines()
+        )
+    }
+
+    @Test
+    fun customSearchEngines_doNotChangeSelectedSearchProviderOrHomeUrl() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+        settings.setSearchEngineId("sogou")
+        settings.setHomeUrl("https://m.sogou.com/")
+
+        assertTrue(settings.addCustomSearchEngine("Bing", "https://www.bing.com/search?q="))
 
         assertEquals("sogou", settings.searchEngineId())
         assertEquals("https://m.sogou.com/", settings.homeUrl())

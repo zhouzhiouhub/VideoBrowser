@@ -28,7 +28,7 @@
 | 前进/后退/刷新/停止 | `MainActivity` 底部按钮监听 | `BrowserControlsController.kt`, `BrowserControlsScrollController.kt` | 无独立存储 | `BrowserControlsControllerContractTest`, `BottomBarButtonVisibilityTest` | 先看按钮可见性和启用状态，再看点击动作 |
 | 标签页管理 | `MainActivity` 标签相关 region | `BrowserTabStore.kt`, `BrowserTabWebViewRegistry.kt`, `BrowserSessionCoordinator.kt` | `BrowserTabSessionRepository.kt` | `BrowserTabStoreTest`, `BrowserTabWebViewRegistryTest`, `BrowserTabSessionRepositoryTest` | 按“标签模型 -> WebView 绑定 -> 会话恢复”阅读 |
 | 新窗口和网页弹窗 | `ChromeClient.onCreateWindow()` | `ChromeClient.kt`, `BrowserTabWebViewRegistry.kt` | 标签页会话存储 | `WebViewNewWindowContractTest`, `BrowserTabWebViewWiringContractTest` | 关注用户手势、弹窗 WebView 绑定和关闭请求 |
-| 地址栏搜索 | `SearchProviderController` 入口 | `browser/search/SearchProviderController.kt`, `SearchProviders` | `SettingsManager` 默认搜索引擎 | `SearchProviderControllerContractTest` | 先看搜索引擎定义，再看地址栏 badge 和搜索 URL 如何复用同一 provider |
+| 地址栏搜索 | `SearchProviderController` 入口 | `browser/search/SearchProviderController.kt`, `SearchProviders` | `SettingsManager` 默认搜索引擎和自定义搜索引擎 | `SearchProviderControllerContractTest` | 先看搜索引擎定义，再看地址栏 badge、搜索 URL 和功能中心搜索引擎页面如何复用同一 provider |
 | App 自定义首页 | `BrowserLaunchController.openHomePage()` | `BrowserLaunchController.kt`, `BrowserSessionController.kt`, `BrowserShellUiController.kt` | 当前会话状态 | `BrowserLaunchControllerContractTest`, `MainActivityLayoutContractTest` | 看主页入口如何 reset 会话，而不是加载搜索引擎首页 |
 | 地址建议 | 地址输入监听 | `AddressSuggestionController.kt`, `AddressSuggestionRanker.kt` | 收藏、历史、远程建议 | `AddressSuggestionRankerTest` | 按“候选来源 -> 排序 -> UI 展示”阅读 |
 | 站点安全状态 | 页面 URL 变化后刷新 | `SiteSecurityStatus.kt`, `MainActivity.updateSiteSecurityStatus()` | WebView/URL 状态 | `SiteSecurityStatusTest` | 看 HTTPS/HTTP/about/file 等状态如何映射到图标和文案 |
@@ -56,7 +56,7 @@
 | 下载安全和重试 | 下载前/失败后 | `DownloadSafetyPolicy.kt`, `DownloadRetryPolicy.kt`, `DownloadCancellationPolicy.kt`, `DownloadCanceller.kt` | 下载记录状态 | `DownloadSafetyPolicyTest`, `DownloadRetryPolicyTest`, `DownloadCancellerTest` | 重点看哪些 URL/状态允许继续操作 |
 | 功能中心壳层 | 底部功能按钮 | `FunctionCenterController.kt`, `FunctionCenterPageHost.kt`, `FunctionCenterViewFactory.kt` | 页面栈状态 | `FunctionCenterRootSheetLayoutTest`, `FunctionCenterPageHistoryTest` | 按“打开面板 -> 页面栈 -> 动态创建 View”阅读 |
 | 功能中心入口目录 | 功能中心首页 | `FunctionCenterPages.kt`, `FunctionCenterRootActionCatalog.kt`, `FunctionCenterProfileActionCatalog.kt` | 当前页面/站点状态 | `FunctionCenterRootActionCatalogTest`, `FunctionCenterProfileActionCatalogTest` | 先看 action catalog，再看每个 action 调到哪里 |
-| 浏览器设置页 | 功能中心设置入口 | `BrowserSettingsPage.kt`, `CurrentSiteSettingsPage.kt`, `RestoreDefaultSettingsPage.kt` | `SettingsManager.kt` | `BrowserSettingsPageContractTest`, `CurrentSiteSettingsPageContractTest` | 按“页面项 -> 设置读写函数 -> 刷新 WebView”阅读 |
+| 浏览器设置页 | 功能中心设置入口 | `BrowserSettingsPage.kt`, `SearchEngineSettingsPage.kt`, `CurrentSiteSettingsPage.kt`, `RestoreDefaultSettingsPage.kt` | `SettingsManager.kt` | `BrowserSettingsPageContractTest`, `CurrentSiteSettingsPageContractTest` | 按“页面项 -> 设置读写函数 -> 刷新 WebView”阅读 |
 | 数据管理页 | 功能中心数据入口 | `BrowserDataManagementPage.kt`, `SavedPagesPage.kt`, `BrowserTabsPage.kt`, `SitePermissionsPage.kt` | 收藏、历史、标签、权限存储 | 对应 `functioncenter/*ContractTest` | 先看页面构建，再跳到 repository |
 | 关于页 | 功能中心关于入口 | `AboutPage.kt`, `AppVersionFormatter.kt` | BuildConfig 版本信息 | `AboutPageContractTest`, `AppVersionFormatterTest` | 看页面如何避免直接耦合构建细节 |
 | 收藏和历史 | 收藏按钮/功能中心 | `SavedPageRepository.kt`, `SavedPageSearch.kt` | SharedPreferences | `SavedPageRepositoryTest`, `SavedPageSearchTest` | 按“保存模型 -> 搜索/分组 -> 导入导出”阅读 |

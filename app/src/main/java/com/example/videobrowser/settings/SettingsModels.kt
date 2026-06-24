@@ -15,6 +15,12 @@ data class CustomShortcut(
     val url: String
 )
 
+data class CustomSearchEngine(
+    val id: String,
+    val name: String,
+    val searchUrlPrefix: String
+)
+
 data class SitePermissionRecord(
     val host: String,
     val permission: SitePermission,

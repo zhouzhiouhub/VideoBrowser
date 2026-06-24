@@ -13,6 +13,7 @@ enum class FunctionCenterProfileAction {
     BOOKMARKS,
     DOWNLOADS,
     FILE_OPERATIONS,
+    SEARCH_ENGINE,
     USER_MANUAL_RULES,
     ABOUT
 }
@@ -32,6 +33,7 @@ object FunctionCenterProfileActionCatalog {
             FunctionCenterProfileAction.BOOKMARKS,
             FunctionCenterProfileAction.DOWNLOADS,
             FunctionCenterProfileAction.FILE_OPERATIONS,
+            FunctionCenterProfileAction.SEARCH_ENGINE,
             FunctionCenterProfileAction.USER_MANUAL_RULES.takeIf { !isPrivateBrowsing },
             FunctionCenterProfileAction.ABOUT
         )

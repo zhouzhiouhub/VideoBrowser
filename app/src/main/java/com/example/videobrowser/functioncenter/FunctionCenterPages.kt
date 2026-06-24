@@ -12,6 +12,7 @@ import com.example.videobrowser.R
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.browser.BrowserTab
+import com.example.videobrowser.browser.search.SearchProvider
 import com.example.videobrowser.download.DownloadRecord
 import com.example.videobrowser.download.DownloadRecordRepository
 import com.example.videobrowser.settings.SettingsManager
@@ -66,7 +67,8 @@ class FunctionCenterPages(
     private val retryDownload: (DownloadRecord) -> Unit,
     private val exportBookmarks: () -> Unit,
     private val importBookmarks: () -> Unit,
-    private val currentSearchProviderName: () -> String,
+    private val availableSearchProviders: () -> List<SearchProvider>,
+    private val currentSearchProviderId: () -> String,
     private val selectSearchProvider: (String) -> Boolean,
     setPrivateBrowsingEnabled: (Boolean) -> Unit,
     restoreDefaultSettings: () -> Unit,
@@ -159,6 +161,14 @@ class FunctionCenterPages(
         onRulesChanged = recreateActivity,
         showRootPage = ::showRootPage
     )
+    private val searchEngineSettingsPage = SearchEngineSettingsPage(
+        host = host,
+        settingsManager = settingsManager,
+        availableSearchProviders = availableSearchProviders,
+        currentSearchProviderId = currentSearchProviderId,
+        selectSearchProvider = selectSearchProvider,
+        showProfilePage = ::showProfilePage
+    )
     private val aboutPage = AboutPage(
         host = host,
         showProfilePage = ::showProfilePage
@@ -171,6 +181,7 @@ class FunctionCenterPages(
         showBookmarks = ::showBookmarks,
         showDownloads = { downloadsPage.show() },
         showFileOperationsPage = showFileOperationsPage,
+        showSearchEngines = { searchEngineSettingsPage.show() },
         showUserManualRules = { userManualRulesPage.show() },
         showAbout = { aboutPage.show() }
     )
@@ -219,8 +230,6 @@ class FunctionCenterPages(
         showCacheManager = { browserDataManagementPage.showCache() },
         showSiteDataManager = { browserDataManagementPage.showSiteData() },
         showRestoreDefaultSettingsPage = restoreDefaultSettingsPage::show,
-        currentSearchProviderName = currentSearchProviderName,
-        selectSearchProvider = selectSearchProvider,
         showRootPage = ::showRootPage
     )
     private val profilePage = FunctionCenterProfilePage(

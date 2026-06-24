@@ -41,7 +41,7 @@ class ValidatedTextInputDialogContractTest {
         assertTrue(validatedDialog.contains("if (successToastRes != null)"))
         assertEquals(1, Regex("AppDialog\\.builder\\(activity\\)").findAll(validatedDialog).count())
 
-        assertEquals(1, Regex("ValidatedTextInputDialog\\.show\\(").findAll(browserSettingsDialogs).count())
+        assertEquals(0, Regex("ValidatedTextInputDialog\\.show\\(").findAll(browserSettingsDialogs).count())
         assertEquals(2, Regex("ValidatedTextInputDialog\\.show\\(").findAll(savedPagesDialogs).count())
         assertEquals(1, Regex("ValidatedTextInputDialog\\.show\\(").findAll(localDocumentOperations).count())
         assertEquals(2, Regex("ValidatedTextInputDialog\\.show\\(").findAll(ruleSubscriptionPage).count())

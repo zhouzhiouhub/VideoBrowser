@@ -39,6 +39,7 @@ class ShortToastContractTest {
             projectFile("src/main/java/com/example/videobrowser/functioncenter/BrowserDataManagementDialogController.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/AdBlockLogPage.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDialogController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/SearchEngineSettingsPage.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/DownloadsPageDialogController.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/CurrentSiteSettingsPage.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/CurrentSitePermissionSection.kt"),

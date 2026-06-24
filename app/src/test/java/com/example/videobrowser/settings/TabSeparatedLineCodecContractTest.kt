@@ -12,6 +12,9 @@ class TabSeparatedLineCodecContractTest {
         val shortcutStore = projectFile(
             "src/main/java/com/example/videobrowser/settings/CustomShortcutStore.kt"
         ).readText()
+        val customSearchEngineStore = projectFile(
+            "src/main/java/com/example/videobrowser/settings/CustomSearchEngineStore.kt"
+        ).readText()
         val hideRuleStore = projectFile(
             "src/main/java/com/example/videobrowser/settings/UserElementHideRuleStore.kt"
         ).readText()
@@ -30,6 +33,8 @@ class TabSeparatedLineCodecContractTest {
         assertTrue(codec.contains("fun joinFields(fields: List<String>)"))
         assertTrue(shortcutStore.contains("TabSeparatedLineCodec.splitPair(line)"))
         assertTrue(shortcutStore.contains("TabSeparatedLineCodec.joinPair(shortcut.name, shortcut.url)"))
+        assertTrue(customSearchEngineStore.contains("TabSeparatedLineCodec.splitFields(line)"))
+        assertTrue(customSearchEngineStore.contains("TabSeparatedLineCodec.joinFields("))
         assertTrue(hideRuleStore.contains("TabSeparatedLineCodec.splitPair(line)"))
         assertTrue(hideRuleStore.contains("TabSeparatedLineCodec.joinPair(rule.host, rule.selector)"))
         assertTrue(downloadRecordRepository.contains("TabSeparatedLineCodec.splitFields(line)"))
@@ -37,8 +42,10 @@ class TabSeparatedLineCodecContractTest {
         assertTrue(playbackHistoryRepository.contains("TabSeparatedLineCodec.splitFields(line)"))
         assertTrue(playbackHistoryRepository.contains("TabSeparatedLineCodec.joinFields("))
         assertFalse(shortcutStore.contains("line.indexOf('\\t')"))
+        assertFalse(customSearchEngineStore.contains("line.indexOf('\\t')"))
         assertFalse(hideRuleStore.contains("line.indexOf('\\t')"))
         assertFalse(shortcutStore.contains("\"${'$'}{shortcut.name}\\t${'$'}{shortcut.url}\""))
+        assertFalse(customSearchEngineStore.contains("\"${'$'}{engine.id}\\t${'$'}{engine.name}\\t${'$'}{engine.searchUrlPrefix}\""))
         assertFalse(hideRuleStore.contains("\"${'$'}{rule.host}\\t${'$'}{rule.selector}\""))
         assertFalse(downloadRecordRepository.contains("private fun splitEscaped"))
         assertFalse(downloadRecordRepository.contains("private fun escape(value: String)"))

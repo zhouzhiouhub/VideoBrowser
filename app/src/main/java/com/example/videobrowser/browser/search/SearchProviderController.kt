@@ -37,7 +37,7 @@ class SearchProviderController(
     private val addressProviderBadge: TextView,
     private val settingsManager: SettingsManager,
     private val dp: (Int) -> Int,
-    private val providers: List<SearchProvider> = SearchProviders.defaults,
+    private val providers: () -> List<SearchProvider> = { SearchProviders.defaults },
     private val builtInSearchResultPagePolicy: BuiltInSearchResultPagePolicy =
         BuiltInSearchResultPagePolicy(providers)
 ) {
@@ -83,6 +83,10 @@ class SearchProviderController(
         return builtInSearchResultPagePolicy.searchQueryFromUrl(url) ?: UrlUtils.displayUrl(url)
     }
 
+    fun availableProviders(): List<SearchProvider> {
+        return providers()
+    }
+
     /**
      * 函数 `selectDefaultSearchProvider`：封装 `select Default Search Provider` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
@@ -91,7 +95,7 @@ class SearchProviderController(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun selectDefaultSearchProvider(providerId: String): Boolean {
-        val provider = providers.firstOrNull { it.id == providerId } ?: return false
+        val provider = availableProviders().firstOrNull { it.id == providerId } ?: return false
         selectedProvider = provider
         settingsManager.setSearchEngineId(provider.id)
         updateSelection()
@@ -106,7 +110,9 @@ class SearchProviderController(
      */
     private fun loadSavedSearchProvider(): SearchProvider {
         val savedProviderId = settingsManager.searchEngineId()
-        return providers.firstOrNull { it.id == savedProviderId } ?: providers.first()
+        val availableProviders = availableProviders()
+        return availableProviders.firstOrNull { it.id == savedProviderId }
+            ?: availableProviders.first()
     }
 
     /**

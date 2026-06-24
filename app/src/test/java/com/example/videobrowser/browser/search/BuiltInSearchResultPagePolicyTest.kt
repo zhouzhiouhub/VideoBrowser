@@ -64,4 +64,28 @@ class BuiltInSearchResultPagePolicyTest {
         assertFalse(policy.isBuiltInSearchResultUrl("https://example.com/search?q=%E4%BD%A0%E5%A5%BD"))
         assertFalse(policy.isBuiltInSearchResultUrl(null))
     }
+
+    @Test
+    fun searchQueryFromUrl_readsLatestProvidersFromSupplier() {
+        var providers = emptyList<SearchProvider>()
+        val dynamicPolicy = BuiltInSearchResultPagePolicy { providers }
+
+        assertFalse(dynamicPolicy.isBuiltInSearchResultUrl("https://custom.example.com/search?q=test"))
+
+        providers = listOf(
+            SearchProvider(
+                id = "custom_example",
+                name = "Custom",
+                badge = "C",
+                homeUrl = "https://custom.example.com/search?q=",
+                searchUrlPrefix = "https://custom.example.com/search?q=",
+                accentColor = 0
+            )
+        )
+
+        assertEquals(
+            "test",
+            dynamicPolicy.searchQueryFromUrl("https://custom.example.com/search?q=test")
+        )
+    }
 }

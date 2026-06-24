@@ -39,8 +39,6 @@ class BrowserSettingsPage(
     private val showCacheManager: () -> Unit,
     private val showSiteDataManager: () -> Unit,
     private val showRestoreDefaultSettingsPage: () -> Unit,
-    private val currentSearchProviderName: () -> String,
-    private val selectSearchProvider: (String) -> Boolean,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -48,7 +46,6 @@ class BrowserSettingsPage(
         activity = activity,
         settingsManager = settingsManager,
         browserManager = browserManager,
-        selectSearchProvider = selectSearchProvider,
         onSettingsChanged = { show() }
     )
     private val dataManagementSection = BrowserSettingsDataManagementSection(
@@ -78,7 +75,6 @@ class BrowserSettingsPage(
             title = activity.getString(R.string.title_browser_settings),
             onBack = showRootPage
         ) { content ->
-            addBrowserBasicsSection(content)
             addGlobalEnhancementSection(content)
             addToolboxSection(content)
         }
@@ -91,7 +87,6 @@ class BrowserSettingsPage(
      * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
      */
     fun addExpandedBrowserSettings(parent: LinearLayout) {
-        addBrowserBasicsSection(parent)
         addGlobalEnhancementSection(parent)
     }
 
@@ -172,34 +167,6 @@ class BrowserSettingsPage(
      */
     private fun addDataManagementRows(section: LinearLayout) {
         dataManagementSection.addActions(section, includeSavedPages = false)
-    }
-
-    /**
-     * 函数 `addBrowserBasicsSection`：封装 `add Browser Basics Section` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param parent 参数类型为 `LinearLayout`，表示函数执行 `parent` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addBrowserBasicsSection(parent: LinearLayout) {
-        host.contentFactory.addFunctionSection(
-            parent,
-            activity.getString(R.string.function_center_section_browser_basics)
-        ) { section ->
-            host.contentFactory.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.setting_home_page),
-                summary = settingsManager.homeUrl()
-            ) {
-                dialogController.showHomeUrlDialog()
-            }
-            host.contentFactory.addActionRow(
-                parent = section,
-                title = activity.getString(R.string.setting_search_engine),
-                summary = currentSearchProviderName()
-            ) {
-                dialogController.showSearchEngineDialog()
-            }
-        }
     }
 
     /**

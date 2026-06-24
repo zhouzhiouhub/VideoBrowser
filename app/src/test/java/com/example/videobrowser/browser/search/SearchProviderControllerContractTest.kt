@@ -16,6 +16,8 @@ class SearchProviderControllerContractTest {
         assertTrue(controller.contains("private fun loadSavedSearchProvider(): SearchProvider"))
         assertTrue(controller.contains("settingsManager.searchEngineId()"))
         assertTrue(controller.contains("fun selectDefaultSearchProvider(providerId: String): Boolean"))
+        assertTrue(controller.contains("fun availableProviders(): List<SearchProvider>"))
+        assertTrue(controller.contains("val provider = availableProviders().firstOrNull { it.id == providerId }"))
         assertTrue(controller.contains("settingsManager.setSearchEngineId(provider.id)"))
         assertTrue(controller.contains("private fun updateAddressProviderBadge()"))
         assertTrue(controller.contains("addressProviderBadge.text = selectedProvider.badge"))
@@ -43,6 +45,7 @@ class SearchProviderControllerContractTest {
         ).readText()
 
         assertTrue(searchAssembly.contains("val searchProviderController = SearchProviderController("))
+        assertTrue(searchAssembly.contains("SearchProviders.all(settingsManager.customSearchEngines())"))
         assertTrue(searchAssembly.contains("savedPageRepository = savedPageRepository"))
         assertTrue(searchAssembly.contains("selectedProvider = { searchProviderController.selectedProvider }"))
         assertFalse(searchAssembly.contains("openProviderHome"))

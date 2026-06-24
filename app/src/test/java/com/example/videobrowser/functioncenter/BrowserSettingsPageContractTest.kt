@@ -7,34 +7,30 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Browser Settings Page Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrowserSettingsPageContractTest {
     /**
-     * 测试函数 `browserSettingsPageCanEditHomePageUrl`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Settings Page Can Edit Home Page Url` 这条行为是否成立。
+     * 测试函数 `browserSettingsPageDoesNotRenderBrowserBasicsSection`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Settings Page Does Not Render Browser Basics Section` 这条行为是否成立。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     @Test
-    fun browserSettingsPageCanEditHomePageUrl() {
+    fun browserSettingsPageDoesNotRenderBrowserBasicsSection() {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
         ).readText()
         val dialogs = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDialogController.kt"
         ).readText()
-        val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(page.contains("addBrowserBasicsSection(content)"))
-        assertTrue(dialogs.contains("fun showHomeUrlDialog()"))
-        assertTrue(page.contains("settingsManager.homeUrl()"))
-        assertTrue(dialogs.contains("settingsManager.isValidHomeUrl(homeUrl)"))
-        assertTrue(dialogs.contains("settingsManager.setHomeUrl(homeUrl)"))
-        assertTrue(strings.contains("setting_home_page"))
-        assertTrue(strings.contains("hint_home_page_url"))
-        assertTrue(strings.contains("toast_home_page_updated"))
-        assertTrue(strings.contains("toast_home_page_invalid"))
+        assertFalse(page.contains("addBrowserBasicsSection("))
+        assertFalse(page.contains("R.string.function_center_section_browser_basics"))
+        assertFalse(page.contains("settingsManager.homeUrl()"))
+        assertFalse(dialogs.contains("fun showHomeUrlDialog()"))
+        assertFalse(dialogs.contains("fun showSearchEngineDialog()"))
     }
 
     /**
@@ -44,11 +40,14 @@ class BrowserSettingsPageContractTest {
      */
     @Test
     fun browserSettingsPageCanEditDefaultSearchEngine() {
-        val page = projectFile(
-            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsPage.kt"
+        val searchEnginePage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SearchEngineSettingsPage.kt"
         ).readText()
-        val dialogs = projectFile(
-            "src/main/java/com/example/videobrowser/functioncenter/BrowserSettingsDialogController.kt"
+        val profileCatalog = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileActionCatalog.kt"
+        ).readText()
+        val profileSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileShortcutSection.kt"
         ).readText()
         val functionCenterPages = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
@@ -60,13 +59,28 @@ class BrowserSettingsPageContractTest {
         val searchProviderController = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
         ).readText()
+        val settings = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
+        ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(dialogs.contains("SearchProviders.defaults"))
-        assertTrue(dialogs.contains("fun showSearchEngineDialog()"))
-        assertTrue(page.contains("currentSearchProviderName()"))
-        assertTrue(dialogs.contains("selectSearchProvider(provider.id)"))
+        assertTrue(profileCatalog.contains("SEARCH_ENGINE"))
+        assertTrue(profileSection.contains("showSearchEngines"))
+        assertTrue(profileSection.contains("R.string.action_search_engine_short"))
+        assertTrue(functionCenterPages.contains("private val searchEngineSettingsPage = SearchEngineSettingsPage("))
+        assertTrue(functionCenterPages.contains("showSearchEngines = { searchEngineSettingsPage.show() }"))
+        assertTrue(searchEnginePage.contains("host.showPage("))
+        assertTrue(searchEnginePage.contains("availableSearchProviders()"))
+        assertTrue(searchEnginePage.contains("currentSearchProviderId()"))
+        assertTrue(searchEnginePage.contains("selectSearchProvider(provider.id)"))
+        assertTrue(searchEnginePage.contains("host.gridFactory.addActionGrid("))
+        assertTrue(searchEnginePage.contains("TwoTextInputDialog.show("))
+        assertTrue(searchEnginePage.contains("settingsManager.addCustomSearchEngine(values.first, values.second)"))
+        assertFalse(searchEnginePage.contains("SingleChoiceDialog.show("))
+        assertTrue(settings.contains("fun customSearchEngines(): List<CustomSearchEngine>"))
+        assertTrue(settings.contains("fun addCustomSearchEngine(name: String, searchUrlPrefix: String): Boolean"))
         assertTrue(searchProviderController.contains("fun selectDefaultSearchProvider(providerId: String): Boolean"))
+        assertTrue(searchProviderController.contains("fun availableProviders(): List<SearchProvider>"))
         assertTrue(searchProviderController.contains("settingsManager.setSearchEngineId(provider.id)"))
         assertTrue(
             selectDefaultSearchProviderBody(searchProviderController)
@@ -76,12 +90,17 @@ class BrowserSettingsPageContractTest {
             !selectDefaultSearchProviderBody(searchProviderController)
                 .contains("settingsManager.setHomeUrl")
         )
-        assertTrue(functionCenterPages.contains("currentSearchProviderName: () -> String"))
+        assertTrue(functionCenterPages.contains("availableSearchProviders: () -> List<SearchProvider>"))
+        assertTrue(functionCenterPages.contains("currentSearchProviderId: () -> String"))
         assertTrue(functionCenterPages.contains("selectSearchProvider: (String) -> Boolean"))
-        assertTrue(functionCenterAssembly.contains("currentSearchProviderName = { searchProviderController.selectedProvider.name }"))
+        assertTrue(functionCenterAssembly.contains("availableSearchProviders = searchProviderController::availableProviders"))
+        assertTrue(functionCenterAssembly.contains("currentSearchProviderId = { searchProviderController.selectedProvider.id }"))
         assertTrue(functionCenterAssembly.contains("selectSearchProvider = searchProviderController::selectDefaultSearchProvider"))
         assertTrue(strings.contains("setting_search_engine"))
+        assertTrue(strings.contains("action_search_engine_short"))
+        assertTrue(strings.contains("title_add_custom_search_engine"))
         assertTrue(strings.contains("toast_search_engine_updated"))
+        assertTrue(strings.contains("toast_custom_search_engine_added"))
     }
 
     /**

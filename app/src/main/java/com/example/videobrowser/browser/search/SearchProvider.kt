@@ -7,7 +7,8 @@ package com.example.videobrowser.browser.search
  * 主要职责：把地址栏输入、默认搜索引擎、远程搜索建议、收藏和历史候选项整理成用户可以点击的建议列表。
  * 阅读顺序：先看构造参数知道它依赖谁，再看公开函数知道外部如何调用，最后看 private 函数了解内部细节。
  */
-import android.graphics.Color
+import com.example.videobrowser.settings.CustomSearchEngine
+import java.util.Locale
 
 data class SearchProvider(
     val id: String,
@@ -31,7 +32,7 @@ object SearchProviders {
                 "https://www.sogou.com/web?query=",
                 "https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword="
             ),
-            accentColor = Color.parseColor("#13B56B")
+            accentColor = 0xFF13B56B.toInt()
         ),
         SearchProvider(
             id = "so",
@@ -39,7 +40,7 @@ object SearchProviders {
             badge = "360",
             homeUrl = "https://m.so.com/",
             searchUrlPrefix = "https://www.so.com/s?q=",
-            accentColor = Color.parseColor("#20A052")
+            accentColor = 0xFF20A052.toInt()
         ),
         SearchProvider(
             id = "quark",
@@ -47,7 +48,7 @@ object SearchProviders {
             badge = "夸",
             homeUrl = "https://quark.sm.cn/",
             searchUrlPrefix = "https://quark.sm.cn/s?q=",
-            accentColor = Color.parseColor("#2F6FED")
+            accentColor = 0xFF2F6FED.toInt()
         ),
         SearchProvider(
             id = "uc",
@@ -55,7 +56,7 @@ object SearchProviders {
             badge = "UC",
             homeUrl = "https://so.m.sm.cn/",
             searchUrlPrefix = "https://so.m.sm.cn/s?q=",
-            accentColor = Color.parseColor("#F28C20")
+            accentColor = 0xFFF28C20.toInt()
         ),
         SearchProvider(
             id = "baidu",
@@ -63,7 +64,7 @@ object SearchProviders {
             badge = "百",
             homeUrl = "https://m.baidu.com/",
             searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
-            accentColor = Color.parseColor("#315EFB")
+            accentColor = 0xFF315EFB.toInt()
         ),
         SearchProvider(
             id = "edge",
@@ -71,7 +72,22 @@ object SearchProviders {
             badge = "B",
             homeUrl = "https://www.bing.com/",
             searchUrlPrefix = "https://www.bing.com/search?q=",
-            accentColor = Color.parseColor("#12837A")
+            accentColor = 0xFF12837A.toInt()
         )
     )
+
+    fun all(customSearchEngines: List<CustomSearchEngine>): List<SearchProvider> {
+        return defaults + customSearchEngines.map(::fromCustomSearchEngine)
+    }
+
+    private fun fromCustomSearchEngine(engine: CustomSearchEngine): SearchProvider {
+        return SearchProvider(
+            id = engine.id,
+            name = engine.name,
+            badge = engine.name.take(1).uppercase(Locale.getDefault()),
+            homeUrl = engine.searchUrlPrefix,
+            searchUrlPrefix = engine.searchUrlPrefix,
+            accentColor = 0xFF5F6F7D.toInt()
+        )
+    }
 }
