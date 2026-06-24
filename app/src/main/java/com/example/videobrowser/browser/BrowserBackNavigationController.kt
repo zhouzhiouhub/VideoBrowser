@@ -27,6 +27,8 @@ import com.example.videobrowser.video.WebViewVideoCommand
  * @param handleFunctionCenterBack 尝试让功能中心消费返回键的函数，返回 true 表示事件已处理。
  * @param isElementPickerActive 判断元素选择器是否处于激活状态的函数。
  * @param cancelElementPicker 取消当前元素选择流程的函数，只会在元素选择器激活时调用。
+ * @param isHomePageVisible 判断当前是否已经显示 App 自定义首页的函数。
+ * @param openHomePage WebView 无法继续后退时切回 App 自定义首页的函数。
  * @param updateNavigationButtons WebView 后退成功后刷新底部导航按钮状态的函数。
  */
 class BrowserBackNavigationController(
@@ -36,6 +38,8 @@ class BrowserBackNavigationController(
     private val handleFunctionCenterBack: () -> Boolean,
     private val isElementPickerActive: () -> Boolean,
     private val cancelElementPicker: () -> Unit,
+    private val isHomePageVisible: () -> Boolean,
+    private val openHomePage: () -> Unit,
     private val updateNavigationButtons: () -> Unit
 ) {
     private var lastBackExitPromptElapsedRealtime = 0L
@@ -96,6 +100,11 @@ class BrowserBackNavigationController(
         }
         if (browserManager().goBack()) {
             updateNavigationButtons()
+            resetBackExitConfirmation()
+            return
+        }
+        if (!isHomePageVisible()) {
+            openHomePage()
             resetBackExitConfirmation()
             return
         }

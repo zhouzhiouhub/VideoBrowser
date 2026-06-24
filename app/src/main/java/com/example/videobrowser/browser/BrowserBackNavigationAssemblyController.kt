@@ -21,6 +21,8 @@ import androidx.appcompat.app.AppCompatActivity
  * @param handleFunctionCenterBack 参数类型为 `() -> Boolean`，表示功能中心优先处理返回键的回调。
  * @param isElementPickerActive 参数类型为 `() -> Boolean`，表示读取元素选择器是否激活的回调。
  * @param cancelElementPicker 参数类型为 `() -> Unit`，表示取消元素选择器的回调。
+ * @param isHomePageVisible 参数类型为 `() -> Boolean`，表示读取当前是否已经显示 App 自定义首页的回调。
+ * @param openHomePage 参数类型为 `() -> Unit`，表示 WebView 无后退历史时打开 App 自定义首页的回调。
  * @param updateNavigationButtons 参数类型为 `() -> Unit`，表示后退状态变化后刷新导航按钮的回调。
  */
 class BrowserBackNavigationAssemblyController(
@@ -30,6 +32,8 @@ class BrowserBackNavigationAssemblyController(
     private val handleFunctionCenterBack: () -> Boolean,
     private val isElementPickerActive: () -> Boolean,
     private val cancelElementPicker: () -> Unit,
+    private val isHomePageVisible: () -> Boolean,
+    private val openHomePage: () -> Unit,
     private val updateNavigationButtons: () -> Unit
 ) {
     /**
@@ -45,6 +49,8 @@ class BrowserBackNavigationAssemblyController(
             handleFunctionCenterBack = handleFunctionCenterBack,
             isElementPickerActive = isElementPickerActive,
             cancelElementPicker = cancelElementPicker,
+            isHomePageVisible = isHomePageVisible,
+            openHomePage = openHomePage,
             updateNavigationButtons = updateNavigationButtons
         )
     }

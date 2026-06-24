@@ -87,6 +87,20 @@ class BrowserControlsControllerContractTest {
         assertTrue(backNavigationController.contains("override fun handleOnBackPressed()"))
         assertTrue(!mainActivity.contains("private fun handleBrowserBack()"))
         assertTrue(backNavigationController.contains("browserManager().goBack()"))
+        assertTrue(backNavigationController.contains("private val isHomePageVisible: () -> Boolean"))
+        assertTrue(backNavigationController.contains("private val openHomePage: () -> Unit"))
+        assertTrue(backNavigationController.contains("if (!isHomePageVisible())"))
+        assertTrue(backNavigationController.contains("openHomePage()"))
+        assertTrue(
+            startupFeatureAssembly.contains(
+                "isHomePageVisible = browserRuntimeStateController::isHomePageVisible"
+            )
+        )
+        assertTrue(
+            startupFeatureAssembly.contains(
+                "openHomePage = browserNavigation.browserLaunchController::openHomePage"
+            )
+        )
         assertTrue(backNavigationController.contains("private fun confirmExitOnSecondBack()"))
         assertTrue(backNavigationController.contains("BACK_EXIT_CONFIRM_WINDOW_MS"))
         assertTrue(backNavigationController.contains("SystemClock.elapsedRealtime()"))

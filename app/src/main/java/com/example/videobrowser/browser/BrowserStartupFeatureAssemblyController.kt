@@ -169,6 +169,8 @@ class BrowserStartupFeatureAssemblyController(
             handleFunctionCenterBack = functionCenterEntryController::handleFunctionCenterBack,
             isElementPickerActive = { pageFeatures.elementPickerController.isActive },
             cancelElementPicker = pageFeatures.elementPickerController::cancel,
+            isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
+            openHomePage = browserNavigation.browserLaunchController::openHomePage,
             updateNavigationButtons = browserShell.browserShellUiController::updateNavigationButtons
         ).create()
 
