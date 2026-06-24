@@ -142,7 +142,8 @@ internal class ChromeFullscreenController(
     private fun applyFullscreenOrientation() {
         activity.requestedOrientation = if (fullscreenLandscape) {
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        } else {
+        } 
+        else {
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         }
     }
