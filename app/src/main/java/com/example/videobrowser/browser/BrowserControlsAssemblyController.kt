@@ -38,6 +38,7 @@ data class BrowserControlsComponents(
  * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示地址栏焦点变化时切换展示文本的控制器。
  * @param browserControlsShellController 参数类型为 `BrowserControlsShellController`，表示协调工具栏显示、地址栏焦点和搜索入口可见性的外壳控制器。
  * @param isHomePageVisible 参数类型为 `() -> Boolean`，表示读取当前首页内容是否可见的回调。
+ * @param isBrowserControlsPinnedPage 参数类型为 `() -> Boolean`，表示读取当前页面是否需要固定显示浏览器工具栏。
  * @param isVideoFullscreenUiActive 参数类型为 `() -> Boolean`，表示读取当前是否处于视频全屏 UI 的回调。
  * @param onBack 参数类型为 `() -> Unit`，表示点击后退按钮时执行统一后退流程的回调。
  * @param showFunctionCenter 参数类型为 `() -> Unit`，表示点击页面工具按钮时打开功能中心的回调。
@@ -56,6 +57,7 @@ class BrowserControlsAssemblyController(
     private val browserAddressBarStateController: BrowserAddressBarStateController,
     private val browserControlsShellController: BrowserControlsShellController,
     private val isHomePageVisible: () -> Boolean,
+    private val isBrowserControlsPinnedPage: () -> Boolean,
     private val isVideoFullscreenUiActive: () -> Boolean,
     private val onBack: () -> Unit,
     private val showFunctionCenter: () -> Unit,
@@ -111,6 +113,7 @@ class BrowserControlsAssemblyController(
             dp = dp,
             areControlsHidden = { browserControlsController.areHidden },
             isHomePageVisible = isHomePageVisible,
+            isBrowserControlsPinnedPage = isBrowserControlsPinnedPage,
             isVideoFullscreenUiActive = isVideoFullscreenUiActive,
             applyControlsHidden = browserControlsController::setHidden,
             updatePageProgressVisibility = browserControlsShellController::updatePageProgressVisibility

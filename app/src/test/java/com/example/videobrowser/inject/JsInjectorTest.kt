@@ -42,6 +42,7 @@ class JsInjectorTest {
         assertTrue(
             script.contains(
                 "var config = {\"cleanupEnabled\":true,\"videoEnabled\":false," +
+                    "\"builtInSearchResultPage\":false," +
                     "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
                     "\"blockedUrlKeywords\":[],\"scriptletWindowOpenBlockedKeywords\":[]," +
                     "\"scriptletFetchBlockedKeywords\":[],\"scriptletSkipButtonsEnabled\":false," +
@@ -79,6 +80,7 @@ class JsInjectorTest {
         assertTrue(
             evaluatedScripts[1].contains(
                 "var config = {\"cleanupEnabled\":false,\"videoEnabled\":true," +
+                    "\"builtInSearchResultPage\":false," +
                     "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
                     "\"blockedUrlKeywords\":[],\"scriptletWindowOpenBlockedKeywords\":[]," +
                     "\"scriptletFetchBlockedKeywords\":[],\"scriptletSkipButtonsEnabled\":false," +
@@ -420,6 +422,9 @@ class JsInjectorTest {
             ScriptLoader.GENERIC_AD_OVERLAY_CLEANUP_SCRIPT_ASSET -> "window.__genericAdOverlayCleanupLoaded = true;"
             ScriptLoader.TOP_PAGE_CLEANUP_SCRIPT_ASSET -> "window.__topPageCleanupLoaded = true;"
             ScriptLoader.SEARCH_RESULT_CLEANUP_SCRIPT_ASSET -> "window.__searchResultCleanupLoaded = true;"
+            ScriptLoader.EMBEDDED_SEARCH_SHELL_CLEANUP_SCRIPT_ASSET -> {
+                "window.__embeddedSearchShellCleanupLoaded = true;"
+            }
             ScriptLoader.SKIP_BUTTON_TOOLS_SCRIPT_ASSET -> "window.__skipButtonToolsLoaded = true;"
             ScriptLoader.ENHANCER_STATE_SCRIPT_ASSET -> "window.__enhancerStateLoaded = true;"
             ScriptLoader.CALLBACK_TOOLS_SCRIPT_ASSET -> "window.__callbackToolsLoaded = true;"

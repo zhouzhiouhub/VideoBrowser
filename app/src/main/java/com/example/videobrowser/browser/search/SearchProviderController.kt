@@ -36,10 +36,11 @@ class SearchProviderController(
     private val addressInput: EditText,
     private val addressProviderBadge: TextView,
     private val settingsManager: SettingsManager,
-    private val dp: (Int) -> Int
+    private val dp: (Int) -> Int,
+    private val providers: List<SearchProvider> = SearchProviders.defaults,
+    private val builtInSearchResultPagePolicy: BuiltInSearchResultPagePolicy =
+        BuiltInSearchResultPagePolicy(providers)
 ) {
-    private val providers = SearchProviders.defaults
-
     lateinit var selectedProvider: SearchProvider
         private set
 
@@ -79,12 +80,7 @@ class SearchProviderController(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun addressBarDisplayText(url: String): String {
-        providers.forEach { provider ->
-            provider.addressBarSearchUrlPrefixes.forEach { searchUrlPrefix ->
-                UrlUtils.searchQueryFromUrl(url, searchUrlPrefix)?.let { return it }
-            }
-        }
-        return UrlUtils.displayUrl(url)
+        return builtInSearchResultPagePolicy.searchQueryFromUrl(url) ?: UrlUtils.displayUrl(url)
     }
 
     /**

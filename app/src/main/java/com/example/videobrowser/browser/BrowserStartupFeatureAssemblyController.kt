@@ -155,6 +155,8 @@ class BrowserStartupFeatureAssemblyController(
             browserChromeClientStateController = browserChromeClientStateController,
             fullscreenVideoController = browserFullscreen.fullscreenVideoController,
             webPlaybackHistoryRecorder = browserPersistence.webPlaybackHistoryRecorder,
+            isBuiltInSearchResultPage =
+                browserSearch.builtInSearchResultPagePolicy::isBuiltInSearchResultUrl,
             postToUi = postToUi
         ).create()
 

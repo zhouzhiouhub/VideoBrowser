@@ -109,6 +109,12 @@ class BrowserRuntimeFeatureAssemblyController(
             browserAddressBarStateController = browserSearch.browserAddressBarStateController,
             browserControlsShellController = browserShell.browserControlsShellController,
             isHomePageVisible = browserRuntimeStateController::isHomePageVisible,
+            isBrowserControlsPinnedPage = {
+                browserSessionStateController.areBrowserSessionsInitialized() &&
+                    browserSearch.builtInSearchResultPagePolicy.isBuiltInSearchResultUrl(
+                        browserSessionStateController.currentSessionController().currentPageUrl
+                    )
+            },
             isVideoFullscreenUiActive = browserRuntimeStateController::isVideoFullscreenUiActive,
             onBack = {
                 requireStartupFeatures().browserBackNavigationController.handleBrowserBack()

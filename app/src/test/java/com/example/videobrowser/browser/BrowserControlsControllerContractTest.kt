@@ -132,4 +132,27 @@ class BrowserControlsControllerContractTest {
         assertTrue(shellUiController.contains("fun handleAddressFocusChanged(hasFocus: Boolean)"))
     }
 
+    @Test
+    fun builtInSearchResultPagesKeepBrowserControlsPinned() {
+        val controlsAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserControlsAssemblyController.kt"
+        ).readText()
+        val scrollController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserControlsScrollController.kt"
+        ).readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
+
+        assertTrue(controlsAssembly.contains("private val isBrowserControlsPinnedPage: () -> Boolean"))
+        assertTrue(controlsAssembly.contains("isBrowserControlsPinnedPage = isBrowserControlsPinnedPage"))
+        assertTrue(scrollController.contains("(hidden && !isBrowserControlsPinnedPage())"))
+        assertTrue(
+            scrollController.contains(
+                "if (isHomePageVisible() || isBrowserControlsPinnedPage() || addressInput.hasFocus())"
+            )
+        )
+        assertTrue(runtimeFeatureAssembly.contains("browserSearch.builtInSearchResultPagePolicy.isBuiltInSearchResultUrl("))
+    }
+
 }

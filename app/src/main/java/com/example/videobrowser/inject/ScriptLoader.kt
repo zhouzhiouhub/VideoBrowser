@@ -80,6 +80,7 @@ class ScriptLoader(
         const val GENERIC_AD_OVERLAY_CLEANUP_SCRIPT_ASSET = "scripts/generic_ad_overlay_cleanup.js"
         const val TOP_PAGE_CLEANUP_SCRIPT_ASSET = "scripts/top_page_cleanup.js"
         const val SEARCH_RESULT_CLEANUP_SCRIPT_ASSET = "scripts/search_result_cleanup.js"
+        const val EMBEDDED_SEARCH_SHELL_CLEANUP_SCRIPT_ASSET = "scripts/embedded_search_shell_cleanup.js"
         const val SKIP_BUTTON_TOOLS_SCRIPT_ASSET = "scripts/skip_button_tools.js"
         const val ENHANCER_STATE_SCRIPT_ASSET = "scripts/enhancer_state.js"
         const val CALLBACK_TOOLS_SCRIPT_ASSET = "scripts/callback_tools.js"
@@ -117,6 +118,7 @@ class ScriptLoader(
             GENERIC_AD_OVERLAY_CLEANUP_SCRIPT_ASSET,
             TOP_PAGE_CLEANUP_SCRIPT_ASSET,
             SEARCH_RESULT_CLEANUP_SCRIPT_ASSET,
+            EMBEDDED_SEARCH_SHELL_CLEANUP_SCRIPT_ASSET,
             SKIP_BUTTON_TOOLS_SCRIPT_ASSET,
             ENHANCER_STATE_SCRIPT_ASSET,
             CALLBACK_TOOLS_SCRIPT_ASSET,

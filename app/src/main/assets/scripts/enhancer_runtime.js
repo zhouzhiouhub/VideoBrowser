@@ -90,6 +90,11 @@
       const now = Date.now();
       const cleanupInterval = hasActiveVideo() ? activeVideoCleanupIntervalMs : normalCleanupIntervalMs;
       state.lastWorkAt = now;
+      if (state.config.builtInSearchResultPage) {
+        pageCleanupCoordinator.applyEmbeddedSearchShell(state, {
+          runWithMutationSuppressed: runWithMutationSuppressed
+        });
+      }
       if (state.config.cleanupEnabled) {
         pageCleanupCoordinator.runGenerated(state, {
           now: now,

@@ -57,10 +57,19 @@ class SearchProviderControllerContractTest {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
         ).readText()
+        val policy = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BuiltInSearchResultPagePolicy.kt"
+        ).readText()
+        val searchAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
+        ).readText()
 
-        assertTrue(controller.contains("provider.addressBarSearchUrlPrefixes.forEach"))
-        assertTrue(controller.contains("UrlUtils.searchQueryFromUrl(url, searchUrlPrefix)"))
+        assertTrue(controller.contains("builtInSearchResultPagePolicy.searchQueryFromUrl(url)"))
         assertTrue(controller.contains("UrlUtils.displayUrl(url)"))
+        assertTrue(policy.contains("provider.addressBarSearchUrlPrefixes.forEach"))
+        assertTrue(policy.contains("UrlUtils.searchQueryFromUrl(normalizedUrl, searchUrlPrefix)"))
+        assertTrue(searchAssembly.contains("val builtInSearchResultPagePolicy = BuiltInSearchResultPagePolicy(providers)"))
+        assertTrue(searchAssembly.contains("builtInSearchResultPagePolicy = builtInSearchResultPagePolicy"))
         assertFalse(controller.contains("isProviderHomeUrl(url)"))
         assertFalse(controller.contains("return \"\""))
     }
@@ -77,5 +86,34 @@ class SearchProviderControllerContractTest {
                 "\"https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword=\""
             )
         )
+    }
+
+    @Test
+    fun builtInSearchResultPolicyFeedsPageFeatureInjection() {
+        val searchAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
+        ).readText()
+        val startupAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserStartupFeatureAssemblyController.kt"
+        ).readText()
+        val pageFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserPageFeatureAssemblyController.kt"
+        ).readText()
+        val coordinator = projectFile(
+            "src/main/java/com/example/videobrowser/inject/PageFeatureCoordinator.kt"
+        ).readText()
+        val injector = projectFile("src/main/java/com/example/videobrowser/inject/JsInjector.kt")
+            .readText()
+
+        assertTrue(searchAssembly.contains("val builtInSearchResultPagePolicy: BuiltInSearchResultPagePolicy"))
+        assertTrue(
+            startupAssembly.contains(
+                "browserSearch.builtInSearchResultPagePolicy::isBuiltInSearchResultUrl"
+            )
+        )
+        assertTrue(pageFeatureAssembly.contains("private val isBuiltInSearchResultPage: (String?) -> Boolean"))
+        assertTrue(pageFeatureAssembly.contains("isBuiltInSearchResultPage = isBuiltInSearchResultPage"))
+        assertTrue(coordinator.contains("builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl)"))
+        assertTrue(injector.contains("val builtInSearchResultPage: Boolean = false"))
     }
 }

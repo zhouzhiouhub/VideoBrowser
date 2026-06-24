@@ -23,6 +23,7 @@ import com.example.videobrowser.storage.SavedPageRepository
  * 搜索与地址栏组件集合。
  *
  * @param searchProviderController 参数类型为 `SearchProviderController`，表示管理默认搜索引擎和地址栏搜索源标识的控制器。
+ * @param builtInSearchResultPagePolicy 参数类型为 `BuiltInSearchResultPagePolicy`，表示识别 App 内置搜索引擎结果页的策略。
  * @param browserAddressBarStateController 参数类型为 `BrowserAddressBarStateController`，表示同步地址栏文本和站点安全状态的控制器。
  * @param homePageUrlPolicy 参数类型为 `BrowserHomePageUrlPolicy`，表示识别哪些恢复 URL 应显示为 App 自定义首页的策略。
  * @param historyRecordPolicy 参数类型为 `HistoryRecordPolicy`，表示判断页面 URL 是否应该写入浏览历史的策略。
@@ -30,6 +31,7 @@ import com.example.videobrowser.storage.SavedPageRepository
  */
 data class BrowserSearchComponents(
     val searchProviderController: SearchProviderController,
+    val builtInSearchResultPagePolicy: BuiltInSearchResultPagePolicy,
     val browserAddressBarStateController: BrowserAddressBarStateController,
     val homePageUrlPolicy: BrowserHomePageUrlPolicy,
     val historyRecordPolicy: HistoryRecordPolicy,
@@ -81,6 +83,8 @@ class BrowserSearchAssemblyController(
      * @return 返回 `BrowserSearchComponents`，调用方把其中对象保存到对应字段后继续创建导航和启动控制器。
      */
     fun create(): BrowserSearchComponents {
+        val providers = SearchProviders.defaults
+        val builtInSearchResultPagePolicy = BuiltInSearchResultPagePolicy(providers)
         val searchProviderController = SearchProviderController(
             activity = activity,
             providerScroll = providerScroll,
@@ -88,7 +92,9 @@ class BrowserSearchAssemblyController(
             addressInput = addressInput,
             addressProviderBadge = addressProviderBadge,
             settingsManager = settingsManager,
-            dp = dp
+            dp = dp,
+            providers = providers,
+            builtInSearchResultPagePolicy = builtInSearchResultPagePolicy
         )
         val browserAddressBarStateController = BrowserAddressBarStateController(
             addressInput = addressInput,
@@ -120,6 +126,7 @@ class BrowserSearchAssemblyController(
         )
         return BrowserSearchComponents(
             searchProviderController = searchProviderController,
+            builtInSearchResultPagePolicy = builtInSearchResultPagePolicy,
             browserAddressBarStateController = browserAddressBarStateController,
             homePageUrlPolicy = homePageUrlPolicy,
             historyRecordPolicy = historyRecordPolicy,

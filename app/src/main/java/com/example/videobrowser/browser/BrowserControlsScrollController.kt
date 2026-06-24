@@ -21,6 +21,7 @@ class BrowserControlsScrollController(
     private val dp: (Int) -> Int,
     private val areControlsHidden: () -> Boolean,
     private val isHomePageVisible: () -> Boolean,
+    private val isBrowserControlsPinnedPage: () -> Boolean,
     private val isVideoFullscreenUiActive: () -> Boolean,
     private val applyControlsHidden: (Boolean) -> Unit,
     private val updatePageProgressVisibility: (forceHidden: Boolean) -> Unit
@@ -84,7 +85,7 @@ class BrowserControlsScrollController(
      * @param allowDefer 参数类型为 `Boolean`，表示函数执行 `allowDefer` 相关逻辑时需要读取或处理的输入。
      */
     fun setControlsHidden(hidden: Boolean, allowDefer: Boolean = true) {
-        val shouldHide = hidden || isVideoFullscreenUiActive()
+        val shouldHide = (hidden && !isBrowserControlsPinnedPage()) || isVideoFullscreenUiActive()
         if (allowDefer &&
             isTouchActive &&
             !isVideoFullscreenUiActive() &&
@@ -139,7 +140,7 @@ class BrowserControlsScrollController(
         if (isVideoFullscreenUiActive()) {
             return
         }
-        if (isHomePageVisible() || addressInput.hasFocus()) {
+        if (isHomePageVisible() || isBrowserControlsPinnedPage() || addressInput.hasFocus()) {
             resetTracking()
             setControlsHidden(false)
             return

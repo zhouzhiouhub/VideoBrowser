@@ -9,6 +9,7 @@
   const configuredCleanup = window.VideoBrowserConfiguredCleanup || {};
   const topPageCleanup = window.VideoBrowserTopPageCleanup || {};
   const searchResultCleanup = window.VideoBrowserSearchResultCleanup || {};
+  const embeddedSearchShellCleanup = window.VideoBrowserEmbeddedSearchShellCleanup || {};
   const pageLifecycleTools = window.VideoBrowserPageLifecycleTools;
   window.VideoBrowserPageCleanupCoordinator = coordinator;
 
@@ -74,6 +75,14 @@
   coordinator.removeSearchResultAds = coordinator.removeSearchResultAds || function (options) {
     const config = options || {};
     searchResultCleanup.removeAds({
+      runWithMutationSuppressed: config.runWithMutationSuppressed
+    });
+  };
+
+  coordinator.applyEmbeddedSearchShell = coordinator.applyEmbeddedSearchShell || function (state, options) {
+    const config = options || {};
+    embeddedSearchShellCleanup.apply({
+      state: state,
       runWithMutationSuppressed: config.runWithMutationSuppressed
     });
   };

@@ -138,6 +138,24 @@ class PageFeatureCoordinatorTest {
         assertTrue(script.contains("\"userCssSelectors\":[\".picked-ad\"]"))
     }
 
+    @Test
+    fun injectPageFeatures_marksBuiltInSearchResultPages() {
+        val evaluatedScripts = mutableListOf<String>()
+        val coordinator = coordinatorFor(
+            settings = SettingsManager(InMemoryPreferenceStore()),
+            evaluatedScripts = evaluatedScripts,
+            currentSiteHost = "m.baidu.com",
+            currentPageUrl = "https://m.baidu.com/s?ie=utf-8&word=%E4%BD%A0%E5%A5%BD",
+            isBuiltInSearchResultPage = { url ->
+                url == "https://m.baidu.com/s?ie=utf-8&word=%E4%BD%A0%E5%A5%BD"
+            }
+        )
+
+        coordinator.injectPageFeatures()
+
+        assertTrue(evaluatedScripts.single().contains("\"builtInSearchResultPage\":true"))
+    }
+
     /**
      * 测试函数 `injectPageFeatures_doesNotRequestBrowserManagerWhenCurrentPageUrlIsSupplied`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features does Not Request Browser Manager When Current Page Url Is Supplied` 这条行为是否成立。
      *
@@ -178,14 +196,16 @@ class PageFeatureCoordinatorTest {
         settings: SettingsManager,
         evaluatedScripts: MutableList<String>,
         currentSiteHost: String?,
-        currentPageUrl: String?
+        currentPageUrl: String?,
+        isBuiltInSearchResultPage: (String?) -> Boolean = { false }
     ): PageFeatureCoordinator {
         return PageFeatureCoordinator(
             settingsManager = settings,
             browserManager = { unusedBrowserManager() },
             jsInjector = jsInjectorFor(evaluatedScripts),
             currentSiteHost = { currentSiteHost },
-            currentPageUrl = { currentPageUrl }
+            currentPageUrl = { currentPageUrl },
+            isBuiltInSearchResultPage = isBuiltInSearchResultPage
         )
     }
 

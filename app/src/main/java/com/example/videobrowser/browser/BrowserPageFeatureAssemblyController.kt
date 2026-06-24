@@ -52,6 +52,7 @@ data class BrowserPageFeatureComponents(
  * @param browserChromeClientStateController 参数类型为 `BrowserChromeClientStateController`，表示读取当前 ChromeClient 的状态控制器。
  * @param fullscreenVideoController 参数类型为 `FullscreenVideoController`，表示 native bridge 更新视频全屏时间线时使用的控制器。
  * @param webPlaybackHistoryRecorder 参数类型为 `WebPlaybackHistoryRecorder`，表示 native bridge 记录网页播放历史的数据写入控制器。
+ * @param isBuiltInSearchResultPage 参数类型为 `(String?) -> Boolean`，表示判断当前 URL 是否来自 App 内置搜索引擎结果页。
  * @param postToUi 参数类型为 `(() -> Unit) -> Unit`，表示把网页线程回调切回 Android UI 线程执行的函数。
  */
 class BrowserPageFeatureAssemblyController(
@@ -67,6 +68,7 @@ class BrowserPageFeatureAssemblyController(
     private val browserChromeClientStateController: BrowserChromeClientStateController,
     private val fullscreenVideoController: FullscreenVideoController,
     private val webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder,
+    private val isBuiltInSearchResultPage: (String?) -> Boolean,
     private val postToUi: (() -> Unit) -> Unit
 ) {
     /**
@@ -89,7 +91,8 @@ class BrowserPageFeatureAssemblyController(
             currentSiteHost = browserUrlStateController::currentSiteHost,
             currentPageUrl = {
                 browserSessionStateController.currentSessionController().currentPageUrl
-            }
+            },
+            isBuiltInSearchResultPage = isBuiltInSearchResultPage
         )
         val elementPickerController = ElementPickerController(
             activity = activity,
