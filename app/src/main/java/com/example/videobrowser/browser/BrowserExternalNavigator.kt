@@ -11,8 +11,6 @@ import android.content.Intent
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import androidx.appcompat.app.AppCompatActivity
-import com.example.videobrowser.R
-import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.video.ExternalSubtitleCandidate
 import com.example.videobrowser.video.PlaybackQueue
 import com.example.videobrowser.video.PlayerActivity
@@ -50,7 +48,7 @@ class BrowserExternalNavigator(
             return openIntentUri(url, loadFallbackUrl)
         }
 
-        showExternalAppBlockedToast()
+        // 外部应用协议默认静默拦截，避免网页反复触发用户可见提示。
         return true
     }
 
@@ -125,12 +123,7 @@ class BrowserExternalNavigator(
             return true
         }
 
-        showExternalAppBlockedToast()
         return true
-    }
-
-    private fun showExternalAppBlockedToast() {
-        ShortToast.show(activity, R.string.toast_external_app_blocked)
     }
 
     /**

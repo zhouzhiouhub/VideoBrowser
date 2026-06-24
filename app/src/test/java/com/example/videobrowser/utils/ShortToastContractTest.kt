@@ -26,7 +26,6 @@ class ShortToastContractTest {
             projectFile("src/main/java/com/example/videobrowser/localfiles/LocalFilesController.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/BrowserBackNavigationController.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/BrowserNavigationController.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/BrowserExternalNavigator.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/FindInPageDialogController.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/PageActionsController.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/PagePrintController.kt"),
