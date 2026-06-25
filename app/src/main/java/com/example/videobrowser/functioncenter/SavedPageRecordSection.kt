@@ -23,6 +23,12 @@ internal class SavedPageRecordSection(
     ) -> Unit
 ) {
     private val activity = host.activity
+    private val historyRecordSection = SavedPageHistoryRecordSection(
+        host = host,
+        inlineActionController = inlineActionController,
+        openPage = openPage,
+        showExpandedPage = showExpandedPage
+    )
 
     fun add(
         section: LinearLayout,
@@ -36,7 +42,14 @@ internal class SavedPageRecordSection(
         if (collection == SavedPageCollection.BOOKMARKS) {
             addBookmarkGroups(section, pages, title, emptyMessage, query, expandedUrl)
         } else {
-            addSavedPageRows(section, collection, pages, title, emptyMessage, query, expandedUrl)
+            historyRecordSection.add(
+                section = section,
+                pages = pages,
+                title = title,
+                emptyMessage = emptyMessage,
+                query = query,
+                expandedUrl = expandedUrl
+            )
         }
     }
 

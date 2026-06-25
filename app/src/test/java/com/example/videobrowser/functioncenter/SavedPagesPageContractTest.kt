@@ -195,14 +195,46 @@ class SavedPagesPageContractTest {
     }
 
     @Test
+    fun historyRecordsUseDedicatedCompactTimelineStyle() {
+        val recordSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageRecordSection.kt"
+        ).readText()
+        val historySection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryRecordSection.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
+
+        assertTrue(recordSection.contains("private val historyRecordSection = SavedPageHistoryRecordSection("))
+        assertTrue(recordSection.contains("historyRecordSection.add("))
+        assertTrue(historySection.contains("R.string.history_filter_all"))
+        assertTrue(historySection.contains("private fun addDateChip("))
+        assertTrue(historySection.contains("SimpleDateFormat(\"yyyy-MM-dd E\", Locale.CHINA)"))
+        assertTrue(historySection.contains("SimpleDateFormat(\"HH:mm\", Locale.CHINA)"))
+        assertTrue(historySection.contains("private fun createSelectedMarker()"))
+        assertTrue(historySection.contains("if (selected) {"))
+        assertTrue(historySection.contains("inlineActionController.addActions("))
+        assertTrue(strings.contains("history_filter_all"))
+        assertTrue(strings.contains("history_date_unknown"))
+    }
+
+    @Test
     fun historyLongPressOnlyShowsCopyAndRemoveActions() {
         val inlineActions = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
         ).readText()
+        val actionStrip = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistorySelectionActionStrip.kt"
+        ).readText()
         val historyBranch = historyBranchBody(inlineActions)
 
-        assertTrue(historyBranch.contains("addCopyAction(section, page)"))
-        assertTrue(historyBranch.contains("addRemoveAction(section, collection, page, title, emptyMessage, query)"))
+        assertTrue(historyBranch.contains("addHistorySelectionActions(section, collection, page, title, emptyMessage, query)"))
+        assertTrue(inlineActions.contains("SavedPageHistorySelectionActionStrip(host)"))
+        assertTrue(inlineActions.contains("historySelectionActionStrip.add("))
+        assertTrue(actionStrip.contains("private fun createButton("))
+        assertTrue(actionStrip.contains("R.string.action_copy_link"))
+        assertTrue(actionStrip.contains("R.string.action_remove"))
+        assertTrue(inlineActions.contains("linkActions.copyUrl(page)"))
+        assertTrue(inlineActions.contains("removePage(collection, page, title, emptyMessage, query)"))
         assertFalse(historyBranch.contains("showRenameSavedPageDialog"))
         assertFalse(historyBranch.contains("action_open_in_new_tab"))
         assertFalse(historyBranch.contains("action_share_page"))
@@ -290,7 +322,7 @@ class SavedPagesPageContractTest {
         assertTrue(strings.contains("title_move_bookmark_folder"))
         assertTrue(strings.contains("hint_bookmark_folder"))
         assertTrue(strings.contains("toast_bookmark_folder_updated"))
-        assertTrue(readme.contains("历史记录长按只保留复制链接和移除"))
+        assertTrue(readme.contains("历史记录按日期分组显示，长按会标注选中记录"))
         assertTrue(readme.contains("收藏夹支持文件夹分组、导入和导出"))
     }
 

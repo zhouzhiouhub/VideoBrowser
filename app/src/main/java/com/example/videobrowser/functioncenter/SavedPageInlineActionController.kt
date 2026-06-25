@@ -19,6 +19,7 @@ internal class SavedPageInlineActionController(
     private val refreshSavedPagesPage: (SavedPageCollection, String, String, String?) -> Unit
 ) {
     private val activity = host.activity
+    private val historySelectionActionStrip = SavedPageHistorySelectionActionStrip(host)
 
     fun addActions(
         section: LinearLayout,
@@ -29,8 +30,7 @@ internal class SavedPageInlineActionController(
         query: String?
     ) {
         if (collection == SavedPageCollection.HISTORY) {
-            addCopyAction(section, page)
-            addRemoveAction(section, collection, page, title, emptyMessage, query)
+            addHistorySelectionActions(section, collection, page, title, emptyMessage, query)
             return
         }
         host.contentFactory.addActionRow(
@@ -77,6 +77,21 @@ internal class SavedPageInlineActionController(
         }
     }
 
+    private fun addHistorySelectionActions(
+        section: LinearLayout,
+        collection: SavedPageCollection,
+        page: SavedPage,
+        title: String,
+        emptyMessage: String,
+        query: String?
+    ) {
+        historySelectionActionStrip.add(
+            section = section,
+            onCopy = { linkActions.copyUrl(page) },
+            onRemove = { removePage(collection, page, title, emptyMessage, query) }
+        )
+    }
+
     private fun addRemoveAction(
         section: LinearLayout,
         collection: SavedPageCollection,
@@ -106,4 +121,5 @@ internal class SavedPageInlineActionController(
             refreshSavedPagesPage(collection, title, emptyMessage, query)
         }
     }
+
 }
