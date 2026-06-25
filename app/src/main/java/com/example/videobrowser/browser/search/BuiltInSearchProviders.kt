@@ -196,13 +196,13 @@ internal object BuiltInSearchProviders {
         fromConfig(
             id = "zhihu",
             badge = "知",
-            homeUrl = "https://www.zhihu.com/",
+            homeUrl = "https://m.zhihu.com/",
             config = SearchEngineConfig(
                 name = "知乎搜索",
-                displayUrl = "https://www.zhihu.com",
-                searchTemplate = "https://www.zhihu.com/search?type=content&q={keyword}",
+                displayUrl = "https://m.zhihu.com",
+                searchTemplate = "https://m.zhihu.com/search?type=content&q={keyword}",
                 queryParam = "q",
-                domains = listOf("www.zhihu.com", "zhihu.com"),
+                domains = listOf("m.zhihu.com", "www.zhihu.com", "zhihu.com"),
                 resultPathRules = listOf("/search"),
                 hideCss = listOf("form[action*=\"/search\"]", "[role=\"search\"]"),
                 hidePageSearchBox = true

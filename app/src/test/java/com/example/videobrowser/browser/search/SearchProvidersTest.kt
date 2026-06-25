@@ -114,6 +114,15 @@ class SearchProvidersTest {
             "https://search.bilibili.com/all?keyword={keyword}",
             providersById.getValue("bilibili").searchTemplate
         )
+        assertEquals(
+            "https://m.zhihu.com/search?type=content&q={keyword}",
+            providersById.getValue("zhihu").searchTemplate
+        )
+        assertEquals(
+            "https://m.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94",
+            providersById.getValue("zhihu").searchUrlFor("问答")
+        )
+        assertTrue(providersById.getValue("zhihu").domains.contains("www.zhihu.com"))
         assertEquals("q", providersById.getValue("zhihu").queryParam)
         assertEquals("/weibo", providersById.getValue("weibo").resultPathRules.single())
     }

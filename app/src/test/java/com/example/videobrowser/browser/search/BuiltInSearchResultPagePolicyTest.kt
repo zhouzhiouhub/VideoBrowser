@@ -83,6 +83,10 @@ class BuiltInSearchResultPagePolicyTest {
         )
         assertEquals(
             "问答",
+            defaultPolicy.searchQueryFromUrl("https://m.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94")
+        )
+        assertEquals(
+            "问答",
             defaultPolicy.searchQueryFromUrl("https://www.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94")
         )
         assertEquals(
