@@ -19,14 +19,13 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.videobrowser.R
-import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.utils.BrowserDrawableFactory
 import com.example.videobrowser.utils.UrlUtils
 
 /**
  * 搜索提供方状态控制器。
  *
- * 它负责读取和保存默认搜索引擎、同步地址栏搜索源 badge，并把搜索 URL 转回地址栏展示文本。
+ * 它负责维护本次运行内的搜索引擎选择、同步地址栏搜索源 badge，并把搜索 URL 转回地址栏展示文本。
  * App 首页不再渲染第三方搜索引擎入口、自定义快捷入口或最近访问入口。
  */
 class SearchProviderController(
@@ -35,7 +34,6 @@ class SearchProviderController(
     private val providerList: LinearLayout,
     private val addressInput: EditText,
     private val addressProviderBadge: TextView,
-    private val settingsManager: SettingsManager,
     private val dp: (Int) -> Int,
     private val providers: () -> List<SearchProvider> = { SearchProviders.defaults },
     private val builtInSearchResultPagePolicy: BuiltInSearchResultPagePolicy =
@@ -50,7 +48,7 @@ class SearchProviderController(
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      */
     fun setup() {
-        selectedProvider = loadSavedSearchProvider()
+        selectedProvider = loadDefaultSearchProvider()
         providerList.removeAllViews()
         providerScroll.visibility = View.GONE
         updateSelection()
@@ -101,21 +99,19 @@ class SearchProviderController(
     fun selectDefaultSearchProvider(providerId: String): Boolean {
         val provider = availableProviders().firstOrNull { it.id == providerId } ?: return false
         selectedProvider = provider
-        settingsManager.setSearchEngineId(provider.id)
         updateSelection()
         return true
     }
 
     /**
-     * 函数 `loadSavedSearchProvider`：启动或加载 `load Saved Search Provider` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
+     * 函数 `loadDefaultSearchProvider`：启动或加载 `load Default Search Provider` 对应的业务流程，通常会连接 UI、系统能力或网页状态。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
-    private fun loadSavedSearchProvider(): SearchProvider {
-        val savedProviderId = settingsManager.searchEngineId()
+    private fun loadDefaultSearchProvider(): SearchProvider {
         val availableProviders = availableProviders()
-        return availableProviders.firstOrNull { it.id == savedProviderId }
+        return availableProviders.firstOrNull { it.id == SearchProviders.DEFAULT_PROVIDER_ID }
             ?: availableProviders.first()
     }
 

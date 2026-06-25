@@ -98,7 +98,6 @@ class BrowserSearchAssemblyController(
             providerList = providerList,
             addressInput = addressInput,
             addressProviderBadge = addressProviderBadge,
-            settingsManager = settingsManager,
             dp = dp,
             providers = providers,
             builtInSearchResultPagePolicy = builtInSearchResultPagePolicy

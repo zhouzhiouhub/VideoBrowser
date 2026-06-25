@@ -43,6 +43,8 @@ data class SearchProvider(
 }
 
 object SearchProviders {
+    const val DEFAULT_PROVIDER_ID = "baidu"
+
     val defaults: List<SearchProvider> = listOf(
         fromConfig(
             id = "sogou",

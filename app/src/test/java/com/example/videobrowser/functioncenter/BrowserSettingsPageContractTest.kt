@@ -98,10 +98,10 @@ class BrowserSettingsPageContractTest {
         assertTrue(settings.contains("fun removeCustomSearchEngine(engine: CustomSearchEngine): Boolean"))
         assertTrue(searchProviderController.contains("fun selectDefaultSearchProvider(providerId: String): Boolean"))
         assertTrue(searchProviderController.contains("fun availableProviders(): List<SearchProvider>"))
-        assertTrue(searchProviderController.contains("settingsManager.setSearchEngineId(provider.id)"))
-        assertTrue(
+        assertFalse(searchProviderController.contains("settingsManager.setSearchEngineId(provider.id)"))
+        assertFalse(
             selectDefaultSearchProviderBody(searchProviderController)
-                .contains("settingsManager.setSearchEngineId(provider.id)")
+                .contains("settingsManager.setSearchEngineId")
         )
         assertTrue(
             !selectDefaultSearchProviderBody(searchProviderController)
