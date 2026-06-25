@@ -109,15 +109,17 @@ internal class SavedPageHistoryListSection(
                             actions.onToggleSelection(page)
                             true
                         }
-                        addView(
-                            createSelectionBox(selected).apply {
-                                setOnClickListener { actions.onToggleSelection(page) }
-                            },
-                            LinearLayout.LayoutParams(dp(28), dp(28)).apply {
-                                marginStart = dp(2)
-                                marginEnd = dp(24)
-                            }
-                        )
+                        if (selectionActive) {
+                            addView(
+                                createSelectionBox(selected).apply {
+                                    setOnClickListener { actions.onToggleSelection(page) }
+                                },
+                                LinearLayout.LayoutParams(dp(28), dp(28)).apply {
+                                    marginStart = dp(2)
+                                    marginEnd = dp(24)
+                                }
+                            )
+                        }
                         addView(
                             createTitle(page),
                             LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
@@ -144,7 +146,7 @@ internal class SavedPageHistoryListSection(
                         )
                     },
                     LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)).apply {
-                        marginStart = dp(74)
+                        marginStart = if (selectionActive) dp(74) else 0
                     }
                 )
             },

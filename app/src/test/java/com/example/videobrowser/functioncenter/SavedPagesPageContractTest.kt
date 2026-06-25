@@ -284,7 +284,9 @@ class SavedPagesPageContractTest {
 
         assertTrue(historyList.contains("setOnLongClickListener {"))
         assertTrue(historyList.contains("actions.onToggleSelection(page)"))
+        assertTrue(historyList.contains("if (selectionActive) {"))
         assertTrue(historyList.contains("createSelectionBox(selected)"))
+        assertTrue(historyList.contains("marginStart = if (selectionActive) dp(74) else 0"))
         assertTrue(historyContent.contains("onSelectAll = { actions.onSelectAll(state.visiblePages) }"))
         assertTrue(historyContent.contains("onDelete = actions.onDeleteSelected"))
         assertTrue(historyContent.contains("onDone = actions.onClearSelection"))
