@@ -67,7 +67,9 @@ class SearchProviderControllerContractTest {
             "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
         ).readText()
 
-        assertTrue(controller.contains("builtInSearchResultPagePolicy.searchQueryFromUrl(url)"))
+        assertTrue(controller.contains("fun searchQueryFromUrl(url: String): String?"))
+        assertTrue(controller.contains("return builtInSearchResultPagePolicy.searchQueryFromUrl(url)"))
+        assertTrue(controller.contains("return searchQueryFromUrl(url) ?: UrlUtils.displayUrl(url)"))
         assertTrue(controller.contains("UrlUtils.displayUrl(url)"))
         assertTrue(policy.contains("provider.addressBarSearchUrlPrefixes.forEach"))
         assertTrue(policy.contains("UrlUtils.searchQueryFromUrl(normalizedUrl, searchUrlPrefix)"))

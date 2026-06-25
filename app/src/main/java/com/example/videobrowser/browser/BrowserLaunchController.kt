@@ -9,7 +9,6 @@ package com.example.videobrowser.browser
  */
 import android.content.Intent
 import com.example.videobrowser.utils.TextWhitespaceNormalizer
-import com.example.videobrowser.utils.Utf8UrlCodec
 import com.example.videobrowser.utils.UrlUtils
 
 /**
@@ -19,7 +18,7 @@ import com.example.videobrowser.utils.UrlUtils
  *
  * @param addressText 参数类型为 `() -> String`，表示读取地址栏当前文本的回调。
  * @param runWithSuggestionsSuppressed 参数类型为 `((() -> Unit) -> Unit)`，表示临时关闭地址建议刷新并执行动作的回调。
- * @param searchUrlPrefix 参数类型为 `() -> String`，表示读取当前搜索引擎搜索 URL 前缀的回调。
+ * @param searchUrlForQuery 参数类型为 `(String) -> String?`，表示使用当前搜索引擎把关键词构造成搜索 URL 的回调。
  * @param activeStandardTabUrl 参数类型为 `() -> String?`，表示读取标准模式当前标签页恢复 URL 的回调。
  * @param shouldOpenAppHome 参数类型为 `(String?) -> Boolean`，表示判断恢复 URL 是否应该显示 App 自定义首页。
  * @param showHomePage 参数类型为 `() -> Unit`，表示切回 App 自定义首页的回调。
@@ -29,7 +28,7 @@ import com.example.videobrowser.utils.UrlUtils
 class BrowserLaunchController(
     private val addressText: () -> String,
     private val runWithSuggestionsSuppressed: ((() -> Unit) -> Unit),
-    private val searchUrlPrefix: () -> String,
+    private val searchUrlForQuery: (String) -> String?,
     private val activeStandardTabUrl: () -> String?,
     private val shouldOpenAppHome: (String?) -> Boolean,
     private val showHomePage: () -> Unit,
@@ -44,7 +43,7 @@ class BrowserLaunchController(
     fun loadAddressInput() {
         val input = addressText().trim()
         runWithSuggestionsSuppressed {
-            UrlUtils.resolveAddressInput(input, searchUrlPrefix())
+            UrlUtils.resolveAddressInput(input, searchUrlForQuery)
                 ?.let { resolvedUrl -> loadUrl(resolvedUrl) }
         }
     }
@@ -59,8 +58,7 @@ class BrowserLaunchController(
         if (query.isEmpty()) {
             return
         }
-        val encodedQuery = Utf8UrlCodec.encodeFormComponent(query)
-        loadUrl("${searchUrlPrefix()}$encodedQuery")
+        searchUrlForQuery(query)?.let { url -> loadUrl(url) }
     }
 
     /**

@@ -162,6 +162,22 @@ class UrlUtilsTest {
         )
     }
 
+    @Test
+    fun resolveAddressInput_usesProvidedSearchUrlBuilderForKeywords() {
+        assertEquals(
+            "https://search.example.com/find/hello+world/all",
+            UrlUtils.resolveAddressInput("hello world") { query ->
+                "https://search.example.com/find/${Utf8UrlCodec.encodeFormComponent(query)}/all"
+            }
+        )
+        assertEquals(
+            "https://example.com",
+            UrlUtils.resolveAddressInput("example.com") { query ->
+                "https://search.example.com/?q=$query"
+            }
+        )
+    }
+
     /**
      * 测试函数 `resolveAddressInput_encodesChineseSearchTextAsUtf8`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `resolve Address Input encodes Chinese Search Text As Utf8` 这条行为是否成立。
      *

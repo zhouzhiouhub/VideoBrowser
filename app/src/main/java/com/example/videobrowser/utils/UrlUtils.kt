@@ -26,6 +26,15 @@ object UrlUtils {
         input: String,
         searchUrlPrefix: String
     ): String? {
+        return resolveAddressInput(input) { value ->
+            "$searchUrlPrefix${encodeSearchQuery(value)}"
+        }
+    }
+
+    fun resolveAddressInput(
+        input: String,
+        searchUrlForQuery: (String) -> String?
+    ): String? {
         // 地址栏输入如果能解析成网页 URL 就直接打开，否则拼成当前搜索引擎的搜索 URL。
         val value = input.trim()
         if (value.isEmpty()) {
@@ -33,7 +42,7 @@ object UrlUtils {
         }
 
         return UrlLoadableAddressResolver.resolveLoadableUrl(value)
-            ?: "$searchUrlPrefix${encodeSearchQuery(value)}"
+            ?: searchUrlForQuery(value)
     }
 
     /**

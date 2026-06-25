@@ -49,7 +49,7 @@ class BrowserAddressBarStateController(
     }
 
     /**
-     * 地址栏聚焦时临时显示完整链接，便于复制；失焦后恢复搜索结果关键词展示。
+     * 地址栏聚焦时普通网页临时显示完整链接，搜索结果页仍显示关键词。
      *
      * @param hasFocus true 表示用户正在直接操作地址栏。
      */
@@ -73,7 +73,7 @@ class BrowserAddressBarStateController(
     }
 
     private fun addressTextFor(url: String, hasFocus: Boolean): String {
-        return if (hasFocus) {
+        return searchProviderController.searchQueryFromUrl(url) ?: if (hasFocus) {
             UrlUtils.displayUrl(url)
         } else {
             addressBarDisplayText(url)

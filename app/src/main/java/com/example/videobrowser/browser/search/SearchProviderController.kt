@@ -80,7 +80,11 @@ class SearchProviderController(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     fun addressBarDisplayText(url: String): String {
-        return builtInSearchResultPagePolicy.searchQueryFromUrl(url) ?: UrlUtils.displayUrl(url)
+        return searchQueryFromUrl(url) ?: UrlUtils.displayUrl(url)
+    }
+
+    fun searchQueryFromUrl(url: String): String? {
+        return builtInSearchResultPagePolicy.searchQueryFromUrl(url)
     }
 
     fun availableProviders(): List<SearchProvider> {

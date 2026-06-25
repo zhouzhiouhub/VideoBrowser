@@ -104,6 +104,22 @@ class BrowserLaunchControllerContractTest {
         assertFalse(strings.contains("输入网址或搜索"))
     }
 
+    @Test
+    fun searchInputUsesSelectedProviderTemplateBuilder() {
+        val launchController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserLaunchController.kt"
+        ).readText()
+        val navigationAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserNavigationAssemblyController.kt"
+        ).readText()
+
+        assertTrue(launchController.contains("searchUrlForQuery: (String) -> String?"))
+        assertTrue(launchController.contains("UrlUtils.resolveAddressInput(input, searchUrlForQuery)"))
+        assertTrue(launchController.contains("searchUrlForQuery(query)?.let { url -> loadUrl(url) }"))
+        assertTrue(navigationAssembly.contains("searchUrlForQuery = { keyword ->"))
+        assertTrue(navigationAssembly.contains("searchProviderController.selectedProvider.searchUrlFor(keyword)"))
+    }
+
     private fun openHomePageBody(source: String): String {
         return functionBody(source, "fun openHomePage()")
     }

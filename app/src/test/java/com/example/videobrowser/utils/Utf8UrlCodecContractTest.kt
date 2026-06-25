@@ -12,7 +12,7 @@ class Utf8UrlCodecContractTest {
         val sources = listOf(
             projectFile("src/main/java/com/example/videobrowser/utils/UrlUtils.kt"),
             projectFile("src/main/java/com/example/videobrowser/utils/SearchUrlQueryParser.kt"),
-            projectFile("src/main/java/com/example/videobrowser/browser/BrowserLaunchController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/browser/search/SearchEngineUrlTools.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/search/SearchSuggestionClient.kt"),
             projectFile("src/main/java/com/example/videobrowser/browser/BrowserTabSessionRepository.kt"),
             projectFile("src/main/java/com/example/videobrowser/storage/SavedPageCodec.kt"),

@@ -6,7 +6,7 @@ import org.junit.Test
 
 class BrowserAddressBarStateControllerContractTest {
     @Test
-    fun addressBarFocusTemporarilyShowsFullUrlForCopying() {
+    fun addressBarFocusShowsFullUrlOnlyForNormalPages() {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserAddressBarStateController.kt"
         ).readText()
@@ -15,6 +15,7 @@ class BrowserAddressBarStateControllerContractTest {
         assertTrue(controller.contains("private var isAddressInputFocused = false"))
         assertTrue(controller.contains("fun handleAddressFocusChanged(hasFocus: Boolean)"))
         assertTrue(controller.contains("addressTextFor(url, hasFocus)"))
+        assertTrue(controller.contains("searchProviderController.searchQueryFromUrl(url) ?: if (hasFocus)"))
         assertTrue(controller.contains("if (hasFocus)"))
         assertTrue(controller.contains("UrlUtils.displayUrl(url)"))
         assertTrue(controller.contains("addressBarDisplayText(url)"))
