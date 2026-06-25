@@ -25,7 +25,7 @@ import com.example.videobrowser.utils.UrlUtils
 /**
  * 搜索提供方状态控制器。
  *
- * 它负责维护本次运行内的搜索引擎选择、同步地址栏搜索源 badge，并把搜索 URL 转回地址栏展示文本。
+ * 它负责维护持久化的搜索引擎选择、同步地址栏搜索源 badge，并把搜索 URL 转回地址栏展示文本。
  * App 首页不再渲染第三方搜索引擎入口、自定义快捷入口或最近访问入口。
  */
 class SearchProviderController(
@@ -36,6 +36,8 @@ class SearchProviderController(
     private val addressProviderBadge: TextView,
     private val dp: (Int) -> Int,
     private val providers: () -> List<SearchProvider> = { SearchProviders.defaults },
+    private val defaultProviderId: () -> String = { SearchProviders.DEFAULT_PROVIDER_ID },
+    private val saveDefaultProviderId: (String) -> Unit = {},
     private val builtInSearchResultPagePolicy: BuiltInSearchResultPagePolicy =
         BuiltInSearchResultPagePolicy(providers)
 ) {
@@ -98,6 +100,7 @@ class SearchProviderController(
      */
     fun selectDefaultSearchProvider(providerId: String): Boolean {
         val provider = availableProviders().firstOrNull { it.id == providerId } ?: return false
+        saveDefaultProviderId(provider.id)
         selectedProvider = provider
         updateSelection()
         return true
@@ -111,7 +114,9 @@ class SearchProviderController(
      */
     private fun loadDefaultSearchProvider(): SearchProvider {
         val availableProviders = availableProviders()
-        return availableProviders.firstOrNull { it.id == SearchProviders.DEFAULT_PROVIDER_ID }
+        val configuredProviderId = defaultProviderId().trim()
+        return availableProviders.firstOrNull { it.id == configuredProviderId }
+            ?: availableProviders.firstOrNull { it.id == SearchProviders.DEFAULT_PROVIDER_ID }
             ?: availableProviders.first()
     }
 

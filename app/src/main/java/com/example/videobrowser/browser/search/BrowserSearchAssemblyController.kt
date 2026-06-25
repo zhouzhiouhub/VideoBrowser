@@ -105,6 +105,8 @@ class BrowserSearchAssemblyController(
             addressProviderBadge = addressProviderBadge,
             dp = dp,
             providers = providers,
+            defaultProviderId = settingsManager::searchEngineId,
+            saveDefaultProviderId = settingsManager::setSearchEngineId,
             builtInSearchResultPagePolicy = builtInSearchResultPagePolicy
         )
         val pageFeatureVisibilityPolicy = BrowserPageFeatureVisibilityPolicy(

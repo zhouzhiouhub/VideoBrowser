@@ -62,6 +62,9 @@ class BrowserSettingsPageContractTest {
         val searchProviderController = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
         ).readText()
+        val searchAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BrowserSearchAssemblyController.kt"
+        ).readText()
         val settings = projectFile(
             "src/main/java/com/example/videobrowser/settings/SettingsManager.kt"
         ).readText()
@@ -110,11 +113,10 @@ class BrowserSettingsPageContractTest {
         assertTrue(settings.contains("fun removeCustomSearchEngine(engine: CustomSearchEngine): Boolean"))
         assertTrue(searchProviderController.contains("fun selectDefaultSearchProvider(providerId: String): Boolean"))
         assertTrue(searchProviderController.contains("fun availableProviders(): List<SearchProvider>"))
-        assertFalse(searchProviderController.contains("settingsManager.setSearchEngineId(provider.id)"))
-        assertFalse(
-            selectDefaultSearchProviderBody(searchProviderController)
-                .contains("settingsManager.setSearchEngineId")
-        )
+        assertTrue(searchProviderController.contains("saveDefaultProviderId(provider.id)"))
+        assertTrue(searchAssembly.contains("defaultProviderId = settingsManager::searchEngineId"))
+        assertTrue(searchAssembly.contains("saveDefaultProviderId = settingsManager::setSearchEngineId"))
+        assertFalse(searchProviderController.contains("settingsManager.setSearchEngineId"))
         assertTrue(
             !selectDefaultSearchProviderBody(searchProviderController)
                 .contains("settingsManager.setHomeUrl")

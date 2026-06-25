@@ -7,7 +7,7 @@ import org.junit.Test
 
 class SearchProviderControllerContractTest {
     @Test
-    fun searchProviderControllerOwnsDefaultProviderAndAddressBadgeOnly() {
+    fun searchProviderControllerOwnsDefaultProviderPersistenceAndAddressBadge() {
         val controller = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderController.kt"
         ).readText()
@@ -18,8 +18,12 @@ class SearchProviderControllerContractTest {
         assertTrue(controller.contains("fun selectDefaultSearchProvider(providerId: String): Boolean"))
         assertTrue(controller.contains("fun availableProviders(): List<SearchProvider>"))
         assertTrue(controller.contains("val provider = availableProviders().firstOrNull { it.id == providerId }"))
+        assertTrue(controller.contains("private val defaultProviderId: () -> String"))
+        assertTrue(controller.contains("private val saveDefaultProviderId: (String) -> Unit"))
+        assertTrue(controller.contains("val configuredProviderId = defaultProviderId().trim()"))
+        assertTrue(controller.contains("availableProviders.firstOrNull { it.id == configuredProviderId }"))
+        assertTrue(controller.contains("saveDefaultProviderId(provider.id)"))
         assertFalse(controller.contains("settingsManager.searchEngineId()"))
-        assertFalse(controller.contains("settingsManager.setSearchEngineId(provider.id)"))
         assertTrue(controller.contains("private fun updateAddressProviderBadge()"))
         assertTrue(controller.contains("addressProviderBadge.text = selectedProvider.badge"))
         assertTrue(controller.contains("createProviderBadgeBackground("))
@@ -48,6 +52,8 @@ class SearchProviderControllerContractTest {
         assertTrue(searchAssembly.contains("val searchProviderController = SearchProviderController("))
         assertTrue(searchAssembly.contains("customSearchEngines = settingsManager.customSearchEngines()"))
         assertTrue(searchAssembly.contains("removedProviderIds = settingsManager.removedSearchProviderIds()"))
+        assertTrue(searchAssembly.contains("defaultProviderId = settingsManager::searchEngineId"))
+        assertTrue(searchAssembly.contains("saveDefaultProviderId = settingsManager::setSearchEngineId"))
         assertTrue(searchAssembly.contains("savedPageRepository = savedPageRepository"))
         assertTrue(searchAssembly.contains("selectedProvider = { searchProviderController.selectedProvider }"))
         assertFalse(searchAssembly.contains("openProviderHome"))
