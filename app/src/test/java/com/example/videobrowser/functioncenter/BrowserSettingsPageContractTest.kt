@@ -83,13 +83,19 @@ class BrowserSettingsPageContractTest {
         assertTrue(searchEnginePage.contains("customSearchEngineSettingsPage.show(customEngine)"))
         assertTrue(searchEnginePage.contains("host.gridFactory.addActionGrid("))
         assertTrue(searchEnginePage.contains("TwoTextInputDialog.show("))
-        assertTrue(searchEnginePage.contains("CustomSearchEngineInputResolver.resolve(values.second)"))
+        assertTrue(searchEnginePage.contains("CustomSearchEngineDialogSession(activity = activity)"))
+        assertTrue(searchEnginePage.contains("session.submit("))
+        assertTrue(searchEnginePage.contains("isDialogActive = { dialog?.isShowing == true }"))
+        assertTrue(searchEnginePage.contains("dismissDialog = { dialog?.dismiss() }"))
         assertTrue(searchEnginePage.contains("private fun addCustomSearchEngine(name: String, config: SearchEngineConfig): Boolean"))
         assertFalse(searchEnginePage.contains("SingleChoiceDialog.show("))
         assertTrue(customSearchEnginePage.contains("host.showPage("))
         assertTrue(customSearchEnginePage.contains("TwoTextInputDialog.show("))
         assertTrue(customSearchEnginePage.contains("ConfirmationDialog.show("))
-        assertTrue(customSearchEnginePage.contains("CustomSearchEngineInputResolver.resolve(values.second)"))
+        assertTrue(customSearchEnginePage.contains("CustomSearchEngineDialogSession(activity = activity)"))
+        assertTrue(customSearchEnginePage.contains("session.submit("))
+        assertTrue(customSearchEnginePage.contains("isDialogActive = { dialog?.isShowing == true }"))
+        assertTrue(customSearchEnginePage.contains("refreshAfterCustomSearchEngineUpdated(engine)"))
         assertTrue(customSearchEnginePage.contains("private fun updateCustomSearchEngine("))
         assertTrue(customSearchEnginePage.contains("settingsManager.removeCustomSearchEngine(engine)"))
         assertTrue(customSearchEnginePage.contains("selectSearchProvider(updatedEngine.id)"))
@@ -129,6 +135,36 @@ class BrowserSettingsPageContractTest {
         assertTrue(strings.contains("toast_custom_search_engine_added"))
         assertTrue(strings.contains("toast_custom_search_engine_updated"))
         assertTrue(strings.contains("toast_custom_search_engine_removed"))
+        assertTrue(strings.contains("toast_custom_search_engine_probe_started"))
+        assertTrue(strings.contains("toast_custom_search_engine_probe_failed"))
+    }
+
+    @Test
+    fun customSearchEngineDialogSessionOwnsAutoProbeFlow() {
+        val session = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CustomSearchEngineDialogSession.kt"
+        ).readText()
+        val analyzer = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/CustomSearchEngineInputAnalyzer.kt"
+        ).readText()
+        val searchEnginePage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SearchEngineSettingsPage.kt"
+        ).readText()
+        val customSearchEnginePage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CustomSearchEngineSettingsPage.kt"
+        ).readText()
+
+        assertTrue(analyzer.contains("CustomSearchEngineInputResolver.resolve(input, knownProviders)"))
+        assertTrue(analyzer.contains("SearchEngineTemplateProber.normalizeProbeUrl(input)"))
+        assertTrue(session.contains("CustomSearchEngineInputAnalyzer.analyze(values.second)"))
+        assertTrue(session.contains("SearchEngineTemplateProber()"))
+        assertTrue(session.contains("templateProber.probe(homeUrl = homeUrl, name = name)"))
+        assertTrue(session.contains("if (isDialogActive())"))
+        assertTrue(session.contains("Executors.newSingleThreadExecutor()"))
+        assertTrue(session.contains("Handler(Looper.getMainLooper()).post"))
+        assertTrue(session.contains("toast_custom_search_engine_probe_failed"))
+        assertFalse(searchEnginePage.contains("SearchEngineTemplateProber()"))
+        assertFalse(customSearchEnginePage.contains("SearchEngineTemplateProber()"))
     }
 
     /**

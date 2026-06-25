@@ -2,8 +2,8 @@ package com.example.videobrowser.functioncenter
 
 import android.text.InputType
 import android.widget.LinearLayout
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
-import com.example.videobrowser.browser.search.CustomSearchEngineInputResolver
 import com.example.videobrowser.browser.search.SearchEngineConfig
 import com.example.videobrowser.browser.search.SearchProvider
 import com.example.videobrowser.settings.CustomSearchEngine
@@ -160,7 +160,9 @@ class SearchEngineSettingsPage(
     }
 
     private fun showAddCustomSearchEngineDialog() {
-        TwoTextInputDialog.show(
+        val session = CustomSearchEngineDialogSession(activity = activity)
+        var dialog: AlertDialog? = null
+        dialog = TwoTextInputDialog.show(
             activity = activity,
             titleRes = R.string.title_add_custom_search_engine,
             message = activity.getString(R.string.dialog_add_custom_search_engine_message),
@@ -175,16 +177,14 @@ class SearchEngineSettingsPage(
             positiveButtonRes = R.string.action_add,
             dp = ::dp
         ) { values ->
-            val saved = CustomSearchEngineInputResolver.resolve(values.second)
-                ?.let { config -> addCustomSearchEngine(values.first, config) }
-                ?: false
-            if (saved) {
-                ShortToast.show(activity, R.string.toast_custom_search_engine_added)
-                show(replaceCurrent = true)
-            } else {
-                ShortToast.show(activity, R.string.toast_custom_search_engine_invalid)
-            }
-            saved
+            session.submit(
+                values = values,
+                successToastRes = R.string.toast_custom_search_engine_added,
+                saveConfig = ::addCustomSearchEngine,
+                onSaved = { show(replaceCurrent = true) },
+                isDialogActive = { dialog?.isShowing == true },
+                dismissDialog = { dialog?.dismiss() }
+            )
         }
     }
 

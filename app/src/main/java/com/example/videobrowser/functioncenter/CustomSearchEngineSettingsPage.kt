@@ -1,8 +1,8 @@
 package com.example.videobrowser.functioncenter
 
 import android.text.InputType
+import androidx.appcompat.app.AlertDialog
 import com.example.videobrowser.R
-import com.example.videobrowser.browser.search.CustomSearchEngineInputResolver
 import com.example.videobrowser.browser.search.SearchEngineConfig
 import com.example.videobrowser.settings.CustomSearchEngine
 import com.example.videobrowser.settings.SettingsManager
@@ -95,7 +95,9 @@ internal class CustomSearchEngineSettingsPage(
     }
 
     private fun showEditCustomSearchEngineDialog(engine: CustomSearchEngine) {
-        TwoTextInputDialog.show(
+        val session = CustomSearchEngineDialogSession(activity = activity)
+        var dialog: AlertDialog? = null
+        dialog = TwoTextInputDialog.show(
             activity = activity,
             titleRes = R.string.title_edit_custom_search_engine,
             message = activity.getString(R.string.dialog_add_custom_search_engine_message),
@@ -112,24 +114,28 @@ internal class CustomSearchEngineSettingsPage(
             positiveButtonRes = R.string.action_save,
             dp = ::dp
         ) { values ->
-            val saved = CustomSearchEngineInputResolver.resolve(values.second)
-                ?.let { config -> updateCustomSearchEngine(engine, values.first, config) }
-                ?: false
-            if (saved) {
-                val updatedEngine = findCurrentEngine(engine)
-                if (updatedEngine != null && currentSearchProviderId() == updatedEngine.id) {
-                    selectSearchProvider(updatedEngine.id)
-                }
-                ShortToast.show(activity, R.string.toast_custom_search_engine_updated)
-                if (updatedEngine == null) {
-                    showSearchEngineSettingsPage()
-                } else {
-                    show(updatedEngine, replaceCurrent = true)
-                }
-            } else {
-                ShortToast.show(activity, R.string.toast_custom_search_engine_invalid)
-            }
-            saved
+            session.submit(
+                values = values,
+                successToastRes = R.string.toast_custom_search_engine_updated,
+                saveConfig = { name, config ->
+                    updateCustomSearchEngine(engine, name, config)
+                },
+                onSaved = { refreshAfterCustomSearchEngineUpdated(engine) },
+                isDialogActive = { dialog?.isShowing == true },
+                dismissDialog = { dialog?.dismiss() }
+            )
+        }
+    }
+
+    private fun refreshAfterCustomSearchEngineUpdated(engine: CustomSearchEngine) {
+        val updatedEngine = findCurrentEngine(engine)
+        if (updatedEngine != null && currentSearchProviderId() == updatedEngine.id) {
+            selectSearchProvider(updatedEngine.id)
+        }
+        if (updatedEngine == null) {
+            showSearchEngineSettingsPage()
+        } else {
+            show(updatedEngine, replaceCurrent = true)
         }
     }
 

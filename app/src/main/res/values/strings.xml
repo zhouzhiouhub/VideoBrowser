@@ -508,6 +508,8 @@
     <string name="toast_custom_search_engine_added">已添加搜索引擎</string>
     <string name="toast_custom_search_engine_updated">已更新搜索引擎</string>
     <string name="toast_custom_search_engine_removed">已移除搜索引擎</string>
+    <string name="toast_custom_search_engine_probe_started">正在自动识别搜索模板</string>
+    <string name="toast_custom_search_engine_probe_failed" formatted="false">无法自动识别，请填写包含 {keyword} 的搜索 URL 模板</string>
     <string name="toast_custom_search_engine_invalid">请输入名称和已知搜索首页，未知站点需填写搜索 URL 模板</string>
     <string name="toast_text_zoom_updated">已更新网页文字大小</string>
     <string name="toast_feature_enabled">已开启%1$s</string>
