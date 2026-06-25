@@ -196,7 +196,10 @@ class SearchEngineSettingsPage(
             queryParam = config.queryParam,
             domains = config.domains,
             hideCss = config.hideCss,
-            hidePageSearchBox = config.hidePageSearchBox
+            hidePageSearchBox = config.hidePageSearchBox,
+            resultPathRules = config.resultPathRules,
+            extraJs = config.extraJs,
+            enabled = config.enabled
         )
     }
 

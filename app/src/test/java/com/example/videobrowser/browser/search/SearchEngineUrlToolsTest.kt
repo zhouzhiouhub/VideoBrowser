@@ -11,6 +11,7 @@ class SearchEngineUrlToolsTest {
         searchTemplate = "https://m.so.com/s?q={keyword}",
         queryParam = "q",
         domains = listOf("m.so.com", "so.com"),
+        resultPathRules = listOf("/s"),
         hideCss = listOf("form[action*=\"/s\"]"),
         hidePageSearchBox = true
     )
@@ -68,6 +69,33 @@ class SearchEngineUrlToolsTest {
     }
 
     @Test
+    fun queryFromUrl_usesConfiguredResultPathsAndCommonQueryParameterFallbacks() {
+        val config = soConfig.copy(
+            queryParam = "q",
+            resultPathRules = listOf("/s", "search")
+        )
+
+        assertEquals(
+            "你好",
+            SearchEngineUrlTools.queryFromUrl(
+                config,
+                "https://m.so.com/search?keyword=%E4%BD%A0%E5%A5%BD"
+            )
+        )
+        assertNull(SearchEngineUrlTools.queryFromUrl(config, "https://m.so.com/other?keyword=你好"))
+    }
+
+    @Test
+    fun queryFromUrl_ignoresDisabledSearchEngineConfigs() {
+        assertNull(
+            SearchEngineUrlTools.queryFromUrl(
+                soConfig.copy(enabled = false),
+                "https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD"
+            )
+        )
+    }
+
+    @Test
     fun queryParamFromTemplate_returnsPlaceholderParameterName() {
         assertEquals(
             "keyword",
@@ -77,4 +105,3 @@ class SearchEngineUrlToolsTest {
         )
     }
 }
-

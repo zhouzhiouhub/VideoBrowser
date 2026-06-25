@@ -21,9 +21,12 @@ data class SearchProvider(
         ?: searchUrlPrefix,
     val queryParam: String = SearchEngineUrlTools.queryParamFromTemplate(searchTemplate).orEmpty(),
     val domains: List<String> = SearchEngineUrlTools.domainsFromTemplate(searchTemplate),
+    val resultPathRules: List<String> = emptyList(),
     val hideCss: List<String> = emptyList(),
     val hidePageSearchBox: Boolean = false,
     val addressBarSearchUrlPrefixes: List<String> = listOf(searchUrlPrefix),
+    val extraJs: String? = null,
+    val enabled: Boolean = true,
     val accentColor: Int
 ) {
     val config: SearchEngineConfig
@@ -33,8 +36,11 @@ data class SearchProvider(
             searchTemplate = searchTemplate,
             queryParam = queryParam,
             domains = domains,
+            resultPathRules = resultPathRules,
             hideCss = hideCss,
-            hidePageSearchBox = hidePageSearchBox
+            hidePageSearchBox = hidePageSearchBox,
+            extraJs = extraJs,
+            enabled = enabled
         )
 
     fun searchUrlFor(keyword: String): String? {
@@ -174,8 +180,13 @@ object SearchProviders {
         customSearchEngines: List<CustomSearchEngine>,
         removedProviderIds: Set<String> = emptySet()
     ): List<SearchProvider> {
-        val visibleDefaults = defaults.filterNot { provider -> provider.id in removedProviderIds }
-        val providers = visibleDefaults + customSearchEngines.map(::fromCustomSearchEngine)
+        val visibleDefaults = defaults.filter { provider ->
+            provider.enabled && provider.id !in removedProviderIds
+        }
+        val customProviders = customSearchEngines
+            .map(::fromCustomSearchEngine)
+            .filter { provider -> provider.enabled }
+        val providers = visibleDefaults + customProviders
         return providers.ifEmpty {
             defaults.firstOrNull { provider -> provider.id == DEFAULT_PROVIDER_ID }
                 ?.let { provider -> listOf(provider) }
@@ -203,8 +214,11 @@ object SearchProviders {
             searchTemplate = searchTemplate,
             queryParam = queryParam,
             domains = domains,
+            resultPathRules = engine.resultPathRules,
             hideCss = engine.hideCss,
             hidePageSearchBox = engine.hidePageSearchBox,
+            extraJs = engine.extraJs,
+            enabled = engine.enabled,
             accentColor = 0xFF5F6F7D.toInt()
         )
     }
@@ -229,9 +243,12 @@ object SearchProviders {
             searchTemplate = config.searchTemplate,
             queryParam = config.queryParam,
             domains = config.domains,
+            resultPathRules = config.resultPathRules,
             hideCss = config.hideCss,
             hidePageSearchBox = config.hidePageSearchBox,
             addressBarSearchUrlPrefixes = addressBarSearchUrlPrefixes,
+            extraJs = config.extraJs,
+            enabled = config.enabled,
             accentColor = accentColor
         )
     }

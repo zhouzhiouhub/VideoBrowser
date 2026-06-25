@@ -8,6 +8,15 @@ import java.util.Locale
 
 object SearchEngineUrlTools {
     private val placeholders = listOf("{keyword}", "%s", "{searchTerms}")
+    private val commonQueryParams = listOf(
+        "q",
+        "wd",
+        "word",
+        "query",
+        "keyword",
+        "search_query",
+        "text"
+    )
 
     fun normalizeTemplate(value: String): String? {
         val trimmed = value.trim()
@@ -41,6 +50,9 @@ object SearchEngineUrlTools {
     }
 
     fun queryFromUrl(config: SearchEngineConfig, url: String?): String? {
+        if (!config.enabled) {
+            return null
+        }
         val currentUri = SafeUriParser.parse(url) ?: return null
         val templateUri = parseTemplateUri(config.searchTemplate) ?: return null
         if (!isHttpUriWithHost(currentUri) || !isHttpUriWithHost(templateUri)) {
@@ -49,13 +61,16 @@ object SearchEngineUrlTools {
         if (!config.matchesHost(currentUri.host)) {
             return null
         }
-        if (normalizedPath(currentUri) != normalizedPath(templateUri)) {
+        if (!config.matchesResultPath(currentUri, templateUri)) {
             return null
         }
-        val rawValue = rawQueryParameter(currentUri.rawQuery, config.queryParam) ?: return null
-        return Utf8UrlCodec.decodeFormComponent(rawValue)
-            ?.let(TextWhitespaceNormalizer::collapse)
-            ?.takeIf { it.isNotEmpty() }
+        return config.queryParameterCandidates()
+            .firstNotNullOfOrNull { queryParam ->
+                rawQueryParameter(currentUri.rawQuery, queryParam)
+                    ?.let(Utf8UrlCodec::decodeFormComponent)
+                    ?.let(TextWhitespaceNormalizer::collapse)
+                    ?.takeIf { it.isNotEmpty() }
+            }
     }
 
     fun queryParamFromTemplate(searchTemplate: String): String? {
@@ -104,6 +119,28 @@ object SearchEngineUrlTools {
         }
     }
 
+    private fun SearchEngineConfig.matchesResultPath(
+        currentUri: URI,
+        templateUri: URI
+    ): Boolean {
+        val currentPath = normalizedPath(currentUri)
+        val configuredPaths = resultPathRules
+            .mapNotNull { pathRule -> normalizeConfiguredPath(pathRule) }
+            .distinct()
+        return if (configuredPaths.isEmpty()) {
+            currentPath == normalizedPath(templateUri)
+        } else {
+            currentPath in configuredPaths
+        }
+    }
+
+    private fun SearchEngineConfig.queryParameterCandidates(): List<String> {
+        return (listOf(queryParam) + commonQueryParams)
+            .map { value -> value.trim() }
+            .filter { value -> value.isNotEmpty() }
+            .distinct()
+    }
+
     private fun rawQueryParameter(rawQuery: String?, queryParameterName: String): String? {
         if (queryParameterName.isBlank()) {
             return null
@@ -133,7 +170,20 @@ object SearchEngineUrlTools {
     }
 
     private fun normalizedPath(uri: URI): String {
-        return uri.rawPath.orEmpty().ifEmpty { "/" }.trimEnd('/')
+        return uri.rawPath.orEmpty().ifEmpty { "/" }.trimEnd('/').ifEmpty { "/" }
+    }
+
+    private fun normalizeConfiguredPath(pathRule: String): String? {
+        val trimmed = pathRule.trim()
+        if (trimmed.isEmpty()) {
+            return null
+        }
+        return trimmed
+            .substringBefore("?")
+            .substringBefore("#")
+            .let { path -> if (path.startsWith("/")) path else "/$path" }
+            .trimEnd('/')
+            .ifEmpty { "/" }
     }
 
     private fun String?.normalizedHost(): String? {

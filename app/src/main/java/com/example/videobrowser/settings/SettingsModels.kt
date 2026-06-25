@@ -23,8 +23,11 @@ data class CustomSearchEngine(
     val searchTemplate: String = "${searchUrlPrefix}{keyword}",
     val queryParam: String = "",
     val domains: List<String> = emptyList(),
+    val resultPathRules: List<String> = emptyList(),
     val hideCss: List<String> = emptyList(),
-    val hidePageSearchBox: Boolean = false
+    val hidePageSearchBox: Boolean = false,
+    val extraJs: String? = null,
+    val enabled: Boolean = true
 )
 
 data class SitePermissionRecord(

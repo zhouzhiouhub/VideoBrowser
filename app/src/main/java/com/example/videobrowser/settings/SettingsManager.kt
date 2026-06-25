@@ -723,7 +723,10 @@ class SettingsManager(
         queryParam: String,
         domains: List<String>,
         hideCss: List<String>,
-        hidePageSearchBox: Boolean
+        hidePageSearchBox: Boolean,
+        resultPathRules: List<String> = emptyList(),
+        extraJs: String? = null,
+        enabled: Boolean = true
     ): Boolean {
         return customSearchEngineStore.add(
             name = name,
@@ -732,7 +735,10 @@ class SettingsManager(
             queryParam = queryParam,
             domains = domains,
             hideCss = hideCss,
-            hidePageSearchBox = hidePageSearchBox
+            hidePageSearchBox = hidePageSearchBox,
+            resultPathRules = resultPathRules,
+            extraJs = extraJs,
+            enabled = enabled
         )
     }
 
@@ -772,7 +778,10 @@ class SettingsManager(
         queryParam: String,
         domains: List<String>,
         hideCss: List<String>,
-        hidePageSearchBox: Boolean
+        hidePageSearchBox: Boolean,
+        resultPathRules: List<String> = emptyList(),
+        extraJs: String? = null,
+        enabled: Boolean = true
     ): Boolean {
         return customSearchEngineStore.update(
             engine = engine,
@@ -782,7 +791,10 @@ class SettingsManager(
             queryParam = queryParam,
             domains = domains,
             hideCss = hideCss,
-            hidePageSearchBox = hidePageSearchBox
+            hidePageSearchBox = hidePageSearchBox,
+            resultPathRules = resultPathRules,
+            extraJs = extraJs,
+            enabled = enabled
         )
     }
 

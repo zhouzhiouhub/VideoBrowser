@@ -806,7 +806,10 @@ class SettingsManagerTest {
                 queryParam = "q",
                 domains = listOf("m.so.com", "so.com"),
                 hideCss = listOf("form[action*=\"/s\"]"),
-                hidePageSearchBox = true
+                hidePageSearchBox = true,
+                resultPathRules = listOf("s", "/search?src=browser"),
+                extraJs = "document.documentElement.dataset.searchCleaned = '1';",
+                enabled = false
             )
         )
 
@@ -815,8 +818,11 @@ class SettingsManagerTest {
         assertEquals("https://m.so.com/s?q={keyword}", engine.searchTemplate)
         assertEquals("q", engine.queryParam)
         assertEquals(listOf("m.so.com", "so.com"), engine.domains)
+        assertEquals(listOf("/s", "/search"), engine.resultPathRules)
         assertEquals(listOf("form[action*=\"/s\"]"), engine.hideCss)
         assertTrue(engine.hidePageSearchBox)
+        assertEquals("document.documentElement.dataset.searchCleaned = '1';", engine.extraJs)
+        assertFalse(engine.enabled)
     }
 
     @Test

@@ -55,6 +55,7 @@ class SearchProvidersTest {
                     searchTemplate = "https://m.so.com/s?q={keyword}",
                     queryParam = "q",
                     domains = listOf("m.so.com", "so.com"),
+                    resultPathRules = listOf("/s"),
                     hideCss = listOf("form[action*=\"/s\"]"),
                     hidePageSearchBox = true
                 )
@@ -66,7 +67,24 @@ class SearchProvidersTest {
         assertEquals("https://m.so.com/s?q={keyword}", provider.searchTemplate)
         assertEquals("q", provider.queryParam)
         assertEquals(listOf("m.so.com", "so.com"), provider.domains)
+        assertEquals(listOf("/s"), provider.resultPathRules)
         assertTrue(provider.hidePageSearchBox)
+    }
+
+    @Test
+    fun all_filtersDisabledCustomSearchEngines() {
+        val providers = SearchProviders.all(
+            listOf(
+                CustomSearchEngine(
+                    id = "custom_disabled",
+                    name = "Disabled",
+                    searchUrlPrefix = "https://disabled.example.com/search?q=",
+                    enabled = false
+                )
+            )
+        )
+
+        assertTrue(providers.none { provider -> provider.id == "custom_disabled" })
     }
 
     @Test

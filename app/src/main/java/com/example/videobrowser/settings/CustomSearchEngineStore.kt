@@ -29,8 +29,11 @@ internal class CustomSearchEngineStore(
             searchTemplate = searchTemplate,
             queryParam = queryParamFromTemplate(searchTemplate).orEmpty(),
             domains = domainsFromTemplate(searchTemplate),
+            resultPathRules = emptyList(),
             hideCss = emptyList(),
-            hidePageSearchBox = false
+            hidePageSearchBox = false,
+            extraJs = null,
+            enabled = true
         )
     }
 
@@ -41,7 +44,10 @@ internal class CustomSearchEngineStore(
         queryParam: String,
         domains: List<String>,
         hideCss: List<String>,
-        hidePageSearchBox: Boolean
+        hidePageSearchBox: Boolean,
+        resultPathRules: List<String> = emptyList(),
+        extraJs: String? = null,
+        enabled: Boolean = true
     ): Boolean {
         val engine = normalize(
             id = generatedId(name, displayUrl, searchTemplate),
@@ -50,8 +56,11 @@ internal class CustomSearchEngineStore(
             searchTemplate = searchTemplate,
             queryParam = queryParam,
             domains = domains,
+            resultPathRules = resultPathRules,
             hideCss = hideCss,
-            hidePageSearchBox = hidePageSearchBox
+            hidePageSearchBox = hidePageSearchBox,
+            extraJs = extraJs,
+            enabled = enabled
         ) ?: return false
         val engines = load()
             .filterNot { existing ->
@@ -86,8 +95,11 @@ internal class CustomSearchEngineStore(
             searchTemplate = searchTemplate,
             queryParam = queryParamFromTemplate(searchTemplate).orEmpty(),
             domains = domainsFromTemplate(searchTemplate),
+            resultPathRules = emptyList(),
             hideCss = emptyList(),
-            hidePageSearchBox = false
+            hidePageSearchBox = false,
+            extraJs = null,
+            enabled = true
         )
     }
 
@@ -99,7 +111,10 @@ internal class CustomSearchEngineStore(
         queryParam: String,
         domains: List<String>,
         hideCss: List<String>,
-        hidePageSearchBox: Boolean
+        hidePageSearchBox: Boolean,
+        resultPathRules: List<String> = emptyList(),
+        extraJs: String? = null,
+        enabled: Boolean = true
     ): Boolean {
         val normalizedEngine = normalize(engine) ?: return false
         val updatedEngine = normalize(
@@ -109,8 +124,11 @@ internal class CustomSearchEngineStore(
             searchTemplate = searchTemplate,
             queryParam = queryParam,
             domains = domains,
+            resultPathRules = resultPathRules,
             hideCss = hideCss,
-            hidePageSearchBox = hidePageSearchBox
+            hidePageSearchBox = hidePageSearchBox,
+            extraJs = extraJs,
+            enabled = enabled
         ) ?: return false
         val engines = load().toMutableList()
         val index = engines.indexOfFirst { existing -> existing.id == normalizedEngine.id }
@@ -146,7 +164,24 @@ internal class CustomSearchEngineStore(
                 queryParam = fields[5],
                 domains = splitList(fields[6]),
                 hideCss = splitList(fields[7]),
-                hidePageSearchBox = fields[8].toBooleanStrictOrNull() ?: false
+                hidePageSearchBox = fields[8].toBooleanStrictOrNull() ?: false,
+                resultPathRules = emptyList(),
+                extraJs = null,
+                enabled = true
+            )
+
+            EXTENDED_FIELD_COUNT -> normalize(
+                id = fields[0],
+                name = fields[1],
+                displayUrl = fields[3],
+                searchTemplate = fields[4],
+                queryParam = fields[5],
+                domains = splitList(fields[6]),
+                hideCss = splitList(fields[7]),
+                hidePageSearchBox = fields[8].toBooleanStrictOrNull() ?: false,
+                resultPathRules = splitList(fields[9]),
+                extraJs = fields[10].takeIf { value -> value.isNotBlank() },
+                enabled = fields[11].toBooleanStrictOrNull() ?: true
             )
 
             else -> null
@@ -169,7 +204,10 @@ internal class CustomSearchEngineStore(
                         engine.queryParam,
                         joinList(engine.domains),
                         joinList(engine.hideCss),
-                        engine.hidePageSearchBox.toString()
+                        engine.hidePageSearchBox.toString(),
+                        joinList(engine.resultPathRules),
+                        engine.extraJs.orEmpty(),
+                        engine.enabled.toString()
                     )
                 )
             }
@@ -195,8 +233,11 @@ internal class CustomSearchEngineStore(
             searchTemplate = engine.searchTemplate,
             queryParam = engine.queryParam,
             domains = engine.domains,
+            resultPathRules = engine.resultPathRules,
             hideCss = engine.hideCss,
-            hidePageSearchBox = engine.hidePageSearchBox
+            hidePageSearchBox = engine.hidePageSearchBox,
+            extraJs = engine.extraJs,
+            enabled = engine.enabled
         )
     }
 
@@ -213,8 +254,11 @@ internal class CustomSearchEngineStore(
             searchTemplate = searchTemplate,
             queryParam = queryParamFromTemplate(searchTemplate).orEmpty(),
             domains = domainsFromTemplate(searchTemplate),
+            resultPathRules = emptyList(),
             hideCss = emptyList(),
-            hidePageSearchBox = false
+            hidePageSearchBox = false,
+            extraJs = null,
+            enabled = true
         )
     }
 
@@ -226,7 +270,10 @@ internal class CustomSearchEngineStore(
         queryParam: String,
         domains: List<String>,
         hideCss: List<String>,
-        hidePageSearchBox: Boolean
+        hidePageSearchBox: Boolean,
+        resultPathRules: List<String>,
+        extraJs: String?,
+        enabled: Boolean
     ): CustomSearchEngine? {
         val normalizedId = id.trim()
         val normalizedName = TextWhitespaceNormalizer.collapse(name)
@@ -241,9 +288,15 @@ internal class CustomSearchEngineStore(
             .mapNotNull(SiteHost::normalize)
             .ifEmpty { domainsFromTemplate(normalizedTemplate) }
             .distinct()
+        val normalizedResultPathRules = resultPathRules
+            .mapNotNull(::normalizeResultPathRule)
+            .distinct()
         val normalizedHideCss = hideCss
             .mapNotNull(SettingsCssSelectorNormalizer::normalize)
             .distinct()
+        val normalizedExtraJs = extraJs
+            ?.trim()
+            ?.takeIf { value -> value.isNotEmpty() }
         if (!CUSTOM_SEARCH_ENGINE_ID_REGEX.matches(normalizedId)) {
             return null
         }
@@ -264,8 +317,11 @@ internal class CustomSearchEngineStore(
             searchTemplate = normalizedTemplate,
             queryParam = normalizedQueryParam,
             domains = normalizedDomains,
+            resultPathRules = normalizedResultPathRules,
             hideCss = normalizedHideCss,
-            hidePageSearchBox = hidePageSearchBox && normalizedHideCss.isNotEmpty()
+            hidePageSearchBox = hidePageSearchBox && normalizedHideCss.isNotEmpty(),
+            extraJs = normalizedExtraJs,
+            enabled = enabled
         )
     }
 
@@ -344,9 +400,23 @@ internal class CustomSearchEngineStore(
         return values.joinToString(separator = LIST_SEPARATOR)
     }
 
+    private fun normalizeResultPathRule(value: String): String? {
+        val trimmed = value.trim()
+            .substringBefore("?")
+            .substringBefore("#")
+        if (trimmed.isEmpty()) {
+            return null
+        }
+        return trimmed
+            .let { path -> if (path.startsWith("/")) path else "/$path" }
+            .trimEnd('/')
+            .ifEmpty { "/" }
+    }
+
     private companion object {
         private const val LEGACY_FIELD_COUNT = 3
         private const val FIELD_COUNT = 9
+        private const val EXTENDED_FIELD_COUNT = 12
         private const val ID_RADIX = 36
         private const val KEYWORD_PLACEHOLDER = "{keyword}"
         private const val TEMPLATE_PARSE_VALUE = "videobrowser_keyword"

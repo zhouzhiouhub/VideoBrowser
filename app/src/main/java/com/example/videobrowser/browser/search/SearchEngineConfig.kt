@@ -10,7 +10,9 @@ data class SearchEngineConfig(
     val searchTemplate: String,
     val queryParam: String,
     val domains: List<String>,
+    val resultPathRules: List<String> = emptyList(),
     val hideCss: List<String> = emptyList(),
-    val hidePageSearchBox: Boolean = false
+    val hidePageSearchBox: Boolean = false,
+    val extraJs: String? = null,
+    val enabled: Boolean = true
 )
-
