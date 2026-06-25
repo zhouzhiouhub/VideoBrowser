@@ -12,8 +12,6 @@ internal data class SavedPageHistoryPageState(
 )
 
 internal data class SavedPageHistoryPageActions(
-    val onShowBookmarks: () -> Unit,
-    val onShowHistory: () -> Unit,
     val onSearch: () -> Unit,
     val onClearSearch: () -> Unit,
     val onSelectCategory: (SavedPageHistoryCategory) -> Unit,

@@ -178,6 +178,7 @@ class FunctionCenterPages(
         isPrivateBrowsingEnabled = isPrivateBrowsingEnabled,
         showHistory = ::showHistory,
         showPlaybackHistory = { playbackHistoryPage.show() },
+        showBookmarks = ::showBookmarks,
         showDownloads = { downloadsPage.show() },
         showFileOperationsPage = showFileOperationsPage,
         showSearchEngines = { searchEngineSettingsPage.show() },

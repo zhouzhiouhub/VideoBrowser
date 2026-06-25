@@ -15,7 +15,6 @@ internal class SavedPageHistoryPageController(
     private val dialogController: SavedPagesDialogController,
     private val loadUrl: (String) -> Unit,
     private val showRootPage: () -> Unit,
-    private val showSavedPageCollection: (SavedPageCollection) -> Unit,
     private val showHistoryPage: (
         title: String,
         emptyMessage: String,
@@ -105,14 +104,6 @@ internal class SavedPageHistoryPageController(
         query: String?
     ): SavedPageHistoryPageActions {
         return SavedPageHistoryPageActions(
-            onShowBookmarks = {
-                selectedHistoryUrls = emptySet()
-                showSavedPageCollection(SavedPageCollection.BOOKMARKS)
-            },
-            onShowHistory = {
-                selectedHistoryUrls = emptySet()
-                showHistoryPage(title, emptyMessage, true, query)
-            },
             onSearch = {
                 dialogController.showSearchDialog(
                     SavedPageCollection.HISTORY,

@@ -23,7 +23,6 @@ internal class SavedPageHistoryHeaderSection(
         state: SavedPageHistoryPageState,
         actions: SavedPageHistoryPageActions
     ) {
-        addCollectionSwitch(parent, actions)
         addSearchField(parent, state.query, actions)
         addCategoryTabs(parent, state.selectedCategory, actions)
     }
@@ -50,74 +49,6 @@ internal class SavedPageHistoryHeaderSection(
                 bottomMargin = dp(16)
             }
         )
-    }
-
-    private fun addCollectionSwitch(
-        parent: LinearLayout,
-        actions: SavedPageHistoryPageActions
-    ) {
-        parent.addView(
-            LinearLayout(activity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER
-                setPadding(dp(3), dp(3), dp(3), dp(3))
-                background = BrowserDrawableFactory.roundedBackground(
-                    ContextCompat.getColor(activity, R.color.browser_control_pressed),
-                    dp(18).toFloat()
-                )
-                addView(
-                    createCollectionSwitchItem(
-                        text = activity.getString(R.string.history_tab_bookmarks),
-                        selected = false,
-                        onClick = actions.onShowBookmarks
-                    )
-                )
-                addView(
-                    createCollectionSwitchItem(
-                        text = activity.getString(R.string.title_history),
-                        selected = true,
-                        onClick = actions.onShowHistory
-                    )
-                )
-            },
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                dp(42)
-            ).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = dp(18)
-            }
-        )
-    }
-
-    private fun createCollectionSwitchItem(
-        text: String,
-        selected: Boolean,
-        onClick: () -> Unit
-    ): TextView {
-        return TextView(activity).apply {
-            this.text = text
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            typeface = Typeface.DEFAULT_BOLD
-            textSize = 16f
-            setTextColor(
-                ContextCompat.getColor(
-                    activity,
-                    if (selected) R.color.browser_text else R.color.browser_text_hint
-                )
-            )
-            if (selected) {
-                background = BrowserDrawableFactory.roundedBackground(
-                    ContextCompat.getColor(activity, R.color.browser_surface),
-                    dp(16).toFloat()
-                )
-            }
-            isClickable = true
-            isFocusable = true
-            setOnClickListener { onClick() }
-            setPadding(dp(26), 0, dp(26), 0)
-        }
     }
 
     private fun addSearchField(

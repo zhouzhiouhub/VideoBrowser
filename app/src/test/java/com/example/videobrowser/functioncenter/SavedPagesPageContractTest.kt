@@ -240,8 +240,8 @@ class SavedPagesPageContractTest {
         assertTrue(historyContent.contains("fun addSelectionFooter("))
         assertTrue(historyContent.contains("selectionActionStrip.add("))
         assertTrue(historyHeader.contains("internal class SavedPageHistoryHeaderSection"))
-        assertTrue(historyHeader.contains("private fun addCollectionSwitch("))
-        assertTrue(historyHeader.contains("R.string.history_tab_bookmarks"))
+        assertFalse(historyHeader.contains("private fun addCollectionSwitch("))
+        assertFalse(historyHeader.contains("R.string.history_tab_bookmarks"))
         assertTrue(historyHeader.contains("R.string.history_search_hint"))
         assertTrue(historyHeader.contains("SavedPageHistoryCategory.values()"))
         assertTrue(historyHeader.contains("R.string.history_filter_all"))
@@ -261,12 +261,18 @@ class SavedPagesPageContractTest {
     }
 
     @Test
-    fun historyHeaderOwnsBookmarksSwitchSoProfileGridDoesNotDuplicateBookmarks() {
+    fun historyPageRemovesTopSwitchAndProfileGridKeepsBookmarks() {
         val historyHeader = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryHeaderSection.kt"
         ).readText()
+        val historyModels = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageModels.kt"
+        ).readText()
         val historyController = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageController.kt"
+        ).readText()
+        val pages = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterPages.kt"
         ).readText()
         val profileCatalog = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileActionCatalog.kt"
@@ -274,12 +280,25 @@ class SavedPagesPageContractTest {
         val profileSection = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileShortcutSection.kt"
         ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(historyHeader.contains("R.string.history_tab_bookmarks"))
-        assertTrue(historyHeader.contains("onClick = actions.onShowBookmarks"))
-        assertTrue(historyController.contains("showSavedPageCollection(SavedPageCollection.BOOKMARKS)"))
-        assertFalse(profileCatalog.contains("BOOKMARKS"))
-        assertFalse(profileSection.contains("showBookmarks"))
+        assertTrue(historyHeader.contains("addSearchField(parent, state.query, actions)"))
+        assertTrue(historyHeader.contains("addCategoryTabs(parent, state.selectedCategory, actions)"))
+        assertFalse(historyHeader.contains("addCollectionSwitch"))
+        assertFalse(historyHeader.contains("history_tab_bookmarks"))
+        assertFalse(historyHeader.contains("actions.onShowBookmarks"))
+        assertFalse(historyHeader.contains("actions.onShowHistory"))
+        assertFalse(historyModels.contains("onShowBookmarks"))
+        assertFalse(historyModels.contains("onShowHistory"))
+        assertFalse(historyController.contains("showSavedPageCollection(SavedPageCollection.BOOKMARKS)"))
+        assertFalse(strings.contains("history_tab_bookmarks"))
+        assertTrue(profileCatalog.contains("BOOKMARKS"))
+        assertTrue(profileSection.contains("private val showBookmarks: () -> Unit"))
+        assertTrue(profileSection.contains("FunctionCenterProfileAction.BOOKMARKS"))
+        assertTrue(profileSection.contains("R.string.title_bookmarks"))
+        assertTrue(profileSection.contains("R.string.action_show_bookmarks_summary"))
+        assertTrue(profileSection.contains("R.drawable.ic_star_24"))
+        assertTrue(pages.contains("showBookmarks = ::showBookmarks"))
     }
 
     @Test

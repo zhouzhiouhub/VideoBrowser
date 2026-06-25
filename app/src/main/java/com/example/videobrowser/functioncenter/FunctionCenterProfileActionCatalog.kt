@@ -10,6 +10,7 @@ package com.example.videobrowser.functioncenter
 enum class FunctionCenterProfileAction {
     HISTORY,
     PLAYBACK_HISTORY,
+    BOOKMARKS,
     DOWNLOADS,
     FILE_OPERATIONS,
     SEARCH_ENGINE,
@@ -29,6 +30,7 @@ object FunctionCenterProfileActionCatalog {
         return listOfNotNull(
             FunctionCenterProfileAction.HISTORY,
             FunctionCenterProfileAction.PLAYBACK_HISTORY,
+            FunctionCenterProfileAction.BOOKMARKS,
             FunctionCenterProfileAction.DOWNLOADS,
             FunctionCenterProfileAction.FILE_OPERATIONS,
             FunctionCenterProfileAction.SEARCH_ENGINE,

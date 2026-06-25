@@ -379,7 +379,6 @@
     <string name="history_clear_range_last_24_hours">最近 24 小时</string>
     <string name="history_clear_range_last_7_days">最近 7 天</string>
     <string name="history_clear_range_all">全部时间</string>
-    <string name="history_tab_bookmarks">书签</string>
     <string name="history_search_hint">搜索历史</string>
     <string name="history_category_search">搜索</string>
     <string name="history_category_url">网址</string>

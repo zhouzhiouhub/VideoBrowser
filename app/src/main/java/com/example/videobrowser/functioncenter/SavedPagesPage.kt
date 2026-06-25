@@ -40,7 +40,6 @@ class SavedPagesPage(
         dialogController = dialogController,
         loadUrl = loadUrl,
         showRootPage = showRootPage,
-        showSavedPageCollection = { collection -> showSavedPageCollection(collection) },
         showHistoryPage = { title, emptyMessage, replaceCurrent, query ->
             show(
                 collection = SavedPageCollection.HISTORY,
@@ -185,12 +184,4 @@ class SavedPagesPage(
         }
     }
 
-    private fun showSavedPageCollection(collection: SavedPageCollection) {
-        show(
-            collection = collection,
-            title = SavedPageCollectionDisplayText.title(activity, collection),
-            emptyMessage = SavedPageCollectionDisplayText.emptyMessage(activity, collection),
-            replaceCurrent = true
-        )
-    }
 }
