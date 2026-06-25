@@ -8,7 +8,6 @@ internal class FunctionCenterProfileShortcutSection(
     private val isPrivateBrowsingEnabled: () -> Boolean,
     private val showHistory: () -> Unit,
     private val showPlaybackHistory: () -> Unit,
-    private val showBookmarks: () -> Unit,
     private val showDownloads: () -> Unit,
     private val showFileOperationsPage: () -> Unit,
     private val showSearchEngines: () -> Unit,
@@ -47,14 +46,6 @@ internal class FunctionCenterProfileShortcutSection(
                     summary = activity.getString(R.string.action_show_playback_history_summary),
                     iconResId = R.drawable.ic_history_24
                 ) { showPlaybackHistory() }
-            }
-
-            FunctionCenterProfileAction.BOOKMARKS -> {
-                FunctionCenterGridAction(
-                    title = activity.getString(R.string.title_bookmarks),
-                    summary = activity.getString(R.string.action_show_bookmarks_summary),
-                    iconResId = R.drawable.ic_star_24
-                ) { showBookmarks() }
             }
 
             FunctionCenterProfileAction.DOWNLOADS -> {

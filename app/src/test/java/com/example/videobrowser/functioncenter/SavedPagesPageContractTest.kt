@@ -261,6 +261,28 @@ class SavedPagesPageContractTest {
     }
 
     @Test
+    fun historyHeaderOwnsBookmarksSwitchSoProfileGridDoesNotDuplicateBookmarks() {
+        val historyHeader = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryHeaderSection.kt"
+        ).readText()
+        val historyController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageController.kt"
+        ).readText()
+        val profileCatalog = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileActionCatalog.kt"
+        ).readText()
+        val profileSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileShortcutSection.kt"
+        ).readText()
+
+        assertTrue(historyHeader.contains("R.string.history_tab_bookmarks"))
+        assertTrue(historyHeader.contains("onClick = actions.onShowBookmarks"))
+        assertTrue(historyController.contains("showSavedPageCollection(SavedPageCollection.BOOKMARKS)"))
+        assertFalse(profileCatalog.contains("BOOKMARKS"))
+        assertFalse(profileSection.contains("showBookmarks"))
+    }
+
+    @Test
     fun historyLongPressUsesSelectionModeWithBatchDeleteActions() {
         val historyController = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageController.kt"

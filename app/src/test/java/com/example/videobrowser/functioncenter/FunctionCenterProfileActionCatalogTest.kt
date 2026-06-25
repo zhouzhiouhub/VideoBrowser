@@ -26,7 +26,6 @@ class FunctionCenterProfileActionCatalogTest {
             listOf(
                 "HISTORY",
                 "PLAYBACK_HISTORY",
-                "BOOKMARKS",
                 "DOWNLOADS",
                 "FILE_OPERATIONS",
                 "SEARCH_ENGINE",
@@ -35,6 +34,7 @@ class FunctionCenterProfileActionCatalogTest {
             ),
             actions
         )
+        assertFalse(actions.contains("BOOKMARKS"))
         assertFalse(actions.contains("BROWSER_SETTINGS"))
     }
 
@@ -53,7 +53,6 @@ class FunctionCenterProfileActionCatalogTest {
             listOf(
                 "HISTORY",
                 "PLAYBACK_HISTORY",
-                "BOOKMARKS",
                 "DOWNLOADS",
                 "FILE_OPERATIONS",
                 "SEARCH_ENGINE",
@@ -61,6 +60,7 @@ class FunctionCenterProfileActionCatalogTest {
             ),
             actions
         )
+        assertFalse(actions.contains("BOOKMARKS"))
         assertFalse(actions.contains("USER_MANUAL_RULES"))
     }
 }
