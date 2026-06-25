@@ -21,6 +21,10 @@
     return selectorList(state && state.config && state.config.domSelectors);
   };
 
+  cleanup.searchPageHideCss = cleanup.searchPageHideCss || function (state) {
+    return selectorList(state && state.config && state.config.searchPageHideCss);
+  };
+
   cleanup.hasUserCssSelectors = cleanup.hasUserCssSelectors || function (state) {
     return cleanup.userCssSelectors(state).length > 0;
   };
@@ -29,6 +33,7 @@
     const config = options || {};
     const selectors = (config.includeGenericSelectors ? genericCleanupSelectors.defaultSelectors() : [])
       .concat(config.includeRuleSelectors ? cleanup.cssSelectors(state) : [])
+      .concat(cleanup.searchPageHideCss(state))
       .concat(cleanup.userCssSelectors(state));
     styleManager.injectHideRules(selectors);
   };

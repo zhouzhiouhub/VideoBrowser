@@ -53,6 +53,7 @@ data class BrowserPageFeatureComponents(
  * @param fullscreenVideoController 参数类型为 `FullscreenVideoController`，表示 native bridge 更新视频全屏时间线时使用的控制器。
  * @param webPlaybackHistoryRecorder 参数类型为 `WebPlaybackHistoryRecorder`，表示 native bridge 记录网页播放历史的数据写入控制器。
  * @param isBuiltInSearchResultPage 参数类型为 `(String?) -> Boolean`，表示判断当前 URL 是否来自 App 内置搜索引擎结果页。
+ * @param searchPageHideCssForUrl 参数类型为 `(String?) -> List<String>`，表示读取搜索结果页内置搜索框隐藏选择器。
  * @param postToUi 参数类型为 `(() -> Unit) -> Unit`，表示把网页线程回调切回 Android UI 线程执行的函数。
  */
 class BrowserPageFeatureAssemblyController(
@@ -69,6 +70,7 @@ class BrowserPageFeatureAssemblyController(
     private val fullscreenVideoController: FullscreenVideoController,
     private val webPlaybackHistoryRecorder: WebPlaybackHistoryRecorder,
     private val isBuiltInSearchResultPage: (String?) -> Boolean,
+    private val searchPageHideCssForUrl: (String?) -> List<String>,
     private val postToUi: (() -> Unit) -> Unit
 ) {
     /**
@@ -92,7 +94,8 @@ class BrowserPageFeatureAssemblyController(
             currentPageUrl = {
                 browserSessionStateController.currentSessionController().currentPageUrl
             },
-            isBuiltInSearchResultPage = isBuiltInSearchResultPage
+            isBuiltInSearchResultPage = isBuiltInSearchResultPage,
+            searchPageHideCssForUrl = searchPageHideCssForUrl
         )
         val elementPickerController = ElementPickerController(
             activity = activity,

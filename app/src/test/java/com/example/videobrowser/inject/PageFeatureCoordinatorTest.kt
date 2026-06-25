@@ -156,6 +156,35 @@ class PageFeatureCoordinatorTest {
         assertTrue(evaluatedScripts.single().contains("\"builtInSearchResultPage\":true"))
     }
 
+    @Test
+    fun injectPageFeatures_passesSearchPageHideCssOnlyForSearchResultPages() {
+        val evaluatedScripts = mutableListOf<String>()
+        val coordinator = coordinatorFor(
+            settings = SettingsManager(InMemoryPreferenceStore()),
+            evaluatedScripts = evaluatedScripts,
+            currentSiteHost = "m.so.com",
+            currentPageUrl = "https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD",
+            isBuiltInSearchResultPage = { true },
+            searchPageHideCssForUrl = { listOf("form[action*=\"/s\"]") }
+        )
+
+        coordinator.injectPageFeatures()
+
+        assertTrue(evaluatedScripts.single().contains("\"searchPageHideCss\":[\"form[action*=\\\"/s\\\"]\"]"))
+
+        evaluatedScripts.clear()
+        coordinatorFor(
+            settings = SettingsManager(InMemoryPreferenceStore()),
+            evaluatedScripts = evaluatedScripts,
+            currentSiteHost = "example.com",
+            currentPageUrl = "https://example.com/",
+            isBuiltInSearchResultPage = { false },
+            searchPageHideCssForUrl = { listOf("form[action*=\"/s\"]") }
+        ).injectPageFeatures()
+
+        assertTrue(evaluatedScripts.single().contains("\"searchPageHideCss\":[]"))
+    }
+
     /**
      * 测试函数 `injectPageFeatures_doesNotRequestBrowserManagerWhenCurrentPageUrlIsSupplied`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject Page Features does Not Request Browser Manager When Current Page Url Is Supplied` 这条行为是否成立。
      *
@@ -215,7 +244,8 @@ class PageFeatureCoordinatorTest {
         evaluatedScripts: MutableList<String>,
         currentSiteHost: String?,
         currentPageUrl: String?,
-        isBuiltInSearchResultPage: (String?) -> Boolean = { false }
+        isBuiltInSearchResultPage: (String?) -> Boolean = { false },
+        searchPageHideCssForUrl: (String?) -> List<String> = { emptyList() }
     ): PageFeatureCoordinator {
         return PageFeatureCoordinator(
             settingsManager = settings,
@@ -223,7 +253,8 @@ class PageFeatureCoordinatorTest {
             jsInjector = jsInjectorFor(evaluatedScripts),
             currentSiteHost = { currentSiteHost },
             currentPageUrl = { currentPageUrl },
-            isBuiltInSearchResultPage = isBuiltInSearchResultPage
+            isBuiltInSearchResultPage = isBuiltInSearchResultPage,
+            searchPageHideCssForUrl = searchPageHideCssForUrl
         )
     }
 

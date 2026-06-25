@@ -71,7 +71,8 @@ class SearchProviderControllerContractTest {
         assertTrue(controller.contains("return builtInSearchResultPagePolicy.searchQueryFromUrl(url)"))
         assertTrue(controller.contains("return searchQueryFromUrl(url) ?: UrlUtils.displayUrl(url)"))
         assertTrue(controller.contains("UrlUtils.displayUrl(url)"))
-        assertTrue(policy.contains("provider.addressBarSearchUrlPrefixes.forEach"))
+        assertTrue(policy.contains("SearchEngineUrlTools.queryFromUrl(provider.config, normalizedUrl)"))
+        assertTrue(policy.contains("provider.addressBarSearchUrlPrefixes.any"))
         assertTrue(policy.contains("UrlUtils.searchQueryFromUrl(normalizedUrl, searchUrlPrefix)"))
         assertTrue(searchAssembly.contains("val builtInSearchResultPagePolicy = BuiltInSearchResultPagePolicy(providers)"))
         assertTrue(searchAssembly.contains("builtInSearchResultPagePolicy = builtInSearchResultPagePolicy"))
@@ -116,10 +117,19 @@ class SearchProviderControllerContractTest {
                 "browserSearch.builtInSearchResultPagePolicy::isBuiltInSearchResultUrl"
             )
         )
+        assertTrue(
+            startupAssembly.contains(
+                "browserSearch.builtInSearchResultPagePolicy::searchPageHideCssForUrl"
+            )
+        )
         assertTrue(pageFeatureAssembly.contains("private val isBuiltInSearchResultPage: (String?) -> Boolean"))
+        assertTrue(pageFeatureAssembly.contains("private val searchPageHideCssForUrl: (String?) -> List<String>"))
         assertTrue(pageFeatureAssembly.contains("isBuiltInSearchResultPage = isBuiltInSearchResultPage"))
+        assertTrue(pageFeatureAssembly.contains("searchPageHideCssForUrl = searchPageHideCssForUrl"))
         assertTrue(coordinator.contains("builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl)"))
+        assertTrue(coordinator.contains("searchPageHideCss = if (builtInSearchResultPage)"))
         assertTrue(injector.contains("val builtInSearchResultPage: Boolean = false"))
+        assertTrue(injector.contains("val searchPageHideCss: List<String> = emptyList()"))
     }
 
     @Test

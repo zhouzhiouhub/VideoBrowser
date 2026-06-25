@@ -68,6 +68,21 @@ class BuiltInSearchResultPagePolicyTest {
     }
 
     @Test
+    fun searchPageHideCssForUrl_returnsRulesOnlyForConfiguredSearchResults() {
+        val defaultPolicy = BuiltInSearchResultPagePolicy(SearchProviders.defaults)
+
+        assertTrue(
+            defaultPolicy.searchPageHideCssForUrl("https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD")
+                .contains("form[action*=\"/s\"]")
+        )
+        assertTrue(
+            defaultPolicy.searchPageHideCssForUrl("https://so.douyin.com/s?keyword=你好")
+                .contains("[role=\"search\"]")
+        )
+        assertTrue(defaultPolicy.searchPageHideCssForUrl("https://example.com/").isEmpty())
+    }
+
+    @Test
     fun isBuiltInSearchResultUrl_rejectsProviderHomesAndNormalPages() {
         assertTrue(
             policy.isBuiltInSearchResultUrl(

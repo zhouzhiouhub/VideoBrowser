@@ -15,6 +15,7 @@ data class PageFeatureConfig(
     val cleanupEnabled: Boolean,
     val videoEnabled: Boolean,
     val builtInSearchResultPage: Boolean = false,
+    val searchPageHideCss: List<String> = emptyList(),
     val cssSelectors: List<String> = emptyList(),
     val userCssSelectors: List<String> = emptyList(),
     val domSelectors: List<String> = emptyList(),
@@ -243,6 +244,8 @@ class JsInjector(
                 append(videoEnabled)
                 append(",\"builtInSearchResultPage\":")
                 append(builtInSearchResultPage)
+                append(",\"searchPageHideCss\":")
+                append(searchPageHideCss.toJsonArrayLiteral())
                 append(",\"cssSelectors\":")
                 append(cssSelectors.toJsonArrayLiteral())
                 append(",\"userCssSelectors\":")

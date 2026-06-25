@@ -43,6 +43,7 @@ class JsInjectorTest {
             script.contains(
                 "var config = {\"cleanupEnabled\":true,\"videoEnabled\":false," +
                     "\"builtInSearchResultPage\":false," +
+                    "\"searchPageHideCss\":[]," +
                     "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
                     "\"blockedUrlKeywords\":[],\"scriptletWindowOpenBlockedKeywords\":[]," +
                     "\"scriptletFetchBlockedKeywords\":[],\"scriptletSkipButtonsEnabled\":false," +
@@ -81,6 +82,7 @@ class JsInjectorTest {
             evaluatedScripts[1].contains(
                 "var config = {\"cleanupEnabled\":false,\"videoEnabled\":true," +
                     "\"builtInSearchResultPage\":false," +
+                    "\"searchPageHideCss\":[]," +
                     "\"cssSelectors\":[],\"userCssSelectors\":[],\"domSelectors\":[]," +
                     "\"blockedUrlKeywords\":[],\"scriptletWindowOpenBlockedKeywords\":[]," +
                     "\"scriptletFetchBlockedKeywords\":[],\"scriptletSkipButtonsEnabled\":false," +
@@ -397,6 +399,28 @@ class JsInjectorTest {
 
         val script = evaluatedScripts.single()
         assertTrue(script.contains("\"userCssSelectors\":[\".picked-ad\"]"))
+    }
+
+    @Test
+    fun inject_addsSearchPageHideCssToFeatureConfig() {
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = scriptLoaderFor(COMMON_SCRIPT),
+            evaluateJavascript = { script -> evaluatedScripts += script }
+        )
+
+        injector.inject(
+            PageFeatureConfig(
+                cleanupEnabled = true,
+                videoEnabled = false,
+                builtInSearchResultPage = true,
+                searchPageHideCss = listOf("form[action*=\"/s\"]")
+            )
+        )
+
+        val script = evaluatedScripts.single()
+        assertTrue(script.contains("\"builtInSearchResultPage\":true"))
+        assertTrue(script.contains("\"searchPageHideCss\":[\"form[action*=\\\"/s\\\"]\"]"))
     }
 
     /**

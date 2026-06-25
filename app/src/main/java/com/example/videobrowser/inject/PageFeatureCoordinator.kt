@@ -22,7 +22,8 @@ class PageFeatureCoordinator(
     private val jsInjector: JsInjector,
     private val currentSiteHost: () -> String?,
     private val currentPageUrl: () -> String?,
-    private val isBuiltInSearchResultPage: (String?) -> Boolean = { false }
+    private val isBuiltInSearchResultPage: (String?) -> Boolean = { false },
+    private val searchPageHideCssForUrl: (String?) -> List<String> = { emptyList() }
 ) {
     /**
      * 函数 `isAdBlockEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
@@ -132,12 +133,18 @@ class PageFeatureCoordinator(
     fun injectPageFeatures(onInjected: (() -> Unit)? = null) {
         // 每次页面加载完成后重新计算当前站点配置，确保站点级开关立即生效。
         val pageUrl = currentPageUrl() ?: browserManager().currentUrl()
+        val builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl)
         jsInjector.inject(
             PageFeatureConfig(
                 jsInjectionEnabled = isJsInjectionEnabled() && !isCurrentSiteJsInjectionDisabled(),
                 cleanupEnabled = isPageCleanupEnabled() && !isCurrentSitePageCleanupDisabled(),
                 videoEnabled = isVideoEnhancementEnabled() && !isCurrentSiteVideoEnhancementDisabled(),
-                builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl),
+                builtInSearchResultPage = builtInSearchResultPage,
+                searchPageHideCss = if (builtInSearchResultPage) {
+                    searchPageHideCssForUrl(pageUrl)
+                } else {
+                    emptyList()
+                },
                 userCssSelectors = settingsManager.userElementHideSelectorsForSite(currentSiteHost())
             ),
             pageUrl = pageUrl,

@@ -15,6 +15,7 @@
     if (!state.config || !state.config.builtInSearchResultPage) return false;
 
     const work = function () {
+      hideConfiguredSearchChrome(state.config.searchPageHideCss);
       hideEmbeddedSearchChrome();
     };
     if (typeof config.runWithMutationSuppressed === 'function') {
@@ -24,6 +25,18 @@
     }
     return true;
   };
+
+  function hideConfiguredSearchChrome(selectors) {
+    selectorTools.safeSelectorList(selectors).forEach(function (selector) {
+      selectorTools.queryAll(selector).forEach(function (element) {
+        if (isLikelyResultContent(element)) return;
+        domActions.hideElement(element, {
+          reason: 'configured-embedded-search-shell',
+          protectAppContainers: true
+        });
+      });
+    });
+  }
 
   function hideEmbeddedSearchChrome() {
     const roots = [];

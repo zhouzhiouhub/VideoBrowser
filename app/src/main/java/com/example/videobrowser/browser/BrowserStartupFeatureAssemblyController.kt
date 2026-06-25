@@ -157,6 +157,8 @@ class BrowserStartupFeatureAssemblyController(
             webPlaybackHistoryRecorder = browserPersistence.webPlaybackHistoryRecorder,
             isBuiltInSearchResultPage =
                 browserSearch.builtInSearchResultPagePolicy::isBuiltInSearchResultUrl,
+            searchPageHideCssForUrl =
+                browserSearch.builtInSearchResultPagePolicy::searchPageHideCssForUrl,
             postToUi = postToUi
         ).create()
 
