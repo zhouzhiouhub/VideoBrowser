@@ -104,4 +104,14 @@ class SearchEngineUrlToolsTest {
             )
         )
     }
+
+    @Test
+    fun resultPathRulesFromTemplate_returnsNormalizedTemplatePath() {
+        assertEquals(
+            listOf("/search"),
+            SearchEngineUrlTools.resultPathRulesFromTemplate(
+                "https://example.com/search/?q={keyword}"
+            )
+        )
+    }
 }

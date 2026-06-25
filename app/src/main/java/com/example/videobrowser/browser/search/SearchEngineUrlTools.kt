@@ -98,6 +98,11 @@ object SearchEngineUrlTools {
         return "$scheme://$host"
     }
 
+    fun resultPathRulesFromTemplate(searchTemplate: String): List<String> {
+        val uri = parseTemplateUri(searchTemplate) ?: return emptyList()
+        return listOf(normalizedPath(uri))
+    }
+
     fun templateFromPrefix(searchUrlPrefix: String): String? {
         val trimmed = searchUrlPrefix.trim()
         if (placeholders.any { token -> trimmed.contains(token) }) {

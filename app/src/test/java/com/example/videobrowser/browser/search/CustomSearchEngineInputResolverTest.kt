@@ -27,6 +27,7 @@ class CustomSearchEngineInputResolverTest {
         assertEquals("https://example.com/search?q={keyword}", config?.searchTemplate)
         assertEquals("q", config?.queryParam)
         assertEquals(listOf("example.com"), config?.domains)
+        assertEquals(listOf("/search"), config?.resultPathRules)
     }
 
     @Test
@@ -35,4 +36,3 @@ class CustomSearchEngineInputResolverTest {
         assertNull(CustomSearchEngineInputResolver.resolve("ftp://example.com/search?q=%s"))
     }
 }
-

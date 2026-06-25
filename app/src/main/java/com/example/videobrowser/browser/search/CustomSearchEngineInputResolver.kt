@@ -16,19 +16,9 @@ object CustomSearchEngineInputResolver {
             provider.matchesDisplayOrHomeUrl(normalizedInput)
         }?.let { provider -> return provider.config }
 
-        val searchTemplate = SearchEngineUrlTools.normalizeTemplate(normalizedInput) ?: return null
-        val queryParam = SearchEngineUrlTools.queryParamFromTemplate(searchTemplate) ?: return null
-        val displayUrl = SearchEngineUrlTools.displayUrlFromTemplate(searchTemplate) ?: return null
-        val domains = SearchEngineUrlTools.domainsFromTemplate(searchTemplate)
-        if (domains.isEmpty()) {
-            return null
-        }
-        return SearchEngineConfig(
+        return SearchEngineConfigFactory.fromTemplate(
             name = "",
-            displayUrl = displayUrl,
-            searchTemplate = searchTemplate,
-            queryParam = queryParam,
-            domains = domains,
+            searchTemplate = normalizedInput,
             hidePageSearchBox = false
         )
     }
@@ -53,4 +43,3 @@ object CustomSearchEngineInputResolver {
         return "$scheme://$host$port$path"
     }
 }
-
