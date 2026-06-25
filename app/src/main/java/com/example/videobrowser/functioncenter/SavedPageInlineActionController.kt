@@ -28,6 +28,11 @@ internal class SavedPageInlineActionController(
         emptyMessage: String,
         query: String?
     ) {
+        if (collection == SavedPageCollection.HISTORY) {
+            addCopyAction(section, page)
+            addRemoveAction(section, collection, page, title, emptyMessage, query)
+            return
+        }
         host.contentFactory.addActionRow(
             parent = section,
             title = activity.getString(R.string.action_edit),
@@ -51,13 +56,7 @@ internal class SavedPageInlineActionController(
         ) {
             openUrlInNewTab(page.url)
         }
-        host.contentFactory.addActionRow(
-            parent = section,
-            title = activity.getString(R.string.action_copy_link),
-            summary = activity.getString(R.string.action_copy_saved_page_link_summary)
-        ) {
-            linkActions.copyUrl(page)
-        }
+        addCopyAction(section, page)
         host.contentFactory.addActionRow(
             parent = section,
             title = activity.getString(R.string.action_share_page),
@@ -65,15 +64,46 @@ internal class SavedPageInlineActionController(
         ) {
             linkActions.shareUrl(page)
         }
+        addRemoveAction(section, collection, page, title, emptyMessage, query)
+    }
+
+    private fun addCopyAction(section: LinearLayout, page: SavedPage) {
+        host.contentFactory.addActionRow(
+            parent = section,
+            title = activity.getString(R.string.action_copy_link),
+            summary = activity.getString(R.string.action_copy_saved_page_link_summary)
+        ) {
+            linkActions.copyUrl(page)
+        }
+    }
+
+    private fun addRemoveAction(
+        section: LinearLayout,
+        collection: SavedPageCollection,
+        page: SavedPage,
+        title: String,
+        emptyMessage: String,
+        query: String?
+    ) {
         host.contentFactory.addActionRow(
             parent = section,
             title = activity.getString(R.string.action_remove),
             summary = activity.getString(R.string.action_remove_saved_page_summary)
         ) {
-            if (savedPageRepository.remove(collection, page.url)) {
-                ShortToast.show(activity, R.string.toast_saved_page_removed)
-                refreshSavedPagesPage(collection, title, emptyMessage, query)
-            }
+            removePage(collection, page, title, emptyMessage, query)
+        }
+    }
+
+    private fun removePage(
+        collection: SavedPageCollection,
+        page: SavedPage,
+        title: String,
+        emptyMessage: String,
+        query: String?
+    ) {
+        if (savedPageRepository.remove(collection, page.url)) {
+            ShortToast.show(activity, R.string.toast_saved_page_removed)
+            refreshSavedPagesPage(collection, title, emptyMessage, query)
         }
     }
 }

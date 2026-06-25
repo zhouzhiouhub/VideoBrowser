@@ -194,6 +194,21 @@ class SavedPagesPageContractTest {
         assertFalse(dialogController.contains("ActionListDialog.show("))
     }
 
+    @Test
+    fun historyLongPressOnlyShowsCopyAndRemoveActions() {
+        val inlineActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
+        ).readText()
+        val historyBranch = historyBranchBody(inlineActions)
+
+        assertTrue(historyBranch.contains("addCopyAction(section, page)"))
+        assertTrue(historyBranch.contains("addRemoveAction(section, collection, page, title, emptyMessage, query)"))
+        assertFalse(historyBranch.contains("showRenameSavedPageDialog"))
+        assertFalse(historyBranch.contains("action_open_in_new_tab"))
+        assertFalse(historyBranch.contains("action_share_page"))
+        assertFalse(historyBranch.contains("action_move_bookmark_folder"))
+    }
+
     /**
      * 测试函数 `savedPagesPageCanRenameBookmarks`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `saved Pages Page Can Rename Bookmarks` 这条行为是否成立。
      *
@@ -275,8 +290,29 @@ class SavedPagesPageContractTest {
         assertTrue(strings.contains("title_move_bookmark_folder"))
         assertTrue(strings.contains("hint_bookmark_folder"))
         assertTrue(strings.contains("toast_bookmark_folder_updated"))
-        assertTrue(readme.contains("长按单条记录可在页面内展开编辑标题、新标签打开、复制、分享和移除等操作"))
+        assertTrue(readme.contains("历史记录长按只保留复制链接和移除"))
         assertTrue(readme.contains("收藏夹支持文件夹分组、导入和导出"))
+    }
+
+    private fun historyBranchBody(source: String): String {
+        val marker = "if (collection == SavedPageCollection.HISTORY)"
+        val start = source.indexOf(marker)
+        assertTrue(start >= 0)
+        val bodyStart = source.indexOf('{', start)
+        assertTrue(bodyStart >= 0)
+        var depth = 0
+        for (index in bodyStart until source.length) {
+            when (source[index]) {
+                '{' -> depth += 1
+                '}' -> {
+                    depth -= 1
+                    if (depth == 0) {
+                        return source.substring(bodyStart, index + 1)
+                    }
+                }
+            }
+        }
+        error("Unclosed history branch")
     }
 
 }
