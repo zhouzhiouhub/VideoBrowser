@@ -813,6 +813,97 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun customSearchEngines_canBeRemoved() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+        assertTrue(settings.addCustomSearchEngine("Video", "https://video.example.com/search?q="))
+        assertTrue(settings.addCustomSearchEngine("Docs", "https://docs.example.com/search?q="))
+
+        val video = settings.customSearchEngines().first { engine -> engine.name == "Video" }
+        assertTrue(
+            settings.removeCustomSearchEngine(
+                video.copy(
+                    name = " Video ",
+                    searchUrlPrefix = " https://video.example.com/search?q= "
+                )
+            )
+        )
+        assertFalse(
+            settings.removeCustomSearchEngine(
+                CustomSearchEngine(
+                    id = "custom_missing",
+                    name = "Missing",
+                    searchUrlPrefix = "https://missing.example.com/search?q="
+                )
+            )
+        )
+
+        assertEquals(
+            listOf("Docs"),
+            settings.customSearchEngines().map { engine -> engine.name }
+        )
+    }
+
+    @Test
+    fun customSearchEngines_canBeUpdatedInPlace() {
+        val settings = SettingsManager(InMemoryPreferenceStore())
+        assertTrue(settings.addCustomSearchEngine("Video", "https://video.example.com/search?q="))
+        assertTrue(settings.addCustomSearchEngine("Docs", "https://docs.example.com/search?q="))
+
+        val video = settings.customSearchEngines().first { engine -> engine.name == "Video" }
+        assertTrue(
+            settings.updateCustomSearchEngine(
+                video.copy(
+                    name = " Video ",
+                    searchUrlPrefix = " https://video.example.com/search?q= "
+                ),
+                " Movies ",
+                " https://movies.example.com/search?q= "
+            )
+        )
+
+        val updatedEngines = settings.customSearchEngines()
+        assertEquals(video.id, updatedEngines.first().id)
+        assertEquals(
+            listOf("Movies", "Docs"),
+            updatedEngines.map { engine -> engine.name }
+        )
+        assertEquals(
+            "https://movies.example.com/search?q=",
+            updatedEngines.first().searchUrlPrefix
+        )
+        assertFalse(
+            settings.updateCustomSearchEngine(
+                CustomSearchEngine(
+                    id = "custom_missing",
+                    name = "Missing",
+                    searchUrlPrefix = "https://missing.example.com/search?q="
+                ),
+                "Missing 2",
+                "https://missing.example.com/2?q="
+            )
+        )
+        assertFalse(
+            settings.updateCustomSearchEngine(
+                updatedEngines.first(),
+                "",
+                "https://movies.example.com/search?q="
+            )
+        )
+        assertFalse(
+            settings.updateCustomSearchEngine(
+                updatedEngines.first(),
+                "Docs",
+                "https://docs.example.com/search?q="
+            )
+        )
+
+        assertEquals(
+            listOf("Movies", "Docs"),
+            settings.customSearchEngines().map { engine -> engine.name }
+        )
+    }
+
+    @Test
     fun customSearchEngines_rejectInvalidInputAndFilterCorruptStorage() {
         val store = InMemoryPreferenceStore()
         val settings = SettingsManager(store)

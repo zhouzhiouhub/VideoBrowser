@@ -43,6 +43,9 @@ class BrowserSettingsPageContractTest {
         val searchEnginePage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SearchEngineSettingsPage.kt"
         ).readText()
+        val customSearchEnginePage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CustomSearchEngineSettingsPage.kt"
+        ).readText()
         val profileCatalog = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterProfileActionCatalog.kt"
         ).readText()
@@ -73,12 +76,24 @@ class BrowserSettingsPageContractTest {
         assertTrue(searchEnginePage.contains("availableSearchProviders()"))
         assertTrue(searchEnginePage.contains("currentSearchProviderId()"))
         assertTrue(searchEnginePage.contains("selectSearchProvider(provider.id)"))
+        assertTrue(searchEnginePage.contains("settingsManager.customSearchEngines().associateBy"))
+        assertTrue(searchEnginePage.contains("customSearchEngineSettingsPage.show(customEngine)"))
         assertTrue(searchEnginePage.contains("host.gridFactory.addActionGrid("))
         assertTrue(searchEnginePage.contains("TwoTextInputDialog.show("))
         assertTrue(searchEnginePage.contains("settingsManager.addCustomSearchEngine(values.first, values.second)"))
         assertFalse(searchEnginePage.contains("SingleChoiceDialog.show("))
+        assertTrue(customSearchEnginePage.contains("host.showPage("))
+        assertTrue(customSearchEnginePage.contains("TwoTextInputDialog.show("))
+        assertTrue(customSearchEnginePage.contains("ConfirmationDialog.show("))
+        assertTrue(customSearchEnginePage.contains("settingsManager.updateCustomSearchEngine(engine, values.first, values.second)"))
+        assertTrue(customSearchEnginePage.contains("settingsManager.removeCustomSearchEngine(engine)"))
+        assertTrue(customSearchEnginePage.contains("selectSearchProvider(updatedEngine.id)"))
+        assertTrue(customSearchEnginePage.contains("selectSearchProvider(SettingsManager.DEFAULT_SEARCH_ENGINE_ID)"))
+        assertFalse(customSearchEnginePage.contains("SingleChoiceDialog.show("))
         assertTrue(settings.contains("fun customSearchEngines(): List<CustomSearchEngine>"))
         assertTrue(settings.contains("fun addCustomSearchEngine(name: String, searchUrlPrefix: String): Boolean"))
+        assertTrue(settings.contains("fun updateCustomSearchEngine("))
+        assertTrue(settings.contains("fun removeCustomSearchEngine(engine: CustomSearchEngine): Boolean"))
         assertTrue(searchProviderController.contains("fun selectDefaultSearchProvider(providerId: String): Boolean"))
         assertTrue(searchProviderController.contains("fun availableProviders(): List<SearchProvider>"))
         assertTrue(searchProviderController.contains("settingsManager.setSearchEngineId(provider.id)"))
@@ -99,8 +114,12 @@ class BrowserSettingsPageContractTest {
         assertTrue(strings.contains("setting_search_engine"))
         assertTrue(strings.contains("action_search_engine_short"))
         assertTrue(strings.contains("title_add_custom_search_engine"))
+        assertTrue(strings.contains("title_edit_custom_search_engine"))
+        assertTrue(strings.contains("title_remove_custom_search_engine"))
         assertTrue(strings.contains("toast_search_engine_updated"))
         assertTrue(strings.contains("toast_custom_search_engine_added"))
+        assertTrue(strings.contains("toast_custom_search_engine_updated"))
+        assertTrue(strings.contains("toast_custom_search_engine_removed"))
     }
 
     /**

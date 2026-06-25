@@ -4,6 +4,7 @@ import android.text.InputType
 import android.widget.LinearLayout
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.search.SearchProvider
+import com.example.videobrowser.settings.CustomSearchEngine
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.utils.DensityPixelConverter
 import com.example.videobrowser.utils.ShortToast
@@ -19,10 +20,20 @@ class SearchEngineSettingsPage(
     private val showProfilePage: () -> Unit
 ) {
     private val activity = host.activity
+    private val customSearchEngineSettingsPage = CustomSearchEngineSettingsPage(
+        host = host,
+        settingsManager = settingsManager,
+        currentSearchProviderId = currentSearchProviderId,
+        selectSearchProvider = selectSearchProvider,
+        showSearchEngineSettingsPage = { show(replaceCurrent = true) }
+    )
 
     fun show(replaceCurrent: Boolean = false) {
         val providers = availableSearchProviders()
         val selectedProviderId = currentSearchProviderId()
+        val customEnginesById = settingsManager.customSearchEngines().associateBy { engine ->
+            engine.id
+        }
         host.showPage(
             title = activity.getString(R.string.setting_search_engine),
             onBack = showProfilePage,
@@ -33,7 +44,12 @@ class SearchEngineSettingsPage(
                 activity.getString(R.string.function_center_section_settings)
             ) { section ->
                 providers.forEach { provider ->
-                    addProviderRow(section, provider, selectedProviderId)
+                    addProviderRow(
+                        section = section,
+                        provider = provider,
+                        selectedProviderId = selectedProviderId,
+                        customEngine = customEnginesById[provider.id]
+                    )
                 }
             }
             addCustomSearchEngineButton(content)
@@ -43,7 +59,8 @@ class SearchEngineSettingsPage(
     private fun addProviderRow(
         section: LinearLayout,
         provider: SearchProvider,
-        selectedProviderId: String
+        selectedProviderId: String,
+        customEngine: CustomSearchEngine?
     ) {
         val selected = provider.id == selectedProviderId
         host.contentFactory.addActionRow(
@@ -58,6 +75,10 @@ class SearchEngineSettingsPage(
                 provider.searchUrlPrefix
             }
         ) {
+            if (customEngine != null) {
+                customSearchEngineSettingsPage.show(customEngine)
+                return@addActionRow
+            }
             if (!selected && selectSearchProvider(provider.id)) {
                 ShortToast.show(activity, R.string.toast_search_engine_updated)
                 show(replaceCurrent = true)

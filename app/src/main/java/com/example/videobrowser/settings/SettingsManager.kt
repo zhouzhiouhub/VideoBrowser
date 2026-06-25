@@ -708,6 +708,34 @@ class SettingsManager(
     }
 
     /**
+     * 函数 `removeCustomSearchEngine`：封装 `remove Custom Search Engine` 这一段业务步骤，让调用方不用关心内部实现细节。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param engine 参数类型为 `CustomSearchEngine`，表示函数执行 `engine` 相关逻辑时需要读取或处理的输入。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
+    fun removeCustomSearchEngine(engine: CustomSearchEngine): Boolean {
+        return customSearchEngineStore.remove(engine)
+    }
+
+    /**
+     * 函数 `updateCustomSearchEngine`：根据最新状态刷新 `update Custom Search Engine` 相关数据或界面，让调用方看到一致结果。
+     *
+     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
+     * @param engine 参数类型为 `CustomSearchEngine`，表示函数执行 `engine` 相关逻辑时需要读取或处理的输入。
+     * @param name 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
+     * @param searchUrlPrefix 参数类型为 `String`，表示搜索 URL 前缀，地址栏会在后面追加编码后的关键词。
+     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
+     */
+    fun updateCustomSearchEngine(
+        engine: CustomSearchEngine,
+        name: String,
+        searchUrlPrefix: String
+    ): Boolean {
+        return customSearchEngineStore.update(engine, name, searchUrlPrefix)
+    }
+
+    /**
      * 函数 `isDesktopModeEnabled`：根据当前对象和传入参数计算布尔判断结果，调用方会用这个结果决定后续分支。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。

@@ -33,6 +33,52 @@ internal class CustomSearchEngineStore(
         return true
     }
 
+    fun remove(engine: CustomSearchEngine): Boolean {
+        val normalizedEngine = normalize(
+            id = engine.id,
+            name = engine.name,
+            searchUrlPrefix = engine.searchUrlPrefix
+        ) ?: return false
+        val engines = load()
+        val remainingEngines = engines.filterNot { existing ->
+            existing.id == normalizedEngine.id
+        }
+        if (remainingEngines.size == engines.size) {
+            return false
+        }
+
+        save(remainingEngines)
+        return true
+    }
+
+    fun update(engine: CustomSearchEngine, name: String, searchUrlPrefix: String): Boolean {
+        val normalizedEngine = normalize(
+            id = engine.id,
+            name = engine.name,
+            searchUrlPrefix = engine.searchUrlPrefix
+        ) ?: return false
+        val updatedEngine = normalize(
+            id = normalizedEngine.id,
+            name = name,
+            searchUrlPrefix = searchUrlPrefix
+        ) ?: return false
+        val engines = load().toMutableList()
+        val index = engines.indexOfFirst { existing -> existing.id == normalizedEngine.id }
+        if (index < 0) {
+            return false
+        }
+        if (engines.withIndex().any { (engineIndex, existing) ->
+                engineIndex != index && hasSameDefinition(existing, updatedEngine)
+            }
+        ) {
+            return false
+        }
+
+        engines[index] = updatedEngine
+        save(engines)
+        return true
+    }
+
     private fun parseLine(line: String): CustomSearchEngine? {
         val fields = TabSeparatedLineCodec.splitFields(line)
         if (fields.size != FIELD_COUNT) {

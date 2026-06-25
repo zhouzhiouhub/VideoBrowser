@@ -18,6 +18,9 @@ class TwoTextInputDialogContractTest {
         val searchEngineSettingsPage = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SearchEngineSettingsPage.kt"
         ).readText()
+        val customSearchEngineSettingsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CustomSearchEngineSettingsPage.kt"
+        ).readText()
         val httpAuthController = projectFile(
             "src/main/java/com/example/videobrowser/browser/HttpAuthController.kt"
         ).readText()
@@ -31,8 +34,14 @@ class TwoTextInputDialogContractTest {
 
         assertTrue(searchProviderDialogs.contains("TwoTextInputDialog.show("))
         assertTrue(searchEngineSettingsPage.contains("TwoTextInputDialog.show("))
+        assertTrue(customSearchEngineSettingsPage.contains("TwoTextInputDialog.show("))
         assertTrue(httpAuthController.contains("TwoTextInputDialog.create("))
-        listOf(searchProviderDialogs, searchEngineSettingsPage, httpAuthController).forEach { source ->
+        listOf(
+            searchProviderDialogs,
+            searchEngineSettingsPage,
+            customSearchEngineSettingsPage,
+            httpAuthController
+        ).forEach { source ->
             assertFalse(source.contains("EditText(activity)"))
             assertFalse(source.contains("LinearLayout(activity)"))
             assertFalse(source.contains("AlertDialog.Builder(activity)"))

@@ -46,6 +46,9 @@ class ConfirmationDialogContractTest {
         val searchProviderDialogs = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProviderDialogController.kt"
         ).readText()
+        val customSearchEngineSettingsPage = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/CustomSearchEngineSettingsPage.kt"
+        ).readText()
         val elementPickerController = projectFile(
             "src/main/java/com/example/videobrowser/element/ElementPickerController.kt"
         ).readText()
@@ -66,7 +69,8 @@ class ConfirmationDialogContractTest {
             localDocumentOperations,
             downloadEnqueueController,
             browserNavigationController,
-            searchProviderDialogs
+            searchProviderDialogs,
+            customSearchEngineSettingsPage
         ).plus(simpleConfirmationPages).forEach { source ->
             assertTrue(source.contains("ConfirmationDialog.show("))
             assertFalse(source.contains("private fun showConfirmationDialog("))
@@ -84,6 +88,7 @@ class ConfirmationDialogContractTest {
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(downloadEnqueueController).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(browserNavigationController).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(searchProviderDialogs).count())
+        assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(customSearchEngineSettingsPage).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(elementPickerController).count())
         simpleConfirmationPages.forEach { source ->
             assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(source).count())
