@@ -57,6 +57,20 @@ class FunctionCenterPageHost(
         }
     }
 
+    fun showPageWithFooter(
+        title: String,
+        onBack: () -> Unit,
+        replaceCurrent: Boolean,
+        buildContent: (LinearLayout) -> Unit,
+        buildFooter: (LinearLayout) -> Unit
+    ) {
+        if (replaceCurrent) {
+            functionCenter.replacePageWithFooter(title, onBack, buildContent, buildFooter)
+        } else {
+            functionCenter.showPageWithFooter(title, onBack, buildContent, buildFooter)
+        }
+    }
+
     /**
      * 函数 `replacePage`：封装 `replace Page` 这一段业务步骤，让调用方不用关心内部实现细节。
      *

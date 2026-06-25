@@ -163,6 +163,9 @@ class SavedPagesPageContractTest {
         val page = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
         ).readText()
+        val historyController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageController.kt"
+        ).readText()
         val recordSection = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageRecordSection.kt"
         ).readText()
@@ -196,49 +199,109 @@ class SavedPagesPageContractTest {
 
     @Test
     fun historyRecordsUseDedicatedCompactTimelineStyle() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        ).readText()
+        val historyController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageController.kt"
+        ).readText()
         val recordSection = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageRecordSection.kt"
         ).readText()
-        val historySection = projectFile(
-            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryRecordSection.kt"
+        val historyContent = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageContent.kt"
+        ).readText()
+        val historyHeader = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryHeaderSection.kt"
+        ).readText()
+        val historyList = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryListSection.kt"
+        ).readText()
+        val historyModels = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageModels.kt"
+        ).readText()
+        val historyCategory = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryCategory.kt"
         ).readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(recordSection.contains("private val historyRecordSection = SavedPageHistoryRecordSection("))
-        assertTrue(recordSection.contains("historyRecordSection.add("))
-        assertTrue(historySection.contains("R.string.history_filter_all"))
-        assertTrue(historySection.contains("private fun addDateChip("))
-        assertTrue(historySection.contains("SimpleDateFormat(\"yyyy-MM-dd E\", Locale.CHINA)"))
-        assertTrue(historySection.contains("SimpleDateFormat(\"HH:mm\", Locale.CHINA)"))
-        assertTrue(historySection.contains("private fun createSelectedMarker()"))
-        assertTrue(historySection.contains("if (selected) {"))
-        assertTrue(historySection.contains("inlineActionController.addActions("))
+        assertTrue(page.contains("private val historyPageController = SavedPageHistoryPageController("))
+        assertTrue(page.contains("if (collection == SavedPageCollection.HISTORY)"))
+        assertTrue(page.contains("historyPageController.show("))
+        assertTrue(page.contains("historyPageController.reset()"))
+        assertTrue(historyController.contains("private val historyPageContent = SavedPageHistoryPageContent(host)"))
+        assertTrue(historyController.contains("host.showPageWithFooter("))
+        assertTrue(historyController.contains("selectedHistoryCategory = SavedPageHistoryCategory.SEARCH"))
+        assertTrue(historyController.contains("selectedHistoryUrls: Set<String> = emptySet()"))
+        assertFalse(recordSection.contains("SavedPageHistoryRecordSection"))
+        assertTrue(historyContent.contains("internal class SavedPageHistoryPageContent"))
+        assertTrue(historyContent.contains("SavedPageHistoryHeaderSection(host)"))
+        assertTrue(historyContent.contains("SavedPageHistoryListSection(host)"))
+        assertTrue(historyContent.contains("fun addSelectionFooter("))
+        assertTrue(historyContent.contains("selectionActionStrip.add("))
+        assertTrue(historyHeader.contains("internal class SavedPageHistoryHeaderSection"))
+        assertTrue(historyHeader.contains("private fun addCollectionSwitch("))
+        assertTrue(historyHeader.contains("R.string.history_tab_bookmarks"))
+        assertTrue(historyHeader.contains("R.string.history_search_hint"))
+        assertTrue(historyHeader.contains("SavedPageHistoryCategory.values()"))
+        assertTrue(historyHeader.contains("R.string.history_filter_all"))
+        assertTrue(historyList.contains("internal class SavedPageHistoryListSection"))
+        assertTrue(historyList.contains("private fun addDateChip("))
+        assertTrue(historyList.contains("SimpleDateFormat(\"yyyy-MM-dd E\", Locale.CHINA)"))
+        assertTrue(historyList.contains("SimpleDateFormat(\"HH:mm\", Locale.CHINA)"))
+        assertTrue(historyList.contains("private fun createSelectionBox("))
+        assertTrue(historyModels.contains("internal data class SavedPageHistoryPageState"))
+        assertTrue(historyModels.contains("internal data class SavedPageHistoryPageActions"))
+        assertTrue(historyCategory.contains("internal enum class SavedPageHistoryCategory"))
+        assertTrue(historyCategory.contains("MediaUrlUtils.isPlayableMediaUri(page.url)"))
         assertTrue(strings.contains("history_filter_all"))
         assertTrue(strings.contains("history_date_unknown"))
+        assertTrue(strings.contains("history_search_hint"))
+        assertTrue(strings.contains("history_category_video"))
     }
 
     @Test
-    fun historyLongPressOnlyShowsCopyAndRemoveActions() {
+    fun historyLongPressUsesSelectionModeWithBatchDeleteActions() {
+        val historyController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageController.kt"
+        ).readText()
         val inlineActions = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
+        ).readText()
+        val historyContent = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryPageContent.kt"
+        ).readText()
+        val historyList = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistoryListSection.kt"
         ).readText()
         val actionStrip = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageHistorySelectionActionStrip.kt"
         ).readText()
-        val historyBranch = historyBranchBody(inlineActions)
+        val repository = projectFile(
+            "src/main/java/com/example/videobrowser/storage/SavedPageRepository.kt"
+        ).readText()
+        val strings = projectFile("src/main/res/values/strings.xml").readText()
 
-        assertTrue(historyBranch.contains("addHistorySelectionActions(section, collection, page, title, emptyMessage, query)"))
-        assertTrue(inlineActions.contains("SavedPageHistorySelectionActionStrip(host)"))
-        assertTrue(inlineActions.contains("historySelectionActionStrip.add("))
-        assertTrue(actionStrip.contains("private fun createButton("))
-        assertTrue(actionStrip.contains("R.string.action_copy_link"))
-        assertTrue(actionStrip.contains("R.string.action_remove"))
-        assertTrue(inlineActions.contains("linkActions.copyUrl(page)"))
-        assertTrue(inlineActions.contains("removePage(collection, page, title, emptyMessage, query)"))
-        assertFalse(historyBranch.contains("showRenameSavedPageDialog"))
-        assertFalse(historyBranch.contains("action_open_in_new_tab"))
-        assertFalse(historyBranch.contains("action_share_page"))
-        assertFalse(historyBranch.contains("action_move_bookmark_folder"))
+        assertTrue(historyList.contains("setOnLongClickListener {"))
+        assertTrue(historyList.contains("actions.onToggleSelection(page)"))
+        assertTrue(historyList.contains("createSelectionBox(selected)"))
+        assertTrue(historyContent.contains("onSelectAll = { actions.onSelectAll(state.visiblePages) }"))
+        assertTrue(historyContent.contains("onDelete = actions.onDeleteSelected"))
+        assertTrue(historyContent.contains("onDone = actions.onClearSelection"))
+        assertTrue(actionStrip.contains("R.string.action_select_all"))
+        assertTrue(actionStrip.contains("R.string.action_delete"))
+        assertTrue(actionStrip.contains("R.string.action_done"))
+        assertTrue(historyController.contains("private fun toggleHistorySelection("))
+        assertTrue(historyController.contains("selectedHistoryUrls + url"))
+        assertTrue(historyController.contains("private fun deleteSelectedHistory("))
+        assertTrue(historyController.contains("savedPageRepository.removeAll("))
+        assertTrue(repository.contains("fun removeAll(collection: SavedPageCollection, urls: Iterable<String>): Int"))
+        assertFalse(inlineActions.contains("SavedPageHistorySelectionActionStrip(host)"))
+        assertFalse(inlineActions.contains("if (collection == SavedPageCollection.HISTORY)"))
+        assertFalse(actionStrip.contains("R.string.action_copy_link"))
+        assertTrue(strings.contains("action_select_all"))
+        assertTrue(strings.contains("action_delete"))
+        assertTrue(strings.contains("action_done"))
     }
 
     /**
@@ -322,29 +385,8 @@ class SavedPagesPageContractTest {
         assertTrue(strings.contains("title_move_bookmark_folder"))
         assertTrue(strings.contains("hint_bookmark_folder"))
         assertTrue(strings.contains("toast_bookmark_folder_updated"))
-        assertTrue(readme.contains("历史记录按日期分组显示，长按会标注选中记录"))
+        assertTrue(readme.contains("历史记录按日期分组显示，长按进入选择模式后可全选、删除或完成选择"))
         assertTrue(readme.contains("收藏夹支持文件夹分组、导入和导出"))
-    }
-
-    private fun historyBranchBody(source: String): String {
-        val marker = "if (collection == SavedPageCollection.HISTORY)"
-        val start = source.indexOf(marker)
-        assertTrue(start >= 0)
-        val bodyStart = source.indexOf('{', start)
-        assertTrue(bodyStart >= 0)
-        var depth = 0
-        for (index in bodyStart until source.length) {
-            when (source[index]) {
-                '{' -> depth += 1
-                '}' -> {
-                    depth -= 1
-                    if (depth == 0) {
-                        return source.substring(bodyStart, index + 1)
-                    }
-                }
-            }
-        }
-        error("Unclosed history branch")
     }
 
 }

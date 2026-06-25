@@ -362,6 +362,9 @@
     <string name="action_add_current_site">添加当前站点</string>
     <string name="action_remove_current_site">移除当前站点</string>
     <string name="action_remove">移除</string>
+    <string name="action_select_all">全选</string>
+    <string name="action_delete">删除</string>
+    <string name="action_done">完成</string>
     <string name="action_block_element">屏蔽</string>
     <string name="site_config_enabled">已开启</string>
     <string name="site_config_disabled">已关闭</string>
@@ -376,6 +379,12 @@
     <string name="history_clear_range_last_24_hours">最近 24 小时</string>
     <string name="history_clear_range_last_7_days">最近 7 天</string>
     <string name="history_clear_range_all">全部时间</string>
+    <string name="history_tab_bookmarks">书签</string>
+    <string name="history_search_hint">搜索历史</string>
+    <string name="history_category_search">搜索</string>
+    <string name="history_category_url">网址</string>
+    <string name="history_category_tools">工具</string>
+    <string name="history_category_video">视频</string>
     <string name="history_filter_all">全部</string>
     <string name="history_date_unknown">未知日期</string>
     <string name="dialog_restore_default_settings_message">将恢复默认设置，并清除用户添加的手动屏蔽规则、白名单、站点例外、快捷入口、收藏、历史记录、缓存、Cookie 和站点数据。此操作无法撤销。</string>

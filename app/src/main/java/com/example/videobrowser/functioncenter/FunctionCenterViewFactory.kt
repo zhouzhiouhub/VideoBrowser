@@ -39,6 +39,15 @@ class FunctionCenterViewFactory(
         return pageFactory.createPage(title, onBack, buildContent)
     }
 
+    fun createPageWithFooter(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit,
+        buildFooter: (LinearLayout) -> Unit
+    ): View {
+        return pageFactory.createPageWithFooter(title, onBack, buildContent, buildFooter)
+    }
+
     fun createBottomSheetPage(
         title: String,
         onBack: (() -> Unit)?,

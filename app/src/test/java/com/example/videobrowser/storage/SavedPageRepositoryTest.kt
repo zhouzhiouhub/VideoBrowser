@@ -157,6 +157,32 @@ class SavedPageRepositoryTest {
         assertFalse(store.contains(SavedPageRepository.SavedPageCollection.HISTORY.key))
     }
 
+    @Test
+    fun removeAllDeletesMatchingSavedPagesCaseInsensitively() {
+        val store = InMemoryPreferenceStore()
+        var now = 1_000L
+        val repository = SavedPageRepository(store, currentTimeMillis = { now })
+
+        repository.addHistory(SavedPage(title = "One", url = "https://example.com/one"))
+        now = 2_000L
+        repository.addHistory(SavedPage(title = "Two", url = "https://example.com/two"))
+        now = 3_000L
+        repository.addHistory(SavedPage(title = "Three", url = "https://example.com/three"))
+
+        val removedCount = repository.removeAll(
+            SavedPageRepository.SavedPageCollection.HISTORY,
+            listOf("HTTPS://EXAMPLE.COM/ONE", "https://example.com/three", "https://missing.example.com")
+        )
+
+        assertEquals(2, removedCount)
+        assertEquals(listOf("https://example.com/two"), repository.history().map { page -> page.url })
+        assertEquals(
+            0,
+            repository.removeAll(SavedPageRepository.SavedPageCollection.HISTORY, emptyList())
+        )
+        assertTrue(store.contains(SavedPageRepository.SavedPageCollection.HISTORY.key))
+    }
+
     /**
      * 测试函数 `exportAndImportBookmarksUseSavedPageFormatAndSkipDuplicates`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `export And Import Bookmarks Use Saved Page Format And Skip Duplicates` 这条行为是否成立。
      *

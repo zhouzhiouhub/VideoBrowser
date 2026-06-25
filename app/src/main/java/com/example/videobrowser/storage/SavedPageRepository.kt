@@ -180,6 +180,17 @@ class SavedPageRepository(
     }
 
     /**
+     * 函数 `removeAll`：从指定收藏/历史集合中批量移除传入 URL，并返回实际删除数量。
+     *
+     * @param collection 要删除记录的集合。
+     * @param urls 需要删除的页面 URL，比较时忽略大小写。
+     * @return 实际从集合中删除的记录数量。
+     */
+    fun removeAll(collection: SavedPageCollection, urls: Iterable<String>): Int {
+        return removeSavedPages(collection.key, urls)
+    }
+
+    /**
      * 函数 `updateTitle`：根据最新状态刷新 `update Title` 相关数据或界面，让调用方看到一致结果。
      *
      * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
@@ -290,13 +301,27 @@ class SavedPageRepository(
      * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
      */
     private fun removeSavedPage(key: String, url: String): Boolean {
-        val pages = loadSavedPages(key)
-            .filterNot { it.url.equals(url, ignoreCase = true) }
-        if (pages.size == loadSavedPages(key).size) {
-            return false
+        return removeSavedPages(key, listOf(url)) > 0
+    }
+
+    private fun removeSavedPages(key: String, urls: Iterable<String>): Int {
+        val targetUrls = urls
+            .map { url -> url.trim() }
+            .filter { url -> url.isNotEmpty() }
+            .distinctBy { url -> url.lowercase() }
+        if (targetUrls.isEmpty()) {
+            return 0
         }
-        saveSavedPages(key, pages)
-        return true
+
+        val pages = loadSavedPages(key)
+        val remainingPages = pages.filterNot { page ->
+            targetUrls.any { url -> page.url.equals(url, ignoreCase = true) }
+        }
+        val removedCount = pages.size - remainingPages.size
+        if (removedCount > 0) {
+            saveSavedPages(key, remainingPages)
+        }
+        return removedCount
     }
 
     /**

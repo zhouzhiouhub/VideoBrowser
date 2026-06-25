@@ -32,12 +32,20 @@ class FunctionCenterViewFactoryContractTest {
         assertTrue(viewFactory.contains("return pageFactory.createPage(title, onBack, buildContent)"))
         assertTrue(
             viewFactory.contains(
+                "return pageFactory.createPageWithFooter(title, onBack, buildContent, buildFooter)"
+            )
+        )
+        assertTrue(
+            viewFactory.contains(
                 "return pageFactory.createBottomSheetPage(title, onBack, onClose, buildContent)"
             )
         )
 
         assertTrue(pageFactory.contains("internal class FunctionCenterPageViewFactory"))
         assertTrue(pageFactory.contains("fun createPage("))
+        assertTrue(pageFactory.contains("fun createPageWithFooter("))
+        assertTrue(pageFactory.contains("private fun createPageSurface("))
+        assertTrue(pageFactory.contains("buildFooter?.let"))
         assertTrue(pageFactory.contains("fun createBottomSheetPage("))
         assertTrue(pageFactory.contains("private fun scrollable(content: LinearLayout): ScrollView"))
         assertTrue(pageFactory.contains("private fun bottomSheetHeight(): Int"))
@@ -60,6 +68,7 @@ class FunctionCenterViewFactoryContractTest {
         assertTrue(pageHost.contains("internal val contentFactory = viewFactory.contentFactory"))
         assertTrue(pageHost.contains("internal val headerFactory = viewFactory.headerFactory"))
         assertTrue(pageHost.contains("internal val gridFactory = viewFactory.gridFactory"))
+        assertTrue(pageHost.contains("fun showPageWithFooter("))
 
         assertFalse(pageHost.contains("fun addFunctionSection("))
         assertFalse(pageHost.contains("fun addInfoRow("))

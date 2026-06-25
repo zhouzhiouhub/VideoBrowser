@@ -34,6 +34,23 @@ class SavedPagesPage(
             )
         }
     )
+    private val historyPageController = SavedPageHistoryPageController(
+        host = host,
+        savedPageRepository = savedPageRepository,
+        dialogController = dialogController,
+        loadUrl = loadUrl,
+        showRootPage = showRootPage,
+        showSavedPageCollection = { collection -> showSavedPageCollection(collection) },
+        showHistoryPage = { title, emptyMessage, replaceCurrent, query ->
+            show(
+                collection = SavedPageCollection.HISTORY,
+                title = title,
+                emptyMessage = emptyMessage,
+                replaceCurrent = replaceCurrent,
+                query = query
+            )
+        }
+    )
     private val inlineActionController = SavedPageInlineActionController(
         host = host,
         savedPageRepository = savedPageRepository,
@@ -86,6 +103,19 @@ class SavedPagesPage(
     ) {
         val allPages = savedPageRepository.pages(collection)
         val pages = SavedPageSearch.filter(allPages, query)
+
+        if (collection == SavedPageCollection.HISTORY) {
+            historyPageController.show(
+                allPages = allPages,
+                pages = pages,
+                title = title,
+                emptyMessage = emptyMessage,
+                replaceCurrent = replaceCurrent,
+                query = query
+            )
+            return
+        }
+        historyPageController.reset()
 
         host.showPage(
             title = title,
@@ -153,5 +183,14 @@ class SavedPagesPage(
                 )
             }
         }
+    }
+
+    private fun showSavedPageCollection(collection: SavedPageCollection) {
+        show(
+            collection = collection,
+            title = SavedPageCollectionDisplayText.title(activity, collection),
+            emptyMessage = SavedPageCollectionDisplayText.emptyMessage(activity, collection),
+            replaceCurrent = true
+        )
     }
 }

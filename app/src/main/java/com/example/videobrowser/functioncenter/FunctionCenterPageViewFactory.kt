@@ -20,6 +20,24 @@ internal class FunctionCenterPageViewFactory(
         onBack: () -> Unit,
         buildContent: (LinearLayout) -> Unit
     ): View {
+        return createPageSurface(title, onBack, buildContent, buildFooter = null)
+    }
+
+    fun createPageWithFooter(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit,
+        buildFooter: (LinearLayout) -> Unit
+    ): View {
+        return createPageSurface(title, onBack, buildContent, buildFooter)
+    }
+
+    private fun createPageSurface(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit,
+        buildFooter: ((LinearLayout) -> Unit)?
+    ): View {
         val page = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             isClickable = true
@@ -50,6 +68,21 @@ internal class FunctionCenterPageViewFactory(
                 1f
             )
         )
+        buildFooter?.let { footerBuilder ->
+            val footer = LinearLayout(activity).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+            footerBuilder(footer)
+            if (footer.childCount > 0) {
+                page.addView(
+                    footer,
+                    LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                )
+            }
+        }
         return page
     }
 

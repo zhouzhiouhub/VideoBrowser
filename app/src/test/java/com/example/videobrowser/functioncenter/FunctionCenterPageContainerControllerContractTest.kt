@@ -50,10 +50,15 @@ class FunctionCenterPageContainerControllerContractTest {
         ).readText()
 
         assertTrue(controller.contains("private fun attachStandardPage("))
+        assertTrue(controller.contains("private fun attachStandardPageWithFooter("))
         assertTrue(controller.contains("private fun attachBottomSheetPage("))
         assertTrue(controller.contains("attachStandardPage(title, onBack, saveCurrentPage = true, buildContent)"))
         assertTrue(controller.contains("attachStandardPage(title, onBack, saveCurrentPage = false, buildContent)"))
+        assertTrue(controller.contains("fun showPageWithFooter("))
+        assertTrue(controller.contains("fun replacePageWithFooter("))
+        assertTrue(controller.contains("viewFactory.createPageWithFooter("))
         assertEquals(1, Regex("viewFactory\\.createPage\\(").findAll(controller).count())
+        assertEquals(1, Regex("viewFactory\\.createPageWithFooter\\(").findAll(controller).count())
         assertEquals(1, Regex("viewFactory\\.createBottomSheetPage\\(").findAll(controller).count())
     }
 

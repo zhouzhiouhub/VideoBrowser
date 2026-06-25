@@ -58,6 +58,36 @@ class FunctionCenterController(
         attachStandardPage(title, onBack, saveCurrentPage = false, buildContent)
     }
 
+    fun showPageWithFooter(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit,
+        buildFooter: (LinearLayout) -> Unit
+    ) {
+        attachStandardPageWithFooter(
+            title,
+            onBack,
+            saveCurrentPage = true,
+            buildContent = buildContent,
+            buildFooter = buildFooter
+        )
+    }
+
+    fun replacePageWithFooter(
+        title: String,
+        onBack: () -> Unit,
+        buildContent: (LinearLayout) -> Unit,
+        buildFooter: (LinearLayout) -> Unit
+    ) {
+        attachStandardPageWithFooter(
+            title,
+            onBack,
+            saveCurrentPage = false,
+            buildContent = buildContent,
+            buildFooter = buildFooter
+        )
+    }
+
     /**
      * 函数 `showBottomSheetPage`：控制 `show Bottom Sheet Page` 相关界面的显示、隐藏或关闭，并同步必要的界面状态。
      *
@@ -140,6 +170,20 @@ class FunctionCenterController(
     ) {
         attachPage(
             viewFactory.createPage(title, { handleBack() }, buildContent),
+            onBack,
+            saveCurrentPage = saveCurrentPage
+        )
+    }
+
+    private fun attachStandardPageWithFooter(
+        title: String,
+        onBack: () -> Unit,
+        saveCurrentPage: Boolean,
+        buildContent: (LinearLayout) -> Unit,
+        buildFooter: (LinearLayout) -> Unit
+    ) {
+        attachPage(
+            viewFactory.createPageWithFooter(title, { handleBack() }, buildContent, buildFooter),
             onBack,
             saveCurrentPage = saveCurrentPage
         )
