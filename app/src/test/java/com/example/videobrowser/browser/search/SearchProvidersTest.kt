@@ -29,6 +29,21 @@ class SearchProvidersTest {
     }
 
     @Test
+    fun all_filtersRemovedBuiltInsAndKeepsOneFallbackProvider() {
+        val withoutBaidu = SearchProviders.all(
+            customSearchEngines = emptyList(),
+            removedProviderIds = setOf("baidu")
+        )
+        assertTrue(withoutBaidu.none { provider -> provider.id == "baidu" })
+
+        val fallback = SearchProviders.all(
+            customSearchEngines = emptyList(),
+            removedProviderIds = SearchProviders.defaults.map { provider -> provider.id }.toSet()
+        )
+        assertEquals(listOf(SearchProviders.DEFAULT_PROVIDER_ID), fallback.map { provider -> provider.id })
+    }
+
+    @Test
     fun all_mapsCustomSearchEngineTemplatesAndResultRules() {
         val providers = SearchProviders.all(
             listOf(

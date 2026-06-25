@@ -46,7 +46,8 @@ class SearchProviderControllerContractTest {
         ).readText()
 
         assertTrue(searchAssembly.contains("val searchProviderController = SearchProviderController("))
-        assertTrue(searchAssembly.contains("SearchProviders.all(settingsManager.customSearchEngines())"))
+        assertTrue(searchAssembly.contains("customSearchEngines = settingsManager.customSearchEngines()"))
+        assertTrue(searchAssembly.contains("removedProviderIds = settingsManager.removedSearchProviderIds()"))
         assertTrue(searchAssembly.contains("savedPageRepository = savedPageRepository"))
         assertTrue(searchAssembly.contains("selectedProvider = { searchProviderController.selectedProvider }"))
         assertFalse(searchAssembly.contains("openProviderHome"))

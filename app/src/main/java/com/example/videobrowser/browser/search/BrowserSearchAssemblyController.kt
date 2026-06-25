@@ -90,7 +90,12 @@ class BrowserSearchAssemblyController(
      * @return 返回 `BrowserSearchComponents`，调用方把其中对象保存到对应字段后继续创建导航和启动控制器。
      */
     fun create(): BrowserSearchComponents {
-        val providers = { SearchProviders.all(settingsManager.customSearchEngines()) }
+        val providers = {
+            SearchProviders.all(
+                customSearchEngines = settingsManager.customSearchEngines(),
+                removedProviderIds = settingsManager.removedSearchProviderIds()
+            )
+        }
         val builtInSearchResultPagePolicy = BuiltInSearchResultPagePolicy(providers)
         val searchProviderController = SearchProviderController(
             activity = activity,

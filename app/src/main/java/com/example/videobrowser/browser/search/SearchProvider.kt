@@ -170,8 +170,17 @@ object SearchProviders {
         )
     )
 
-    fun all(customSearchEngines: List<CustomSearchEngine>): List<SearchProvider> {
-        return defaults + customSearchEngines.map(::fromCustomSearchEngine)
+    fun all(
+        customSearchEngines: List<CustomSearchEngine>,
+        removedProviderIds: Set<String> = emptySet()
+    ): List<SearchProvider> {
+        val visibleDefaults = defaults.filterNot { provider -> provider.id in removedProviderIds }
+        val providers = visibleDefaults + customSearchEngines.map(::fromCustomSearchEngine)
+        return providers.ifEmpty {
+            defaults.firstOrNull { provider -> provider.id == DEFAULT_PROVIDER_ID }
+                ?.let { provider -> listOf(provider) }
+                ?: defaults.take(1)
+        }
     }
 
     private fun fromCustomSearchEngine(engine: CustomSearchEngine): SearchProvider {

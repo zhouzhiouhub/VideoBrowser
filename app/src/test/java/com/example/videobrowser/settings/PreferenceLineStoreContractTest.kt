@@ -21,6 +21,9 @@ class PreferenceLineStoreContractTest {
         val customSearchEngineStore = projectFile(
             "src/main/java/com/example/videobrowser/settings/CustomSearchEngineStore.kt"
         ).readText()
+        val removedSearchProviderStore = projectFile(
+            "src/main/java/com/example/videobrowser/settings/RemovedSearchProviderStore.kt"
+        ).readText()
         val userElementHideRuleStore = projectFile(
             "src/main/java/com/example/videobrowser/settings/UserElementHideRuleStore.kt"
         ).readText()
@@ -41,6 +44,7 @@ class PreferenceLineStoreContractTest {
             hostSetStore,
             customShortcutStore,
             customSearchEngineStore,
+            removedSearchProviderStore,
             userElementHideRuleStore,
             downloadRecordRepository,
             playbackHistoryRepository

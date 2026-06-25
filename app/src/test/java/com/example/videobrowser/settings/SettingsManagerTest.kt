@@ -870,6 +870,21 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun removedSearchProviderIds_arePersistedAndFiltered() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(settings.removeBuiltInSearchProvider(" baidu "))
+        assertTrue(settings.removeBuiltInSearchProvider("sogou"))
+        assertFalse(settings.removeBuiltInSearchProvider(""))
+
+        assertEquals(
+            setOf("baidu", "sogou"),
+            SettingsManager(store).removedSearchProviderIds()
+        )
+    }
+
+    @Test
     fun customSearchEngines_canBeUpdatedInPlace() {
         val settings = SettingsManager(InMemoryPreferenceStore())
         assertTrue(settings.addCustomSearchEngine("Video", "https://video.example.com/search?q="))

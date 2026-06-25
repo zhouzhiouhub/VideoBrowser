@@ -28,6 +28,7 @@ class SettingsManager(
     private val userElementHideRuleStore = UserElementHideRuleStore(preferenceStore)
     private val customShortcutStore = CustomShortcutStore(preferenceStore)
     private val customSearchEngineStore = CustomSearchEngineStore(preferenceStore)
+    private val removedSearchProviderStore = RemovedSearchProviderStore(preferenceStore)
     private val preferenceResetter = SettingsPreferenceResetter(preferenceStore)
 
     /**
@@ -693,6 +694,14 @@ class SettingsManager(
      */
     fun customSearchEngines(): List<CustomSearchEngine> {
         return customSearchEngineStore.load()
+    }
+
+    fun removedSearchProviderIds(): Set<String> {
+        return removedSearchProviderStore.load()
+    }
+
+    fun removeBuiltInSearchProvider(id: String): Boolean {
+        return removedSearchProviderStore.add(id)
     }
 
     /**

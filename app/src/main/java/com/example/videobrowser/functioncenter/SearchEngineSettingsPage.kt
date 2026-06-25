@@ -8,6 +8,7 @@ import com.example.videobrowser.browser.search.SearchEngineConfig
 import com.example.videobrowser.browser.search.SearchProvider
 import com.example.videobrowser.settings.CustomSearchEngine
 import com.example.videobrowser.settings.SettingsManager
+import com.example.videobrowser.utils.ConfirmationDialog
 import com.example.videobrowser.utils.DensityPixelConverter
 import com.example.videobrowser.utils.ShortToast
 import com.example.videobrowser.utils.TextInputDialogField
@@ -27,6 +28,8 @@ class SearchEngineSettingsPage(
         settingsManager = settingsManager,
         currentSearchProviderId = currentSearchProviderId,
         selectSearchProvider = selectSearchProvider,
+        availableSearchProviderCount = { availableSearchProviders().size },
+        fallbackSearchProviderId = { availableSearchProviders().firstOrNull()?.id },
         showSearchEngineSettingsPage = { show(replaceCurrent = true) }
     )
 
@@ -75,7 +78,8 @@ class SearchEngineSettingsPage(
                 )
             } else {
                 provider.displayUrl
-            }
+            },
+            onLongClick = { showRemoveSearchProviderDialog(provider, customEngine) }
         ) {
             if (customEngine != null) {
                 customSearchEngineSettingsPage.show(customEngine)
@@ -87,6 +91,54 @@ class SearchEngineSettingsPage(
             } else if (!selected) {
                 ShortToast.show(activity, R.string.toast_search_engine_invalid)
             }
+        }
+    }
+
+    private fun showRemoveSearchProviderDialog(
+        provider: SearchProvider,
+        customEngine: CustomSearchEngine?
+    ) {
+        if (availableSearchProviders().size <= 1) {
+            ShortToast.show(activity, R.string.toast_search_engine_remove_last)
+            return
+        }
+        ConfirmationDialog.show(
+            activity = activity,
+            titleRes = R.string.title_remove_custom_search_engine,
+            message = activity.getString(
+                R.string.dialog_remove_custom_search_engine_message,
+                provider.name
+            ),
+            positiveButtonRes = R.string.action_remove
+        ) {
+            removeSearchProvider(provider, customEngine)
+        }
+    }
+
+    private fun removeSearchProvider(
+        provider: SearchProvider,
+        customEngine: CustomSearchEngine?
+    ) {
+        val wasSelected = currentSearchProviderId() == provider.id
+        val removed = if (customEngine != null) {
+            settingsManager.removeCustomSearchEngine(customEngine)
+        } else {
+            settingsManager.removeBuiltInSearchProvider(provider.id)
+        }
+        if (removed) {
+            if (wasSelected) {
+                selectFirstAvailableSearchProvider()
+            }
+            ShortToast.show(activity, R.string.toast_custom_search_engine_removed)
+            show(replaceCurrent = true)
+        } else {
+            ShortToast.show(activity, R.string.toast_search_engine_invalid)
+        }
+    }
+
+    private fun selectFirstAvailableSearchProvider() {
+        availableSearchProviders().firstOrNull()?.let { provider ->
+            selectSearchProvider(provider.id)
         }
     }
 

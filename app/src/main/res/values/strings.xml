@@ -502,6 +502,7 @@
     <string name="toast_home_page_invalid">请输入 http/https 网址</string>
     <string name="toast_search_engine_updated">已更新默认搜索引擎</string>
     <string name="toast_search_engine_invalid">无法更新默认搜索引擎</string>
+    <string name="toast_search_engine_remove_last">至少需要保留一个搜索引擎</string>
     <string name="toast_custom_search_engine_added">已添加搜索引擎</string>
     <string name="toast_custom_search_engine_updated">已更新搜索引擎</string>
     <string name="toast_custom_search_engine_removed">已移除搜索引擎</string>

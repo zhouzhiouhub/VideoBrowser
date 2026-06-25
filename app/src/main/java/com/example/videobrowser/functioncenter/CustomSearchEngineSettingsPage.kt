@@ -20,6 +20,8 @@ internal class CustomSearchEngineSettingsPage(
     private val settingsManager: SettingsManager,
     private val currentSearchProviderId: () -> String,
     private val selectSearchProvider: (String) -> Boolean,
+    private val availableSearchProviderCount: () -> Int,
+    private val fallbackSearchProviderId: () -> String?,
     private val showSearchEngineSettingsPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -149,6 +151,10 @@ internal class CustomSearchEngineSettingsPage(
     }
 
     private fun showRemoveCustomSearchEngineDialog(engine: CustomSearchEngine) {
+        if (availableSearchProviderCount() <= 1) {
+            ShortToast.show(activity, R.string.toast_search_engine_remove_last)
+            return
+        }
         ConfirmationDialog.show(
             activity = activity,
             titleRes = R.string.title_remove_custom_search_engine,
@@ -161,7 +167,7 @@ internal class CustomSearchEngineSettingsPage(
             val wasSelected = currentSearchProviderId() == engine.id
             if (settingsManager.removeCustomSearchEngine(engine)) {
                 if (wasSelected) {
-                    selectSearchProvider(SettingsManager.DEFAULT_SEARCH_ENGINE_ID)
+                    fallbackSearchProviderId()?.let(selectSearchProvider)
                 }
                 ShortToast.show(activity, R.string.toast_custom_search_engine_removed)
                 showSearchEngineSettingsPage()

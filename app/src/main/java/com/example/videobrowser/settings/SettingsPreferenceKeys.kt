@@ -51,6 +51,7 @@ internal const val KEY_DEFAULT_VIDEO_SPEED = "default_video_speed"
 internal const val KEY_TEXT_ZOOM_PERCENT = "text_zoom_percent"
 internal const val KEY_HOME_URL = "home_url"
 internal const val KEY_SEARCH_ENGINE = "search_provider"
+internal const val KEY_REMOVED_SEARCH_PROVIDERS = "removed_search_providers"
 internal const val KEY_CUSTOM_SHORTCUTS = "custom_shortcuts"
 internal const val KEY_CUSTOM_SEARCH_ENGINES = "custom_search_engines"
 internal const val KEY_DESKTOP_MODE = "desktop_mode"
@@ -86,6 +87,7 @@ internal val RESET_KEYS = listOf(
     KEY_TEXT_ZOOM_PERCENT,
     KEY_HOME_URL,
     KEY_SEARCH_ENGINE,
+    KEY_REMOVED_SEARCH_PROVIDERS,
     KEY_CUSTOM_SHORTCUTS,
     KEY_CUSTOM_SEARCH_ENGINES,
     KEY_DESKTOP_MODE,
