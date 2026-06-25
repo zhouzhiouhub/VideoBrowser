@@ -87,10 +87,13 @@ class SearchProviderControllerContractTest {
         val providers = projectFile(
             "src/main/java/com/example/videobrowser/browser/search/SearchProvider.kt"
         ).readText()
+        val builtIns = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BuiltInSearchProviders.kt"
+        ).readText()
 
         assertTrue(providers.contains("val addressBarSearchUrlPrefixes: List<String>"))
         assertTrue(
-            providers.contains(
+            builtIns.contains(
                 "\"https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword=\""
             )
         )
