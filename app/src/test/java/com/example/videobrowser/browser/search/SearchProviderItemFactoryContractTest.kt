@@ -52,4 +52,23 @@ class SearchProviderItemFactoryContractTest {
                 .count()
         )
     }
+
+    @Test
+    fun customShortcutBadgeUsesQuickLinkLogoFallbackOwner() {
+        val itemFactory = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProviderItemFactory.kt"
+        ).readText()
+        val resolver = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/QuickLinkLogoResolver.kt"
+        ).readText()
+        val renderer = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/QuickLinkLogoBadgeRenderer.kt"
+        ).readText()
+
+        assertTrue(itemFactory.contains("QuickLinkLogoResolver.fallbackBadgeText(shortcut.name)"))
+        assertTrue(itemFactory.contains("quickLinkLogoBadgeRenderer.renderShortcutLogo("))
+        assertTrue(resolver.contains("fun fallbackBadgeText(name: String): String"))
+        assertTrue(renderer.contains("QuickLinkLogoLoader.load(url)"))
+        assertTrue(renderer.contains("setCompoundDrawables(null, drawable, null, null)"))
+    }
 }

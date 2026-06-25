@@ -26,6 +26,8 @@ internal class SearchProviderItemFactory(
     private val onRecentHistoryLongClick: (HomeQuickLink) -> Unit,
     private val onAddShortcut: () -> Unit
 ) {
+    private val quickLinkLogoBadgeRenderer = QuickLinkLogoBadgeRenderer(activity, dp)
+
     fun createProviderItem(provider: SearchProvider): LinearLayout {
         return createSelectableHomeItem(
             contentDescription = activity.getString(
@@ -97,10 +99,14 @@ internal class SearchProviderItemFactory(
     }
 
     fun createCustomShortcutBadge(shortcut: CustomShortcut): TextView {
-        val badgeText = shortcutBadgeText(shortcut.name)
+        val badgeText = QuickLinkLogoResolver.fallbackBadgeText(shortcut.name)
         return createTextBadge(badgeText).apply {
             setTextColor(ContextCompat.getColor(activity, R.color.browser_primary))
             background = providerCircleBackground()
+            quickLinkLogoBadgeRenderer.renderShortcutLogo(
+                badge = this,
+                url = shortcut.url
+            )
         }
     }
 
@@ -155,10 +161,6 @@ internal class SearchProviderItemFactory(
 
     fun providerItemLayoutParams(): LinearLayout.LayoutParams {
         return LinearLayout.LayoutParams(dp(78), ViewGroup.LayoutParams.MATCH_PARENT)
-    }
-
-    private fun shortcutBadgeText(name: String): String {
-        return name.trim().take(2).ifBlank { "+" }
     }
 
 }
