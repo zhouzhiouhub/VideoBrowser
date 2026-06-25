@@ -65,6 +65,30 @@ class BuiltInSearchResultPagePolicyTest {
             "你好",
             defaultPolicy.searchQueryFromUrl("https://so.douyin.com/s?keyword=你好")
         )
+        assertEquals(
+            "你好",
+            defaultPolicy.searchQueryFromUrl("https://www.baidu.com/s?wd=%E4%BD%A0%E5%A5%BD")
+        )
+        assertEquals(
+            "hello",
+            defaultPolicy.searchQueryFromUrl("https://www.google.com/search?q=hello")
+        )
+        assertEquals(
+            "你好",
+            defaultPolicy.searchQueryFromUrl("https://duckduckgo.com/?q=%E4%BD%A0%E5%A5%BD")
+        )
+        assertEquals(
+            "视频",
+            defaultPolicy.searchQueryFromUrl("https://search.bilibili.com/all?keyword=%E8%A7%86%E9%A2%91")
+        )
+        assertEquals(
+            "问答",
+            defaultPolicy.searchQueryFromUrl("https://www.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94")
+        )
+        assertEquals(
+            "热点",
+            defaultPolicy.searchQueryFromUrl("https://s.weibo.com/weibo?q=%E7%83%AD%E7%82%B9")
+        )
     }
 
     @Test

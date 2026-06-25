@@ -825,10 +825,10 @@ browser_preferences
 修改：
 
 ```text
-app/src/main/java/com/example/videobrowser/browser/search/SearchProvider.kt
+app/src/main/java/com/example/videobrowser/browser/search/BuiltInSearchProviders.kt
 ```
 
-在 `SearchProviders.defaults` 中添加 `SearchProvider`。
+在 `BuiltInSearchProviders.defaults` 中添加 `SearchProvider`。
 
 如果需要专用远程建议接口，还要修改：
 

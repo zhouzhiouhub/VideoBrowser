@@ -1,6 +1,7 @@
 package com.example.videobrowser.browser.search
 
 import com.example.videobrowser.settings.CustomSearchEngine
+import com.example.videobrowser.testutil.projectFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -102,6 +103,37 @@ class SearchProvidersTest {
         )
         assertEquals("keyword", providersById.getValue("douyin").queryParam)
         assertTrue(providersById.getValue("baidu").hidePageSearchBox)
+        assertEquals("wd", providersById.getValue("baidu_desktop").queryParam)
         assertTrue(providersById.getValue("edge").domains.contains("bing.com"))
+        assertEquals(
+            "https://www.google.com/search?q={keyword}",
+            providersById.getValue("google").searchTemplate
+        )
+        assertEquals(listOf("/"), providersById.getValue("duckduckgo").resultPathRules)
+        assertEquals(
+            "https://search.bilibili.com/all?keyword={keyword}",
+            providersById.getValue("bilibili").searchTemplate
+        )
+        assertEquals("q", providersById.getValue("zhihu").queryParam)
+        assertEquals("/weibo", providersById.getValue("weibo").resultPathRules.single())
+    }
+
+    @Test
+    fun builtInDefaultsAreOwnedByDedicatedCatalog() {
+        val providerSource = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchProvider.kt"
+        ).readText()
+        val builtInSource = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BuiltInSearchProviders.kt"
+        ).readText()
+
+        assertTrue(providerSource.contains("val defaults: List<SearchProvider> = BuiltInSearchProviders.defaults"))
+        assertTrue(builtInSource.contains("internal object BuiltInSearchProviders"))
+        assertTrue(builtInSource.contains("id = \"google\""))
+        assertTrue(builtInSource.contains("id = \"duckduckgo\""))
+        assertTrue(builtInSource.contains("id = \"bilibili\""))
+        assertTrue(builtInSource.contains("id = \"zhihu\""))
+        assertTrue(builtInSource.contains("id = \"weibo\""))
+        assertTrue(providerSource.length < builtInSource.length)
     }
 }
