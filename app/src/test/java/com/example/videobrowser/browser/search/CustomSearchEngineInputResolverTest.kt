@@ -8,8 +8,8 @@ class CustomSearchEngineInputResolverTest {
     @Test
     fun resolve_knownDisplayHomesUseBuiltInSearchTemplates() {
         assertEquals(
-            "https://m.so.com/s?q={keyword}",
-            CustomSearchEngineInputResolver.resolve("https://m.so.com")?.searchTemplate
+            "https://quark.sm.cn/s?q={keyword}",
+            CustomSearchEngineInputResolver.resolve("https://quark.sm.cn")?.searchTemplate
         )
         assertEquals(
             "https://so.douyin.com/s?keyword={keyword}",

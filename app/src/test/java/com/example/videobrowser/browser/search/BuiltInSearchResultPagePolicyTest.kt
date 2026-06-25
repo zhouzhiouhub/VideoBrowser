@@ -2,6 +2,7 @@ package com.example.videobrowser.browser.search
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -59,10 +60,6 @@ class BuiltInSearchResultPagePolicyTest {
 
         assertEquals(
             "你好",
-            defaultPolicy.searchQueryFromUrl("https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD")
-        )
-        assertEquals(
-            "你好",
             defaultPolicy.searchQueryFromUrl("https://so.douyin.com/s?keyword=你好")
         )
         assertEquals(
@@ -81,18 +78,6 @@ class BuiltInSearchResultPagePolicyTest {
             "视频",
             defaultPolicy.searchQueryFromUrl("https://search.bilibili.com/all?keyword=%E8%A7%86%E9%A2%91")
         )
-        assertEquals(
-            "问答",
-            defaultPolicy.searchQueryFromUrl("https://m.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94")
-        )
-        assertEquals(
-            "问答",
-            defaultPolicy.searchQueryFromUrl("https://www.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94")
-        )
-        assertEquals(
-            "热点",
-            defaultPolicy.searchQueryFromUrl("https://s.weibo.com/weibo?q=%E7%83%AD%E7%82%B9")
-        )
     }
 
     @Test
@@ -100,7 +85,7 @@ class BuiltInSearchResultPagePolicyTest {
         val defaultPolicy = BuiltInSearchResultPagePolicy(SearchProviders.defaults)
 
         assertTrue(
-            defaultPolicy.searchPageHideCssForUrl("https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD")
+            defaultPolicy.searchPageHideCssForUrl("https://quark.sm.cn/s?q=%E4%BD%A0%E5%A5%BD")
                 .contains("form[action*=\"/s\"]")
         )
         assertTrue(
@@ -108,6 +93,25 @@ class BuiltInSearchResultPagePolicyTest {
                 .contains("[role=\"search\"]")
         )
         assertTrue(defaultPolicy.searchPageHideCssForUrl("https://example.com/").isEmpty())
+    }
+
+    @Test
+    fun retiredUnstableProvidersAreNotRecognizedAsBuiltInSearchResults() {
+        val defaultPolicy = BuiltInSearchResultPagePolicy(SearchProviders.defaults)
+
+        assertNull(defaultPolicy.searchQueryFromUrl("https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD"))
+        assertNull(
+            defaultPolicy.searchQueryFromUrl(
+                "https://m.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94"
+            )
+        )
+        assertNull(
+            defaultPolicy.searchQueryFromUrl(
+                "https://www.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94"
+            )
+        )
+        assertNull(defaultPolicy.searchQueryFromUrl("https://s.weibo.com/weibo?q=%E7%83%AD%E7%82%B9"))
+        assertTrue(defaultPolicy.searchPageHideCssForUrl("https://m.so.com/s?q=test").isEmpty())
     }
 
     @Test

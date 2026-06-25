@@ -7,11 +7,11 @@ import org.junit.Test
 class CustomSearchEngineInputAnalyzerTest {
     @Test
     fun analyze_knownHomesResolveWithoutNetworkProbe() {
-        val analysis = CustomSearchEngineInputAnalyzer.analyze("https://m.so.com")
+        val analysis = CustomSearchEngineInputAnalyzer.analyze("https://quark.sm.cn")
 
         assertTrue(analysis is CustomSearchEngineInputAnalysis.Resolved)
         assertEquals(
-            "https://m.so.com/s?q={keyword}",
+            "https://quark.sm.cn/s?q={keyword}",
             (analysis as CustomSearchEngineInputAnalysis.Resolved).config.searchTemplate
         )
     }

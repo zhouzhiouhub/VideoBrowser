@@ -5,7 +5,9 @@ package com.example.videobrowser.browser.search
  * 这个测试文件验证“Search Suggestion Client Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import com.example.videobrowser.testutil.projectFile
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -24,18 +26,14 @@ class SearchSuggestionClientTest {
         assertEquals(listOf("同花顺", "同程旅行"), suggestions)
     }
 
-    /**
-     * 测试函数 `parseSo360Suggestions_readsResultWordFields`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `parse So360 Suggestions reads Result Word Fields` 这条行为是否成立。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     */
     @Test
-    fun parseSo360Suggestions_readsResultWordFields() {
-        val suggestions = SearchSuggestionClient.parseSuggestions(
-            """{"errorcode":0,"result":[{"word":"同花顺"},{"word":"同城"}]}"""
-        )
+    fun retired360SuggestionEndpointIsNotReferenced() {
+        val source = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchSuggestionClient.kt"
+        ).readText()
 
-        assertEquals(listOf("同花顺", "同城"), suggestions)
+        assertFalse(source.contains("sug.so.360.cn"))
+        assertFalse(source.contains("\"so\" ->"))
     }
 
     /**

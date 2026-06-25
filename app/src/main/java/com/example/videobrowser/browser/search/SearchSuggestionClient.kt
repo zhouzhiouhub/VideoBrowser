@@ -97,7 +97,6 @@ class SearchSuggestionClient(
         val encodedQuery = Utf8UrlCodec.encodeFormComponent(query)
         return when (provider.id) {
             "edge" -> "https://api.bing.com/osjson.aspx?query=$encodedQuery"
-            "so" -> "https://sug.so.360.cn/suggest?word=$encodedQuery&encodein=utf-8&encodeout=utf-8"
             else -> "https://suggestion.baidu.com/su?wd=$encodedQuery&action=opensearch"
         }
     }
@@ -113,7 +112,6 @@ class SearchSuggestionClient(
         fun parseSuggestions(payload: String): List<String> {
             val json = payload.trim().withoutJsonpWrapper()
             return parseOpenSearchSuggestions(json)
-                .ifEmpty { parseSo360Suggestions(json) }
         }
 
         /**
@@ -136,20 +134,6 @@ class SearchSuggestionClient(
                 return emptyList()
             }
             return parseQuotedStrings(payload.substring(secondArrayStart, secondArrayEnd + 1))
-        }
-
-        /**
-         * 函数 `parseSo360Suggestions`：把输入内容转换成更适合业务使用的格式，减少调用方重复处理细节。
-         *
-         * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-         * @param payload 参数类型为 `String`，表示函数执行 `payload` 相关逻辑时需要读取或处理的输入。
-         * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-         */
-        private fun parseSo360Suggestions(payload: String): List<String> {
-            return WORD_FIELD_REGEX.findAll(payload)
-                .map { match -> decodeJsonString(match.groupValues[1]).trim() }
-                .filter { it.isNotEmpty() }
-                .toList()
         }
 
         /**
@@ -305,6 +289,5 @@ class SearchSuggestionClient(
         private const val USER_AGENT =
             "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 Chrome Mobile Safari/537.36"
         private val JSON_STRING_REGEX = Regex("\"((?:\\\\.|[^\"\\\\])*)\"")
-        private val WORD_FIELD_REGEX = Regex("\"word\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"")
     }
 }

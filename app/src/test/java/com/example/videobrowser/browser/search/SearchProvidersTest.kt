@@ -3,6 +3,7 @@ package com.example.videobrowser.browser.search
 import com.example.videobrowser.settings.CustomSearchEngine
 import com.example.videobrowser.testutil.projectFile
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -90,13 +91,26 @@ class SearchProvidersTest {
 
     @Test
     fun defaults_includeSearchEngineConfigsForResultRecognitionAndCleanup() {
+        assertEquals(
+            listOf(
+                "sogou",
+                "quark",
+                "uc",
+                "baidu",
+                "baidu_desktop",
+                "edge",
+                "google",
+                "douyin",
+                "duckduckgo",
+                "bilibili"
+            ),
+            SearchProviders.defaults.map { provider -> provider.id }
+        )
         val providersById = SearchProviders.defaults.associateBy { provider -> provider.id }
 
-        assertEquals(
-            "https://m.so.com/s?q={keyword}",
-            providersById.getValue("so").searchTemplate
-        )
-        assertEquals("q", providersById.getValue("so").queryParam)
+        assertFalse(providersById.containsKey("so"))
+        assertFalse(providersById.containsKey("zhihu"))
+        assertFalse(providersById.containsKey("weibo"))
         assertEquals(
             "https://so.douyin.com/s?keyword={keyword}",
             providersById.getValue("douyin").searchTemplate
@@ -114,17 +128,6 @@ class SearchProvidersTest {
             "https://search.bilibili.com/all?keyword={keyword}",
             providersById.getValue("bilibili").searchTemplate
         )
-        assertEquals(
-            "https://m.zhihu.com/search?type=content&q={keyword}",
-            providersById.getValue("zhihu").searchTemplate
-        )
-        assertEquals(
-            "https://m.zhihu.com/search?type=content&q=%E9%97%AE%E7%AD%94",
-            providersById.getValue("zhihu").searchUrlFor("问答")
-        )
-        assertTrue(providersById.getValue("zhihu").domains.contains("www.zhihu.com"))
-        assertEquals("q", providersById.getValue("zhihu").queryParam)
-        assertEquals("/weibo", providersById.getValue("weibo").resultPathRules.single())
     }
 
     @Test
@@ -141,8 +144,9 @@ class SearchProvidersTest {
         assertTrue(builtInSource.contains("id = \"google\""))
         assertTrue(builtInSource.contains("id = \"duckduckgo\""))
         assertTrue(builtInSource.contains("id = \"bilibili\""))
-        assertTrue(builtInSource.contains("id = \"zhihu\""))
-        assertTrue(builtInSource.contains("id = \"weibo\""))
+        assertFalse(builtInSource.contains("id = \"so\""))
+        assertFalse(builtInSource.contains("id = \"zhihu\""))
+        assertFalse(builtInSource.contains("id = \"weibo\""))
         assertTrue(providerSource.length < builtInSource.length)
     }
 }

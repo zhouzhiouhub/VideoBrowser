@@ -75,11 +75,15 @@ VideoBrowser 的目标是提供一个偏视频场景的移动浏览器壳层：
 | ID | 名称 | 保留的搜索引擎首页 URL |
 | --- | --- | --- |
 | `sogou` | 搜狗 | `https://m.sogou.com/` |
-| `so` | 360搜索 | `https://m.so.com/` |
 | `quark` | 夸克搜索 | `https://quark.sm.cn/` |
 | `uc` | UC | `https://so.m.sm.cn/` |
 | `baidu` | 百度 | `https://m.baidu.com/` |
-| `edge` | Bing | `https://www.bing.com/` |
+| `baidu_desktop` | 百度桌面端 | `https://www.baidu.com/` |
+| `edge` | 必应 | `https://www.bing.com/` |
+| `google` | Google | `https://www.google.com/` |
+| `douyin` | 抖音搜索 | `https://so.douyin.com/` |
+| `duckduckgo` | DuckDuckGo | `https://duckduckgo.com/` |
+| `bilibili` | B站搜索 | `https://search.bilibili.com/` |
 
 地址建议来源：
 
@@ -90,8 +94,7 @@ VideoBrowser 的目标是提供一个偏视频场景的移动浏览器壳层：
 
 收藏夹和历史记录不会在无痕模式下读取。远程建议接口按搜索引擎选择：
 
-- Bing：`https://api.bing.com/osjson.aspx`
-- 360：`https://sug.so.360.cn/suggest`
+- 必应：`https://api.bing.com/osjson.aspx`
 - 其他默认走百度建议接口：`https://suggestion.baidu.com/su`
 
 无痕模式下不会读取历史记录，也不会发起远程搜索建议请求，只保留当前输入的兜底搜索项。

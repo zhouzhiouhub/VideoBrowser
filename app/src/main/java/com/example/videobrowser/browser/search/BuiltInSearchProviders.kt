@@ -26,26 +26,6 @@ internal object BuiltInSearchProviders {
             accentColor = 0xFF13B56B.toInt()
         ),
         fromConfig(
-            id = "so",
-            badge = "360",
-            homeUrl = "https://m.so.com/",
-            config = SearchEngineConfig(
-                name = "360搜索",
-                displayUrl = "https://m.so.com",
-                searchTemplate = "https://m.so.com/s?q={keyword}",
-                queryParam = "q",
-                domains = listOf("m.so.com", "www.so.com", "so.com"),
-                resultPathRules = listOf("/s"),
-                hideCss = listOf(
-                    "form[action*=\"/s\"]",
-                    "[role=\"search\"]",
-                    ".search-form"
-                ),
-                hidePageSearchBox = true
-            ),
-            accentColor = 0xFF20A052.toInt()
-        ),
-        fromConfig(
             id = "quark",
             badge = "夸",
             homeUrl = "https://quark.sm.cn/",
@@ -192,38 +172,6 @@ internal object BuiltInSearchProviders {
                 hidePageSearchBox = true
             ),
             accentColor = 0xFF00A1D6.toInt()
-        ),
-        fromConfig(
-            id = "zhihu",
-            badge = "知",
-            homeUrl = "https://m.zhihu.com/",
-            config = SearchEngineConfig(
-                name = "知乎搜索",
-                displayUrl = "https://m.zhihu.com",
-                searchTemplate = "https://m.zhihu.com/search?type=content&q={keyword}",
-                queryParam = "q",
-                domains = listOf("m.zhihu.com", "www.zhihu.com", "zhihu.com"),
-                resultPathRules = listOf("/search"),
-                hideCss = listOf("form[action*=\"/search\"]", "[role=\"search\"]"),
-                hidePageSearchBox = true
-            ),
-            accentColor = 0xFF1772F6.toInt()
-        ),
-        fromConfig(
-            id = "weibo",
-            badge = "微",
-            homeUrl = "https://s.weibo.com/",
-            config = SearchEngineConfig(
-                name = "微博搜索",
-                displayUrl = "https://s.weibo.com",
-                searchTemplate = "https://s.weibo.com/weibo?q={keyword}",
-                queryParam = "q",
-                domains = listOf("s.weibo.com"),
-                resultPathRules = listOf("/weibo"),
-                hideCss = listOf("form[action*=\"/weibo\"]", "[role=\"search\"]"),
-                hidePageSearchBox = true
-            ),
-            accentColor = 0xFFE6162D.toInt()
         )
     )
 
