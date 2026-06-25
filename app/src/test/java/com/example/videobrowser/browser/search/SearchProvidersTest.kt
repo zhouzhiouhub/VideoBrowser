@@ -29,6 +29,32 @@ class SearchProvidersTest {
     }
 
     @Test
+    fun all_mapsCustomSearchEngineTemplatesAndResultRules() {
+        val providers = SearchProviders.all(
+            listOf(
+                CustomSearchEngine(
+                    id = "custom_so",
+                    name = "My 360",
+                    searchUrlPrefix = "https://m.so.com/s?q=",
+                    displayUrl = "https://m.so.com",
+                    searchTemplate = "https://m.so.com/s?q={keyword}",
+                    queryParam = "q",
+                    domains = listOf("m.so.com", "so.com"),
+                    hideCss = listOf("form[action*=\"/s\"]"),
+                    hidePageSearchBox = true
+                )
+            )
+        )
+        val provider = providers.last()
+
+        assertEquals("https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD", provider.searchUrlFor("你好"))
+        assertEquals("https://m.so.com/s?q={keyword}", provider.searchTemplate)
+        assertEquals("q", provider.queryParam)
+        assertEquals(listOf("m.so.com", "so.com"), provider.domains)
+        assertTrue(provider.hidePageSearchBox)
+    }
+
+    @Test
     fun defaults_includeSearchEngineConfigsForResultRecognitionAndCleanup() {
         val providersById = SearchProviders.defaults.associateBy { provider -> provider.id }
 

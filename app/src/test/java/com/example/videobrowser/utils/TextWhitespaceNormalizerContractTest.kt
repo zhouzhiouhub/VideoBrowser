@@ -12,8 +12,8 @@ class TextWhitespaceNormalizerContractTest {
         val shortcutStore = projectFile(
             "src/main/java/com/example/videobrowser/settings/CustomShortcutStore.kt"
         ).readText()
-        val elementRuleStore = projectFile(
-            "src/main/java/com/example/videobrowser/settings/UserElementHideRuleStore.kt"
+        val settingsCssSelectorNormalizer = projectFile(
+            "src/main/java/com/example/videobrowser/settings/SettingsCssSelectorNormalizer.kt"
         ).readText()
         val downloadSafetyPolicy = projectFile(
             "src/main/java/com/example/videobrowser/download/DownloadSafetyPolicy.kt"
@@ -48,7 +48,7 @@ class TextWhitespaceNormalizerContractTest {
 
         listOf(
             shortcutStore,
-            elementRuleStore,
+            settingsCssSelectorNormalizer,
             downloadSafetyPolicy,
             playbackHistoryRepository,
             savedPageRepository,

@@ -124,18 +124,18 @@
     <string name="action_search_engine_short">搜索引擎</string>
     <string name="action_search_engine_summary">选择默认搜索引擎</string>
     <string name="search_engine_selected_summary">当前默认：%1$s</string>
-    <string name="custom_search_engine_url_prefix">搜索 URL 前缀</string>
+    <string name="custom_search_engine_url_prefix">首页或搜索模板</string>
     <string name="action_set_default_search_engine">设为默认</string>
     <string name="action_set_default_search_engine_summary">将它设为地址栏默认搜索引擎</string>
-    <string name="action_edit_custom_search_engine_summary">修改名称和搜索 URL 前缀</string>
+    <string name="action_edit_custom_search_engine_summary">修改名称和首页或搜索模板</string>
     <string name="action_remove_custom_search_engine_summary">从自定义搜索引擎中移除</string>
     <string name="action_add_custom_search_engine_summary">添加自定义搜索引擎</string>
     <string name="title_add_custom_search_engine">添加搜索引擎</string>
     <string name="title_edit_custom_search_engine">编辑搜索引擎</string>
     <string name="title_remove_custom_search_engine">移除搜索引擎</string>
     <string name="hint_custom_search_engine_name">搜索引擎名称</string>
-    <string name="hint_custom_search_engine_url_prefix">https://example.com/search?q=</string>
-    <string name="dialog_add_custom_search_engine_message">输入搜索 URL 前缀，地址栏会在末尾追加关键词。</string>
+    <string name="hint_custom_search_engine_url_prefix" formatted="false">https://example.com 或 https://example.com/search?q={keyword}</string>
+    <string name="dialog_add_custom_search_engine_message" formatted="false">输入已知搜索引擎首页，或输入包含 {keyword}、%s、{searchTerms} 的搜索 URL 模板。</string>
     <string name="dialog_remove_custom_search_engine_message">移除自定义搜索引擎“%1$s”？如果它是当前默认搜索引擎，将恢复为默认内置搜索引擎。</string>
     <string name="action_open_home_page_summary">打开已配置的主页</string>
     <string name="action_set_current_page_as_home">设为主页</string>
@@ -505,7 +505,7 @@
     <string name="toast_custom_search_engine_added">已添加搜索引擎</string>
     <string name="toast_custom_search_engine_updated">已更新搜索引擎</string>
     <string name="toast_custom_search_engine_removed">已移除搜索引擎</string>
-    <string name="toast_custom_search_engine_invalid">请输入名称和 http/https 搜索 URL 前缀</string>
+    <string name="toast_custom_search_engine_invalid">请输入名称和已知搜索首页，未知站点需填写搜索 URL 模板</string>
     <string name="toast_text_zoom_updated">已更新网页文字大小</string>
     <string name="toast_feature_enabled">已开启%1$s</string>
     <string name="toast_feature_disabled">已关闭%1$s</string>

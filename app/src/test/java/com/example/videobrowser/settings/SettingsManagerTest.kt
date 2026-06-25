@@ -794,6 +794,32 @@ class SettingsManagerTest {
     }
 
     @Test
+    fun customSearchEngines_persistDisplayTemplateDomainsAndHideRules() {
+        val store = InMemoryPreferenceStore()
+        val settings = SettingsManager(store)
+
+        assertTrue(
+            settings.addCustomSearchEngine(
+                name = "360",
+                displayUrl = "https://m.so.com",
+                searchTemplate = "https://m.so.com/s?q={keyword}",
+                queryParam = "q",
+                domains = listOf("m.so.com", "so.com"),
+                hideCss = listOf("form[action*=\"/s\"]"),
+                hidePageSearchBox = true
+            )
+        )
+
+        val engine = SettingsManager(store).customSearchEngines().single()
+        assertEquals("https://m.so.com", engine.displayUrl)
+        assertEquals("https://m.so.com/s?q={keyword}", engine.searchTemplate)
+        assertEquals("q", engine.queryParam)
+        assertEquals(listOf("m.so.com", "so.com"), engine.domains)
+        assertEquals(listOf("form[action*=\"/s\"]"), engine.hideCss)
+        assertTrue(engine.hidePageSearchBox)
+    }
+
+    @Test
     fun customSearchEngines_keepMostRecentTenEntries() {
         val settings = SettingsManager(InMemoryPreferenceStore())
 
@@ -927,7 +953,11 @@ class SettingsManagerTest {
                 CustomSearchEngine(
                     id = "custom_good",
                     name = "Good",
-                    searchUrlPrefix = "https://good.example.com/search?q="
+                    searchUrlPrefix = "https://good.example.com/search?q=",
+                    displayUrl = "https://good.example.com",
+                    searchTemplate = "https://good.example.com/search?q={keyword}",
+                    queryParam = "q",
+                    domains = listOf("good.example.com")
                 )
             ),
             settings.customSearchEngines()

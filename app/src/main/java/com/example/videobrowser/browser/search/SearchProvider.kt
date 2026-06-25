@@ -173,12 +173,27 @@ object SearchProviders {
     }
 
     private fun fromCustomSearchEngine(engine: CustomSearchEngine): SearchProvider {
+        val searchTemplate = SearchEngineUrlTools.normalizeTemplate(engine.searchTemplate)
+            ?: SearchEngineUrlTools.templateFromPrefix(engine.searchUrlPrefix)
+            ?: engine.searchTemplate
+        val queryParam = engine.queryParam.ifBlank {
+            SearchEngineUrlTools.queryParamFromTemplate(searchTemplate).orEmpty()
+        }
+        val domains = engine.domains.ifEmpty {
+            SearchEngineUrlTools.domainsFromTemplate(searchTemplate)
+        }
         return SearchProvider(
             id = engine.id,
             name = engine.name,
             badge = engine.name.take(1).uppercase(Locale.getDefault()),
-            homeUrl = engine.searchUrlPrefix,
-            searchUrlPrefix = engine.searchUrlPrefix,
+            homeUrl = engine.displayUrl,
+            searchUrlPrefix = searchTemplate.substringBefore("{keyword}"),
+            displayUrl = engine.displayUrl,
+            searchTemplate = searchTemplate,
+            queryParam = queryParam,
+            domains = domains,
+            hideCss = engine.hideCss,
+            hidePageSearchBox = engine.hidePageSearchBox,
             accentColor = 0xFF5F6F7D.toInt()
         )
     }

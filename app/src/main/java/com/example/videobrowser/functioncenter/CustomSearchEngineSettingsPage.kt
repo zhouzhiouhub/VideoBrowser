@@ -2,6 +2,8 @@ package com.example.videobrowser.functioncenter
 
 import android.text.InputType
 import com.example.videobrowser.R
+import com.example.videobrowser.browser.search.CustomSearchEngineInputResolver
+import com.example.videobrowser.browser.search.SearchEngineConfig
 import com.example.videobrowser.settings.CustomSearchEngine
 import com.example.videobrowser.settings.SettingsManager
 import com.example.videobrowser.utils.ConfirmationDialog
@@ -41,7 +43,7 @@ internal class CustomSearchEngineSettingsPage(
                 host.contentFactory.addInfoRow(
                     parent = section,
                     title = activity.getString(R.string.custom_search_engine_url_prefix),
-                    summary = currentEngine.searchUrlPrefix
+                    summary = currentEngine.displayUrl
                 )
                 host.contentFactory.addActionRow(
                     parent = section,
@@ -49,7 +51,7 @@ internal class CustomSearchEngineSettingsPage(
                     summary = if (selected) {
                         activity.getString(
                             R.string.search_engine_selected_summary,
-                            currentEngine.searchUrlPrefix
+                            currentEngine.displayUrl
                         )
                     } else {
                         activity.getString(R.string.action_set_default_search_engine_summary)
@@ -103,12 +105,14 @@ internal class CustomSearchEngineSettingsPage(
             secondField = TextInputDialogField(
                 hintRes = R.string.hint_custom_search_engine_url_prefix,
                 inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
-                initialValue = engine.searchUrlPrefix
+                initialValue = engine.displayUrl
             ),
             positiveButtonRes = R.string.action_save,
             dp = ::dp
         ) { values ->
-            val saved = settingsManager.updateCustomSearchEngine(engine, values.first, values.second)
+            val saved = CustomSearchEngineInputResolver.resolve(values.second)
+                ?.let { config -> updateCustomSearchEngine(engine, values.first, config) }
+                ?: false
             if (saved) {
                 val updatedEngine = findCurrentEngine(engine)
                 if (updatedEngine != null && currentSearchProviderId() == updatedEngine.id) {
@@ -125,6 +129,23 @@ internal class CustomSearchEngineSettingsPage(
             }
             saved
         }
+    }
+
+    private fun updateCustomSearchEngine(
+        engine: CustomSearchEngine,
+        name: String,
+        config: SearchEngineConfig
+    ): Boolean {
+        return settingsManager.updateCustomSearchEngine(
+            engine = engine,
+            name = name,
+            displayUrl = config.displayUrl,
+            searchTemplate = config.searchTemplate,
+            queryParam = config.queryParam,
+            domains = config.domains,
+            hideCss = config.hideCss,
+            hidePageSearchBox = config.hidePageSearchBox
+        )
     }
 
     private fun showRemoveCustomSearchEngineDialog(engine: CustomSearchEngine) {

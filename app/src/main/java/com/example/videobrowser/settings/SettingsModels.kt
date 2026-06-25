@@ -18,7 +18,13 @@ data class CustomShortcut(
 data class CustomSearchEngine(
     val id: String,
     val name: String,
-    val searchUrlPrefix: String
+    val searchUrlPrefix: String,
+    val displayUrl: String = searchUrlPrefix,
+    val searchTemplate: String = "${searchUrlPrefix}{keyword}",
+    val queryParam: String = "",
+    val domains: List<String> = emptyList(),
+    val hideCss: List<String> = emptyList(),
+    val hidePageSearchBox: Boolean = false
 )
 
 data class SitePermissionRecord(

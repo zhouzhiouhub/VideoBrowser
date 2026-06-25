@@ -76,6 +76,13 @@ object SearchEngineUrlTools {
         return listOfNotNull(uri.host?.normalizedHost())
     }
 
+    fun displayUrlFromTemplate(searchTemplate: String): String? {
+        val uri = parseTemplateUri(searchTemplate) ?: return null
+        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
+        val host = uri.host?.normalizedHost() ?: return null
+        return "$scheme://$host"
+    }
+
     fun templateFromPrefix(searchUrlPrefix: String): String? {
         val trimmed = searchUrlPrefix.trim()
         if (placeholders.any { token -> trimmed.contains(token) }) {

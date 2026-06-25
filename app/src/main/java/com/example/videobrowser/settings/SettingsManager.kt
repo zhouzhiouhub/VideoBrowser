@@ -707,6 +707,26 @@ class SettingsManager(
         return customSearchEngineStore.add(name, searchUrlPrefix)
     }
 
+    fun addCustomSearchEngine(
+        name: String,
+        displayUrl: String,
+        searchTemplate: String,
+        queryParam: String,
+        domains: List<String>,
+        hideCss: List<String>,
+        hidePageSearchBox: Boolean
+    ): Boolean {
+        return customSearchEngineStore.add(
+            name = name,
+            displayUrl = displayUrl,
+            searchTemplate = searchTemplate,
+            queryParam = queryParam,
+            domains = domains,
+            hideCss = hideCss,
+            hidePageSearchBox = hidePageSearchBox
+        )
+    }
+
     /**
      * 函数 `removeCustomSearchEngine`：封装 `remove Custom Search Engine` 这一段业务步骤，让调用方不用关心内部实现细节。
      *
@@ -733,6 +753,28 @@ class SettingsManager(
         searchUrlPrefix: String
     ): Boolean {
         return customSearchEngineStore.update(engine, name, searchUrlPrefix)
+    }
+
+    fun updateCustomSearchEngine(
+        engine: CustomSearchEngine,
+        name: String,
+        displayUrl: String,
+        searchTemplate: String,
+        queryParam: String,
+        domains: List<String>,
+        hideCss: List<String>,
+        hidePageSearchBox: Boolean
+    ): Boolean {
+        return customSearchEngineStore.update(
+            engine = engine,
+            name = name,
+            displayUrl = displayUrl,
+            searchTemplate = searchTemplate,
+            queryParam = queryParam,
+            domains = domains,
+            hideCss = hideCss,
+            hidePageSearchBox = hidePageSearchBox
+        )
     }
 
     /**

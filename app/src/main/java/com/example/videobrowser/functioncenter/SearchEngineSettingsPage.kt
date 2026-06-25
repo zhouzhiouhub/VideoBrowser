@@ -3,6 +3,8 @@ package com.example.videobrowser.functioncenter
 import android.text.InputType
 import android.widget.LinearLayout
 import com.example.videobrowser.R
+import com.example.videobrowser.browser.search.CustomSearchEngineInputResolver
+import com.example.videobrowser.browser.search.SearchEngineConfig
 import com.example.videobrowser.browser.search.SearchProvider
 import com.example.videobrowser.settings.CustomSearchEngine
 import com.example.videobrowser.settings.SettingsManager
@@ -69,10 +71,10 @@ class SearchEngineSettingsPage(
             summary = if (selected) {
                 activity.getString(
                     R.string.search_engine_selected_summary,
-                    provider.searchUrlPrefix
+                    provider.displayUrl
                 )
             } else {
-                provider.searchUrlPrefix
+                provider.displayUrl
             }
         ) {
             if (customEngine != null) {
@@ -121,7 +123,9 @@ class SearchEngineSettingsPage(
             positiveButtonRes = R.string.action_add,
             dp = ::dp
         ) { values ->
-            val saved = settingsManager.addCustomSearchEngine(values.first, values.second)
+            val saved = CustomSearchEngineInputResolver.resolve(values.second)
+                ?.let { config -> addCustomSearchEngine(values.first, config) }
+                ?: false
             if (saved) {
                 ShortToast.show(activity, R.string.toast_custom_search_engine_added)
                 show(replaceCurrent = true)
@@ -130,6 +134,18 @@ class SearchEngineSettingsPage(
             }
             saved
         }
+    }
+
+    private fun addCustomSearchEngine(name: String, config: SearchEngineConfig): Boolean {
+        return settingsManager.addCustomSearchEngine(
+            name = name,
+            displayUrl = config.displayUrl,
+            searchTemplate = config.searchTemplate,
+            queryParam = config.queryParam,
+            domains = config.domains,
+            hideCss = config.hideCss,
+            hidePageSearchBox = config.hidePageSearchBox
+        )
     }
 
     private fun dp(value: Int): Int {
