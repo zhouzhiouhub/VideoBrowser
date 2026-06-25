@@ -8,16 +8,14 @@ import com.example.videobrowser.utils.MediaUrlUtils
  * 浏览历史页顶部类型标签的筛选规则。
  */
 internal enum class SavedPageHistoryCategory(val labelRes: Int) {
-    SEARCH(R.string.history_category_search),
+    ALL(R.string.history_filter_all),
     URL(R.string.history_category_url),
-    TOOL(R.string.history_category_tools),
     VIDEO(R.string.history_category_video);
 
     fun filter(pages: List<SavedPage>): List<SavedPage> {
         return when (this) {
-            SEARCH -> pages
+            ALL -> pages
             URL -> pages.filter(::isUrlOnlyPage)
-            TOOL -> emptyList()
             VIDEO -> pages.filter(::isVideoPage)
         }
     }

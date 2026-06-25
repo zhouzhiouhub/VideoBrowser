@@ -380,9 +380,7 @@
     <string name="history_clear_range_last_7_days">最近 7 天</string>
     <string name="history_clear_range_all">全部时间</string>
     <string name="history_search_hint">搜索历史</string>
-    <string name="history_category_search">搜索</string>
     <string name="history_category_url">网址</string>
-    <string name="history_category_tools">工具</string>
     <string name="history_category_video">视频</string>
     <string name="history_filter_all">全部</string>
     <string name="history_date_unknown">未知日期</string>

@@ -24,7 +24,7 @@ internal class SavedPageHistoryPageController(
 ) {
     private val activity = host.activity
     private val historyPageContent = SavedPageHistoryPageContent(host)
-    private var selectedHistoryCategory = SavedPageHistoryCategory.SEARCH
+    private var selectedHistoryCategory = SavedPageHistoryCategory.ALL
     private var selectedHistoryUrls: Set<String> = emptySet()
     private var currentHistoryQuery: String? = null
 
@@ -68,12 +68,12 @@ internal class SavedPageHistoryPageController(
     private fun syncHistoryState(query: String?, replaceCurrent: Boolean) {
         if (!replaceCurrent) {
             selectedHistoryUrls = emptySet()
-            selectedHistoryCategory = SavedPageHistoryCategory.SEARCH
+            selectedHistoryCategory = SavedPageHistoryCategory.ALL
         }
         val normalizedQuery = query?.trim()?.takeIf { it.isNotEmpty() }
         if (normalizedQuery != currentHistoryQuery) {
             selectedHistoryUrls = emptySet()
-            selectedHistoryCategory = SavedPageHistoryCategory.SEARCH
+            selectedHistoryCategory = SavedPageHistoryCategory.ALL
             currentHistoryQuery = normalizedQuery
         }
     }
