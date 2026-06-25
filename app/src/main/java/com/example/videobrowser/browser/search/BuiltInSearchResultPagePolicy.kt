@@ -21,6 +21,7 @@ class BuiltInSearchResultPagePolicy(
             return null
         }
         providers().forEach { provider ->
+            SearchEngineUrlTools.queryFromUrl(provider.config, normalizedUrl)?.let { return it }
             provider.addressBarSearchUrlPrefixes.forEach { searchUrlPrefix ->
                 UrlUtils.searchQueryFromUrl(normalizedUrl, searchUrlPrefix)?.let { return it }
             }

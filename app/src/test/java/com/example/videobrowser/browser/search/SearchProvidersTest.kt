@@ -27,4 +27,22 @@ class SearchProvidersTest {
             providers.last().searchUrlPrefix
         )
     }
+
+    @Test
+    fun defaults_includeSearchEngineConfigsForResultRecognitionAndCleanup() {
+        val providersById = SearchProviders.defaults.associateBy { provider -> provider.id }
+
+        assertEquals(
+            "https://m.so.com/s?q={keyword}",
+            providersById.getValue("so").searchTemplate
+        )
+        assertEquals("q", providersById.getValue("so").queryParam)
+        assertEquals(
+            "https://so.douyin.com/s?keyword={keyword}",
+            providersById.getValue("douyin").searchTemplate
+        )
+        assertEquals("keyword", providersById.getValue("douyin").queryParam)
+        assertTrue(providersById.getValue("baidu").hidePageSearchBox)
+        assertTrue(providersById.getValue("edge").domains.contains("bing.com"))
+    }
 }

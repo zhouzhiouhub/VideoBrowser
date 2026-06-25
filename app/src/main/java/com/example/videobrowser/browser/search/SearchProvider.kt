@@ -16,62 +16,154 @@ data class SearchProvider(
     val badge: String,
     val homeUrl: String,
     val searchUrlPrefix: String,
+    val displayUrl: String = homeUrl.trimEnd('/'),
+    val searchTemplate: String = SearchEngineUrlTools.templateFromPrefix(searchUrlPrefix)
+        ?: searchUrlPrefix,
+    val queryParam: String = SearchEngineUrlTools.queryParamFromTemplate(searchTemplate).orEmpty(),
+    val domains: List<String> = SearchEngineUrlTools.domainsFromTemplate(searchTemplate),
+    val hideCss: List<String> = emptyList(),
+    val hidePageSearchBox: Boolean = false,
     val addressBarSearchUrlPrefixes: List<String> = listOf(searchUrlPrefix),
     val accentColor: Int
-)
+) {
+    val config: SearchEngineConfig
+        get() = SearchEngineConfig(
+            name = name,
+            displayUrl = displayUrl,
+            searchTemplate = searchTemplate,
+            queryParam = queryParam,
+            domains = domains,
+            hideCss = hideCss,
+            hidePageSearchBox = hidePageSearchBox
+        )
+
+    fun searchUrlFor(keyword: String): String? {
+        return SearchEngineUrlTools.buildSearchUrl(config, keyword)
+    }
+}
 
 object SearchProviders {
     val defaults: List<SearchProvider> = listOf(
-        SearchProvider(
+        fromConfig(
             id = "sogou",
-            name = "搜狗",
             badge = "搜",
             homeUrl = "https://m.sogou.com/",
-            searchUrlPrefix = "https://www.sogou.com/web?query=",
+            config = SearchEngineConfig(
+                name = "搜狗",
+                displayUrl = "https://www.sogou.com",
+                searchTemplate = "https://www.sogou.com/web?query={keyword}",
+                queryParam = "query",
+                domains = listOf("www.sogou.com", "m.sogou.com", "sogou.com"),
+                hideCss = listOf(
+                    "form[action*=\"/web\"]",
+                    "[role=\"search\"]"
+                ),
+                hidePageSearchBox = true
+            ),
             addressBarSearchUrlPrefixes = listOf(
                 "https://www.sogou.com/web?query=",
                 "https://m.sogou.com/web/searchList.jsp?s_from=pcsearch&keyword="
             ),
             accentColor = 0xFF13B56B.toInt()
         ),
-        SearchProvider(
+        fromConfig(
             id = "so",
-            name = "360搜索",
             badge = "360",
             homeUrl = "https://m.so.com/",
-            searchUrlPrefix = "https://www.so.com/s?q=",
+            config = SearchEngineConfig(
+                name = "360搜索",
+                displayUrl = "https://m.so.com",
+                searchTemplate = "https://m.so.com/s?q={keyword}",
+                queryParam = "q",
+                domains = listOf("m.so.com", "www.so.com", "so.com"),
+                hideCss = listOf(
+                    "form[action*=\"/s\"]",
+                    "[id*=\"search\"]"
+                ),
+                hidePageSearchBox = true
+            ),
             accentColor = 0xFF20A052.toInt()
         ),
-        SearchProvider(
+        fromConfig(
             id = "quark",
-            name = "夸克搜索",
             badge = "夸",
             homeUrl = "https://quark.sm.cn/",
-            searchUrlPrefix = "https://quark.sm.cn/s?q=",
+            config = SearchEngineConfig(
+                name = "夸克搜索",
+                displayUrl = "https://quark.sm.cn",
+                searchTemplate = "https://quark.sm.cn/s?q={keyword}",
+                queryParam = "q",
+                domains = listOf("quark.sm.cn"),
+                hidePageSearchBox = true
+            ),
             accentColor = 0xFF2F6FED.toInt()
         ),
-        SearchProvider(
+        fromConfig(
             id = "uc",
-            name = "UC",
             badge = "UC",
             homeUrl = "https://so.m.sm.cn/",
-            searchUrlPrefix = "https://so.m.sm.cn/s?q=",
+            config = SearchEngineConfig(
+                name = "UC",
+                displayUrl = "https://so.m.sm.cn",
+                searchTemplate = "https://so.m.sm.cn/s?q={keyword}",
+                queryParam = "q",
+                domains = listOf("so.m.sm.cn"),
+                hidePageSearchBox = true
+            ),
             accentColor = 0xFFF28C20.toInt()
         ),
-        SearchProvider(
+        fromConfig(
             id = "baidu",
-            name = "百度",
             badge = "百",
             homeUrl = "https://m.baidu.com/",
-            searchUrlPrefix = "https://m.baidu.com/s?ie=utf-8&word=",
+            config = SearchEngineConfig(
+                name = "百度",
+                displayUrl = "https://m.baidu.com",
+                searchTemplate = "https://m.baidu.com/s?word={keyword}",
+                queryParam = "word",
+                domains = listOf("m.baidu.com", "www.baidu.com", "baidu.com"),
+                hideCss = listOf(
+                    "form[action*=\"/s\"]",
+                    "[role=\"search\"]"
+                ),
+                hidePageSearchBox = true
+            ),
             accentColor = 0xFF315EFB.toInt()
         ),
-        SearchProvider(
+        fromConfig(
             id = "edge",
-            name = "Bing",
             badge = "B",
             homeUrl = "https://www.bing.com/",
-            searchUrlPrefix = "https://www.bing.com/search?q=",
+            config = SearchEngineConfig(
+                name = "Bing",
+                displayUrl = "https://www.bing.com",
+                searchTemplate = "https://www.bing.com/search?q={keyword}",
+                queryParam = "q",
+                domains = listOf("www.bing.com", "bing.com"),
+                hideCss = listOf(
+                    "form[action*=\"/search\"]",
+                    "[role=\"search\"]"
+                ),
+                hidePageSearchBox = true
+            ),
+            accentColor = 0xFF12837A.toInt()
+        ),
+        fromConfig(
+            id = "douyin",
+            badge = "抖",
+            homeUrl = "https://so.douyin.com/",
+            config = SearchEngineConfig(
+                name = "抖音搜索",
+                displayUrl = "https://so.douyin.com",
+                searchTemplate = "https://so.douyin.com/s?keyword={keyword}",
+                queryParam = "keyword",
+                domains = listOf("so.douyin.com"),
+                hideCss = listOf(
+                    "form[action*=\"/s\"]",
+                    "[role=\"search\"]"
+                ),
+                hidePageSearchBox = true
+            ),
             accentColor = 0xFF12837A.toInt()
         )
     )
@@ -88,6 +180,33 @@ object SearchProviders {
             homeUrl = engine.searchUrlPrefix,
             searchUrlPrefix = engine.searchUrlPrefix,
             accentColor = 0xFF5F6F7D.toInt()
+        )
+    }
+
+    private fun fromConfig(
+        id: String,
+        badge: String,
+        homeUrl: String,
+        config: SearchEngineConfig,
+        addressBarSearchUrlPrefixes: List<String> = listOf(
+            config.searchTemplate.substringBefore("{keyword}")
+        ),
+        accentColor: Int
+    ): SearchProvider {
+        return SearchProvider(
+            id = id,
+            name = config.name,
+            badge = badge,
+            homeUrl = homeUrl,
+            searchUrlPrefix = config.searchTemplate.substringBefore("{keyword}"),
+            displayUrl = config.displayUrl,
+            searchTemplate = config.searchTemplate,
+            queryParam = config.queryParam,
+            domains = config.domains,
+            hideCss = config.hideCss,
+            hidePageSearchBox = config.hidePageSearchBox,
+            addressBarSearchUrlPrefixes = addressBarSearchUrlPrefixes,
+            accentColor = accentColor
         )
     }
 }

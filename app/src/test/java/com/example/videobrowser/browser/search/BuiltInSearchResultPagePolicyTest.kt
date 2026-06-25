@@ -54,6 +54,20 @@ class BuiltInSearchResultPagePolicyTest {
     }
 
     @Test
+    fun searchQueryFromUrl_matchesConfiguredSearchResultDomainsAndParams() {
+        val defaultPolicy = BuiltInSearchResultPagePolicy(SearchProviders.defaults)
+
+        assertEquals(
+            "你好",
+            defaultPolicy.searchQueryFromUrl("https://m.so.com/s?q=%E4%BD%A0%E5%A5%BD")
+        )
+        assertEquals(
+            "你好",
+            defaultPolicy.searchQueryFromUrl("https://so.douyin.com/s?keyword=你好")
+        )
+    }
+
+    @Test
     fun isBuiltInSearchResultUrl_rejectsProviderHomesAndNormalPages() {
         assertTrue(
             policy.isBuiltInSearchResultUrl(
