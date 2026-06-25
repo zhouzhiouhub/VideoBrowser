@@ -83,15 +83,19 @@ class SavedPagesPageContractTest {
         val dialogController = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
         ).readText()
+        val inlineActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
+        ).readText()
         val linkActions = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageLinkActions.kt"
         ).readText()
 
         assertTrue(page.contains("SavedPagesDialogController("))
-        assertTrue(dialogController.contains("private fun savedPageActions"))
-        assertTrue(dialogController.contains("R.string.action_copy_link"))
-        assertTrue(dialogController.contains("linkActions.copyUrl(page)"))
+        assertTrue(page.contains("SavedPageInlineActionController("))
+        assertTrue(inlineActions.contains("R.string.action_copy_link"))
+        assertTrue(inlineActions.contains("linkActions.copyUrl(page)"))
         assertTrue(linkActions.contains("PageUrlActions.copyPageUrl(activity, page.url)"))
+        assertFalse(dialogController.contains("ActionListDialog.show("))
         assertFalse(linkActions.contains("ClipData.newPlainText"))
         assertFalse(linkActions.contains("Context.CLIPBOARD_SERVICE"))
     }
@@ -109,13 +113,17 @@ class SavedPagesPageContractTest {
         val dialogController = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
         ).readText()
+        val inlineActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
+        ).readText()
         val linkActions = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPageLinkActions.kt"
         ).readText()
 
-        assertTrue(dialogController.contains("R.string.action_share_page"))
-        assertTrue(dialogController.contains("linkActions.shareUrl(page)"))
+        assertTrue(inlineActions.contains("R.string.action_share_page"))
+        assertTrue(inlineActions.contains("linkActions.shareUrl(page)"))
         assertTrue(linkActions.contains("PageUrlActions.sharePageUrl(activity, page.url)"))
+        assertFalse(dialogController.contains("ActionListDialog.show("))
         assertFalse(linkActions.contains("Intent(Intent.ACTION_SEND)"))
         assertFalse(linkActions.contains("putExtra(Intent.EXTRA_TEXT"))
     }
@@ -140,14 +148,50 @@ class SavedPagesPageContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(page.contains("openUrlInNewTab: (String) -> Unit"))
-        val dialogController = projectFile(
-            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
+        val inlineActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
         ).readText()
-        assertTrue(dialogController.contains("R.string.action_open_in_new_tab"))
-        assertTrue(dialogController.contains("openUrlInNewTab(page.url)"))
+        assertTrue(inlineActions.contains("R.string.action_open_in_new_tab"))
+        assertTrue(inlineActions.contains("openUrlInNewTab(page.url)"))
         assertTrue(pages.contains("openUrlInNewTab = openUrlInNewTab"))
         assertTrue(functionCenterAssembly.contains("openUrlInNewTab = browserTabActionsController::openUrlInNewTab"))
         assertTrue(strings.contains("action_open_in_new_tab"))
+    }
+
+    @Test
+    fun savedPagesPageOpensRowsAndExpandsInlineActionsOnLongPress() {
+        val page = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        ).readText()
+        val recordSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageRecordSection.kt"
+        ).readText()
+        val rowFactory = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterRowFactory.kt"
+        ).readText()
+        val contentFactory = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/FunctionCenterContentFactory.kt"
+        ).readText()
+        val inlineActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
+        ).readText()
+        val dialogController = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
+        ).readText()
+
+        assertTrue(page.contains("private val recordSection = SavedPageRecordSection("))
+        assertTrue(page.contains("expandedUrl: String? = null"))
+        assertTrue(page.contains("recordSection.add("))
+        assertTrue(recordSection.contains("onClick = { openPage(page) }"))
+        assertTrue(recordSection.contains("onLongClick = {"))
+        assertTrue(recordSection.contains("showExpandedPage("))
+        assertTrue(recordSection.contains("inlineActionController.addActions("))
+        assertTrue(contentFactory.contains("onLongClick: (() -> Unit)? = null"))
+        assertTrue(rowFactory.contains("setOnLongClickListener"))
+        assertTrue(inlineActions.contains("savedPageRepository.remove(collection, page.url)"))
+        assertTrue(inlineActions.contains("ShortToast.show(activity, R.string.toast_saved_page_removed)"))
+        assertFalse(dialogController.contains("showSavedPageActionsDialog"))
+        assertFalse(dialogController.contains("ActionListDialog.show("))
     }
 
     /**
@@ -157,8 +201,8 @@ class SavedPagesPageContractTest {
      */
     @Test
     fun savedPagesPageCanRenameBookmarks() {
-        val page = projectFile(
-            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        val inlineActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
         ).readText()
         val dialogController = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
@@ -172,11 +216,12 @@ class SavedPagesPageContractTest {
         val strings = projectFile("src/main/res/values/strings.xml").readText()
 
         assertTrue(repository.contains("fun updateTitle(collection: SavedPageCollection, url: String, title: String): Boolean"))
-        assertTrue(dialogController.contains("collection == SavedPageCollection.BOOKMARKS"))
-        assertTrue(dialogController.contains("private fun showRenameBookmarkDialog"))
+        assertTrue(inlineActions.contains("dialogController.showRenameSavedPageDialog(collection, page, title, emptyMessage, query)"))
+        assertTrue(dialogController.contains("fun showRenameSavedPageDialog("))
         assertTrue(dialogController.contains("savedPageRepository.updateTitle("))
-        assertTrue(dialogController.contains("R.string.title_rename_bookmark"))
-        assertTrue(strings.contains("title_rename_bookmark"))
+        assertTrue(dialogController.contains("collection = collection"))
+        assertTrue(dialogController.contains("R.string.title_rename_saved_page"))
+        assertTrue(strings.contains("title_rename_saved_page"))
         assertTrue(strings.contains("hint_saved_page_title"))
         assertTrue(strings.contains("toast_saved_page_renamed"))
         assertTrue(strings.contains("toast_saved_page_title_invalid"))
@@ -189,9 +234,6 @@ class SavedPagesPageContractTest {
      */
     @Test
     fun savedPagesPageCanGroupAndMoveBookmarksByFolder() {
-        val page = projectFile(
-            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
-        ).readText()
         val dialogController = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"
         ).readText()
@@ -208,24 +250,33 @@ class SavedPagesPageContractTest {
             .readText()
         val strings = projectFile("src/main/res/values/strings.xml").readText()
         val readme = projectFile("README.md").readText()
+        val inlineActions = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"
+        ).readText()
+        val recordSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageRecordSection.kt"
+        ).readText()
 
         assertTrue(models.contains("val folder: String = \"\""))
         assertTrue(repository.contains("fun updateBookmarkFolder(url: String, folder: String): Boolean"))
         assertTrue(repository.contains("fun bookmarkFolders(): List<String>"))
         assertTrue(codec.contains("VideoBrowserSavedPages\\t3"))
-        assertTrue(page.contains("private fun bookmarkGroups"))
-        assertTrue(page.contains("R.string.bookmark_folder_unfiled"))
-        assertTrue(page.contains("R.string.bookmark_folder_count"))
-        assertTrue(page.contains("R.string.bookmark_folder_summary"))
-        assertTrue(dialogController.contains("R.string.action_move_bookmark_folder"))
-        assertTrue(dialogController.contains("private fun showMoveBookmarkFolderDialog"))
+        assertTrue(recordSection.contains("private fun bookmarkGroups"))
+        assertTrue(recordSection.contains("R.string.bookmark_folder_unfiled"))
+        assertTrue(recordSection.contains("R.string.bookmark_folder_count"))
+        assertTrue(recordSection.contains("R.string.bookmark_folder_summary"))
+        assertTrue(inlineActions.contains("R.string.action_move_bookmark_folder"))
+        assertTrue(inlineActions.contains("collection == SavedPageCollection.BOOKMARKS"))
+        assertTrue(dialogController.contains("fun showMoveBookmarkFolderDialog"))
         assertTrue(dialogController.contains("savedPageRepository.updateBookmarkFolder("))
         assertTrue(search.contains("\${page.title}\\n\${page.url}\\n\${page.folder}"))
         assertTrue(strings.contains("action_move_bookmark_folder"))
+        assertTrue(strings.contains("action_move_bookmark_folder_summary"))
         assertTrue(strings.contains("title_move_bookmark_folder"))
         assertTrue(strings.contains("hint_bookmark_folder"))
         assertTrue(strings.contains("toast_bookmark_folder_updated"))
-        assertTrue(readme.contains("收藏夹支持重命名标题、文件夹分组、导入和导出"))
+        assertTrue(readme.contains("长按单条记录可在页面内展开编辑标题、新标签打开、复制、分享和移除等操作"))
+        assertTrue(readme.contains("收藏夹支持文件夹分组、导入和导出"))
     }
 
 }

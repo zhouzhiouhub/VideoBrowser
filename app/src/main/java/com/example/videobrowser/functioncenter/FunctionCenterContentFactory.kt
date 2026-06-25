@@ -129,6 +129,7 @@ internal class FunctionCenterContentFactory(
         title: String,
         summary: String,
         enabled: Boolean = true,
+        onLongClick: (() -> Unit)? = null,
         onClick: () -> Unit
     ) {
         addFullWidthView(
@@ -137,6 +138,7 @@ internal class FunctionCenterContentFactory(
                 title = title,
                 summary = summary,
                 enabled = enabled,
+                onLongClick = onLongClick,
                 onClick = onClick
             )
         )

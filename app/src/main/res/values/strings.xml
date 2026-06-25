@@ -215,6 +215,11 @@
     <string name="action_copy_download_source">复制来源链接</string>
     <string name="action_remove_download_record">删除记录</string>
     <string name="action_clear_download_records_summary">清空下载记录并删除对应下载文件</string>
+    <string name="action_edit_saved_page_title_summary">修改这条记录的显示标题</string>
+    <string name="action_open_saved_page_new_tab_summary">在新标签页打开这条记录</string>
+    <string name="action_copy_saved_page_link_summary">复制这条记录的网址</string>
+    <string name="action_share_saved_page_summary">分享这条记录的网址</string>
+    <string name="action_remove_saved_page_summary">从当前列表中移除这条记录</string>
     <string name="download_category_video">视频</string>
     <string name="download_category_image">图片</string>
     <string name="download_category_audio">音频</string>
@@ -246,11 +251,13 @@
     <string name="action_delete_file">删除</string>
     <string name="action_delete_file_summary">从授权目录中删除这个文件</string>
     <string name="action_move_bookmark_folder">移动到文件夹</string>
+    <string name="action_move_bookmark_folder_summary">调整收藏所在文件夹</string>
     <string name="action_create">创建</string>
     <string name="action_rename">重命名</string>
     <string name="title_new_folder">新建文件夹</string>
     <string name="title_new_text_file">新建文本文件</string>
     <string name="title_rename_file">重命名</string>
+    <string name="title_rename_saved_page">编辑记录标题</string>
     <string name="title_rename_bookmark">重命名收藏</string>
     <string name="title_move_bookmark_folder">移动到文件夹</string>
     <string name="title_delete_file">删除文件</string>

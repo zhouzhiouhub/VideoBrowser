@@ -8,12 +8,9 @@ package com.example.videobrowser.functioncenter
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
 import com.example.videobrowser.R
-import com.example.videobrowser.storage.SavedPage
 import com.example.videobrowser.storage.SavedPageRepository
 import com.example.videobrowser.storage.SavedPageRepository.SavedPageCollection
 import com.example.videobrowser.storage.SavedPageSearch
-import com.example.videobrowser.utils.ShortDateTimeFormatter
-import com.example.videobrowser.utils.UrlUtils
 
 class SavedPagesPage(
     private val host: FunctionCenterPageHost,
@@ -23,13 +20,50 @@ class SavedPagesPage(
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
+    private val linkActions = SavedPageLinkActions(activity)
     private val dialogController = SavedPagesDialogController(
         activity = activity,
         savedPageRepository = savedPageRepository,
-        linkActions = SavedPageLinkActions(activity),
+        showSavedPagesPage = { collection, title, emptyMessage, replaceCurrent, query ->
+            show(
+                collection = collection,
+                title = title,
+                emptyMessage = emptyMessage,
+                replaceCurrent = replaceCurrent,
+                query = query
+            )
+        }
+    )
+    private val inlineActionController = SavedPageInlineActionController(
+        host = host,
+        savedPageRepository = savedPageRepository,
+        dialogController = dialogController,
+        linkActions = linkActions,
         openUrlInNewTab = openUrlInNewTab,
-        loadUrl = loadUrl,
-        showSavedPagesPage = ::show
+        refreshSavedPagesPage = { collection, title, emptyMessage, query ->
+            show(
+                collection = collection,
+                title = title,
+                emptyMessage = emptyMessage,
+                replaceCurrent = true,
+                query = query
+            )
+        }
+    )
+    private val recordSection = SavedPageRecordSection(
+        host = host,
+        inlineActionController = inlineActionController,
+        openPage = { page -> loadUrl(page.url) },
+        showExpandedPage = { collection, title, emptyMessage, query, expandedUrl ->
+            show(
+                collection = collection,
+                title = title,
+                emptyMessage = emptyMessage,
+                replaceCurrent = true,
+                query = query,
+                expandedUrl = expandedUrl
+            )
+        }
     )
 
     /**
@@ -47,7 +81,8 @@ class SavedPagesPage(
         title: String,
         emptyMessage: String,
         replaceCurrent: Boolean = false,
-        query: String? = null
+        query: String? = null,
+        expandedUrl: String? = null
     ) {
         val allPages = savedPageRepository.pages(collection)
         val pages = SavedPageSearch.filter(allPages, query)
@@ -107,115 +142,16 @@ class SavedPagesPage(
                     host.contentFactory.addEmptyState(section, activity.getString(R.string.dialog_saved_pages_search_empty))
                     return@addFunctionSection
                 }
-                if (collection == SavedPageCollection.BOOKMARKS) {
-                    addBookmarkGroups(section, pages, title, emptyMessage)
-                } else {
-                    addSavedPageRows(section, collection, pages, title, emptyMessage)
-                }
+                recordSection.add(
+                    section = section,
+                    collection = collection,
+                    pages = pages,
+                    title = title,
+                    emptyMessage = emptyMessage,
+                    query = query,
+                    expandedUrl = expandedUrl
+                )
             }
         }
     }
-
-    /**
-     * 函数 `addBookmarkGroups`：封装 `add Bookmark Groups` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param section 参数类型为 `android.widget.LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
-     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addBookmarkGroups(
-        section: android.widget.LinearLayout,
-        pages: List<SavedPage>,
-        title: String,
-        emptyMessage: String
-    ) {
-        bookmarkGroups(pages).forEachIndexed { index, group ->
-            if (index > 0) {
-                host.contentFactory.addDivider(section)
-            }
-            host.contentFactory.addInfoRow(
-                parent = section,
-                title = group.title,
-                summary = activity.getString(R.string.bookmark_folder_count, group.pages.size)
-            )
-            addSavedPageRows(section, SavedPageCollection.BOOKMARKS, group.pages, title, emptyMessage)
-        }
-    }
-
-    /**
-     * 函数 `addSavedPageRows`：封装 `add Saved Page Rows` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param section 参数类型为 `android.widget.LinearLayout`，表示函数执行 `section` 相关逻辑时需要读取或处理的输入。
-     * @param collection 参数类型为 `SavedPageCollection`，表示函数执行 `collection` 相关逻辑时需要读取或处理的输入。
-     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
-     * @param title 参数类型为 `String`，表示名称或键值，用来定位数据、生成展示文本或写入配置。
-     * @param emptyMessage 参数类型为 `String`，表示函数执行 `emptyMessage` 相关逻辑时需要读取或处理的输入。
-     */
-    private fun addSavedPageRows(
-        section: android.widget.LinearLayout,
-        collection: SavedPageCollection,
-        pages: List<SavedPage>,
-        title: String,
-        emptyMessage: String
-    ) {
-        pages.forEach { page ->
-            host.contentFactory.addActionRow(
-                parent = section,
-                title = page.title.ifBlank { page.url },
-                summary = pageSummary(page)
-            ) {
-                dialogController.showSavedPageActionsDialog(collection, page, title, emptyMessage)
-            }
-        }
-    }
-
-    /**
-     * 函数 `pageSummary`：封装 `page Summary` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param page 参数类型为 `SavedPage`，表示函数执行 `page` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun pageSummary(page: SavedPage): String {
-        val timestamp = page.updatedAtMillis.takeIf { it > 0L }
-        return listOfNotNull(
-            page.folder.takeIf { it.isNotBlank() }?.let { folder ->
-                activity.getString(R.string.bookmark_folder_summary, folder)
-            },
-            UrlUtils.displayUrl(page.url),
-            timestamp?.let(ShortDateTimeFormatter::format)
-        ).joinToString(" | ")
-    }
-
-    /**
-     * 函数 `bookmarkGroups`：封装 `bookmark Groups` 这一段业务步骤，让调用方不用关心内部实现细节。
-     *
-     * 初学者阅读提示：先看参数说明，再看函数体如何读取这些参数、更新状态或返回结果。
-     * @param pages 参数类型为 `List<SavedPage>`，表示函数执行 `pages` 相关逻辑时需要读取或处理的输入。
-     * @return 返回函数处理后的结果；调用方会根据这个值继续后续流程。
-     */
-    private fun bookmarkGroups(pages: List<SavedPage>): List<SavedPageGroup> {
-        val unfiled = pages.filter { page -> page.folder.isBlank() }
-        val folderGroups = pages
-            .filter { page -> page.folder.isNotBlank() }
-            .groupBy { page -> page.folder }
-            .toSortedMap()
-            .map { (folder, folderPages) ->
-                SavedPageGroup(title = folder, pages = folderPages)
-            }
-        return listOfNotNull(
-            SavedPageGroup(
-                title = activity.getString(R.string.bookmark_folder_unfiled),
-                pages = unfiled
-            ).takeIf { group -> group.pages.isNotEmpty() }
-        ) + folderGroups
-    }
-
-    private data class SavedPageGroup(
-        val title: String,
-        val pages: List<SavedPage>
-    )
 }

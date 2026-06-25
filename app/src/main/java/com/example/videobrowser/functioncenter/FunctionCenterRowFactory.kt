@@ -95,6 +95,7 @@ internal class FunctionCenterRowFactory(
         title: String,
         summary: String,
         enabled: Boolean,
+        onLongClick: (() -> Unit)? = null,
         onClick: () -> Unit
     ): View {
         return createRowText(title, summary).apply {
@@ -107,6 +108,12 @@ internal class FunctionCenterRowFactory(
             setBoundedSelectableItemBackground()
             if (enabled) {
                 setOnClickListener { onClick() }
+                onLongClick?.let { handler ->
+                    setOnLongClickListener {
+                        handler()
+                        true
+                    }
+                }
             }
         }
     }

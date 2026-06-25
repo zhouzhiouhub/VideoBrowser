@@ -29,16 +29,16 @@ class ShortDateTimeFormatterContractTest {
         val playbackHistoryText = projectFile(
             "src/main/java/com/example/videobrowser/functioncenter/PlaybackHistoryDisplayText.kt"
         ).readText()
-        val savedPagesPage = projectFile(
-            "src/main/java/com/example/videobrowser/functioncenter/SavedPagesPage.kt"
+        val savedPageRecordSection = projectFile(
+            "src/main/java/com/example/videobrowser/functioncenter/SavedPageRecordSection.kt"
         ).readText()
 
         assertTrue(downloadsFormatter.contains("ShortDateTimeFormatter.format(record.createdAtMillis)"))
         assertTrue(playbackHistoryText.contains("ShortDateTimeFormatter.format(updatedAtMillis)"))
-        assertTrue(savedPagesPage.contains("timestamp?.let(ShortDateTimeFormatter::format)"))
+        assertTrue(savedPageRecordSection.contains("timestamp?.let(ShortDateTimeFormatter::format)"))
         assertFalse(downloadsFormatter.contains("getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)"))
         assertFalse(playbackHistoryText.contains("getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)"))
-        assertFalse(savedPagesPage.contains("getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)"))
+        assertFalse(savedPageRecordSection.contains("getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)"))
     }
 
 }

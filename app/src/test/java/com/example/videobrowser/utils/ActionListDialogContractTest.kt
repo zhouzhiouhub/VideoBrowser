@@ -46,7 +46,6 @@ class ActionListDialogContractTest {
 
         listOf(
             downloadsDialogs,
-            savedPagesDialogs,
             searchProviderDialogs,
             linkContextMenu,
             dataManagementDialogs,
@@ -59,6 +58,8 @@ class ActionListDialogContractTest {
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(dataManagementDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(nativeTrackSelectionDialogs).count())
         assertEquals(0, Regex("AlertDialog\\.Builder\\(activity\\)").findAll(nativePlaybackQueueDialogs).count())
+        assertFalse(savedPagesDialogs.contains("ActionListDialog.show("))
+        assertFalse(savedPagesDialogs.contains("DialogAction("))
         assertFalse(downloadsDialogs.contains("private data class DownloadRecordAction"))
         assertFalse(savedPagesDialogs.contains("private data class SavedPageAction"))
         assertFalse(linkContextMenu.contains("private data class UrlContextMenuAction"))

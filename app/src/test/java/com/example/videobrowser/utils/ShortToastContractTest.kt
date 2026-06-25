@@ -50,6 +50,7 @@ class ShortToastContractTest {
             projectFile("src/main/java/com/example/videobrowser/functioncenter/UserManualRulesPage.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/SitePermissionsPage.kt"),
             projectFile("src/main/java/com/example/videobrowser/functioncenter/SavedPagesDialogController.kt"),
+            projectFile("src/main/java/com/example/videobrowser/functioncenter/SavedPageInlineActionController.kt"),
             projectFile("src/main/java/com/example/videobrowser/element/ElementPickerController.kt"),
             projectFile("src/main/java/com/example/videobrowser/storage/BookmarkImportExportController.kt"),
             projectFile("src/main/java/com/example/videobrowser/utils/ValidatedTextInputDialog.kt"),

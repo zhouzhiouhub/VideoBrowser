@@ -52,7 +52,7 @@ class BookmarkImportExportWiringContractTest {
         assertTrue(pages.contains("importBookmarks: () -> Unit"))
         assertTrue(strings.contains("toast_bookmarks_exported"))
         assertTrue(strings.contains("toast_bookmarks_imported"))
-        assertTrue(readme.contains("收藏夹支持重命名标题、文件夹分组、导入和导出"))
+        assertTrue(readme.contains("收藏夹支持文件夹分组、导入和导出"))
     }
 
 }
