@@ -28,7 +28,10 @@ class BrowserSettingsDialogController(
         ) { index ->
             val percent = options[index]
             settingsManager.setTextZoomPercent(percent)
-            browserManager().setTextZoomPercent(percent)
+            browserManager().apply {
+                setTextZoomPercent(percent)
+                reload()
+            }
             ShortToast.show(activity, R.string.toast_text_zoom_updated)
             onSettingsChanged()
         }

@@ -43,6 +43,7 @@ internal class BrowserWebViewSettingsController {
             loadsImagesAutomatically = true
             blockNetworkImage = false
             textZoom = textZoomPercent
+            layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
             setSupportZoom(true)
             builtInZoomControls = true
             displayZoomControls = false
@@ -136,7 +137,10 @@ internal class BrowserWebViewSettingsController {
     }
 
     private fun applyTextZoom(targetWebView: WebView) {
-        targetWebView.settings.textZoom = textZoomPercent
+        targetWebView.settings.apply {
+            textZoom = textZoomPercent
+            layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+        }
     }
 
     private fun applyFindResultListener(targetWebView: WebView) {

@@ -122,4 +122,15 @@ class BrowserManagerWebSettingsContractTest {
         assertFalse(browserManager.contains("webView.settings.loadWithOverviewMode = enabled"))
     }
 
+    @Test
+    fun textZoomUsesWebViewTextAutosizingLayout() {
+        val settingsController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebViewSettingsController.kt"
+        ).readText()
+
+        assertTrue(settingsController.contains("layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING"))
+        assertTrue(settingsController.contains("private fun applyTextZoom(targetWebView: WebView)"))
+        assertTrue(settingsController.contains("textZoom = textZoomPercent"))
+    }
+
 }
