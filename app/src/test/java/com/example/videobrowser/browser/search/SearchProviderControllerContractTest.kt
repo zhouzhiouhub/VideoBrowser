@@ -183,7 +183,7 @@ class SearchProviderControllerContractTest {
         assertTrue(searchAssembly.contains("setActiveWebViewAlpha = { alpha -> activeWebView().alpha = alpha }"))
         assertTrue(coreAssembly.contains("activeWebView = {"))
         assertTrue(webClientController.contains("pageFeatureVisibilityController.handlePageStarted(url)"))
-        assertTrue(webClientController.contains("pageFeatureVisibilityController.handlePageFailed(error.url)"))
+        assertTrue(webClientController.contains("pageFeatureVisibilityController.handlePageFailed(displayError.url)"))
         assertTrue(sessionAssembly.contains("pageFeatureVisibilityController::handlePageFeaturesInjected"))
         assertTrue(sessionController.contains("injectPageFeatures {"))
         assertTrue(sessionController.contains("val completedPageUrl = currentPageUrl"))
