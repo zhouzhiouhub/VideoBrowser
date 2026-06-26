@@ -17,6 +17,7 @@
         state.disposed = false;
         state.config = config || {};
         state.lastCleanupAt = 0;
+        state.searchResultSettlingScheduled = false;
         if (!state.config.builtInSearchResultPage) {
           callbacks.cleanupLegacyVideoOverlays();
           callbacks.installHooks();

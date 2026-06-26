@@ -101,6 +101,7 @@
         } else {
           pageCleanupCoordinator.applyDisabledState(state);
         }
+        scheduleSearchResultSettlingWork();
         return;
       } else if (state.config.cleanupEnabled) {
         pageCleanupCoordinator.runGenerated(state, {
@@ -126,6 +127,18 @@
         hasActiveVideo: hasActiveVideo,
         runPageWork: runPageWork
       });
+    }
+
+    function scheduleSearchResultSettlingWork() {
+      if (state.searchResultSettlingScheduled) return false;
+      state.searchResultSettlingScheduled = true;
+      [150, 500, 1200, 2500].forEach(function (delay) {
+        window.setTimeout(function () {
+          if (state.disposed || !state.config || !state.config.builtInSearchResultPage) return;
+          runPageWork();
+        }, delay);
+      });
+      return true;
     }
 
     function pausePageVideos() {
