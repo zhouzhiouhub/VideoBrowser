@@ -46,6 +46,34 @@ class BrowserClientContractTest {
     }
 
     @Test
+    fun browserWebClientAddsHttpErrorDiagnosticsBeforeRenderingErrorPage() {
+        val webClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
+        ).readText()
+        val runtimeFeatureAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRuntimeFeatureAssemblyController.kt"
+        ).readText()
+        val errorPage = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserErrorPage.kt"
+        ).readText()
+
+        assertTrue(webClientController.contains("val displayError = error.withHttpDiagnostics()"))
+        assertTrue(webClientController.contains("BrowserHttpErrorDiagnostics("))
+        assertTrue(webClientController.contains("finalUrl = url"))
+        assertTrue(webClientController.contains("currentPageUrl = currentPageUrl"))
+        assertTrue(webClientController.contains("userAgent = manager.userAgentString()"))
+        assertTrue(webClientController.contains("isBuiltInSearchResultPage(url) ||"))
+        assertTrue(
+            runtimeFeatureAssembly.contains(
+                "browserSearch.builtInSearchResultPagePolicy::isBuiltInSearchResultUrl"
+            )
+        )
+        assertTrue(errorPage.contains("data class BrowserHttpErrorDiagnostics"))
+        assertTrue(errorPage.contains("HTTP 401 表示服务器要求认证或拒绝当前请求上下文"))
+        assertTrue(errorPage.contains("诊断信息"))
+    }
+
+    @Test
     fun browserClientRoutesVisiblePageCommitToSessionProgressState() {
         val browserClient = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"

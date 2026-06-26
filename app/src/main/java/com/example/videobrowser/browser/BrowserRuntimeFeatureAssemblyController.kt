@@ -227,6 +227,8 @@ class BrowserRuntimeFeatureAssemblyController(
             browserNavigationController = browserNavigation.browserNavigationController,
             pageFeatureVisibilityController =
                 browserSearch.pageFeatureVisibilityController,
+            isBuiltInSearchResultPage =
+                browserSearch.builtInSearchResultPagePolicy::isBuiltInSearchResultUrl,
             closeFunctionCenter = {
                 requireStartupFeatures().functionCenterEntryController.closeFunctionCenter()
             },

@@ -52,6 +52,36 @@ class BrowserErrorPageTest {
         assertTrue(html.contains("https://expired.example"))
     }
 
+    @Test
+    fun rendersHttpDiagnosticsForUnauthorizedErrors() {
+        val html = BrowserErrorPage.render(
+            BrowserPageError.Http(
+                url = "https://target.example.com/private?token=<secret>",
+                statusCode = 401,
+                reasonPhrase = "Unauthorized",
+                diagnostics = BrowserHttpErrorDiagnostics(
+                    finalUrl = "https://target.example.com/private?token=<secret>",
+                    currentPageUrl = "https://m.baidu.com/s?word=target",
+                    userAgent = "VideoBrowser <UA>",
+                    isSearchResultPage = true
+                )
+            )
+        )
+
+        assertTrue(html.contains("HTTP 401 Unauthorized"))
+        assertTrue(html.contains("不是地址无法解析"))
+        assertTrue(html.contains("诊断信息"))
+        assertTrue(html.contains("最终 URL"))
+        assertTrue(html.contains("https://target.example.com/private?token=&lt;secret&gt;"))
+        assertTrue(html.contains("当前页面"))
+        assertTrue(html.contains("https://m.baidu.com/s?word=target"))
+        assertTrue(html.contains("User-Agent"))
+        assertTrue(html.contains("VideoBrowser &lt;UA&gt;"))
+        assertTrue(html.contains("内置搜索结果页"))
+        assertFalse(html.contains("<secret>"))
+        assertFalse(html.contains("VideoBrowser <UA>"))
+    }
+
     /**
      * 测试函数 `rendersSafeBrowsingErrorsAsBlockedConnectionsWithoutRetryLink`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `renders Safe Browsing Errors As Blocked Connections Without Retry Link` 这条行为是否成立。
      *

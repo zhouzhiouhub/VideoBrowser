@@ -61,6 +61,7 @@ data class BrowserClientComponents(
  * @param searchResultRequestInterceptionPolicy 参数类型为 `SearchResultRequestInterceptionPolicy`，表示搜索结果页资源请求快速路径策略。
  * @param browserNavigationController 参数类型为 `BrowserNavigationController`，表示判断 URL 是否应拦截或外部打开的导航控制器。
  * @param pageFeatureVisibilityController 参数类型为 `BrowserPageFeatureVisibilityController`，表示页面增强首屏遮罩控制器。
+ * @param isBuiltInSearchResultPage 参数类型为 `(String?) -> Boolean`，表示判断 URL 是否为内置搜索结果页。
  * @param closeFunctionCenter 参数类型为 `() -> Boolean`，表示网页新窗口打开标签页前关闭功能中心的回调。
  * @param closeTab 参数类型为 `(Long) -> Unit`，表示网页关闭窗口时关闭对应标签页的回调。
  * @param fullscreenChanged 参数类型为 `(Boolean) -> Unit`，表示网页进入或退出全屏时同步全屏 UI 的回调。
@@ -94,6 +95,7 @@ class BrowserClientAssemblyController(
     private val searchResultRequestInterceptionPolicy: SearchResultRequestInterceptionPolicy,
     private val browserNavigationController: BrowserNavigationController,
     private val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
+    private val isBuiltInSearchResultPage: (String?) -> Boolean = { false },
     private val closeFunctionCenter: () -> Boolean,
     private val closeTab: (Long) -> Unit,
     private val fullscreenChanged: (Boolean) -> Unit,
@@ -129,6 +131,7 @@ class BrowserClientAssemblyController(
             smartNoImageRequestInterceptor = smartNoImageRequestInterceptor,
             searchResultRequestInterceptionPolicy = searchResultRequestInterceptionPolicy,
             pageFeatureVisibilityController = pageFeatureVisibilityController,
+            isBuiltInSearchResultPage = isBuiltInSearchResultPage,
             shouldBlockUrl = browserNavigationController::shouldBlockUrl
         )
         val webWindowController = WebWindowController(

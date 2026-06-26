@@ -19,7 +19,8 @@ sealed class BrowserPageError(
     data class Http(
         override val url: String?,
         val statusCode: Int,
-        val reasonPhrase: String
+        val reasonPhrase: String,
+        val diagnostics: BrowserHttpErrorDiagnostics = BrowserHttpErrorDiagnostics()
     ) : BrowserPageError(url)
 
     data class Ssl(
@@ -38,6 +39,13 @@ sealed class BrowserPageError(
         val didCrash: Boolean
     ) : BrowserPageError(url)
 }
+
+data class BrowserHttpErrorDiagnostics(
+    val finalUrl: String? = null,
+    val currentPageUrl: String? = null,
+    val userAgent: String? = null,
+    val isSearchResultPage: Boolean = false
+)
 
 object BrowserErrorPage {
     /**
@@ -65,6 +73,8 @@ object BrowserErrorPage {
                 "网页渲染进程已退出，浏览器已重新创建页面。"
             }
         }
+        val explanation = error.explanationHtml()
+        val diagnostics = error.diagnosticsHtml()
         val url = error.url.orEmpty()
         val retryAction = if (error is BrowserPageError.SafeBrowsing) {
             ""
@@ -113,6 +123,33 @@ object BrowserErrorPage {
                   background: #eef1f6;
                   color: #1f2937;
                 }
+                .diagnostics {
+                  margin-top: 18px;
+                  padding: 14px;
+                  border-radius: 8px;
+                  background: #ffffff;
+                  border: 1px solid #d9dee8;
+                }
+                .diagnostics h2 {
+                  margin: 0 0 10px;
+                  font-size: 16px;
+                }
+                .diagnostics dl {
+                  margin: 0;
+                }
+                .diagnostics dt {
+                  margin-top: 8px;
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: #2f3642;
+                }
+                .diagnostics dd {
+                  margin: 3px 0 0;
+                  font-size: 13px;
+                  line-height: 1.45;
+                  color: #5b6472;
+                  word-break: break-word;
+                }
                 .actions {
                   margin-top: 22px;
                 }
@@ -132,12 +169,61 @@ object BrowserErrorPage {
               <main>
                 <h1>${title.escapeHtml()}</h1>
                 <p>${detail.escapeHtml()}</p>
+                $explanation
+                $diagnostics
                 <p class="url">${url.escapeHtml()}</p>
                 <div class="actions">$retryAction</div>
               </main>
             </body>
             </html>
         """.trimIndent()
+    }
+
+    private fun BrowserPageError.explanationHtml(): String {
+        if (this !is BrowserPageError.Http || statusCode != 401) {
+            return ""
+        }
+        return """
+            <p>HTTP 401 表示服务器要求认证或拒绝当前请求上下文，不是地址无法解析。</p>
+        """.trimIndent()
+    }
+
+    private fun BrowserPageError.diagnosticsHtml(): String {
+        if (this !is BrowserPageError.Http) {
+            return ""
+        }
+        val rows = listOfNotNull(
+            "状态码" to "HTTP $statusCode",
+            diagnosticRow("最终 URL", diagnostics.finalUrl ?: url),
+            diagnosticRow("当前页面", diagnostics.currentPageUrl),
+            diagnosticRow("User-Agent", diagnostics.userAgent),
+            "加载上下文" to if (diagnostics.isSearchResultPage) {
+                "内置搜索结果页"
+            } else {
+                "普通页面或直接访问"
+            }
+        )
+        val items = rows.joinToString(separator = "\n") { (label, value) ->
+            """
+                <dt>${label.escapeHtml()}</dt>
+                <dd>${value.escapeHtml()}</dd>
+            """.trimIndent()
+        }
+        return """
+            <section class="diagnostics" aria-label="诊断信息">
+              <h2>诊断信息</h2>
+              <dl>
+                $items
+              </dl>
+            </section>
+        """.trimIndent()
+    }
+
+    private fun diagnosticRow(label: String, value: String?): Pair<String, String>? {
+        return value
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { label to it }
     }
 
     /**

@@ -28,6 +28,7 @@ import com.example.videobrowser.browser.search.SearchResultRequestInterceptionPo
  * @param smartNoImageRequestInterceptor 智能无图请求处理器，在广告拦截未命中时尝试拦截图片请求。
  * @param searchResultRequestInterceptionPolicy 搜索结果页资源请求快速路径策略。
  * @param pageFeatureVisibilityController 页面增强首屏遮罩控制器。
+ * @param isBuiltInSearchResultPage 判断当前 URL 是否为内置搜索结果页，用来标注 HTTP 错误上下文。
  * @param shouldBlockUrl URL 加载决策函数，处理外部协议、媒体路由和导航安全确认。
  */
 class BrowserWebClientController(
@@ -42,6 +43,7 @@ class BrowserWebClientController(
     private val searchResultRequestInterceptionPolicy: SearchResultRequestInterceptionPolicy =
         SearchResultRequestInterceptionPolicy(),
     private val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
+    private val isBuiltInSearchResultPage: (String?) -> Boolean = { false },
     private val shouldBlockUrl: (WebView?, Uri, Boolean) -> Boolean
 ) {
     /**
@@ -75,9 +77,10 @@ class BrowserWebClientController(
      * @param error 浏览器加载失败、证书错误、安全浏览拦截或渲染进程退出的错误信息。
      */
     fun showBrowserErrorPage(error: BrowserPageError) {
-        pageFeatureVisibilityController.handlePageFailed(error.url)
-        sessionController().handlePageFailed(error.url)
-        browserManager().loadErrorPage(error)
+        val displayError = error.withHttpDiagnostics()
+        pageFeatureVisibilityController.handlePageFailed(displayError.url)
+        sessionController().handlePageFailed(displayError.url)
+        browserManager().loadErrorPage(displayError)
     }
 
     /**
@@ -106,5 +109,23 @@ class BrowserWebClientController(
         }
         return adBlockRequestInterceptor.intercept(request)
             ?: smartNoImageRequestInterceptor.intercept(request)
+    }
+
+    private fun BrowserPageError.withHttpDiagnostics(): BrowserPageError {
+        if (this !is BrowserPageError.Http) {
+            return this
+        }
+        val session = sessionController()
+        val manager = browserManager()
+        val currentPageUrl = session.currentPageUrl ?: manager.currentUrl()
+        return copy(
+            diagnostics = BrowserHttpErrorDiagnostics(
+                finalUrl = url,
+                currentPageUrl = currentPageUrl,
+                userAgent = manager.userAgentString(),
+                isSearchResultPage = isBuiltInSearchResultPage(url) ||
+                    isBuiltInSearchResultPage(currentPageUrl)
+            )
+        )
     }
 }
