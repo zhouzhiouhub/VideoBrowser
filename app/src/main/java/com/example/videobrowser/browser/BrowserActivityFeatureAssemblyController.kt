@@ -98,7 +98,9 @@ class BrowserActivityFeatureAssemblyController(
             browserUrlStateController = {
                 browserCoreFeatures.browserShell.browserUrlStateController
             },
-            ruleEngine = { browserCoreFeatures.browserNavigation.ruleEngine }
+            ruleEngine = { browserCoreFeatures.browserNavigation.ruleEngine },
+            isSearchResultResourceUrl =
+                browserCoreFeatures.browserSearch.builtInSearchResultPagePolicy::isSearchResultResourceUrl
         )
 
         val createdRuntimeFeatures = BrowserRuntimeFeatureAssemblyController(

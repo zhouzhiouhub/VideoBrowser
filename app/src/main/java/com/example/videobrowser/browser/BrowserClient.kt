@@ -86,7 +86,8 @@ class BrowserClient(
         request: WebResourceRequest?
     ): WebResourceResponse? {
         val webRequest = request ?: return null
-        return requestIntercepted(BrowserRequest.from(webRequest))
+        val pageUrl = if (webRequest.isForMainFrame) webRequest.url.toString() else view?.url
+        return requestIntercepted(BrowserRequest.from(webRequest, pageUrl = pageUrl))
     }
 
     /**
@@ -100,7 +101,7 @@ class BrowserClient(
     @Suppress("OVERRIDE_DEPRECATION")
     override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
         // 旧版重载只暴露 URL，无法可靠判断是否为主文档请求。
-        val request = BrowserRequest.from(url) ?: return null
+        val request = BrowserRequest.from(url, pageUrl = view?.url) ?: return null
         return requestIntercepted(request)
     }
 

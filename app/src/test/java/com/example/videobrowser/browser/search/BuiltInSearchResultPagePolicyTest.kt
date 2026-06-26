@@ -96,6 +96,36 @@ class BuiltInSearchResultPagePolicyTest {
     }
 
     @Test
+    fun isSearchResultResourceUrl_matchesOnlySearchProviderResources() {
+        val defaultPolicy = BuiltInSearchResultPagePolicy(SearchProviders.defaults)
+
+        assertTrue(
+            defaultPolicy.isSearchResultResourceUrl(
+                pageUrl = "https://m.baidu.com/s?word=%E4%BD%A0%E5%A5%BD",
+                resourceUrl = "https://m.baidu.com/static/app.js"
+            )
+        )
+        assertTrue(
+            defaultPolicy.isSearchResultResourceUrl(
+                pageUrl = "https://www.baidu.com/s?wd=%E4%BD%A0%E5%A5%BD",
+                resourceUrl = "https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/tpl/resource.js"
+            )
+        )
+        assertFalse(
+            defaultPolicy.isSearchResultResourceUrl(
+                pageUrl = "https://m.baidu.com/s?word=%E4%BD%A0%E5%A5%BD",
+                resourceUrl = "https://doubleclick.net/ad.js"
+            )
+        )
+        assertFalse(
+            defaultPolicy.isSearchResultResourceUrl(
+                pageUrl = "https://example.com/search?q=test",
+                resourceUrl = "https://example.com/app.js"
+            )
+        )
+    }
+
+    @Test
     fun retiredUnstableProvidersAreNotRecognizedAsBuiltInSearchResults() {
         val defaultPolicy = BuiltInSearchResultPagePolicy(SearchProviders.defaults)
 

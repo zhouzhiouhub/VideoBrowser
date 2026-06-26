@@ -1,5 +1,6 @@
 package com.example.videobrowser.browser.search
 
+import com.example.videobrowser.utils.HostNameNormalizer
 import com.example.videobrowser.utils.UrlUtils
 
 /**
@@ -27,6 +28,16 @@ class BuiltInSearchResultPagePolicy(
     fun searchPageHideCssForUrl(url: String?): List<String> {
         val provider = matchingSearchResultProvider(url) ?: return emptyList()
         return provider.hideCss.takeIf { provider.hidePageSearchBox } ?: emptyList()
+    }
+
+    fun isSearchResultResourceUrl(pageUrl: String?, resourceUrl: String?): Boolean {
+        val provider = matchingSearchResultProvider(pageUrl) ?: return false
+        val requestHost = HostNameNormalizer.fromUrl(resourceUrl) ?: return false
+        val pageHost = HostNameNormalizer.fromUrl(pageUrl)
+        return HostNameNormalizer.matchesDomainOrSubdomain(requestHost, pageHost) ||
+            provider.domains.any { domain ->
+                HostNameNormalizer.matchesDomainOrSubdomain(requestHost, domain)
+            }
     }
 
     private fun matchingSearchResultProvider(url: String?): SearchProvider? {

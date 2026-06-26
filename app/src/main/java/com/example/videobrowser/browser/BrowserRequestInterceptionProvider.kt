@@ -2,6 +2,7 @@ package com.example.videobrowser.browser
 
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.browser.search.SearchResultRequestInterceptionPolicy
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.settings.SettingsManager
 
@@ -24,13 +25,15 @@ import com.example.videobrowser.settings.SettingsManager
  * @param browserSessionStateController 参数类型为 `() -> BrowserSessionStateController`，表示延迟读取当前页面 URL 会话状态控制器的回调。
  * @param browserUrlStateController 参数类型为 `() -> BrowserUrlStateController`，表示读取当前站点 host 的控制器回调。
  * @param ruleEngine 参数类型为 `() -> RuleEngine`，表示读取规则引擎的回调。
+ * @param isSearchResultResourceUrl 参数类型为 `(String?, String?) -> Boolean`，表示判断资源是否属于内置搜索结果页同一提供商。
  */
 class BrowserRequestInterceptionProvider(
     private val browserFeatureStateController: () -> BrowserFeatureStateController,
     private val settingsManager: () -> SettingsManager,
     private val browserSessionStateController: () -> BrowserSessionStateController,
     private val browserUrlStateController: () -> BrowserUrlStateController,
-    private val ruleEngine: () -> RuleEngine
+    private val ruleEngine: () -> RuleEngine,
+    private val isSearchResultResourceUrl: (String?, String?) -> Boolean = { _, _ -> false }
 ) {
     private val components by lazy {
         BrowserRequestInterceptionAssemblyController(
@@ -38,7 +41,8 @@ class BrowserRequestInterceptionProvider(
             settingsManager = settingsManager,
             browserSessionStateController = browserSessionStateController(),
             browserUrlStateController = browserUrlStateController,
-            ruleEngine = ruleEngine
+            ruleEngine = ruleEngine,
+            isSearchResultResourceUrl = isSearchResultResourceUrl
         ).create()
     }
 
@@ -65,4 +69,12 @@ class BrowserRequestInterceptionProvider(
      */
     val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor
         get() = components.smartNoImageRequestInterceptor
+
+    /**
+     * 搜索结果页请求快速路径策略。
+     *
+     * @return 返回 `SearchResultRequestInterceptionPolicy`，BrowserClient 用它跳过搜索页一方资源的重拦截链。
+     */
+    val searchResultRequestInterceptionPolicy: SearchResultRequestInterceptionPolicy
+        get() = components.searchResultRequestInterceptionPolicy
 }

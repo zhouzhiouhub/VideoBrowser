@@ -13,6 +13,7 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.browser.search.SearchResultRequestInterceptionPolicy
 
 /**
  * 浏览器 client 组件集合。
@@ -57,6 +58,7 @@ data class BrowserClientComponents(
  * @param httpAuthController 参数类型为 `HttpAuthController`，表示处理 HTTP Basic Auth 请求的控制器。
  * @param adBlockRequestInterceptor 参数类型为 `AdBlockRequestInterceptor`，表示广告拦截请求处理器。
  * @param smartNoImageRequestInterceptor 参数类型为 `SmartNoImageRequestInterceptor`，表示智能无图请求处理器。
+ * @param searchResultRequestInterceptionPolicy 参数类型为 `SearchResultRequestInterceptionPolicy`，表示搜索结果页资源请求快速路径策略。
  * @param browserNavigationController 参数类型为 `BrowserNavigationController`，表示判断 URL 是否应拦截或外部打开的导航控制器。
  * @param pageFeatureVisibilityController 参数类型为 `BrowserPageFeatureVisibilityController`，表示页面增强首屏遮罩控制器。
  * @param closeFunctionCenter 参数类型为 `() -> Boolean`，表示网页新窗口打开标签页前关闭功能中心的回调。
@@ -89,6 +91,7 @@ class BrowserClientAssemblyController(
     private val httpAuthController: HttpAuthController,
     private val adBlockRequestInterceptor: AdBlockRequestInterceptor,
     private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor,
+    private val searchResultRequestInterceptionPolicy: SearchResultRequestInterceptionPolicy,
     private val browserNavigationController: BrowserNavigationController,
     private val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
     private val closeFunctionCenter: () -> Boolean,
@@ -124,6 +127,7 @@ class BrowserClientAssemblyController(
             httpAuthController = httpAuthController,
             adBlockRequestInterceptor = adBlockRequestInterceptor,
             smartNoImageRequestInterceptor = smartNoImageRequestInterceptor,
+            searchResultRequestInterceptionPolicy = searchResultRequestInterceptionPolicy,
             pageFeatureVisibilityController = pageFeatureVisibilityController,
             shouldBlockUrl = browserNavigationController::shouldBlockUrl
         )

@@ -8,8 +8,10 @@ package com.example.videobrowser.browser
  * 阅读顺序：先看 setupBrowserClient，再看 showBrowserErrorPage，最后看各个私有回调函数。
  */
 import android.net.Uri
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.browser.search.SearchResultRequestInterceptionPolicy
 
 /**
  * Browser WebViewClient 控制器。
@@ -24,6 +26,7 @@ import com.example.videobrowser.adblock.AdBlockRequestInterceptor
  * @param httpAuthController HTTP Basic Auth 控制器，负责认证弹窗和待处理 handler 清理。
  * @param adBlockRequestInterceptor 广告拦截请求处理器，优先决定是否拦截资源请求。
  * @param smartNoImageRequestInterceptor 智能无图请求处理器，在广告拦截未命中时尝试拦截图片请求。
+ * @param searchResultRequestInterceptionPolicy 搜索结果页资源请求快速路径策略。
  * @param pageFeatureVisibilityController 页面增强首屏遮罩控制器。
  * @param shouldBlockUrl URL 加载决策函数，处理外部协议、媒体路由和导航安全确认。
  */
@@ -36,6 +39,8 @@ class BrowserWebClientController(
     private val httpAuthController: HttpAuthController,
     private val adBlockRequestInterceptor: AdBlockRequestInterceptor,
     private val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor,
+    private val searchResultRequestInterceptionPolicy: SearchResultRequestInterceptionPolicy =
+        SearchResultRequestInterceptionPolicy(),
     private val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController,
     private val shouldBlockUrl: (WebView?, Uri, Boolean) -> Boolean
 ) {
@@ -95,6 +100,11 @@ class BrowserWebClientController(
      * @param request WebView 发出的资源请求。
      * @return 返回非空值表示该请求已被本地响应拦截；返回 null 表示继续交给 WebView 加载。
      */
-    private fun interceptBrowserRequest(request: BrowserRequest) =
-        adBlockRequestInterceptor.intercept(request) ?: smartNoImageRequestInterceptor.intercept(request)
+    private fun interceptBrowserRequest(request: BrowserRequest): WebResourceResponse? {
+        if (searchResultRequestInterceptionPolicy.shouldBypassHeavyInterception(request)) {
+            return null
+        }
+        return adBlockRequestInterceptor.intercept(request)
+            ?: smartNoImageRequestInterceptor.intercept(request)
+    }
 }

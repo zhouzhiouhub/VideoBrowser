@@ -10,6 +10,7 @@ package com.example.videobrowser.browser
 import com.example.videobrowser.adblock.AdBlockLogger
 import com.example.videobrowser.adblock.AdBlockManager
 import com.example.videobrowser.adblock.AdBlockRequestInterceptor
+import com.example.videobrowser.browser.search.SearchResultRequestInterceptionPolicy
 import com.example.videobrowser.rules.RuleEngine
 import com.example.videobrowser.settings.SettingsManager
 
@@ -20,12 +21,14 @@ import com.example.videobrowser.settings.SettingsManager
  * @param adBlockManager 参数类型为 `AdBlockManager`，表示把 WebView 请求交给规则系统评估的广告拦截管理器。
  * @param adBlockRequestInterceptor 参数类型为 `AdBlockRequestInterceptor`，表示 BrowserClient 调用的广告请求拦截器。
  * @param smartNoImageRequestInterceptor 参数类型为 `SmartNoImageRequestInterceptor`，表示智能无图模式下拦截图片请求的拦截器。
+ * @param searchResultRequestInterceptionPolicy 参数类型为 `SearchResultRequestInterceptionPolicy`，表示搜索结果页资源请求快速路径策略。
  */
 data class BrowserRequestInterceptionComponents(
     val adBlockLogger: AdBlockLogger,
     val adBlockManager: AdBlockManager,
     val adBlockRequestInterceptor: AdBlockRequestInterceptor,
-    val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor
+    val smartNoImageRequestInterceptor: SmartNoImageRequestInterceptor,
+    val searchResultRequestInterceptionPolicy: SearchResultRequestInterceptionPolicy
 )
 
 /**
@@ -39,13 +42,15 @@ data class BrowserRequestInterceptionComponents(
  * @param browserSessionStateController 参数类型为 `BrowserSessionStateController`，表示读取当前页面 URL 的会话状态控制器。
  * @param browserUrlStateController 参数类型为 `() -> BrowserUrlStateController`，表示读取当前站点 host 的控制器回调。
  * @param ruleEngine 参数类型为 `() -> RuleEngine`，表示读取广告拦截和脚本规则引擎的回调。
+ * @param isSearchResultResourceUrl 参数类型为 `(String?, String?) -> Boolean`，表示判断资源是否属于内置搜索结果页同一提供商。
  */
 class BrowserRequestInterceptionAssemblyController(
     private val browserFeatureStateController: () -> BrowserFeatureStateController,
     private val settingsManager: () -> SettingsManager,
     private val browserSessionStateController: BrowserSessionStateController,
     private val browserUrlStateController: () -> BrowserUrlStateController,
-    private val ruleEngine: () -> RuleEngine
+    private val ruleEngine: () -> RuleEngine,
+    private val isSearchResultResourceUrl: (String?, String?) -> Boolean = { _, _ -> false }
 ) {
     /**
      * 创建请求拦截组件集合。
@@ -73,11 +78,15 @@ class BrowserRequestInterceptionAssemblyController(
             },
             currentPageUrl = currentPageUrl()
         )
+        val searchResultRequestInterceptionPolicy = SearchResultRequestInterceptionPolicy(
+            isSearchResultResourceUrl = isSearchResultResourceUrl
+        )
         return BrowserRequestInterceptionComponents(
             adBlockLogger = adBlockLogger,
             adBlockManager = adBlockManager,
             adBlockRequestInterceptor = adBlockRequestInterceptor,
-            smartNoImageRequestInterceptor = smartNoImageRequestInterceptor
+            smartNoImageRequestInterceptor = smartNoImageRequestInterceptor,
+            searchResultRequestInterceptionPolicy = searchResultRequestInterceptionPolicy
         )
     }
 

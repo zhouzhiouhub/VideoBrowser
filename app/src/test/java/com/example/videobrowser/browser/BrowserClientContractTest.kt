@@ -31,6 +31,21 @@ class BrowserClientContractTest {
     }
 
     @Test
+    fun browserClientPassesPageUrlIntoRequestInterception() {
+        val browserClient = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"
+        ).readText()
+
+        assertTrue(
+            browserClient.contains(
+                "val pageUrl = if (webRequest.isForMainFrame) webRequest.url.toString() else view?.url"
+            )
+        )
+        assertTrue(browserClient.contains("BrowserRequest.from(webRequest, pageUrl = pageUrl)"))
+        assertTrue(browserClient.contains("BrowserRequest.from(url, pageUrl = view?.url)"))
+    }
+
+    @Test
     fun browserClientRoutesVisiblePageCommitToSessionProgressState() {
         val browserClient = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"

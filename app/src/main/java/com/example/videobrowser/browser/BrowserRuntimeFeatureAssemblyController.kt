@@ -222,6 +222,8 @@ class BrowserRuntimeFeatureAssemblyController(
             adBlockRequestInterceptor = requestInterceptionProvider.adBlockRequestInterceptor,
             smartNoImageRequestInterceptor =
                 requestInterceptionProvider.smartNoImageRequestInterceptor,
+            searchResultRequestInterceptionPolicy =
+                requestInterceptionProvider.searchResultRequestInterceptionPolicy,
             browserNavigationController = browserNavigation.browserNavigationController,
             pageFeatureVisibilityController =
                 browserSearch.pageFeatureVisibilityController,

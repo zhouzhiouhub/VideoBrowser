@@ -26,6 +26,18 @@ class BrowserRequestInterceptionWiringContractTest {
         val provider = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserRequestInterceptionProvider.kt"
         ).readText()
+        val interceptionAssembly = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserRequestInterceptionAssemblyController.kt"
+        ).readText()
+        val webClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
+        ).readText()
+        val searchPolicy = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/BuiltInSearchResultPagePolicy.kt"
+        ).readText()
+        val requestFastPathPolicy = projectFile(
+            "src/main/java/com/example/videobrowser/browser/search/SearchResultRequestInterceptionPolicy.kt"
+        ).readText()
 
         val coreCreation = featureAssembly.indexOf(
             "val browserCoreFeatures = BrowserCoreFeatureAssemblyController("
@@ -50,12 +62,26 @@ class BrowserRequestInterceptionWiringContractTest {
         )
         assertTrue(featureAssembly.contains("browserCoreFeatures.browserPersistence.settingsManager"))
         assertTrue(featureAssembly.contains("browserCoreFeatures.browserNavigation.ruleEngine"))
+        assertTrue(featureAssembly.contains("isSearchResultResourceUrl ="))
+        assertTrue(
+            featureAssembly.contains(
+                "browserCoreFeatures.browserSearch.builtInSearchResultPagePolicy::isSearchResultResourceUrl"
+            )
+        )
 
         assertFalse(featureAssembly.contains("activityScaffold.requestInterceptionProvider"))
         assertFalse(scaffoldAssembly.contains("BrowserRequestInterceptionProvider("))
         assertFalse(coreAssembly.contains("requestInterceptionProvider"))
 
         assertTrue(provider.contains("BrowserRequestInterceptionAssemblyController("))
+        assertTrue(provider.contains("isSearchResultResourceUrl = isSearchResultResourceUrl"))
+        assertTrue(provider.contains("val searchResultRequestInterceptionPolicy: SearchResultRequestInterceptionPolicy"))
+        assertTrue(interceptionAssembly.contains("SearchResultRequestInterceptionPolicy("))
+        assertTrue(interceptionAssembly.contains("isSearchResultResourceUrl = isSearchResultResourceUrl"))
+        assertTrue(searchPolicy.contains("fun isSearchResultResourceUrl(pageUrl: String?, resourceUrl: String?)"))
+        assertTrue(requestFastPathPolicy.contains("fun shouldBypassHeavyInterception(request: BrowserRequest): Boolean"))
+        assertTrue(requestFastPathPolicy.contains("if (request.isForMainFrame)"))
+        assertTrue(requestFastPathPolicy.contains("return isSearchResultResourceUrl(request.pageUrl, request.url.toString())"))
         assertTrue(
             runtimeAssembly.contains(
                 "adBlockRequestInterceptor = requestInterceptionProvider.adBlockRequestInterceptor"
@@ -64,6 +90,16 @@ class BrowserRequestInterceptionWiringContractTest {
         assertTrue(
             runtimeAssembly.contains(
                 "requestInterceptionProvider.smartNoImageRequestInterceptor"
+            )
+        )
+        assertTrue(
+            runtimeAssembly.contains(
+                "requestInterceptionProvider.searchResultRequestInterceptionPolicy"
+            )
+        )
+        assertTrue(
+            webClientController.contains(
+                "searchResultRequestInterceptionPolicy.shouldBypassHeavyInterception(request)"
             )
         )
         assertTrue(startupAssembly.contains("adBlockLogger = requestInterceptionProvider.adBlockLogger"))
