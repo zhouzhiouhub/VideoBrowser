@@ -14,6 +14,7 @@ data class PageFeatureConfig(
     val jsInjectionEnabled: Boolean = true,
     val cleanupEnabled: Boolean,
     val videoEnabled: Boolean,
+    val siteAdapterScriptsEnabled: Boolean = true,
     val builtInSearchResultPage: Boolean = false,
     val searchPageHideCss: List<String> = emptyList(),
     val cssSelectors: List<String> = emptyList(),
@@ -72,27 +73,52 @@ class JsInjector(
             return
         }
         // effectiveConfig 合并“用户设置”和“规则引擎计算结果”，后面的 JS 只需要读取一个 config。
+        val useRuleDerivedFeatures = !config.builtInSearchResultPage
         val effectiveConfig = config.copy(
-            cssSelectors = (config.cssSelectors + ruleEngine.cssSelectorsFor(pageUrl)).distinct(),
-            domSelectors = (config.domSelectors + ruleEngine.domSelectorsFor(pageUrl)).distinct(),
-            blockedUrlKeywords = (
-                config.blockedUrlKeywords + ruleEngine.urlContainsBlockPatternsFor(pageUrl)
-            ).distinct(),
-            scriptletWindowOpenBlockedKeywords = (
-                config.scriptletWindowOpenBlockedKeywords +
-                    ruleEngine.scriptletWindowOpenBlockedKeywordsFor(pageUrl)
-            ).distinct(),
-            scriptletFetchBlockedKeywords = (
-                config.scriptletFetchBlockedKeywords +
-                    ruleEngine.scriptletFetchBlockedKeywordsFor(pageUrl)
-            ).distinct(),
-            scriptletSkipButtonsEnabled = config.scriptletSkipButtonsEnabled ||
-                ruleEngine.isScriptletSkipButtonsEnabledFor(pageUrl),
-            scriptletVideoControlsEnabled = config.scriptletVideoControlsEnabled ||
-                ruleEngine.isScriptletVideoControlsEnabledFor(pageUrl)
+            cssSelectors = if (useRuleDerivedFeatures) {
+                (config.cssSelectors + ruleEngine.cssSelectorsFor(pageUrl)).distinct()
+            } else {
+                config.cssSelectors.distinct()
+            },
+            domSelectors = if (useRuleDerivedFeatures) {
+                (config.domSelectors + ruleEngine.domSelectorsFor(pageUrl)).distinct()
+            } else {
+                config.domSelectors.distinct()
+            },
+            blockedUrlKeywords = if (useRuleDerivedFeatures) {
+                (config.blockedUrlKeywords + ruleEngine.urlContainsBlockPatternsFor(pageUrl)).distinct()
+            } else {
+                emptyList()
+            },
+            scriptletWindowOpenBlockedKeywords = if (useRuleDerivedFeatures) {
+                (
+                    config.scriptletWindowOpenBlockedKeywords +
+                        ruleEngine.scriptletWindowOpenBlockedKeywordsFor(pageUrl)
+                    ).distinct()
+            } else {
+                emptyList()
+            },
+            scriptletFetchBlockedKeywords = if (useRuleDerivedFeatures) {
+                (
+                    config.scriptletFetchBlockedKeywords +
+                        ruleEngine.scriptletFetchBlockedKeywordsFor(pageUrl)
+                    ).distinct()
+            } else {
+                emptyList()
+            },
+            scriptletSkipButtonsEnabled = useRuleDerivedFeatures &&
+                (config.scriptletSkipButtonsEnabled ||
+                    ruleEngine.isScriptletSkipButtonsEnabledFor(pageUrl)),
+            scriptletVideoControlsEnabled = useRuleDerivedFeatures &&
+                (config.scriptletVideoControlsEnabled ||
+                    ruleEngine.isScriptletVideoControlsEnabledFor(pageUrl))
         )
         val commonScriptContent = commonScript
-        val matchingAdapters = siteAdapterRegistry.matchingAdapters(pageUrl)
+        val matchingAdapters = if (effectiveConfig.siteAdapterScriptsEnabled) {
+            siteAdapterRegistry.matchingAdapters(pageUrl)
+        } else {
+            emptyList()
+        }
         val siteDependencyScripts = if (matchingAdapters.isEmpty()) {
             emptyList()
         } else {

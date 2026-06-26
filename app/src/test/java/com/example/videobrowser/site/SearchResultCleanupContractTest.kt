@@ -16,6 +16,7 @@ class SearchResultCleanupContractTest {
         val coordinatorScript = projectFile("src/main/assets/scripts/page_cleanup_coordinator.js").readText()
         val commonScript = projectFile("src/main/assets/scripts/common.js").readText()
         val runtimeScript = projectFile("src/main/assets/scripts/enhancer_runtime.js").readText()
+        val enhancerApiScript = projectFile("src/main/assets/scripts/enhancer_api.js").readText()
         val scriptLoader = projectFile("src/main/java/com/example/videobrowser/inject/ScriptLoader.kt").readText()
         val commonAssetList = scriptLoader.substringAfter("val COMMON_SCRIPT_ASSETS = listOf(")
 
@@ -55,8 +56,22 @@ class SearchResultCleanupContractTest {
         assertTrue(coordinatorScript.contains("coordinator.applyEmbeddedSearchShell = coordinator.applyEmbeddedSearchShell || function (state, options)"))
         assertTrue(coordinatorScript.contains("const embeddedSearchShellCleanup = window.VideoBrowserEmbeddedSearchShellCleanup || {}"))
         assertTrue(coordinatorScript.contains("embeddedSearchShellCleanup.apply({"))
+        assertTrue(coordinatorScript.contains("coordinator.runSearchResultFastCleanup = coordinator.runSearchResultFastCleanup || function (state, options)"))
+        assertTrue(coordinatorScript.contains("includeGenericSelectors: false"))
+        assertTrue(coordinatorScript.contains("includeRuleSelectors: false"))
         assertTrue(runtimeScript.contains("if (state.config.builtInSearchResultPage)"))
         assertTrue(runtimeScript.contains("pageCleanupCoordinator.applyEmbeddedSearchShell(state, {"))
+        assertTrue(runtimeScript.contains("pageCleanupCoordinator.runSearchResultFastCleanup(state, {"))
+        assertTrue(runtimeScript.contains("} else if (state.config.cleanupEnabled) {"))
+        assertTrue(runtimeScript.contains("function shouldDisableObserver()"))
+        assertTrue(
+            runtimeScript.contains(
+                "Boolean(state.config && state.config.builtInSearchResultPage) || isBilibiliHost()"
+            )
+        )
+        assertTrue(enhancerApiScript.contains("if (!state.config.builtInSearchResultPage)"))
+        assertTrue(enhancerApiScript.contains("callbacks.cleanupLegacyVideoOverlays();"))
+        assertTrue(enhancerApiScript.contains("callbacks.installHooks();"))
         assertTrue(scriptLoader.contains("SEARCH_RESULT_CLEANUP_SCRIPT_ASSET"))
         assertTrue(scriptLoader.contains("EMBEDDED_SEARCH_SHELL_CLEANUP_SCRIPT_ASSET"))
         assertTrue(

@@ -153,7 +153,9 @@ class PageFeatureCoordinatorTest {
 
         coordinator.injectPageFeatures()
 
-        assertTrue(evaluatedScripts.single().contains("\"builtInSearchResultPage\":true"))
+        val script = evaluatedScripts.single()
+        assertTrue(script.contains("\"builtInSearchResultPage\":true"))
+        assertTrue(script.contains("\"videoEnabled\":false"))
     }
 
     @Test

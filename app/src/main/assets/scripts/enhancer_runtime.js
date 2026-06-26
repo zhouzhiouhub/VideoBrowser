@@ -94,8 +94,15 @@
         pageCleanupCoordinator.applyEmbeddedSearchShell(state, {
           runWithMutationSuppressed: runWithMutationSuppressed
         });
-      }
-      if (state.config.cleanupEnabled) {
+        if (state.config.cleanupEnabled) {
+          pageCleanupCoordinator.runSearchResultFastCleanup(state, {
+            runWithMutationSuppressed: runWithMutationSuppressed
+          });
+        } else {
+          pageCleanupCoordinator.applyDisabledState(state);
+        }
+        return;
+      } else if (state.config.cleanupEnabled) {
         pageCleanupCoordinator.runGenerated(state, {
           now: now,
           isBilibiliHost: isBilibiliHost
@@ -143,9 +150,13 @@
 
     function startWorkers() {
       return pageLifecycleTools.startWorkers(state, {
-        shouldDisableObserver: isBilibiliHost,
+        shouldDisableObserver: shouldDisableObserver,
         schedulePageWork: schedulePageWork
       });
+    }
+
+    function shouldDisableObserver() {
+      return Boolean(state.config && state.config.builtInSearchResultPage) || isBilibiliHost();
     }
   };
 })();

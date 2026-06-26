@@ -138,8 +138,11 @@ class SearchProviderControllerContractTest {
         assertTrue(pageFeatureAssembly.contains("isBuiltInSearchResultPage = isBuiltInSearchResultPage"))
         assertTrue(pageFeatureAssembly.contains("searchPageHideCssForUrl = searchPageHideCssForUrl"))
         assertTrue(coordinator.contains("builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl)"))
+        assertTrue(coordinator.contains("siteAdapterScriptsEnabled = !builtInSearchResultPage"))
         assertTrue(coordinator.contains("searchPageHideCss = if (builtInSearchResultPage)"))
+        assertTrue(injector.contains("val siteAdapterScriptsEnabled: Boolean = true"))
         assertTrue(injector.contains("val builtInSearchResultPage: Boolean = false"))
+        assertTrue(injector.contains("val matchingAdapters = if (effectiveConfig.siteAdapterScriptsEnabled)"))
         assertTrue(injector.contains("val searchPageHideCss: List<String> = emptyList()"))
     }
 

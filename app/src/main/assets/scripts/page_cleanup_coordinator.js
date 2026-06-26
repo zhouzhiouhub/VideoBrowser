@@ -57,6 +57,26 @@
     return false;
   };
 
+  coordinator.runSearchResultFastCleanup = coordinator.runSearchResultFastCleanup || function (state, options) {
+    if (!state || !state.config || !document.documentElement) {
+      return false;
+    }
+    const config = options || {};
+    const work = function () {
+      configuredCleanup.injectStyle(state, {
+        includeGenericSelectors: false,
+        includeRuleSelectors: false
+      });
+      coordinator.removeSearchResultAds(config);
+    };
+    if (typeof config.runWithMutationSuppressed === 'function') {
+      config.runWithMutationSuppressed(work);
+    } else {
+      work();
+    }
+    return true;
+  };
+
   coordinator.applyDisabledState = coordinator.applyDisabledState || function (state) {
     if (configuredCleanup.hasUserCssSelectors(state)) {
       configuredCleanup.injectStyle(state, {

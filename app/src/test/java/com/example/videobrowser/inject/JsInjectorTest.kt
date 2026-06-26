@@ -214,6 +214,37 @@ class JsInjectorTest {
         assertFalse(script.contains("__siteYoutubeLoaded"))
     }
 
+    @Test
+    fun inject_skipsSiteScriptsForFastSearchResultPages() {
+        val requestedPaths = mutableListOf<String>()
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = ScriptLoader { path ->
+                requestedPaths += path
+                ByteArrayInputStream(scriptContentFor(path).toByteArray(Charsets.UTF_8))
+            },
+            evaluateJavascript = { script -> evaluatedScripts += script },
+            siteAdapterRegistry = SiteAdapterRegistry.default()
+        )
+
+        injector.inject(
+            PageFeatureConfig(
+                cleanupEnabled = true,
+                videoEnabled = false,
+                siteAdapterScriptsEnabled = false,
+                builtInSearchResultPage = true
+            ),
+            pageUrl = "https://search.bilibili.com/all?keyword=test"
+        )
+
+        val script = evaluatedScripts.single()
+        assertEquals(ScriptLoader.COMMON_SCRIPT_ASSETS, requestedPaths)
+        assertFalse(script.contains("window.__VIDEOBROWSER_SITE_SCRIPT_FLAGS__"))
+        assertFalse(script.contains("__siteBilibiliLoaded"))
+        assertTrue(script.contains("\"builtInSearchResultPage\":true"))
+        assertTrue(script.contains("\"videoEnabled\":false"))
+    }
+
     /**
      * 测试函数 `inject_wrapsSiteScriptsWithRepeatGuard`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `inject wraps Site Scripts With Repeat Guard` 这条行为是否成立。
      *
@@ -420,6 +451,58 @@ class JsInjectorTest {
 
         val script = evaluatedScripts.single()
         assertTrue(script.contains("\"builtInSearchResultPage\":true"))
+        assertTrue(script.contains("\"searchPageHideCss\":[\"form[action*=\\\"/s\\\"]\"]"))
+    }
+
+    @Test
+    fun inject_skipsRuleDerivedFeaturesForFastSearchResultPages() {
+        val evaluatedScripts = mutableListOf<String>()
+        val injector = JsInjector(
+            scriptLoader = scriptLoaderFor(COMMON_SCRIPT),
+            evaluateJavascript = { script -> evaluatedScripts += script },
+            ruleEngine = RuleEngine(
+                rules = listOf(Rule.blockUrlContains("/pagead/")),
+                elementRules = listOf(
+                    ElementRule(
+                        id = "css:1",
+                        selector = ".ad-banner",
+                        type = ElementRuleType.CSS_HIDE
+                    ),
+                    ElementRule(
+                        id = "dom:1",
+                        selector = ".popup-ad",
+                        type = ElementRuleType.DOM_REMOVE
+                    )
+                ),
+                scriptletRules = listOf(
+                    ScriptletRule(
+                        id = "hook:skip",
+                        name = "click-skip-buttons"
+                    ),
+                    ScriptletRule(
+                        id = "hook:controls",
+                        name = "enable-video-controls"
+                    )
+                )
+            )
+        )
+
+        injector.inject(
+            PageFeatureConfig(
+                cleanupEnabled = true,
+                videoEnabled = false,
+                builtInSearchResultPage = true,
+                searchPageHideCss = listOf("form[action*=\"/s\"]")
+            ),
+            pageUrl = "https://m.baidu.com/s?word=test"
+        )
+
+        val script = evaluatedScripts.single()
+        assertTrue(script.contains("\"cssSelectors\":[]"))
+        assertTrue(script.contains("\"domSelectors\":[]"))
+        assertTrue(script.contains("\"blockedUrlKeywords\":[]"))
+        assertTrue(script.contains("\"scriptletSkipButtonsEnabled\":false"))
+        assertTrue(script.contains("\"scriptletVideoControlsEnabled\":false"))
         assertTrue(script.contains("\"searchPageHideCss\":[\"form[action*=\\\"/s\\\"]\"]"))
     }
 

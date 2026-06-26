@@ -134,11 +134,15 @@ class PageFeatureCoordinator(
         // 每次页面加载完成后重新计算当前站点配置，确保站点级开关立即生效。
         val pageUrl = currentPageUrl() ?: browserManager().currentUrl()
         val builtInSearchResultPage = isBuiltInSearchResultPage(pageUrl)
+        val jsInjectionEnabled = isJsInjectionEnabled() && !isCurrentSiteJsInjectionDisabled()
         jsInjector.inject(
             PageFeatureConfig(
-                jsInjectionEnabled = isJsInjectionEnabled() && !isCurrentSiteJsInjectionDisabled(),
+                jsInjectionEnabled = jsInjectionEnabled,
                 cleanupEnabled = isPageCleanupEnabled() && !isCurrentSitePageCleanupDisabled(),
-                videoEnabled = isVideoEnhancementEnabled() && !isCurrentSiteVideoEnhancementDisabled(),
+                videoEnabled = !builtInSearchResultPage &&
+                    isVideoEnhancementEnabled() &&
+                    !isCurrentSiteVideoEnhancementDisabled(),
+                siteAdapterScriptsEnabled = !builtInSearchResultPage,
                 builtInSearchResultPage = builtInSearchResultPage,
                 searchPageHideCss = if (builtInSearchResultPage) {
                     searchPageHideCssForUrl(pageUrl)
