@@ -135,7 +135,10 @@ object SearchEngineUrlTools {
         return if (configuredPaths.isEmpty()) {
             currentPath == normalizedPath(templateUri)
         } else {
-            currentPath in configuredPaths
+            configuredPaths.any { configuredPath ->
+                currentPath == configuredPath ||
+                    (configuredPath != "/" && currentPath.endsWith(configuredPath))
+            }
         }
     }
 

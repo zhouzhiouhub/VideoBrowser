@@ -86,6 +86,32 @@ class SearchEngineUrlToolsTest {
     }
 
     @Test
+    fun queryFromUrl_acceptsRedirectedSearchResultPathSuffixes() {
+        val config = SearchEngineConfig(
+            name = "百度",
+            displayUrl = "https://m.baidu.com",
+            searchTemplate = "https://m.baidu.com/s?word={keyword}",
+            queryParam = "word",
+            domains = listOf("m.baidu.com"),
+            resultPathRules = listOf("/s")
+        )
+
+        assertEquals(
+            "爱情测试免费测试",
+            SearchEngineUrlTools.queryFromUrl(
+                config,
+                "https://m.baidu.com/from=844b/ssid=0/s?word=%E7%88%B1%E6%83%85%E6%B5%8B%E8%AF%95%E5%85%8D%E8%B4%B9%E6%B5%8B%E8%AF%95"
+            )
+        )
+        assertNull(
+            SearchEngineUrlTools.queryFromUrl(
+                config,
+                "https://m.baidu.com/news?word=%E7%88%B1%E6%83%85"
+            )
+        )
+    }
+
+    @Test
     fun queryFromUrl_ignoresDisabledSearchEngineConfigs() {
         assertNull(
             SearchEngineUrlTools.queryFromUrl(

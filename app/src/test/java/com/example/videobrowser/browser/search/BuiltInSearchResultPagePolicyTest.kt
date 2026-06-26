@@ -78,6 +78,12 @@ class BuiltInSearchResultPagePolicyTest {
             "视频",
             defaultPolicy.searchQueryFromUrl("https://search.bilibili.com/all?keyword=%E8%A7%86%E9%A2%91")
         )
+        assertEquals(
+            "爱情测试免费测试",
+            defaultPolicy.searchQueryFromUrl(
+                "https://m.baidu.com/from=844b/ssid=0/s?word=%E7%88%B1%E6%83%85%E6%B5%8B%E8%AF%95%E5%85%8D%E8%B4%B9%E6%B5%8B%E8%AF%95&rq=%E6%B5%8B%E8%AF%95"
+            )
+        )
     }
 
     @Test
@@ -91,6 +97,11 @@ class BuiltInSearchResultPagePolicyTest {
         assertTrue(
             defaultPolicy.searchPageHideCssForUrl("https://so.douyin.com/s?keyword=你好")
                 .contains("[role=\"search\"]")
+        )
+        assertTrue(
+            defaultPolicy.searchPageHideCssForUrl(
+                "https://m.baidu.com/from=844b/ssid=0/s?word=%E7%88%B1%E6%83%85"
+            ).contains("#index-form")
         )
         assertTrue(defaultPolicy.searchPageHideCssForUrl("https://example.com/").isEmpty())
     }
@@ -109,6 +120,12 @@ class BuiltInSearchResultPagePolicyTest {
             defaultPolicy.isSearchResultResourceUrl(
                 pageUrl = "https://www.baidu.com/s?wd=%E4%BD%A0%E5%A5%BD",
                 resourceUrl = "https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/tpl/resource.js"
+            )
+        )
+        assertTrue(
+            defaultPolicy.isSearchResultResourceUrl(
+                pageUrl = "https://m.baidu.com/from=844b/ssid=0/s?word=%E7%88%B1%E6%83%85",
+                resourceUrl = "https://m.baidu.com/static/app.js"
             )
         )
         assertFalse(
