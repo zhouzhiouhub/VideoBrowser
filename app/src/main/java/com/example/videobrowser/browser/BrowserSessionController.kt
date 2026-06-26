@@ -44,6 +44,7 @@ class BrowserSessionController(
         private set
 
     private var pageProgress = 0
+    private var pageCommitVisible = false
 
     /**
      * 页面开始加载时重置标题、进度和元素选择状态。
@@ -58,8 +59,25 @@ class BrowserSessionController(
         resetPageTitle()
         isPageLoading = true
         pageProgress = 0
+        pageCommitVisible = false
         notifyPageMetadataChanged()
         renderIfActive()
+    }
+
+    /**
+     * 函数 `handlePageCommitVisible`：在 WebView 首屏内容已经可见时隐藏进度条，避免后续资源拖慢搜索页体感。
+     *
+     * @param url 参数类型为 `String?`，表示已经提交到屏幕的页面地址。
+     */
+    fun handlePageCommitVisible(url: String?) {
+        currentPageUrl = url ?: currentPageUrl
+        pageCommitVisible = true
+        notifyPageMetadataChanged()
+        if (isActive()) {
+            setPageProgress(pageProgress)
+            updatePageProgressVisibility(true)
+            updateNavigationButtons()
+        }
     }
 
     /**
@@ -74,6 +92,7 @@ class BrowserSessionController(
         isHomePageVisible = false
         isPageLoading = false
         pageProgress = 100
+        pageCommitVisible = false
         addHistoryEntry(url)
         notifyPageMetadataChanged()
         if (isActive()) {
@@ -96,6 +115,7 @@ class BrowserSessionController(
         isHomePageVisible = false
         isPageLoading = false
         pageProgress = 100
+        pageCommitVisible = false
         notifyPageMetadataChanged()
         if (isActive()) {
             renderCurrentState(forceProgressHidden = true)
@@ -114,7 +134,7 @@ class BrowserSessionController(
         pageProgress = normalizedProgress
         if (isActive()) {
             setPageProgress(pageProgress)
-            updatePageProgressVisibility(false)
+            updatePageProgressVisibility(pageCommitVisible)
             updateNavigationButtons()
         }
     }
@@ -162,6 +182,7 @@ class BrowserSessionController(
         isPageLoading = false
         isHomePageVisible = true
         pageProgress = 0
+        pageCommitVisible = false
         notifyPageMetadataChanged()
         renderCurrentState(forceProgressHidden = true)
     }
@@ -179,6 +200,7 @@ class BrowserSessionController(
         isHomePageVisible = url.isNullOrBlank()
         isPageLoading = false
         pageProgress = if (url == null) 0 else 100
+        pageCommitVisible = false
         notifyPageMetadataChanged()
         renderCurrentState(forceProgressHidden = true)
     }

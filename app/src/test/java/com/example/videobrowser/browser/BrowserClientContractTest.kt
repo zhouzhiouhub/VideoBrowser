@@ -30,6 +30,27 @@ class BrowserClientContractTest {
         assertTrue(browserClient.contains("BrowserPageError.Http"))
     }
 
+    @Test
+    fun browserClientRoutesVisiblePageCommitToSessionProgressState() {
+        val browserClient = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserClient.kt"
+        ).readText()
+        val webClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
+        ).readText()
+        val sessionController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserSessionController.kt"
+        ).readText()
+
+        assertTrue(browserClient.contains("pageCommitVisible: (String?) -> Unit"))
+        assertTrue(browserClient.contains("override fun onPageCommitVisible"))
+        assertTrue(browserClient.contains("pageCommitVisible(url)"))
+        assertTrue(webClientController.contains("pageCommitVisible = { url -> sessionController().handlePageCommitVisible(url) }"))
+        assertTrue(sessionController.contains("fun handlePageCommitVisible(url: String?)"))
+        assertTrue(sessionController.contains("pageCommitVisible = true"))
+        assertTrue(sessionController.contains("updatePageProgressVisibility(pageCommitVisible)"))
+    }
+
     /**
      * 测试函数 `browserClientCancelsSslErrorsBeforeShowingErrorPage`：按测试名描述的场景准备输入、调用被测代码，并用断言验证 `browser Client Cancels Ssl Errors Before Showing Error Page` 这条行为是否成立。
      *

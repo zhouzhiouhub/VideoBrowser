@@ -50,6 +50,7 @@ class BrowserWebClientController(
                     resetBackExitConfirmation()
                     sessionController().handlePageStarted(url)
                 },
+                pageCommitVisible = { url -> sessionController().handlePageCommitVisible(url) },
                 pageFinished = { url -> sessionController().handlePageFinished(url) },
                 pageLoadFailed = ::showBrowserErrorPage,
                 requestIntercepted = ::interceptBrowserRequest,

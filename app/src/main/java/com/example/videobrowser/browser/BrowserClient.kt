@@ -28,6 +28,7 @@ import android.webkit.WebViewClient
  */
 class BrowserClient(
     private val pageStarted: (String?) -> Unit = {},
+    private val pageCommitVisible: (String?) -> Unit = {},
     private val pageFinished: (String?) -> Unit = {},
     private val pageLoadFailed: (BrowserPageError) -> Unit = {},
     private val requestIntercepted: (BrowserRequest) -> WebResourceResponse? = { null },
@@ -48,6 +49,17 @@ class BrowserClient(
      */
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         pageStarted(url)
+    }
+
+    /**
+     * 函数 `onPageCommitVisible`：处理 `on Page Commit Visible` 对应的事件或请求，集中完成校验、状态更新和回调通知。
+     *
+     * 初学者阅读提示：WebView 在首屏内容已经提交并可见时回调这里，早于完整页面结束加载。
+     * @param view 参数类型为 `WebView?`，表示当前参与操作的视图对象，函数会从中读取状态或更新界面。
+     * @param url 参数类型为 `String?`，表示已经可见提交的页面地址，用来同步会话和进度状态。
+     */
+    override fun onPageCommitVisible(view: WebView?, url: String?) {
+        pageCommitVisible(url)
     }
 
     /**
