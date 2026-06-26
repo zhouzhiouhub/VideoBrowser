@@ -7,6 +7,7 @@ import com.example.videobrowser.testutil.projectFile
  * 这个测试文件验证“Browser Client Contract Test”相关行为。
  * 初学者可以先看每个 @Test 函数名了解被验证的功能，再看断言确认代码需要满足哪些条件。
  */
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -38,11 +39,17 @@ class BrowserClientContractTest {
 
         assertTrue(
             browserClient.contains(
-                "val pageUrl = if (webRequest.isForMainFrame) webRequest.url.toString() else view?.url"
+                "val pageUrl = if (webRequest.isForMainFrame) webRequest.url.toString() else currentPageUrl()"
             )
         )
         assertTrue(browserClient.contains("BrowserRequest.from(webRequest, pageUrl = pageUrl)"))
-        assertTrue(browserClient.contains("BrowserRequest.from(url, pageUrl = view?.url)"))
+        assertTrue(browserClient.contains("BrowserRequest.from(url, pageUrl = currentPageUrl())"))
+        assertFalse(browserClient.contains("view?.url"))
+
+        val webClientController = projectFile(
+            "src/main/java/com/example/videobrowser/browser/BrowserWebClientController.kt"
+        ).readText()
+        assertTrue(webClientController.contains("currentPageUrl = { sessionController().currentPageUrl }"))
     }
 
     @Test

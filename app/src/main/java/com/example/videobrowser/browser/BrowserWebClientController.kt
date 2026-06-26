@@ -60,6 +60,7 @@ class BrowserWebClientController(
                 pageCommitVisible = { url -> sessionController().handlePageCommitVisible(url) },
                 pageFinished = { url -> sessionController().handlePageFinished(url) },
                 pageLoadFailed = ::showBrowserErrorPage,
+                currentPageUrl = { sessionController().currentPageUrl },
                 requestIntercepted = ::interceptBrowserRequest,
                 urlLoadingRequested = shouldBlockUrl,
                 clientCertRequested = { _, request -> clientCertificateController.handleRequest(request) },
