@@ -15,8 +15,8 @@
     if (!state.config || !state.config.builtInSearchResultPage) return false;
 
     const work = function () {
-      hideConfiguredSearchChrome(state.config.searchPageHideCss);
-      hideEmbeddedSearchChrome();
+      moveConfiguredSearchChromeToContentEnd(state.config.searchPageHideCss);
+      moveEmbeddedSearchChromeToContentEnd();
     };
     if (typeof config.runWithMutationSuppressed === 'function') {
       config.runWithMutationSuppressed(work);
@@ -26,30 +26,80 @@
     return true;
   };
 
-  function hideConfiguredSearchChrome(selectors) {
+  function moveConfiguredSearchChromeToContentEnd(selectors) {
     selectorTools.safeSelectorList(selectors).forEach(function (selector) {
       selectorTools.queryAll(selector).forEach(function (element) {
         if (isLikelyResultContent(element)) return;
-        domActions.hideElement(element, {
-          reason: 'configured-embedded-search-shell',
-          protectAppContainers: true
-        });
+        const root = findEmbeddedSearchChromeRoot(element) || element;
+        if (!rootHasSearchControl(root)) return;
+        moveSearchChromeRootToContentEnd(root, 'configured-embedded-search-shell');
       });
     });
   }
 
-  function hideEmbeddedSearchChrome() {
+  function moveEmbeddedSearchChromeToContentEnd() {
     const roots = [];
     collectEmbeddedSearchChromeCandidates().forEach(function (candidate) {
       const root = findEmbeddedSearchChromeRoot(candidate);
       if (root && roots.indexOf(root) === -1) roots.push(root);
     });
     roots.forEach(function (root) {
-      domActions.hideElement(root, {
-        reason: 'embedded-search-shell',
-        protectAppContainers: true
-      });
+      if (rootHasSearchControl(root)) {
+        moveSearchChromeRootToContentEnd(root, 'embedded-search-shell');
+      } else {
+        domActions.hideElement(root, {
+          reason: 'embedded-search-shell',
+          protectAppContainers: true
+        });
+      }
     });
+  }
+
+  function moveSearchChromeRootToContentEnd(root, reason) {
+    if (!root || !document.body || domActions.isPageRoot(root)) return false;
+    if (root.getAttribute('data-videobrowser-search-shell-bottom') === 'true') return true;
+
+    const container = ensureContentEndSearchShellContainer();
+    if (!container) return false;
+    root.setAttribute('data-videobrowser-search-shell-bottom', 'true');
+    root.setAttribute('data-videobrowser-search-shell-reason', reason || 'embedded-search-shell');
+    resetMovedSearchChromeStyle(root);
+    container.appendChild(root);
+    return true;
+  }
+
+  function ensureContentEndSearchShellContainer() {
+    let container = document.getElementById('videobrowser-search-shell-content-end');
+    if (container) return container;
+    container = document.createElement('section');
+    container.id = 'videobrowser-search-shell-content-end';
+    container.setAttribute('data-videobrowser-search-shell-container', 'true');
+    container.style.setProperty('display', 'block', 'important');
+    container.style.setProperty('margin', '16px 0 0', 'important');
+    container.style.setProperty('padding', '12px 8px 24px', 'important');
+    container.style.setProperty('box-sizing', 'border-box', 'important');
+    document.body.appendChild(container);
+    return container;
+  }
+
+  function resetMovedSearchChromeStyle(root) {
+    root.removeAttribute('data-videobrowser-dismissed');
+    [
+      'display',
+      'visibility',
+      'pointer-events',
+      'position',
+      'top',
+      'right',
+      'bottom',
+      'left',
+      'z-index',
+      'transform'
+    ].forEach(function (propertyName) {
+      root.style.removeProperty(propertyName);
+    });
+    root.style.setProperty('max-width', '100%', 'important');
+    root.style.setProperty('box-sizing', 'border-box', 'important');
   }
 
   function collectEmbeddedSearchChromeCandidates() {
@@ -131,6 +181,12 @@
       }
     }
     return candidate;
+  }
+
+  function rootHasSearchControl(root) {
+    if (!root || typeof root.querySelector !== 'function') return false;
+    if (matchesSafely(root, 'form,[role="search"],input,textarea')) return true;
+    return domTools.queryAllWithin(root, 'form,[role="search"],input,textarea').length > 0;
   }
 
   function isInEmbeddedSearchChromeZone(element) {
