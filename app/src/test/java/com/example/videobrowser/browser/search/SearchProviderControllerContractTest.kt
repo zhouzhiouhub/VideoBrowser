@@ -144,7 +144,7 @@ class SearchProviderControllerContractTest {
     }
 
     @Test
-    fun pageFeatureVisibilityHidesBeforePageDrawAndRevealsAfterInjection() {
+    fun pageFeatureVisibilityOnlyHidesUserElementPagesBeforeInjection() {
         val visibilityController = projectFile(
             "src/main/java/com/example/videobrowser/browser/BrowserPageFeatureVisibilityController.kt"
         ).readText()
@@ -171,11 +171,12 @@ class SearchProviderControllerContractTest {
         assertTrue(visibilityController.contains("setActiveWebViewAlpha(HIDDEN_ALPHA)"))
         assertTrue(visibilityController.contains("fun handlePageFeaturesInjected(url: String?)"))
         assertTrue(visibilityController.contains("setActiveWebViewAlpha(VISIBLE_ALPHA)"))
-        assertTrue(visibilityPolicy.contains("settingsManager.isDomAdBlockEnabled()"))
+        assertFalse(visibilityPolicy.contains("settingsManager.isDomAdBlockEnabled()"))
         assertTrue(visibilityPolicy.contains("settingsManager.userElementHideSelectorsForSite(host).isNotEmpty()"))
-        assertTrue(visibilityPolicy.contains("isBuiltInSearchResultPage(url)"))
+        assertFalse(visibilityPolicy.contains("isBuiltInSearchResultPage(url)"))
         assertTrue(searchAssembly.contains("val pageFeatureVisibilityController: BrowserPageFeatureVisibilityController"))
         assertTrue(searchAssembly.contains("BrowserPageFeatureVisibilityPolicy("))
+        assertFalse(searchAssembly.contains("isBuiltInSearchResultPage = builtInSearchResultPagePolicy::isBuiltInSearchResultUrl"))
         assertTrue(searchAssembly.contains("setActiveWebViewAlpha = { alpha -> activeWebView().alpha = alpha }"))
         assertTrue(coreAssembly.contains("activeWebView = {"))
         assertTrue(webClientController.contains("pageFeatureVisibilityController.handlePageStarted(url)"))

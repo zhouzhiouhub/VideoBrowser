@@ -110,8 +110,7 @@ class BrowserSearchAssemblyController(
             builtInSearchResultPagePolicy = builtInSearchResultPagePolicy
         )
         val pageFeatureVisibilityPolicy = BrowserPageFeatureVisibilityPolicy(
-            settingsManager = settingsManager,
-            isBuiltInSearchResultPage = builtInSearchResultPagePolicy::isBuiltInSearchResultUrl
+            settingsManager = settingsManager
         )
         val pageFeatureVisibilityController =
             BrowserPageFeatureVisibilityController(

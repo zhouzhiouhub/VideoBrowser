@@ -8,22 +8,19 @@ import org.junit.Test
 
 class BrowserPageFeatureVisibilityPolicyTest {
     @Test
-    fun shouldHideUntilPageFeaturesInjected_hidesCleanupPagesWhenDomCleanupEnabled() {
+    fun shouldHideUntilPageFeaturesInjected_revealsCleanupPagesWhenDomCleanupEnabled() {
         val policy = policyFor(settings = SettingsManager(InMemoryPreferenceStore()))
 
-        assertTrue(policy.shouldHideUntilPageFeaturesInjected("https://video.example.com/watch"))
+        assertFalse(policy.shouldHideUntilPageFeaturesInjected("https://video.example.com/watch"))
     }
 
     @Test
-    fun shouldHideUntilPageFeaturesInjected_hidesBuiltInSearchPagesWhenDomCleanupDisabled() {
+    fun shouldHideUntilPageFeaturesInjected_revealsBuiltInSearchPagesWhenDomCleanupDisabled() {
         val settings = SettingsManager(InMemoryPreferenceStore())
         settings.setDomAdBlockEnabled(false)
-        val policy = policyFor(
-            settings = settings,
-            isBuiltInSearchResultPage = { url -> url == "https://m.baidu.com/s?word=hello" }
-        )
+        val policy = policyFor(settings = settings)
 
-        assertTrue(policy.shouldHideUntilPageFeaturesInjected("https://m.baidu.com/s?word=hello"))
+        assertFalse(policy.shouldHideUntilPageFeaturesInjected("https://m.baidu.com/s?word=hello"))
     }
 
     @Test
@@ -59,12 +56,10 @@ class BrowserPageFeatureVisibilityPolicyTest {
     }
 
     private fun policyFor(
-        settings: SettingsManager,
-        isBuiltInSearchResultPage: (String?) -> Boolean = { false }
+        settings: SettingsManager
     ): BrowserPageFeatureVisibilityPolicy {
         return BrowserPageFeatureVisibilityPolicy(
-            settingsManager = settings,
-            isBuiltInSearchResultPage = isBuiltInSearchResultPage
+            settingsManager = settings
         )
     }
 }
