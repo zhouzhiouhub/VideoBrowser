@@ -7,6 +7,7 @@ package com.example.videobrowser.functioncenter
  * 主要职责：构建底部功能面板、设置页面、数据管理页面以及各种用户可点击的工具入口。
  * 阅读顺序：先看构造参数和数据模型，再看公开函数如何被 MainActivity 或功能中心页面调用。
  */
+import android.widget.LinearLayout
 import com.example.videobrowser.R
 import com.example.videobrowser.browser.BrowserManager
 import com.example.videobrowser.settings.SettingsManager
@@ -18,6 +19,7 @@ class UserManualRulesPage(
     private val host: FunctionCenterPageHost,
     private val settingsManager: SettingsManager,
     private val browserManager: () -> BrowserManager,
+    private val startElementPicker: () -> Unit,
     private val showRootPage: () -> Unit
 ) {
     private val activity = host.activity
@@ -37,22 +39,10 @@ class UserManualRulesPage(
             onBack = showRootPage,
             replaceCurrent = replaceCurrent
         ) { content ->
+            addActions(content, hasRules = rules.isNotEmpty())
             if (rules.isEmpty()) {
                 host.contentFactory.addEmptyState(content, activity.getString(R.string.dialog_user_manual_rules_empty))
                 return@showPage
-            }
-
-            host.contentFactory.addFunctionSection(
-                content,
-                activity.getString(R.string.function_center_section_actions)
-            ) { section ->
-                host.contentFactory.addActionRow(
-                    parent = section,
-                    title = activity.getString(R.string.action_clear),
-                    summary = activity.getString(R.string.action_clear_user_manual_rules_summary)
-                ) {
-                    showClearUserManualRulesDialog()
-                }
             }
 
             host.contentFactory.addFunctionSection(
@@ -70,6 +60,35 @@ class UserManualRulesPage(
                 }
             }
         }
+    }
+
+    private fun addActions(content: LinearLayout, hasRules: Boolean) {
+        host.contentFactory.addFunctionSection(
+            content,
+            activity.getString(R.string.function_center_section_actions)
+        ) { section ->
+            host.contentFactory.addActionRow(
+                parent = section,
+                title = activity.getString(R.string.action_pick_element),
+                summary = activity.getString(R.string.action_pick_element_manual_rule_summary)
+            ) {
+                startPickingElement()
+            }
+            if (hasRules) {
+                host.contentFactory.addActionRow(
+                    parent = section,
+                    title = activity.getString(R.string.action_clear),
+                    summary = activity.getString(R.string.action_clear_user_manual_rules_summary)
+                ) {
+                    showClearUserManualRulesDialog()
+                }
+            }
+        }
+    }
+
+    private fun startPickingElement() {
+        host.close()
+        startElementPicker()
     }
 
     /**

@@ -148,6 +148,7 @@ class FunctionCenterPages(
         host = host,
         settingsManager = settingsManager,
         browserManager = browserManager,
+        startElementPicker = startElementPicker,
         showRootPage = ::showRootPage
     )
     private val sitePermissionsPage = SitePermissionsPage(

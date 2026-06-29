@@ -31,6 +31,7 @@
     <string name="anonymous_badge">无痕</string>
     <string name="element_picker_badge">工具</string>
     <string name="action_pick_element">屏蔽元素</string>
+    <string name="action_pick_element_manual_rule_summary">从当前网页选择元素并保存为手动屏蔽规则</string>
     <string name="action_select_search_provider">使用 %1$s 搜索</string>
     <string name="address_suggestion_search">搜索：%1$s</string>
     <string name="address_suggestion_bookmark">收藏：%1$s</string>
